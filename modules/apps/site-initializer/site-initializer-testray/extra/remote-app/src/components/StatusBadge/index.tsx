@@ -12,33 +12,6 @@
  * details.
  */
 
-import classNames from 'classnames';
-
-const statusBarClassNames: any = {
-	blocked: 'label-inverse-secondary',
-	failed: 'label-inverse-danger',
-	incomplete: 'label-inverse-light',
-	other: 'label-inverse-primary',
-	passed: 'label-inverse-success',
-	self: 'label-inverse-info',
-	test_fix: 'label-tonal-success',
-	untested: 'label-inverse-secondary',
-};
-
-export type StatusBadgeProps = {
-	type: string;
-};
-
-const StatusBadge: React.FC<StatusBadgeProps> = ({children, type}) => (
-	<span
-		className={classNames(
-			'label',
-			'text-uppercase',
-			statusBarClassNames[type] || type
-		)}
-	>
-		{children}
-	</span>
-);
+import StatusBadge from './StatusBadge';
 
 export default StatusBadge;

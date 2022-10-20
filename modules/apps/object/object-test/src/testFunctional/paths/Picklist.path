@@ -116,11 +116,6 @@
 		<td></td>
 	</tr>
 	<tr>
-		<td>REQUIRED_KEY_ITEM</td>
-		<td>//input[@id='listTypeEntryKey']/..//div[contains(@class, 'form-feedback-group') and contains(.,'Required')]</td>
-		<td></td>
-	</tr>
-	<tr>
 		<td>PICKLIST_MESSAGE</td>
 		<td>//div[(@class='autofit-section') and contains(.,'${key_picklistMessage}')]</td>
 		<td></td>

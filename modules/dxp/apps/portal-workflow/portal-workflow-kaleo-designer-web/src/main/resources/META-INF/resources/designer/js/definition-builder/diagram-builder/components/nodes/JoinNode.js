@@ -30,13 +30,13 @@ export default function JoinNode({
 	return (
 		<BaseNode
 			actions={actions}
-			className="join-node"
 			description={description}
 			descriptionSidebar={descriptionSidebar}
 			icon="radio-button"
 			id={id}
 			label={label}
 			newNode={newNode}
+			nodeTypeClassName="join-node"
 			notifications={notifications}
 			type="join"
 			{...otherProps}

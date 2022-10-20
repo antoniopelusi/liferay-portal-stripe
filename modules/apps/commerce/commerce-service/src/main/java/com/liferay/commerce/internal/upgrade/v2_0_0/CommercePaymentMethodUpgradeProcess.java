@@ -14,34 +14,31 @@
 
 package com.liferay.commerce.internal.upgrade.v2_0_0;
 
-import com.liferay.commerce.internal.upgrade.base.BaseCommerceServiceUpgradeProcess;
 import com.liferay.commerce.model.impl.CommerceOrderImpl;
 import com.liferay.commerce.model.impl.CommerceOrderPaymentImpl;
+import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.util.StringUtil;
 
 /**
  * @author Luca Pellizzon
  */
-public class CommercePaymentMethodUpgradeProcess
-	extends BaseCommerceServiceUpgradeProcess {
+public class CommercePaymentMethodUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		if (!hasColumn(CommerceOrderImpl.TABLE_NAME, "transactionId")) {
-			addColumn("CommerceOrder", "transactionId", "VARCHAR(75)");
-		}
+		alterTableAddColumn("CommerceOrder", "transactionId", "VARCHAR(75)");
 
 		if (hasColumn(
 				CommerceOrderImpl.TABLE_NAME, "commercePaymentMethodId")) {
 
-			addColumn(
+			alterTableAddColumn(
 				"CommerceOrder", "commercePaymentMethodKey", "VARCHAR(75)");
 
 			String template = StringUtil.read(
 				CommercePaymentMethodUpgradeProcess.class.getResourceAsStream(
 					"dependencies/CommerceOrderUpgradeProcess.sql"));
 
-			runSQLTemplateString(template, false, false);
+			runSQLTemplateString(template, false);
 
 			alterTableDropColumn("CommerceOrder", "commercePaymentMethodId");
 		}
@@ -50,7 +47,7 @@ public class CommercePaymentMethodUpgradeProcess
 				CommerceOrderPaymentImpl.TABLE_NAME,
 				"commercePaymentMethodId")) {
 
-			addColumn(
+			alterTableAddColumn(
 				"CommerceOrderPayment", "commercePaymentMethodKey",
 				"VARCHAR(75)");
 
@@ -58,7 +55,7 @@ public class CommercePaymentMethodUpgradeProcess
 				CommercePaymentMethodUpgradeProcess.class.getResourceAsStream(
 					"dependencies/CommerceOrderPaymentUpgradeProcess.sql"));
 
-			runSQLTemplateString(template, false, false);
+			runSQLTemplateString(template, false);
 
 			alterTableDropColumn(
 				"CommerceOrderPayment", "commercePaymentMethodId");
@@ -69,7 +66,7 @@ public class CommercePaymentMethodUpgradeProcess
 				CommercePaymentMethodUpgradeProcess.class.getResourceAsStream(
 					"dependencies/CommercePaymentMethodUpgradeProcess.sql"));
 
-			runSQLTemplateString(template, false, false);
+			runSQLTemplateString(template, false);
 		}
 	}
 

@@ -36,6 +36,16 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ENABLE_PUBLICATIONS_TOGGLE_SWITCH</td>
+	<td>//input[contains(@id,'enablePublications')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ENABLE_SANDBOX_ONLY_TOGGLE_SWITCH</td>
+	<td>//input[contains(@id,'enableSandboxOnly')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>KEYWORD_TEXTFIELD</td>
 	<td>//*[@class='form-control-inset']</td>
 	<td></td>
@@ -96,6 +106,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>PUBLICATION_NAME_IN_ONGOING</td>
+	<td>//div[contains(@class,'publication-name') and contains(.,'${key_publicationName}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>PUBLICATION_ORDER_IN_HISTORY</td>
 	<td>//ul[contains(@class,'publications-table')]//li[${resultOrder}]/div/p/a</td>
 	<td></td>
@@ -103,6 +118,11 @@
 <tr>
 	<td>PUBLICATION_ROLE_BUTTON</td>
 	<td>//button[strong[contains(.,'${key_publicationRole}')]]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PUBLICATION_ROLE_BUTTON_HELP_TEXT</td>
+	<td>//button[strong[contains(.,'${key_publicationRole}')]//following-sibling::div[contains(.,'${key_publicationRoleHelpText}')]]</td>
 	<td></td>
 </tr>
 <tr>
@@ -117,12 +137,7 @@
 </tr>
 <tr>
 	<td>PUBLICATIONS_INDICATOR_TITLE</td>
-	<td>//button[contains(@class,'change-tracking-indicator-title')] and contains(.,'${key_publicationName}')</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PUBLICATIONS_TOGGLE_SWITCH</td>
-	<td>//input[contains(@id,'enablePublications')]</td>
+	<td>//span[contains(@class,'change-tracking-indicator-title') and contains(.,'${key_publicationName}')]</td>
 	<td></td>
 </tr>
 <tr>

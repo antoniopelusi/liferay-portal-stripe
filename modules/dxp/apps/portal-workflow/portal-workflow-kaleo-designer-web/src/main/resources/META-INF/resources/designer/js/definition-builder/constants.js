@@ -9,6 +9,7 @@
  * distribution rights of the Software.
  */
 
+const contextUrl = Liferay.ThemeDisplay.getPathContext();
 const defaultLanguageId = themeDisplay.getLanguageId();
 
 const editorConfig = {
@@ -16,4 +17,4 @@ const editorConfig = {
 	toolbar: [['Source']],
 };
 
-export {defaultLanguageId, editorConfig};
+export {contextUrl, defaultLanguageId, editorConfig};

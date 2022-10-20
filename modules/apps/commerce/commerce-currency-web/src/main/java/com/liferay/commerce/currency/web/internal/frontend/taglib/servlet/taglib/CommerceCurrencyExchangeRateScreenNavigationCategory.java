@@ -19,12 +19,12 @@ import com.liferay.commerce.currency.model.CommerceCurrencyConstants;
 import com.liferay.commerce.currency.service.CommerceCurrencyService;
 import com.liferay.commerce.currency.util.CommercePriceFormatter;
 import com.liferay.commerce.currency.util.ExchangeRateProviderRegistry;
+import com.liferay.commerce.currency.web.internal.constants.CommerceCurrencyScreenNavigationConstants;
 import com.liferay.commerce.currency.web.internal.display.context.CommerceCurrenciesDisplayContext;
-import com.liferay.commerce.currency.web.internal.servlet.taglib.ui.constants.CommerceCurrencyScreenNavigationConstants;
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationCategory;
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationEntry;
 import com.liferay.frontend.taglib.servlet.taglib.util.JSPRenderer;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.util.JavaConstants;
@@ -78,7 +78,7 @@ public class CommerceCurrencyExchangeRateScreenNavigationCategory
 		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
 			"content.Language", locale, getClass());
 
-		return LanguageUtil.get(
+		return _language.get(
 			resourceBundle,
 			CommerceCurrencyScreenNavigationConstants.
 				ENTRY_KEY_COMMERCE_CURRENCY_EXCHANGE_RATE);
@@ -131,6 +131,9 @@ public class CommerceCurrencyExchangeRateScreenNavigationCategory
 
 	@Reference
 	private JSPRenderer _jspRenderer;
+
+	@Reference
+	private Language _language;
 
 	@Reference(
 		target = "(resource.name=" + CommerceCurrencyConstants.RESOURCE_NAME + ")"

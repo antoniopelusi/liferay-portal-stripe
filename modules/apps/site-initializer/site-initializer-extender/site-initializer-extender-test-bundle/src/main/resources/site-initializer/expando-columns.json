@@ -1,0 +1,25 @@
+[
+	{
+		"dataType": 5,
+		"modelResource": "com.liferay.commerce.product.model.CPDefinition",
+		"name": "Test Expando Column 1"
+	},
+	{
+		"dataType": 15,
+		"modelResource": "com.liferay.commerce.product.model.CPDefinition",
+		"name": "Test Expando Column 2"
+	},
+	{
+		"dataType": 15,
+		"modelResource": "com.liferay.commerce.model.CommerceOrderItem",
+		"name": "Test Expando Column 3",
+		"properties": {
+			"hidden": false,
+			"indexType": 2,
+			"localizeFieldName": true,
+			"secret": false,
+			"visibleWithUpdatePermission": false,
+			"width": "0"
+		}
+	}
+]

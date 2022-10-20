@@ -73,25 +73,6 @@
 			margin: 25px 0;
 		}
 
-		&-quantity {
-			.btn {
-				border: 0;
-				border-radius: 8px;
-				font-size: 16px;
-				height: 40px;
-				width: auto;
-			}
-
-			input,
-			select {
-				background-color: transparent;
-				border: 2px solid $color-border;
-				border-radius: 8px;
-				height: 40px;
-				margin: 0 3px;
-			}
-		}
-
 		.item-sku {
 			font-size: 0.9em;
 		}

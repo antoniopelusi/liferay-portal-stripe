@@ -63,6 +63,10 @@ html#{$cadmin-selector} {
 				line:not(:last-child):not(:first-child) {
 				stroke-opacity: 0;
 			}
+
+			.recharts-brush-texts .recharts-text {
+				fill: $cadmin-secondary;
+			}
 		}
 
 		.custom-tooltip {
@@ -113,7 +117,7 @@ html#{$cadmin-selector} {
 				.sidebar-body {
 					padding-top: 0;
 
-					& > .sidebar-section {
+					.sidebar-section {
 						margin-bottom: 1rem;
 
 						&--compress {
@@ -166,6 +170,8 @@ html#{$cadmin-selector} {
 				top: 1rem;
 			}
 		}
+
+		@import './manage-collaborators';
 	}
 
 	.has-control-menu {

@@ -12,29 +12,48 @@
  * details.
  */
 
+import ClayButton from '@clayui/button';
 import ClayChart from '@clayui/charts';
 import {useRef} from 'react';
+import {useNavigate} from 'react-router-dom';
 
 import Container from '../../../../components/Layout/Container';
 import QATable from '../../../../components/Table/QATable';
+import useCaseResultGroupBy from '../../../../data/useCaseResultGroupBy';
 import useTotalTestCases from '../../../../data/useTotalTestCases';
-import {TestrayBuild} from '../../../../graphql/queries';
 import i18n from '../../../../i18n';
+import {TestrayBuild, TestrayTask} from '../../../../services/rest';
 import dayjs from '../../../../util/date';
 import {getDonutLegend} from '../../../../util/graph';
 
 type BuildOverviewProps = {
 	testrayBuild: TestrayBuild;
+	testrayTask?: TestrayTask;
 };
 
-const BuildOverview: React.FC<BuildOverviewProps> = ({testrayBuild}) => {
+const BuildOverview: React.FC<BuildOverviewProps> = ({
+	testrayBuild,
+	testrayTask,
+}) => {
+	const navigate = useNavigate();
+
 	const ref = useRef<any>();
 
+	const totalTestCasesGroup = useCaseResultGroupBy(testrayBuild.id);
 	const totalTestCases = useTotalTestCases();
 
 	return (
 		<>
-			<Container title={i18n.translate('details')}>
+			{!testrayTask && (
+				<ClayButton
+					className="mb-4"
+					onClick={() => navigate('/testflow/create')}
+				>
+					{i18n.translate('analyze')}
+				</ClayButton>
+			)}
+
+			<Container collapsable title={i18n.translate('details')}>
 				<QATable
 					items={[
 						{
@@ -90,42 +109,50 @@ const BuildOverview: React.FC<BuildOverviewProps> = ({testrayBuild}) => {
 				</div>
 			</Container>
 
-			<Container className="mt-4" title="Total Test Cases">
+			<Container
+				className="mt-4"
+				collapsable
+				title={i18n.translate('total-test-cases')}
+			>
 				<div className="row">
-					<div className="col-2">
-						<ClayChart
-							data={{
-								colors: totalTestCases.colors,
-								columns: totalTestCases.donut.columns,
-								type: 'donut',
-							}}
-							donut={{
-								expand: false,
-								label: {
-									show: false,
-								},
-								legend: {
-									show: false,
-								},
-								title: totalTestCases.donut.total.toString(),
-								width: 15,
-							}}
-							legend={{show: false}}
-							onafterinit={() => {
-								getDonutLegend(ref.current, {
-									data: totalTestCases.donut.columns.map(
-										([name]) => name
-									),
-									elementId: 'testrayTotalMetricsGraphLegend',
-									total: totalTestCases.donut.total as number,
-								});
-							}}
-							ref={ref}
-							size={{
-								height: 200,
-							}}
-						/>
-					</div>
+					{Boolean(totalTestCasesGroup.ready) && (
+						<div className="col-2">
+							<ClayChart
+								data={{
+									colors: totalTestCasesGroup.colors,
+									columns: totalTestCasesGroup.donut.columns,
+									type: 'donut',
+								}}
+								donut={{
+									expand: false,
+									label: {
+										show: false,
+									},
+									legend: {
+										show: false,
+									},
+									title: totalTestCasesGroup.donut.total.toString(),
+									width: 15,
+								}}
+								legend={{show: false}}
+								onafterinit={() => {
+									getDonutLegend(ref.current, {
+										data: totalTestCasesGroup.donut.columns.map(
+											([name]) => name
+										),
+										elementId:
+											'testrayTotalMetricsGraphLegend',
+										total: totalTestCasesGroup.donut
+											.total as number,
+									});
+								}}
+								ref={ref}
+								size={{
+									height: 200,
+								}}
+							/>
+						</div>
+					)}
 
 					<div className="col-2">
 						<div id="testrayTotalMetricsGraphLegend" />

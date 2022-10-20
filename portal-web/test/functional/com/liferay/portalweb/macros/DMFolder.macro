@@ -12,7 +12,7 @@ definition {
 			locator1 = "MenuItem#ANY_MENU_ITEM",
 			value1 = "Folder");
 
-		Pause(locator1 = "1000");
+		AssertElementPresent.assertVisible(locator1 = "TextInput#NAME");
 
 		PortletEntry.inputName(name = "${dmFolderName}");
 
@@ -58,7 +58,7 @@ definition {
 			locator1 = "MenuItem#ANY_MENU_ITEM",
 			value1 = "Folder");
 
-		Pause(locator1 = "1000");
+		AssertElementPresent.assertVisible(locator1 = "TextInput#NAME");
 
 		PortletEntry.inputName(name = "${dmFolderName}");
 
@@ -108,7 +108,7 @@ definition {
 			locator1 = "MenuItem#ANY_MENU_ITEM",
 			value1 = "Folder");
 
-		Pause(locator1 = "1000");
+		AssertElementPresent.assertVisible(locator1 = "TextInput#NAME");
 
 		PortletEntry.inputName(name = "${mgFolderName}");
 
@@ -128,12 +128,17 @@ definition {
 	}
 
 	macro configureWorkflowCP {
-		LexiconEntry.gotoEntryMenuItem(
-			menuItem = "Edit",
-			rowEntry = "${dmFolderName}");
+		if ("${dmFolderName}" == "homeFolder") {
+			Portlet.gotoPortletOptions(portletOption = "Edit");
+		}
+		else {
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Edit",
+				rowEntry = "${dmFolderName}");
 
-		if (IsElementNotPresent.isNotVisible(locator1 = "Radio#WORKFLOW_PARENT_FOLDER")) {
-			Click(locator1 = "DocumentsAndMediaEditFolder#WORKFLOW_DOCUMENT_TYPE_RESTRICTIONS_TOGGLE");
+			if (IsElementNotPresent.isNotVisible(locator1 = "Radio#WORKFLOW_PARENT_FOLDER")) {
+				Click(locator1 = "DocumentsAndMediaEditFolder#WORKFLOW_DOCUMENT_TYPE_RESTRICTIONS_TOGGLE");
+			}
 		}
 
 		if ("${workflowRestriction}" == "Parent Folder") {
@@ -172,7 +177,9 @@ definition {
 			AssertConfirm(value1 = "You are making changes to the document types. If a document in this folder or its subfolders is currently in draft or pending workflow states, you may lose some or all of its metadata. A new version will be created for all other documents. Are you sure you wish to continue?");
 		}
 		else if ("${workflowRestriction}" == "Default Workflow") {
-			Click(locator1 = "Radio#WORKFLOW_DEFAULT_WORKFLOW");
+			if (!(isSet(homeFolder))) {
+				Click(locator1 = "Radio#WORKFLOW_DEFAULT_WORKFLOW");
+			}
 
 			Select(
 				locator1 = "Select#WORKFLOW_DEFAULT",
@@ -210,7 +217,9 @@ definition {
 
 		Check(locator1 = "DocumentsAndMedia#DESCRIPTIVE_LIST_FOLDER_CHECKBOX");
 
-		Click(locator1 = "Icon#MOVE_TO_RECYCLE_BIN");
+		Click(
+			key_text = "trash",
+			locator1 = "ManagementBar#ANY_ICON");
 
 		VerifyElementPresent(locator1 = "Message#SUCCESS");
 
@@ -405,6 +414,8 @@ definition {
 	}
 
 	macro tearDownCP {
+		var key_dmDocumentTitle = "tree.png";
+
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
@@ -415,11 +426,17 @@ definition {
 		if (IsElementNotPresent(locator1 = "Message#EMPTY_INFO")) {
 			Click.clickNoMouseOverNoWaitForVisible(locator1 = "DocumentsAndMedia#TOOLBAR_SELECT_ALL_CHECKBOX");
 
-			Click(locator1 = "DocumentsAndMedia#TOOLBAR_ACTIONS");
+			if (IsElementPresent(locator1 = "DocumentsAndMedia#ICON_DOCUMENT_CHECKBOX")) {
+				Click.clickNoMouseOverNoWaitForVisible(locator1 = "DocumentsAndMedia#ICON_DOCUMENT_CHECKBOX");
+			}
 
-			MenuItem.viewPresent(menuItem = "Move to Recycle Bin");
+			if (IsElementPresent(locator1 = "DocumentsAndMedia#TOOLBAR_ACTIONS")) {
+				Click(locator1 = "DocumentsAndMedia#TOOLBAR_ACTIONS");
 
-			PortletEntry.clickMoveToRecycleBin();
+				MenuItem.viewPresent(menuItem = "Delete");
+
+				PortletEntry.clickMoveToRecycleBin();
+			}
 		}
 
 		JSONRecycleBin.emptyRecycleBin();
@@ -433,7 +450,7 @@ definition {
 
 			AssertClick(
 				locator1 = "MediaGallery#ENTRY_RECYCLE_BIN_ICON",
-				value1 = "Move to Recycle Bin");
+				value1 = "Delete");
 
 			VerifyElementPresent(locator1 = "Message#SUCCESS");
 		}

@@ -219,6 +219,15 @@ public class DBInitUtil {
 			}
 		}
 
+		try {
+			db.runSQL(connection, "alter table Release_ add state_ INTEGER");
+		}
+		catch (Exception exception) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(exception);
+			}
+		}
+
 		if (_checkDefaultRelease(connection)) {
 			_setSupportsStringCaseSensitiveQuery(db, connection);
 

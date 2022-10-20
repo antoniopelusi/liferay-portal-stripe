@@ -206,6 +206,34 @@ public class ObjectValidationRule implements Serializable {
 	protected String engine;
 
 	@Schema
+	public String getEngineLabel() {
+		return engineLabel;
+	}
+
+	public void setEngineLabel(String engineLabel) {
+		this.engineLabel = engineLabel;
+	}
+
+	@JsonIgnore
+	public void setEngineLabel(
+		UnsafeSupplier<String, Exception> engineLabelUnsafeSupplier) {
+
+		try {
+			engineLabel = engineLabelUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected String engineLabel;
+
+	@Schema
 	@Valid
 	public Map<String, String> getErrorLabel() {
 		return errorLabel;
@@ -435,6 +463,20 @@ public class ObjectValidationRule implements Serializable {
 			sb.append("\"");
 
 			sb.append(_escape(engine));
+
+			sb.append("\"");
+		}
+
+		if (engineLabel != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"engineLabel\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(engineLabel));
 
 			sb.append("\"");
 		}

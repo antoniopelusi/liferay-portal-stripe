@@ -27,6 +27,7 @@ import {
 	QUEUE_PRIORITY_IDENTITY,
 	STORAGE_KEY_EVENTS,
 	STORAGE_KEY_IDENTITY,
+	STORAGE_KEY_IDENTITY_LAST_UPDATED_DATE,
 	STORAGE_KEY_MESSAGES,
 	STORAGE_KEY_MESSAGE_IDENTITY,
 	STORAGE_KEY_USER_ID,
@@ -34,6 +35,7 @@ import {
 	VALIDATION_CONTEXT_VALUE_MAXIMUM_LENGTH,
 } from './utils/constants';
 import {getContexts, setContexts} from './utils/contexts';
+import {isExpired} from './utils/date';
 import {normalizeEvent} from './utils/events';
 import hash from './utils/hash';
 import {getItem, setItem} from './utils/storage';
@@ -122,10 +124,25 @@ class Analytics {
 	 */
 	static create(config = {}, middlewares = []) {
 		const self = new Analytics(config, middlewares);
+		const Liferay = window.Liferay;
 
 		ENV.Analytics = self;
 		ENV.Analytics.create = Analytics.create;
 		ENV.Analytics.dispose = Analytics.dispose;
+
+		if (
+			Liferay &&
+			Liferay.ThemeDisplay &&
+			Liferay.ThemeDisplay.getUserEmailAddress &&
+			!!Liferay.ThemeDisplay.getUserEmailAddress().length &&
+			Liferay.ThemeDisplay.getUserName &&
+			!!Liferay.ThemeDisplay.getUserName().length
+		) {
+			self.setIdentity({
+				email: Liferay.ThemeDisplay.getUserEmailAddress(),
+				name: Liferay.ThemeDisplay.getUserName(),
+			});
+		}
 
 		return self;
 	}
@@ -212,18 +229,18 @@ class Analytics {
 	track(eventId, eventProps, options = {}) {
 		const {assetType, ...otherEventProps} = eventProps || {};
 
-		if (
-			this._isTrackingDisabled() ||
-			instance._disposed ||
-			!isValidEvent({eventId, eventProps: otherEventProps})
-		) {
-			return;
-		}
-
 		// eslint-disable-next-line
 		const mergedOptions = Object.assign({}, TRACK_DEFAULT_OPTIONS, options);
 
 		const applicationId = assetType || mergedOptions.applicationId;
+
+		if (
+			this._isTrackingDisabled() ||
+			instance._disposed ||
+			!isValidEvent({applicationId, eventId, eventProps: otherEventProps})
+		) {
+			return;
+		}
 
 		const currentContextHash = this._getCurrentContextHash();
 
@@ -379,20 +396,16 @@ class Analytics {
 	}
 
 	_isNewUserIdRequired() {
-		const {dataSourceId, identity} = this.config;
-
-		const storedIdentityHash = getItem(STORAGE_KEY_IDENTITY);
 		const storedUserId = getItem(STORAGE_KEY_USER_ID);
 
-		let newUserIdRequired = false;
+		// We force a new userid token if it is not already stored.
 
-		// During logout or session expiration, identity object becomes undefined
-		// because the client object is being instantiated on every page navigation,
-		// in such cases, we force a new user ID token.
-
-		if (!storedUserId || (storedIdentityHash && !identity)) {
-			newUserIdRequired = true;
+		if (!storedUserId) {
+			return true;
 		}
+
+		const {dataSourceId, identity} = this.config;
+		const storedIdentityHash = getItem(STORAGE_KEY_IDENTITY);
 
 		// After logout or session expiration, it is not guaranteed a new user ID
 		// is generated. The login/logout process can redirect the user to page
@@ -406,10 +419,10 @@ class Analytics {
 			storedIdentityHash !==
 				this._getIdentityHash(dataSourceId, identity, storedUserId)
 		) {
-			newUserIdRequired = true;
+			return true;
 		}
 
-		return newUserIdRequired;
+		return false;
 	}
 
 	_isTrackingDisabled() {
@@ -435,14 +448,22 @@ class Analytics {
 			userId
 		);
 		const storedIdentityHash = getItem(STORAGE_KEY_IDENTITY);
+		const identityLastUpdatedDate = getItem(
+			STORAGE_KEY_IDENTITY_LAST_UPDATED_DATE
+		);
 
 		let identityHash = Promise.resolve(storedIdentityHash);
 
-		if (newIdentityHash !== storedIdentityHash) {
+		if (
+			!identityLastUpdatedDate ||
+			isExpired(Number(identityLastUpdatedDate)) ||
+			newIdentityHash !== storedIdentityHash
+		) {
 			const {channelId} = this._getContext();
 			const {emailAddressHashed} = identity;
 
 			setItem(STORAGE_KEY_IDENTITY, newIdentityHash);
+			setItem(STORAGE_KEY_IDENTITY_LAST_UPDATED_DATE, Date.now());
 
 			instance[STORAGE_KEY_MESSAGE_IDENTITY].addItem({
 				channelId,

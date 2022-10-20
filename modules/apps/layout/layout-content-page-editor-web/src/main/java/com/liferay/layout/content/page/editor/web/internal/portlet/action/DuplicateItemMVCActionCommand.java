@@ -15,20 +15,19 @@
 package com.liferay.layout.content.page.editor.web.internal.portlet.action;
 
 import com.liferay.fragment.contributor.FragmentCollectionContributorTracker;
+import com.liferay.fragment.entry.processor.constants.FragmentEntryProcessorConstants;
 import com.liferay.fragment.exception.NoSuchEntryLinkException;
 import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.processor.PortletRegistry;
-import com.liferay.fragment.renderer.FragmentRendererController;
-import com.liferay.fragment.renderer.FragmentRendererTracker;
 import com.liferay.fragment.service.FragmentEntryLinkLocalService;
 import com.liferay.fragment.service.FragmentEntryLinkService;
-import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
-import com.liferay.item.selector.ItemSelector;
+import com.liferay.fragment.service.FragmentEntryLocalService;
 import com.liferay.layout.content.page.editor.constants.ContentPageEditorPortletKeys;
 import com.liferay.layout.content.page.editor.web.internal.exception.NoninstanceablePortletException;
-import com.liferay.layout.content.page.editor.web.internal.util.FragmentEntryLinkUtil;
+import com.liferay.layout.content.page.editor.web.internal.util.FragmentEntryLinkManager;
 import com.liferay.layout.content.page.editor.web.internal.util.layout.structure.LayoutStructureUtil;
 import com.liferay.layout.util.structure.FragmentStyledLayoutStructureItem;
+import com.liferay.layout.util.structure.LayoutStructure;
 import com.liferay.layout.util.structure.LayoutStructureItem;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -36,7 +35,7 @@ import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.model.PortletPreferencesIds;
 import com.liferay.portal.kernel.model.ResourceConstants;
@@ -114,7 +113,7 @@ public class DuplicateItemMVCActionCommand
 		String errorMessage = StringPool.BLANK;
 
 		if (exception instanceof NoSuchEntryLinkException) {
-			errorMessage = LanguageUtil.get(
+			errorMessage = _language.get(
 				themeDisplay.getRequest(),
 				"the-section-could-not-be-duplicated-because-it-has-been-" +
 					"deleted");
@@ -132,7 +131,7 @@ public class DuplicateItemMVCActionCommand
 
 			HttpSession httpSession = httpServletRequest.getSession();
 
-			errorMessage = LanguageUtil.format(
+			errorMessage = _language.format(
 				themeDisplay.getRequest(),
 				"the-layout-could-not-be-duplicated-because-it-contains-a-" +
 					"widget-x-that-can-only-appear-once-in-the-page",
@@ -141,7 +140,7 @@ public class DuplicateItemMVCActionCommand
 					themeDisplay.getLocale()));
 		}
 		else {
-			errorMessage = LanguageUtil.get(
+			errorMessage = _language.get(
 				themeDisplay.getRequest(), "an-unexpected-error-occurred");
 		}
 
@@ -204,7 +203,8 @@ public class DuplicateItemMVCActionCommand
 		return JSONUtil.put(
 			"duplicatedFragmentEntryLinks",
 			_getDuplicatedFragmentEntryLinksJSONArray(
-				actionRequest, actionResponse, duplicatedFragmentEntryLinkIds)
+				actionRequest, actionResponse, duplicatedFragmentEntryLinkIds,
+				segmentsExperienceId, themeDisplay)
 		).put(
 			"duplicatedItemId",
 			() -> {
@@ -311,6 +311,18 @@ public class DuplicateItemMVCActionCommand
 				namespace);
 		}
 
+		if (fragmentEntryLink.isTypeInput()) {
+			JSONObject freemarkerFragmentEntryProcessorJSONObject =
+				editableValuesJSONObject.getJSONObject(
+					FragmentEntryProcessorConstants.
+						KEY_FREEMARKER_FRAGMENT_ENTRY_PROCESSOR);
+
+			if (freemarkerFragmentEntryProcessorJSONObject != null) {
+				freemarkerFragmentEntryProcessorJSONObject.remove(
+					"inputFieldId");
+			}
+		}
+
 		FragmentEntryLink duplicatedFragmentEntryLink =
 			_fragmentEntryLinkService.addFragmentEntryLink(
 				fragmentEntryLink.getGroupId(),
@@ -321,35 +333,33 @@ public class DuplicateItemMVCActionCommand
 				fragmentEntryLink.getHtml(), fragmentEntryLink.getJs(),
 				fragmentEntryLink.getConfiguration(),
 				editableValuesJSONObject.toString(), namespace, 0,
-				fragmentEntryLink.getRendererKey(), serviceContext);
+				fragmentEntryLink.getRendererKey(), fragmentEntryLink.getType(),
+				serviceContext);
 
 		return duplicatedFragmentEntryLink.getFragmentEntryLinkId();
 	}
 
 	private JSONArray _getDuplicatedFragmentEntryLinksJSONArray(
 			ActionRequest actionRequest, ActionResponse actionResponse,
-			Set<Long> duplicatedFragmentEntryLinkIds)
+			Set<Long> duplicatedFragmentEntryLinkIds, long segmentsExperienceId,
+			ThemeDisplay themeDisplay)
 		throws Exception {
 
 		JSONArray jsonArray = JSONFactoryUtil.createJSONArray();
 
+		LayoutStructure layoutStructure =
+			LayoutStructureUtil.getLayoutStructure(
+				themeDisplay.getScopeGroupId(), themeDisplay.getPlid(),
+				segmentsExperienceId);
+
 		for (long fragmentEntryLinkId : duplicatedFragmentEntryLinkIds) {
-			FragmentEntryLink fragmentEntryLink =
-				_fragmentEntryLinkLocalService.getFragmentEntryLink(
-					fragmentEntryLinkId);
-
-			JSONObject editableValuesJSONObject =
-				JSONFactoryUtil.createJSONObject(
-					fragmentEntryLink.getEditableValues());
-
 			jsonArray.put(
-				FragmentEntryLinkUtil.getFragmentEntryLinkJSONObject(
-					actionRequest, actionResponse,
-					_fragmentEntryConfigurationParser, fragmentEntryLink,
-					_fragmentCollectionContributorTracker,
-					_fragmentRendererController, _fragmentRendererTracker,
-					_itemSelector,
-					editableValuesJSONObject.getString("portletId")));
+				_fragmentEntryLinkManager.getFragmentEntryLinkJSONObject(
+					_fragmentEntryLinkLocalService.getFragmentEntryLink(
+						fragmentEntryLinkId),
+					_portal.getHttpServletRequest(actionRequest),
+					_portal.getHttpServletResponse(actionResponse),
+					layoutStructure));
 		}
 
 		return jsonArray;
@@ -360,22 +370,19 @@ public class DuplicateItemMVCActionCommand
 		_fragmentCollectionContributorTracker;
 
 	@Reference
-	private FragmentEntryConfigurationParser _fragmentEntryConfigurationParser;
+	private FragmentEntryLinkLocalService _fragmentEntryLinkLocalService;
 
 	@Reference
-	private FragmentEntryLinkLocalService _fragmentEntryLinkLocalService;
+	private FragmentEntryLinkManager _fragmentEntryLinkManager;
 
 	@Reference
 	private FragmentEntryLinkService _fragmentEntryLinkService;
 
 	@Reference
-	private FragmentRendererController _fragmentRendererController;
+	private FragmentEntryLocalService _fragmentEntryLocalService;
 
 	@Reference
-	private FragmentRendererTracker _fragmentRendererTracker;
-
-	@Reference
-	private ItemSelector _itemSelector;
+	private Language _language;
 
 	@Reference
 	private Portal _portal;

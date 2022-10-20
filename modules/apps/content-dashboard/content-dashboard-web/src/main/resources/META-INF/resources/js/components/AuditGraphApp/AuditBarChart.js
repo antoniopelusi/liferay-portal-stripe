@@ -21,6 +21,7 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {
 	Bar,
 	BarChart,
+	Brush,
 	CartesianGrid,
 	Cell,
 	Legend,
@@ -47,7 +48,7 @@ const handleKeydown = (event) => {
 export default function AuditBarChart({namespace, rtl, vocabularies}) {
 	const auditBarChartData = useMemo(() => {
 		const dataKeys = new Set();
-		var maxValue = 0;
+		let maxValue = 0;
 
 		const bars = vocabularies.reduce((acc, category) => {
 			if (!category.categories) {
@@ -134,15 +135,15 @@ export default function AuditBarChart({namespace, rtl, vocabularies}) {
 			style.textContent = Object.entries(colors).reduce(
 				(acc, [dataKey, color]) => {
 					return acc.concat(`
-						 .custom-control-color-${dataKey}.custom-control-input:checked ~
-							 .custom-control-label::before {
-								 background-color: ${color};
-								 border-color: ${color};
-						 }
-						 .custom-control-color-${dataKey}.custom-control-input:not(:checked) ~
-							 .custom-control-label::before {
-								 border-color: ${color};
-						 }
+						html:not(#__):not(#___) .cadmin .custom-control-color-${dataKey}.custom-control-input:checked ~
+							.custom-control-label::before {
+								background-color: ${color};
+								border-color: ${color};
+						}
+						html:not(#__):not(#___) .cadmin .custom-control-color-${dataKey}.custom-control-input:not(:checked) ~
+							.custom-control-label::before {
+								border-color: ${color};
+						}
 					 `);
 				},
 				''
@@ -222,6 +223,15 @@ export default function AuditBarChart({namespace, rtl, vocabularies}) {
 		(i) => checkboxes[i] === false
 	);
 
+	const mediumGraph =
+		vocabularies[0].categories &&
+		vocabularies.length * vocabularies[0].categories.length > 100;
+
+	const bigGraph = mediumGraph && vocabularies[0].categories.length > 30;
+
+	const brushIndex =
+		vocabularies.length < 10 ? vocabularies.length - 1 : bigGraph ? 4 : 9;
+
 	const [tooltip, setTooltip] = useState(null);
 
 	const onBarClick = (assetCategoryIds) => {
@@ -261,7 +271,7 @@ export default function AuditBarChart({namespace, rtl, vocabularies}) {
 
 	return (
 		<>
-			{Object.keys(checkboxes).length > 0 && noCheckboxesChecked && (
+			{!!Object.keys(checkboxes).length && noCheckboxesChecked && (
 				<ClayEmptyState
 					className="empty-state no-categories-selected text-center"
 					description={Liferay.Language.get(
@@ -273,7 +283,10 @@ export default function AuditBarChart({namespace, rtl, vocabularies}) {
 				/>
 			)}
 			<div className="mb-3 overflow-auto">
-				<ResponsiveContainer height={BAR_CHART.height} width="100%">
+				<ResponsiveContainer
+					height={bigGraph ? BAR_CHART.bigHeight : BAR_CHART.height}
+					width="100%"
+				>
 					<BarChart data={data}>
 						{showLegend && (
 							<Legend
@@ -410,6 +423,15 @@ export default function AuditBarChart({namespace, rtl, vocabularies}) {
 								))}
 							</Bar>
 						)}
+
+						{mediumGraph && (
+							<Brush
+								dataKey="name"
+								endIndex={brushIndex}
+								height={BAR_CHART.brushHeight}
+								stroke={BAR_CHART.brushStroke}
+							/>
+						)}
 					</BarChart>
 				</ResponsiveContainer>
 			</div>
@@ -424,7 +446,7 @@ function CustomTooltip(props) {
 		return null;
 	}
 
-	for (var i = 0; i < payload.length; i++) {
+	for (let i = 0; i < payload.length; i++) {
 		if (payload[i].dataKey === tooltip.dataKey) {
 			return (
 				<ClayLayout.ContentRow

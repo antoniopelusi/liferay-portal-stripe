@@ -44,6 +44,7 @@ import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.service.LayoutLocalService;
+import com.liferay.portal.kernel.service.LayoutSetLocalService;
 import com.liferay.portal.kernel.templateparser.TransformerListener;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
@@ -62,6 +63,7 @@ import com.liferay.portal.kernel.xml.XPath;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -76,6 +78,25 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(immediate = true, service = JournalHelper.class)
 public class JournalHelperImpl implements JournalHelper {
+
+	@Override
+	public String createURLPattern(
+			JournalArticle article, Locale locale, boolean privateLayout,
+			String separator, ThemeDisplay themeDisplay)
+		throws PortalException {
+
+		StringBundler sb = new StringBundler(3);
+
+		sb.append(
+			_portal.getGroupFriendlyURL(
+				_layoutSetLocalService.getLayoutSet(
+					article.getGroupId(), privateLayout),
+				themeDisplay, false, false));
+		sb.append(separator);
+		sb.append(article.getUrlTitle(locale));
+
+		return sb.toString();
+	}
 
 	@Override
 	public String diffHtml(
@@ -387,6 +408,9 @@ public class JournalHelperImpl implements JournalHelper {
 
 	@Reference
 	private LayoutLocalService _layoutLocalService;
+
+	@Reference
+	private LayoutSetLocalService _layoutSetLocalService;
 
 	@Reference
 	private Portal _portal;

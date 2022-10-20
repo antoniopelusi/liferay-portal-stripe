@@ -17,6 +17,7 @@ import React, {useContext} from 'react';
 
 import {ChartDispatchContext} from '../../context/ChartStateContext';
 import {StoreDispatchContext} from '../../context/StoreContext';
+import CountriesDetail from './CountriesDetail';
 import KeywordsDetail from './KeywordsDetail';
 import ReferralDetail from './ReferralDetail';
 import SocialDetail from './SocialDetail';
@@ -44,6 +45,56 @@ export default function Detail({
 	const chartDispatch = useContext(ChartDispatchContext);
 
 	const storeDispatch = useContext(StoreDispatchContext);
+
+	const currentPageMocked = {
+		data: {
+			countrySearch: [
+				{
+					countryCode: 'es',
+					countryName: 'Spain',
+					views: 900,
+					viewsP: 40,
+				},
+				{
+					countryCode: 'br',
+					countryName: 'Brazil',
+					views: 400,
+					viewsP: 20,
+				},
+				{
+					countryCode: 'us',
+					countryName: 'United States',
+					views: 700,
+					viewsP: 20,
+				},
+				{
+					countryCode: 'ca',
+					countryName: 'Canada',
+					views: 1000,
+					viewsP: 20,
+				},
+				{
+					countryCode: 'me',
+					countryName: 'Mexico',
+					views: 100,
+					viewsP: 20,
+				},
+				{
+					countryCode: 'fr',
+					countryName: 'France',
+					views: 1700,
+					viewsP: 20,
+				},
+				{
+					countryCode: 'it',
+					countryName: 'Italy',
+					views: 200,
+					viewsP: 20,
+				},
+			],
+		},
+		view: 'paid',
+	};
 
 	return (
 		<>
@@ -78,7 +129,25 @@ export default function Detail({
 
 					{(currentPage.view === TRAFFIC_CHANNELS.ORGANIC ||
 						currentPage.view === TRAFFIC_CHANNELS.PAID) &&
-						currentPage.data.countrySearchKeywords.length > 0 && (
+						!!currentPageMocked.data.countrySearch.length &&
+						(Liferay.FeatureFlags['LPS-149256'] ? (
+							<CountriesDetail
+								currentPage={currentPageMocked}
+								handleDetailPeriodChange={
+									handleDetailPeriodChange
+								}
+								timeSpanOptions={timeSpanOptions}
+								trafficShareDataProvider={
+									trafficShareDataProvider
+								}
+								trafficSourcesDataProvider={
+									trafficSourcesDataProvider
+								}
+								trafficVolumeDataProvider={
+									trafficVolumeDataProvider
+								}
+							/>
+						) : (
 							<KeywordsDetail
 								currentPage={currentPage}
 								trafficShareDataProvider={
@@ -88,7 +157,7 @@ export default function Detail({
 									trafficVolumeDataProvider
 								}
 							/>
-						)}
+						))}
 
 					{currentPage.view === TRAFFIC_CHANNELS.REFERRAL && (
 						<ReferralDetail

@@ -152,12 +152,35 @@ definition {
 	}
 
 	@description = "This is a test for LPS-99922. It checks that XSS will not be executed when adding a blog entry with the card display template."
-	@ignore = "Test Stub"
 	@priority = "4"
 	test CannotExecuteXSSWithCardDisplayTemplate {
+		BlogsNavigator.gotoAddEntry();
 
-		// TODO LPS-129154 CannotExecuteXSSWithCardDisplayTemplate pending implementation
+		BlogsEntry.addTitle(entryTitle = '''<script>alert(123);</script>''');
 
+		BlogsEntry.addContent(entryContent = "Blogs Entry Content");
+
+		PortletEntry.publish();
+
+		Portlet.gotoPortletOptions(
+			portletName = "Blogs",
+			portletOption = "Configuration");
+
+		BlogsConfiguration.selectConfigurationIFrame();
+
+		BlogsConfiguration.selectDisplayTemplate(displayTemplate = "Card");
+
+		IFrame.saveConfiguration();
+
+		Navigator.gotoPage(pageName = "Blogs Page");
+
+		AssertAlertNotPresent();
+
+		BlogsNavigator.gotoEntryPG(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "<script>alert(123);</script>");
+
+		AssertAlertNotPresent();
 	}
 
 	@description = "This checks that a guest cannot view a blog entry in the AP when permissions are removed."
@@ -378,6 +401,8 @@ definition {
 		Navigator.gotoPage(pageName = "Blogs Aggregator Page");
 
 		BlogsEntry.viewNoEntryViaBlogsAggregatorPG();
+
+		// We need to wait for the system time to pass by 2 minutes in order for a scheduled blog entry to be published. There is currently no easy way to manipulate the system time in CI for automation. 2 minutes is the shortest value we can set while ensuring the stability of the test. See LPS-157957.
 
 		Pause(locator1 = "120000");
 
@@ -671,12 +696,37 @@ definition {
 	}
 
 	@description = "This is a test for LPS-78189. It ensures that a user can view the blog entry via Blogs Aggregator after configuring the organization."
-	@ignore = "Test Stub"
 	@priority = "4"
 	test CanViewEntryWithOrganizationViaBlogsAggregator {
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Blogs Aggregator Page");
 
-		// TODO LPS-149577 CanViewEntryWithOrganizationViaBlogsAggregator pending implementation
+		JSONOrganization.addOrganization(organizationName = "Organization Name");
 
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title");
+
+		Navigator.gotoPage(pageName = "Blogs Aggregator Page");
+
+		Portlet.addPG(portletName = "Blogs Aggregator");
+
+		BlogsAggregatorPortlet.selectOrganization(organizationName = "Organization Name");
+
+		Navigator.gotoPage(pageName = "Blogs Aggregator Page");
+
+		BlogsEntry.viewNoEntryViaBlogsAggregatorPG();
+
+		JSONOrganization.assignUserToOrganization(
+			organizationName = "Organization Name",
+			userEmailAddress = "test@liferay.com");
+
+		Navigator.gotoPage(pageName = "Blogs Aggregator Page");
+
+		BlogsAggregatorPortlet.viewBlogsEntryViaBAPortletPG(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title");
 	}
 
 	@description = "This is a test for LPS-141740. It checks that a user can view the details of latest blogs entry via recent bloggers."

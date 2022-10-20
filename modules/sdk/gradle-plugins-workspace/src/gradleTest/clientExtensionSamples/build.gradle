@@ -1,0 +1,42 @@
+task runGradleTest
+
+runGradleTest {
+	dependsOn ":sample-iframe:buildClientExtension"
+	dependsOn ":sample-theme-css:buildClientExtension"
+	dependsOn ":sample-theme-favicon:buildClientExtension"
+
+	doLast {
+		Project sampleIFrameProject = project(":sample-iframe")
+
+		FileTree sampleIFrameDistZipFileTree = zipTree(sampleIFrameProject.file("dist/sample-iframe.zip"))
+
+		File lcpJsonFile = sampleIFrameDistZipFileTree.files.find {
+			it.name == "LCP.json"
+		}
+
+		assert !lcpJsonFile.text.contains("sample-iframe")
+		assert lcpJsonFile.text.contains("sampleiframe")
+
+		Project sampleThemeCSSProject = project(":sample-theme-css")
+
+		FileTree sampleThemeCSSZipFileTree = zipTree(sampleThemeCSSProject.file("dist/sample-theme-css.zip"))
+
+		File imgFile = sampleThemeCSSZipFileTree.files.find {
+			it.name == "paper.gif"
+		}
+
+		assert imgFile.exists()
+
+		Project sampleThemeFaviconProject = project(":sample-theme-favicon")
+
+		File sampleConfigFile = new File(sampleThemeFaviconProject.buildDir, "sample-theme-favicon.client-extension-config.json")
+
+		assert sampleConfigFile.exists()
+
+		Task createClientExtensionConfigTask = sampleThemeFaviconProject.tasks["createClientExtensionConfig"]
+
+		File clientExtensionYamlFile = sampleThemeFaviconProject.file("client-extension.yaml")
+
+		assert createClientExtensionConfigTask.inputs.files.asPath == clientExtensionYamlFile.path
+	}
+}

@@ -19,9 +19,7 @@ definition {
 			locator1 = "TextInput#URL",
 			value1 = "${audioSourceURL}");
 
-		Pause(locator1 = "3000");
-
-		AssertElementPresent.pauseAssertVisible(
+		WaitForVisible(
 			key_text = "Add",
 			locator1 = "Button#ANY_ENABLED");
 
@@ -62,7 +60,7 @@ definition {
 			value1 = "${imageSourceURL}");
 
 		if (contains("${imageSourceURL}", "/documents/")) {
-			AssertElementPresent.pauseAssertVisible(locator1 = "ItemSelector#URL_IMAGE_SOURCE");
+			AssertVisible(locator1 = "ItemSelector#URL_IMAGE_SOURCE");
 
 			if (IsElementPresent(locator1 = "ItemSelector#URL_IMAGE_EXAMPLE")) {
 				Click(locator1 = "ItemSelector#URL_IMAGE_EXAMPLE");
@@ -166,10 +164,8 @@ definition {
 			locator1 = "TextInput#VIDEO_URL",
 			value1 = "${videoSourceURL}");
 
-		Pause(locator1 = "3000");
-
 		if (!(isSet(unpublish))) {
-			AssertElementPresent.pauseAssertVisible(
+			WaitForVisible(
 				key_text = "Add",
 				locator1 = "Button#ANY_ENABLED");
 
@@ -248,7 +244,7 @@ definition {
 		if (isSet(video)) {
 			WaitForLiferayEvent.initializeLiferayEventLog();
 
-			Click.pauseClickAt(locator1 = "CKEditor#TOOLBAR_VIDEO_BUTTON");
+			Click(locator1 = "CKEditor#TOOLBAR_VIDEO_BUTTON");
 		}
 		else {
 			Click(locator1 = "CKEditor#TOOLBAR_IMAGE_BUTTON");
@@ -287,6 +283,8 @@ definition {
 	macro previewEmbeddedVideo {
 		SelectFrame(locator1 = "ItemSelector#ITEM_SELECTOR_IFRAME");
 
+		WaitForPageLoad();
+
 		if (isSet(invalidURL)) {
 			if (contains("${invalidURL}", "youtube")) {
 				SelectFrame.selectFrameNoLoading(locator1 = "IFrame#EXTERNAL_VIDEO_IFRAME");
@@ -318,7 +316,7 @@ definition {
 			}
 		}
 		else {
-			AssertElementPresent.pauseAssertVisible(
+			AssertVisible(
 				key_text = "Add",
 				locator1 = "Button#ANY_ENABLED");
 
@@ -395,7 +393,7 @@ definition {
 
 		AssertTextEquals(
 			locator1 = "Search#SEARCH_INFO",
-			value1 = "1 Results for &quot;${imageFileName}&quot;");
+			value1 = "1 Result for &quot;${imageFileName}&quot;");
 
 		AssertElementPresent(locator1 = "ItemSelector#SELECT_FILE_IMAGE_CARD");
 
@@ -432,7 +430,7 @@ definition {
 
 		AssertTextEquals(
 			locator1 = "Search#SEARCH_INFO",
-			value1 = "1 Results for &quot;${imageFileName}&quot;");
+			value1 = "1 Result for &quot;${imageFileName}&quot;");
 
 		LexiconCard.viewCardPresent(card = "${imageFileName}");
 
@@ -459,6 +457,8 @@ definition {
 		AssertClick(
 			locator1 = "ItemSelector#ADD_BUTTON",
 			value1 = "Add");
+
+		SelectFrameTop();
 	}
 
 	macro selectDMImage {
@@ -492,6 +492,8 @@ definition {
 		var key_imageFileName = StringUtil.replace("${imageFileName}", " ", "+");
 
 		LexiconCard.clickCard(card = "${imageFileName}");
+
+		SelectFrameTop();
 	}
 
 	macro selectRepositoryImage {
@@ -514,6 +516,8 @@ definition {
 		else {
 			Click(locator1 = "ItemSelector#SELECT_FILE_IMAGE_CARD");
 		}
+
+		SelectFrameTop();
 	}
 
 	macro selectSiteImage {
@@ -530,6 +534,8 @@ definition {
 		Click(
 			key_imageFileName = "${imageFileName}",
 			locator1 = "ItemSelector#SELECT_FILE_IMAGE_CARD");
+
+		SelectFrameTop();
 	}
 
 	macro switchTab {
@@ -576,15 +582,13 @@ definition {
 			Click.clickNoMouseOver(locator1 = "Modal#CLOSE_BUTTON");
 		}
 		else {
-			Pause(locator1 = "3000");
-
-			AssertElementPresent.pauseAssertVisible(
-				locator1 = "ItemSelector#ADD_BUTTON",
-				value1 = "Add");
+			WaitForVisible(locator1 = "ItemSelector#ADD_BUTTON");
 
 			AssertClick(
 				locator1 = "ItemSelector#ADD_BUTTON",
 				value1 = "Add");
+
+			SelectFrameTop();
 		}
 	}
 
@@ -621,16 +625,14 @@ definition {
 			Click.clickNoMouseOver(locator1 = "Modal#CLOSE_BUTTON");
 		}
 		else {
-			Pause(locator1 = "5000");
-
-			AssertElementPresent.pauseAssertVisible(
-				locator1 = "ItemSelector#ADD_BUTTON",
-				value1 = "Add");
+			WaitForVisible(locator1 = "ItemSelector#ADD_BUTTON");
 
 			AssertClick(
 				locator1 = "ItemSelector#ADD_BUTTON",
 				value1 = "Add");
 		}
+
+		SelectFrameTop();
 	}
 
 	macro viewBlogImageDetails {
@@ -981,13 +983,17 @@ definition {
 
 			LexiconEntry.gotoAdd();
 
-			for (var menuItem : list "File Upload,Folder,Google Drive Shortcut,External Video Shortcut") {
+			SelectFrame(locator1 = "ItemSelector#ITEM_SELECTOR_IFRAME");
+
+			for (var menuItem : list "File Upload,Folder,External Video Shortcut") {
 				MenuItem.viewPresent(menuItem = "${menuItem}");
 			}
 		}
 
 		if (isSet(addImageOptions)) {
 			LexiconEntry.gotoAdd();
+
+			SelectFrame(locator1 = "ItemSelector#ITEM_SELECTOR_IFRAME");
 
 			for (var menuItem : list "File Upload,Folder") {
 				MenuItem.viewPresent(menuItem = "${menuItem}");
@@ -1002,6 +1008,8 @@ definition {
 			ItemSelector.switchTab(navTab = "Documents and Media");
 
 			LexiconEntry.gotoAdd();
+
+			SelectFrame(locator1 = "ItemSelector#ITEM_SELECTOR_IFRAME");
 
 			for (var menuItem : list "File Upload,Folder,External Video Shortcut") {
 				MenuItem.viewPresent(menuItem = "${menuItem}");

@@ -154,7 +154,7 @@ definition {
 		}
 	}
 
-	@description = "Unable to add sanme site name."
+	@description = "Unable to add same site name."
 	@priority = "3"
 	test AddSiteWithInvalidDuplicateName {
 		task ("Add a site") {
@@ -185,8 +185,7 @@ definition {
 	@description = "Deleting firiendly URL makes it not able to access page via fridely URL."
 	@priority = "4"
 	test DeleteSiteFriendlyURL {
-		property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-		property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		task ("Add a site") {
 			JSONGroup.addGroup(groupName = "Site Name");
@@ -266,8 +265,7 @@ definition {
 	@description = "Could edit friendly URL and access by it."
 	@priority = "4"
 	test EditSiteFriendlyURL {
-		property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-		property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		var portalURL = PropsUtil.get("portal.url");
 

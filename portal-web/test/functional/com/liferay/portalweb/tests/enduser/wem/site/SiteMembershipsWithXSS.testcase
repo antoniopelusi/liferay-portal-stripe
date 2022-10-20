@@ -71,7 +71,7 @@ definition {
 
 			IFrame.closeFrame();
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a user and login with the user") {
@@ -135,7 +135,6 @@ definition {
 	@priority = "4"
 	test SelectUserWithXSSNameInMemberships {
 		var firstName = '''"><script>alert(1)</script>''';
-
 		var lastName = '''"><script>alert(2)</script>''';
 
 		task ("Add a user with XSS name") {

@@ -50,7 +50,7 @@ public class ContainerStyledLayoutStructureItem
 			(ContainerStyledLayoutStructureItem)object;
 
 		if (!Objects.equals(
-				_linkJSONObject.toJSONString(),
+				_linkJSONObject.toString(),
 				containerStyledLayoutStructureItem._linkJSONObject.
 					toJSONString()) ||
 			!Objects.equals(
@@ -62,9 +62,24 @@ public class ContainerStyledLayoutStructureItem
 		return super.equals(object);
 	}
 
-	@Override
+	public String getAlign() {
+		return _align;
+	}
+
 	public String getContentDisplay() {
 		return _contentDisplay;
+	}
+
+	public String getContentVisibility() {
+		return _contentVisibility;
+	}
+
+	public String getDisplay() {
+		return stylesJSONObject.getString("display");
+	}
+
+	public String getFlexWrap() {
+		return _flexWrap;
 	}
 
 	public String getHtmlTag() {
@@ -79,6 +94,8 @@ public class ContainerStyledLayoutStructureItem
 			"align", _align
 		).put(
 			"contentDisplay", _contentDisplay
+		).put(
+			"contentVisibility", _contentVisibility
 		).put(
 			"flexWrap", _flexWrap
 		).put(
@@ -97,6 +114,10 @@ public class ContainerStyledLayoutStructureItem
 	@Override
 	public String getItemType() {
 		return LayoutDataItemTypeConstants.TYPE_CONTAINER;
+	}
+
+	public String getJustify() {
+		return _justify;
 	}
 
 	public JSONObject getLinkJSONObject() {
@@ -122,6 +143,10 @@ public class ContainerStyledLayoutStructureItem
 
 	public void setContentDisplay(String contentDisplay) {
 		_contentDisplay = contentDisplay;
+	}
+
+	public void setContentVisibility(String contentVisibility) {
+		_contentVisibility = contentVisibility;
 	}
 
 	public void setFlexWrap(String flexWrap) {
@@ -160,6 +185,11 @@ public class ContainerStyledLayoutStructureItem
 
 		if (itemConfigJSONObject.has("contentDisplay")) {
 			setContentDisplay(itemConfigJSONObject.getString("contentDisplay"));
+		}
+
+		if (itemConfigJSONObject.has("contentVisibility")) {
+			setContentVisibility(
+				itemConfigJSONObject.getString("contentVisibility"));
 		}
 
 		if (itemConfigJSONObject.has("flexWrap")) {
@@ -278,6 +308,7 @@ public class ContainerStyledLayoutStructureItem
 
 	private String _align = "";
 	private String _contentDisplay = "";
+	private String _contentVisibility = "";
 	private String _flexWrap = "";
 	private String _htmlTag = "";
 	private boolean _indexed = true;

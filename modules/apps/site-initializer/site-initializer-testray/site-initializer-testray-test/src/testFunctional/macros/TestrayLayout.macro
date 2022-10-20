@@ -5,8 +5,14 @@ definition {
 	}
 
 	macro assertTabPageTitle {
-		Click(
-			key_pageTabTilte = "${pageTabTilte}",
+		AssertElementPresent(
+			key_pageTabTitle = "${pageTabTitle}",
+			locator1 = "TestrayHeader#PAGE_TAB_TITLE");
+	}
+
+	macro assertTabPageTitleIsNotPresent {
+		AssertElementNotPresent(
+			key_pageTabTitle = "${pageTabTitle}",
 			locator1 = "TestrayHeader#PAGE_TAB_TITLE");
 	}
 
@@ -19,7 +25,7 @@ definition {
 	}
 
 	macro clickResultsOnSidebar {
-		Click(locator1 = "TestrayLayout#RESULTS_SIDEBAR");
+		Click(locator1 = "Testray#RESULTS_SIDEBAR");
 	}
 
 	macro clickTestfowOnSidebar {

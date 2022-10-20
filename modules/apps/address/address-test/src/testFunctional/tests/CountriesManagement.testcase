@@ -1,0 +1,536 @@
+@component-name = "portal-user-management-and-portal-configuration"
+definition {
+
+	property custom.properties = "feature.flag.LPS-122223=true";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Address";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+	}
+
+	@description = "This test asserts that a user can activate an inactive country."
+	@priority = "5"
+	test CanActivateAnInactiveCountry {
+		task ("Given that Brazil is set to inactive") {
+			CountriesManagement.openCountriesManagementPortlet();
+
+			CountriesManagement.deactivateCountry(countryName = "Brazil");
+
+			CountriesManagement.openCountriesManagementPortlet();
+
+			ManagementBar.setFilterAndOrder(filterBy = "Inactive");
+		}
+
+		task ("When a user activates this country") {
+			CountriesManagement.activateCountry(countryName = "Brazil");
+
+			AssertTextEquals(
+				locator1 = "Message#EMPTY_INFO",
+				value1 = "There are no inactive countries.");
+		}
+
+		task ("and searches for country in Active filter") {
+			CountriesManagement.openCountriesManagementPortlet();
+
+			ManagementBar.setFilterAndOrder(filterBy = "Active");
+
+			Search.searchCP(searchTerm = "Brazil");
+		}
+
+		task ("Then the country is active and displays in that filter") {
+			CountriesManagement.viewCountryInTable(
+				billingAllowed = "true",
+				countryName = "Brazil",
+				countryStatus = "Active",
+				shippingAllowed = "true",
+				twoLetterISOCode = "BR");
+		}
+	}
+
+	@description = "This test asserts that a user can activate an inactive region"
+	@priority = "5"
+	test CanActivateAnInactiveRegion {
+		task ("Given that an inactive region exists") {
+			CountriesManagement.openCountriesManagementPortlet();
+
+			CountriesManagement.addRegion(
+				countryName = "Philippines",
+				regionCode = "06",
+				regionName = "Western Visayas");
+
+			Navigator.gotoBack();
+
+			CountriesManagement.deactivateRegion(regionName = "Western Visayas");
+
+			ManagementBar.setFilterAndOrder(filterBy = "Inactive");
+
+			CountriesManagement.viewRegionsInTable(
+				regionCode = "06",
+				regionName = "Western Visayas",
+				regionStatus = "Inactive");
+		}
+
+		task ("When a user activates this region") {
+			CountriesManagement.activateRegion(regionName = "Western Visayas");
+		}
+
+		task ("Then the country is in active status") {
+			CountriesManagement.openCountriesManagementPortlet();
+
+			CountriesManagement.goToRegions(countryName = "Philippines");
+
+			CountriesManagement.viewRegionsInTable(
+				regionCode = "06",
+				regionName = "Western Visayas",
+				regionStatus = "Active");
+		}
+
+		task ("and will show up under Active filter") {
+			CountriesManagement.openCountriesManagementPortlet();
+
+			ManagementBar.setFilterAndOrder(filterBy = "Active");
+
+			CountriesManagement.goToRegions(countryName = "Philippines");
+
+			Search.searchCP(searchTerm = "Western Visayas");
+
+			CountriesManagement.viewRegionsInTable(
+				regionCode = "06",
+				regionName = "Western Visayas",
+				regionStatus = "Active");
+		}
+	}
+
+	@description = "This test asserts that a user can add a new country and by default this country will have the Active status, will not allow Billing and Shipping, and will not be subject to VAT."
+	@priority = "5"
+	test CanAddCountry {
+		task ("Given that a user is in the Countries Management portlet") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Configuration",
+				panel = "Control Panel",
+				portlet = "Countries Management");
+		}
+
+		task ("When a user adds a new country, only filling out the required fields") {
+			CountriesManagement.addCountry(
+				countryName = "Test Country",
+				countryNumber = "01",
+				threeLetterISOCode = "AAA",
+				twoLetterISOCode = "AA");
+		}
+
+		task ("Then the country is saved successfully") {
+			CountriesManagement.openCountriesManagementPortlet();
+
+			Search.searchCP(searchTerm = "Test Country");
+		}
+
+		task ("and by default, status is active, billing and shipping are not allowed, and country is not subject to VAT") {
+			CountriesManagement.viewCountryInTable(
+				billingAllowed = "false",
+				countryName = "Test Country",
+				countryPriority = "0.0",
+				countryStatus = "Active",
+				shippingAllowed = "false",
+				twoLetterISOCode = "AA");
+		}
+	}
+
+	@description = "Test adding a region to existing country"
+	@priority = "5"
+	test CanAddRegion {
+		task ("Given a country exists") {
+			CountriesManagement.openCountriesManagementPortlet();
+		}
+
+		task ("When a user adds a region to a country") {
+			CountriesManagement.addRegion(
+				countryName = "Philippines",
+				regionCode = "13",
+				regionName = "National Capital Region",
+				regionPosition = "1.0");
+		}
+
+		task ("Then region is successfully saved") {
+			CountriesManagement.openCountriesManagementPortlet();
+
+			CountriesManagement.goToRegions(countryName = "Philippines");
+
+			CountriesManagement.viewRegionsInTable(
+				regionCode = "13",
+				regionName = "National Capital Region",
+				regionPosition = "1.0",
+				regionStatus = "Active");
+		}
+	}
+
+	@description = "This test asserts that a user can deactivate an active country"
+	@priority = "5"
+	test CanDeactivateAnActiveCountry {
+		task ("Given that China is set to Active") {
+			CountriesManagement.openCountriesManagementPortlet();
+
+			Search.searchCP(searchTerm = "China");
+
+			CountriesManagement.viewCountryInTable(
+				billingAllowed = "true",
+				countryName = "China",
+				countryStatus = "Active",
+				shippingAllowed = "true",
+				twoLetterISOCode = "CN");
+		}
+
+		task ("When a user deactivates this country") {
+			CountriesManagement.deactivateCountry(countryName = "China");
+		}
+
+		task ("and filters by Inactive Status") {
+			CountriesManagement.openCountriesManagementPortlet();
+
+			ManagementBar.setFilterAndOrder(filterBy = "Inactive");
+		}
+
+		task ("Then the country is inactive and displays in that filter") {
+			CountriesManagement.viewCountryInTable(
+				billingAllowed = "true",
+				countryName = "China",
+				countryStatus = "Inactive",
+				shippingAllowed = "true",
+				twoLetterISOCode = "CN");
+		}
+	}
+
+	@description = "This test asserts that a user can delete an existing country."
+	@priority = "5"
+	test CanDeleteCountry {
+		task ("Given that a country named Angola exists in Countries Management portlet") {
+			CountriesManagement.openCountriesManagementPortlet();
+
+			Search.searchCP(searchTerm = "Angola");
+
+			CountriesManagement.viewCountryInTable(
+				billingAllowed = "true",
+				countryName = "Angola",
+				countryPriority = "0.0",
+				countryStatus = "Active",
+				shippingAllowed = "true",
+				twoLetterISOCode = "AO");
+		}
+
+		task ("When a user deletes this country") {
+			CountriesManagement.deleteCountry(countryName = "Angola");
+		}
+
+		task ("Then the country does not display in search results") {
+			CountriesManagement.openCountriesManagementPortlet();
+
+			Search.searchCP(searchTerm = "Angola");
+
+			AssertTextEquals(
+				locator1 = "Message#EMPTY_INFO",
+				value1 = "There are no countries.");
+		}
+	}
+
+	@description = "Test deleting a region from country"
+	@priority = "5"
+	test CanDeleteRegion {
+		task ("Given a region exists") {
+			CountriesManagement.openCountriesManagementPortlet();
+
+			CountriesManagement.addRegion(
+				countryName = "Philippines",
+				regionCode = "14",
+				regionName = "Cordillera Administrative Region");
+		}
+
+		task ("When a user deletes this region") {
+			CountriesManagement.openCountriesManagementPortlet();
+
+			CountriesManagement.goToRegions(countryName = "Philippines");
+
+			CountriesManagement.deleteRegion(regionName = "Cordillera Administrative Region");
+		}
+
+		task ("Then region is successfully deleted") {
+			CountriesManagement.openCountriesManagementPortlet();
+
+			CountriesManagement.goToRegions(countryName = "Philippines");
+
+			AssertTextEquals(
+				locator1 = "Message#EMPTY_INFO",
+				value1 = "There are no regions.");
+		}
+	}
+
+	@description = "Test editing region fields"
+	@priority = "5"
+	test CanEditRegion {
+		task ("Given a region exists") {
+			CountriesManagement.openCountriesManagementPortlet();
+
+			CountriesManagement.addRegion(
+				countryName = "Philippines",
+				regionCode = "04",
+				regionName = "Calabarzon");
+		}
+
+		task ("When a user edits this region") {
+			CountriesManagement.openCountriesManagementPortlet();
+
+			CountriesManagement.goToRegions(countryName = "Philippines");
+
+			CountriesManagement.editRegion(
+				regionCodeEdit = "05",
+				regionKeyEdit = "bicol-region",
+				regionName = "Calabarzon",
+				regionNameEdit = "Bicol Region",
+				regionPositionEdit = "2.0",
+				regionStatusEdit = "Inactive");
+		}
+
+		task ("Then region is successfully updated") {
+			CountriesManagement.openCountriesManagementPortlet();
+
+			CountriesManagement.goToRegions(countryName = "Philippines");
+
+			CountriesManagement.viewRegionsInTable(
+				regionCode = "05",
+				regionName = "Bicol Region",
+				regionPosition = "2.0",
+				regionStatus = "Inactive");
+		}
+	}
+
+	@description = "Can order countries by name in descending and ascending order"
+	@priority = "3"
+	test CanOrderCountryByName {
+		task ("Given countries display in the Countries Management") {
+			CountriesManagement.openCountriesManagementPortlet();
+		}
+
+		task ("When a user orders by name and changes to descending order") {
+			ManagementBar.setFilterAndOrder(orderBy = "Name");
+
+			ManagementBar.toggleViewOrder(order = "up");
+		}
+
+		task ("Then the countries that start with Z display on first page") {
+			LexiconEntry.viewEntryName(rowEntry = "Zimbabwe");
+
+			LexiconEntry.viewNoEntry(rowEntry = "Afghanistan");
+		}
+
+		task ("When a user switches the order") {
+			ManagementBar.toggleViewOrder(order = "down");
+		}
+
+		task ("Then the countries that start with A display on first page") {
+			LexiconEntry.viewEntryName(rowEntry = "Afghanistan");
+
+			LexiconEntry.viewNoEntry(rowEntry = "Zimbabwe");
+		}
+	}
+
+	@description = "Can order countries by priority in descending and ascending order"
+	@priority = "3"
+	test CanOrderCountryByPriority {
+		task ("Given a country is added with a priority higher than 0.0") {
+			CountriesManagement.openCountriesManagementPortlet();
+
+			CountriesManagement.addCountry(
+				countryName = "ZZ Test",
+				countryNumber = "01",
+				countryPosition = "5.0",
+				threeLetterISOCode = "ZZZ",
+				twoLetterISOCode = "ZZ");
+		}
+
+		task ("When a user orders by priority and changes to descending order") {
+			CountriesManagement.openCountriesManagementPortlet();
+
+			ManagementBar.setFilterAndOrder(orderBy = "Name");
+
+			ManagementBar.toggleViewOrder(order = "up");
+		}
+
+		task ("Then the country with highest priority display on first page") {
+			LexiconEntry.viewEntryName(rowEntry = "ZZ Test");
+		}
+
+		task ("When a user switches the order") {
+			ManagementBar.toggleViewOrder(order = "down");
+		}
+
+		task ("Then the countries with lowest priority display on first page") {
+			LexiconEntry.viewNoEntry(rowEntry = "ZZ Test");
+
+			LexiconEntry.viewEntryName(rowEntry = "Afghanistan");
+		}
+	}
+
+	@description = "Can order regions by name in descending and ascending order"
+	@priority = "3"
+	test CanOrderRegionByName {
+		task ("Given there are regions existing for a country") {
+			CountriesManagement.openCountriesManagementPortlet();
+
+			CountriesManagement.goToRegions(countryName = "United States");
+		}
+
+		task ("When a user orders by name and changes to descending order") {
+			ManagementBar.setFilterAndOrder(orderBy = "Name");
+
+			ManagementBar.toggleViewOrder(order = "up");
+		}
+
+		task ("Then the regions will display in descending order") {
+			LexiconEntry.viewEntryName(rowEntry = "Wyoming");
+
+			LexiconEntry.viewNoEntry(rowEntry = "Alabama");
+		}
+
+		task ("When a user switches the order") {
+			ManagementBar.toggleViewOrder(order = "down");
+		}
+
+		task ("Then the regions are displayed in ascending order") {
+			LexiconEntry.viewEntryName(rowEntry = "Alabama");
+
+			LexiconEntry.viewNoEntry(rowEntry = "Wyoming");
+		}
+	}
+
+	@description = "Can order regions by priority in descending and ascending order"
+	@priority = "3"
+	test CanOrderRegionByPriority {
+		task ("Given there is a region with higher priority added to a country") {
+			CountriesManagement.openCountriesManagementPortlet();
+
+			CountriesManagement.addRegion(
+				countryName = "China",
+				regionCode = "01",
+				regionName = "A Region",
+				regionPosition = "5.0");
+
+			Navigator.gotoBack();
+		}
+
+		task ("When a user orders by priority and changes to descending order") {
+			ManagementBar.setFilterAndOrder(orderBy = "Priority");
+
+			ManagementBar.toggleViewOrder(order = "up");
+		}
+
+		task ("Then the regions will display priority in descending order") {
+			AssertTextEquals.assertPartialText(
+				key_rowNumber = "1",
+				locator1 = "ContentRow#ENTRY_CONTENT_ROW_NUMBER",
+				value1 = "A Region");
+
+			AssertTextEquals.assertPartialText(
+				key_rowNumber = "2",
+				locator1 = "ContentRow#ENTRY_CONTENT_ROW_NUMBER",
+				value1 = "Anhui Sheng");
+		}
+
+		task ("When a user switches the order") {
+			ManagementBar.toggleViewOrder(order = "down");
+		}
+
+		task ("Then the region priorities are displayed in ascending order") {
+			AssertTextEquals.assertPartialText(
+				key_rowNumber = "1",
+				locator1 = "ContentRow#ENTRY_CONTENT_ROW_NUMBER",
+				value1 = "Anhui Sheng");
+
+			LexiconEntry.viewNoEntry(rowEntry = "A Region");
+		}
+	}
+
+	@description = "Changing the filter to Active will not display countries in Inactive status"
+	@priority = "3"
+	test FilterByActiveWillNotDisplayInactiveCountries {
+		task ("Given an inactive country") {
+			CountriesManagement.openCountriesManagementPortlet();
+
+			CountriesManagement.addCountry(
+				countryName = "AAA Test",
+				countryNumber = "01",
+				countryStatus = "Inactive",
+				threeLetterISOCode = "AAA",
+				twoLetterISOCode = "AA");
+		}
+
+		task ("When a user changes filter to Active") {
+			CountriesManagement.openCountriesManagementPortlet();
+
+			ManagementBar.setFilterAndOrder(filterBy = "Active");
+		}
+
+		task ("Then the inactive country will not display") {
+			LexiconEntry.viewNoEntry(rowEntry = "AAA Test");
+		}
+
+		task ("When a user searches for the inactive country in the Active filter") {
+			Search.searchCP(searchTerm = "AAA Test");
+		}
+
+		task ("Then the results will not show the inactive country") {
+			AssertTextEquals(
+				locator1 = "Message#EMPTY_INFO",
+				value1 = "There are no active countries.");
+		}
+	}
+
+	@description = "This test changes pagination and assert countries display properly."
+	@priority = "3"
+	test PaginationWorksInCountries {
+		task ("Given 20 is the default pagination set") {
+			CountriesManagement.openCountriesManagementPortlet();
+
+			Pagination.viewResults(results = "Showing 1 to 20 of 247 entries.");
+		}
+
+		task ("When pagination is changed to 4") {
+			Pagination.changePagination(itemsPerPage = "4");
+		}
+
+		task ("Then only 4 entries display") {
+			for (var countryName : list "Afghanistan,Aland Islands,Albania,Algeria") {
+				LexiconEntry.viewEntryName(rowEntry = "${countryName}");
+			}
+
+			LexiconEntry.viewNoEntry(rowEntry = "American Samoa");
+
+			Pagination.viewResults(results = "Showing 1 to 4 of 247 entries.");
+		}
+
+		task ("When pagination is changed to 8") {
+			Pagination.changePagination(itemsPerPage = "8");
+		}
+
+		task ("Then 8 entries display") {
+			for (var countryName : list "Afghanistan,Aland Islands,Albania,Algeria,American Samoa,Andorra,Angola,Anguilla") {
+				LexiconEntry.viewEntryName(rowEntry = "${countryName}");
+			}
+
+			LexiconEntry.viewNoEntry(rowEntry = "Antarctica");
+
+			Pagination.viewResults(results = "Showing 1 to 8 of 247 entries.");
+		}
+	}
+
+}

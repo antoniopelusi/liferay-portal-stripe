@@ -43,8 +43,9 @@ definition {
 	@priority = "4"
 	test AddAndEditWebContentViaAssetPublisherInOrganizationSiteWithVirtualHost {
 		property custom.properties = "virtual.hosts.valid.hosts=localhost,127.0.0.1,www.able.com,www.baker.com";
-		property osgi.module.configuration.file.names = "com.liferay.login.web.internal.configuration.AuthLoginConfiguration.config:com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-		property osgi.module.configurations = "promptEnabled=&quot;true&quot;:disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
+		property osgi.module.configuration.file.names = "com.liferay.login.web.internal.configuration.AuthLoginConfiguration.config";
+		property osgi.module.configurations = "promptEnabled=&quot;true&quot;";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 		property test.name.skip.portal.instance = "AssetPublisherUseCase#AddAndEditWebContentViaAssetPublisherInOrganizationSiteWithVirtualHost";
 
 		task ("Add an organization with site") {
@@ -535,7 +536,7 @@ definition {
 		}
 
 		task ("Add the Global site to Site Scope") {
-			AssetPublisherPortlet.configureAddSiteScopes(globalSite = "true");
+			AssetPublisherPortlet.configureScope(globalSite = "true");
 		}
 
 		task ("View the global web content shown in Asset Publisher") {
@@ -1079,6 +1080,85 @@ definition {
 		}
 	}
 
+	@description = "This is a test for LPS-159046. The page creator should see the tags on Asset Publisher filter selector under scoped page."
+	@priority = "3"
+	test FilterAssetsFromPageScopeByTag {
+		task ("Given a page creator has an Asset Publisher and Blogs widget with scoped page") {
+			task ("Add a Blogs widget to page") {
+				JSONLayout.addWidgetToPublicLayout(
+					groupName = "Test Site Name",
+					layoutName = "Asset Publisher Page",
+					widgetName = "Blogs");
+			}
+
+			task ("Select current page as Scope on Blogs widget") {
+				Navigator.gotoSitePage(
+					pageName = "Asset Publisher Page",
+					siteName = "Test Site Name");
+
+				Portlet.selectScopePG(
+					portletIndex = "2",
+					portletName = "Blogs",
+					scope = "Asset Publisher Page");
+			}
+
+			task ("Select the page as default scope in Content & Data") {
+				ProductMenu.gotoPortlet(
+					category = "Content & Data",
+					portlet = "Blogs");
+
+				Click(
+					key_text = "cog",
+					locator1 = "Icon#ANY");
+
+				MenuItem.click(menuItem = "Asset Publisher Page");
+			}
+
+			task ("Add two Blogs with tag under scoped page") {
+				for (var i : list "1,2") {
+					Blogs.addEntryWithTag(
+						entryContent = "Blogs Entry Content ${i}",
+						entryTitle = "Blogs Entry Title ${i}",
+						tagName = "tagname${i}");
+				}
+			}
+		}
+
+		task ("When the page creator configures the scope and source of Asset Publisher") {
+			Navigator.gotoSitePage(
+				pageName = "Asset Publisher Page",
+				siteName = "Test Site Name");
+
+			AssetPublisherPortlet.configureScope(pageName = "Asset Publisher Page");
+
+			IFrame.closeFrame();
+
+			AssetPublisherPortlet.configureSelectedPG(selectedAsset = "Blogs Entry");
+
+			IFrame.closeFrame();
+		}
+
+		task ("Then the page creator should see both blogs on Asset Publisher") {
+			for (var i : list "1,2") {
+				AssetPublisherPortlet.viewAssetPG(
+					assetContent = "Blogs Entry Content ${i}",
+					assetTitle = "Blogs Entry Title ${i}");
+			}
+		}
+
+		task ("When the page creator selects the first tag on filter panel") {
+			AssetPublisherPortlet.configureTagsFilterPG(tagNameList = "tagname1");
+
+			IFrame.closeFrame();
+		}
+
+		task ("Then the page creator should see only blogs with first tag") {
+			AssetPublisherPortlet.viewAssetPG(assetTitle = "Blogs Entry Title 1");
+
+			AssetPublisherPortlet.viewAssetNotPresentPG(assetTitle = "Blogs Entry Title 2");
+		}
+	}
+
 	@description = "This is a test for LPS-113996. The user could filter documents by field in Asset Publisher."
 	@priority = "4"
 	test FilterDocumentsByField {
@@ -1146,6 +1226,8 @@ definition {
 				value1 = "Option 1");
 
 			Button.click(button = "Apply");
+
+			SelectFrameTop();
 
 			AssertTextEquals.assertPartialText(
 				key_text = "Select from List: Value1",
@@ -1607,7 +1689,7 @@ definition {
 		}
 
 		task ("Add the Global site to Site Scope") {
-			AssetPublisherPortlet.configureAddSiteScopes(globalSite = "Global");
+			AssetPublisherPortlet.configureScope(globalSite = "Global");
 		}
 
 		task ("View displayed assets in Asset Publisher") {
@@ -1769,7 +1851,7 @@ definition {
 				pageName = "Asset Publisher Page",
 				siteName = "Test Site Name");
 
-			AssetPublisherPortlet.configureAddSiteScopes(globalSite = "true");
+			AssetPublisherPortlet.configureScope(globalSite = "true");
 		}
 
 		task ("View the global web content shown in Asset Publisher") {
@@ -2089,7 +2171,9 @@ catch (Exception e) {
 	e.printStackTrace(out);
 }
 			''';
+
 			var script = StringUtil.trimLeading("${script}");
+
 			var script = StringUtil.trimTrailing("${script}");
 
 			ServerAdministration.executeScript(
@@ -2245,7 +2329,7 @@ catch (Exception e) {
 
 			IFrame.closeFrame();
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View the pagination in two Asset Publisher widgets") {
@@ -2488,7 +2572,7 @@ catch (Exception e) {
 
 			IFrame.closeFrame();
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a web content") {

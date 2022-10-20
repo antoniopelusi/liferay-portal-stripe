@@ -7420,6 +7420,8 @@ public class ObjectDefinitionPersistenceImpl
 		Map<String, String> dbColumnNames = new HashMap<String, String>();
 
 		dbColumnNames.put("uuid", "uuid_");
+		dbColumnNames.put(
+			"accountEntryRestrictedObjectFieldId", "accountERObjectFieldId");
 		dbColumnNames.put("active", "active_");
 		dbColumnNames.put("system", "system_");
 
@@ -8292,7 +8294,9 @@ public class ObjectDefinitionPersistenceImpl
 		ObjectDefinitionPersistenceImpl.class);
 
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
-		new String[] {"uuid", "active", "system"});
+		new String[] {
+			"uuid", "accountEntryRestrictedObjectFieldId", "active", "system"
+		});
 
 	@Override
 	protected FinderCache getFinderCache() {

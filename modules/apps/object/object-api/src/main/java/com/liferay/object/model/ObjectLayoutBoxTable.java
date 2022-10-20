@@ -60,6 +60,8 @@ public class ObjectLayoutBoxTable extends BaseTable<ObjectLayoutBoxTable> {
 		"name", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
 	public final Column<ObjectLayoutBoxTable, Integer> priority = createColumn(
 		"priority", Integer.class, Types.INTEGER, Column.FLAG_DEFAULT);
+	public final Column<ObjectLayoutBoxTable, String> type = createColumn(
+		"type_", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
 
 	private ObjectLayoutBoxTable() {
 		super("ObjectLayoutBox", ObjectLayoutBoxTable::new);

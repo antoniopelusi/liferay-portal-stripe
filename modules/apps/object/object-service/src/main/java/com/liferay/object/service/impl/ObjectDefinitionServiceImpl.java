@@ -51,7 +51,7 @@ public class ObjectDefinitionServiceImpl
 	public ObjectDefinition addCustomObjectDefinition(
 			Map<Locale, String> labelMap, String name, String panelAppOrder,
 			String panelCategoryKey, Map<Locale, String> pluralLabelMap,
-			String scope, List<ObjectField> objectFields)
+			String scope, String storageType, List<ObjectField> objectFields)
 		throws PortalException {
 
 		_portletResourcePermission.check(
@@ -60,7 +60,7 @@ public class ObjectDefinitionServiceImpl
 
 		return _objectDefinitionLocalService.addCustomObjectDefinition(
 			getUserId(), labelMap, name, panelAppOrder, panelCategoryKey,
-			pluralLabelMap, scope, objectFields);
+			pluralLabelMap, scope, storageType, objectFields);
 	}
 
 	@Override
@@ -126,8 +126,9 @@ public class ObjectDefinitionServiceImpl
 
 	@Override
 	public ObjectDefinition updateCustomObjectDefinition(
-			long objectDefinitionId, long descriptionObjectFieldId,
-			long titleObjectFieldId, boolean active,
+			long objectDefinitionId, long accountEntryRestrictedObjectFieldId,
+			long descriptionObjectFieldId, long titleObjectFieldId,
+			boolean accountEntryRestricted, boolean active,
 			Map<Locale, String> labelMap, String name, String panelAppOrder,
 			String panelCategoryKey, boolean portlet,
 			Map<Locale, String> pluralLabelMap, String scope)
@@ -137,9 +138,10 @@ public class ObjectDefinitionServiceImpl
 			getPermissionChecker(), objectDefinitionId, ActionKeys.UPDATE);
 
 		return _objectDefinitionLocalService.updateCustomObjectDefinition(
-			objectDefinitionId, descriptionObjectFieldId, titleObjectFieldId,
-			active, labelMap, name, panelAppOrder, panelCategoryKey, portlet,
-			pluralLabelMap, scope);
+			objectDefinitionId, accountEntryRestrictedObjectFieldId,
+			descriptionObjectFieldId, titleObjectFieldId,
+			accountEntryRestricted, active, labelMap, name, panelAppOrder,
+			panelCategoryKey, portlet, pluralLabelMap, scope);
 	}
 
 	@Override

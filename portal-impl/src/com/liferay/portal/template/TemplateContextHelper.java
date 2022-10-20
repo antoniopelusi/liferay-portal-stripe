@@ -22,6 +22,7 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.audit.AuditMessageFactoryUtil;
 import com.liferay.portal.kernel.audit.AuditRouterUtil;
+import com.liferay.portal.kernel.frontend.icons.FrontendIconsUtil;
 import com.liferay.portal.kernel.image.ImageToolUtil;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
@@ -61,7 +62,6 @@ import com.liferay.portal.kernel.servlet.BrowserSnifferUtil;
 import com.liferay.portal.kernel.template.TemplateHandler;
 import com.liferay.portal.kernel.template.TemplateHandlerRegistryUtil;
 import com.liferay.portal.kernel.template.TemplateVariableGroup;
-import com.liferay.portal.kernel.theme.NavItem;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil_IW;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
@@ -101,7 +101,6 @@ import java.net.URL;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
@@ -320,6 +319,8 @@ public class TemplateContextHelper {
 			contextObjects.put("realUser", themeDisplay.getRealUser());
 			contextObjects.put(
 				"scopeGroupId", Long.valueOf(themeDisplay.getScopeGroupId()));
+			contextObjects.put(
+				"siteSpritemap", FrontendIconsUtil.getSpritemap(themeDisplay));
 			contextObjects.put("themeDisplay", themeDisplay);
 			contextObjects.put("timeZone", themeDisplay.getTimeZone());
 
@@ -331,20 +332,6 @@ public class TemplateContextHelper {
 			}
 
 			contextObjects.put("user", user);
-
-			// Navigation items
-
-			if (layout != null) {
-				try {
-					List<NavItem> navItems = NavItem.fromLayouts(
-						httpServletRequest, themeDisplay, contextObjects);
-
-					contextObjects.put("navItems", navItems);
-				}
-				catch (Exception exception) {
-					_log.error(exception);
-				}
-			}
 
 			// Deprecated
 

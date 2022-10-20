@@ -17,12 +17,11 @@ package com.liferay.jenkins.results.parser;
 import java.io.File;
 import java.io.IOException;
 
-import java.nio.charset.Charset;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -32,8 +31,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.commons.io.input.ReversedLinesFileReader;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -49,43 +46,141 @@ public class CISystemHistoryReportUtil {
 
 		writeAllDurationsJavaScriptFile();
 
+		writeBackupDurationsJavaScriptFile();
+
 		writeDateDurationsJavaScriptFiles(jobName, testSuiteName);
 
 		writeIndexHtmlFile();
 	}
 
 	protected static void writeAllDurationsJavaScriptFile() throws IOException {
-		StringBuilder sb = new StringBuilder();
+		File allDurationsFile = new File(
+			_CI_SYSTEM_HISTORY_REPORT_DIR, "js/all-durations.js");
 
-		for (DurationReport durationReport : _getDurationReports()) {
-			sb.append(durationReport.getAllDurationsJavaScriptContent());
+		if (allDurationsFile.exists()) {
+			JenkinsResultsParserUtil.delete(allDurationsFile);
 		}
 
-		JenkinsResultsParserUtil.write(
-			new File(_CI_SYSTEM_HISTORY_REPORT_DIR, "js/all-durations.js"),
-			sb.toString());
+		for (DurationReport durationReport : _getDurationReports()) {
+			JenkinsResultsParserUtil.append(
+				allDurationsFile,
+				durationReport.getAllDurationsJavaScriptContent());
+		}
+	}
+
+	protected static void writeBackupDurationsJavaScriptFile()
+		throws IOException {
+
+		File backupDurationsFile = new File(
+			_CI_SYSTEM_HISTORY_REPORT_DIR, "js/backup-durations.js");
+
+		if (backupDurationsFile.exists()) {
+			JenkinsResultsParserUtil.delete(backupDurationsFile);
+		}
+
+		for (DurationReport durationReport : _getDurationReports()) {
+			JenkinsResultsParserUtil.append(
+				backupDurationsFile,
+				durationReport.getBackupDurationsJavaScriptContent());
+		}
 	}
 
 	protected static void writeDateDurationsJavaScriptFile(
-			String jobName, String testSuiteName, String dateString)
+			String jobName, final String testSuiteName, String dateString)
 		throws IOException {
 
-		List<JSONObject> buildResultJSONObjects = _getBuildResultJSONObjects(
-			jobName, testSuiteName, dateString);
+		final List<DurationReport> durationReports = _getDurationReports();
 
-		StringBuilder sb = new StringBuilder();
+		List<File> jenkinsConsoleGzFiles = _getJenkinsConsoleGzFiles(
+			jobName, dateString);
 
-		for (DurationReport durationReport : _getDurationReports()) {
-			sb.append(
-				durationReport.getDateDurationsJavaScriptContent(
-					buildResultJSONObjects, dateString));
+		List<Callable<File>> callables = new ArrayList<>();
+
+		System.out.println(
+			"Processing " + jenkinsConsoleGzFiles.size() + " files");
+
+		for (final File jenkinsConsoleGzFile : jenkinsConsoleGzFiles) {
+			callables.add(
+				new Callable<File>() {
+
+					@Override
+					public File call() throws Exception {
+						long start =
+							JenkinsResultsParserUtil.getCurrentTimeMillis();
+
+						try {
+							TopLevelBuildReport topLevelBuildReport =
+								BuildReportFactory.newTopLevelBuildReport(
+									jenkinsConsoleGzFile);
+
+							if ((topLevelBuildReport == null) ||
+								!Objects.equals(
+									testSuiteName,
+									topLevelBuildReport.getTestSuiteName())) {
+
+								return null;
+							}
+
+							for (DurationReport durationReport :
+									durationReports) {
+
+								durationReport.addDurations(
+									topLevelBuildReport);
+							}
+
+							return jenkinsConsoleGzFile;
+						}
+						catch (Exception exception) {
+							RuntimeException runtimeException =
+								new RuntimeException(
+									JenkinsResultsParserUtil.getCanonicalPath(
+										jenkinsConsoleGzFile),
+									exception);
+
+							runtimeException.printStackTrace();
+
+							return null;
+						}
+						finally {
+							long end =
+								JenkinsResultsParserUtil.getCurrentTimeMillis();
+
+							System.out.println(
+								JenkinsResultsParserUtil.combine(
+									JenkinsResultsParserUtil.getCanonicalPath(
+										jenkinsConsoleGzFile),
+									" processed in ",
+									JenkinsResultsParserUtil.toDurationString(
+										end - start)));
+						}
+					}
+
+				});
 		}
 
-		JenkinsResultsParserUtil.write(
-			new File(
-				_CI_SYSTEM_HISTORY_REPORT_DIR,
-				"js/durations-" + dateString + ".js"),
-			sb.toString());
+		ParallelExecutor<File> parallelExecutor = new ParallelExecutor<>(
+			callables, _executorService);
+
+		List<File> completedJenkinsConsoleGzFiles = parallelExecutor.execute();
+
+		completedJenkinsConsoleGzFiles.removeAll(Collections.singleton(null));
+
+		System.out.println(
+			"Processed " + completedJenkinsConsoleGzFiles.size() + " files");
+
+		File durationsFile = new File(
+			_CI_SYSTEM_HISTORY_REPORT_DIR,
+			"js/durations-" + dateString + ".js");
+
+		if (durationsFile.exists()) {
+			JenkinsResultsParserUtil.delete(durationsFile);
+		}
+
+		for (DurationReport durationReport : durationReports) {
+			JenkinsResultsParserUtil.append(
+				durationsFile,
+				durationReport.getDateDurationsJavaScriptContent(dateString));
+		}
 	}
 
 	protected static void writeDateDurationsJavaScriptFiles(
@@ -112,6 +207,8 @@ public class CISystemHistoryReportUtil {
 
 		StringBuilder sb = new StringBuilder();
 
+		sb.append("\t\t<script src=\"js/backup-durations.js\"></script>\n\n");
+
 		for (String dateString : _dateStrings) {
 			sb.append("\t\t<script src=\"js/durations-");
 			sb.append(dateString);
@@ -136,217 +233,6 @@ public class CISystemHistoryReportUtil {
 		catch (Exception exception) {
 			return defaultValue;
 		}
-	}
-
-	private static List<JSONObject> _getBuildResultJSONObjects(
-		String jobName, final String testSuiteName, String dateString) {
-
-		List<File> jenkinsConsoleGzFiles = _getJenkinsConsoleGzFiles(
-			jobName, dateString);
-
-		List<Callable<JSONObject>> callables = new ArrayList<>();
-
-		_totalFileCacheSize = 0L;
-
-		System.out.println(
-			"Processing " + jenkinsConsoleGzFiles.size() + " files");
-
-		for (final File jenkinsConsoleGzFile : jenkinsConsoleGzFiles) {
-			callables.add(
-				new Callable<JSONObject>() {
-
-					@Override
-					public JSONObject call() throws Exception {
-						long start =
-							JenkinsResultsParserUtil.getCurrentTimeMillis();
-
-						try {
-							if (!Objects.equals(
-									testSuiteName,
-									_getCurrentTestSuiteName())) {
-
-								return null;
-							}
-
-							return _getBuildResultJSONObject();
-						}
-						finally {
-							long end =
-								JenkinsResultsParserUtil.getCurrentTimeMillis();
-
-							System.out.println(
-								JenkinsResultsParserUtil.combine(
-									JenkinsResultsParserUtil.getCanonicalPath(
-										jenkinsConsoleGzFile),
-									" processed in ",
-									JenkinsResultsParserUtil.toDurationString(
-										end - start)));
-						}
-					}
-
-					private JSONObject _getBuildResultJSONObject() {
-						File buildResultGzFile = new File(
-							jenkinsConsoleGzFile.getParentFile(),
-							"build-result.json.gz");
-
-						if (!buildResultGzFile.exists()) {
-							return null;
-						}
-
-						String timestamp =
-							JenkinsResultsParserUtil.getDistinctTimeStamp();
-
-						File buildResultGzTempFile = new File(
-							"build-result-" + timestamp + ".json.gz");
-
-						try {
-							JenkinsResultsParserUtil.copy(
-								buildResultGzFile, buildResultGzTempFile);
-						}
-						catch (Exception exception) {
-							return null;
-						}
-
-						File buildResultTempFile = new File(
-							"build-result-" + timestamp + ".json");
-
-						try {
-							JenkinsResultsParserUtil.unGzip(
-								buildResultGzTempFile, buildResultTempFile);
-						}
-						catch (Exception exception) {
-							return null;
-						}
-						finally {
-							if (buildResultGzTempFile.exists()) {
-								JenkinsResultsParserUtil.delete(
-									buildResultGzTempFile);
-							}
-						}
-
-						synchronized (_totalFileCacheSize) {
-							_totalFileCacheSize += buildResultTempFile.length();
-
-							if (_totalFileCacheSize >= _MAX_FILE_CACHE_SIZE) {
-								System.out.println(
-									"SKIPPED: " + buildResultGzFile);
-
-								return null;
-							}
-						}
-
-						try {
-							return new JSONObject(
-								JenkinsResultsParserUtil.read(
-									buildResultTempFile));
-						}
-						catch (Exception exception) {
-							return null;
-						}
-						finally {
-							if (buildResultTempFile.exists()) {
-								JenkinsResultsParserUtil.delete(
-									buildResultTempFile);
-							}
-						}
-					}
-
-					private String _getCurrentTestSuiteName() {
-						if (!jenkinsConsoleGzFile.exists()) {
-							return null;
-						}
-
-						String timestamp =
-							JenkinsResultsParserUtil.getDistinctTimeStamp();
-
-						File jenkinsConsoleGzTempFile = new File(
-							"jenkins-console-" + timestamp + ".txt.gz");
-
-						try {
-							JenkinsResultsParserUtil.copy(
-								jenkinsConsoleGzFile, jenkinsConsoleGzTempFile);
-						}
-						catch (Exception exception) {
-							return null;
-						}
-
-						File jenkinsConsoleTempFile = new File(
-							"jenkins-console-" + timestamp + ".txt");
-
-						try {
-							JenkinsResultsParserUtil.unGzip(
-								jenkinsConsoleGzTempFile,
-								jenkinsConsoleTempFile);
-						}
-						catch (Exception exception) {
-							return null;
-						}
-						finally {
-							if (jenkinsConsoleGzTempFile.exists()) {
-								JenkinsResultsParserUtil.delete(
-									jenkinsConsoleGzTempFile);
-							}
-						}
-
-						try (ReversedLinesFileReader reversedLinesFileReader =
-								new ReversedLinesFileReader(
-									jenkinsConsoleTempFile,
-									Charset.defaultCharset())) {
-
-							String line;
-
-							long start =
-								JenkinsResultsParserUtil.getCurrentTimeMillis();
-
-							while ((line =
-										reversedLinesFileReader.readLine()) !=
-											null) {
-
-								long end =
-									JenkinsResultsParserUtil.
-										getCurrentTimeMillis();
-
-								long duration = end - start;
-
-								if (duration >= (10 * 1000)) {
-									break;
-								}
-
-								Matcher matcher =
-									_jenkinsConsolePattern.matcher(line);
-
-								if (matcher.find()) {
-									return matcher.group("testSuiteName");
-								}
-							}
-						}
-						catch (Exception exception) {
-							return null;
-						}
-						finally {
-							if (jenkinsConsoleTempFile.exists()) {
-								JenkinsResultsParserUtil.delete(
-									jenkinsConsoleTempFile);
-							}
-						}
-
-						return null;
-					}
-
-				});
-		}
-
-		ParallelExecutor<JSONObject> parallelExecutor = new ParallelExecutor<>(
-			callables, _executorService);
-
-		List<JSONObject> buildResultJSONObjects = parallelExecutor.execute();
-
-		buildResultJSONObjects.removeAll(Collections.singleton(null));
-
-		System.out.println(
-			"Found " + buildResultJSONObjects.size() + " build results");
-
-		return buildResultJSONObjects;
 	}
 
 	private static List<DurationReport> _getDurationReports() {
@@ -429,8 +315,6 @@ public class CISystemHistoryReportUtil {
 
 	private static final File _CI_SYSTEM_HISTORY_REPORT_DIR;
 
-	private static final long _MAX_FILE_CACHE_SIZE = 600 * 1024 * 1024;
-
 	private static final int _MONTH_COUNT;
 
 	private static final int _MONTH_RECORD_COUNT;
@@ -447,9 +331,6 @@ public class CISystemHistoryReportUtil {
 			"\\[(?<durationReportType>[^\\]]+)\\]");
 	private static final ExecutorService _executorService =
 		JenkinsResultsParserUtil.getNewThreadPoolExecutor(50, true);
-	private static final Pattern _jenkinsConsolePattern = Pattern.compile(
-		"[\\s\\S]*CI_TEST_SUITE[=](?<testSuiteName>[^&]+)[\\s\\S]*");
-	private static Long _totalFileCacheSize;
 
 	static {
 		_buildProperties = new Properties() {
@@ -492,6 +373,53 @@ public class CISystemHistoryReportUtil {
 	}
 
 	private static class DurationReport implements Comparable<DurationReport> {
+
+		public void addDurations(TopLevelBuildReport topLevelBuildReport) {
+			if (topLevelBuildReport == null) {
+				return;
+			}
+
+			if (_buildType.equals("top.level")) {
+				if (_durationReportType.equals("active.duration")) {
+					_durations.add(
+						topLevelBuildReport.getTopLevelActiveDuration());
+
+					return;
+				}
+
+				if (_durationReportType.equals("passive.duration")) {
+					_durations.add(
+						topLevelBuildReport.getTopLevelPassiveDuration());
+
+					return;
+				}
+
+				_durations.add(
+					_getDuration(
+						topLevelBuildReport.getStopWatchRecordsGroup(),
+						_durationReportType));
+
+				return;
+			}
+
+			List<DownstreamBuildReport> downstreamBuildReports =
+				topLevelBuildReport.getDownstreamBuildReports();
+
+			if (!_buildType.equals("downstream") ||
+				downstreamBuildReports.isEmpty()) {
+
+				return;
+			}
+
+			for (DownstreamBuildReport downstreamBuildReport :
+					downstreamBuildReports) {
+
+				_durations.add(
+					_getDuration(
+						downstreamBuildReport.getStopWatchRecordsGroup(),
+						_durationReportType));
+			}
+		}
 
 		@Override
 		public int compareTo(DurationReport durationReport) {
@@ -538,22 +466,44 @@ public class CISystemHistoryReportUtil {
 				"\\\"([^\\\"]+_\\d{4}_\\d{2})\\\"", "$1");
 		}
 
-		public String getDateDurationsJavaScriptContent(
-			List<JSONObject> buildResultJSONObjects, String dateString) {
-
-			List<Long> durations = getDurations(buildResultJSONObjects);
-
+		public String getBackupDurationsJavaScriptContent() {
 			StringBuilder sb = new StringBuilder();
+
+			for (String durationsJavaScriptVarName :
+					getDurationsJavaScriptVarNames()) {
+
+				sb.append(durationsJavaScriptVarName);
+				sb.append(" = []\n");
+			}
+
+			for (String dateJavaScriptVarName : getDateJavaScriptVarNames()) {
+				sb.append(dateJavaScriptVarName);
+				sb.append(" = [\"");
+
+				sb.append(
+					dateJavaScriptVarName.replaceAll(
+						".+(\\d{4}_\\d{2})", "$1"));
+
+				sb.append("\"]\n");
+			}
+
+			return sb.toString();
+		}
+
+		public String getDateDurationsJavaScriptContent(String dateString) {
+			StringBuilder sb = new StringBuilder();
+
+			_durations.removeAll(Arrays.asList(null, 0L));
 
 			sb.append("var ");
 			sb.append(getDateJavaScriptVarName(dateString));
 			sb.append(" = ");
-			sb.append(getDateJavaScriptVarValue(dateString, durations));
+			sb.append(getDateJavaScriptVarValue(dateString, _durations));
 
 			sb.append("\nvar ");
 			sb.append(getDurationsJavaScriptVarName(dateString));
 			sb.append(" = ");
-			sb.append(durations);
+			sb.append(_durations);
 			sb.append("\n\n");
 
 			return sb.toString();
@@ -596,78 +546,6 @@ public class CISystemHistoryReportUtil {
 			return jsonArray.toString();
 		}
 
-		public List<Long> getDurations(
-			List<JSONObject> buildResultJSONObjects) {
-
-			List<Long> durations = new ArrayList<>();
-
-			for (JSONObject buildResultJSONObject : buildResultJSONObjects) {
-				if (!buildResultJSONObject.has("duration")) {
-					continue;
-				}
-
-				if (_buildType.equals("top.level")) {
-					StopWatchRecordsGroup stopWatchRecordsGroup =
-						new StopWatchRecordsGroup(buildResultJSONObject);
-
-					if (_durationReportType.equals("active.duration")) {
-						durations.add(
-							_getActiveDuration(stopWatchRecordsGroup));
-
-						continue;
-					}
-
-					if (_durationReportType.equals("passive.duration")) {
-						durations.add(
-							_getPassiveDuration(stopWatchRecordsGroup));
-
-						continue;
-					}
-
-					durations.add(
-						_getDuration(
-							stopWatchRecordsGroup, _durationReportType));
-
-					continue;
-				}
-
-				if (!_buildType.equals("downstream") ||
-					!buildResultJSONObject.has("batchResults")) {
-
-					continue;
-				}
-
-				JSONArray batchResultsJSONArray =
-					buildResultJSONObject.getJSONArray("batchResults");
-
-				for (int i = 0; i < batchResultsJSONArray.length(); i++) {
-					JSONObject batchResultsJSONObject =
-						batchResultsJSONArray.getJSONObject(i);
-
-					if (!batchResultsJSONObject.has("buildResults")) {
-						continue;
-					}
-
-					JSONArray buildResultsJSONArray =
-						batchResultsJSONObject.getJSONArray("buildResults");
-
-					for (int j = 0; j < buildResultsJSONArray.length(); j++) {
-						StopWatchRecordsGroup stopWatchRecordsGroup =
-							new StopWatchRecordsGroup(
-								buildResultsJSONArray.getJSONObject(j));
-
-						durations.add(
-							_getDuration(
-								stopWatchRecordsGroup, _durationReportType));
-					}
-				}
-			}
-
-			durations.removeAll(Collections.singleton(0L));
-
-			return durations;
-		}
-
 		public String getDurationsJavaScriptVarName(String dateString) {
 			return JenkinsResultsParserUtil.combine(
 				_getJavaScriptID(), "_durations_",
@@ -697,29 +575,6 @@ public class CISystemHistoryReportUtil {
 				durationReportType);
 
 			_durationReportType = durationReportType;
-		}
-
-		private long _getActiveDuration(
-			StopWatchRecordsGroup stopWatchRecordsGroup) {
-
-			if (stopWatchRecordsGroup == null) {
-				return 0L;
-			}
-
-			long passiveDuration = _getPassiveDuration(stopWatchRecordsGroup);
-
-			if (passiveDuration == 0) {
-				return 0L;
-			}
-
-			long totalDuration = _getDuration(
-				stopWatchRecordsGroup, "total.duration");
-
-			if (passiveDuration > totalDuration) {
-				return totalDuration;
-			}
-
-			return totalDuration - passiveDuration;
 		}
 
 		private long _getDuration(
@@ -764,31 +619,10 @@ public class CISystemHistoryReportUtil {
 			return javascriptID;
 		}
 
-		private long _getPassiveDuration(
-			StopWatchRecordsGroup stopWatchRecordsGroup) {
-
-			if (stopWatchRecordsGroup == null) {
-				return 0L;
-			}
-
-			long passiveDuration = 0L;
-
-			passiveDuration += _getDuration(
-				stopWatchRecordsGroup, "wait.for.invoked.jobs");
-			passiveDuration += _getDuration(
-				stopWatchRecordsGroup, "wait.for.invoked.smoke.jobs");
-
-			if (passiveDuration > 0L) {
-				return passiveDuration;
-			}
-
-			return _getDuration(
-				stopWatchRecordsGroup, "invoke.downstream.builds");
-		}
-
 		private final String _buildType;
 		private final String _description;
 		private final String _durationReportType;
+		private final List<Long> _durations = new ArrayList<>();
 		private final String _title;
 
 	}

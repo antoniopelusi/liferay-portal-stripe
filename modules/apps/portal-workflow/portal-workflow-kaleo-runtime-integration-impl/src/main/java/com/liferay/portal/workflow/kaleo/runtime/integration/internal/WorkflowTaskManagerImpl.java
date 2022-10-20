@@ -17,6 +17,7 @@ package com.liferay.portal.workflow.kaleo.runtime.integration.internal;
 import com.liferay.depot.constants.DepotRolesConstants;
 import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.change.tracking.CTAware;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.lock.DuplicateLockException;
@@ -31,6 +32,7 @@ import com.liferay.portal.kernel.model.UserGroupRole;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.search.BaseModelSearchResult;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.RoleLocalService;
@@ -45,6 +47,7 @@ import com.liferay.portal.kernel.util.comparator.UserScreenNameComparator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.workflow.WorkflowException;
 import com.liferay.portal.kernel.workflow.WorkflowTask;
+import com.liferay.portal.kernel.workflow.WorkflowTaskAssignee;
 import com.liferay.portal.kernel.workflow.WorkflowTaskManager;
 import com.liferay.portal.kernel.workflow.search.WorkflowModelSearchResult;
 import com.liferay.portal.workflow.kaleo.KaleoWorkflowModelConverter;
@@ -93,6 +96,7 @@ import org.osgi.service.component.annotations.Reference;
 	immediate = true, property = "proxy.bean=false",
 	service = WorkflowTaskManager.class
 )
+@CTAware
 public class WorkflowTaskManagerImpl implements WorkflowTaskManager {
 
 	@Override
@@ -141,7 +145,7 @@ public class WorkflowTaskManagerImpl implements WorkflowTaskManager {
 			long companyId, long userId, long workflowTaskId,
 			String transitionName, String comment,
 			Map<String, Serializable> workflowContext)
-		throws WorkflowException {
+		throws PortalException {
 
 		return completeWorkflowTask(
 			companyId, userId, workflowTaskId, transitionName, comment,
@@ -154,7 +158,21 @@ public class WorkflowTaskManagerImpl implements WorkflowTaskManager {
 			String transitionName, String comment,
 			Map<String, Serializable> workflowContext,
 			boolean waitForCompletion)
-		throws WorkflowException {
+		throws PortalException {
+
+		WorkflowTask workflowTask = getWorkflowTask(companyId, workflowTaskId);
+
+		List<WorkflowTaskAssignee> workflowTaskAssignees =
+			workflowTask.getWorkflowTaskAssignees();
+
+		WorkflowTaskAssignee workflowTaskAssignee = workflowTaskAssignees.get(
+			0);
+
+		if (workflowTaskAssignee.getAssigneeClassPK() != userId) {
+			throw new PrincipalException.MustHavePermission(
+				userId, WorkflowTask.class.getName(), workflowTaskId,
+				ActionKeys.VIEW);
+		}
 
 		Lock lock = null;
 
@@ -183,7 +201,7 @@ public class WorkflowTaskManagerImpl implements WorkflowTaskManager {
 			serviceContext.setCompanyId(companyId);
 			serviceContext.setUserId(userId);
 
-			WorkflowTask workflowTask = _taskManager.completeWorkflowTask(
+			workflowTask = _taskManager.completeWorkflowTask(
 				workflowTaskId, transitionName, comment, workflowContext,
 				serviceContext);
 
@@ -509,15 +527,13 @@ public class WorkflowTaskManagerImpl implements WorkflowTaskManager {
 
 			serviceContext.setCompanyId(companyId);
 
-			List<KaleoTaskInstanceToken> kaleoTaskInstanceTokens =
+			return _toWorkflowTasks(
 				_kaleoTaskInstanceTokenLocalService.getKaleoTaskInstanceTokens(
 					completed, start, end,
 					KaleoTaskInstanceTokenOrderByComparator.
 						getOrderByComparator(
 							orderByComparator, _kaleoWorkflowModelConverter),
-					serviceContext);
-
-			return _toWorkflowTasks(kaleoTaskInstanceTokens);
+					serviceContext));
 		}
 		catch (Exception exception) {
 			throw new WorkflowException(exception);
@@ -535,15 +551,13 @@ public class WorkflowTaskManagerImpl implements WorkflowTaskManager {
 
 			serviceContext.setCompanyId(companyId);
 
-			List<KaleoTaskInstanceToken> kaleoTaskInstanceTokens =
+			return _toWorkflowTasks(
 				_kaleoTaskInstanceTokenLocalService.getKaleoTaskInstanceTokens(
 					Role.class.getName(), roleId, completed, start, end,
 					KaleoTaskInstanceTokenOrderByComparator.
 						getOrderByComparator(
 							orderByComparator, _kaleoWorkflowModelConverter),
-					serviceContext);
-
-			return _toWorkflowTasks(kaleoTaskInstanceTokens);
+					serviceContext));
 		}
 		catch (Exception exception) {
 			throw new WorkflowException(exception);
@@ -589,15 +603,13 @@ public class WorkflowTaskManagerImpl implements WorkflowTaskManager {
 
 			serviceContext.setCompanyId(companyId);
 
-			List<KaleoTaskInstanceToken> kaleoTaskInstanceTokens =
+			return _toWorkflowTasks(
 				_kaleoTaskInstanceTokenLocalService.getKaleoTaskInstanceTokens(
 					User.class.getName(), userId, completed, start, end,
 					KaleoTaskInstanceTokenOrderByComparator.
 						getOrderByComparator(
 							orderByComparator, _kaleoWorkflowModelConverter),
-					serviceContext);
-
-			return _toWorkflowTasks(kaleoTaskInstanceTokens);
+					serviceContext));
 		}
 		catch (Exception exception) {
 			throw new WorkflowException(exception);
@@ -647,15 +659,13 @@ public class WorkflowTaskManagerImpl implements WorkflowTaskManager {
 				serviceContext.setUserId(userId);
 			}
 
-			List<KaleoTaskInstanceToken> kaleoTaskInstanceTokens =
+			return _toWorkflowTasks(
 				_kaleoTaskInstanceTokenLocalService.getKaleoTaskInstanceTokens(
 					workflowInstanceId, completed, start, end,
 					KaleoTaskInstanceTokenOrderByComparator.
 						getOrderByComparator(
 							orderByComparator, _kaleoWorkflowModelConverter),
-					serviceContext);
-
-			return _toWorkflowTasks(kaleoTaskInstanceTokens);
+					serviceContext));
 		}
 		catch (Exception exception) {
 			throw new WorkflowException(exception);

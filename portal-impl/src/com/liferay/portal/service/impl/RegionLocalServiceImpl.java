@@ -14,9 +14,16 @@
 
 package com.liferay.portal.service.impl;
 
+import com.liferay.petra.sql.dsl.Column;
+import com.liferay.petra.sql.dsl.DSLFunctionFactoryUtil;
 import com.liferay.petra.sql.dsl.DSLQueryFactoryUtil;
+import com.liferay.petra.sql.dsl.expression.Predicate;
+import com.liferay.petra.sql.dsl.query.FromStep;
+import com.liferay.petra.sql.dsl.query.JoinStep;
+import com.liferay.petra.sql.dsl.query.OrderByStep;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.exception.DuplicateRegionException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.RegionCodeException;
 import com.liferay.portal.kernel.exception.RegionNameException;
@@ -24,8 +31,12 @@ import com.liferay.portal.kernel.model.Country;
 import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.model.OrganizationTable;
 import com.liferay.portal.kernel.model.Region;
+import com.liferay.portal.kernel.model.RegionLocalizationTable;
+import com.liferay.portal.kernel.model.RegionTable;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.search.BaseModelSearchResult;
+import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.AddressLocalService;
 import com.liferay.portal.kernel.service.OrganizationLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -33,10 +44,13 @@ import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.service.persistence.CountryPersistence;
 import com.liferay.portal.kernel.service.persistence.OrganizationPersistence;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.service.base.RegionLocalServiceBaseImpl;
+import com.liferay.util.dao.orm.CustomSQLUtil;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
@@ -52,7 +66,7 @@ public class RegionLocalServiceImpl extends RegionLocalServiceBaseImpl {
 
 		_countryPersistence.findByPrimaryKey(countryId);
 
-		validate(name, regionCode);
+		_validate(-1, countryId, name, regionCode);
 
 		long regionId = counterLocalService.increment();
 
@@ -181,6 +195,31 @@ public class RegionLocalServiceImpl extends RegionLocalServiceBaseImpl {
 	}
 
 	@Override
+	public BaseModelSearchResult<Region> searchRegions(
+			long companyId, Boolean active, String keywords,
+			LinkedHashMap<String, Object> params, int start, int end,
+			OrderByComparator<Region> orderByComparator)
+		throws PortalException {
+
+		return BaseModelSearchResult.unsafeCreateWithStartAndEnd(
+			startAndEnd -> regionPersistence.dslQuery(
+				_getGroupByStep(
+					DSLQueryFactoryUtil.selectDistinct(RegionTable.INSTANCE),
+					companyId, active, keywords, params
+				).orderBy(
+					RegionTable.INSTANCE, orderByComparator
+				).limit(
+					startAndEnd.getStart(), startAndEnd.getEnd()
+				)),
+			regionPersistence.dslQueryCount(
+				_getGroupByStep(
+					DSLQueryFactoryUtil.countDistinct(
+						RegionTable.INSTANCE.regionId),
+					companyId, active, keywords, params)),
+			start, end);
+	}
+
+	@Override
 	public Region updateActive(long regionId, boolean active)
 		throws PortalException {
 
@@ -199,7 +238,7 @@ public class RegionLocalServiceImpl extends RegionLocalServiceBaseImpl {
 
 		Region region = regionPersistence.findByPrimaryKey(regionId);
 
-		validate(name, regionCode);
+		_validate(regionId, region.getCountryId(), name, regionCode);
 
 		region.setActive(active);
 		region.setName(name);
@@ -209,15 +248,97 @@ public class RegionLocalServiceImpl extends RegionLocalServiceBaseImpl {
 		return regionPersistence.update(region);
 	}
 
-	protected void validate(String name, String regionCode)
+	private OrderByStep _getGroupByStep(
+		FromStep fromStep, long companyId, Boolean active, String keywords,
+		LinkedHashMap<String, Object> params) {
+
+		JoinStep joinStep = fromStep.from(
+			RegionTable.INSTANCE
+		).leftJoinOn(
+			RegionLocalizationTable.INSTANCE,
+			RegionTable.INSTANCE.regionId.eq(
+				RegionLocalizationTable.INSTANCE.regionId)
+		);
+
+		return joinStep.where(
+			RegionTable.INSTANCE.companyId.eq(
+				companyId
+			).and(
+				() -> {
+					if (active == null) {
+						return null;
+					}
+
+					return RegionTable.INSTANCE.active.eq(active);
+				}
+			).and(
+				() -> {
+					if (Validator.isNull(keywords)) {
+						return null;
+					}
+
+					Predicate keywordsPredicate = null;
+
+					for (String keyword :
+							CustomSQLUtil.keywords(keywords, true)) {
+
+						for (Column<?, String> column :
+								new Column[] {
+									RegionTable.INSTANCE.name,
+									RegionTable.INSTANCE.regionCode,
+									RegionLocalizationTable.INSTANCE.title
+								}) {
+
+							keywordsPredicate = Predicate.or(
+								keywordsPredicate,
+								DSLFunctionFactoryUtil.lower(
+									column
+								).like(
+									keyword
+								));
+						}
+					}
+
+					return Predicate.withParentheses(keywordsPredicate);
+				}
+			).and(
+				() -> {
+					if (MapUtil.isEmpty(params)) {
+						return null;
+					}
+
+					long countryId = (long)params.get("countryId");
+
+					if (countryId > 0) {
+						return RegionTable.INSTANCE.countryId.eq(countryId);
+					}
+
+					return null;
+				}
+			));
+	}
+
+	private void _validate(
+			long regionId, long countryId, String name, String regionCode)
 		throws PortalException {
 
-		if (Validator.isNull(regionCode)) {
-			throw new RegionCodeException();
+		if (Validator.isNull(name)) {
+			throw new RegionNameException("Name is null");
 		}
 
-		if (Validator.isNull(name)) {
-			throw new RegionNameException();
+		if (Validator.isNull(regionCode)) {
+			throw new RegionCodeException("Region code is null");
+		}
+
+		if (CompanyThreadLocal.isInitializingPortalInstance()) {
+			return;
+		}
+
+		Region region = fetchRegion(countryId, regionCode);
+
+		if ((region != null) && (region.getRegionId() != regionId)) {
+			throw new DuplicateRegionException(
+				"Region code belongs to another region");
 		}
 	}
 

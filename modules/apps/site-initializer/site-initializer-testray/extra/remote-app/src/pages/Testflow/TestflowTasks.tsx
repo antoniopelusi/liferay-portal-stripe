@@ -12,56 +12,64 @@
  * details.
  */
 
-import {useQuery} from '@apollo/client';
 import ClayIcon from '@clayui/icon';
-import {useEffect, useState} from 'react';
+import {useEffect} from 'react';
 import {Link, useParams} from 'react-router-dom';
 
-import {Avatar, AvatarGroup} from '../../components/Avatar';
+import Avatar from '../../components/Avatar';
 import Code from '../../components/Code';
 import Container from '../../components/Layout/Container';
-import ListView from '../../components/ListView/ListView';
+import ListView from '../../components/ListView';
 import Loading from '../../components/Loading';
-import ProgressBar from '../../components/ProgressBar';
+import TaskbarProgress from '../../components/ProgressBar/TaskbarProgress';
 import StatusBadge from '../../components/StatusBadge';
 import QATable from '../../components/Table/QATable';
-import {CTypePagination} from '../../graphql/queries';
-import {
-	TestraySubTask,
-	getSubTasks,
-} from '../../graphql/queries/testraySubTask';
-import {TestrayTask, getTask} from '../../graphql/queries/testrayTask';
+import useCaseResultGroupBy from '../../data/useCaseResultGroupBy';
+import {useFetch} from '../../hooks/useFetch';
 import useHeader from '../../hooks/useHeader';
 import i18n from '../../i18n';
-import {SUBTASK_STATUS} from '../../util/constants';
+import {getTaskQuery, getTaskTransformData} from '../../services/rest';
+import {
+	SUBTASK_STATUS,
+	StatusesProgressScore,
+	chartClassNames,
+} from '../../util/constants';
 import {getTimeFromNow} from '../../util/date';
-import {routines, tasks} from '../../util/mock';
+import {assigned} from '../../util/mock';
+
+export const progressScoreItems = [
+	[StatusesProgressScore.SELF, 7000],
+	[StatusesProgressScore.OTHER, 8967],
+	[StatusesProgressScore.INCOMPLETE, 1000],
+];
+function getTotalCompletedScore(scores: [string, number][]) {
+	let totalCompleted = 0;
+
+	for (const [scoreName, score] of scores) {
+		if (scoreName !== StatusesProgressScore.INCOMPLETE) {
+			totalCompleted += score;
+		}
+	}
+
+	return totalCompleted;
+}
 
 const ShortcutIcon = () => (
 	<ClayIcon className="ml-2" fontSize={12} symbol="shortcut" />
 );
 
-const TestFlowTasks: React.FC = () => {
-	const {assigned} = routines[0];
-	const [progressScore, setProgressScore] = useState({
-		incomplete: 1,
-		other: 0,
-		self: 1,
-	});
-
+const TestFlowTasks = () => {
 	const {testrayTaskId} = useParams();
 
-	const {data, loading} = useQuery<{task: TestrayTask}>(getTask, {
-		variables: {taskId: testrayTaskId},
-	});
+	const {data, loading} = useFetch(
+		getTaskQuery(testrayTaskId),
+		getTaskTransformData
+	);
+	const testrayTask = data;
 
-	const {data: dataTestraySubTasks} = useQuery<
-		CTypePagination<'subtasks', TestraySubTask>
-	>(getSubTasks);
-
-	const testrayTask = data?.task;
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	const testraySubTasks = dataTestraySubTasks?.c?.subtasks?.items || [];
+	const {
+		donut: {columns},
+	} = useCaseResultGroupBy(testrayTask?.build?.id);
 
 	const {setHeading, setTabs} = useHeader();
 
@@ -80,45 +88,15 @@ const TestFlowTasks: React.FC = () => {
 		setTabs([]);
 	}, [setHeading, testrayTask, setTabs]);
 
-	useEffect(() => {
-		if (testraySubTasks?.length) {
-			const progressVal = {
-				incomplete: 0,
-				other: 0,
-				self: 0,
-			};
-
-			const getKey = (status: number) => {
-				if ([0, 1].includes(status)) {
-					return 'incomplete';
-				}
-
-				if (status === 2) {
-					return 'other';
-				}
-
-				return 'self';
-			};
-
-			for (const testraySubTask of testraySubTasks) {
-				const key = getKey(testraySubTask.dueStatus);
-
-				progressVal[key] += testraySubTask.score;
-			}
-
-			setProgressScore(progressVal);
-		}
-	}, [testraySubTasks]);
-
 	if (loading || !testrayTask) {
 		return <Loading />;
 	}
 
 	return (
 		<>
-			<Container className="pb-6" title="Task Details">
+			<Container collapsable title={i18n.translate('task-details')}>
 				<div className="d-flex flex-wrap">
-					<div className="col-4 col-lg-4 col-md-12 pb-5">
+					<div className="col-4 col-lg-4 col-md-12 p-0">
 						<QATable
 							items={[
 								{
@@ -142,7 +120,7 @@ const TestFlowTasks: React.FC = () => {
 								{
 									title: i18n.translate('assigned-users'),
 									value: (
-										<AvatarGroup
+										<Avatar.Group
 											assignedUsers={assigned}
 											groupSize={3}
 										/>
@@ -158,7 +136,7 @@ const TestFlowTasks: React.FC = () => {
 						/>
 					</div>
 
-					<div className="col-8 col-lg-8 col-md-12">
+					<div className="col-8 col-lg-8 col-md-12 mb-3 p-0">
 						<QATable
 							items={[
 								{
@@ -203,24 +181,40 @@ const TestFlowTasks: React.FC = () => {
 							]}
 						/>
 
-						<ProgressBar
-							displayTotalCompleted={false}
-							items={tasks[1]}
-							legend
-						/>
+						<div className="pb-4">
+							<TaskbarProgress
+								displayTotalCompleted={false}
+								items={columns as any}
+								legend={true}
+								taskbarClassNames={chartClassNames}
+							/>
+						</div>
 					</div>
 				</div>
 			</Container>
 
-			<Container className="mt-3" title="Progress (Score)">
-				<div className="my-4">
-					<ProgressBar items={progressScore} legend />
+			<Container
+				className="mt-3"
+				collapsable
+				title={i18n.translate('progress-score')}
+			>
+				<div className="pb-5">
+					<TaskbarProgress
+						displayTotalCompleted
+						items={progressScoreItems as any}
+						legend
+						taskbarClassNames={chartClassNames}
+						totalCompleted={getTotalCompletedScore(
+							progressScoreItems as any
+						)}
+					/>
 				</div>
 			</Container>
 
-			<Container className="mt-3" title={i18n.translate('subtasks')}>
+			<Container className="mt-3">
 				<ListView
-					query={getSubTasks}
+					managementToolbarProps={{title: i18n.translate('subtasks')}}
+					resource="/subtasks"
 					tableProps={{
 						columns: [
 							{
@@ -278,7 +272,6 @@ const TestFlowTasks: React.FC = () => {
 						],
 						navigateTo: () => '/testflow/subtasks',
 					}}
-					transformData={(data) => data?.c?.subtasks}
 				/>
 			</Container>
 		</>

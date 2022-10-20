@@ -73,12 +73,10 @@ definition {
 				groupName = "Test Site Name",
 				title = "Category Name 3-1",
 				vocabularyName = "Vocabulary Name 3");
-
 			var categoryId4 = JSONCategory.addCategory(
 				groupName = "Test Site Name",
 				title = "Category Name 3-2",
 				vocabularyName = "Vocabulary Name 3");
-
 			var categoryId5 = JSONCategory.addCategory(
 				groupName = "Test Site Name",
 				title = "Category Name 3-3",
@@ -112,9 +110,13 @@ definition {
 				entryTitle = "WC WebContent Title",
 				navItem = "Web Content");
 
+			WaitForEditable(locator1 = "PageEditorEditableLink#FIELD");
+
 			Select(
 				locator1 = "PageEditorEditableLink#FIELD",
 				value1 = "All Categories");
+
+			PageEditor.waitForAutoSave();
 		}
 
 		task ("View mapped content") {
@@ -172,19 +174,21 @@ definition {
 				entryTitle = "Blogs Entry Title",
 				navItem = "Blogs");
 
+			WaitForEditable(locator1 = "PageEditorEditableLink#FIELD");
+
 			Select(
 				key_fieldLabel = "Field",
 				locator1 = "Select#GENERIC_SELECT_FIELD",
 				value1 = "Content");
 
-			Pause(locator1 = "3000");
+			PageEditor.waitForAutoSave();
 
 			PageEditor.viewFragmentEditableText(
 				editableText = "Blogs Entry Content",
 				fragmentName = "Button",
 				id = "link");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Assert the mapped content of blogs entry is shown in view mode") {
@@ -279,12 +283,12 @@ definition {
 				entryTitle = "Web Content Title",
 				navItem = "Web Content");
 
+			WaitForEditable(locator1 = "PageEditorEditableLink#FIELD");
+
 			Select(
 				key_fieldLabel = "Field",
 				locator1 = "Select#GENERIC_SELECT_FIELD",
 				value1 = "Text");
-
-			Pause(locator1 = "3000");
 
 			PageEditor.waitForAutoSave();
 
@@ -308,12 +312,12 @@ definition {
 				entryTitle = "DM Document Title",
 				navItem = "Documents and Media");
 
+			WaitForEditable(locator1 = "PageEditorEditableLink#FIELD");
+
 			Select(
 				key_fieldLabel = "Field",
 				locator1 = "Select#GENERIC_SELECT_FIELD",
 				value1 = "Text");
-
-			Pause(locator1 = "3000");
 
 			PageEditor.waitForAutoSave();
 
@@ -324,7 +328,7 @@ definition {
 		}
 
 		task ("Assert mapped content in view mode") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Content Page Name",
@@ -373,18 +377,20 @@ definition {
 				entryTitle = "Document Title",
 				navItem = "Documents and Media");
 
+			WaitForEditable(locator1 = "PageEditorEditableLink#FIELD");
+
 			Select(
 				locator1 = "PageEditorEditableLink#FIELD",
 				value1 = "Title");
 
-			Pause(locator1 = "3000");
+			PageEditor.waitForAutoSave();
 
 			PageEditor.viewFragmentEditableText(
 				editableText = "Document Title",
 				fragmentName = "Button",
 				id = "link");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Assert the mapped title of document is shown in view mode") {
@@ -427,11 +433,11 @@ definition {
 			PageEditorEditableLink.updateURL(url = "https://liferay.com");
 
 			AssertVisible(
-				key_append = "/img[contains(@src,'Document_1.jpg')]",
+				key_append = "/img[contains(@src,'document_1-jpg')]",
 				key_url = "https://liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Assert mapped URL work in view mode") {
@@ -440,12 +446,12 @@ definition {
 				siteName = "Test Site Name");
 
 			AssertVisible(
-				key_append = "//img[contains(@src,'Document_1.jpg')]",
+				key_append = "//img[contains(@src,'document_1-jpg')]",
 				key_url = "https://liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			Click(
-				key_append = "//img[contains(@src,'Document_1.jpg')]",
+				key_append = "//img[contains(@src,'document_1-jpg')]",
 				key_url = "https://liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
@@ -483,7 +489,7 @@ definition {
 				key_url = "https://liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Assert editable has the specified URL mapped correctly") {
@@ -540,7 +546,7 @@ definition {
 				key_url = "https://liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Assert mapped URL work in view mode") {
@@ -565,8 +571,7 @@ definition {
 	@description = "This is a use case for LPS-120198. Link public and private pages to fragments."
 	@priority = "4"
 	test MapPageToImageFragment {
-		property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-		property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		task ("Add a public widget page") {
 			JSONLayout.addPublicLayout(
@@ -611,7 +616,7 @@ definition {
 				key_url = "/web/test-site-name/test-public-page-name",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Navigate to content page in view mode") {
@@ -660,7 +665,7 @@ definition {
 				key_url = "/group/test-site-name/test-private-page-name",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Navigate to content page in view mode") {
@@ -750,11 +755,13 @@ definition {
 				entryTitle = "Web Content Title",
 				navItem = "Web Content");
 
-			Pause(locator1 = "3000");
+			WaitForEditable(locator1 = "PageEditorEditableLink#FIELD");
 
 			Select(
 				locator1 = "PageEditorEditableLink#FIELD",
 				value1 = "Vocabulary Name");
+
+			PageEditor.waitForAutoSave();
 
 			PageEditor.viewFragmentEditableText(
 				editableText = "Category Name",
@@ -772,11 +779,13 @@ definition {
 				entryTitle = "Blogs Entry Title",
 				navItem = "Blogs");
 
-			Pause(locator1 = "3000");
+			WaitForEditable(locator1 = "PageEditorEditableLink#FIELD");
 
 			Select(
 				locator1 = "PageEditorEditableLink#FIELD",
 				value1 = "Vocabulary Name");
+
+			PageEditor.waitForAutoSave();
 
 			PageEditor.viewFragmentEditableText(
 				editableText = "Category Name",
@@ -794,11 +803,13 @@ definition {
 				entryTitle = "Document Title",
 				navItem = "Documents and Media");
 
-			Pause(locator1 = "3000");
+			WaitForEditable(locator1 = "PageEditorEditableLink#FIELD");
 
 			Select(
 				locator1 = "PageEditorEditableLink#FIELD",
 				value1 = "Vocabulary Name");
+
+			PageEditor.waitForAutoSave();
 
 			PageEditor.viewFragmentEditableText(
 				editableText = "Category Name",
@@ -839,9 +850,13 @@ definition {
 				entryTitle = "Blogs Entry Title",
 				navItem = "Blogs");
 
+			WaitForEditable(locator1 = "PageEditorEditableLink#FIELD");
+
 			Select(
 				locator1 = "PageEditorEditableLink#FIELD",
 				value1 = "Tags");
+
+			PageEditor.waitForAutoSave();
 		}
 
 		task ("View mapped content") {
@@ -884,9 +899,13 @@ definition {
 				entryTitle = "Web Content Title",
 				navItem = "Web Content");
 
+			WaitForEditable(locator1 = "PageEditorEditableLink#FIELD");
+
 			Select(
 				locator1 = "PageEditorEditableLink#FIELD",
 				value1 = "Tags");
+
+			PageEditor.waitForAutoSave();
 		}
 
 		task ("View mapped content") {
@@ -980,11 +999,13 @@ definition {
 				entryTitle = "Web Content Title",
 				navItem = "Web Content");
 
+			WaitForEditable(locator1 = "PageEditorEditableLink#FIELD");
+
 			Select(
 				locator1 = "PageEditorEditableLink#FIELD",
 				value1 = "Text");
 
-			Pause(locator1 = "3000");
+			PageEditor.waitForAutoSave();
 
 			PageEditor.viewFragmentEditableText(
 				editableText = "This is a Text field",
@@ -995,7 +1016,7 @@ definition {
 				locator1 = "PageEditorEditableLink#FIELD",
 				value1 = "Text Box");
 
-			Pause(locator1 = "3000");
+			PageEditor.waitForAutoSave();
 
 			PageEditor.viewFragmentEditableText(
 				editableText = "This is a Text Box field",
@@ -1006,7 +1027,7 @@ definition {
 				locator1 = "PageEditorEditableLink#FIELD",
 				value1 = "Rich Text");
 
-			Pause(locator1 = "3000");
+			PageEditor.waitForAutoSave();
 
 			PageEditor.viewFragmentEditableText(
 				editableText = "This is a Rich Text field",
@@ -1017,7 +1038,7 @@ definition {
 				locator1 = "PageEditorEditableLink#FIELD",
 				value1 = "Date");
 
-			Pause(locator1 = "3000");
+			PageEditor.waitForAutoSave();
 
 			PageEditor.viewFragmentEditableText(
 				editableText = "10/10/20",
@@ -1028,7 +1049,7 @@ definition {
 				locator1 = "PageEditorEditableLink#FIELD",
 				value1 = "Integer");
 
-			Pause(locator1 = "3000");
+			PageEditor.waitForAutoSave();
 
 			PageEditor.viewFragmentEditableText(
 				editableText = "9",
@@ -1039,7 +1060,7 @@ definition {
 				locator1 = "PageEditorEditableLink#FIELD",
 				value1 = "Decimal");
 
-			Pause(locator1 = "3000");
+			PageEditor.waitForAutoSave();
 
 			PageEditor.viewFragmentEditableText(
 				editableText = "0.5",
@@ -1102,7 +1123,7 @@ definition {
 				key_url = "https://www.liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Assert mapped URL work in view mode") {
@@ -1178,7 +1199,7 @@ definition {
 				key_url = "https://www.liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Assert mapped URL work in view mode") {
@@ -1254,7 +1275,7 @@ definition {
 				key_url = "https://www.liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Assert mapped URL work in view mode") {
@@ -1339,7 +1360,7 @@ definition {
 				navItem = "Web Content",
 				panel = "Styles");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View the mapped image") {
@@ -1383,13 +1404,15 @@ definition {
 				entryTitle = "liferay.com",
 				navItem = "Web Content");
 
+			WaitForEditable(locator1 = "PageEditorEditableLink#FIELD");
+
 			Select(
 				locator1 = "PageEditorEditableLink#FIELD",
 				value1 = "Title");
 
 			PageEditor.waitForAutoSave();
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View mapped content is shown in link editable field") {
@@ -1452,6 +1475,8 @@ definition {
 			PageEditorMapping.mapEditableFieldToAsset(
 				entryTitle = "Web Content Title 1",
 				navItem = "Web Content");
+
+			WaitForEditable(locator1 = "PageEditorEditableLink#FIELD");
 
 			Select(
 				locator1 = "PageEditorEditableLink#FIELD",
@@ -1519,6 +1544,8 @@ definition {
 			PageEditorMapping.mapEditableFieldToAsset(
 				entryTitle = "Web Content Title",
 				navItem = "Web Content");
+
+			WaitForEditable(locator1 = "PageEditorEditableLink#FIELD");
 
 			Select(
 				locator1 = "PageEditorEditableLink#FIELD",
@@ -1591,7 +1618,7 @@ definition {
 				key_url = "/web/test-site-name/test-widget-page-name",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Delete the widget page") {
@@ -1649,7 +1676,7 @@ definition {
 		}
 
 		task ("Publish to content page") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Assert no redirection") {

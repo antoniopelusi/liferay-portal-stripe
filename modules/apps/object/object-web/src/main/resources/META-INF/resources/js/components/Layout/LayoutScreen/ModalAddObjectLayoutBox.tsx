@@ -15,13 +15,11 @@
 import ClayButton from '@clayui/button';
 import ClayForm from '@clayui/form';
 import ClayModal from '@clayui/modal';
-import React, {useContext} from 'react';
+import {Observer} from '@clayui/modal/lib/types';
+import {FormError, Input, useForm} from '@liferay/object-js-components-web';
+import React from 'react';
 
-import useForm from '../../../hooks/useForm';
-import Input from '../../Form/Input';
-import LayoutContext, {TYPES} from '../context';
-
-const defaultLanguageId = Liferay.ThemeDisplay.getDefaultLanguageId();
+import {TYPES, useLayoutContext} from '../objectLayoutContext';
 
 type TInitialValues = {
 	name: string;
@@ -29,7 +27,7 @@ type TInitialValues = {
 
 interface IModalAddObjectLayoutBoxProps
 	extends React.HTMLAttributes<HTMLElement> {
-	observer: any;
+	observer: Observer;
 	onClose: () => void;
 }
 
@@ -38,19 +36,20 @@ const ModalAddObjectLayoutBox: React.FC<IModalAddObjectLayoutBoxProps> = ({
 	onClose,
 	tabIndex,
 }) => {
-	const [, dispatch] = useContext(LayoutContext);
+	const [, dispatch] = useLayoutContext();
 
 	const initialValues: TInitialValues = {
 		name: '',
 	};
 
-	const onSubmit = (values: any) => {
+	const onSubmit = (values: TInitialValues) => {
 		dispatch({
 			payload: {
 				name: {
-					[defaultLanguageId]: values.name,
+					[Liferay.ThemeDisplay.getDefaultLanguageId()]: values.name,
 				},
 				tabIndex,
+				type: 'regular',
 			},
 			type: TYPES.ADD_OBJECT_LAYOUT_BOX,
 		});
@@ -59,7 +58,7 @@ const ModalAddObjectLayoutBox: React.FC<IModalAddObjectLayoutBoxProps> = ({
 	};
 
 	const onValidate = (values: TInitialValues) => {
-		const errors: any = {};
+		const errors: FormError<TInitialValues> = {};
 
 		if (!values.name) {
 			errors.name = Liferay.Language.get('required');

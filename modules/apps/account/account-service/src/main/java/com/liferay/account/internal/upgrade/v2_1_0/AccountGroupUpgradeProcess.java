@@ -27,7 +27,7 @@ public class AccountGroupUpgradeProcess extends UpgradeProcess {
 	@Override
 	protected void doUpgrade() throws Exception {
 		if (!hasColumn("AccountGroup", "type_")) {
-			runSQL("alter table AccountGroup add type_ VARCHAR(75) null");
+			alterTableAddColumn("AccountGroup", "type_", "VARCHAR(75) null");
 
 			String type = StringUtil.quote(
 				AccountConstants.ACCOUNT_GROUP_TYPE_STATIC,

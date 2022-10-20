@@ -35,7 +35,7 @@ import com.liferay.mail.kernel.service.MailService;
 import com.liferay.petra.io.unsync.UnsyncStringWriter;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
@@ -51,8 +51,8 @@ import com.liferay.portal.kernel.template.URLTemplateResource;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HtmlParser;
-import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
@@ -73,6 +73,8 @@ import java.util.ResourceBundle;
 import java.util.function.Function;
 
 import javax.mail.internet.InternetAddress;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -229,14 +231,6 @@ public class DDMFormEmailNotificationSender {
 		return template;
 	}
 
-	private DDMForm _getDDMForm(DDMFormInstance ddmFormInstance)
-		throws Exception {
-
-		DDMStructure ddmStructure = ddmFormInstance.getStructure();
-
-		return ddmStructure.getDDMForm();
-	}
-
 	private DDMFormField _getDDMFormField(
 		List<DDMFormFieldValue> ddmFormFieldValues) {
 
@@ -305,7 +299,7 @@ public class DDMFormEmailNotificationSender {
 		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
 			"content.Language", locale, getClass());
 
-		String defaultEmailSubject = LanguageUtil.format(
+		String defaultEmailSubject = _language.format(
 			resourceBundle, "new-x-form-submitted",
 			ddmFormInstance.getName(locale), false);
 
@@ -357,12 +351,17 @@ public class DDMFormEmailNotificationSender {
 		return label.getString(locale);
 	}
 
-	private Locale _getLocale(DDMFormInstance ddmFormInstance)
+	private Locale _getLocale(
+			DDMFormInstance ddmFormInstance, ServiceContext serviceContext)
 		throws Exception {
 
-		DDMForm ddmForm = _getDDMForm(ddmFormInstance);
+		HttpServletRequest httpServletRequest = serviceContext.getRequest();
 
-		return ddmForm.getDefaultLocale();
+		String languageId = GetterUtil.getString(
+			httpServletRequest.getParameter("languageId"),
+			ddmFormInstance.getDefaultLanguageId());
+
+		return LocaleUtil.fromLanguageId(languageId);
 	}
 
 	private List<Map<String, Object>> _getNestedFields(
@@ -407,7 +406,7 @@ public class DDMFormEmailNotificationSender {
 
 	private List<Object> _getPages(
 			DDMFormInstance ddmFormInstance,
-			DDMFormInstanceRecord ddmFormInstanceRecord)
+			DDMFormInstanceRecord ddmFormInstanceRecord, Locale locale)
 		throws Exception {
 
 		List<Object> pages = new ArrayList<>();
@@ -420,8 +419,7 @@ public class DDMFormEmailNotificationSender {
 			pages.add(
 				_getPage(
 					ddmFormLayoutPage,
-					getDDMFormFieldValuesMap(ddmFormInstanceRecord),
-					_getLocale(ddmFormInstance)));
+					getDDMFormFieldValuesMap(ddmFormInstanceRecord), locale));
 		}
 
 		return pages;
@@ -471,7 +469,7 @@ public class DDMFormEmailNotificationSender {
 			return userName;
 		}
 
-		return LanguageUtil.get(_getResourceBundle(locale), "someone");
+		return _language.get(_getResourceBundle(locale), "someone");
 	}
 
 	private String _getViewFormEntriesURL(
@@ -531,12 +529,12 @@ public class DDMFormEmailNotificationSender {
 			DDMFormInstanceRecord ddmFormInstanceRecord)
 		throws Exception {
 
-		Locale locale = _getLocale(ddmFormInstance);
+		Locale locale = _getLocale(ddmFormInstance, serviceContext);
 
 		template.put("formName", ddmFormInstance.getName(locale));
 
 		template.put(
-			"pages", _getPages(ddmFormInstance, ddmFormInstanceRecord));
+			"pages", _getPages(ddmFormInstance, ddmFormInstanceRecord, locale));
 		template.put(
 			"siteName", _getSiteName(ddmFormInstance.getGroupId(), locale));
 		template.put("userName", _getUserName(ddmFormInstanceRecord, locale));
@@ -569,8 +567,7 @@ public class DDMFormEmailNotificationSender {
 			_ddmFormFieldTypeServicesTracker.getDDMFormFieldValueRenderer(
 				ddmFormFieldValue.getType());
 
-		return HtmlUtil.unescape(
-			ddmFormFieldValueRenderer.render(ddmFormFieldValue, locale));
+		return ddmFormFieldValueRenderer.render(ddmFormFieldValue, locale);
 	}
 
 	private static final String _TEMPLATE_PATH =
@@ -586,6 +583,9 @@ public class DDMFormEmailNotificationSender {
 
 	@Reference
 	private HtmlParser _htmlParser;
+
+	@Reference
+	private Language _language;
 
 	private MailService _mailService;
 

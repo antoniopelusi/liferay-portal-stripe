@@ -68,7 +68,8 @@ public interface ObjectActionLocalService
 	 */
 	@Indexable(type = IndexableType.REINDEX)
 	public ObjectAction addObjectAction(
-			long userId, long objectDefinitionId, boolean active, String name,
+			long userId, long objectDefinitionId, boolean active,
+			String conditionExpression, String description, String name,
 			String objectActionExecutorKey, String objectActionTriggerKey,
 			UnicodeProperties parametersUnicodeProperties)
 		throws PortalException;
@@ -129,6 +130,9 @@ public interface ObjectActionLocalService
 	@Indexable(type = IndexableType.DELETE)
 	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public ObjectAction deleteObjectAction(ObjectAction objectAction);
+
+	public void deleteObjectActions(long objectDefinitionId)
+		throws PortalException;
 
 	/**
 	 * @throws PortalException
@@ -303,7 +307,9 @@ public interface ObjectActionLocalService
 
 	@Indexable(type = IndexableType.REINDEX)
 	public ObjectAction updateObjectAction(
-			long objectActionId, boolean active, String name,
+			long objectActionId, boolean active, String conditionExpression,
+			String description, String name, String objectActionExecutorKey,
+			String objectActionTriggerKey,
 			UnicodeProperties parametersUnicodeProperties)
 		throws PortalException;
 
@@ -319,5 +325,9 @@ public interface ObjectActionLocalService
 	 */
 	@Indexable(type = IndexableType.REINDEX)
 	public ObjectAction updateObjectAction(ObjectAction objectAction);
+
+	@Indexable(type = IndexableType.REINDEX)
+	public ObjectAction updateStatus(long objectActionId, int status)
+		throws PortalException;
 
 }

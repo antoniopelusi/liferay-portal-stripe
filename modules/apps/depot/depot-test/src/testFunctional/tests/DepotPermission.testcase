@@ -241,8 +241,6 @@ definition {
 
 		DepotNavigator.openDepotWebContentAdmin(depotName = "Test Depot Name");
 
-		Pause(locator1 = "3000");
-
 		LexiconEntry.gotoAdd();
 
 		WebContent.addCP(
@@ -260,21 +258,10 @@ definition {
 		AssertElementNotPresent(locator1 = "Button#PLUS");
 	}
 
-	@description = "This is a test for LPS-119994. It checks that asset library member can view dashboard with permission."
-	@ignore = "Test Stub"
-	@priority = "4"
-	test ALMemberCanViewDashboard {
-
-		// TODO LPS-149364 ALMemberCanViewDashboard pending implementation
-
-	}
-
 	@description = "This ensures that assets can be added to the asset library folder Via DM widget on a connected site."
 	@priority = "5"
 	test CanAddFileInDMWidget {
 		property custom.properties = "jsonws.web.service.paths.excludes=";
-		property osgi.module.configuration.file.names = "com.liferay.document.library.item.selector.web.internal.configuration.FFFolderItemSelectorGroupSelectorConfiguration.config";
-		property osgi.module.configurations = "enabled=B&quot;true&quot;";
 
 		JSONUser.addUser(
 			userEmailAddress = "userea@liferay.com",
@@ -351,8 +338,6 @@ definition {
 	@priority = "5"
 	test CanAddImageToFolderViaMG {
 		property custom.properties = "jsonws.web.service.paths.excludes=";
-		property osgi.module.configuration.file.names = "com.liferay.document.library.item.selector.web.internal.configuration.FFFolderItemSelectorGroupSelectorConfiguration.config";
-		property osgi.module.configurations = "enabled=B&quot;true&quot;";
 
 		var portalURL = PropsUtil.get("portal.url");
 
@@ -391,6 +376,11 @@ definition {
 			groupName = "Test Depot Name",
 			mimeType = "image/jpeg",
 			sourceFileName = "Document_2.jpg");
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "ACCESS",
+			resourceName = "com.liferay.document.library.kernel.model.DLFolder",
+			roleTitle = "User");
 
 		DepotNavigator.openToDMFolder(
 			depotName = "Test Depot Name",
@@ -450,8 +440,6 @@ definition {
 	@priority = "5"
 	test CanDeleteFileInDMWidget {
 		property custom.properties = "jsonws.web.service.paths.excludes=";
-		property osgi.module.configuration.file.names = "com.liferay.document.library.item.selector.web.internal.configuration.FFFolderItemSelectorGroupSelectorConfiguration.config";
-		property osgi.module.configurations = "enabled=B&quot;true&quot;";
 
 		JSONUser.addUser(
 			userEmailAddress = "userea@liferay.com",
@@ -476,6 +464,11 @@ definition {
 		Permissions.definePermissionViaJSONAPI(
 			resourceAction = "DELETE",
 			resourceName = "com.liferay.document.library.kernel.model.DLFileEntry",
+			roleTitle = "Regular Role");
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "ACCESS",
+			resourceName = "com.liferay.document.library.kernel.model.DLFolder",
 			roleTitle = "Regular Role");
 
 		JSONRole.assignRoleToUser(
@@ -550,8 +543,6 @@ definition {
 	@priority = "5"
 	test CanDeleteImageInMG {
 		property custom.properties = "jsonws.web.service.paths.excludes=";
-		property osgi.module.configuration.file.names = "com.liferay.document.library.item.selector.web.internal.configuration.FFFolderItemSelectorGroupSelectorConfiguration.config";
-		property osgi.module.configurations = "enabled=B&quot;true&quot;";
 
 		var portalURL = PropsUtil.get("portal.url");
 
@@ -578,6 +569,11 @@ definition {
 		Permissions.definePermissionViaJSONAPI(
 			resourceAction = "DELETE",
 			resourceName = "com.liferay.document.library.kernel.model.DLFileEntry",
+			roleTitle = "Remove MG Role");
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "ACCESS",
+			resourceName = "com.liferay.document.library.kernel.model.DLFolder",
 			roleTitle = "Remove MG Role");
 
 		JSONRole.assignRoleToUser(
@@ -660,8 +656,6 @@ definition {
 	@priority = "5"
 	test CanEditFileInDMWidget {
 		property custom.properties = "jsonws.web.service.paths.excludes=";
-		property osgi.module.configuration.file.names = "com.liferay.document.library.item.selector.web.internal.configuration.FFFolderItemSelectorGroupSelectorConfiguration.config";
-		property osgi.module.configurations = "enabled=B&quot;true&quot;";
 
 		JSONUser.addUser(
 			userEmailAddress = "userea@liferay.com",
@@ -686,6 +680,11 @@ definition {
 		Permissions.definePermissionViaJSONAPI(
 			resourceAction = "UPDATE",
 			resourceName = "com.liferay.document.library.kernel.model.DLFileEntry",
+			roleTitle = "Regular Role");
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "ACCESS",
+			resourceName = "com.liferay.document.library.kernel.model.DLFolder",
 			roleTitle = "Regular Role");
 
 		JSONRole.assignRoleToUser(
@@ -764,8 +763,6 @@ definition {
 	@priority = "5"
 	test CanEditImageInMG {
 		property custom.properties = "jsonws.web.service.paths.excludes=";
-		property osgi.module.configuration.file.names = "com.liferay.document.library.item.selector.web.internal.configuration.FFFolderItemSelectorGroupSelectorConfiguration.config";
-		property osgi.module.configurations = "enabled=B&quot;true&quot;";
 
 		var portalURL = PropsUtil.get("portal.url");
 
@@ -792,6 +789,11 @@ definition {
 		Permissions.definePermissionViaJSONAPI(
 			resourceAction = "UPDATE",
 			resourceName = "com.liferay.document.library.kernel.model.DLFileEntry",
+			roleTitle = "Update MG Role");
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "ACCESS",
+			resourceName = "com.liferay.document.library.kernel.model.DLFolder",
 			roleTitle = "Update MG Role");
 
 		JSONRole.assignRoleToUser(
@@ -879,9 +881,6 @@ definition {
 	@description = "This ensures that assets stored in the asset library folder cannot be viewed without permissions Via DM on a connected site."
 	@priority = "4"
 	test CannotViewFileInDMWidgetWithoutPermission {
-		property osgi.module.configuration.file.names = "com.liferay.document.library.item.selector.web.internal.configuration.FFFolderItemSelectorGroupSelectorConfiguration.config";
-		property osgi.module.configurations = "enabled=B&quot;true&quot;";
-
 		JSONGroup.addGroup(groupName = "Site Name");
 
 		JSONDepot.connectSite(
@@ -912,6 +911,11 @@ definition {
 			mimeType = "image/jpeg",
 			sourceFileName = "Document_1.jpg");
 
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "ACCESS",
+			resourceName = "com.liferay.document.library.kernel.model.DLFolder",
+			roleTitle = "Guest");
+
 		Navigator.openSitePage(
 			pageName = "Documents and Media Page",
 			siteName = "Site Name");
@@ -932,9 +936,6 @@ definition {
 	@description = "This ensures that an image stored in asset library folder cannot be viewed by a guest without permissions via MG on a connected site."
 	@priority = "4"
 	test CannotViewImageInMGAsGuest {
-		property osgi.module.configuration.file.names = "com.liferay.document.library.item.selector.web.internal.configuration.FFFolderItemSelectorGroupSelectorConfiguration.config";
-		property osgi.module.configurations = "enabled=B&quot;true&quot;";
-
 		var portalURL = PropsUtil.get("portal.url");
 
 		JSONGroup.addGroup(groupName = "Site Name");
@@ -1168,7 +1169,7 @@ definition {
 
 		AssertTextEquals.assertPartialText(
 			locator1 = "ManagementBar#SEARCH_RESULT_SUMMARY",
-			value1 = "1 Results for &quot;Depot&quot;");
+			value1 = "1 Result for &quot;Depot&quot;");
 
 		Search.searchCP(searchTerm = "No View Permissions");
 
@@ -1294,6 +1295,66 @@ definition {
 			siteNameScope = "All Sites and Asset Libraries");
 	}
 
+	@description = "This ensures that a site member without permissions cannot access a depot folder via DM widget on a connected site."
+	@priority = "4"
+	test SiteMemberCannotAccessFolderWithoutPermissions {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
+		JSONUser.addUser(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
+
+		JSONGroup.addGroup(groupName = "Site Name");
+
+		JSONUser.addUserToSite(
+			groupName = "Site Name",
+			userEmailAddress = "userea@liferay.com");
+
+		JSONDepot.connectSite(
+			depotName = "Test Depot Name",
+			groupName = "Site Name");
+
+		JSONLayout.addPublicLayout(
+			groupName = "Site Name",
+			layoutName = "Documents and Media Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Site Name",
+			layoutName = "Documents and Media Page",
+			widgetName = "Documents and Media");
+
+		JSONFolder.addFolder(
+			dmFolderDescription = "DM Folder Description",
+			dmFolderName = "Depot Folder Name",
+			groupName = "Test Depot Name");
+
+		Navigator.openSitePage(
+			pageName = "Documents and Media Page",
+			siteName = "Site Name");
+
+		DMDocument.setRootFolder(
+			depotName = "Test Depot Name",
+			dmRootFolderName = "Depot Folder Name");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		Navigator.openSitePage(
+			pageName = "Documents and Media Page",
+			siteName = "Site Name");
+
+		Alert.viewErrorMessage(errorMessage = "You do not have the required permissions");
+	}
+
 	@description = "This ensures that a document from depot cannot be accessed through Blogs on a connected site when a user doesn't have permissions."
 	@priority = "5"
 	@refactorneeded
@@ -1319,12 +1380,9 @@ definition {
 
 		JSONGroup.addGroup(groupName = "Site Name");
 
-		Site.openSiteMembershipsAdmin(siteURLKey = "site-name");
-
-		Site.assignUserAsMemberCP(
-			userFirstName = "userfn",
-			userLastName = "userln",
-			userScreenName = "usersn");
+		JSONUser.addUserToSite(
+			groupName = "Site Name",
+			userEmailAddress = "userea@liferay.com");
 
 		Permissions.definePermissionViaJSONAPI(
 			resourceAction = "VIEW_CONTROL_PANEL",

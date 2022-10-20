@@ -12,93 +12,126 @@
  * details.
  */
 
-import {ClayInput} from '@clayui/form';
+import ClayForm, {ClayInput} from '@clayui/form';
+import {useIsMounted} from '@liferay/frontend-js-react-web';
+import classNames from 'classnames';
 import {debounce} from 'frontend-js-web';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {forwardRef, useEffect, useRef, useState} from 'react';
 
 import {
 	getMinQuantity,
 	getProductMaxQuantity,
 } from '../../utilities/quantities';
+import RulesPopover from './RulesPopover';
 
-function InputQuantitySelector({
-	className,
-	disabled,
-	maxQuantity,
-	minQuantity,
-	multipleQuantity,
-	name,
-	onUpdate,
-	quantity,
-}) {
-	const inputMax = useMemo(
-		() => getProductMaxQuantity(maxQuantity, multipleQuantity),
-		[maxQuantity, multipleQuantity]
-	);
+const getErrors = (value, min, max, step) => {
+	const errors = [];
 
-	const inputMin = useMemo(
-		() => getMinQuantity(minQuantity, multipleQuantity),
-		[multipleQuantity, minQuantity]
-	);
+	if (!value || value < min) {
+		errors.push('min');
+	}
 
-	const [typedQuantity, setTypedQuantity] = useState(quantity);
+	if (max && value > max) {
+		errors.push('max');
+	}
 
-	useEffect(() => {
-		setTypedQuantity(quantity);
-	}, [quantity]);
+	if (step > 1 && value % step) {
+		errors.push('multiple');
+	}
 
-	const getValidInputNumber = useCallback(
-		(value) => {
-			if (!value || value < inputMin) {
-				return inputMin;
-			}
+	return errors;
+};
 
-			if (inputMax && value > inputMax) {
-				return inputMax;
-			}
-
-			if (multipleQuantity > 1) {
-				return value - (value % multipleQuantity);
-			}
-
-			return value;
+const InputQuantitySelector = forwardRef(
+	(
+		{
+			alignment,
+			className,
+			disabled,
+			max,
+			min,
+			name,
+			onUpdate,
+			quantity,
+			step,
 		},
-		[inputMax, inputMin, multipleQuantity]
-	);
+		inputRef
+	) => {
+		const [showPopover, setShowPopover] = useState(false);
+		const [visibleErrors, setVisibleErrors] = useState(() =>
+			getErrors(quantity, min, max, step)
+		);
+		const isMounted = useIsMounted();
+		const debouncedSetVisibleErrorsRef = useRef(
+			debounce((newErrors) => {
+				if (isMounted()) {
+					setVisibleErrors(newErrors);
+				}
+			}, 500)
+		);
 
-	const debouncedSetFixedValue = useMemo(() => {
-		return debounce((value) => {
-			const validInput = getValidInputNumber(Number(value));
+		useEffect(() => {
+			debouncedSetVisibleErrorsRef.current(() =>
+				getErrors(quantity, min, max, step)
+			);
+		}, [quantity, min, max, step]);
 
-			setTypedQuantity(validInput);
+		const inputMax = getProductMaxQuantity(max, step);
+		const inputMin = getMinQuantity(min, step);
 
-			onUpdate(validInput);
-		}, 500);
-	}, [getValidInputNumber, onUpdate]);
+		return (
+			<ClayForm.Group
+				className={classNames({
+					'has-error': visibleErrors.length,
+					'mb-0': true,
+				})}
+			>
+				<ClayInput
+					className={className}
+					disabled={disabled}
+					max={inputMax}
+					min={inputMin}
+					name={name}
+					onBlur={() => {
+						setShowPopover(false);
+					}}
+					onChange={({target}) => {
+						const numValue = Number(target.value);
 
-	return (
-		<ClayInput
-			className={className}
-			disabled={disabled}
-			max={inputMax || ''}
-			min={inputMin}
-			name={name}
-			onChange={({target}) => {
-				setTypedQuantity(target.value);
+						const errors = getErrors(numValue, min, max, step);
 
-				debouncedSetFixedValue(target.value);
-			}}
-			step={multipleQuantity > 1 ? multipleQuantity : ''}
-			type="number"
-			value={String(typedQuantity || '')}
-		/>
-	);
-}
+						onUpdate({
+							errors,
+							value: numValue,
+						});
+					}}
+					onFocus={() => setShowPopover(true)}
+					ref={inputRef}
+					step={step > 1 ? step : ''}
+					type="number"
+					value={String(quantity || '')}
+				/>
+
+				{showPopover &&
+					(step > 1 || min > 1 || visibleErrors.includes('max')) && (
+						<RulesPopover
+							alignment={alignment}
+							errors={visibleErrors}
+							inputRef={inputRef}
+							max={max || ''}
+							min={min}
+							multiple={step}
+						/>
+					)}
+			</ClayForm.Group>
+		);
+	}
+);
 
 InputQuantitySelector.defaultProps = {
-	maxQuantity: '',
-	minQuantity: 1,
-	multipleQuantity: 1,
+	max: null,
+	min: 1,
+	step: 1,
 };
 
 export default InputQuantitySelector;

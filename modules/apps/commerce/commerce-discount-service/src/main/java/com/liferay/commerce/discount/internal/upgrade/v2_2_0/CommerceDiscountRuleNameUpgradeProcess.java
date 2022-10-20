@@ -14,19 +14,26 @@
 
 package com.liferay.commerce.discount.internal.upgrade.v2_2_0;
 
-import com.liferay.commerce.discount.internal.upgrade.base.BaseCommerceDiscountUpgradeProcess;
+import com.liferay.portal.kernel.upgrade.UpgradeProcess;
+import com.liferay.portal.kernel.upgrade.UpgradeProcessFactory;
+import com.liferay.portal.kernel.upgrade.UpgradeStep;
 
 /**
  * @author Riccardo Alberti
  */
-public class CommerceDiscountRuleNameUpgradeProcess
-	extends BaseCommerceDiscountUpgradeProcess {
+public class CommerceDiscountRuleNameUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		addColumn("CommerceDiscountRule", "name", "VARCHAR(75)");
-
 		runSQL("update CommerceDiscountRule set name = type_");
+	}
+
+	@Override
+	protected UpgradeStep[] getPreUpgradeSteps() {
+		return new UpgradeStep[] {
+			UpgradeProcessFactory.addColumns(
+				"CommerceDiscountRule", "name VARCHAR(75)")
+		};
 	}
 
 }

@@ -1,6 +1,8 @@
 @component-name = "portal-analytics-cloud"
 definition {
 
+	property analytics.cloud.release = "true";
+	property analytics.cloud.upstream = "true";
 	property custom.properties = "jsonws.web.service.paths.excludes=";
 	property portal.release = "false";
 	property portal.upstream = "true";
@@ -61,6 +63,8 @@ definition {
 	tearDown {
 		var testPortalInstance = PropsUtil.get("test.portal.instance");
 
+		ACUtils.tearDownAC();
+
 		ACUtils.tearDownDXP();
 
 		if ("${testPortalInstance}" == "true") {
@@ -69,19 +73,11 @@ definition {
 		else {
 			JSONGroup.deleteGroupByName(groupName = "Site Name");
 		}
-
-		JSONUser.tearDownNonAdminUsers();
-
-		ACUtils.tearDownAC();
 	}
 
 	@description = "Feature ID: LRAC-7346 | Automation ID: LRAC-10147 | Test Summary: Block single custom event and block custom events in bulk"
-	@ignore = "true"
 	@priority = "5"
 	test CanBlockCustomEvent {
-
-		// AC Story ticket: LRAC-9248
-
 		task ("Fill fields and create 3 custom events") {
 			var customEventName1 = ACCustomEvents.generateCustomEventName();
 
@@ -129,9 +125,7 @@ definition {
 		task ("Search for the name of the custom event that was blocked in custom event list") {
 			ACUtils.searchBar(searchItem = "${customEventName1}");
 
-			// This test is being ignored due to a history that makes changes to empty state messages.
-
-			ACUtils.viewNoResultsMessage(noResultMessage = "There are no items found.");
+			ACUtils.viewNoResultsMessage(noResultMessage = "There are no results found.");
 		}
 
 		task ("Navigation to block custom event list") {
@@ -153,7 +147,7 @@ definition {
 		task ("Block all custom events") {
 			ACCustomEvents.blockAllCustomEvents();
 
-			ACUtils.viewNoResultsMessage(noResultMessage = "Create some custom events");
+			ACUtils.viewNoResultsMessage(noResultMessage = "No Custom Events Found");
 		}
 
 		task ("Navigation to block custom event list") {
@@ -170,6 +164,7 @@ definition {
 	}
 
 	@description = "Feature ID: LRAC-7346 | Automation ID: LRAC-10152 | Test Summary: Blocked events are not shown on Segments"
+	@ignore = "true"
 	@priority = "5"
 	test CheckBlockedEventsNotShownOnSegments {
 		property test.name.skip.portal.instance = "CustomEventsBlockEvents#CheckBlockedEventsNotShownOnSegments";

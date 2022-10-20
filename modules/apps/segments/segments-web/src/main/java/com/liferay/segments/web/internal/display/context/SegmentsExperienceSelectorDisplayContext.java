@@ -112,31 +112,21 @@ public class SegmentsExperienceSelectorDisplayContext {
 			JSONObject segmentsExperiencesJSONObject =
 				segmentsExperiencesJSONArray.getJSONObject(i);
 
-			JSONObject firstSegmentsExperienceJSONObject =
-				_getFirstSegmentsExperienceJSONObject(
-					segmentsExperiencesJSONObject.getLong("segmentsEntryId"),
-					segmentsExperiencesJSONArray);
-
-			long firstSegmentsExperienceId =
-				firstSegmentsExperienceJSONObject.getLong(
-					"segmentsExperienceId");
+			long firstSegmentsExperienceId = _getFirstSegmentsExperienceId(
+				segmentsExperiencesJSONObject.getLong("segmentsEntryId"),
+				segmentsExperiencesJSONArray);
 
 			if (firstSegmentsExperienceId ==
 					segmentsExperiencesJSONObject.getLong(
 						"segmentsExperienceId")) {
 
 				segmentsExperiencesJSONObject.put("active", true);
-
-				break;
 			}
 		}
 	}
 
-	private JSONObject _getFirstSegmentsExperienceJSONObject(
+	private long _getFirstSegmentsExperienceId(
 		long segmentsEntryId, JSONArray segmentsExperiencesJSONArray) {
-
-		JSONObject firstSegmentsExperienceJSONObject =
-			JSONFactoryUtil.createJSONObject();
 
 		for (int i = 0; i < segmentsExperiencesJSONArray.length(); i++) {
 			JSONObject segmentsExperiencesJSONObject =
@@ -147,14 +137,12 @@ public class SegmentsExperienceSelectorDisplayContext {
 				(segmentsExperiencesJSONObject.getLong("segmentsEntryId") ==
 					SegmentsEntryConstants.ID_DEFAULT)) {
 
-				firstSegmentsExperienceJSONObject =
-					segmentsExperiencesJSONObject;
-
-				break;
+				return segmentsExperiencesJSONObject.getLong(
+					"segmentsExperienceId");
 			}
 		}
 
-		return firstSegmentsExperienceJSONObject;
+		return 0;
 	}
 
 	private SegmentsExperience _getParentSegmentExperience(

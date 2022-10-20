@@ -31,6 +31,7 @@ import com.liferay.portal.kernel.exception.NoSuchLayoutException;
 import com.liferay.portal.kernel.exception.NoSuchUserException;
 import com.liferay.portal.kernel.image.ImageToolUtil;
 import com.liferay.portal.kernel.interval.IntervalActionProcessor;
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.login.AuthLoginGroupSettingsUtil;
@@ -51,7 +52,6 @@ import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.impl.VirtualLayout;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
-import com.liferay.portal.kernel.portlet.PortalPreferences;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portal.kernel.portlet.PortletURLFactoryUtil;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
@@ -73,6 +73,7 @@ import com.liferay.portal.kernel.service.permission.GroupPermissionUtil;
 import com.liferay.portal.kernel.service.permission.LayoutPermissionUtil;
 import com.liferay.portal.kernel.service.permission.PortalPermissionUtil;
 import com.liferay.portal.kernel.servlet.HttpHeaders;
+import com.liferay.portal.kernel.servlet.HttpMethods;
 import com.liferay.portal.kernel.servlet.PortalWebResourceConstants;
 import com.liferay.portal.kernel.servlet.PortalWebResourcesUtil;
 import com.liferay.portal.kernel.servlet.SessionErrors;
@@ -110,6 +111,7 @@ import java.io.File;
 import java.io.Serializable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -277,14 +279,20 @@ public class ServicePreAction extends Action {
 			long userId, long groupId)
 		throws Exception {
 
-		String friendlyURL = _getFriendlyURL(
-			PropsValues.DEFAULT_USER_PRIVATE_LAYOUT_FRIENDLY_URL);
+		Map<Locale, String> nameMap = Collections.singletonMap(
+			LocaleUtil.getSiteDefault(),
+			LanguageUtil.get(
+				LocaleUtil.getSiteDefault(),
+				PropsValues.DEFAULT_USER_PRIVATE_LAYOUT_NAME));
+		Map<Locale, String> friendlyURLMap = Collections.singletonMap(
+			LocaleUtil.getSiteDefault(),
+			_getFriendlyURL(
+				PropsValues.DEFAULT_USER_PRIVATE_LAYOUT_FRIENDLY_URL));
 
 		Layout layout = LayoutLocalServiceUtil.addLayout(
 			userId, groupId, true, LayoutConstants.DEFAULT_PARENT_LAYOUT_ID,
-			PropsValues.DEFAULT_USER_PRIVATE_LAYOUT_NAME, StringPool.BLANK,
-			StringPool.BLANK, LayoutConstants.TYPE_PORTLET, false, friendlyURL,
-			new ServiceContext());
+			nameMap, null, null, null, null, LayoutConstants.TYPE_PORTLET,
+			StringPool.BLANK, false, friendlyURLMap, new ServiceContext());
 
 		LayoutTypePortlet layoutTypePortlet =
 			(LayoutTypePortlet)layout.getLayoutType();
@@ -353,14 +361,20 @@ public class ServicePreAction extends Action {
 			long userId, long groupId)
 		throws Exception {
 
-		String friendlyURL = _getFriendlyURL(
-			PropsValues.DEFAULT_USER_PUBLIC_LAYOUT_FRIENDLY_URL);
+		Map<Locale, String> nameMap = Collections.singletonMap(
+			LocaleUtil.getSiteDefault(),
+			LanguageUtil.get(
+				LocaleUtil.getSiteDefault(),
+				PropsValues.DEFAULT_USER_PUBLIC_LAYOUT_NAME));
+		Map<Locale, String> friendlyURLMap = Collections.singletonMap(
+			LocaleUtil.getSiteDefault(),
+			_getFriendlyURL(
+				PropsValues.DEFAULT_USER_PUBLIC_LAYOUT_FRIENDLY_URL));
 
 		Layout layout = LayoutLocalServiceUtil.addLayout(
 			userId, groupId, false, LayoutConstants.DEFAULT_PARENT_LAYOUT_ID,
-			PropsValues.DEFAULT_USER_PUBLIC_LAYOUT_NAME, StringPool.BLANK,
-			StringPool.BLANK, LayoutConstants.TYPE_PORTLET, false, friendlyURL,
-			new ServiceContext());
+			nameMap, null, null, null, null, LayoutConstants.TYPE_PORTLET,
+			StringPool.BLANK, false, friendlyURLMap, new ServiceContext());
 
 		LayoutTypePortlet layoutTypePortlet =
 			(LayoutTypePortlet)layout.getLayoutType();
@@ -967,8 +981,6 @@ public class ServicePreAction extends Action {
 
 		long plid = ParamUtil.getLong(httpServletRequest, "p_l_id");
 
-		boolean viewableSourceGroup = true;
-
 		if (plid > 0) {
 			layout = LayoutLocalServiceUtil.getLayout(plid);
 		}
@@ -985,23 +997,53 @@ public class ServicePreAction extends Action {
 			}
 		}
 
-		if ((layout != null) &&
-			((layout.isPrivateLayout() &&
-			  !PropsValues.LAYOUT_USER_PRIVATE_LAYOUTS_ENABLED) ||
-			 (layout.isPublicLayout() &&
-			  !PropsValues.LAYOUT_USER_PUBLIC_LAYOUTS_ENABLED))) {
-
+		if (layout != null) {
 			Group layoutGroup = layout.getGroup();
 
 			if (layoutGroup.isUser()) {
-				User layoutUser = UserLocalServiceUtil.getUserById(
-					company.getCompanyId(), layoutGroup.getClassPK());
+				if (!GetterUtil.getBoolean(
+						PropsUtil.get("feature.flag.LPS-155692"))) {
 
-				_updateUserLayouts(layoutUser);
+					long originalPlid = ParamUtil.getLong(
+						PortalUtil.getOriginalServletRequest(
+							httpServletRequest),
+						"p_l_id");
 
-				layout = LayoutLocalServiceUtil.fetchLayout(layout.getPlid());
+					String method = httpServletRequest.getMethod();
+
+					if ((Objects.equals(method, HttpMethods.GET) &&
+						 (originalPlid == plid)) ||
+						(!Objects.equals(method, HttpMethods.GET) &&
+						 !signedIn)) {
+
+						String message =
+							"User layouts cannot be accessed via p_l_id";
+
+						if (_log.isWarnEnabled()) {
+							_log.warn(message);
+						}
+
+						throw new NoSuchLayoutException(message);
+					}
+				}
+
+				if ((layout.isPrivateLayout() &&
+					 !PropsValues.LAYOUT_USER_PRIVATE_LAYOUTS_ENABLED) ||
+					(layout.isPublicLayout() &&
+					 !PropsValues.LAYOUT_USER_PUBLIC_LAYOUTS_ENABLED)) {
+
+					User layoutUser = UserLocalServiceUtil.getUserById(
+						company.getCompanyId(), layoutGroup.getClassPK());
+
+					_updateUserLayouts(layoutUser);
+
+					layout = LayoutLocalServiceUtil.fetchLayout(
+						layout.getPlid());
+				}
 			}
 		}
+
+		boolean viewableSourceGroup = true;
 
 		if (layout != null) {
 			long sourceGroupId = ParamUtil.getLong(
@@ -1259,11 +1301,9 @@ public class ServicePreAction extends Action {
 			if (signedIn && customizable && customizedView &&
 				hasCustomizeLayoutPermission) {
 
-				PortalPreferences portalPreferences =
+				layoutTypePortlet.setPortalPreferences(
 					PortletPreferencesFactoryUtil.getPortalPreferences(
-						user.getUserId(), true);
-
-				layoutTypePortlet.setPortalPreferences(portalPreferences);
+						user.getUserId(), true));
 			}
 
 			LayoutClone layoutClone = LayoutCloneFactory.getInstance();
@@ -1279,43 +1319,36 @@ public class ServicePreAction extends Action {
 							typeSettings
 						).build();
 
-					String stateMax = typeSettingsUnicodeProperties.getProperty(
-						LayoutTypePortletConstants.STATE_MAX);
-					String stateMin = typeSettingsUnicodeProperties.getProperty(
-						LayoutTypePortletConstants.STATE_MIN);
-					String modeAbout =
+					layoutTypePortlet.setStateMax(
 						typeSettingsUnicodeProperties.getProperty(
-							LayoutTypePortletConstants.MODE_ABOUT);
-					String modeConfig =
+							LayoutTypePortletConstants.STATE_MAX));
+					layoutTypePortlet.setStateMin(
 						typeSettingsUnicodeProperties.getProperty(
-							LayoutTypePortletConstants.MODE_CONFIG);
-					String modeEdit = typeSettingsUnicodeProperties.getProperty(
-						LayoutTypePortletConstants.MODE_EDIT);
-					String modeEditDefaults =
+							LayoutTypePortletConstants.STATE_MIN));
+					layoutTypePortlet.setModeAbout(
 						typeSettingsUnicodeProperties.getProperty(
-							LayoutTypePortletConstants.MODE_EDIT_DEFAULTS);
-					String modeEditGuest =
+							LayoutTypePortletConstants.MODE_ABOUT));
+					layoutTypePortlet.setModeConfig(
 						typeSettingsUnicodeProperties.getProperty(
-							LayoutTypePortletConstants.MODE_EDIT_GUEST);
-					String modeHelp = typeSettingsUnicodeProperties.getProperty(
-						LayoutTypePortletConstants.MODE_HELP);
-					String modePreview =
+							LayoutTypePortletConstants.MODE_CONFIG));
+					layoutTypePortlet.setModeEdit(
 						typeSettingsUnicodeProperties.getProperty(
-							LayoutTypePortletConstants.MODE_PREVIEW);
-					String modePrint =
+							LayoutTypePortletConstants.MODE_EDIT));
+					layoutTypePortlet.setModeEditDefaults(
 						typeSettingsUnicodeProperties.getProperty(
-							LayoutTypePortletConstants.MODE_PRINT);
-
-					layoutTypePortlet.setStateMax(stateMax);
-					layoutTypePortlet.setStateMin(stateMin);
-					layoutTypePortlet.setModeAbout(modeAbout);
-					layoutTypePortlet.setModeConfig(modeConfig);
-					layoutTypePortlet.setModeEdit(modeEdit);
-					layoutTypePortlet.setModeEditDefaults(modeEditDefaults);
-					layoutTypePortlet.setModeEditGuest(modeEditGuest);
-					layoutTypePortlet.setModeHelp(modeHelp);
-					layoutTypePortlet.setModePreview(modePreview);
-					layoutTypePortlet.setModePrint(modePrint);
+							LayoutTypePortletConstants.MODE_EDIT_DEFAULTS));
+					layoutTypePortlet.setModeEditGuest(
+						typeSettingsUnicodeProperties.getProperty(
+							LayoutTypePortletConstants.MODE_EDIT_GUEST));
+					layoutTypePortlet.setModeHelp(
+						typeSettingsUnicodeProperties.getProperty(
+							LayoutTypePortletConstants.MODE_HELP));
+					layoutTypePortlet.setModePreview(
+						typeSettingsUnicodeProperties.getProperty(
+							LayoutTypePortletConstants.MODE_PREVIEW));
+					layoutTypePortlet.setModePrint(
+						typeSettingsUnicodeProperties.getProperty(
+							LayoutTypePortletConstants.MODE_PRINT));
 				}
 			}
 

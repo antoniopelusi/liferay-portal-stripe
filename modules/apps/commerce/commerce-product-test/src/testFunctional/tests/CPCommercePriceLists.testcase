@@ -1,10 +1,9 @@
 @component-name = "portal-commerce"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "true";
 	property portal.upstream = "true";
+	property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 	property testray.main.component.name = "Order Management";
 
 	setUp {
@@ -39,6 +38,8 @@ definition {
 			locator1 = "Button#SUBMIT",
 			value1 = "Submit");
 
+		SelectFrameTop();
+
 		CommerceNavigator.gotoEntry(entryName = "pricelist1");
 
 		CommerceEntry.gotoMenuTab(menuTab = "Entries");
@@ -48,7 +49,9 @@ definition {
 			locator1 = "CommerceEntry#ADD_RELATION_FIELD",
 			value1 = "'MIN55861'");
 
-		Pause(locator1 = "2000");
+		WaitForElementPresent(
+			key_text = "Select",
+			locator1 = "Button#ANY");
 
 		Button.clickSelect();
 
@@ -138,6 +141,8 @@ definition {
 		AssertClickNoError(
 			locator1 = "Button#SUBMIT",
 			value1 = "Submit");
+
+		SelectFrameTop();
 
 		CommerceNavigator.gotoEntry(entryName = "Price List Test");
 
@@ -493,9 +498,13 @@ definition {
 			}
 
 			var curr_price = StringUtil.replace("${curr_price}", "$ ", "");
+
 			var curr_price = StringUtil.replace("${curr_price}", ".00", "");
+
 			var length = StringUtil.length("${curr_price}");
+
 			var index = ${length} - 1;
+
 			var intPart = StringUtil.substring("${curr_price}", "0", "${index}");
 
 			if ("${intPart}" == "") {
@@ -513,6 +522,7 @@ definition {
 			}
 
 			var decreasedPrice = ${curr_price} - ${intPart};
+
 			var decreasedPrice = "$ ${decreasedPrice}.${aux}0";
 
 			if ("${iterator}" == "1") {
@@ -681,7 +691,7 @@ definition {
 			key_entryName = "AccountGroup1",
 			locator1 = "CommerceEntry#TABLE_ELIGIBILITY_ACCOUNT_GROUPS");
 
-		ClickNoError(locator1 = "Button#MOVE_TO_RECYCLE_BIN");
+		ClickNoError(locator1 = "Button#TRASH_ENABLED");
 
 		Button.clickPublish();
 
@@ -763,9 +773,11 @@ definition {
 			locator1 = "TextArea#ANY",
 			value1 = "test1 product group");
 
-		Button.click(button = "Submit");
+		Button.clickSubmitButton();
 
 		Navigator.gotoNavTab(navTab = "Products");
+
+		WaitForPageLoad();
 
 		for (var product : list "U-Joint,Mount,Shock Absorber") {
 			CommerceRelations.assignSingleRelationToProductsEntry(
@@ -783,6 +795,12 @@ definition {
 		CommerceNavigator.gotoEntry(entryName = "test1");
 
 		Navigator.gotoNavTab(navTab = "Products");
+
+		WaitForPageLoad();
+
+		WaitForElementPresent(
+			key_value = "U-Joint",
+			locator1 = "CommerceEntry#BODY_VERTICAL_ELLIPSIS");
 
 		Click(
 			key_value = "U-Joint",
@@ -853,6 +871,8 @@ definition {
 			locator1 = "Button#SUBMIT",
 			value1 = "Submit");
 
+		SelectFrameTop();
+
 		Click(locator1 = "Button#PLUS");
 
 		CommerceEntry.addNewPriceListsEntry(
@@ -864,6 +884,8 @@ definition {
 			locator1 = "Button#SUBMIT",
 			value1 = "Submit");
 
+		SelectFrameTop();
+
 		CommerceNavigator.gotoEntry(entryName = "pricelist1");
 
 		CommerceEntry.gotoMenuTab(menuTab = "Eligibility");
@@ -872,6 +894,8 @@ definition {
 			accountsEligibility = "Account1",
 			channelsEligibility = "Site1 Portal",
 			unpublish = "true");
+
+		Refresh();
 
 		CommerceEntry.viewEntryEligibility(
 			accountsEligibility = "Account1",
@@ -890,6 +914,8 @@ definition {
 			channelsEligibility = "Site2 Portal",
 			unpublish = "true");
 
+		Refresh();
+
 		CommerceEntry.viewEntryEligibility(
 			accountsEligibility = "Account2",
 			channelsEligibility = "Site2 Portal");
@@ -902,12 +928,14 @@ definition {
 
 		CommerceEntry.gotoMenuTab(menuTab = "Entries");
 
+		var priceListEntryProduct = '''"MIN55861"''';
+
 		Type(
 			key_title = "Add SKUs",
 			locator1 = "CommerceEntry#ADD_RELATION_FIELD",
-			value1 = "MIN55861 ");
+			value1 = "${priceListEntryProduct}");
 
-		Pause(locator1 = "2000");
+		AssertElementPresent(locator1 = "Button#SELECT");
 
 		Button.clickSelect();
 
@@ -928,9 +956,9 @@ definition {
 		Type(
 			key_title = "Add SKUs",
 			locator1 = "CommerceEntry#ADD_RELATION_FIELD",
-			value1 = "MIN55861 ");
+			value1 = "${priceListEntryProduct}");
 
-		Pause(locator1 = "2000");
+		AssertElementPresent(locator1 = "Button#SELECT");
 
 		Button.clickSelect();
 
@@ -1015,8 +1043,8 @@ definition {
 		CommerceEntry.gotoMenuTab(menuTab = "Eligibility");
 
 		Click(
-			key_radioOption = "All Accounts",
-			locator1 = "CommerceEntry#RADIO_BUTTON");
+			locator1 = "Radio#ANY",
+			radioLabel = "All Accounts");
 
 		Button.clickPublish();
 
@@ -1027,8 +1055,8 @@ definition {
 		CommerceEntry.gotoMenuTab(menuTab = "Eligibility");
 
 		Click(
-			key_radioOption = "All Accounts",
-			locator1 = "CommerceEntry#RADIO_BUTTON");
+			locator1 = "Radio#ANY",
+			radioLabel = "All Accounts");
 
 		Button.clickPublish();
 
@@ -1087,9 +1115,10 @@ definition {
 	@priority = "3"
 	test AllowMultiplePriceEntriesInTheSamePriceList {
 		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
-		property osgi.module.configuration.file.names = "com.liferay.commerce.price.list.configuration.CommercePriceEntryConfiguration.config:com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-		property osgi.module.configurations = "checkInterval=&quot;1&quot;:disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
+		property osgi.module.configuration.file.names = "com.liferay.commerce.price.list.configuration.CommercePriceEntryConfiguration.config";
+		property osgi.module.configurations = "checkInterval=&quot;1&quot;";
 		property portal.acceptance = "false";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		// TODO COMMERCE-9089 Find alternative to having a pause to wait for a timed expiration and publication
 
@@ -1178,9 +1207,14 @@ definition {
 		}
 
 		task ("When the first price entry expires and the buyer views the U-Joint product") {
-			Pause(locator1 = "90000");
+			while ((IsElementPresent(key_productName = "U-Joint", key_productPrice = "20.00", locator1 = "CommerceAccelerators#PRODUCT_CARD_PRICE_VALUE")) && (maxIterations = "50")) {
 
-			Refresh();
+				// We need this pause for waiting for the Price List to expire
+
+				Pause(locator1 = "8000");
+
+				Refresh();
+			}
 		}
 
 		task ("Then the U-Joint price is the base price (24.00)") {
@@ -1191,9 +1225,14 @@ definition {
 		}
 
 		task ("When the second price entry is published and the buyer views the U-Joint product") {
-			Pause(locator1 = "30000");
+			while ((IsElementPresent(key_productName = "U-Joint", key_productPrice = "24.00", locator1 = "CommerceAccelerators#PRODUCT_CARD_PRICE_VALUE")) && (maxIterations = "50")) {
 
-			Refresh();
+				// We need this pause for waiting for the second price entry to be published
+
+				Pause(locator1 = "8000");
+
+				Refresh();
+			}
 		}
 
 		task ("Then the U-Joint price is the second price entry price (10.00)") {
@@ -1282,6 +1321,8 @@ definition {
 		CommerceNavigator.gotoEntry(entryName = "Test Price List");
 
 		CommerceEntry.gotoMenuTab(menuTab = "Entries");
+
+		WaitForPageLoad();
 
 		CommerceRelations.assignSingleRelationToProductsEntry(
 			entryName = "default",
@@ -1383,6 +1424,8 @@ definition {
 			locator1 = "Button#SUBMIT",
 			value1 = "Submit");
 
+		SelectFrameTop();
+
 		Refresh();
 
 		CommerceNavigator.gotoPortlet(
@@ -1399,6 +1442,8 @@ definition {
 		AssertClickNoError(
 			locator1 = "Button#SUBMIT",
 			value1 = "Submit");
+
+		SelectFrameTop();
 
 		CommerceNavigator.gotoEntry(entryName = "Test Price List");
 
@@ -1423,7 +1468,7 @@ definition {
 			catalogLanguage = "English (United States)",
 			catalogName = "Test Catalog");
 
-		Button.click(button = "Submit");
+		Button.clickSubmitButton();
 
 		Refresh();
 
@@ -1433,6 +1478,8 @@ definition {
 			portlet = "Price Lists");
 
 		Click(locator1 = "Button#PLUS");
+
+		SelectFrameTop();
 
 		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
 
@@ -1452,11 +1499,15 @@ definition {
 
 		Click(locator1 = "Icon#CLOSE");
 
+		SelectFrameTop();
+
 		Click(locator1 = "Button#PLUS");
 
 		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
 
-		Pause(locator1 = "3000");
+		WaitForElementPresent(
+			locator1 = "TextInput#NAME",
+			value1 = "Test Price List");
 
 		Type(
 			locator1 = "TextInput#NAME",
@@ -1506,6 +1557,8 @@ definition {
 		AssertClickNoError(
 			locator1 = "Button#SUBMIT",
 			value1 = "Submit");
+
+		SelectFrameTop();
 
 		CommerceNavigator.gotoEntry(entryName = "Test Price List");
 
@@ -1586,7 +1639,7 @@ definition {
 			locator1 = "TextInput#GENERIC_TEXT_INPUT",
 			value1 = "Test Group");
 
-		Button.click(button = "Submit");
+		Button.clickSubmitButton();
 
 		Navigator.gotoNavTab(navTab = "Products");
 
@@ -1627,6 +1680,8 @@ definition {
 		AssertClickNoError(
 			locator1 = "Button#SUBMIT",
 			value1 = "Submit");
+
+		SelectFrameTop();
 
 		CommerceNavigator.gotoEntry(entryName = "Test Price List");
 
@@ -1695,6 +1750,8 @@ definition {
 			locator1 = "Button#SUBMIT",
 			value1 = "Submit");
 
+		SelectFrameTop();
+
 		Refresh();
 
 		CommerceNavigator.gotoPortlet(
@@ -1702,6 +1759,8 @@ definition {
 			portlet = "Price Lists");
 
 		Click(locator1 = "Button#PLUS");
+
+		SelectFrameTop();
 
 		CommerceEntry.addNewPriceListsEntry(
 			priceListCatalog = "Test Catalog",
@@ -1711,6 +1770,8 @@ definition {
 		AssertClickNoError(
 			locator1 = "Button#SUBMIT",
 			value1 = "Submit");
+
+		SelectFrameTop();
 
 		CommerceNavigator.gotoPortlet(
 			category = "Pricing",
@@ -1743,6 +1804,8 @@ definition {
 			locator1 = "Button#SUBMIT",
 			value1 = "Submit");
 
+		SelectFrameTop();
+
 		Click(locator1 = "Icon#ANGLE_LEFT_BACK");
 
 		Click(locator1 = "Button#PLUS");
@@ -1755,6 +1818,8 @@ definition {
 		AssertClickNoError(
 			locator1 = "Button#SUBMIT",
 			value1 = "Submit");
+
+		SelectFrameTop();
 
 		CommerceNavigator.gotoPortlet(
 			category = "Pricing",
@@ -1770,6 +1835,8 @@ definition {
 		AssertClickNoError(
 			locator1 = "Button#SUBMIT",
 			value1 = "Submit");
+
+		SelectFrameTop();
 
 		CommerceNavigator.gotoPortlet(
 			category = "Product Management",
@@ -1828,7 +1895,7 @@ definition {
 
 		Button.clickSave();
 
-		Pause(locator1 = "1000");
+		WaitForElementNotPresent(locator1 = "Message#SUCCESS");
 
 		ApplicationsMenu.gotoPortlet(
 			category = "Pricing",
@@ -1846,9 +1913,12 @@ definition {
 			locator1 = "Button#SUBMIT",
 			value1 = "Submit");
 
+		SelectFrameTop();
+
 		CommerceNavigator.gotoEntry(entryName = "Test Price List");
 
 		var timeString = selenium.getElementValue("TextInput#DATE_TIME_PRICE_LISTS");
+
 		var ampm = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "3");
 		var hours = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "1");
 		var minutes = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "2");
@@ -1907,9 +1977,14 @@ definition {
 			panel = "Commerce",
 			portlet = "Price Lists");
 
-		Pause(locator1 = "180000");
+		while ((IsElementPresent(key_name = "Test Price List", locator1 = "CommerceEntry#ASSERT_PRICE_LIST_STATUS", value1 = "APPROVED")) && (maxIterations = "40")) {
 
-		Refresh();
+			// We need this pause for waiting for the Price List to expire
+
+			Pause(locator1 = "5000");
+
+			Refresh();
+		}
 
 		AssertTextEquals(
 			key_name = "Test Price List",
@@ -1947,7 +2022,7 @@ definition {
 
 		Button.clickSave();
 
-		Pause(locator1 = "1000");
+		WaitForElementNotPresent(locator1 = "Message#SUCCESS");
 
 		ApplicationsMenu.gotoPortlet(
 			category = "Pricing",
@@ -1964,6 +2039,8 @@ definition {
 		AssertClickNoError(
 			locator1 = "Button#SUBMIT",
 			value1 = "Submit");
+
+		SelectFrameTop();
 
 		CommerceNavigator.gotoEntry(entryName = "Test Price List");
 
@@ -1990,6 +2067,7 @@ definition {
 			value1 = "30");
 
 		var timeString = selenium.getElementValue("TextInput#DATE_TIME_PRICE_LISTS");
+
 		var ampm = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "3");
 		var hours = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "1");
 		var minutes = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "2");
@@ -2054,9 +2132,14 @@ definition {
 			locator1 = "CommerceAccelerators#PRODUCT_CARD_PRICE",
 			value1 = "$ 30.00");
 
-		Pause(locator1 = "180000");
+		while ((IsElementPresent(key_productName = "U-Joint", locator1 = "CommerceAccelerators#PRODUCT_CARD_PRICE", value1 = "$ 30.00")) && (maxIterations = "40")) {
 
-		Refresh();
+			// We need this pause for waiting for the Price List to expire
+
+			Pause(locator1 = "5000");
+
+			Refresh();
+		}
 
 		AssertTextEquals(
 			key_productName = "U-Joint",
@@ -2077,34 +2160,27 @@ definition {
 	@description = "This is a test for COMMERCE-6223. Tier Price Entry expiration management"
 	@priority = "3"
 	test ViewExpiredTierPriceEntry {
+		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
+		property osgi.module.configuration.file.names = "com.liferay.commerce.price.list.configuration.CommerceTierPriceEntryConfiguration.config";
+		property osgi.module.configurations = "checkInterval=&quot;1&quot;";
 		property portal.acceptance = "false";
-		property test.name.skip.portal.instance = "CPCommercePriceLists#ViewExpiredTierPriceEntry";
 
 		// TODO Review
 
 		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "System Settings");
-
-		Click(
-			key_text = "Pricing",
-			locator1 = "Link#ANY");
-
-		Click(
-			key_text = "Tier Price Entries",
-			locator1 = "Link#ANY");
-
-		Type(
-			key_text = "Check Interval",
-			locator1 = "TextInput#ANY",
-			value1 = "1");
-
-		Button.clickSave();
-
-		Pause(locator1 = "1000");
+		CommerceEntry.addAccountEntryUser(
+			accountName = "Commerce Account",
+			accountType = "Business",
+			agreeToTermsAndAnswerReminderQuery = "true",
+			createNewAccount = "true",
+			requireReset = "false",
+			userEmailAddress = "buyer@liferay.com",
+			userFirstName = "Buyer",
+			userLastName = "User",
+			userRole = "Buyer",
+			userScreenName = "buyeruser",
+			userSiteMembership = "Minium");
 
 		ApplicationsMenu.gotoPortlet(
 			category = "Pricing",
@@ -2121,6 +2197,8 @@ definition {
 		AssertClickNoError(
 			locator1 = "Button#SUBMIT",
 			value1 = "Submit");
+
+		SelectFrameTop();
 
 		CommerceNavigator.gotoEntry(entryName = "Test Price List");
 
@@ -2141,8 +2219,6 @@ definition {
 			locator1 = "TextInput#ANY",
 			value1 = "30");
 
-		var timeString = selenium.getElementValue("TextInput#DATE_TIME_PRICE_LISTS");
-
 		Click(
 			key_radioOption = "Bulk Pricing",
 			locator1 = "CommerceEntry#RADIO_BUTTON");
@@ -2151,7 +2227,9 @@ definition {
 
 		SelectFrameTop();
 
-		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
+
+		var timeString = selenium.getElementValue("TextInput#DATE_TIME_PRICE_LISTS");
 
 		var ampm = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "3");
 		var hours = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "1");
@@ -2226,16 +2304,6 @@ definition {
 
 		ApplicationsMenu.gotoSite(site = "Minium");
 
-		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
-
-		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "Commerce Account");
-
-		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
-
-		FrontStore.addInitializerProductToCart(
-			productName = "U-Joint",
-			productQuantity = "1");
-
 		FrontStore.addInitializerProductToCart(
 			productName = "U-Joint",
 			productQuantity = "10");
@@ -2247,26 +2315,28 @@ definition {
 			locator1 = "CommerceAccelerators#MINI_CART_ITEM_PRICE_VALUE",
 			value1 = "$ 10.00");
 
-		Click(locator1 = "Icon#DELETE");
+		while ((IsElementPresent(key_cartItemSku = "MIN55861", key_productPrice = "10.00", locator1 = "CommerceAccelerators#MINI_CART_ITEM_LIST_PRICE_VALUE")) && (maxIterations = "40")) {
+			Button.click(button = "Remove All Items");
 
-		Pause(locator1 = "120000");
+			Button.click(button = "Yes");
 
-		Refresh();
+			AssertElementNotPresent(
+				key_cartItemSku = "MIN55861",
+				locator1 = "CommerceAccelerators#MINI_CART_ITEM_NAME_USING_SKU");
 
-		FrontStore.addInitializerProductToCart(
-			productName = "U-Joint",
-			productQuantity = "1");
+			Refresh();
 
-		FrontStore.addInitializerProductToCart(
-			productName = "U-Joint",
-			productQuantity = "10");
+			FrontStore.addInitializerProductToCart(
+				productName = "U-Joint",
+				productQuantity = "10");
 
-		CommerceNavigator.gotoMiniCart();
+			CommerceNavigator.gotoMiniCart();
+		}
 
 		AssertTextEquals.assertPartialText(
 			key_cartItemSku = "MIN55861",
 			locator1 = "CommerceAccelerators#MINI_CART_ITEM_PRICE_VALUE",
-			value1 = "$ 10.00");
+			value1 = "$ 30.00");
 	}
 
 	@description = "This is a test for COMMERCE-6228. Check that an expired entity is not considered in the price calculation"
@@ -2299,7 +2369,7 @@ definition {
 
 		Button.clickSave();
 
-		Pause(locator1 = "1000");
+		WaitForElementNotPresent(locator1 = "Message#SUCCESS");
 
 		ApplicationsMenu.gotoPortlet(
 			category = "Pricing",
@@ -2317,15 +2387,21 @@ definition {
 			locator1 = "Button#SUBMIT",
 			value1 = "Submit");
 
+		SelectFrameTop();
+
 		CommerceNavigator.gotoEntry(entryName = "Test Price List");
 
 		CommerceEntry.gotoMenuTab(menuTab = "Entries");
 
 		for (var sku : list "MIN55861,MIN93015") {
+			var quotedSku = '''"${sku}"''';
+
 			Type(
 				key_title = "Add SKUs",
 				locator1 = "CommerceEntry#ADD_RELATION_FIELD",
-				value1 = "'${sku}'");
+				value1 = "${quotedSku}");
+
+			AssertElementPresent(locator1 = "Button#SELECT");
 
 			Button.clickSelect();
 
@@ -2341,6 +2417,7 @@ definition {
 				value1 = "30");
 
 			var timeString = selenium.getElementValue("TextInput#DATE_TIME_PRICE_LISTS");
+
 			var ampm = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "3");
 			var hours = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "1");
 			var minutes = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "2");
@@ -2414,9 +2491,14 @@ definition {
 
 		CommerceAcceleratorsInitializer.changeProductsSorting(sortingType = "Relevance");
 
-		Pause(locator1 = "180000");
+		while ((IsElementPresent(key_productName = "U-Joint", locator1 = "CommerceAccelerators#PRODUCT_CARD_PRICE", value1 = "$ 30.00")) && (maxIterations = "40")) {
 
-		Refresh();
+			// We need this pause for waiting for the Price List to expire
+
+			Pause(locator1 = "5000");
+
+			Refresh();
+		}
 
 		for (var productNamePrice : list "U-Joint;24,ABS Sensor;50") {
 			var productName = StringUtil.extractFirst("${productNamePrice}", ";");

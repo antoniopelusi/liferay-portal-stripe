@@ -32,3 +32,8 @@ c147a7466c5b7a6b045384c7c22be4d0b1e03815^..327ef1ab2c2c4e9e4be30926bbf8b782f9680
 # Bundle Version 4.0.8
 #
 d7a3a3b979c8cf395b5badcf20012c7ba5d9bbda^..40a4319c52df958b67eb439c2dd07d70decb0f8e=COMMERCE-8618
+
+#
+# Bundle Version 4.0.9
+#
+40a4319c52df958b67eb439c2dd07d70decb0f8e^..2ac64171bf03a993b85482f125cdbb6abd6ccc3f=COMMERCE-9493

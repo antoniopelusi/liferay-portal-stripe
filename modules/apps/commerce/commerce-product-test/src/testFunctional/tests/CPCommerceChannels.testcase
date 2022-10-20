@@ -1,14 +1,13 @@
 @component-name = "portal-commerce"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "true";
 	property portal.upstream = "true";
+	property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 	property testray.main.component.name = "Product Info Management";
 
 	setUp {
-		CommerceConfiguration.commerceSetUp();
+		CommerceConfiguration.commerceSetUp(minium = "true");
 	}
 
 	tearDown {
@@ -23,8 +22,6 @@ definition {
 
 		// TODO Review
 		// TODO Fix Commerce tests that are skipping portal instances - COMMERCE-6586; COMMERCE-6588
-
-		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
 
 		CommerceNavigator.gotoPortlet(
 			category = "Store Management",
@@ -168,8 +165,6 @@ definition {
 	test AddShippingOptionFedEx {
 		property portal.acceptance = "false";
 
-		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
-
 		CommerceNavigator.gotoPortlet(
 			category = "Store Management",
 			portlet = "Channels");
@@ -201,7 +196,7 @@ definition {
 				value1 = "Test");
 		}
 
-		for (var key_value : list "FedEx Europe First International Priority,FedEx 1Day Freight,FedEx 2Day,FedEx 2Day AM,FedEx 2Day Freight,FedEx 3Day Freight,FedEx Distance Deferred,FedEx Express Saver,FedEx First Freight,FedEx Freight Economy,FedEx Freight Priority,FedEx Ground,FedEx Next Day Afternoon,FedEx Next Day Early Morning,FedEx Next Day End of Day,FedEx Next Day Freight,FedEx Next Day Mid-Morning,FedEx First Overnight,FedEx Ground Home Delivery,FedEx International Economy,FedEx International Economy Freight,FedEx International First,FedEx International Priority,FedEx International Priority Express,FedEx International Priority Freight,FedEx Priority Overnight,FedEx Same Day,FedEx Same Day City,FedEx Smart Post,FedEx Standard Overnight") {
+		for (var key_value : list "FedEx Europe First International Priority,FedEx 1Day Freight,FedEx 2Day,FedEx 2Day AM,FedEx 2Day Freight,FedEx 3Day Freight,FedEx Distance Deferred,FedEx Express Saver,FedEx First Freight,FedEx Freight Economy,FedEx Freight Priority,FedEx Ground,FedEx Next Day Afternoon,FedEx Next Day Early Morning,FedEx Next Day End of Day,FedEx Next Day Freight,FedEx Next Day Mid-Morning,FedEx First Overnight,FedEx Ground Home Delivery,FedEx International Economy,FedEx International Economy Freight,FedEx International First,FedEx International Priority,FedEx International Priority Express,FedEx International Priority Freight,FedEx Priority Overnight,FedEx Same Day,FedEx Same Day City,FedEx SmartPost,FedEx Standard Overnight") {
 			Check.checkToggleSwitch(
 				checkboxName = "${key_value}",
 				locator1 = "Checkbox#ANY_CHECKBOX");
@@ -233,8 +228,6 @@ definition {
 	@priority = "3"
 	test AddShippingOptionFlatRate {
 		property portal.acceptance = "false";
-
-		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
 
 		CommerceNavigator.gotoPortlet(
 			category = "Store Management",
@@ -300,8 +293,6 @@ definition {
 	test AddShippingOptionSettingVariableRate {
 		property portal.acceptance = "false";
 
-		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
-
 		CommerceNavigator.gotoPortlet(
 			category = "Store Management",
 			portlet = "Channels");
@@ -359,8 +350,6 @@ definition {
 	test AddShippingOptionVariableRate {
 		property portal.acceptance = "false";
 
-		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
-
 		CommerceNavigator.gotoPortlet(
 			category = "Store Management",
 			portlet = "Channels");
@@ -406,8 +395,6 @@ definition {
 	@priority = "3"
 	test AddTaxRateSettingsByAddressTaxCalculation {
 		property portal.acceptance = "false";
-
-		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
 
 		CommerceNavigator.gotoPortlet(
 			category = "Store Management",
@@ -471,6 +458,8 @@ definition {
 
 		Button.click(button = "Submit");
 
+		SelectFrameTop();
+
 		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
 
 		Button.clickSave();
@@ -484,8 +473,6 @@ definition {
 		property portal.acceptance = "false";
 
 		// TODO Review
-
-		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
 
 		CommerceNavigator.gotoPortlet(
 			category = "Store Management",
@@ -542,6 +529,206 @@ definition {
 			locator1 = "CommerceEntry#ENTRY_NAME_BODY_VERTICAL_ELLIPSIS");
 	}
 
+	@description = "This is a test for COMMERCE-9459. CanEditShippingMethodTrackingURL"
+	@priority = "2"
+	test CanEditShippingMethodTrackingURL {
+		property portal.acceptance = "false";
+
+		CommerceNavigator.gotoPortlet(
+			category = "Store Management",
+			portlet = "Channels");
+
+		CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+		Click(
+			key_entryName = "Flat Rate",
+			locator1 = "CommerceEntry#CHANNELS_GENERAL_TAB_EDITS");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		CommerceChannels.addShippingMethodTrackingURL(trackingURL = "www.carriersite.com/");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+
+		Click(locator1 = "Icon#CLOSE");
+
+		Refresh();
+
+		Click(
+			key_entryName = "Flat Rate",
+			locator1 = "CommerceEntry#CHANNELS_GENERAL_TAB_EDITS");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		AssertElementPresent(
+			key_fieldLabel = "Tracking URL",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "www.carriersite.com/");
+
+		CommerceChannels.addShippingMethodTrackingURL(trackingURL = "www.carriersite2.com/");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+
+		Click(locator1 = "Icon#CLOSE");
+
+		Refresh();
+
+		Click(
+			key_entryName = "Flat Rate",
+			locator1 = "CommerceEntry#CHANNELS_GENERAL_TAB_EDITS");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		AssertElementPresent(
+			key_fieldLabel = "Tracking URL",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "www.carriersite2.com/");
+
+		TripleClick(
+			key_fieldLabel = "Tracking URL",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT");
+
+		KeyPress(
+			key_fieldLabel = "Tracking URL",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "\BACK_SPACE");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+
+		Click(locator1 = "Icon#CLOSE");
+
+		Refresh();
+
+		Click(
+			key_entryName = "Flat Rate",
+			locator1 = "CommerceEntry#CHANNELS_GENERAL_TAB_EDITS");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		AssertElementPresent(
+			key_fieldLabel = "Tracking URL",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "");
+	}
+
+	@description = "Verify users without edit permission cannot change the currency of a channel."
+	@priority = "3"
+	test CanNotEditChannelCurrencyAsUserWithoutEditPermission {
+		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
+		property portal.acceptance = "false";
+
+		task ("Given a Commerce account with a buyer user") {
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
+		}
+
+		task ("And given the buyer has permission to view a channel's configuration") {
+			CommercePermissions.defineChannelPermissionsViaJSONAPI(
+				roleTitle = "User",
+				update = "true",
+				view = "true");
+		}
+
+		task ("When the buyer logs in and goes to the Minium channel") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+		}
+
+		task ("Then the buyer is unable to change the channel currency code") {
+			AssertElementNotPresent(
+				key_title = "Currency",
+				locator1 = "CommerceEntry#CATALOGS_FORM");
+		}
+	}
+
+	@description = "Verify users can set and edit delivery term eligibility for shipping options."
+	@priority = "3"
+	test CanSetAndEditDeliveryTermsEligibility {
+		task ("Given an active delivery term") {
+			CommerceJSONTermsAndConditionsAPI._addCommerceTermsAndConditions(
+				termsCount = "2",
+				termsType = "Delivery");
+		}
+
+		task ("When the user sets a shipping option's eligibility to a specific delivery term") {
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			CommerceEntry.setEntryEligibility(
+				deliveryTermsEligibility = "Delivery Term 1",
+				shippingMethod = "Flat Rate",
+				shippingOption = "Standard Delivery");
+		}
+
+		task ("Then the delivery term should be shown under Delivery Terms in the eligibility tab") {
+			CommerceNavigator.gotoEntry(entryName = "Standard Delivery");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+			Click(
+				key_panel = "Details",
+				locator1 = "Panel#PANEL_COLLAPSED");
+
+			CommerceEntry.gotoMenuTab(menuTab = "Eligibility");
+
+			AssertElementPresent(
+				key_entryName = "delivery-term-1",
+				key_table = "Delivery Terms",
+				locator1 = "CommerceEntry#TABLE_ELIGIBILITY_ENTRY");
+		}
+
+		task ("When the user changes the delivery method's eligibility to No Delivery Terms") {
+			Refresh();
+
+			CommerceEntry.setEntryEligibility(
+				deliveryTermsEligibility = "No Delivery Terms",
+				shippingMethod = "Flat Rate",
+				shippingOption = "Standard Delivery");
+		}
+
+		task ("Then no delivery terms should be shown in the eligibility tab") {
+			CommerceNavigator.gotoEntry(entryName = "Standard Delivery");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+			Click(
+				key_panel = "Details",
+				locator1 = "Panel#PANEL_COLLAPSED");
+
+			CommerceEntry.gotoMenuTab(menuTab = "Eligibility");
+
+			AssertElementNotPresent(
+				key_entryName = "",
+				key_table = "Delivery Terms",
+				locator1 = "CommerceEntry#TABLE_ELIGIBILITY_ENTRY");
+		}
+	}
+
 	@description = "[Please Update]"
 	@ignore = "Test Stub"
 	@priority = "4"
@@ -592,16 +779,6 @@ definition {
 
 	}
 
-	@description = "This is a test for COMMERCE-6195. CreateCategoryDisplayPage"
-	@ignore = "true"
-	@priority = "3"
-	test CreateCategoryDisplayPage {
-		property portal.acceptance = "false";
-
-		// TODO COMMERCE-6195 CreateCategoryDisplayPage
-
-	}
-
 	test CreateNewChannel {
 		property portal.acceptance = "false";
 
@@ -637,8 +814,6 @@ definition {
 		property portal.acceptance = "true";
 
 		// TODO Review
-
-		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
 
 		CommerceNavigator.gotoPortlet(
 			category = "Store Management",
@@ -784,68 +959,6 @@ definition {
 		AssertElementPresent(locator1 = "Message#SUCCESS");
 	}
 
-	@description = "This is a test for COMMERCE-6197. CreateProductDisplayPage"
-	@priority = "3"
-	test CreateProductDisplayPage {
-		property portal.acceptance = "false";
-
-		// TODO Review
-
-		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
-
-		CommerceNavigator.gotoPortlet(
-			category = "Store Management",
-			portlet = "Channels");
-
-		CommerceNavigator.gotoEntry(entryName = "Minium Portal");
-
-		CommerceEntry.gotoMenuTab(menuTab = "Product Display Pages");
-
-		Click(locator1 = "Button#PLUS");
-
-		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
-
-		Button.click(button = "Select Product");
-
-		SelectFrameTop();
-
-		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
-
-		Click(locator1 = "Button#CHOOSE");
-
-		SelectFrameTop();
-
-		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
-
-		Click(locator1 = "Button#CHOOSE");
-
-		SelectFrameTop();
-
-		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
-
-		Click(
-			key_card = "Login",
-			locator1 = "Card#CARD_TITLE");
-
-		SelectFrameTop();
-
-		Click(locator1 = "Button#DONE");
-
-		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
-
-		Button.clickSave();
-
-		AssertElementPresent(locator1 = "Message#SUCCESS");
-
-		Click(locator1 = "CommerceEntry#MODAL_BUTTON_CLOSE");
-
-		SelectFrameTop();
-
-		AssertElementPresent(
-			key_entryName = "ABS Sensor",
-			locator1 = "CommerceEntry#TABLE_LIST_TITLE");
-	}
-
 	@description = "[Please Update]"
 	@ignore = "Test Stub"
 	@priority = "4"
@@ -860,8 +973,6 @@ definition {
 	@priority = "3"
 	test EditAuthorizePaymentMethod {
 		property portal.acceptance = "false";
-
-		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
 
 		CommerceNavigator.gotoPortlet(
 			category = "Store Management",
@@ -916,8 +1027,6 @@ definition {
 		property portal.release = "false";
 
 		// TODO Review
-
-		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
 
 		CommerceNavigator.gotoPortlet(
 			category = "Store Management",
@@ -1002,60 +1111,12 @@ definition {
 			value1 = "Test");
 	}
 
-	@description = "This is a test for COMMERCE-6275. EditCategoryDisplayPage"
-	@priority = "3"
-	test EditCategoryDisplayPage {
-		property portal.acceptance = "false";
-
-		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
-
-		CommerceNavigator.gotoPortlet(
-			category = "Store Management",
-			portlet = "Channels");
-
-		CommerceNavigator.gotoEntry(entryName = "Minium Portal");
-
-		CommerceEntry.gotoMenuTab(menuTab = "Category Display Pages");
-
-		CommerceChannels.createCategoryDisplayPage(
-			page = "Login",
-			vocabulary = "Brake System");
-
-		Alert.viewSuccessMessage();
-
-		Click(locator1 = "CommerceEntry#MODAL_BUTTON_CLOSE");
-
-		SelectFrame.selectFrameTop();
-
-		AssertElementPresent(
-			key_entryName = "Brake System",
-			locator1 = "CommerceEntry#TABLE_LIST_TITLE");
-
-		CommerceChannels.editCategoryDisplayPage(
-			key_card = "Catalog",
-			name = "Brake System",
-			tabName = "Private+Pages");
-
-		Alert.viewSuccessMessage();
-
-		Click(locator1 = "CommerceEntry#MODAL_BUTTON_CLOSE");
-
-		SelectFrame.selectFrameTop();
-
-		AssertElementPresent(
-			key_productName = "Brake System",
-			key_value = "Catalog",
-			locator1 = "CommerceEntry#VALUE_PRODUCT_RELATIONS");
-	}
-
 	@description = "This is a test for COMMERCE-6122. EditConfigurationRemoteTaxCalculation"
 	@priority = "3"
 	test EditConfigurationRemoteTaxCalculation {
 		property portal.acceptance = "false";
 
 		// TODO Review
-
-		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
 
 		CommerceNavigator.gotoPortlet(
 			category = "Store Management",
@@ -1106,8 +1167,6 @@ definition {
 	test EditMercanetPaymentMethod {
 		property portal.acceptance = "false";
 
-		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
-
 		CommerceNavigator.gotoPortlet(
 			category = "Store Management",
 			portlet = "Channels");
@@ -1154,8 +1213,6 @@ definition {
 	test EditMoneyOrderPaymentMethod {
 		property portal.acceptance = "false";
 
-		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
-
 		CommerceNavigator.gotoPortlet(
 			category = "Store Management",
 			portlet = "Channels");
@@ -1190,8 +1247,6 @@ definition {
 
 		// TODO Review
 
-		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
-
 		CommerceNavigator.gotoPortlet(
 			category = "Store Management",
 			portlet = "Channels");
@@ -1224,8 +1279,8 @@ definition {
 		Refresh();
 
 		AssertVisible(
-			key_productQuantity = "Test Notification Template",
-			locator1 = "CommerceOrders#ORDER_DETAILS_PRODUCT_QUANTITY");
+			key_entryName = "Test Notification Template",
+			locator1 = "CommerceNavigation#ENTRY_NAME");
 
 		Click(
 			key_text = "Test Notification Template",
@@ -1255,8 +1310,8 @@ definition {
 		Refresh();
 
 		AssertVisible(
-			key_productQuantity = "Notification Template",
-			locator1 = "CommerceOrders#ORDER_DETAILS_PRODUCT_QUANTITY");
+			key_entryName = "Notification Template",
+			locator1 = "CommerceNavigation#ENTRY_NAME");
 	}
 
 	@description = "This is a test for COMMERCE-6106. EditPaypalPaymentMethod"
@@ -1265,8 +1320,6 @@ definition {
 		property portal.acceptance = "false";
 
 		// TODO Review
-
-		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
 
 		CommerceNavigator.gotoPortlet(
 			category = "Store Management",
@@ -1309,186 +1362,101 @@ definition {
 		Alert.viewSuccessMessage();
 	}
 
-	@description = "This is a test for COMMERCE-6274. EditProductDisplayPage"
+	@description = "Verify users can configure payment method eligibility to specific payment terms."
 	@priority = "3"
-	test EditProductDisplayPage {
-		property portal.acceptance = "Intern Test";
-
-		// TODO Review
-
-		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
-
-		CommerceNavigator.gotoPortlet(
-			category = "Store Management",
-			portlet = "Channels");
-
-		CommerceNavigator.gotoEntry(entryName = "Minium Portal");
-
-		CommerceEntry.gotoMenuTab(menuTab = "Product Display Pages");
-
-		Click(locator1 = "Button#PLUS");
-
-		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
-
-		Button.click(button = "Select Product");
-
-		SelectFrameTop();
-
-		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
-
-		Click(
-			key_siteName = "ABS Sensor",
-			locator1 = "CommerceNavigation#CHOOSE_SITE_BUTTON");
-
-		SelectFrameTop();
-
-		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
-
-		Click(locator1 = "Button#CHOOSE");
-
-		SelectFrameTop();
-
-		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
-
-		Click(
-			key_card = "Login",
-			locator1 = "Card#CARD_TITLE");
-
-		SelectFrameTop();
-
-		Click(locator1 = "Button#DONE");
-
-		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
-
-		Button.clickSave();
-
-		Alert.viewSuccessMessage();
-
-		Click(locator1 = "CommerceEntry#MODAL_BUTTON_CLOSE");
-
-		SelectFrameTop();
-
-		AssertElementPresent(
-			key_entryName = "ABS Sensor",
-			locator1 = "CommerceEntry#TABLE_LIST_TITLE");
-
-		ClickNoError(
-			key_value = "ABS Sensor",
-			locator1 = "CommerceEntry#BODY_VERTICAL_ELLIPSIS");
-
-		CommerceEntry.clickNoError(menuItem = "Delete");
-
-		Alert.viewSuccessMessage();
-
-		Click(locator1 = "Button#PLUS");
-
-		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
-
-		Button.click(button = "Select Product");
-
-		SelectFrameTop();
-
-		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
-
-		Click(
-			key_siteName = "Ball Joints",
-			locator1 = "CommerceNavigation#CHOOSE_SITE_BUTTON");
-
-		SelectFrameTop();
-
-		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
-
-		Click(locator1 = "Button#CHOOSE");
-
-		SelectFrameTop();
-
-		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
-
-		Click(
-			key_card = "Login",
-			locator1 = "Card#CARD_TITLE");
-
-		SelectFrameTop();
-
-		Click(locator1 = "Button#DONE");
-
-		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
-
-		Button.clickSave();
-
-		Alert.viewSuccessMessage();
-
-		Click(locator1 = "CommerceEntry#MODAL_BUTTON_CLOSE");
-
-		SelectFrameTop();
-
-		AssertElementPresent(
-			key_entryName = "Ball Joints",
-			locator1 = "CommerceEntry#TABLE_LIST_TITLE");
-
-		AssertElementNotPresent(
-			key_entryName = "ABS Sensor",
-			locator1 = "CommerceEntry#TABLE_LIST_TITLE");
-	}
-
-	@description = "This is a test for COMMERCE-6198. RemoveCategoryDisplayPage"
-	@priority = "3"
-	test RemoveCategoryDisplayPage {
+	test PaymentMethodEligibleForSpecificPaymentTerms {
+		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
 		property portal.acceptance = "false";
 
-		// TODO Review
+		task ("Given an account with a buyer user") {
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
+		}
 
-		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+		task ("And given an active payment term") {
+			CommerceJSONTermsAndConditionsAPI._addCommerceTermsAndConditions(termsType = "Payment");
+		}
 
-		CommerceNavigator.gotoPortlet(
-			category = "Store Management",
-			portlet = "Channels");
+		task ("And given multiple active payment methods") {
+			CommerceChannels.openChannelsAdmin();
 
-		CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
 
-		CommerceEntry.gotoMenuTab(menuTab = "Category Display Pages");
+			CommerceChannels.activatePaymentMethod(paymentMethod = "PayPal");
 
-		Click(locator1 = "Button#PLUS");
+			CommerceChannels.activatePaymentMethod(paymentMethod = "Mercanet");
+		}
 
-		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+		task ("And given one of the payment method's eligibility is set specifically to Payment Term 1") {
+			CommerceEntry.setEntryEligibility(
+				paymentMethod = "PayPal",
+				paymentTermsEligibility = "Payment Term 1");
+		}
 
-		Click(locator1 = "Button#SELECT");
+		task ("When the buyer checks out an order using the edited payment method") {
+			User.logoutPG();
 
-		AssetCategorization.selectCategory(categoryName = "Brake System");
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
 
-		SelectFrameTop();
+			FrontStore.addInitializerProductToCart(
+				productName = "U-Joint",
+				productQuantity = "1");
 
-		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+			CommerceCheckout.gotoCheckoutViaMiniCart();
+		}
 
-		Click(
-			key_text = "Done",
-			locator1 = "Modal#MODAL_FOOTER_BUTTON");
+		task ("Then the payment term should be applied to the order") {
+			CommerceCheckout.initializersCheckout(
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code",
+				paymentMethod = "PayPal",
+				paymentTerm = "Payment Term 1",
+				productName = "U-Joint",
+				productQuantity = "1",
+				productUnitPrice = "24",
+				shippingMethod = "Standard");
+		}
 
-		Click(locator1 = "Button#CHOOSE");
+		task ("When the buyer checks out an order using the non-edited payment method") {
+			CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
 
-		SelectFrame.selectFrameNoLoading(
-			key_title = "Select Category Display Page",
-			locator1 = "IFrame#MODAL_ANY");
+			FrontStore.addInitializerProductToCart(
+				productName = "U-Joint",
+				productQuantity = "1");
 
-		Click(
-			key_nodeName = "Login",
-			locator1 = "Treeview#NODE_UNSELECTED");
+			CommerceCheckout.gotoCheckoutViaMiniCart();
+		}
 
-		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
-
-		Button.clickSave();
-
-		AssertElementPresent(locator1 = "Message#SUCCESS");
-
-		Refresh();
-
-		Click(
-			locator1 = "Icon#SVG_ELLIPSIS",
-			value1 = "Brake System");
-
-		MenuItem.clickNoError(menuItem = "Delete");
-
-		AssertElementPresent(locator1 = "Message#SUCCESS");
+		task ("The the payment term should not be applied to the order") {
+			CommerceCheckout.initializersCheckout(
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code",
+				paymentMethod = "Mercanet",
+				paymentTerm = "",
+				productName = "U-Joint",
+				productQuantity = "1",
+				productUnitPrice = "24",
+				shippingMethod = "Standard");
+		}
 	}
 
 	@description = "This is a test for COMMERCE-6270. RemoveNotificationQueue"
@@ -1497,8 +1465,6 @@ definition {
 		property portal.acceptance = "true";
 
 		// TODO Review
-
-		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
 
 		ApplicationsMenu.gotoSite(site = "Minium");
 
@@ -1563,13 +1529,7 @@ definition {
 			productName = "U-Joint",
 			productQuantity = "1");
 
-		CommerceNavigator.gotoMiniCart();
-
-		Button.click(button = "View Details");
-
-		Button.click(button = "Checkout");
-
-		Pause(locator1 = "3000");
+		CommerceCheckout.gotoCheckout();
 
 		CommerceCheckout.initializersCheckout(
 			newAddressAddress = "Test Address",
@@ -1603,8 +1563,6 @@ definition {
 		property portal.acceptance = "false";
 
 		// TODO Review
-
-		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
 
 		CommerceNavigator.gotoPortlet(
 			category = "Store Management",
@@ -1642,84 +1600,6 @@ definition {
 			locator1 = "CommerceEntry#TABLE_LIST_TITLE");
 	}
 
-	@description = "[Please Update]"
-	@ignore = "Test Stub"
-	@priority = "4"
-	test RemoveOfflinePaymentLinkedAsDefaultPaymentMethod {
-		property portal.acceptance = "false";
-
-		// TODO COMMERCE-8542 RemoveOfflinePaymentLinkedAsDefaultPaymentMethod pending implementation
-
-	}
-
-	@description = "This is a test for COMMERCE-6196. RemoveProductDisplayPage"
-	@priority = "3"
-	test RemoveProductDisplayPage {
-		property portal.acceptance = "false";
-
-		// TODO Review
-
-		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
-
-		CommerceNavigator.gotoPortlet(
-			category = "Store Management",
-			portlet = "Channels");
-
-		CommerceNavigator.gotoEntry(entryName = "Minium Portal");
-
-		CommerceEntry.gotoMenuTab(menuTab = "Product Display Pages");
-
-		Click(locator1 = "Button#PLUS");
-
-		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
-
-		Button.click(button = "Select Product");
-
-		SelectFrame.selectFrameTop();
-
-		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
-
-		Button.click(button = "Choose");
-
-		SelectFrame.selectFrameTop();
-
-		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
-
-		Button.click(button = "Choose");
-
-		SelectFrame.selectFrameTop();
-
-		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
-
-		Click(
-			key_card = "Login",
-			locator1 = "Card#CARD_TITLE");
-
-		SelectFrame.selectFrameTop();
-
-		Button.clickDone();
-
-		SelectFrame.selectFrameTop();
-
-		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
-
-		Button.clickSave();
-
-		Alert.viewSuccessMessage();
-
-		Click(locator1 = "CommerceEntry#MODAL_BUTTON_CLOSE");
-
-		SelectFrame.selectFrameTop();
-
-		ClickNoError(
-			key_value = "ABS Sensor",
-			locator1 = "CommerceEntry#BODY_VERTICAL_ELLIPSIS");
-
-		ClickNoError(
-			filterOption = "Delete",
-			locator1 = "ContentDashboard#FILTER_BY_OPTION");
-	}
-
 	@description = "This is a test for COMMERCE-6114. RemoveShippingOptionFlatRate"
 	@priority = "3"
 	test RemoveShippingOptionFlatRate {
@@ -1727,8 +1607,6 @@ definition {
 
 		// TODO Review
 		// TODO Fix Commerce tests that are skipping portal instances - COMMERCE-6586
-
-		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
 
 		CommerceNavigator.gotoPortlet(
 			category = "Store Management",
@@ -1785,7 +1663,7 @@ definition {
 
 		Click(locator1 = "Icon#CLOSE");
 
-		Pause(locator1 = "3000");
+		WaitForElementNotPresent(locator1 = "Message#SUCCESS");
 
 		SelectFrameTop();
 
@@ -1812,8 +1690,6 @@ definition {
 		property portal.acceptance = "false";
 
 		// TODO Review
-
-		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
 
 		CommerceNavigator.gotoPortlet(
 			category = "Store Management",
@@ -1886,8 +1762,6 @@ definition {
 		property portal.acceptance = "false";
 
 		// TODO Review
-
-		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
 
 		CommerceNavigator.gotoPortlet(
 			category = "Store Management",
@@ -1962,8 +1836,6 @@ definition {
 
 		// TODO Review
 
-		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
-
 		CommerceNavigator.gotoPortlet(
 			category = "Store Management",
 			portlet = "Channels");
@@ -2015,6 +1887,8 @@ definition {
 
 		Button.click(button = "Submit");
 
+		SelectFrameTop();
+
 		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
 
 		Button.clickSave();
@@ -2034,8 +1908,6 @@ definition {
 	@priority = "3"
 	test RemoveTaxRateSettingsFixedTaxRateTaxCalculation {
 		property portal.acceptance = "false";
-
-		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
 
 		CommerceNavigator.gotoPortlet(
 			category = "Store Management",
@@ -2084,6 +1956,8 @@ definition {
 
 		Button.click(button = "Submit");
 
+		SelectFrameTop();
+
 		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
 
 		Click(
@@ -2093,6 +1967,482 @@ definition {
 		MenuItem.click(menuItem = "Delete");
 
 		Alert.viewSuccessMessage();
+	}
+
+	@description = "This is a test for COMMERCE-8386. SearchProductDisplayPage"
+	@priority = "3"
+	test SearchProductDisplayPage {
+		property portal.acceptance = "false";
+
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Products");
+
+		AppBuilderAdmin.searchByItem(itemName = "Turbocharger");
+
+		CommerceNavigator.gotoEntry(entryName = "Turbocharger");
+
+		CommerceEntry.gotoMenuTab(menuTab = "Media");
+
+		for (var number : list "106,107,108") {
+			CommerceEntry.checkImageName(uploadFileName = "Minium_ProductImage_${number}.png");
+		}
+
+		CommerceEntry.gotoMenuTab(menuTab = "Visibility");
+
+		for (var nameList : list "Channels,Account Groups") {
+			CommerceEntry.assertCheckedSpecificToggle(name = "${nameList}");
+		}
+
+		CommerceNavigator.gotoPortlet(
+			category = "Store Management",
+			portlet = "Channels");
+
+		CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+		CommerceEntry.gotoMenuTab(menuTab = "Product Display Pages");
+
+		Click(locator1 = "Button#PLUS");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Button.click(button = "Select Product");
+
+		SelectFrameTop();
+
+		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_IFRAME");
+
+		AppBuilderAdmin.searchByItem(itemName = "Turbocharger");
+
+		AssertElementPresent(
+			key_entry = "Turbocharger",
+			locator1 = "CommerceNavigation#TD_ANY_ENTRY_NAME");
+
+		CommerceNavigator.clearSearchBar();
+
+		AssertElementNotPresent(
+			key_entry = "Turbocharger",
+			locator1 = "CommerceNavigation#TD_ANY_ENTRY_NAME");
+
+		Click(
+			key_pageNumber = "3",
+			locator1 = "CommerceNavigation#PAGINATION_ANY_PAGE");
+
+		AssertElementPresent(
+			key_entry = "Turbocharger",
+			locator1 = "CommerceNavigation#TD_ANY_ENTRY_NAME");
+	}
+
+	@description = "Verify users can set and edit payment term eligibility for payment methods."
+	@priority = "3"
+	test SetAndEditPaymentMethodTermElgibility {
+		property portal.acceptance = "false";
+
+		task ("Given an active payment term") {
+			CommerceJSONTermsAndConditionsAPI._addCommerceTermsAndConditions(termsType = "Payment");
+		}
+
+		task ("And given an active payment method") {
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			CommerceChannels.activatePaymentMethod(paymentMethod = "PayPal");
+		}
+
+		task ("When the user sets the payment method's eligibility to a specific payment term") {
+			CommerceEntry.setEntryEligibility(
+				paymentMethod = "PayPal",
+				paymentTermsEligibility = "Payment Term 1");
+		}
+
+		task ("Then the payment term should be shown under Payment Terms in the eligibility tab") {
+			AssertElementPresent(
+				key_entryName = "payment-term-1",
+				key_table = "Payment Terms",
+				locator1 = "CommerceEntry#TABLE_ELIGIBILITY_ENTRY");
+		}
+
+		task ("When the user changes the payment method's eligibility to No Payment Terms") {
+			Refresh();
+
+			CommerceEntry.setEntryEligibility(
+				paymentMethod = "PayPal",
+				paymentTermsEligibility = "No Payment Terms");
+		}
+
+		task ("Then no payment terms should be shown in the eligibility tab") {
+			AssertElementNotPresent(
+				key_entryName = "",
+				key_table = "Payment Terms",
+				locator1 = "CommerceEntry#TABLE_ELIGIBILITY_ENTRY");
+		}
+	}
+
+	@description = "Verify all shipping options are available when orders are made using different order types given shipping option eligibility is set to All Order Types."
+	@priority = "3"
+	test ShippingOptionEligibleForAnyOrderType {
+		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
+		property portal.acceptance = "false";
+
+		task ("Given an account with a buyer user") {
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
+		}
+
+		task ("And given two active order types") {
+			CommerceJSONOrdersAPI._addOrderType(
+				active = "true",
+				orderTypeDescription = "Test Order Type Description 1",
+				orderTypeName = "Test Order Type 1");
+
+			CommerceJSONOrdersAPI._addOrderType(
+				active = "true",
+				orderTypeDescription = "Test Order Type Description 2",
+				orderTypeName = "Test Order Type 2");
+		}
+
+		task ("And given the buyer creates an order for each order type") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			CommerceAcceleratorsInitializer.createNewOrderFromPendingOrders(orderType = "Test Order Type 1");
+
+			WaitForElementPresent(locator1 = "CommerceEntry#ACTIVE_ORDER_ID");
+
+			var order1Id = selenium.getText("CommerceEntry#ACTIVE_ORDER_ID");
+
+			CommerceAcceleratorsInitializer.createNewOrderFromPendingOrders(orderType = "Test Order Type 2");
+
+			WaitForElementPresent(locator1 = "CommerceEntry#ACTIVE_ORDER_ID");
+
+			var order2Id = selenium.getText("CommerceEntry#ACTIVE_ORDER_ID");
+		}
+
+		task ("When the user goes to checkout for the Test Order Type 2 order") {
+			CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "U-Joint",
+				productQuantity = "1");
+
+			CommerceOrders.selectOrderFromAccountSelector(orderId = "${order2Id}");
+
+			Button.click(button = "Checkout");
+		}
+
+		task ("Then at the shipping method step, all active Shipping options should be available") {
+			CommerceCheckout.initializersCheckout(
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code");
+
+			AssertElementPresent(
+				key_radioOption = "Standard",
+				locator1 = "CommerceEntry#RADIO_BUTTON");
+
+			AssertElementPresent(
+				key_radioOption = "Expedited",
+				locator1 = "CommerceEntry#RADIO_BUTTON");
+		}
+
+		task ("When the user goes to checkout for the Test Order Type 1 order") {
+			CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
+
+			CommerceOrders.selectOrderFromAccountSelector(orderId = "${order1Id}");
+
+			CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "U-Joint",
+				productQuantity = "1");
+
+			CommerceOrders.selectOrderFromAccountSelector(orderId = "${order1Id}");
+
+			Button.click(button = "Checkout");
+		}
+
+		task ("Then at the shipping method step, all active Shipping options should be available") {
+			CommerceCheckout.initializersCheckout(
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code");
+
+			AssertElementPresent(
+				key_radioOption = "Standard",
+				locator1 = "CommerceEntry#RADIO_BUTTON");
+
+			AssertElementPresent(
+				key_radioOption = "Expedited",
+				locator1 = "CommerceEntry#RADIO_BUTTON");
+		}
+	}
+
+	@description = "Verify users can configure shipping option eligibility to specific delivery terms."
+	@priority = "3"
+	test ShippingOptionEligibleForSpecificDeliveryTerms {
+		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
+
+		task ("Given an account with a buyer user") {
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
+		}
+
+		task ("And given an active delivery term") {
+			CommerceJSONTermsAndConditionsAPI._addCommerceTermsAndConditions(
+				termsCount = "1",
+				termsType = "Delivery");
+		}
+
+		task ("And given one of the shipping option's eligibility is set specifically to Delivery Term 1") {
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			CommerceEntry.setEntryEligibility(
+				deliveryTermsEligibility = "Delivery Term 1",
+				shippingMethod = "Flat Rate",
+				shippingOption = "Standard Delivery");
+		}
+
+		task ("When the buyer checks out an order using the edited shipping option") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "U-Joint",
+				productQuantity = "1");
+
+			CommerceCheckout.gotoCheckout();
+		}
+
+		task ("Then the delivery term should be applied to the order") {
+			CommerceCheckout.initializersCheckout(
+				deliveryTerm = "Delivery Term 1",
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code",
+				productName = "U-Joint",
+				productQuantity = "1",
+				productUnitPrice = "24",
+				shippingMethod = "Standard");
+		}
+
+		task ("When the buyer checks out an order using the non-edited shipping option") {
+			CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "U-Joint",
+				productQuantity = "1");
+
+			CommerceCheckout.gotoCheckout();
+		}
+
+		task ("The the delivery term should not be applied to the order") {
+			CommerceCheckout.initializersCheckout(
+				deliveryTerm = "",
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code",
+				productName = "U-Joint",
+				productQuantity = "1",
+				productUnitPrice = "24",
+				shippingMethod = "Expedited");
+		}
+	}
+
+	@description = "Verify users can configure shipping option eligibility to specific order types."
+	@priority = "3"
+	test ShippingOptionEligibleForSpecificOrderType {
+		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
+		property portal.acceptance = "false";
+
+		task ("Given an account with a buyer user") {
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
+		}
+
+		task ("And given two active order types") {
+			CommerceJSONOrdersAPI._addOrderType(
+				active = "true",
+				orderTypeDescription = "Test Order Type Description 1",
+				orderTypeName = "Test Order Type 1");
+
+			CommerceJSONOrdersAPI._addOrderType(
+				active = "true",
+				orderTypeDescription = "Test Order Type Description 2",
+				orderTypeName = "Test Order Type 2");
+		}
+
+		task ("And given an active shipping option's eligibility is set specifically to Test Order Type 1") {
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			CommerceEntry.setEntryEligibility(
+				orderTypesEligibility = "Test Order Type 1",
+				shippingMethod = "Flat Rate",
+				shippingOption = "Standard Delivery");
+		}
+
+		task ("And given the buyer creates an order for each order type") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			CommerceAcceleratorsInitializer.createNewOrderFromPendingOrders(orderType = "Test Order Type 1");
+
+			WaitForElementPresent(locator1 = "CommerceEntry#ACTIVE_ORDER_ID");
+
+			var order1Id = selenium.getText("CommerceEntry#ACTIVE_ORDER_ID");
+
+			CommerceAcceleratorsInitializer.createNewOrderFromPendingOrders(orderType = "Test Order Type 2");
+
+			WaitForElementPresent(locator1 = "CommerceEntry#ACTIVE_ORDER_ID");
+
+			var order2Id = selenium.getText("CommerceEntry#ACTIVE_ORDER_ID");
+		}
+
+		task ("When the user goes to checkout for the Test Order Type 2 order") {
+			CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "U-Joint",
+				productQuantity = "1");
+
+			CommerceOrders.selectOrderFromAccountSelector(orderId = "${order2Id}");
+
+			Button.click(button = "Checkout");
+		}
+
+		task ("Then at the shipping method step, the edited shipping option should not be available") {
+			CommerceCheckout.initializersCheckout(
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code");
+
+			AssertElementNotPresent(
+				key_radioOption = "Standard",
+				locator1 = "CommerceEntry#RADIO_BUTTON");
+
+			AssertElementPresent(
+				key_radioOption = "Expedited",
+				locator1 = "CommerceEntry#RADIO_BUTTON");
+		}
+
+		task ("When the user goes to checkout for the Test Order Type 1 order") {
+			CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
+
+			CommerceOrders.selectOrderFromAccountSelector(orderId = "${order1Id}");
+
+			CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "U-Joint",
+				productQuantity = "1");
+
+			CommerceOrders.selectOrderFromAccountSelector(orderId = "${order1Id}");
+
+			Button.click(button = "Checkout");
+		}
+
+		task ("Then at the shipping method step, the edited shipping option should be available") {
+			CommerceCheckout.initializersCheckout(
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code");
+
+			AssertElementPresent(
+				key_radioOption = "Standard",
+				locator1 = "CommerceEntry#RADIO_BUTTON");
+
+			AssertElementPresent(
+				key_radioOption = "Expedited",
+				locator1 = "CommerceEntry#RADIO_BUTTON");
+		}
+	}
+
+	@description = "This is a test for COMMERCE-8300. The store admin can upload a custom jasper print template"
+	@priority = "3"
+	test UploadCustomJasperPrintTemplate {
+		property portal.acceptance = "false";
+
+		task ("When the sales channel detail page is reached") {
+			CommerceNavigator.gotoPortlet(
+				category = "Store Management",
+				portlet = "Channels");
+		}
+
+		task ("And the "Select File" in the Orders box is clicked and the jasper template is chosen for being uploaded") {
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			CommerceChannels.uploadPrintOrderTemplate(uploadFileName = "commerce_order.jrxml");
+
+			CommerceNavigator.gotoPortlet(
+				category = "Store Management",
+				portlet = "Channels");
+		}
+
+		task ("Then the file name is shown next to the "Select File" button") {
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			AssertTextEquals(
+				locator1 = "CommerceOrders#PRINT_ORDER_TEMPLATE_FILE_NAME",
+				value1 = "commerce_order.jrxml");
+		}
 	}
 
 	@description = "This is a test for COMMERCE-6267. UsePunchOut"
@@ -2110,33 +2460,27 @@ definition {
 	test UseSearchBar {
 		property portal.acceptance = "false";
 
-		CommerceNavigator.gotoPortlet(
-			category = "Store Management",
-			portlet = "Channels");
-
-		Click(locator1 = "Button#PLUS");
-
-		CommerceEntry.addNewChannelsEntry(
-			channelCurrency = "US Dollar",
+		CommerceJSONChannelsAPI._addChannel(
 			channelName = "Test Channel",
-			channelType = "Site");
+			channelType = "Site",
+			currencyCode = "USD");
 
-		Click(locator1 = "Icon#BACK");
-
-		Click(locator1 = "Button#PLUS");
-
-		CommerceEntry.addNewChannelsEntry(
-			channelCurrency = "US Dollar",
+		CommerceJSONChannelsAPI._addChannel(
 			channelName = "Minium",
-			channelType = "Site");
+			channelType = "Site",
+			currencyCode = "USD");
 
-		Click(locator1 = "Icon#BACK");
+		CommerceChannels.openChannelsAdmin();
 
-		CommerceNavigator.searchEntry(entryName = "Test Channel");
+		CommerceNavigator.searchEntry(entryName = "Minium");
 
 		AssertElementPresent(
-			key_nameChannel = "Test Channel",
-			locator1 = "CommerceEntry#CHECK_FIRST_ELEMENT_SEARCHED");
+			key_entryName = "Minium",
+			locator1 = "CommerceNavigation#ENTRY_NAME");
+
+		AssertElementNotPresent(
+			key_entryName = "Test Channel",
+			locator1 = "CommerceNavigation#ENTRY_NAME");
 
 		CommerceNavigator.searchEntry(entryName = "1111");
 
@@ -2149,8 +2493,6 @@ definition {
 		property portal.acceptance = "Intern Test";
 
 		// TODO Review
-
-		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
 
 		ApplicationsMenu.gotoSite(site = "Minium");
 
@@ -2215,13 +2557,7 @@ definition {
 			productName = "U-Joint",
 			productQuantity = "1");
 
-		CommerceNavigator.gotoMiniCart();
-
-		Button.click(button = "View Details");
-
-		Button.click(button = "Checkout");
-
-		Pause(locator1 = "3000");
+		CommerceCheckout.gotoCheckout();
 
 		CommerceCheckout.initializersCheckout(
 			newAddressAddress = "Test Address",
@@ -2248,14 +2584,149 @@ definition {
 			locator1 = "CommerceEntry#ASSERT_NOTIFICATION_QUEUE");
 	}
 
-	@description = "[Please Update]"
-	@ignore = "Test Stub"
-	@priority = "4"
+	@description = "Verify users can view the priority of shipping options"
+	@priority = "3"
 	test VerifyPriorityColumnForShippingOption {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-8663 VerifyPriorityColumnForShippingOption pending implementation
+		task ("When the Sales Manager goes into the Minium channel and opens the Flat Rate shipping method's options tab") {
+			CommerceChannels.openChannelsAdmin();
 
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			CommerceEntry.clickTableEntryEditButton(
+				entryName = "Flat Rate",
+				table = "Shipping Methods");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+			CommerceEntry.gotoMenuTab(menuTab = "Shipping Options");
+		}
+
+		task ("And the Sales Manager edits the priority for Standard Delivery to 1 and Expedited Delivery to 2") {
+			CommerceChannels.editShippingOption(
+				priority = "1",
+				shippingOption = "Standard Delivery");
+
+			CommerceChannels.editShippingOption(
+				priority = "2",
+				shippingOption = "Expedited Delivery");
+		}
+
+		task ("Then the priority values will be shown in the priority column") {
+			AssertElementPresent(
+				key_text = "Priority",
+				locator1 = "Button#ANY");
+
+			AssertTextEquals(
+				key_columnNumber = "3",
+				key_entryName = "Standard Delivery",
+				locator1 = "CommerceEntry#TABLE_CELL_BY_COLUMN_ORDER",
+				value1 = "1");
+
+			AssertTextEquals(
+				key_columnNumber = "3",
+				key_entryName = "Expedited Delivery",
+				locator1 = "CommerceEntry#TABLE_CELL_BY_COLUMN_ORDER",
+				value1 = "2");
+		}
+
+		task ("And the shipping options will be re-ordered based on the priority") {
+			AssertTextEquals(
+				key_rowNumber = "1",
+				locator1 = "CommerceEntry#TABLE_ENTRY_ROW_NUMBER",
+				value1 = "Standard Delivery");
+
+			AssertTextEquals(
+				key_rowNumber = "2",
+				locator1 = "CommerceEntry#TABLE_ENTRY_ROW_NUMBER",
+				value1 = "Expedited Delivery");
+		}
+	}
+
+	@description = "This is a test for COMMERCE-8300. The store admin can view and download the jasper template"
+	@priority = "3"
+	test ViewAndDownloadCustomJasperPrintTemplate {
+		property portal.acceptance = "false";
+
+		task ("When the sales channel detail page is reached") {
+			CommerceNavigator.gotoPortlet(
+				category = "Store Management",
+				portlet = "Channels");
+		}
+
+		task ("And the "Select File" in the Orders box is clicked, the jasper template is chosen for being uploaded, the file name is clicked, and the preview template is shown") {
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			CommerceChannels.uploadPrintOrderTemplate(uploadFileName = "commerce_order.jrxml");
+		}
+
+		task ("Then the jasper template is chosen for being uploaded, the file name is clicked, and the preview template is shown, and the store admin can download the template") {
+			AssertTextEquals(
+				locator1 = "CommerceOrders#PRINT_ORDER_TEMPLATE_FILE_NAME",
+				value1 = "commerce_order.jrxml");
+		}
+	}
+
+	@description = "This is a test for COMMERCE-8300. The buyer can view the order preview with the uploaded template"
+	@priority = "3"
+	test ViewOrderPreviewWithJasperTemplate {
+		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
+		property portal.acceptance = "false";
+
+		task ("Given a channel with a Print Order Template jasper file ") {
+			CommerceNavigator.gotoPortlet(
+				category = "Store Management",
+				portlet = "Channels");
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			CommerceChannels.uploadPrintOrderTemplate(uploadFileName = "commerce_order.jrxml");
+		}
+
+		task ("And a buyer user is logged in") {
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
+
+			User.logoutPG();
+		}
+
+		task ("When an order is placed") {
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "U-Joint",
+				productQuantity = "1");
+
+			CommerceCheckout.gotoCheckout();
+
+			CommerceCheckout.checkout(
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code",
+				shippingMethod = "Standard");
+
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/minium/placed-orders");
+		}
+
+		task ("Then the buyer user should be able to view and print the order") {
+			CommerceOrders.viewJasperTemplateFromPlacedOrders();
+		}
 	}
 
 }

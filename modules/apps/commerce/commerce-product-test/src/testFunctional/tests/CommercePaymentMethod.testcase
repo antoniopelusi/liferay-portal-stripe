@@ -2,37 +2,17 @@
 definition {
 
 	property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
-	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "true";
 	property portal.upstream = "true";
+	property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 	property testray.main.component.name = "Order Management";
 
 	setUp {
-		TestCase.setUpPortalInstance();
-
-		User.firstLoginPG();
+		CommerceConfiguration.commerceSetUp();
 	}
 
 	tearDown {
-		var testPortalInstance = PropsUtil.get("test.portal.instance");
-
-		if ("${testPortalInstance}" == "true") {
-			PortalInstances.tearDownCP();
-		}
-		else {
-			Navigator.openURL();
-
-			if (IsElementPresent(locator1 = "UserBar#USER_AVATAR_IMAGE")) {
-				User.logoutPG();
-			}
-
-			User.firstLoginPG();
-
-			CommerceConfiguration.commerceAdminTearDown();
-
-			CommerceConfiguration.commerceInitializersTearDown();
-		}
+		CommerceConfiguration.commerceTearDown();
 	}
 
 	@description = "Verify once created, users can navigate to the Payment Methods page where new Offline Payment Methods can be Edited and Activated."
@@ -186,11 +166,7 @@ definition {
 				productName = "U-Joint",
 				productQuantity = "1");
 
-			CommerceNavigator.gotoMiniCart();
-
-			Button.click(button = "View Details");
-
-			Button.click(button = "Checkout");
+			CommerceCheckout.gotoCheckout();
 		}
 
 		task ("Then the new offline payment method should be visible in the checkout order summary") {
@@ -257,11 +233,7 @@ definition {
 				productName = "U-Joint",
 				productQuantity = "1");
 
-			CommerceNavigator.gotoMiniCart();
-
-			Button.click(button = "View Details");
-
-			Button.click(button = "Checkout");
+			CommerceCheckout.gotoCheckout();
 
 			CommerceCheckout.initializersCheckout(
 				newAddressAddress = "Test Address",
@@ -357,11 +329,7 @@ definition {
 				productName = "U-Joint",
 				productQuantity = "1");
 
-			CommerceNavigator.gotoMiniCart();
-
-			Button.click(button = "View Details");
-
-			Button.click(button = "Checkout");
+			CommerceCheckout.gotoCheckout();
 		}
 
 		task ("Then the new offline payment method should selectable during checkout") {

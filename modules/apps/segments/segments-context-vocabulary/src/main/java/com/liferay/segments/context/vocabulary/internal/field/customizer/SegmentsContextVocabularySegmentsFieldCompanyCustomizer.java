@@ -18,7 +18,7 @@ import com.liferay.asset.kernel.model.AssetVocabulary;
 import com.liferay.asset.kernel.service.AssetVocabularyLocalService;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
@@ -58,7 +58,7 @@ import org.osgi.service.component.annotations.Reference;
 public class SegmentsContextVocabularySegmentsFieldCompanyCustomizer
 	implements SegmentsFieldCustomizer {
 
-	public static final String KEY = "assetVocabulary";
+	public static final String KEY = "assetVocabularyName";
 
 	@Override
 	public List<String> getFieldNames() {
@@ -77,7 +77,7 @@ public class SegmentsContextVocabularySegmentsFieldCompanyCustomizer
 
 	@Override
 	public String getLabel(String fieldName, Locale locale) {
-		return LanguageUtil.get(
+		return _language.get(
 			locale, "field." + CamelCaseUtil.fromCamelCase(fieldName));
 	}
 
@@ -146,5 +146,8 @@ public class SegmentsContextVocabularySegmentsFieldCompanyCustomizer
 
 	@Reference
 	private GroupLocalService _groupLocalService;
+
+	@Reference
+	private Language _language;
 
 }

@@ -126,6 +126,12 @@ public interface SXPBlueprintResource {
 			return new SXPBlueprintResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -171,6 +177,7 @@ public interface SXPBlueprintResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -278,7 +285,7 @@ public interface SXPBlueprintResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/search-experiences-rest/v1.0/sxp-blueprints");
 
 			httpInvoker.userNameAndPassword(
@@ -359,7 +366,7 @@ public interface SXPBlueprintResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/search-experiences-rest/v1.0/sxp-blueprints");
 
 			httpInvoker.userNameAndPassword(
@@ -436,7 +443,7 @@ public interface SXPBlueprintResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/search-experiences-rest/v1.0/sxp-blueprints/batch");
 
 			httpInvoker.userNameAndPassword(
@@ -517,7 +524,7 @@ public interface SXPBlueprintResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/search-experiences-rest/v1.0/sxp-blueprints/validate");
 
 			httpInvoker.userNameAndPassword(
@@ -594,7 +601,7 @@ public interface SXPBlueprintResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/search-experiences-rest/v1.0/sxp-blueprints/{sxpBlueprintId}");
 
 			httpInvoker.path("sxpBlueprintId", sxpBlueprintId);
@@ -673,7 +680,7 @@ public interface SXPBlueprintResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/search-experiences-rest/v1.0/sxp-blueprints/{sxpBlueprintId}/batch");
 
 			httpInvoker.path("sxpBlueprintId", sxpBlueprintId);
@@ -754,7 +761,7 @@ public interface SXPBlueprintResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/search-experiences-rest/v1.0/sxp-blueprints/{sxpBlueprintId}");
 
 			httpInvoker.path("sxpBlueprintId", sxpBlueprintId);
@@ -838,7 +845,7 @@ public interface SXPBlueprintResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/search-experiences-rest/v1.0/sxp-blueprints/{sxpBlueprintId}");
 
 			httpInvoker.path("sxpBlueprintId", sxpBlueprintId);
@@ -919,7 +926,7 @@ public interface SXPBlueprintResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/search-experiences-rest/v1.0/sxp-blueprints/{sxpBlueprintId}/copy");
 
 			httpInvoker.path("sxpBlueprintId", sxpBlueprintId);
@@ -989,7 +996,7 @@ public interface SXPBlueprintResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/search-experiences-rest/v1.0/sxp-blueprints/{sxpBlueprintId}/export");
 
 			httpInvoker.path("sxpBlueprintId", sxpBlueprintId);

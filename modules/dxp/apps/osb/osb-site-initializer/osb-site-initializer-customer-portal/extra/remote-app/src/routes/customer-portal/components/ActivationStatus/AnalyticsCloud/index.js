@@ -14,12 +14,13 @@ import {Align} from '@clayui/drop-down';
 import ClayIcon from '@clayui/icon';
 import {useModal} from '@clayui/modal';
 import React, {useEffect, useState} from 'react';
-import client from '../../../../../apolloClient';
+import i18n from '../../../../../common/I18n';
 import {Button, ButtonDropDown} from '../../../../../common/components';
+import {useAppPropertiesContext} from '../../../../../common/contexts/AppPropertiesContext';
 import {
 	getAccountSubscriptionGroups,
-	getAccountSubscriptionsTerms,
 	getAnalyticsCloudWorkspace,
+	getCommerceOrderItems,
 	updateAccountSubscriptionGroups,
 	updateAnalyticsCloudWorkspace,
 } from '../../../../../common/services/liferay/graphql/queries';
@@ -42,7 +43,8 @@ const ActivationStatusAnalyticsCloud = ({
 	subscriptionGroupAnalyticsCloud,
 	userAccount,
 }) => {
-	const [{assetsPath}, dispatch] = useCustomerPortal();
+	const [, dispatch] = useCustomerPortal();
+	const {client, liferayWebDAV} = useAppPropertiesContext();
 	const [groupIdValue, setGroupIdValue] = useState('');
 	const [activationStatusDate, setActivationStatusDate] = useState('');
 	const [isVisible, setIsVisible] = useState(false);
@@ -104,17 +106,19 @@ const ActivationStatusAnalyticsCloud = ({
 					rel="noopener noreferrer"
 					target="_blank"
 				>
-					Go to Workspace
+					{i18n.translate('go-to-workspace')}
+
 					<ClayIcon className="ml-1" symbol="order-arrow-right" />
 				</a>
 			),
 			id: STATUS_TAG_TYPES.active,
-			subtitle:
-				'Your Analytics Cloud environments are ready. Visit the workspace to view Analytics Cloud details.',
-			title: 'Analytics Cloud Activation',
+			subtitle: i18n.translate(
+				'your-analytics-cloud-environments-are-ready-visit-the-workspace-to-view-analytics-cloud-details'
+			),
+			title: i18n.translate('analytics-cloud-activation'),
 		},
 		[STATUS_TAG_TYPE_NAMES.inProgress]: {
-			dropdownIcon: userAccount.isStaff && (
+			dropdownIcon: userAccount.isStaff && userAccount.isProvisioning && (
 				<ButtonDropDown
 					align={Align.BottomRight}
 					customDropDownButton={
@@ -126,7 +130,7 @@ const ActivationStatusAnalyticsCloud = ({
 					}
 					items={[
 						{
-							label: 'Set to Active',
+							label: i18n.translate('set-to-active'),
 							onClick: () => setVisible(true),
 						},
 					]}
@@ -136,25 +140,27 @@ const ActivationStatusAnalyticsCloud = ({
 				/>
 			),
 			id: STATUS_TAG_TYPES.inProgress,
-			subtitle:
-				'Your Analytics Cloud workspace is being set up and will be available soon',
-			title: 'Analytics Cloud Activation',
+			subtitle: i18n.translate(
+				'your-analytics-cloud-workspace-is-being-set-up-and-will-be-available-soon'
+			),
+			title: i18n.translate('analytics-cloud-activation'),
 		},
 		[STATUS_TAG_TYPE_NAMES.notActivated]: {
-			buttonLink: (userAccount.isAdmin || userAccount.isStaff) && (
+			buttonLink: userAccount.isAdmin && (
 				<Button
 					appendIcon="order-arrow-right"
 					className="btn btn-link font-weight-semi-bold p-0 text-brand-primary text-paragraph"
 					displayType="link"
 					onClick={() => setIsVisible(true)}
 				>
-					Finish Activation
+					{i18n.translate('finish-activation')}
 				</Button>
 			),
 			id: STATUS_TAG_TYPES.notActivated,
-			subtitle:
-				'Almost there! Setup Analytics Cloud by finishing the activation form',
-			title: 'Analytics Cloud Activation',
+			subtitle: i18n.translate(
+				'almost-there-setup-analytics-cloud-by-finishing-the-activation-form'
+			),
+			title: i18n.translate('analytics-cloud-activation'),
 		},
 	};
 
@@ -165,10 +171,10 @@ const ActivationStatusAnalyticsCloud = ({
 		];
 
 	useEffect(() => {
-		const getSubscriptionTerms = async () => {
-			const filterAccountSubscriptionERC = `accountSubscriptionGroupERC eq '${project.accountKey}_analytics-cloud'`;
+		const fetchCommerceOrderItems = async () => {
+			const filterAccountSubscriptionERC = `customFields/accountSubscriptionGroupERC eq '${project.accountKey}_analytics-cloud'`;
 			const {data} = await client.query({
-				query: getAccountSubscriptionsTerms,
+				query: getCommerceOrderItems,
 				variables: {
 					filter: filterAccountSubscriptionERC,
 				},
@@ -176,14 +182,14 @@ const ActivationStatusAnalyticsCloud = ({
 
 			if (data) {
 				const activationStatusDateRange = getActivationStatusDateRange(
-					data.c?.accountSubscriptionTerms?.items
+					data?.orderItems?.items
 				);
 				setActivationStatusDate(activationStatusDateRange);
 			}
 		};
 
-		getSubscriptionTerms();
-	}, [project]);
+		fetchCommerceOrderItems();
+	}, [client, project]);
 
 	const updateAnalyticsCloudWorkspaceId = async () => {
 		const {data} = await client.query({
@@ -217,6 +223,7 @@ const ActivationStatusAnalyticsCloud = ({
 				mutation: updateAccountSubscriptionGroups,
 				variables: {
 					accountSubscriptionGroup: {
+						accountKey: project.accountKey,
 						activationStatus: STATUS_TAG_TYPE_NAMES.active,
 					},
 					id:
@@ -246,7 +253,7 @@ const ActivationStatusAnalyticsCloud = ({
 			<ActivationStatusLayout
 				activationStatus={activationStatus}
 				activationStatusDate={activationStatusDate}
-				iconPath={`${assetsPath}/assets/navigation-menu/analytics_icon.svg`}
+				iconPath={`${liferayWebDAV}/assets/navigation-menu/analytics_icon.svg`}
 				project={project}
 				subscriptionGroupActivationStatus={
 					subscriptionGroupActivationStatus

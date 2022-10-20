@@ -16,8 +16,18 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ORDER_DETAILS_DATE</td>
+	<td>//dt[contains(.,'Order Date')]/following-sibling::dd | //div[contains(@class,'commerce-panel')]//div[4]//dd</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ORDER_DETAILS_EDIT_BUTTON</td>
 	<td>//h4[contains(text(),'${key_titleName}')]/a[contains(text(),'Edit')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ORDER_DETAILS_ERC</td>
+	<td>//dl[@class='commerce-list']/dt[contains(.,'ERC')]/following-sibling::dd[contains(.,'${key_ERC}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -36,13 +46,18 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ORDER_DETAILS_REQUESTED_DELIVERY_DATE</td>
+	<td>//h5[contains(.,'Requested Delivery Date')]/../../div</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ORDER_DETAILS_TOTAL_PRICE</td>
 	<td>//div[@class='dnd-td' and contains(.,'${key_productTotalPrice}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ORDER_DETAILS_PRODUCT_QUANTITY</td>
-	<td>//div[@class='dnd-td'][9][contains(.,'${key_productQuantity}')]</td>
+	<td>//div[@class='dnd-td'][contains(text(),'${key_productQuantity}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -58,6 +73,16 @@
 <tr>
 	<td>ORDER_DETAILS_SHIPPING_ADDRESS</td>
 	<td>//h5[contains(.,'Shipping Address')]/../../div[contains(.,'${key_addressInfo}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ORDER_DETAILS_PAYMENT_TERMS</td>
+	<td>//h5[contains(.,'Payment Terms')]/../../div[contains(.,'${key_paymentTerm}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ORDER_DETAILS_DELIVERY_TERMS</td>
+	<td>//h5[contains(.,'Delivery Terms')]/../../div[contains(.,'${key_deliveryTerm}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -81,13 +106,78 @@
 	 <td></td>
 </tr>
 <tr>
+	<td>ORDER_AND_SHIPMENT_ID_VALUE</td>
+	<td>//span[@title="Identification Number"]//..//strong[contains(@class,'header-info-value') and normalize-space(text()='${key_id}')]</td>
+	 <td></td>
+</tr>
+<tr>
+	<td>ORDER_AND_SHIPMENT_ERC_VALUE</td>
+	<td>//span[@title="External Reference Code"]//..//strong[contains(@class,'header-info-value') and normalize-space(text()='${key_erc}')]</td>
+	 <td></td>
+</tr>
+<tr>
+	<td>SHIPMENT_ITEM_ERC_COLUMN</td>
+	<td>//div[contains(@class,'dnd-tbody')]//div[contains(text(),'${key_ercColumnValue}')]/..//div[3]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SHIPMENT_ITEMS_TABLE_ERC</td>
+	<td>//div[contains(@class,'dnd-tbody')]//a[text()= '${key_shipmentItemSku}']/../../../div[3]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>PENDING_ORDERS_ORDER_ID</td>
-	<td>//dt[contains(text(),'Order Id')]/..//dd</td>
+	<td>//dt[contains(text(),'Order ID')]/..//dd</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PENDING_ORDERS_ORDER_TYPE</td>
-	<td>//dt[contains(text(),'Order Type')]/..//dd[contains(text(),'${key_orderType}')]</td>
+	<td>//dt[contains(text(),'Order Type')]/..//dd[normalize-space(text())='${key_orderType}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PENDING_ORDERS_LIST_ORDER_TYPE</td>
+	<td>//div[@class='dnd-tr'][contains(.,'${key_entry}')]/div[@class='dnd-td'][3][contains(.,'${key_orderType}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PENDING_ORDERS_ORDER_STATUS</td>
+	<td>//dt[contains(text(),'Order Status')]/..//dd[contains(text(),'${key_orderStatus}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PENDING_ORDERS_BILLING_ADDRESS_DROPDOWN</td>
+	<td>//select[@title= 'Billing Address ID']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PENDING_ORDERS_SHIPPING_ADDRESS_DROPDOWN</td>
+	<td>//select[@title= 'Shipping Address ID']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PLACED_ORDERS_DETAILS_BILLING_ADDRESS</td>
+	<td>//div[@class='commerce-panel__title'][text()='Billing Address']/following-sibling::div/p[contains(.,'${key_addressInfo}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PLACED_ORDERS_DETAILS_SHIPPING_ADDRESS</td>
+	<td>//div[@class='commerce-panel__title'][text()='Shipping Address']/following-sibling::div/p[contains(.,'${key_addressInfo}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PLACED_ORDERS_DETAILS_STATUS</td>
+	<td>//dl[contains(.,'Order Status')]/dd[contains(text(),'${key_status}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PLACED_ORDERS_LIST_DATE</td>
+	<td>//div[contains(@class,'table-list-title')]/a[contains(.,'${key_orderId}')]/following::div[4]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PLACED_ORDERS_LIST_ORDER_TYPE</td>
+	<td>//div[@class='dnd-tr'][contains(.,'${key_entry}')]/div[@class='dnd-td'][2][contains(.,'${key_orderType}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -111,13 +201,48 @@
 	<td></td>
 </tr>
 <tr>
+	<td>CARRIER_DETAILS_URL_TEXTAREA</td>
+	<td>//textarea[contains(@name,'URL')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>EDIT_SHIPMENT_DETAILS</td>
 	<td>//h5[contains(.,'${key_text}')]/..//a[text()='Edit']</td>
 	<td></td>
 </tr>
 <tr>
+	<td>SHIPMENT_CARRIER_DETAILS</td>
+	<td>//h5//..//following-sibling::div[@class="description"]/div/span[(normalize-space(text())='${key_detail}')]//../b</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ORDER_WAREHOUSE_BY_ACTIVE_STATUS</td>
 	<td>//a[contains(text(), '${key_warehouseName}')]/ancestor::tr//td//span[contains(@class,'commerce-admin-icon-check')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SELECT_ORDER_FROM_LIST</td>
+	<td>//a[contains(@href,'${currentOrderId}') and contains(.,'View')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PRINT_ORDER_TEMPLATE</td>
+	<td>//span[@class='lfr-btn-label' and contains(.,'Select File')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PRINT_ORDER_TEMPLATE_SELECT_FILE</td>
+	<td>//label[@class='btn btn-secondary' and contains(.,'Select File')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PRINT_ORDER_TEMPLATE_FILE_NAME</td>
+	<td>//span[@id='_com_liferay_commerce_channel_web_internal_portlet_CommerceChannelsPortlet_fileEntryNameInput' and contains(.,'${value1}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PLACED_ORDERS_ID</td>
+	<td>//div[@class='table-list-title']</td>
 	<td></td>
 </tr>
 </tbody>

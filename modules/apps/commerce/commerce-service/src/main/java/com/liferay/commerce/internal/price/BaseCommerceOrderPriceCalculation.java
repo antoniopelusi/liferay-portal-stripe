@@ -37,19 +37,13 @@ import java.math.RoundingMode;
 
 import java.util.List;
 
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * @author Riccardo Alberti
  */
 public abstract class BaseCommerceOrderPriceCalculation
 	implements CommerceOrderPriceCalculation {
-
-	public BaseCommerceOrderPriceCalculation(
-		CommerceChannelLocalService commerceChannelLocalService,
-		CommerceMoneyFactory commerceMoneyFactory) {
-
-		this.commerceChannelLocalService = commerceChannelLocalService;
-		this.commerceMoneyFactory = commerceMoneyFactory;
-	}
 
 	@Override
 	public CommerceOrderItemPrice getCommerceOrderItemPrice(
@@ -122,6 +116,10 @@ public abstract class BaseCommerceOrderPriceCalculation
 					getSubtotalDiscountPercentageLevel4WithTaxAmount());
 
 		BigDecimal total = commerceOrder.getTotal();
+
+		if (CommerceBigDecimalUtil.gte(total, commerceOrder.getTaxAmount())) {
+			total = total.subtract(commerceOrder.getTaxAmount());
+		}
 
 		BigDecimal totalDiscountAmount = BigDecimal.ZERO;
 
@@ -317,8 +315,11 @@ public abstract class BaseCommerceOrderPriceCalculation
 		}
 	}
 
-	protected final CommerceChannelLocalService commerceChannelLocalService;
-	protected final CommerceMoneyFactory commerceMoneyFactory;
+	@Reference
+	protected CommerceChannelLocalService commerceChannelLocalService;
+
+	@Reference
+	protected CommerceMoneyFactory commerceMoneyFactory;
 
 	private CommerceDiscountValue _createCommerceDiscountValue(
 		BigDecimal amount, CommerceCurrency commerceCurrency,

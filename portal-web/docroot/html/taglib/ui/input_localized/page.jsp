@@ -211,7 +211,7 @@
 								linkCssClass="<%= linkCssClass %>"
 								markupView="lexicon"
 								message="<%= linkContent %>"
-								url="javascript:;"
+								url="javascript:void(0);"
 							>
 							</liferay-ui:icon>
 
@@ -225,7 +225,7 @@
 								<button class="dropdown-item" id="manage-translations">
 									<span class="inline-item inline-item-before">
 										<svg class="lexicon-icon lexicon-icon-automatic-translate" role="presentation">
-											<use xlink:href="<%= themeDisplay.getPathThemeImages() %>/clay/icons.svg#automatic-translate" />
+											<use xlink:href="<%= FrontendIconsUtil.getSpritemap(themeDisplay) %>#automatic-translate" />
 										</svg>
 									</span>
 									<span><liferay-ui:message key="manage-translations" /></span>

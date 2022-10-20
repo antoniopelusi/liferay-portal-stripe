@@ -2038,6 +2038,8 @@ definition {
 	@description = "LPS-146550 Bug: Apostrophe in segment property value breaks filter"
 	@priority = "4"
 	test AddSegmentWithApostrophe {
+		property portal.acceptance = "true";
+
 		task ("Create an User with an apostrophe") {
 			JSONUser.addUser(
 				userEmailAddress = "shaquille@liferay.com",
@@ -2078,6 +2080,187 @@ definition {
 				value1 = "1 Member");
 
 			Segmentation.viewMembers(memberName = "Shaquille O'Neal");
+		}
+	}
+
+	@description = "LPS-130917 Given Instance Settings > Segments
+	When the user clicks on Analytics Cloud Segments tab
+	Then help text of Anonymous User Segments Cache Expiration Time will be: Define the time (in seconds) before clearing the Anonymous Segment cache."
+	@priority = "3"
+	test AnonymousUserSegmentsCacheExpirationCheckText {
+		task ("Go to Instance Settings > Segments") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Configuration",
+				panel = "Control Panel",
+				portlet = "Instance Settings");
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "Segments",
+				configurationName = "Analytics Cloud Segments",
+				configurationScope = "Virtual Instance Scope");
+		}
+
+		task ("Assert the text is present") {
+			AssertTextEquals(
+				locator1 = "FormFields#HELP_TEXT",
+				value1 = "Define the time (in seconds) before clearing the Anonymous Segment cache.");
+		}
+	}
+
+	@description = "Test Automation for LPS-92366: Segment names with script tags cause them to no longer be accessible"
+	@priority = "3"
+	test CanCreateSegmentNameWithScriptTags {
+		task ("Add segment with script tag name") {
+			Segmentation.openSegmentsAdmin(siteURLKey = "guest");
+
+			LexiconEntry.gotoAdd();
+
+			Segmentation.addProperties(propertyOption = "First Name");
+
+			Segmentation.fillTitle(titleField = "</script>");
+
+			Segmentation.changeCriterionInput(criterionInputOption = "Contains");
+
+			Segmentation.fillProperty(propertyField = "</script>");
+
+			Button.clickSave();
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("Assert the name and property remain with script tag after saving") {
+			Segmentation.editSegment(entry = "</script>");
+
+			Segmentation.viewSegment(
+				criterionInputOption = "contains",
+				propertyField = "</script>");
+		}
+	}
+
+	@description = "Test Automation for LPS-106196: Conjunction selector works as a switch"
+	@priority = "3"
+	test CanEditConjunctionInConditionsSegments {
+		task ("Add segment with condition and change the default conjunction") {
+			LexiconEntry.gotoAdd();
+
+			Segmentation.addProperties(propertyOption = "Email Address");
+
+			Segmentation.fillTitle(titleField = "CanEditConjunctionInConditionsSegments Test");
+
+			Segmentation.changeCriterionInput(criterionInputOption = "Contains");
+
+			Segmentation.fillProperty(propertyField = "@liferay.com");
+
+			Segmentation.addConditionWithConjunction();
+
+			AssertTextEquals(
+				locator1 = "Segmentation#CRITERION_CONJUNCTION",
+				value1 = "And");
+
+			Segmentation.changeCriterionConjunction(criterionConjunctionItem = "Or");
+
+			Segmentation.fillProperty(
+				indexNumber = "2",
+				propertyField = "@liferay2.com");
+
+			AssertTextEquals(
+				locator1 = "Segmentation#CRITERION_CONJUNCTION",
+				value1 = "Or");
+
+			Button.clickSave();
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("Check if the change remains after saving the segment") {
+			Segmentation.editSegment(entry = "CanEditConjunctionInConditionsSegments Test");
+
+			AssertTextEquals(
+				locator1 = "Segmentation#CRITERION_CONJUNCTION",
+				value1 = "Or");
+		}
+
+		task ("Edit the condition conjunction again and save the segment") {
+			Segmentation.changeCriterionConjunction(criterionConjunctionItem = "And");
+
+			AssertTextEquals(
+				locator1 = "Segmentation#CRITERION_CONJUNCTION",
+				value1 = "And");
+
+			Button.clickSave();
+		}
+
+		task ("Check if the change remains after saving the segment") {
+			Segmentation.editSegment(entry = "CanEditConjunctionInConditionsSegments Test");
+
+			AssertTextEquals(
+				locator1 = "Segmentation#CRITERION_CONJUNCTION",
+				value1 = "And");
+		}
+	}
+
+	@description = "LPS-153512 - Test Automation for LPS-94855: I can edit only the first created segment"
+	@priority = "4"
+	test CanEditSecondSegmentCreated {
+		task ("Create first segmentation") {
+			JSONSegmentsentry.addSegment(
+				fieldName = "First Name",
+				groupName = "Guest",
+				operator = "equals",
+				segmentName = "First Segment",
+				text = "Test");
+		}
+
+		task ("Edit first segmentation") {
+			Segmentation.openSegmentsAdmin(siteURLKey = "guest");
+
+			Segmentation.editSegment(entry = "First Segment");
+
+			Segmentation.fillProperty(propertyField = "User");
+
+			Button.clickSave();
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("Checks if the first segmentation is edited correctly") {
+			Segmentation.editSegment(entry = "First Segment");
+
+			Segmentation.viewSegment(propertyField = "User");
+		}
+
+		task ("Create second segmentation") {
+			Segmentation.openSegmentsAdmin(siteURLKey = "guest");
+
+			LexiconEntry.gotoAdd();
+
+			Segmentation.addProperties(propertyOption = "Last Name");
+
+			Segmentation.fillProperty(propertyField = "Test");
+
+			Segmentation.fillTitle(titleField = "Second Segment");
+
+			Segmentation.viewMembers(memberName = "Test Test");
+
+			Button.clickSave();
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("Edit second segmentation") {
+			Segmentation.editSegment(entry = "Second Segment");
+
+			Segmentation.fillProperty(propertyField = "User");
+
+			Button.clickSave();
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("Checks if the second segmentation is edited correctly") {
+			Segmentation.editSegment(entry = "Second Segment");
+
+			Segmentation.viewSegment(propertyField = "User");
 		}
 	}
 
@@ -2136,6 +2319,46 @@ definition {
 		}
 	}
 
+	@description = "This is a test for LPS-134561."
+	@priority = "4"
+	@uitest
+	test CheckSegmentationWithApostropheValueFilter {
+		property portal.acceptance = "true";
+
+		task ("Add user with apostrophe in first and last name") {
+			JSONUser.addUser(
+				userEmailAddress = "userea@liferay.com",
+				userFirstName = "user'fn",
+				userLastName = "user'ln",
+				userScreenName = "usersn");
+
+			JSONUser.setFirstPassword(
+				agreeToTermsAndAnswerReminderQuery = "true",
+				requireReset = "false",
+				userEmailAddress = "userea@liferay.com");
+		}
+
+		task ("Add segment and check the user Belongs To the segment") {
+			Segmentation.openSegmentsAdmin(siteURLKey = "guest");
+
+			LexiconEntry.gotoAdd();
+
+			Segmentation.addProperties(propertyOption = "Last Name");
+
+			Segmentation.changeCriterionInput(criterionInputOption = "Contains");
+
+			Segmentation.fillProperty(propertyField = "user'ln");
+
+			Segmentation.fillTitle(titleField = "CheckSegmentationWithApostropheValueFilter Test");
+
+			Segmentation.viewMembers(memberName = "user'fn user'ln");
+
+			Button.clickSave();
+
+			Alert.viewSuccessMessage();
+		}
+	}
+
 	@description = "LPS-135495 Validate if, The title shown in the segments list shows the value for the current user language or the value for the criteria default language."
 	@priority = "3"
 	test CheckTitleLanguageInSegmentsList {
@@ -2179,9 +2402,211 @@ definition {
 		}
 	}
 
+	@description = "LPS-152077 Bug: Error updating segment which contains a non-existing segment"
+	@priority = "4"
+	test DeleteUnavailableSegmentCriteria {
+		property portal.acceptance = "true";
+
+		task ("Create a first segment with any criteria") {
+			JSONSegmentsentry.addSegment(
+				fieldName = "Email Address",
+				groupName = "Guest",
+				operator = "contains",
+				segmentName = "First Segment",
+				text = "test");
+		}
+
+		task ("Create a second segment usign two criterias, one being the first segment") {
+			Segmentation.openSegmentsAdmin(siteURLKey = "guest");
+
+			LexiconEntry.gotoAdd();
+
+			Segmentation.fillTitle(titleField = "Second Segment");
+
+			Segmentation.gotoSidebar(fieldType = "Segments");
+
+			Segmentation.addProperties(propertyOption = "Segment");
+
+			Segmentation.fillProperty(selectLink = "First Segment");
+
+			Segmentation.gotoSidebar(fieldType = "User");
+
+			Segmentation.addProperties(propertyOption = "First Name");
+
+			Segmentation.fillProperty(propertyField = "liferay");
+
+			Button.clickSave();
+		}
+
+		task ("Delete the first criteria") {
+			Segmentation.deleteSegment(entry = "First Segment");
+		}
+
+		task ("Remove from second segment criteria related to the first segment") {
+			Segmentation.editSegment(entry = "Second Segment");
+
+			Button.clickDelete();
+
+			Button.clickSave();
+		}
+
+		task ("Check that the segment was actually updated") {
+			Segmentation.editSegment(entry = "Second Segment");
+
+			AssertElementNotPresent(
+				locator1 = "Segmentation#CONDITIONS_PROPERTY_NAME",
+				propertyName = "Segment");
+		}
+	}
+
+	@description = "LPS-130919 Given the Session Property Vocabularies in Instance Settings
+	When the user is adding a vocabulary to a session property
+	Then the breadcrumb to go to Segments, or Instance Settings is available"
+	@priority = "3"
+	test InstanceSettingsSessionPropertyVocabulariesBreadcrumb {
+		property test.name.skip.portal.instance = "SegmentationCreateSegment#InstanceSettingsSessionPropertyVocabulariesBreadcrumb";
+
+		task ("Go to Instance Settings > Segments > Session Property Vocabulary") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Configuration",
+				panel = "Control Panel",
+				portlet = "Instance Settings");
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "Segments",
+				configurationName = "Session Property Vocabularies",
+				configurationScope = "Virtual Instance Scope");
+		}
+
+		task ("Click on add") {
+			Button.click(button = "Add");
+		}
+
+		task ("Click on the breadcrumb at Segments") {
+			Click(
+				key_breadcrumbName = "Segments",
+				locator1 = "Breadcrumb#BREADCRUMB_ENTRY_LINK");
+		}
+
+		task ("Check the user is lead to Instance Settings > Segments > Analytics Cloud Segments ") {
+			AssertElementPresent(
+				key_title = "Analytics Cloud Segments",
+				locator1 = "Header#H2_TITLE");
+		}
+	}
+
+	@description = "LPS-130919 Given the adding a vocabulary to a session property view
+	When the user clicks on Cancel button
+	Then the user is lead to the main tab Session Property Vocabularies"
+	@priority = "3"
+	test InstanceSettingsSessionPropertyVocabulariesCancelButton {
+		property test.name.skip.portal.instance = "SegmentationCreateSegment#InstanceSettingsSessionPropertyVocabulariesCancelButton";
+
+		task ("Go to Instance Settings > Segments > Session Property Vocabulary") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Configuration",
+				panel = "Control Panel",
+				portlet = "Instance Settings");
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "Segments",
+				configurationName = "Session Property Vocabularies",
+				configurationScope = "Virtual Instance Scope");
+		}
+
+		task ("Click on add") {
+			Button.click(button = "Add");
+		}
+
+		task ("Click on Cancel") {
+			Button.click(button = "Cancel");
+		}
+
+		task ("Check the user is lead to the main tab Session Property Vocabularies") {
+			AssertTextPresent(
+				locator1 = "Message#EMPTY_INFO",
+				value1 = "No entries for Session Property Vocabularies have been added yet.");
+		}
+	}
+
+	@description = "LPS-130919 Given the Segment Editor
+	When the user adds a Session Property Vocabulary in the Instance Settings
+	Then the associated Categories must be available when selecting the session property"
+	@priority = "5"
+	test InstanceSettingsSessionPropertyVocabularyInSegmentsEditor {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "SegmentationCreateSegment#InstanceSettingsSessionPropertyVocabularyInSegmentsEditor";
+
+		task ("Set Session Property Vocabulary") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Configuration",
+				panel = "Control Panel",
+				portlet = "Instance Settings");
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "Segments",
+				configurationName = "Session Property Vocabularies",
+				configurationScope = "Virtual Instance Scope");
+
+			Button.click(button = "Add");
+
+			Segmentation.setVocabularySessionPropertyDropdown(
+				propertyName = "Browser",
+				vocabularyName = "Audience");
+		}
+
+		task ("Create categories for Audience Vocabulary") {
+			JSONCategory.addCategory(
+				groupName = "Global",
+				title = "Audience Category 1",
+				vocabularyName = "Audience");
+		}
+
+		task ("Create Segment with Vocabulary") {
+			Segmentation.openSegmentsAdmin(siteURLKey = "guest");
+
+			LexiconEntry.gotoAdd();
+
+			Segmentation.gotoSidebar(fieldType = "Session");
+
+			Segmentation.addProperties(propertyOption = "Browser");
+
+			Segmentation.fillTitle(titleField = "Segment Test");
+
+			Segmentation.fillProperty(optionsValue = "Audience Category 1");
+
+			Button.clickSave();
+		}
+	}
+
+	@description = "LPS-130917 Given Instance Settings > Segments
+	When the user clicks on Analytics Cloud Segments tab
+	Then help text of Interest Terms Cache Expiration Time will be: Define the time (in seconds) before clearing the Interest Terms cache."
+	@priority = "3"
+	test InterestTermsCacheCacheExpirationCheckText {
+		task ("Go to Instance Settings > Segments") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Configuration",
+				panel = "Control Panel",
+				portlet = "Instance Settings");
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "Segments",
+				configurationName = "Analytics Cloud Segments",
+				configurationScope = "Virtual Instance Scope");
+		}
+
+		task ("Assert the text is present") {
+			AssertTextEquals(
+				locator1 = "FormFields#HELP_TEXT",
+				value1 = "Define the time (in seconds) before clearing the Interest Terms cache.");
+		}
+	}
+
 	@description = "LPS-132249 If vocabulary or value is deleted, in the segment editor the condition will keep working if the user go out without saving changes"
 	@priority = "4"
 	test KeepInfomationOfDeleteVocabularyInSegment {
+		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "SegmentationCreateSegment#KeepInfomationOfDeleteVocabularyInSegment";
 
 		task ("Set Session Property Vocabulary") {
@@ -2328,6 +2753,51 @@ definition {
 		}
 	}
 
+	@description = "LPS-153507 - Test Automation for LPS-95412: Members count is not updated when conjunctions are changed"
+	@priority = "4"
+	test SegmentationCheckMembersWithConditions {
+		task ("Add user with devoleper job title") {
+			JSONUser.addUser(
+				jobTitle = "Developer",
+				userEmailAddress = "userea@liferay.com",
+				userFirstName = "userfn",
+				userLastName = "userln",
+				userScreenName = "usersn");
+		}
+
+		task ("Add segment with conditions") {
+			Segmentation.openSegmentsAdmin(siteURLKey = "guest");
+
+			LexiconEntry.gotoAdd();
+
+			Segmentation.addProperties(propertyOption = "Job Title");
+
+			Segmentation.fillProperty(propertyField = "Developer");
+
+			Segmentation.addProperties(propertyOption = "First Name");
+
+			Segmentation.fillProperty(
+				indexNumber = "2",
+				propertyField = "Test");
+
+			Segmentation.fillTitle(titleField = "SegmentationCheckMembersWithConditions Test");
+		}
+
+		task ("Check the number of members") {
+			AssertTextEquals(
+				locator1 = "Segmentation#MEMBERS_MATCHED",
+				value1 = "0 Members");
+		}
+
+		task ("Change the conjunction and check the number of members") {
+			Segmentation.changeCriterionConjunction(criterionConjunctionItem = "Or");
+
+			AssertTextEquals(
+				locator1 = "Segmentation#MEMBERS_MATCHED",
+				value1 = "2 Members");
+		}
+	}
+
 	@description = "This is a use case for LPS-131815"
 	@priority = "5"
 	@uitest
@@ -2368,6 +2838,8 @@ definition {
 	@description = "LPS-136086 Validate if, in the segments page, the default segment doesn't appear, with the page without records."
 	@priority = "4"
 	test ValidateDefaultSegmentNotDisplayed {
+		property portal.acceptance = "true";
+
 		task ("Assert 'default' segment is not present") {
 			Segmentation.viewEntryNotPresent(segmentName = "Anyone");
 
@@ -2378,6 +2850,8 @@ definition {
 	@description = "LPS-135880 Validate in Segmentation, if on view mode, the value on the criteria field input, is correct for property: Organization."
 	@priority = "4"
 	test ValidateOrganizationFieldInputInViewMode {
+		property portal.acceptance = "true";
+
 		task ("Add and get organization ID") {
 			JSONOrganization.addOrganization(
 				organizationName = "Organization Name",
@@ -2414,6 +2888,8 @@ definition {
 	@description = "LPS-135880 Validate in Segmentation, if on view mode, the value on the criteria field input, is correct for property: Parent Organization."
 	@priority = "4"
 	test ValidateParentOrganizationFieldInputInViewMode {
+		property portal.acceptance = "true";
+
 		task ("Add organization and parent, and get parent's organization ID") {
 			JSONOrganization.addOrganization(organizationName = "Parent Organization Name");
 
@@ -2581,6 +3057,8 @@ definition {
 	@description = "LPS-135880 Validate in Segmentation, if on view mode, the value on the criteria field input, is correct for property: Role."
 	@priority = "4"
 	test ValidateRoleFieldInputInViewMode {
+		property portal.acceptance = "true";
+
 		task ("Get role id") {
 			var roleId = JSONPermissionSetter.setRoleId(roleTitle = "Administrator");
 		}
@@ -2608,6 +3086,8 @@ definition {
 	@description = "LPS-135880 Validate in Segmentation, if on view mode, the value on the criteria field input, is correct for property: Site."
 	@priority = "4"
 	test ValidateSiteFieldInputInViewMode {
+		property portal.acceptance = "true";
+
 		task ("Create a site") {
 			JSONGroup.addGroup(groupName = "Test Site Name");
 
@@ -2637,6 +3117,8 @@ definition {
 	@description = "LPS-135880 Validate in Segmentation, if on view mode, the value on the criteria field input, is correct for property: Team."
 	@priority = "4"
 	test ValidateTeamFieldInputInViewMode {
+		property portal.acceptance = "true";
+
 		task ("Add team") {
 			Site.openSiteTeamsAdmin(siteURLKey = "guest");
 
@@ -2673,6 +3155,8 @@ definition {
 	@description = "LPS-135880 Validate in Segmentation, if on view mode, the value on the criteria field input, is correct for property: User."
 	@priority = "4"
 	test ValidateUserFieldInputInViewMode {
+		property portal.acceptance = "true";
+
 		task ("Get user ID") {
 			var userId = JSONUserSetter.setUserId(userEmailAddress = "test@liferay.com");
 		}
@@ -2700,6 +3184,8 @@ definition {
 	@description = "LPS-135880 Validate in Segmentation, if on view mode, the value on the criteria field input, is correct for property: User Group."
 	@priority = "4"
 	test ValidateUserGroupFieldInputInViewMode {
+		property portal.acceptance = "true";
+
 		task ("Create and get user group ID") {
 			JSONUserGroup.addUserGroup(userGroupName = "Test Group Name");
 
@@ -2746,6 +3232,7 @@ definition {
 	@description = "LPS-132249 In System Settings>Segments, all vocabularies created will be listed in the Vocabulary dropdown"
 	@priority = "4"
 	test VocabulariesListedInSystemSettingsSegments {
+		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "SegmentationCreateSegment#VocabulariesListedInSystemSettingsSegments";
 
 		task ("Add two vocabularies to global site") {

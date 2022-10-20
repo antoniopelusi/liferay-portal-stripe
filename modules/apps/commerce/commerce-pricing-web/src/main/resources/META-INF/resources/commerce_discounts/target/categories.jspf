@@ -73,7 +73,7 @@
 							fieldName: ['name'],
 						},
 					],
-					spritemap: '<%= themeDisplay.getPathThemeImages() %>/clay/icons.svg',
+					spritemap: '<%= FrontendIconsUtil.getSpritemap(themeDisplay) %>',
 					titleLabel: '<%= LanguageUtil.get(request, "add-existing-category") %>',
 				});
 			</aui:script>
@@ -90,9 +90,6 @@
 					formName="fm"
 					id="<%= CommercePricingFDSNames.DISCOUNT_CATEGORIES %>"
 					itemsPerPage="<%= 10 %>"
-					namespace="<%= liferayPortletResponse.getNamespace() %>"
-					pageNumber="<%= 1 %>"
-					portletURL="<%= portletDiscountRuleURL %>"
 				/>
 			</commerce-ui:panel>
 		</div>

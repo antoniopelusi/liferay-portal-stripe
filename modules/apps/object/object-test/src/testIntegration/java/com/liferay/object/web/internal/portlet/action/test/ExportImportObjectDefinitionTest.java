@@ -18,8 +18,6 @@ import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.object.admin.rest.dto.v1_0.ObjectDefinition;
 import com.liferay.object.admin.rest.resource.v1_0.ObjectDefinitionResource;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.json.JSONFactoryUtil;
-import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutConstants;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
@@ -36,22 +34,23 @@ import com.liferay.portal.kernel.util.File;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.model.impl.LayoutImpl;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
+import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 
-import java.io.ByteArrayOutputStream;
-
 import java.util.List;
 
-import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import org.skyscreamer.jsonassert.JSONAssert;
 
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -70,6 +69,13 @@ public class ExportImportObjectDefinitionTest {
 
 	@Test
 	public void testExportImportObjectDefinition() throws Exception {
+		PropsUtil.addProperties(
+			UnicodePropertiesBuilder.setProperty(
+				"feature.flag.LPS-152677", "true"
+			).setProperty(
+				"feature.flag.LPS-158821", "true"
+			).build());
+
 		ObjectDefinition objectDefinition = _importObjectDefinition();
 
 		MockLiferayResourceResponse mockLiferayResourceResponse =
@@ -79,23 +85,25 @@ public class ExportImportObjectDefinitionTest {
 			_createMockLiferayResourceRequest(objectDefinition.getId()),
 			mockLiferayResourceResponse);
 
-		ByteArrayOutputStream byteArrayOutputStream =
-			(ByteArrayOutputStream)
-				mockLiferayResourceResponse.getPortletOutputStream();
-
 		Class<?> clazz = getClass();
 
-		String json = StringUtil.read(
-			clazz.getResourceAsStream("dependencies/object_definition.json"));
-
-		Assert.assertTrue(
-			JSONUtil.equals(
-				JSONFactoryUtil.createJSONObject(json),
-				JSONFactoryUtil.createJSONObject(
-					byteArrayOutputStream.toString())));
+		JSONAssert.assertEquals(
+			StringUtil.read(
+				clazz.getResourceAsStream(
+					"dependencies/object_definition.json")),
+			String.valueOf(
+				mockLiferayResourceResponse.getPortletOutputStream()),
+			true);
 
 		_objectDefinitionResource.deleteObjectDefinition(
 			objectDefinition.getId());
+
+		PropsUtil.addProperties(
+			UnicodePropertiesBuilder.setProperty(
+				"feature.flag.LPS-152677", "false"
+			).setProperty(
+				"feature.flag.LPS-158821", "false"
+			).build());
 	}
 
 	private MockLiferayPortletActionRequest

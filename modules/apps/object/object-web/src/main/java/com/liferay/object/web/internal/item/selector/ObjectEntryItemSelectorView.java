@@ -34,6 +34,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -273,11 +274,14 @@ public class ObjectEntryItemSelectorView
 					"no-entries-were-found");
 
 			try {
+				Group scopeGroup = _themeDisplay.getScopeGroup();
+
 				Page<com.liferay.object.rest.dto.v1_0.ObjectEntry>
 					objectEntriesPage = _objectEntryManager.getObjectEntries(
-						_themeDisplay.getCompanyId(), _objectDefinition, null,
-						null, _getDTOConverterContext(), _getFilterString(),
-						null, null, null);
+						_themeDisplay.getCompanyId(), _objectDefinition,
+						scopeGroup.getGroupKey(), null,
+						_getDTOConverterContext(), _getFilterString(), null,
+						null, null);
 
 				List<ObjectEntry> objectEntries = TransformUtil.transform(
 					objectEntriesPage.getItems(),
@@ -316,7 +320,7 @@ public class ObjectEntryItemSelectorView
 					objectDefinitionId);
 
 			return StringUtil.toLowerCase(objectDefinition.getShortName()) +
-				"Id eq 0";
+				"Id eq '0'";
 		}
 
 		private ObjectEntry _toObjectEntry(

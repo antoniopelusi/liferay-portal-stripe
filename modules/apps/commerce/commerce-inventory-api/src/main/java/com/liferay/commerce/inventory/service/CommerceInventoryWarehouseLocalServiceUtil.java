@@ -62,28 +62,6 @@ public class CommerceInventoryWarehouseLocalServiceUtil {
 			commerceInventoryWarehouse);
 	}
 
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
-	 #addCommerceInventoryWarehouse(String,
-	 String, String, String, boolean, String, String, String,
-	 String, String, String, String, double, double,
-	 ServiceContext)}
-	 */
-	@Deprecated
-	public static CommerceInventoryWarehouse addCommerceInventoryWarehouse(
-			String name, String description, boolean active, String street1,
-			String street2, String street3, String city, String zip,
-			String commerceRegionCode, String commerceCountryCode,
-			double latitude, double longitude, String externalReferenceCode,
-			com.liferay.portal.kernel.service.ServiceContext serviceContext)
-		throws PortalException {
-
-		return getService().addCommerceInventoryWarehouse(
-			name, description, active, street1, street2, street3, city, zip,
-			commerceRegionCode, commerceCountryCode, latitude, longitude,
-			externalReferenceCode, serviceContext);
-	}
-
 	public static CommerceInventoryWarehouse addCommerceInventoryWarehouse(
 			String externalReferenceCode, String name, String description,
 			boolean active, String street1, String street2, String street3,
@@ -297,6 +275,21 @@ public class CommerceInventoryWarehouseLocalServiceUtil {
 			externalReferenceCode, companyId);
 	}
 
+	/**
+	 * Returns the commerce inventory warehouse with the matching UUID and company.
+	 *
+	 * @param uuid the commerce inventory warehouse's UUID
+	 * @param companyId the primary key of the company
+	 * @return the matching commerce inventory warehouse, or <code>null</code> if a matching commerce inventory warehouse could not be found
+	 */
+	public static CommerceInventoryWarehouse
+		fetchCommerceInventoryWarehouseByUuidAndCompanyId(
+			String uuid, long companyId) {
+
+		return getService().fetchCommerceInventoryWarehouseByUuidAndCompanyId(
+			uuid, companyId);
+	}
+
 	public static CommerceInventoryWarehouse
 			geolocateCommerceInventoryWarehouse(
 				long commerceInventoryWarehouseId, double latitude,
@@ -344,6 +337,23 @@ public class CommerceInventoryWarehouseLocalServiceUtil {
 		return getService().
 			getCommerceInventoryWarehouseByExternalReferenceCode(
 				companyId, externalReferenceCode);
+	}
+
+	/**
+	 * Returns the commerce inventory warehouse with the matching UUID and company.
+	 *
+	 * @param uuid the commerce inventory warehouse's UUID
+	 * @param companyId the primary key of the company
+	 * @return the matching commerce inventory warehouse
+	 * @throws PortalException if a matching commerce inventory warehouse could not be found
+	 */
+	public static CommerceInventoryWarehouse
+			getCommerceInventoryWarehouseByUuidAndCompanyId(
+				String uuid, long companyId)
+		throws PortalException {
+
+		return getService().getCommerceInventoryWarehouseByUuidAndCompanyId(
+			uuid, companyId);
 	}
 
 	/**
@@ -437,6 +447,14 @@ public class CommerceInventoryWarehouseLocalServiceUtil {
 
 		return getService().getCommerceInventoryWarehousesCount(
 			companyId, active, commerceCountryCode);
+	}
+
+	public static com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery
+		getExportActionableDynamicQuery(
+			com.liferay.exportimport.kernel.lar.PortletDataContext
+				portletDataContext) {
+
+		return getService().getExportActionableDynamicQuery(portletDataContext);
 	}
 
 	public static

@@ -14,7 +14,7 @@
 
 package com.liferay.portal.search.web.internal.custom.filter.portlet.display.template;
 
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.portletdisplaytemplate.BasePortletDisplayTemplateHandler;
 import com.liferay.portal.kernel.template.TemplateHandler;
 import com.liferay.portal.kernel.template.TemplateVariableGroup;
@@ -53,10 +53,11 @@ public class CustomFilterPortletDisplayTemplateHandler
 		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
 			"content.Language", locale, getClass());
 
-		String portletTitle = _portal.getPortletTitle(
-			CustomFilterPortletKeys.CUSTOM_FILTER, resourceBundle);
-
-		return LanguageUtil.format(locale, "x-template", portletTitle, false);
+		return _language.format(
+			locale, "x-template",
+			_portal.getPortletTitle(
+				CustomFilterPortletKeys.CUSTOM_FILTER, resourceBundle),
+			false);
 	}
 
 	@Override
@@ -105,6 +106,9 @@ public class CustomFilterPortletDisplayTemplateHandler
 		return "com/liferay/portal/search/web/internal/custom/filter/portlet" +
 			"/display/template/dependencies/portlet-display-templates.xml";
 	}
+
+	@Reference
+	private Language _language;
 
 	@Reference
 	private Portal _portal;

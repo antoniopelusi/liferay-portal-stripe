@@ -16,6 +16,7 @@ package com.liferay.layout.search.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.fragment.contributor.FragmentCollectionContributorTracker;
+import com.liferay.fragment.entry.processor.constants.FragmentEntryProcessorConstants;
 import com.liferay.fragment.model.FragmentEntry;
 import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.service.FragmentEntryLinkService;
@@ -115,10 +116,10 @@ public class LayoutPublishedSearchTest {
 	private HttpServletRequest _getHttpServletRequest(Layout layout)
 		throws Exception {
 
-		MockHttpServletRequest httpServletRequest =
+		MockHttpServletRequest mockHttpServletRequest =
 			new MockHttpServletRequest();
 
-		httpServletRequest.setAttribute(
+		mockHttpServletRequest.setAttribute(
 			JavaConstants.JAVAX_PORTLET_RESPONSE,
 			new MockLiferayPortletRenderResponse());
 
@@ -135,14 +136,15 @@ public class LayoutPublishedSearchTest {
 			layoutSet.getTheme(), layoutSet.getColorScheme());
 
 		themeDisplay.setRealUser(TestPropsValues.getUser());
-		themeDisplay.setRequest(httpServletRequest);
+		themeDisplay.setRequest(mockHttpServletRequest);
 		themeDisplay.setResponse(new MockHttpServletResponse());
 		themeDisplay.setScopeGroupId(_group.getGroupId());
 		themeDisplay.setUser(TestPropsValues.getUser());
 
-		httpServletRequest.setAttribute(WebKeys.THEME_DISPLAY, themeDisplay);
+		mockHttpServletRequest.setAttribute(
+			WebKeys.THEME_DISPLAY, themeDisplay);
 
-		return httpServletRequest;
+		return mockHttpServletRequest;
 	}
 
 	private void _publishLayout(
@@ -184,8 +186,8 @@ public class LayoutPublishedSearchTest {
 		Layout draftLayout = layout.fetchDraftLayout();
 
 		JSONObject inlineValueJSONObject = JSONUtil.put(
-			"com.liferay.fragment.entry.processor.editable." +
-				"EditableFragmentEntryProcessor",
+			FragmentEntryProcessorConstants.
+				KEY_EDITABLE_FRAGMENT_ENTRY_PROCESSOR,
 			JSONUtil.put(
 				"element-text",
 				JSONUtil.put(
@@ -207,6 +209,7 @@ public class LayoutPublishedSearchTest {
 				contributedFragmentEntry.getConfiguration(),
 				inlineValueJSONObject.toString(), StringPool.BLANK, 0,
 				contributedFragmentEntry.getFragmentEntryKey(),
+				contributedFragmentEntry.getType(),
 				ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
 		LayoutPageTemplateStructure layoutPageTemplateStructure =

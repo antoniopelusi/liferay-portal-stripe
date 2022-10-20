@@ -26,7 +26,7 @@ import com.liferay.portal.kernel.verify.model.VerifiableUUIDModel;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.verify.VerifyProcess;
 import com.liferay.portal.verify.VerifyUUID;
-import com.liferay.portal.verify.model.AssetTagVerifiableModel;
+import com.liferay.portal.verify.model.AssetTagVerifiableUUIDModel;
 import com.liferay.portal.verify.test.util.BaseVerifyProcessTestCase;
 
 import java.util.Collection;
@@ -52,7 +52,7 @@ public class VerifyUUIDTest extends BaseVerifyProcessTestCase {
 
 	@Test
 	public void testVerifyModel() throws Exception {
-		VerifyUUID.verify(new AssetTagVerifiableModel());
+		VerifyUUID.verify(new AssetTagVerifiableUUIDModel());
 	}
 
 	@Test

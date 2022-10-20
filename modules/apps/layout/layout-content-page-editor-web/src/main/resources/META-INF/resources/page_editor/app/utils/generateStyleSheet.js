@@ -12,6 +12,7 @@
  * details.
  */
 
+import {FRAGMENT_CLASS_PLACEHOLDER} from '../config/constants/fragmentClassPlaceholder';
 import {config} from '../config/index';
 import {getFrontendTokenValue} from './getFrontendTokenValue';
 import getLayoutDataItemTopperUniqueClassName from './getLayoutDataItemTopperUniqueClassName';
@@ -44,7 +45,6 @@ const SPACING_OPTIONS = [
 
 const TOPPER_STYLES = [
 	'display',
-	'height',
 	'marginBottom',
 	'marginLeft',
 	'marginRight',
@@ -55,21 +55,24 @@ const TOPPER_STYLES = [
 	'shadow',
 ];
 
-export default function generateStyleSheet(styles, {hasTopper = true} = {}) {
+export default function generateStyleSheet(styles, {itemsWithTopper} = {}) {
 	let css = '';
 
-	Object.entries(styles).forEach(([itemId, itemStyles]) => {
+	Object.entries(styles).forEach(([itemId, {customCSS, styles}]) => {
 		let itemCSS = '';
 		let topperCSS = '';
 
-		Object.entries(itemStyles).forEach(([styleName, styleValue]) => {
+		Object.entries(styles).forEach(([styleName, styleValue]) => {
 			if (!config.commonStylesFields[styleName]) {
 				return;
 			}
 
 			const {cssTemplate} = config.commonStylesFields[styleName];
 
-			if (hasTopper && TOPPER_STYLES.includes(styleName)) {
+			if (
+				itemsWithTopper.has(itemId) &&
+				TOPPER_STYLES.includes(styleName)
+			) {
 				topperCSS += `${replaceValue(
 					cssTemplate,
 					getValue(itemId, styleName, styleValue)
@@ -93,6 +96,13 @@ export default function generateStyleSheet(styles, {hasTopper = true} = {}) {
 			css += `.${getLayoutDataItemTopperUniqueClassName(
 				itemId
 			)} {\n${topperCSS}}\n`;
+		}
+
+		if (customCSS) {
+			css += customCSS.replaceAll(
+				FRAGMENT_CLASS_PLACEHOLDER,
+				getLayoutDataItemUniqueClassName(itemId)
+			);
 		}
 	});
 

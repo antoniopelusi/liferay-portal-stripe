@@ -44,8 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import javax.portlet.PortletURL;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.PageContext;
@@ -71,7 +69,8 @@ public class ClassicDisplayTag extends BaseDisplayTag {
 		try {
 			_appURL =
 				PortalUtil.getPortalURL(httpServletRequest) +
-					"/o/frontend-data-set-taglib/app";
+					PortalUtil.getPathContext() +
+						"/o/frontend-data-set-taglib/app";
 
 			StringBundler sb = new StringBundler(
 				11 + (_contextParams.size() * 4));
@@ -157,10 +156,6 @@ public class ClassicDisplayTag extends BaseDisplayTag {
 		return _itemsPerPage;
 	}
 
-	public String getNamespace() {
-		return _namespace;
-	}
-
 	public String getNestedItemsKey() {
 		return _nestedItemsKey;
 	}
@@ -171,14 +166,6 @@ public class ClassicDisplayTag extends BaseDisplayTag {
 
 	public int getPageNumber() {
 		return _pageNumber;
-	}
-
-	public PortletURL getPortletURL() {
-		return _portletURL;
-	}
-
-	public List<String> getSelectedItems() {
-		return _selectedItems;
 	}
 
 	public String getSelectedItemsKey() {
@@ -247,10 +234,6 @@ public class ClassicDisplayTag extends BaseDisplayTag {
 		_itemsPerPage = itemsPerPage;
 	}
 
-	public void setNamespace(String namespace) {
-		_namespace = namespace;
-	}
-
 	public void setNestedItemsKey(String nestedItemsKey) {
 		_nestedItemsKey = nestedItemsKey;
 	}
@@ -270,14 +253,6 @@ public class ClassicDisplayTag extends BaseDisplayTag {
 
 	public void setPageNumber(int pageNumber) {
 		_pageNumber = pageNumber;
-	}
-
-	public void setPortletURL(PortletURL portletURL) {
-		_portletURL = portletURL;
-	}
-
-	public void setSelectedItems(List<String> selectedItems) {
-		_selectedItems = selectedItems;
 	}
 
 	public void setSelectedItemsKey(String selectedItemsKey) {
@@ -324,13 +299,10 @@ public class ClassicDisplayTag extends BaseDisplayTag {
 		_formId = null;
 		_formName = null;
 		_itemsPerPage = 0;
-		_namespace = null;
 		_nestedItemsKey = null;
 		_nestedItemsReferenceKey = null;
 		_pageNumber = 0;
 		_paginationSelectedEntry = 0;
-		_portletURL = null;
-		_selectedItems = null;
 		_selectedItemsKey = null;
 		_selectionType = null;
 		_showManagementBar = true;
@@ -368,8 +340,6 @@ public class ClassicDisplayTag extends BaseDisplayTag {
 			).put(
 				"id", getId()
 			).put(
-				"namespace", _namespace
-			).put(
 				"nestedItemsKey", _toNullOrObject(_nestedItemsKey)
 			).put(
 				"nestedItemsReferenceKey",
@@ -385,10 +355,6 @@ public class ClassicDisplayTag extends BaseDisplayTag {
 				).build()
 			).put(
 				"portletId", PortalUtil.getPortletId(getRequest())
-			).put(
-				"portletURL", _portletURL.toString()
-			).put(
-				"selectedItems", _selectedItems
 			).put(
 				"selectedItemsKey", _toNullOrObject(_selectedItemsKey)
 			).put(
@@ -483,13 +449,10 @@ public class ClassicDisplayTag extends BaseDisplayTag {
 	private String _formId;
 	private String _formName;
 	private int _itemsPerPage;
-	private String _namespace;
 	private String _nestedItemsKey;
 	private String _nestedItemsReferenceKey;
 	private int _pageNumber;
 	private int _paginationSelectedEntry;
-	private PortletURL _portletURL;
-	private List<String> _selectedItems;
 	private String _selectedItemsKey;
 	private String _selectionType;
 	private boolean _showManagementBar = true;

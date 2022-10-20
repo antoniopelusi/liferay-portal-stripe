@@ -36,12 +36,12 @@ public class JoinNodeValidator extends BaseNodeValidator<Join> {
 
 		if (join.getIncomingTransitionsCount() == 0) {
 			throw new KaleoDefinitionValidationException.
-				MustSetIncomingTransition(join.getName());
+				MustSetIncomingTransition(join.getDefaultLabel());
 		}
 
 		if (join.getOutgoingTransitionsCount() == 0) {
 			throw new KaleoDefinitionValidationException.
-				MustSetOutgoingTransition(join.getName());
+				MustSetOutgoingTransition(join.getDefaultLabel());
 		}
 	}
 

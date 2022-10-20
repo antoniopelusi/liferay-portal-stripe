@@ -12,29 +12,34 @@
  * details.
  */
 
+import {openConfirmModal} from 'frontend-js-web';
+
+import openDeleteStyleBookModal from './openDeleteSiteModal';
+
 const ACTIONS = {
 	activateSite(itemData) {
 		this.send(itemData.activateSiteURL);
 	},
 
 	deactivateSite(itemData) {
-		if (
-			confirm(
-				Liferay.Language.get('are-you-sure-you-want-to-deactivate-this')
-			)
-		) {
-			this.send(itemData.deactivateSiteURL);
-		}
+		openConfirmModal({
+			message: Liferay.Language.get(
+				'are-you-sure-you-want-to-deactivate-this'
+			),
+			onConfirm: (isConfirm) => {
+				if (isConfirm) {
+					this.send(itemData.deactivateSiteURL);
+				}
+			},
+		});
 	},
 
 	deleteSite(itemData) {
-		if (
-			confirm(
-				Liferay.Language.get('are-you-sure-you-want-to-delete-this')
-			)
-		) {
-			this.send(itemData.deleteSiteURL);
-		}
+		openDeleteStyleBookModal({
+			onDelete: () => {
+				this.send(itemData.deleteSiteURL);
+			},
+		});
 	},
 
 	leaveSite(itemData) {
@@ -46,22 +51,31 @@ const ACTIONS = {
 	},
 };
 
-export default function propsTransformer({items, ...props}) {
+export default function propsTransformer({actions, items, ...props}) {
+	const updateItem = (item) => {
+		const newItem = {
+			...item,
+			onClick(event) {
+				const action = item.data?.action;
+
+				if (action) {
+					event.preventDefault();
+
+					ACTIONS[action]?.(item.data);
+				}
+			},
+		};
+
+		if (Array.isArray(item.items)) {
+			newItem.items = item.items.map(updateItem);
+		}
+
+		return newItem;
+	};
+
 	return {
 		...props,
-		items: items.map((item) => {
-			return {
-				...item,
-				onClick(event) {
-					const action = item.data?.action;
-
-					if (action) {
-						event.preventDefault();
-
-						ACTIONS[action](item.data);
-					}
-				},
-			};
-		}),
+		actions: actions?.map(updateItem),
+		items: items?.map(updateItem),
 	};
 }

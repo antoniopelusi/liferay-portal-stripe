@@ -291,7 +291,7 @@ while (manageableCalendarsIterator.hasNext()) {
 				<aui:field-wrapper cssClass="calendar-portlet-recurrence-container" inlineField="<%= true %>" label="">
 					<aui:input checked="<%= recurring %>" name="repeat" type="checkbox" />
 
-					<a class="calendar-portlet-recurrence-summary" href="javascript:;" id="<portlet:namespace />summary"></a>
+					<a class="calendar-portlet-recurrence-summary" href="javascript:void(0);" id="<portlet:namespace />summary"></a>
 				</aui:field-wrapper>
 
 				<aui:input defaultLanguageId="<%= LocaleUtil.toLanguageId(themeDisplay.getSiteDefaultLocale()) %>" name="description" />
@@ -1013,17 +1013,40 @@ while (manageableCalendarsIterator.hasNext()) {
 		startTimeInput.maxLength = maxLength;
 	}
 
+	var endDateContainer = document.getElementById(
+		'<portlet:namespace />endDateContainer'
+	);
+
+	endDateContainer
+		.querySelector('label')
+		.setAttribute('id', '<portlet:namespace />endDateContainerLabel');
+
+	endDateContainer.querySelectorAll('input').forEach((element) => {
+		element.setAttribute(
+			'aria-labeledby',
+			'<portlet:namespace />endDateContainerLabel'
+		);
+	});
+
+	var startDateContainer = document.getElementById(
+		'<portlet:namespace />startDateContainer'
+	);
+
+	startDateContainer
+		.querySelector('label')
+		.setAttribute('id', '<portlet:namespace />startDateContainerLabel');
+
+	startDateContainer.querySelectorAll('input').forEach((element) => {
+		element.setAttribute(
+			'aria-labeledby',
+			'<portlet:namespace />startDateContainerLabel'
+		);
+	});
+
 	var allDayCheckbox = document.getElementById('<portlet:namespace />allDay');
 
 	if (allDayCheckbox) {
 		allDayCheckbox.addEventListener('click', (event) => {
-			var endDateContainer = document.getElementById(
-				'<portlet:namespace />endDateContainer'
-			);
-			var startDateContainer = document.getElementById(
-				'<portlet:namespace />startDateContainer'
-			);
-
 			var endTimeHours;
 			var endTimeMinutes;
 			var startTimeHours;

@@ -215,7 +215,7 @@ definition {
 			PageEditor.viewFragmentEditableImage(
 				id = "image-square",
 				imageDescription = "",
-				imageFileName = "Document_1.jpg");
+				imageFileName = "document_1-jpg");
 		}
 
 		task ("Access to the document editor via Page Content panel") {
@@ -287,7 +287,7 @@ definition {
 				locator1 = "AP#ASSET_ABSTRACT_DESCRIPTION",
 				value1 = "WC WebContent Content Edit");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View the edited web content in view mode") {
@@ -340,7 +340,7 @@ definition {
 				locator1 = "WCD#WEB_CONTENT_CONTENT",
 				value1 = "WC WebContent Content Edit");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View the edited web content in view mode") {
@@ -675,12 +675,12 @@ definition {
 			PageEditor.viewFragmentEditableImage(
 				id = "image-square",
 				imageDescription = "",
-				imageFileName = "analytics-cloud-hero-image.png");
+				imageFileName = "analytics-cloud-hero-image-png");
 		}
 
 		task ("Take down the naturalWidth and naturalHeight of image") {
-			var naturalWidth = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image.png')]@naturalWidth");
-			var naturalHeight = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image.png')]@naturalHeight");
+			var naturalWidth = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image-png')]@naturalWidth");
+			var naturalHeight = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image-png')]@naturalHeight");
 		}
 
 		task ("Edit the image via the image editor on Page Content panel") {
@@ -717,7 +717,7 @@ definition {
 				actual = "${naturalHeight}",
 				expected = "${editedNaturalHeight}");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Take down the new naturalWidth and naturalHeight of image at view mode") {
@@ -728,10 +728,10 @@ definition {
 			PageEditor.viewFragmentEditableImage(
 				id = "image-square",
 				imageDescription = "",
-				imageFileName = "analytics-cloud-hero-image.png");
+				imageFileName = "analytics-cloud-hero-image-png");
 
-			var editedNaturalWidth = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image.png')]@naturalWidth");
-			var editedNaturalHeight = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image.png')]@naturalHeight");
+			var editedNaturalWidth = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image-png')]@naturalWidth");
+			var editedNaturalHeight = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image-png')]@naturalHeight");
 		}
 
 		task ("View the naturalWidth doesn't change") {
@@ -774,12 +774,12 @@ definition {
 		}
 
 		task ("View the mapped image is shown in Banner Center fragment") {
-			PageEditor.viewContainerStyle(backgroundImage = "analytics-cloud-hero-image.png");
+			PageEditor.viewContainerStyle(backgroundImage = "analytics-cloud-hero-image\.png");
 		}
 
 		task ("View the version of mapped image") {
 			AssertVisible(
-				backgroundImageStyle = "version=1.0",
+				backgroundImageStyle = "version\=1\.0",
 				locator1 = "Fragment#BACKGROUND_IMAGE_STYLE",
 				position = "1");
 		}
@@ -804,11 +804,11 @@ definition {
 				locator1 = "PageEditor#IMAGE_RESOLUTION_LABEL");
 
 			AssertVisible(
-				backgroundImageStyle = "version=2.0",
+				backgroundImageStyle = "version\=2\.0",
 				locator1 = "Fragment#BACKGROUND_IMAGE_STYLE",
 				position = "1");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View the version of mapped image at view mode") {
@@ -1358,7 +1358,7 @@ definition {
 
 			var backgroundImageOutlineStyle = Css.getPseudoElementCssValue(
 				attribute = "outline-style",
-				element = "//div[contains(@class,'page-editor__topper')][@draggable][.//div[contains(@style,'Document_1.jpg')]]",
+				element = "//div[contains(@class,'page-editor__topper')][@draggable][.//div[contains(@style,'Document_1\\.jpg')]]",
 				pseudo = ":after");
 
 			TestUtils.assertEquals(
@@ -1483,6 +1483,46 @@ definition {
 		}
 	}
 
+	@description = "This is a test for LPS-153356. View Page Content tab on sidebar of content page."
+	@priority = "4"
+	test ViewPageContentOnSidebarOfContentPage {
+		property custom.properties = "feature.flag.LPS-153452=true";
+
+		task ("Given a page creator has a content page with Heading fragment") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("When the page creator clicks on Content Panel on sidebar") {
+			PageEditor.gotoTab(tabName = "Page Content");
+		}
+
+		task ("Then the page creator can validate Page Content tab") {
+			task ("View paperclip icon is shown") {
+				AssertElementPresent(
+					key_text = "paperclip",
+					locator1 = "Icon#ANY");
+			}
+
+			task ("View title and description on Page Content tab") {
+				AssertVisible(
+					key_sidebarButton = "Page Content",
+					locator1 = "PageEditor#FRAGMENT_SIDEBAR_TITLE");
+
+				AssertTextPresent(value1 = "Access the content included in the page and the options to edit them.");
+			}
+
+			task ("View the order of Page Content is the fourth") {
+				PageEditor.viewOrderOfSideBarButtons(buttonNameList = "Fragments and Widgets,Browser,Page Design Options,Page Content,Comments");
+			}
+		}
+	}
+
 	@description = "This is a test for LPS-96794. View permissions and usage of mapped web content in Contents panel."
 	@priority = "4"
 	test ViewPermissionsAndUsageOfMappedWebContent {
@@ -1517,7 +1557,7 @@ definition {
 				locator1 = "PageEditorEditableLink#FIELD",
 				value1 = "Title");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View permissions of mapped web content in Contents panel") {

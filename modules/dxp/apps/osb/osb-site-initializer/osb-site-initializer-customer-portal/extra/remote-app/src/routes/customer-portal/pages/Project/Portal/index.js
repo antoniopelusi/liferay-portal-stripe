@@ -8,11 +8,23 @@
  * permissions and limitations under the License, including but not limited to
  * distribution rights of the Software.
  */
+import {useEffect} from 'react';
+import {useOutletContext} from 'react-router-dom';
+import i18n from '../../../../../common/I18n';
 import ActivationKeysTable from '../../../containers/ActivationKeysTable';
+import {useCustomerPortal} from '../../../context';
 import DeveloperKeysLayouts from '../../../layouts/DeveloperKeysLayout';
 import {LIST_TYPES} from '../../../utils/constants';
 
-const Portal = ({project, sessionId}) => {
+const Portal = () => {
+	const [{project, sessionId}] = useCustomerPortal();
+	const {setHasQuickLinksPanel, setHasSideMenu} = useOutletContext();
+
+	useEffect(() => {
+		setHasQuickLinksPanel(true);
+		setHasSideMenu(true);
+	}, [setHasSideMenu, setHasQuickLinksPanel]);
+
 	return (
 		<div className="mr-4">
 			<ActivationKeysTable
@@ -24,7 +36,9 @@ const Portal = ({project, sessionId}) => {
 			<DeveloperKeysLayouts>
 				<DeveloperKeysLayouts.Inputs
 					accountKey={project.accountKey}
-					downloadTextHelper="Select the Liferay Portal version for which you want to download a developer key."
+					downloadTextHelper={i18n.translate(
+						'select-the-liferay-portal-version-for-which-you-want-to-download-a-developer-key'
+					)}
 					dxpVersion={project.dxpVersion}
 					listType={LIST_TYPES.portalVersion}
 					productName="Portal"

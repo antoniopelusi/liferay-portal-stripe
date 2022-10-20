@@ -12,19 +12,22 @@
  * details.
  */
 
+import {getCheckedCheckboxes} from 'frontend-js-web';
+
+import openDeleteTagModal from './openDeleteTagModal';
+
 export default function propsTransformer({portletNamespace, ...otherProps}) {
 	const deleteTags = () => {
-		if (
-			confirm(
-				Liferay.Language.get('are-you-sure-you-want-to-delete-this')
-			)
-		) {
-			const form = document.getElementById(`${portletNamespace}fm`);
+		openDeleteTagModal({
+			multiple: true,
+			onDelete: () => {
+				const form = document.getElementById(`${portletNamespace}fm`);
 
-			if (form) {
-				submitForm(form);
-			}
-		}
+				if (form) {
+					submitForm(form);
+				}
+			},
+		});
 	};
 
 	const mergeTags = (itemData) => {
@@ -33,10 +36,7 @@ export default function propsTransformer({portletNamespace, ...otherProps}) {
 		if (form) {
 			location.href = itemData?.mergeTagsURL.replace(
 				escape('[$MERGE_TAGS_IDS$]'),
-				Liferay.Util.listCheckedExcept(
-					form,
-					`${portletNamespace}allRowIds`
-				)
+				getCheckedCheckboxes(form, `${portletNamespace}allRowIds`)
 			);
 		}
 	};

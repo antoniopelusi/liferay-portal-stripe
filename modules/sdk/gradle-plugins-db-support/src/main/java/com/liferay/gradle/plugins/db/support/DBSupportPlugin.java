@@ -15,8 +15,8 @@
 package com.liferay.gradle.plugins.db.support;
 
 import com.liferay.gradle.plugins.db.support.internal.util.GradleUtil;
-import com.liferay.gradle.plugins.db.support.tasks.BaseDBSupportTask;
-import com.liferay.gradle.plugins.db.support.tasks.CleanServiceBuilderTask;
+import com.liferay.gradle.plugins.db.support.task.BaseDBSupportTask;
+import com.liferay.gradle.plugins.db.support.task.CleanServiceBuilderTask;
 import com.liferay.gradle.util.OSGiUtil;
 
 import java.util.concurrent.Callable;

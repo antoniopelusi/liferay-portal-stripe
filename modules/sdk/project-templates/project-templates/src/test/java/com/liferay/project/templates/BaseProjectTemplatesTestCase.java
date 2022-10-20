@@ -34,6 +34,8 @@ import difflib.Patch;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -59,6 +61,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
@@ -127,6 +130,9 @@ public interface BaseProjectTemplatesTestCase {
 	public static final String DEPENDENCY_PORTAL_KERNEL =
 		"compileOnly group: \"com.liferay.portal\", name: " +
 			"\"com.liferay.portal.kernel\"";
+
+	public static final String DEPENDENCY_RELEASE_DXP_API =
+		"compileOnly group: \"com.liferay.portal\", name: \"release.dxp.api\"";
 
 	public static final String DEPENDENCY_RELEASE_PORTAL_API =
 		"compileOnly group: \"com.liferay.portal\", name: " +
@@ -220,6 +226,18 @@ public interface BaseProjectTemplatesTestCase {
 		}
 
 		return null;
+	}
+
+	public static boolean isWindows() {
+		String osName = System.getProperty("os.name");
+
+		osName = osName.toLowerCase();
+
+		if (osName.contains("win")) {
+			return true;
+		}
+
+		return false;
 	}
 
 	public default void addCssBuilderConfigurationElement(
@@ -679,7 +697,7 @@ public interface BaseProjectTemplatesTestCase {
 			else if (liferayVersion.startsWith("7.4")) {
 				writeGradlePropertiesInWorkspace(
 					workspaceDir,
-					"liferay.workspace.target.platform.version=7.4.3.4");
+					"liferay.workspace.target.platform.version=7.4.3.36");
 			}
 		}
 		else {
@@ -876,13 +894,17 @@ public interface BaseProjectTemplatesTestCase {
 			String content = FileUtil.read(buildFilePath);
 
 			if (!content.contains("allprojects")) {
-				Path m2tmpPath = Paths.get(
-					System.getProperty("maven.repo.local") + "-tmp");
+				String m2tmpPathString = String.valueOf(
+					Paths.get(System.getProperty("maven.repo.local") + "-tmp"));
+
+				if (isWindows()) {
+					m2tmpPathString = m2tmpPathString.replaceAll("\\\\", "/");
+				}
 
 				StringBuilder sb = new StringBuilder();
 
 				sb.append("allprojects {\n\trepositories {\n\t\tmavenLocal()");
-				sb.append("\n\t\tmaven {\n\t\t\turl file(\"" + m2tmpPath);
+				sb.append("\n\t\tmaven {\n\t\t\turl file(\"" + m2tmpPathString);
 				sb.append("\").toURI()\n\t\t}\n\t\tmaven {\n\t\t\t");
 				sb.append("credentials {\n\t\t\t\tusername \"");
 				sb.append(System.getProperty("repository.private.username"));
@@ -931,11 +953,18 @@ public interface BaseProjectTemplatesTestCase {
 								mavenRepoString + "-tmp");
 
 							if (Files.exists(m2tmpPath)) {
+								String m2tmpPathString = m2tmpPath.toString();
+
+								if (isWindows()) {
+									m2tmpPathString =
+										m2tmpPathString.replaceAll("\\\\", "/");
+								}
+
 								content = content.replace(
 									"repositories {",
 									"repositories {\n\t\tmavenLocal()\n\t\t" +
-										"maven { \n\t\t\turl \"" + m2tmpPath +
-											"\"\n\t\t}");
+										"maven {\n\t\t\turl \"" +
+											m2tmpPathString + "\"\n\t\t}");
 							}
 						}
 
@@ -2017,6 +2046,75 @@ public interface BaseProjectTemplatesTestCase {
 		}
 
 		Assert.assertFalse(message.toString() + differences, realChange);
+	}
+
+	public default File updateGradlePropertiesInWorkspace(
+			File workspaceDir, String propertyKey, String propertyValue)
+		throws IOException {
+
+		File gradlePropertiesFile = new File(workspaceDir, "gradle.properties");
+
+		Properties gradleProperties = new Properties();
+
+		gradleProperties.load(new FileInputStream(gradlePropertiesFile));
+
+		if (gradleProperties.get(propertyKey) != null) {
+			gradleProperties.setProperty(propertyKey, propertyValue);
+
+			try (FileOutputStream fileOutputStream = new FileOutputStream(
+					gradlePropertiesFile)) {
+
+				gradleProperties.store(fileOutputStream, null);
+			}
+		}
+		else {
+			gradlePropertiesFile = writeGradlePropertiesInWorkspace(
+				workspaceDir, propertyKey + "=" + propertyValue);
+		}
+
+		return gradlePropertiesFile;
+	}
+
+	public default File updateMavenPomElementText(
+			File projectDir, String expression, String newText)
+		throws Exception {
+
+		File mavenPomFile = new File(projectDir, "pom.xml");
+
+		editXml(
+			mavenPomFile,
+			document -> {
+				try {
+					modifyElementText(document, expression, newText);
+				}
+				catch (XPathExpressionException xPathExpressionException) {
+					throw new RuntimeException(xPathExpressionException);
+				}
+			});
+
+		return mavenPomFile;
+	}
+
+	public default File updateMavenPomProperties(
+			File projectDir, String oldElementName, String newElementName,
+			String text)
+		throws Exception {
+
+		File mavenPomFile = new File(projectDir, "pom.xml");
+
+		editXml(
+			mavenPomFile,
+			document -> {
+				try {
+					replaceElementByName(
+						document, oldElementName, newElementName, text);
+				}
+				catch (XPathExpressionException xPathExpressionException) {
+					throw new RuntimeException(xPathExpressionException);
+				}
+			});
+
+		return mavenPomFile;
 	}
 
 	public default File writeGradlePropertiesInWorkspace(

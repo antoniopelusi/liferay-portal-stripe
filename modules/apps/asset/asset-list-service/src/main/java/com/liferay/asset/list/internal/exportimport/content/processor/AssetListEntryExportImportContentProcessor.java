@@ -166,6 +166,14 @@ public class AssetListEntryExportImportContentProcessor
 					queryValues.split(","));
 
 				for (long categoryId : categoryIds) {
+					AssetCategory assetCategory =
+						_assetCategoryLocalService.fetchAssetCategory(
+							categoryId);
+
+					if (assetCategory == null) {
+						continue;
+					}
+
 					StagedModelDataHandlerUtil.exportReferenceStagedModel(
 						portletDataContext, stagedModel,
 						_assetCategoryLocalService.getCategory(categoryId),

@@ -65,6 +65,7 @@ function SingleReassignModal() {
 			onCloseModal(true);
 			setErrorToast(false);
 			setSendingPost(false);
+			window.location.reload();
 		},
 		url: `/workflow-tasks/${taskId}/assign-to-user`,
 	});

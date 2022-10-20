@@ -20,6 +20,7 @@ import com.github.scribejava.core.builder.ServiceBuilderOAuth20;
 import com.github.scribejava.core.oauth.OAuth20Service;
 
 import com.liferay.document.library.opener.onedrive.web.internal.configuration.DLOneDriveCompanyConfiguration;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.module.configuration.ConfigurationException;
 import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
@@ -49,7 +50,7 @@ public class OAuth2Manager {
 			AccessToken accessToken = new AccessToken(
 				oAuth20Service.getAccessToken(code));
 
-			_accessTokenStore.add(companyId, userId, accessToken);
+			AccessTokenStoreUtil.add(companyId, userId, accessToken);
 
 			return accessToken;
 		}
@@ -63,7 +64,7 @@ public class OAuth2Manager {
 		throws PortalException {
 
 		Optional<AccessToken> accessTokenOptional =
-			_accessTokenStore.getAccessTokenOptional(companyId, userId);
+			AccessTokenStoreUtil.getAccessTokenOptional(companyId, userId);
 
 		if (!accessTokenOptional.isPresent()) {
 			return Optional.empty();
@@ -103,13 +104,13 @@ public class OAuth2Manager {
 
 	public void revokeOAuth2AccessToken(long companyId, long userId) {
 		Optional<AccessToken> accessTokenOptional =
-			_accessTokenStore.getAccessTokenOptional(companyId, userId);
+			AccessTokenStoreUtil.getAccessTokenOptional(companyId, userId);
 
 		if (!accessTokenOptional.isPresent()) {
 			return;
 		}
 
-		_accessTokenStore.delete(companyId, userId);
+		AccessTokenStoreUtil.delete(companyId, userId);
 	}
 
 	private OAuth20Service _createOAuth20Service(
@@ -152,8 +153,9 @@ public class OAuth2Manager {
 	}
 
 	private String _getRedirectURI(String portalURL) {
-		return portalURL + Portal.PATH_MODULE +
-			"/document_library/onedrive/oauth2";
+		return StringBundler.concat(
+			portalURL, _portal.getPathContext(), Portal.PATH_MODULE,
+			"/document_library/onedrive/oauth2");
 	}
 
 	private Optional<AccessToken> _refreshOAuth2AccessToken(
@@ -171,7 +173,7 @@ public class OAuth2Manager {
 				oAuth20Service.refreshAccessToken(
 					accessToken.getRefreshToken()));
 
-			_accessTokenStore.add(companyId, userId, newAccessToken);
+			AccessTokenStoreUtil.add(companyId, userId, newAccessToken);
 
 			return Optional.of(newAccessToken);
 		}
@@ -182,9 +184,10 @@ public class OAuth2Manager {
 		}
 	}
 
-	private final AccessTokenStore _accessTokenStore = new AccessTokenStore();
-
 	@Reference
 	private ConfigurationProvider _configurationProvider;
+
+	@Reference
+	private Portal _portal;
 
 }

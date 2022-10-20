@@ -12,16 +12,8 @@
  * details.
  */
 
-import {DATA_COLORS} from '../util/constants';
+import {Statuses, chartColors} from '../util/constants';
 import {getRandomMaximumValue} from '../util/mock';
-
-enum Statuses {
-	PASSED = 'PASSED',
-	FAILED = 'FAILED',
-	BLOCKED = 'BLOCKED',
-	TEST_FIX = 'TEST FIX',
-	INCOMPLETE = 'INCOMPLETE',
-}
 
 const useTotalTestCases = () => {
 	const donutColumns = [
@@ -42,13 +34,7 @@ const useTotalTestCases = () => {
 				[Statuses.INCOMPLETE, ...getRandomMaximumValue(20, 100)],
 			],
 		},
-		colors: {
-			[Statuses.BLOCKED]: DATA_COLORS['metrics.blocked'],
-			[Statuses.FAILED]: DATA_COLORS['metrics.failed'],
-			[Statuses.INCOMPLETE]: DATA_COLORS['metrics.incomplete'],
-			[Statuses.PASSED]: DATA_COLORS['metrics.passed'],
-			[Statuses.TEST_FIX]: DATA_COLORS['metrics.test-fix'],
-		},
+		colors: chartColors,
 		donut: {
 			columns: donutColumns,
 			total: donutColumns

@@ -12,21 +12,31 @@
  * details.
  */
 
-import {addParams, openSelectionModal} from 'frontend-js-web';
+import {
+	addParams,
+	openConfirmModal,
+	openSelectionModal,
+	sub,
+} from 'frontend-js-web';
 
 export default function propsTransformer({portletNamespace, ...otherProps}) {
 	const deleteSelectedUserGroups = () => {
-		if (
-			confirm(
-				Liferay.Language.get('are-you-sure-you-want-to-delete-this')
-			)
-		) {
-			const form = document.getElementById(`${portletNamespace}fm`);
+		openConfirmModal({
+			message: Liferay.Language.get(
+				'are-you-sure-you-want-to-delete-this'
+			),
+			onConfirm: (isConfirmed) => {
+				if (isConfirmed) {
+					const form = document.getElementById(
+						`${portletNamespace}fm`
+					);
 
-			if (form) {
-				submitForm(form);
-			}
-		}
+					if (form) {
+						submitForm(form);
+					}
+				}
+			},
+		});
 	};
 
 	const selectRole = (itemData) => {
@@ -98,7 +108,7 @@ export default function propsTransformer({portletNamespace, ...otherProps}) {
 				}
 			},
 			selectEventName: `${portletNamespace}selectUserGroups`,
-			title: Liferay.Util.sub(
+			title: sub(
 				Liferay.Language.get('assign-user-groups-to-this-x'),
 				itemData?.groupTypeLabel
 			),

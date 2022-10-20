@@ -19,6 +19,7 @@ import com.liferay.asset.list.model.AssetListEntry;
 import com.liferay.asset.list.service.AssetListEntryLocalService;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
+import com.liferay.fragment.constants.FragmentConstants;
 import com.liferay.fragment.exception.FragmentEntryContentException;
 import com.liferay.fragment.model.FragmentCollection;
 import com.liferay.fragment.model.FragmentEntry;
@@ -73,6 +74,8 @@ import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.hamcrest.CoreMatchers;
 
@@ -146,7 +149,8 @@ public class FragmentEntryProcessorFreemarkerTest {
 					"fragment-entry", "Fragment Entry", null,
 					_readFileToString(
 						"fragment_entry_with_invalid_freemarker_variable.html"),
-					null, false, null, null, 0, 0,
+					null, false, null, null, 0,
+					FragmentConstants.TYPE_COMPONENT, null,
 					WorkflowConstants.STATUS_DRAFT, serviceContext);
 
 			ServiceContextThreadLocal.pushServiceContext(serviceContext);
@@ -561,7 +565,8 @@ public class FragmentEntryProcessorFreemarkerTest {
 		return _fragmentEntryService.addFragmentEntry(
 			_group.getGroupId(), fragmentCollection.getFragmentCollectionId(),
 			"fragment-entry", "Fragment Entry", null,
-			_readFileToString(htmlFile), null, false, configuration, null, 0, 0,
+			_readFileToString(htmlFile), null, false, configuration, null, 0,
+			FragmentConstants.TYPE_COMPONENT, null,
 			WorkflowConstants.STATUS_APPROVED, serviceContext);
 	}
 
@@ -572,7 +577,7 @@ public class FragmentEntryProcessorFreemarkerTest {
 			new MockHttpServletRequest();
 
 		mockHttpServletRequest.setAttribute(
-			WebKeys.THEME_DISPLAY, _getThemeDisplay());
+			WebKeys.THEME_DISPLAY, _getThemeDisplay(mockHttpServletRequest));
 
 		return mockHttpServletRequest;
 	}
@@ -598,7 +603,9 @@ public class FragmentEntryProcessorFreemarkerTest {
 		return processedHTML;
 	}
 
-	private ThemeDisplay _getThemeDisplay() throws Exception {
+	private ThemeDisplay _getThemeDisplay(HttpServletRequest httpServletRequest)
+		throws Exception {
+
 		ThemeDisplay themeDisplay = new ThemeDisplay();
 
 		themeDisplay.setCompany(_company);
@@ -613,6 +620,7 @@ public class FragmentEntryProcessorFreemarkerTest {
 			null);
 
 		themeDisplay.setRealUser(TestPropsValues.getUser());
+		themeDisplay.setRequest(httpServletRequest);
 		themeDisplay.setUser(TestPropsValues.getUser());
 
 		return themeDisplay;

@@ -9,18 +9,17 @@
  * distribution rights of the Software.
  */
 
-import ClayAlert from '@clayui/alert';
 import ClayButton from '@clayui/button';
 import {Align} from '@clayui/drop-down';
 import ClayEmptyState from '@clayui/empty-state';
 import ClayIcon from '@clayui/icon';
 import ClayList from '@clayui/list';
 import ClayLoadingIndicator from '@clayui/loading-indicator';
-import ClayManagementToolbar from '@clayui/management-toolbar';
 import {ClayPaginationWithBasicItems} from '@clayui/pagination';
 import ClayPaginationBar from '@clayui/pagination-bar';
 import {ClayTooltipProvider} from '@clayui/tooltip';
 import getCN from 'classnames';
+import {ManagementToolbar} from 'frontend-js-components-web';
 import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 
@@ -47,7 +46,6 @@ function PreviewSidebar({
 	responseString = '',
 	totalHits,
 	visible,
-	warnings = [],
 }) {
 	const [activeDelta, setActiveDelta] = useState(10);
 	const [activePage, setActivePage] = useState(1);
@@ -87,7 +85,7 @@ function PreviewSidebar({
 	);
 
 	const _renderHits = () => (
-		<div className="preview-results-list sidebar-body">
+		<div className="preview-results-list">
 			<ClayList>
 				{hits.map((result) => (
 					<ResultListItem
@@ -129,10 +127,10 @@ function PreviewSidebar({
 				</ClayPaginationBar.Results>
 
 				<ClayPaginationWithBasicItems
-					activePage={activePage}
+					active={activePage}
 					alignmentPosition={Align.TopCenter}
 					ellipsisBuffer={1}
-					onPageChange={setActivePage}
+					onActiveChange={setActivePage}
 					totalPages={Math.ceil(totalHits / activeDelta)}
 				/>
 			</ClayPaginationBar>
@@ -140,9 +138,9 @@ function PreviewSidebar({
 	);
 
 	const _renderResultsManagementBar = () => (
-		<ClayManagementToolbar>
-			<ClayManagementToolbar.ItemList>
-				<ClayManagementToolbar.Item>
+		<ManagementToolbar.Container>
+			<ManagementToolbar.ItemList>
+				<ManagementToolbar.Item>
 					<span className="text-truncate-inline total-hits-label">
 						<span className="text-truncate">
 							{sub(Liferay.Language.get('x-results'), [
@@ -152,9 +150,9 @@ function PreviewSidebar({
 							])}
 						</span>
 					</span>
-				</ClayManagementToolbar.Item>
+				</ManagementToolbar.Item>
 
-				<ClayManagementToolbar.Item>
+				<ManagementToolbar.Item>
 					<ClayButton
 						aria-label={Liferay.Language.get('refresh')}
 						disabled={loading}
@@ -164,11 +162,11 @@ function PreviewSidebar({
 					>
 						{Liferay.Language.get('refresh')}
 					</ClayButton>
-				</ClayManagementToolbar.Item>
-			</ClayManagementToolbar.ItemList>
+				</ManagementToolbar.Item>
+			</ManagementToolbar.ItemList>
 
-			<ClayManagementToolbar.ItemList>
-				<ClayManagementToolbar.Item>
+			<ManagementToolbar.ItemList>
+				<ManagementToolbar.Item>
 					<PreviewModalWithCopyDownload
 						fileName="raw_response.json"
 						folded
@@ -187,9 +185,9 @@ function PreviewSidebar({
 							{Liferay.Language.get('view-raw-response')}
 						</ClayButton>
 					</PreviewModalWithCopyDownload>
-				</ClayManagementToolbar.Item>
-			</ClayManagementToolbar.ItemList>
-		</ClayManagementToolbar>
+				</ManagementToolbar.Item>
+			</ManagementToolbar.ItemList>
+		</ManagementToolbar.Container>
 	);
 
 	return (
@@ -262,63 +260,50 @@ function PreviewSidebar({
 				</div>
 			</nav>
 
-			{!!warnings.length && (
-				<div className="warning-container">
-					{warnings.map((warning, index) => (
-						<ClayAlert
-							displayType="warning"
-							key={index}
-							title={Liferay.Language.get('warning')}
-							variant="stripe"
-						>
-							{warning.msg}
-						</ClayAlert>
-					))}
-				</div>
-			)}
+			<div className="sidebar-body">
+				{!!errors.length && _renderErrors()}
 
-			{isDefined(totalHits) &&
-				!errors.length &&
-				_renderResultsManagementBar()}
+				{isDefined(totalHits) && _renderResultsManagementBar()}
 
-			{!loading ? (
-				errors.length ? (
-					_renderErrors()
-				) : totalHits > 0 ? (
-					_renderHits()
-				) : totalHits === 0 ? (
-					<div className="empty-list-message">
-						<ClayEmptyState description="" />
-					</div>
-				) : (
-					<div className="search-message">
-						{Liferay.Language.get(
-							'perform-a-search-to-preview-your-blueprints-search-results'
-						)}
-					</div>
-				)
-			) : (
-				<>
-					<ClayLoadingIndicator />
-
-					{showCancel && (
-						<div className="search-message">
-							{Liferay.Language.get(
-								'it-looks-like-this-is-taking-longer-than-expected'
-							)}
-
-							<ClayButton
-								className="cancel"
-								displayType="secondary"
-								onClick={onFetchCancel}
-								small
-							>
-								{Liferay.Language.get('cancel')}
-							</ClayButton>
+				{!loading ? (
+					totalHits > 0 ? (
+						_renderHits()
+					) : totalHits === 0 ? (
+						<div className="empty-list-message">
+							<ClayEmptyState description="" />
 						</div>
-					)}
-				</>
-			)}
+					) : (
+						!errors.length && (
+							<div className="search-message">
+								{Liferay.Language.get(
+									'perform-a-search-to-preview-your-blueprints-search-results'
+								)}
+							</div>
+						)
+					)
+				) : (
+					<>
+						<ClayLoadingIndicator />
+
+						{showCancel && (
+							<div className="search-message">
+								{Liferay.Language.get(
+									'it-looks-like-this-is-taking-longer-than-expected'
+								)}
+
+								<ClayButton
+									className="cancel"
+									displayType="secondary"
+									onClick={onFetchCancel}
+									small
+								>
+									{Liferay.Language.get('cancel')}
+								</ClayButton>
+							</div>
+						)}
+					</>
+				)}
+			</div>
 		</div>
 	);
 }
@@ -334,7 +319,6 @@ PreviewSidebar.propTypes = {
 	responseString: PropTypes.string,
 	totalHits: PropTypes.number,
 	visible: PropTypes.bool,
-	warnings: PropTypes.arrayOf(PropTypes.object),
 };
 
 export default React.memo(PreviewSidebar);

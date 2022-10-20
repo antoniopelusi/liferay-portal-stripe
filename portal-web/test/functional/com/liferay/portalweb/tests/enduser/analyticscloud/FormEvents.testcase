@@ -1,6 +1,8 @@
 @component-name = "portal-analytics-cloud"
 definition {
 
+	property analytics.cloud.release = "true";
+	property analytics.cloud.upstream = "true";
 	property custom.properties = "jsonws.web.service.paths.excludes=";
 	property portal.release = "false";
 	property portal.upstream = "true";
@@ -49,6 +51,8 @@ definition {
 	tearDown {
 		var testPortalInstance = PropsUtil.get("test.portal.instance");
 
+		ACUtils.tearDownAC();
+
 		ACUtils.tearDownDXP();
 
 		if ("${testPortalInstance}" == "true") {
@@ -56,11 +60,172 @@ definition {
 		}
 		else {
 			JSONGroup.deleteGroupByName(groupName = "Site Name");
+		}
+	}
 
-			JSONUser.tearDownNonAdminUsers();
+	@description = "Bug: LRAC-7832 | Automation ID: LRAC-9867 | Test Summary: Check fieldBlurred and fieldFocused is triggered when interacting with form fields (Text, Date, Date and Time, Image, Rich Text, Upload and Color[by color picker and color field])"
+	@priority = "4"
+	test CheckFieldBlurredAndFieldFocusedWhenInteractingWithFields {
+		property proxy.server.enabled = "true";
+
+		var fieldNameList = "Date,Image,Rich Text,Upload,Color,Date and Time";
+
+		task ("Edit the form to add more fields") {
+			FormsAdmin.openFormsAdmin(siteURLKey = "site-name");
+
+			FormsAdminNavigator.gotoEditFormByName(formName = "Created Form Name");
+
+			DataEngine.addFields(fieldNameList = "${fieldNameList}");
+
+			Form.save();
 		}
 
-		ACUtils.tearDownAC();
+		task ("Navigate to view the form page") {
+			ACUtils.navigateToSitePage(
+				actionType = "View Form",
+				pageName = "AC Page",
+				siteName = "Site Name");
+		}
+
+		task ("This loop will interact with the input field of all fields") {
+			for (var fieldName : list "Text,${fieldNameList}") {
+				task ("Start Har recording") {
+					ProxyUtil.startHarRecording("fieldFocused");
+				}
+
+				task ("Click to focus on form fields") {
+					if ("${fieldName}" == "Date and Time") {
+						Click(
+							key_fieldName = "DateAndTime",
+							locator1 = "FormFields#GENERIC_INPUT_FIELD");
+					}
+					else if ("${fieldName}" == "Rich Text") {
+						FormFields.addRichTextContent(
+							content = "",
+							fieldLabel = "Rich Text");
+					}
+					else if (("${fieldName}" != "Rich Text") && ("${fieldName}" != "Date and Time")) {
+						Click(
+							key_fieldName = "${fieldName}",
+							locator1 = "FormFields#GENERIC_INPUT_FIELD");
+					}
+				}
+
+				task ("Wait for sending requests") {
+					ACUtils.waitForSendingRequest();
+				}
+
+				task ("View the fieldName of fieldFocused event") {
+					ACUtils.assertEventPropertyValue(
+						applicationId = "Form",
+						eventId = "fieldFocused",
+						property = "fieldName",
+						value = "${fieldName}");
+				}
+
+				task ("Start Har recording") {
+					ProxyUtil.startHarRecording("fieldBlurred");
+				}
+
+				task ("Close image or upload field modal") {
+					if (("${fieldName}" == "Image") || ("${fieldName}" == "Upload")) {
+						IFrame.closeFrame();
+					}
+				}
+
+				task ("Click to focus on the forms title") {
+					Click(
+						key_formName = "Created Form Name",
+						locator1 = "Form#PUBLISH_FORM_NAME_FIELD");
+				}
+
+				task ("Wait for sending requests") {
+					ACUtils.waitForSendingRequest();
+				}
+
+				task ("View the fieldName of fieldBlurred event") {
+					ACUtils.assertEventPropertyValue(
+						applicationId = "Form",
+						eventId = "fieldBlurred",
+						property = "fieldName",
+						value = "${fieldName}");
+				}
+			}
+		}
+
+		task ("This loop will interact with the calendar icon, with the 'select' button in the image and upload field and with the color picker") {
+			for (var fieldName : list "Date,Image,Upload,Color") {
+				task ("Start Har recording") {
+					ProxyUtil.startHarRecording("fieldFocused");
+				}
+
+				task ("Click on the date field calendar icon") {
+					if ("${fieldName}" == "Date") {
+						Click(locator1 = "FormFields#DATE_CALENDAR");
+					}
+				}
+
+				task ("Click on the 'select' button in the image and upload fields") {
+					if (("${fieldName}" == "Image") || ("${fieldName}" == "Upload")) {
+						Click(
+							key_fieldName = "${fieldName}",
+							locator1 = "Button#SELECT_BUTTON");
+					}
+				}
+
+				task ("Click on color picker") {
+					if ("${fieldName}" == "Color") {
+						Click(locator1 = "Button#COLOR_PICKER_BUTTON");
+					}
+				}
+
+				task ("Wait for sending requests") {
+					ACUtils.waitForSendingRequest();
+				}
+
+				task ("View the fieldName of fieldFocused event") {
+					ACUtils.assertEventPropertyValue(
+						applicationId = "Form",
+						eventId = "fieldFocused",
+						property = "fieldName",
+						value = "${fieldName}");
+				}
+
+				task ("Start Har recording") {
+					ProxyUtil.startHarRecording("fieldBlurred");
+				}
+
+				task ("Click on the date field calendar icon") {
+					if ("${fieldName}" == "Date") {
+						Click(locator1 = "FormFields#DATE_CALENDAR");
+					}
+				}
+
+				task ("Close image or upload field modal") {
+					if (("${fieldName}" == "Image") || ("${fieldName}" == "Upload")) {
+						IFrame.closeFrame();
+					}
+				}
+
+				task ("Click to focus on the forms title") {
+					Click(
+						key_formName = "Created Form Name",
+						locator1 = "Form#PUBLISH_FORM_NAME_FIELD");
+				}
+
+				task ("Wait for sending requests") {
+					ACUtils.waitForSendingRequest();
+				}
+
+				task ("View the fieldName of fieldBlurred event") {
+					ACUtils.assertEventPropertyValue(
+						applicationId = "Form",
+						eventId = "fieldBlurred",
+						property = "fieldName",
+						value = "${fieldName}");
+				}
+			}
+		}
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8684 | Test Summary: Check fieldBlurred is triggered when navigating the form hitting the tab key"
@@ -98,6 +263,7 @@ definition {
 
 		task ("Get the DXP Instance ID in AC") {
 			var dataSourceName = StringUtil.extractFirst("${assignedPropertyName}", "Combined");
+
 			var dataSourceName = StringUtil.trim("${dataSourceName}");
 
 			var expectedDataSourceId = ACSettings.getDXPInstanceId(dataSourceName = "${dataSourceName}");
@@ -123,8 +289,8 @@ definition {
 				locator1 = "FormFields#TEXT_FIELD");
 		}
 
-		task ("Stay 2 seconds") {
-			Pause(locator1 = "2000");
+		task ("Wait for sending requests") {
+			ACUtils.waitForSendingRequest();
 		}
 
 		task ("Navigate to the Submit button via Tab key") {
@@ -135,7 +301,7 @@ definition {
 		}
 
 		task ("Wait for sending requests") {
-			Pause(locator1 = "5000");
+			ACUtils.waitForSendingRequest();
 		}
 
 		task ("View the formId of fieldBlurred event") {
@@ -205,6 +371,7 @@ definition {
 
 		task ("Get the DXP Instance ID in AC") {
 			var dataSourceName = StringUtil.extractFirst("${assignedPropertyName}", "Combined");
+
 			var dataSourceName = StringUtil.trim("${dataSourceName}");
 
 			var expectedDataSourceId = ACSettings.getDXPInstanceId(dataSourceName = "${dataSourceName}");
@@ -230,8 +397,8 @@ definition {
 				locator1 = "FormFields#TEXT_FIELD");
 		}
 
-		task ("Stay 2 seconds") {
-			Pause(locator1 = "2000");
+		task ("Wait for sending requests") {
+			ACUtils.waitForSendingRequest();
 		}
 
 		task ("Click the header title") {
@@ -241,7 +408,7 @@ definition {
 		}
 
 		task ("Wait for sending requests") {
-			Pause(locator1 = "5000");
+			ACUtils.waitForSendingRequest();
 		}
 
 		task ("View the formId of fieldBlurred event") {
@@ -311,6 +478,7 @@ definition {
 
 		task ("Get the DXP Instance ID in AC") {
 			var dataSourceName = StringUtil.extractFirst("${assignedPropertyName}", "Combined");
+
 			var dataSourceName = StringUtil.trim("${dataSourceName}");
 
 			var expectedDataSourceId = ACSettings.getDXPInstanceId(dataSourceName = "${dataSourceName}");
@@ -337,7 +505,7 @@ definition {
 		}
 
 		task ("Wait for sending requests") {
-			Pause(locator1 = "5000");
+			ACUtils.waitForSendingRequest();
 		}
 
 		task ("View the formId of fieldFocused event") {
@@ -406,6 +574,7 @@ definition {
 
 		task ("Get the DXP Instance ID in AC") {
 			var dataSourceName = StringUtil.extractFirst("${assignedPropertyName}", "Combined");
+
 			var dataSourceName = StringUtil.trim("${dataSourceName}");
 
 			var expectedDataSourceId = ACSettings.getDXPInstanceId(dataSourceName = "${dataSourceName}");
@@ -437,7 +606,7 @@ definition {
 		}
 
 		task ("Wait for sending requests") {
-			Pause(locator1 = "5000");
+			ACUtils.waitForSendingRequest();
 		}
 
 		task ("View the formId of fieldFocused event") {
@@ -496,6 +665,7 @@ definition {
 
 		task ("Get the DXP Instance ID in AC") {
 			var dataSourceName = StringUtil.extractFirst("${assignedPropertyName}", "Combined");
+
 			var dataSourceName = StringUtil.trim("${dataSourceName}");
 
 			var expectedDataSourceId = ACSettings.getDXPInstanceId(dataSourceName = "${dataSourceName}");
@@ -518,7 +688,7 @@ definition {
 		}
 
 		task ("Wait for sending requests") {
-			Pause(locator1 = "10000");
+			ACUtils.waitForSendingRequest();
 		}
 
 		task ("View the formId of formSubmitted event") {
@@ -571,6 +741,7 @@ definition {
 
 		task ("Get the DXP Instance ID in AC") {
 			var dataSourceName = StringUtil.extractFirst("${assignedPropertyName}", "Combined");
+
 			var dataSourceName = StringUtil.trim("${dataSourceName}");
 
 			var expectedDataSourceId = ACSettings.getDXPInstanceId(dataSourceName = "${dataSourceName}");
@@ -589,7 +760,7 @@ definition {
 		}
 
 		task ("Wait for sending requests") {
-			Pause(locator1 = "10000");
+			ACUtils.waitForSendingRequest();
 		}
 
 		task ("View the formId of formViewed event") {
@@ -650,6 +821,7 @@ definition {
 
 		task ("Get the DXP Instance ID in AC") {
 			var dataSourceName = StringUtil.extractFirst("${assignedPropertyName}", "Combined");
+
 			var dataSourceName = StringUtil.trim("${dataSourceName}");
 
 			var expectedDataSourceId = ACSettings.getDXPInstanceId(dataSourceName = "${dataSourceName}");
@@ -665,10 +837,6 @@ definition {
 				siteName = "Site Name");
 		}
 
-		task ("Wait for sending requests") {
-			Pause(locator1 = "5000");
-		}
-
 		task ("Start Har recording") {
 			ProxyUtil.startHarRecording("pageViewed");
 		}
@@ -678,7 +846,7 @@ definition {
 		}
 
 		task ("Wait for sending requests") {
-			Pause(locator1 = "5000");
+			ACUtils.waitForSendingRequest();
 		}
 
 		task ("View the formId of formViewed event") {

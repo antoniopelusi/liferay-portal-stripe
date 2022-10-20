@@ -22,7 +22,7 @@ import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermi
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
-import com.liferay.portal.kernel.service.permission.LayoutPermissionUtil;
+import com.liferay.portal.kernel.service.permission.LayoutPermission;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.segments.constants.SegmentsActionKeys;
@@ -272,9 +272,12 @@ public class SegmentsExperienceServiceImpl
 
 		Layout layout = _layoutLocalService.fetchLayout(plid);
 
-		if ((layout != null) &&
-			LayoutPermissionUtil.contains(
-				getPermissionChecker(), layout, ActionKeys.UPDATE)) {
+		if (layout == null) {
+			return false;
+		}
+
+		if (_layoutPermission.containsLayoutRestrictedUpdatePermission(
+				getPermissionChecker(), layout)) {
 
 			return true;
 		}
@@ -284,6 +287,9 @@ public class SegmentsExperienceServiceImpl
 
 	@Reference
 	private LayoutLocalService _layoutLocalService;
+
+	@Reference
+	private LayoutPermission _layoutPermission;
 
 	@Reference(
 		target = "(resource.name=" + SegmentsConstants.RESOURCE_NAME + ")"

@@ -110,25 +110,34 @@ definition {
 			wikiPageContent = "Wiki Page Content",
 			wikiPageName = "Wiki Page Title");
 
-		WikiNavigator.openToEditPage(
+		JSONWiki.addWikiChildPage(
 			groupName = "Guest",
-			layoutURLKey = "wiki-test-page",
-			siteURLKey = "guest",
+			wikiChildPageContent = "Wiki Child Page Content",
+			wikiChildPageName = "Wiki Child Page Title",
 			wikiNodeName = "Main",
-			wikiPageTitle = "Wiki Page Title");
+			wikiParentPageName = "Wiki Page Title");
 
-		WikiEntry.addPageSummary(wikiPageSummary = "Wiki Page Summary");
+		for (var wikiPageTitle : list "Wiki Page Title,Wiki Child Page Title") {
+			WikiNavigator.openToEditPage(
+				groupName = "Guest",
+				layoutURLKey = "wiki-test-page",
+				siteURLKey = "guest",
+				wikiNodeName = "Main",
+				wikiPageTitle = "${wikiPageTitle}");
 
-		WikiNavigator.openToWikiPage(
-			layoutURLKey = "wiki-test-page",
-			siteURLKey = "guest",
-			wikiNodeName = "Main",
-			wikiPageTitle = "Wiki Page Title");
+			WikiEntry.addPageSummary(wikiPageSummary = "${wikiPageTitle} Summary");
 
-		WikiPage.viewSummary(
-			wikiPageRevision = "1.1",
-			wikiPageTitle = "Wiki Page Title",
-			wikiVersionSummary = "Wiki Page Summary");
+			WikiNavigator.openToWikiPage(
+				layoutURLKey = "wiki-test-page",
+				siteURLKey = "guest",
+				wikiNodeName = "Main",
+				wikiPageTitle = "${wikiPageTitle}");
+
+			WikiPage.viewSummary(
+				wikiPageRevision = "1.1",
+				wikiPageTitle = "${wikiPageTitle}",
+				wikiVersionSummary = "${wikiPageTitle} Summary");
+		}
 	}
 
 	@description = "This is a test for LPS-136988. It checks that a table of contents can be added to a page."
@@ -239,7 +248,6 @@ definition {
 		AssertAlertNotPresent();
 
 		var actualScript = '''<script>alert(123);</script>''';
-
 		var escapedScript = '''&lt;script&gt;alert(123);&lt;/script&gt;''';
 
 		AssertHTMLSourceTextNotPresent(value1 = "${actualScript}");

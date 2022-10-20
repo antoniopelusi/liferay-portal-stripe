@@ -12,8 +12,8 @@
  * details.
  */
 
-import {updateVisibleFieldNames} from '../actions/updateVisibleFieldNames';
 import {saveViewSettings} from '../utils/saveViewSettings';
+import {updateVisibleFieldNames} from '../views/viewsReducer';
 
 export default function persistVisibleFieldNames({
 	appURL,

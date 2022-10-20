@@ -1,6 +1,8 @@
 @component-name = "portal-analytics-cloud"
 definition {
 
+	property analytics.cloud.release = "true";
+	property analytics.cloud.upstream = "true";
 	property custom.properties = "jsonws.web.service.paths.excludes=";
 	property portal.release = "false";
 	property portal.upstream = "true";
@@ -87,6 +89,8 @@ definition {
 	tearDown {
 		var testPortalInstance = PropsUtil.get("test.portal.instance");
 
+		ACUtils.tearDownAC();
+
 		ACUtils.tearDownDXP();
 
 		if ("${testPortalInstance}" == "true") {
@@ -94,16 +98,14 @@ definition {
 		}
 		else {
 			JSONGroup.deleteGroupByName(groupName = "Site Name");
-
-			JSONUser.tearDownNonAdminUsers();
 		}
-
-		ACUtils.tearDownAC();
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8362 | Test Summary: Page profile views by technology shows which browsers are being used"
 	@priority = "5"
 	test ShowsWhichBrowsersBeingUsed {
+		property analytics.cloud.upstream = "false";
+
 		ACNavigation.switchTabInCard(tabName = "Browsers");
 
 		ACAssets.viewTechnologyBrowsersMetric(
@@ -116,6 +118,8 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8363 | Test Summary: Page profile views by technology shows which devices are being used"
 	@priority = "5"
 	test ShowsWhichDevicesBeingUsed {
+		property analytics.cloud.upstream = "false";
+
 		ACAssets.viewTechnologyDeviceViewsAndPercentage(
 			actionValue = "1 Views",
 			cardTitle = "Views by Technology",

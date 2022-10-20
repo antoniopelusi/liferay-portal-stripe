@@ -15,3 +15,4 @@ export * from './routeTypes';
 export * from './storageKeys';
 export * from './pageRouterTypes';
 export * from './slaTypes';
+export * from './slaStatusTypes';

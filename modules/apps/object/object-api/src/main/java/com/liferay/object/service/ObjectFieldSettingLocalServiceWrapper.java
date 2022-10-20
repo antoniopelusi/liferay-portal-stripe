@@ -90,6 +90,15 @@ public class ObjectFieldSettingLocalServiceWrapper
 			primaryKeyObj);
 	}
 
+	@Override
+	public void deleteObjectFieldObjectFieldSetting(
+			com.liferay.object.model.ObjectField objectField)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		_objectFieldSettingLocalService.deleteObjectFieldObjectFieldSetting(
+			objectField);
+	}
+
 	/**
 	 * Deletes the object field setting with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
@@ -299,6 +308,14 @@ public class ObjectFieldSettingLocalServiceWrapper
 			getIndexableActionableDynamicQuery();
 	}
 
+	@Override
+	public java.util.List<com.liferay.object.model.ObjectFieldSetting>
+		getObjectFieldObjectFieldSettings(long objectFieldId) {
+
+		return _objectFieldSettingLocalService.
+			getObjectFieldObjectFieldSettings(objectFieldId);
+	}
+
 	/**
 	 * Returns the object field setting with the primary key.
 	 *
@@ -349,14 +366,6 @@ public class ObjectFieldSettingLocalServiceWrapper
 
 		return _objectFieldSettingLocalService.getObjectFieldSettings(
 			start, end);
-	}
-
-	@Override
-	public java.util.List<com.liferay.object.model.ObjectFieldSetting>
-		getObjectFieldSettings(long objectFieldId) {
-
-		return _objectFieldSettingLocalService.getObjectFieldSettings(
-			objectFieldId);
 	}
 
 	/**

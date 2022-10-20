@@ -25,11 +25,39 @@ if (Validator.isNull(redirect)) {
 	redirect = portletURL.toString();
 }
 
+Map data = editAssetListDisplayContext.getData();
+
 portletDisplay.setShowBackIcon(true);
 portletDisplay.setURLBack(redirect);
 
 renderResponse.setTitle(assetListDisplayContext.getAssetListEntryTitle());
 %>
+
+<c:if test='<%= !(boolean)data.get("isSegmentationEnabled") %>'>
+	<clay:stripe
+		defaultTitleDisabled="<%= true %>"
+		dismissible="<%= true %>"
+		displayType="warning"
+	>
+		<strong><%= LanguageUtil.get(request, "personalized-variations-cannot-be-displayed-because-segmentation-is-disabled") %></strong>
+
+		<%
+		String segmentsConfigurationURL = editAssetListDisplayContext.getSegmentsCompanyConfigurationURL();
+		%>
+
+		<c:choose>
+			<c:when test="<%= segmentsConfigurationURL != null %>">
+				<clay:link
+					href="<%= segmentsConfigurationURL %>"
+					label='<%= LanguageUtil.get(request, "to-enable,-go-to-instance-settings") %>'
+				/>
+			</c:when>
+			<c:otherwise>
+				<span><liferay-ui:message key="contact-your-system-administrator-to-enable-it" /></span>
+			</c:otherwise>
+		</c:choose>
+	</clay:stripe>
+</c:if>
 
 <clay:container-fluid
 	cssClass="container-view"
@@ -48,7 +76,7 @@ renderResponse.setTitle(assetListDisplayContext.getAssetListEntryTitle());
 
 				<react:component
 					module="js/components/VariationsNav/index"
-					props="<%= editAssetListDisplayContext.getData() %>"
+					props="<%= data %>"
 				/>
 			</div>
 		</clay:col>
@@ -111,7 +139,7 @@ renderResponse.setTitle(assetListDisplayContext.getAssetListEntryTitle());
 		%>
 
 			Liferay.Util.setFormValues(form, {
-				classTypeIds<%= className %>: Liferay.Util.listSelect(
+				classTypeIds<%= className %>: Liferay.Util.getSelectedOptionValues(
 					Liferay.Util.getFormElement(
 						form,
 						'<%= className %>currentClassTypeIds'
@@ -131,7 +159,7 @@ renderResponse.setTitle(assetListDisplayContext.getAssetListEntryTitle());
 		if (currentClassNameIdsSelect) {
 			Liferay.Util.postForm(form, {
 				data: {
-					classNameIds: Liferay.Util.listSelect(
+					classNameIds: Liferay.Util.getSelectedOptionValues(
 						currentClassNameIdsSelect
 					),
 				},

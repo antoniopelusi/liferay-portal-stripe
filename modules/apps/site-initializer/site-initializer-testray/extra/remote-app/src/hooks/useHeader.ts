@@ -12,23 +12,25 @@
  * details.
  */
 
-import {useCallback, useContext, useEffect} from 'react';
+import {useCallback, useContext, useEffect, useRef} from 'react';
 
 import {
 	Dropdown,
+	HeaderActions,
 	HeaderContext,
 	HeaderTabs,
 	HeaderTitle,
 	HeaderTypes,
-	initialState,
 } from '../context/HeaderContext';
 
 type UseHeader = {
 	shouldUpdate?: boolean;
 	timeout?: number;
-	useAction?: Dropdown;
+	title?: string;
 	useDropdown?: Dropdown;
+	useHeaderActions?: HeaderActions;
 	useHeading?: HeaderTitle[];
+	useIcon?: string;
 	useTabs?: HeaderTabs[];
 };
 
@@ -37,23 +39,26 @@ const DEFAULT_TIMEOUT = 0;
 const useHeader = ({
 	shouldUpdate = true,
 	timeout = DEFAULT_TIMEOUT,
-	useHeading = initialState.heading,
-	useAction,
+	useHeading,
+	useHeaderActions,
+	useIcon,
 	useDropdown,
-	useTabs = initialState.tabs,
+	useTabs = [],
 }: UseHeader = {}) => {
-	const [, dispatch] = useContext(HeaderContext);
+	const [context, dispatch] = useContext(HeaderContext);
 
-	const useActionString = JSON.stringify(useAction);
-	const useDropdownString = JSON.stringify(useDropdown);
-	const useHeadingString = JSON.stringify(useHeading);
-	const useTabsString = JSON.stringify(useTabs);
+	const useDropdownRef = useRef(useDropdown);
+	const useHeaderActionsRef = useRef(useHeaderActions);
+	const useHeadingRef = useRef(useHeading);
+	const useTabsRef = useRef(useTabs);
 
-	const setActions = useCallback(
-		(newActions: Dropdown) => {
-			dispatch({payload: newActions, type: HeaderTypes.SET_ACTIONS});
+	const actTimeout = useCallback(
+		(fn: () => void) => {
+			if (shouldUpdate) {
+				setTimeout(() => fn(), timeout);
+			}
 		},
-		[dispatch]
+		[shouldUpdate, timeout]
 	);
 
 	const setDropdown = useCallback(
@@ -63,57 +68,89 @@ const useHeader = ({
 		[dispatch]
 	);
 
-	const setHeading = useCallback(
-		(newHeading: HeaderTitle[] = [], append?: boolean) => {
+	const setDropdownIcon = useCallback(
+		(newSymbol: string) => {
 			dispatch({
-				payload: {append, heading: newHeading},
-				type: HeaderTypes.SET_HEADING,
+				payload: newSymbol,
+				type: HeaderTypes.SET_SYMBOL,
 			});
 		},
 		[dispatch]
 	);
 
+	const setHeaderActions = useCallback(
+		(newActions: HeaderActions) => {
+			actTimeout(() =>
+				dispatch({
+					payload: newActions,
+					type: HeaderTypes.SET_HEADER_ACTIONS,
+				})
+			);
+		},
+		[actTimeout, dispatch]
+	);
+
+	const setHeading = useCallback(
+		(newHeading: HeaderTitle[] = [], append?: boolean) => {
+			actTimeout(() =>
+				dispatch({
+					payload: {append, heading: newHeading},
+					type: HeaderTypes.SET_HEADING,
+				})
+			);
+		},
+		[actTimeout, dispatch]
+	);
+
 	const setTabs = useCallback(
 		(newTabs: HeaderTabs[] = []) =>
-			dispatch({payload: newTabs, type: HeaderTypes.SET_TABS}),
-		[dispatch]
+			actTimeout(() =>
+				dispatch({payload: newTabs, type: HeaderTypes.SET_TABS})
+			),
+		[actTimeout, dispatch]
 	);
 
 	useEffect(() => {
-		if (shouldUpdate && useHeadingString) {
-			setTimeout(() => {
-				setHeading(JSON.parse(useHeadingString));
-			}, timeout);
+		if (shouldUpdate && useHeadingRef.current) {
+			actTimeout(() => setHeading(useHeadingRef.current));
 		}
-	}, [setHeading, shouldUpdate, timeout, useHeadingString]);
+	}, [actTimeout, setHeading, shouldUpdate]);
 
 	useEffect(() => {
-		if (shouldUpdate && useTabsString) {
-			setTimeout(() => {
-				setTabs(JSON.parse(useTabsString));
-			}, timeout);
+		if (shouldUpdate && useIcon) {
+			setDropdownIcon(useIcon);
 		}
-	}, [setTabs, shouldUpdate, timeout, useTabsString]);
+	}, [setDropdownIcon, shouldUpdate, useIcon]);
 
 	useEffect(() => {
-		if (useActionString) {
-			setActions(JSON.parse(useActionString));
+		if (shouldUpdate && useTabsRef.current) {
+			setTabs(useTabsRef.current);
 		}
-	}, [setActions, useActionString]);
+	}, [setTabs, shouldUpdate]);
 
 	useEffect(() => {
-		if (useDropdownString) {
-			setDropdown(JSON.parse(useDropdownString));
+		if (shouldUpdate && useHeaderActionsRef.current) {
+			setHeaderActions(useHeaderActionsRef.current);
 		}
-	}, [setDropdown, useDropdownString]);
+	}, [setHeaderActions, shouldUpdate]);
+
+	useEffect(() => {
+		if (shouldUpdate && useDropdownRef.current) {
+			setDropdown(useDropdownRef.current);
+		}
+	}, [setDropdown, shouldUpdate]);
 
 	return {
+		context,
 		dispatch,
-		setActions,
 		setDropdown,
+		setDropdownIcon,
+		setHeaderActions,
 		setHeading,
 		setTabs,
 	};
 };
+
+export {useHeader};
 
 export default useHeader;

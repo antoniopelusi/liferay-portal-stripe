@@ -13,100 +13,54 @@
  */
 
 import {StyleErrorsContextProvider} from '@liferay/layout-content-page-editor-web';
-import {fetch, objectToFormData, openToast} from 'frontend-js-web';
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 
 import LayoutPreview from './LayoutPreview';
 import Sidebar from './Sidebar';
-import {StyleBookContextProvider} from './StyleBookContext';
 import Toolbar from './Toolbar';
 import {config, initializeConfig} from './config';
 import {DRAFT_STATUS} from './constants/draftStatusConstants';
 import {LAYOUT_TYPES} from './constants/layoutTypes';
+import {LayoutContextProvider} from './contexts/LayoutContext';
+import {StyleBookEditorContextProvider} from './contexts/StyleBookEditorContext';
 import {useCloseProductMenu} from './useCloseProductMenu';
 
-const StyleBookEditor = ({
-	frontendTokensValues: initialFrontendTokensValues,
-}) => {
+const StyleBookEditor = React.memo(() => {
 	useCloseProductMenu();
 
-	const [frontendTokensValues, setFrontendTokensValues] = useState(
-		initialFrontendTokensValues
-	);
-	const [draftStatus, setDraftStatus] = useState(DRAFT_STATUS.notSaved);
-	const [previewLayout, setPreviewLayout] = useState(
-		getMostRecentLayout(config.previewOptions)
-	);
-	const [previewLayoutType, setPreviewLayoutType] = useState(
-		() =>
-			config.previewOptions.find((type) =>
-				type.data.recentLayouts.find(
-					(layout) => layout === previewLayout
-				)
-			)?.type
-	);
-	const [loading, setLoading] = useState(true);
-
-	useEffect(() => {
-		if (frontendTokensValues === initialFrontendTokensValues) {
-			return;
-		}
-
-		setDraftStatus(DRAFT_STATUS.saving);
-
-		saveDraft(frontendTokensValues, config.styleBookEntryId)
-			.then(() => {
-				setDraftStatus(DRAFT_STATUS.draftSaved);
-			})
-			.catch((error) => {
-				if (process.env.NODE_ENV === 'development') {
-					console.error(error);
-				}
-
-				setDraftStatus(DRAFT_STATUS.notSaved);
-
-				openToast({
-					message: error.message,
-					type: 'danger',
-				});
-			});
-	}, [initialFrontendTokensValues, frontendTokensValues]);
-
 	return (
-		<StyleBookContextProvider
-			value={{
-				draftStatus,
-				frontendTokensValues,
-				loading,
-				previewLayout,
-				previewLayoutType,
-				setFrontendTokensValues,
-				setLoading,
-				setPreviewLayout,
-				setPreviewLayoutType,
-			}}
-		>
-			<div className="cadmin style-book-editor">
-				<StyleErrorsContextProvider>
+		<div className="cadmin d-flex flex-wrap style-book-editor">
+			<StyleErrorsContextProvider>
+				<LayoutContextProvider
+					initialState={{
+						previewLayout: getMostRecentLayout(
+							config.previewOptions
+						),
+						previewLayoutType: config.previewOptions.find((type) =>
+							type.data.recentLayouts.find(
+								(layout) =>
+									layout ===
+									getMostRecentLayout(config.previewOptions)
+							)
+						)?.type,
+					}}
+				>
 					<Toolbar />
 
-					<div className="d-flex">
-						<LayoutPreview />
+					<LayoutPreview />
+				</LayoutContextProvider>
 
-						<Sidebar />
-					</div>
-				</StyleErrorsContextProvider>
-			</div>
-		</StyleBookContextProvider>
+				<Sidebar />
+			</StyleErrorsContextProvider>
+		</div>
 	);
-};
+});
 
 export default function ({
 	fragmentCollectionPreviewURL = '',
 	frontendTokenDefinition = [],
 	frontendTokensValues = {},
 	isPrivateLayoutsEnabled,
-	layoutsTreeURL,
 	namespace,
 	previewOptions,
 	publishURL,
@@ -118,8 +72,8 @@ export default function ({
 	initializeConfig({
 		fragmentCollectionPreviewURL,
 		frontendTokenDefinition,
+		frontendTokens: getFrontendTokens(frontendTokenDefinition),
 		isPrivateLayoutsEnabled,
-		layoutsTreeURL,
 		namespace,
 		previewOptions,
 		publishURL,
@@ -129,38 +83,18 @@ export default function ({
 		themeName,
 	});
 
-	return <StyleBookEditor frontendTokensValues={frontendTokensValues} />;
-}
-
-function saveDraft(frontendTokensValues, styleBookEntryId) {
-	const body = objectToFormData({
-		[`${config.namespace}frontendTokensValues`]: JSON.stringify(
-			frontendTokensValues
-		),
-		[`${config.namespace}styleBookEntryId`]: styleBookEntryId,
-	});
-
-	return fetch(config.saveDraftURL, {body, method: 'post'})
-		.then((response) => {
-			return response
-				.clone()
-				.json()
-				.catch(() => response.text())
-				.then((body) => [response, body]);
-		})
-		.then(([response, body]) => {
-			if (response.status >= 400 || typeof body !== 'object') {
-				throw new Error(
-					Liferay.Language.get('an-unexpected-error-occurred')
-				);
-			}
-
-			if (body.error) {
-				throw new Error(body.error);
-			}
-
-			return body;
-		});
+	return (
+		<StyleBookEditorContextProvider
+			initialState={{
+				draftStatus: DRAFT_STATUS.notSaved,
+				frontendTokensValues,
+				redoHistory: [],
+				undoHistory: [],
+			}}
+		>
+			<StyleBookEditor />
+		</StyleBookEditorContextProvider>
+	);
 }
 
 function getMostRecentLayout(previewOptions) {
@@ -184,3 +118,25 @@ function getMostRecentLayout(previewOptions) {
 
 	return null;
 }
+
+const getFrontendTokens = ({frontendTokenCategories}) => {
+	let tokens = {};
+
+	for (const category of frontendTokenCategories) {
+		for (const tokenSet of category.frontendTokenSets) {
+			for (const token of tokenSet.frontendTokens) {
+				tokens = {
+					...tokens,
+					[token.name]: {
+						...token,
+						tokenCategoryLabel: category.label,
+						tokenSetLabel: tokenSet.label,
+						value: token.defaultValue,
+					},
+				};
+			}
+		}
+	}
+
+	return tokens;
+};

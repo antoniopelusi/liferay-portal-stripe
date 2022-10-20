@@ -65,10 +65,15 @@ definition {
 			locator1 = "TextInput#EMAIL_ADDRESS",
 			value1 = "${userEmailAddress}");
 
-		Button.clickSave();
+		AssertClick(
+			locator1 = "Button#SAVE",
+			value1 = "Save");
 
 		var uniqueSuccess = "Your comment has already been posted. Would you like to create an account with the provided information?";
+
 		var key_uniqueSuccess = "${uniqueSuccess}";
+
+		WaitForElementPresent(locator1 = "Message#UNIQUE_SUCCESS");
 
 		AssertTextEquals(
 			locator1 = "Message#UNIQUE_SUCCESS",
@@ -116,7 +121,7 @@ definition {
 			locator1 = "MenuItem#ANY_MENU_ITEM",
 			value1 = "Edit");
 
-		AssertElementPresent.pauseAssertVisible(locator1 = "CKEditor#BODY_FIELD_IFRAME_2");
+		WaitForElementPresent(locator1 = "CKEditor#BODY_FIELD_IFRAME_2");
 
 		SelectFrame.selectFrameNoLoading(locator1 = "CKEditor#BODY_FIELD_IFRAME_2");
 
@@ -162,6 +167,7 @@ definition {
 
 	macro getCommentId {
 		var currentURL = selenium.getCurrentUrl();
+
 		var commentId = StringUtil.extractLast("${currentURL}", "message_");
 
 		echo("commentId: ${commentId}");
@@ -192,7 +198,7 @@ definition {
 	}
 
 	macro subscribePG {
-		AssertElementPresent.pauseAssertVisible(locator1 = "CKEditor#BODY_FIELD_IFRAME");
+		WaitForVisible(locator1 = "CKEditor#BODY_FIELD_IFRAME");
 
 		AssertClick(
 			locator1 = "Button#SUBSCRIBE",
@@ -246,7 +252,7 @@ definition {
 	macro viewPG {
 		var key_entryComment = "${entryComment}";
 
-		Pause(locator1 = "1000");
+		WaitForElementPresent(locator1 = "Comments#COMMENT_BODY");
 
 		if (isSet(noAddPermissions)) {
 			AssertTextNotPresent(
@@ -264,8 +270,6 @@ definition {
 				key_userFullName = "${userFullName}",
 				locator1 = "Comments#USER_NAME_2",
 				value1 = "${userFullName}");
-
-			AssertElementPresent(locator1 = "Comments#COMMENT_BODY");
 		}
 		else {
 			var key_userFullName = "${userFullName}";

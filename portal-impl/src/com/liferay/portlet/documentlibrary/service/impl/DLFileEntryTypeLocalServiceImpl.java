@@ -482,7 +482,9 @@ public class DLFileEntryTypeLocalServiceImpl
 			long[] groupIds, long folderId, boolean inherited)
 		throws PortalException {
 
-		if (!inherited) {
+		if (!inherited &&
+			(folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID)) {
+
 			return _dlFolderPersistence.getDLFileEntryTypes(folderId);
 		}
 
@@ -772,10 +774,7 @@ public class DLFileEntryTypeLocalServiceImpl
 
 			_dlAppHelperLocalService.updateAsset(
 				userId, new LiferayFileEntry(dlFileEntry),
-				new LiferayFileVersion(dlFileVersion),
-				serviceContext.getAssetCategoryIds(),
-				serviceContext.getAssetTagNames(),
-				serviceContext.getAssetLinkEntryIds());
+				new LiferayFileVersion(dlFileVersion), serviceContext);
 		}
 
 		List<DLFolder> subfolders = _dlFolderPersistence.findByG_M_P_H(

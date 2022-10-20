@@ -14,20 +14,27 @@
 
 package com.liferay.commerce.discount.internal.upgrade.v2_2_0;
 
-import com.liferay.commerce.discount.internal.upgrade.base.BaseCommerceDiscountUpgradeProcess;
+import com.liferay.portal.kernel.upgrade.UpgradeProcess;
+import com.liferay.portal.kernel.upgrade.UpgradeProcessFactory;
+import com.liferay.portal.kernel.upgrade.UpgradeStep;
 
 /**
  * @author Riccardo Alberti
  */
-public class CommerceDiscountUpgradeProcess
-	extends BaseCommerceDiscountUpgradeProcess {
+public class CommerceDiscountUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		addColumn("CommerceDiscount", "level", "VARCHAR(75)");
-		addColumn("CommerceDiscount", "rulesConjunction", "BOOLEAN");
-
 		runSQL("update CommerceDiscount set rulesConjunction = [$TRUE$]");
+	}
+
+	@Override
+	protected UpgradeStep[] getPreUpgradeSteps() {
+		return new UpgradeStep[] {
+			UpgradeProcessFactory.addColumns(
+				"CommerceDiscount", "level VARCHAR(75)",
+				"rulesConjunction BOOLEAN")
+		};
 	}
 
 }

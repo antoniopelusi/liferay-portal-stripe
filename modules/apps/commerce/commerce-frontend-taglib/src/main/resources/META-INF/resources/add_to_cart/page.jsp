@@ -84,7 +84,15 @@ if (alignment.equals("full-width")) {
 		JSONSerializer jsonSerializer = JSONFactoryUtil.createJSONSerializer();
 		%>
 
-		props.settings.quantityDetails = <%= jsonSerializer.serializeDeep(productSettingsModel) %>;
+		const productConfiguration = <%= jsonSerializer.serializeDeep(productSettingsModel) %>;
+
+		props.settings.productConfiguration = {
+			allowBackOrder: productConfiguration.backOrders,
+			allowedOrderQuantities: productConfiguration.allowedQuantities,
+			maxOrderQuantity: productConfiguration.maxQuantity,
+			minOrderQuantity: productConfiguration.minQuantity,
+			multipleOrderQuantity: productConfiguration.multipleQuantity,
+		};
 	</c:if>
 
 	AddToCart.default('<%= addToCartId %>', '<%= addToCartId %>', props);

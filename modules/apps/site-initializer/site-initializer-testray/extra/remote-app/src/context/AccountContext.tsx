@@ -1,3 +1,4 @@
+/* eslint-disable no-case-declarations */
 /**
  * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
@@ -12,10 +13,10 @@
  * details.
  */
 
-import {createContext, useEffect, useReducer} from 'react';
+import {ReactNode, createContext, useEffect, useReducer} from 'react';
 
-import apolloClient from '../graphql/apolloClient';
-import {UserAccount, getLiferayMyUserAccount} from '../graphql/queries';
+import {useFetch} from '../hooks/useFetch';
+import {UserAccount} from '../services/rest';
 import {ActionMap} from '../types';
 
 type InitialState = {
@@ -31,7 +32,9 @@ export enum AccountTypes {
 }
 
 type AccountPayload = {
-	[AccountTypes.SET_MY_USER_ACCOUNT]: UserAccount;
+	[AccountTypes.SET_MY_USER_ACCOUNT]: {
+		account: UserAccount;
+	};
 };
 
 type AppActions = ActionMap<AccountPayload>[keyof ActionMap<AccountPayload>];
@@ -43,9 +46,11 @@ export const AccountContext = createContext<
 const reducer = (state: InitialState, action: AppActions) => {
 	switch (action.type) {
 		case AccountTypes.SET_MY_USER_ACCOUNT:
+			const {account} = action.payload;
+
 			return {
 				...state,
-				myUserAccount: action.payload,
+				myUserAccount: account,
 			};
 
 		default:
@@ -53,20 +58,35 @@ const reducer = (state: InitialState, action: AppActions) => {
 	}
 };
 
-const AccountContextProvider: React.FC = ({children}) => {
+const AccountContextProvider: React.FC<{
+	children: ReactNode;
+}> = ({children}) => {
 	const [state, dispatch] = useReducer(reducer, initialState);
+	const {data: myUserAccount} = useFetch(
+		'/my-user-account',
+		(user: UserAccount) => ({
+			additionalName: user?.additionalName,
+			alternateName: user?.alternateName,
+			emailAddress: user?.emailAddress,
+			familyName: user?.familyName,
+			givenName: user?.givenName,
+			id: user?.id,
+			image: '',
+			roleBriefs: user?.roleBriefs,
+			uuid: user?.uuid,
+		})
+	);
 
 	useEffect(() => {
-		apolloClient
-			.query({query: getLiferayMyUserAccount})
-			.then((response) =>
-				dispatch({
-					payload: response.data.myUserAccount as UserAccount,
-					type: AccountTypes.SET_MY_USER_ACCOUNT,
-				})
-			)
-			.catch(console.error);
-	}, []);
+		if (myUserAccount) {
+			dispatch({
+				payload: {
+					account: myUserAccount,
+				},
+				type: AccountTypes.SET_MY_USER_ACCOUNT,
+			});
+		}
+	}, [myUserAccount]);
 
 	return (
 		<AccountContext.Provider value={[state, dispatch]}>

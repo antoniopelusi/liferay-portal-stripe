@@ -15,6 +15,7 @@ import ClayDropDown from '@clayui/drop-down';
 import ClayIcon from '@clayui/icon';
 import ClayLabel from '@clayui/label';
 import ClayTabs from '@clayui/tabs';
+import {openConfirmModal} from 'frontend-js-web';
 import PropTypes from 'prop-types';
 import React, {useContext, useState} from 'react';
 
@@ -231,12 +232,15 @@ function SegmentsExperiments({
 					)}
 
 					{!experiment && (
-						<div className="text-center">
+						<div className="segments-experiments-empty-state text-center">
 							<img
-								alt=""
-								className="my-3"
+								alt={Liferay.Language.get(
+									'create-test-help-message'
+								)}
+								className="mb-3 mt-4 segments-experiments-empty-state__image"
+								height="185"
 								src={noExperimentIllustration}
-								width="120px"
+								width="185"
 							/>
 
 							<h4 className="text-dark">
@@ -276,13 +280,18 @@ function SegmentsExperiments({
 	);
 
 	function _handleDeleteActiveExperiment() {
-		const confirmed = confirm(
-			Liferay.Language.get('are-you-sure-you-want-to-delete-this')
-		);
-
-		if (confirmed) {
-			return onDeleteSegmentsExperiment(experiment.segmentsExperimentId);
-		}
+		openConfirmModal({
+			message: Liferay.Language.get(
+				'are-you-sure-you-want-to-delete-this'
+			),
+			onConfirm: (isConfirmed) => {
+				if (isConfirmed) {
+					return onDeleteSegmentsExperiment(
+						experiment.segmentsExperimentId
+					);
+				}
+			},
+		});
 	}
 
 	function _handleEditExperiment() {
@@ -296,28 +305,29 @@ function SegmentsExperiments({
 			winnerSegmentsExperienceId: experienceId,
 		};
 
-		const confirmed = confirm(
-			Liferay.Language.get(
+		openConfirmModal({
+			message: Liferay.Language.get(
 				'are-you-sure-you-want-to-publish-this-variant'
-			)
-		);
+			),
+			onConfirm: (isConfimed) => {
+				if (isConfimed) {
+					APIService.publishExperience(body)
+						.then(({segmentsExperiment}) => {
+							openSuccessToast();
 
-		if (confirmed) {
-			APIService.publishExperience(body)
-				.then(({segmentsExperiment}) => {
-					openSuccessToast();
-
-					dispatch(
-						archiveExperiment({
-							status: segmentsExperiment.status,
+							dispatch(
+								archiveExperiment({
+									status: segmentsExperiment.status,
+								})
+							);
+							navigateToExperience(experienceId);
 						})
-					);
-					navigateToExperience(experienceId);
-				})
-				.catch((_error) => {
-					openErrorToast();
-				});
-		}
+						.catch((_error) => {
+							openErrorToast();
+						});
+				}
+			},
+		});
 	}
 }
 

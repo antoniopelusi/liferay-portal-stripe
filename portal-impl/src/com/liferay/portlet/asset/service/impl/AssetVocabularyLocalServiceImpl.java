@@ -186,10 +186,6 @@ public class AssetVocabularyLocalServiceImpl
 
 		long vocabularyId = counterLocalService.increment();
 
-		if (Validator.isNull(externalReferenceCode)) {
-			externalReferenceCode = String.valueOf(vocabularyId);
-		}
-
 		_validateExternalReferenceCode(externalReferenceCode, groupId);
 
 		AssetVocabulary vocabulary = assetVocabularyPersistence.create(
@@ -464,20 +460,12 @@ public class AssetVocabularyLocalServiceImpl
 
 	@Override
 	public BaseModelSearchResult<AssetVocabulary> searchVocabularies(
-			long companyId, long groupId, String title, int start, int end)
-		throws PortalException {
-
-		return searchVocabularies(companyId, groupId, title, start, end, null);
-	}
-
-	@Override
-	public BaseModelSearchResult<AssetVocabulary> searchVocabularies(
-			long companyId, long groupId, String title, int start, int end,
-			Sort sort)
+			long companyId, long[] groupIds, String title,
+			int[] visibilityTypes, int start, int end, Sort sort)
 		throws PortalException {
 
 		SearchContext searchContext = buildSearchContext(
-			companyId, groupId, title, start, end, sort);
+			companyId, groupIds, title, visibilityTypes, start, end, sort);
 
 		return searchVocabularies(searchContext);
 	}
@@ -512,6 +500,7 @@ public class AssetVocabularyLocalServiceImpl
 		return assetVocabularyPersistence.update(vocabulary);
 	}
 
+	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public AssetVocabulary updateVocabulary(
 			long vocabularyId, String title, Map<Locale, String> titleMap,
@@ -519,29 +508,9 @@ public class AssetVocabularyLocalServiceImpl
 			ServiceContext serviceContext)
 		throws PortalException {
 
-		return assetVocabularyLocalService.updateVocabulary(
-			vocabularyId, titleMap.get(LocaleUtil.getSiteDefault()), title,
-			titleMap, descriptionMap, settings, serviceContext);
-	}
-
-	@Indexable(type = IndexableType.REINDEX)
-	@Override
-	public AssetVocabulary updateVocabulary(
-			long vocabularyId, String name, String title,
-			Map<Locale, String> titleMap, Map<Locale, String> descriptionMap,
-			String settings, ServiceContext serviceContext)
-		throws PortalException {
-
 		AssetVocabulary vocabulary =
 			assetVocabularyPersistence.findByPrimaryKey(vocabularyId);
 
-		name = _getVocabularyName(name);
-
-		if (!StringUtil.equalsIgnoreCase(vocabulary.getName(), name)) {
-			validate(vocabulary.getGroupId(), name);
-		}
-
-		vocabulary.setName(name);
 		vocabulary.setTitleMap(titleMap);
 
 		if (Validator.isNotNull(title)) {
@@ -555,15 +524,16 @@ public class AssetVocabularyLocalServiceImpl
 	}
 
 	protected SearchContext buildSearchContext(
-		long companyId, long groupId, String title, int start, int end,
-		Sort sort) {
+		long companyId, long[] groupIds, String title, int[] visibilityTypes,
+		int start, int end, Sort sort) {
 
 		SearchContext searchContext = new SearchContext();
 
 		searchContext.setAttribute(Field.TITLE, title);
+		searchContext.setAttribute(Field.VISIBILITY_TYPE, visibilityTypes);
 		searchContext.setCompanyId(companyId);
 		searchContext.setEnd(end);
-		searchContext.setGroupIds(new long[] {groupId});
+		searchContext.setGroupIds(groupIds);
 		searchContext.setKeywords(title);
 		searchContext.setSorts(sort);
 		searchContext.setStart(start);
@@ -654,6 +624,10 @@ public class AssetVocabularyLocalServiceImpl
 	private void _validateExternalReferenceCode(
 			String externalReferenceCode, long groupId)
 		throws PortalException {
+
+		if (Validator.isNull(externalReferenceCode)) {
+			return;
+		}
 
 		AssetVocabulary assetVocabulary =
 			assetVocabularyPersistence.fetchByG_ERC(

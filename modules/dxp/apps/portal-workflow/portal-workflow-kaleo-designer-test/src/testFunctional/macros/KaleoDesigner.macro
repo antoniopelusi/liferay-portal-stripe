@@ -5,7 +5,7 @@ definition {
 
 		var key_nodeType = "${nodeType}";
 
-		Pause(locator1 = "1000");
+		WaitForElementPresent(locator1 = "KaleoDesignerEditWorkflow#VIEW_FORM_NODE_DEFAULT");
 
 		Click(locator1 = "KaleoDesignerEditWorkflow#VIEW_FORM_NODE_DEFAULT");
 
@@ -148,19 +148,15 @@ definition {
 			locator1 = "KaleoDesignerEditWorkflow#SOURCE_KALEO_XML_TAB",
 			value1 = "Source");
 
-		Pause(locator1 = "1000");
+		WaitForEditable(locator1 = "KaleoDesignerEditWorkflow#SOURCE_KALEO_XML_CONTENT");
 
 		Type.typeAceEditorNoMouseOver(
 			locator1 = "KaleoDesignerEditWorkflow#SOURCE_KALEO_XML_CONTENT",
 			value1 = "${sourceXml}");
 
-		Pause(locator1 = "1000");
-
 		AssertClick(
 			locator1 = "KaleoDesignerEditWorkflow#DIAGRAM_TAB",
 			value1 = "Diagram");
-
-		Pause(locator1 = "1000");
 	}
 
 	macro addNodeViaViewTab {
@@ -175,7 +171,7 @@ definition {
 
 		var key_nodeType = "${nodeType}";
 
-		Pause(locator1 = "1000");
+		WaitForElementPresent(locator1 = "KaleoDesignerEditWorkflow#VIEW_FORM_NODE_DEFAULT");
 
 		Click(locator1 = "KaleoDesignerEditWorkflow#VIEW_FORM_NODE_DEFAULT");
 
@@ -242,19 +238,15 @@ definition {
 			locator1 = "KaleoDesignerEditWorkflow#SOURCE_KALEO_XML_TAB",
 			value1 = "Source");
 
-		Pause(locator1 = "1000");
-
 		Type.typeAceEditorNoMouseOver(
 			locator1 = "KaleoDesignerEditWorkflow#SOURCE_KALEO_XML_CONTENT",
 			value1 = "${sourceXml}");
 
-		Pause(locator1 = "1000");
+		WaitForElementPresent(locator1 = "KaleoDesignerEditWorkflow#DIAGRAM_TAB");
 
 		AssertClick(
 			locator1 = "KaleoDesignerEditWorkflow#DIAGRAM_TAB",
 			value1 = "Diagram");
-
-		Pause(locator1 = "1000");
 	}
 
 	macro deleteConnector {
@@ -267,8 +259,6 @@ definition {
 			value1 = "\DELETE");
 
 		AssertConfirm(value1 = "Are you sure you want to delete the selected connector(s)?");
-
-		Pause(locator1 = "1000");
 
 		KaleoDesigner.viewConnectorNotPresent(
 			connectorLabel = "${connectorLabel}",
@@ -284,7 +274,7 @@ definition {
 
 		AssertConfirm(value1 = "Are you sure you want to delete the selected node(s)?");
 
-		Pause(locator1 = "1000");
+		WaitForElementNotPresent(locator1 = "KaleoDesignerEditWorkflow#VIEW_FORM_NODE");
 
 		KaleoDesigner.viewNodeNotPresent(nodeNodeLabel = "${nodeNodeLabel}");
 	}
@@ -501,7 +491,9 @@ definition {
 			}
 		}
 
-		Pause(locator1 = "1000");
+		WaitForElementPresent(
+			locator1 = "Button#SAVE",
+			value1 = "Save");
 
 		AssertClick(
 			locator1 = "Button#SAVE",
@@ -775,7 +767,9 @@ definition {
 			}
 		}
 
-		Pause(locator1 = "1000");
+		WaitForElementPresent(
+			locator1 = "Button#SAVE",
+			value1 = "Save");
 
 		AssertClick(
 			locator1 = "Button#SAVE",
@@ -844,16 +838,12 @@ definition {
 				locator1 = "KaleoDesignerEditWorkflow#SOURCE_KALEO_XML_CONTENT_SPECIFIC_LINE_CONTENT",
 				value1 = "${kdSourceXml}");
 		}
-
-		Pause(locator1 = "1000");
 	}
 
 	macro viewSourceXMLTab {
 		AssertClick(
 			locator1 = "KaleoDesignerEditWorkflow#SOURCE_KALEO_XML_TAB",
 			value1 = "Source");
-
-		Pause(locator1 = "1000");
 	}
 
 	macro viewTotalModifications {
@@ -872,8 +862,6 @@ definition {
 		AssertClick(
 			locator1 = "KaleoDesignerEditWorkflow#DIAGRAM_TAB",
 			value1 = "Diagram");
-
-		Pause(locator1 = "1000");
 	}
 
 }

@@ -18,10 +18,12 @@ import com.liferay.petra.sql.dsl.DSLQueryFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.UserGroupRoleTable;
+import com.liferay.portal.kernel.model.UserTable;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.service.RoleLocalServiceWrapper;
 import com.liferay.portal.kernel.service.ServiceWrapper;
 import com.liferay.portal.kernel.service.UserGroupRoleLocalService;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -44,8 +46,17 @@ public class AccountRoleAssigneesRoleLocalServiceWrapper
 					UserGroupRoleTable.INSTANCE.userId
 				).from(
 					UserGroupRoleTable.INSTANCE
+				).innerJoinON(
+					UserTable.INSTANCE,
+					UserTable.INSTANCE.userId.eq(
+						UserGroupRoleTable.INSTANCE.userId)
 				).where(
-					UserGroupRoleTable.INSTANCE.roleId.eq(role.getRoleId())
+					UserGroupRoleTable.INSTANCE.roleId.eq(
+						role.getRoleId()
+					).and(
+						UserTable.INSTANCE.status.eq(
+							WorkflowConstants.STATUS_APPROVED)
+					)
 				));
 		}
 

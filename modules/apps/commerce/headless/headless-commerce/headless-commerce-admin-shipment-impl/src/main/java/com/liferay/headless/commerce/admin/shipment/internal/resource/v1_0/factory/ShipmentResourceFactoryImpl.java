@@ -14,6 +14,7 @@
 
 package com.liferay.headless.commerce.admin.shipment.internal.resource.v1_0.factory;
 
+import com.liferay.headless.commerce.admin.shipment.internal.security.permission.LiberalPermissionChecker;
 import com.liferay.headless.commerce.admin.shipment.resource.v1_0.ShipmentResource;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.User;
@@ -193,7 +194,7 @@ public class ShipmentResourceFactoryImpl implements ShipmentResource.Factory {
 		}
 		else {
 			PermissionThreadLocal.setPermissionChecker(
-				_liberalPermissionCheckerFactory.create(user));
+				new LiberalPermissionChecker(user));
 		}
 
 		ShipmentResource shipmentResource =
@@ -255,9 +256,6 @@ public class ShipmentResourceFactoryImpl implements ShipmentResource.Factory {
 
 	@Reference
 	private GroupLocalService _groupLocalService;
-
-	@Reference(target = "(permission.checker.type=liberal)")
-	private PermissionCheckerFactory _liberalPermissionCheckerFactory;
 
 	@Reference
 	private ResourceActionLocalService _resourceActionLocalService;

@@ -132,7 +132,8 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/view.jsp",
 		"javax.portlet.name=" + RolesAdminPortletKeys.ROLES_ADMIN,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=administrator"
+		"javax.portlet.security-role-ref=administrator",
+		"javax.portlet.version=3.0"
 	},
 	service = Portlet.class
 )
@@ -163,12 +164,15 @@ public class RolesAdminPortlet extends MVCPortlet {
 
 		String name = ParamUtil.getString(actionRequest, "name");
 		int scope = ParamUtil.getInteger(actionRequest, "scope");
-		String primKey = ParamUtil.getString(actionRequest, "primKey");
+		String[] primKeys = ParamUtil.getStringValues(
+			actionRequest, "primKeys");
 		String actionId = ParamUtil.getString(actionRequest, "actionId");
 
-		_resourcePermissionService.removeResourcePermission(
-			themeDisplay.getScopeGroupId(), themeDisplay.getCompanyId(), name,
-			scope, primKey, roleId, actionId);
+		for (String primKey : primKeys) {
+			_resourcePermissionService.removeResourcePermission(
+				themeDisplay.getScopeGroupId(), themeDisplay.getCompanyId(),
+				name, scope, primKey, roleId, actionId);
+		}
 
 		// Send redirect
 

@@ -1,7 +1,6 @@
 @component-name = "portal-object"
 definition {
 
-	property portal.acceptance = "true";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Object";
@@ -445,7 +444,7 @@ definition {
 	@description = "LPS-135400 - Verify it is possible to add a relation with an entry through the Relationship field"
 	@priority = "5"
 	test CanAddRelationOnRelationshipField {
-		property portal.acceptance = "quarantine";
+		property portal.acceptance = "true";
 
 		ObjectAdmin.addObjectViaAPI(
 			labelName = "Custom Object 141652",
@@ -469,7 +468,7 @@ definition {
 
 		ObjectAdmin.publishObjectViaAPI(objectName = "CustomObject141652");
 
-		for (var fieldEntry : list "A,B") {
+		for (var fieldEntry : list "A") {
 			ObjectAdmin.addObjectSingleFieldEntryViaAPI(
 				fieldName = "customObjectField",
 				objectName = "CustomObject141652",
@@ -516,13 +515,13 @@ definition {
 
 		ObjectPortlet.selectRelationshipFieldEntry(
 			entry = "",
-			newEntry = "Entry B");
+			newEntry = "Entry A");
 
 		Navigator.openURL();
 
 		ObjectAdmin.goToCustomObject(objectName = "CustomObject141652");
 
-		ObjectPortlet.viewEntryDetails(entry = "Entry B");
+		ObjectPortlet.viewEntryDetails(entry = "Entry A");
 
 		ObjectPortlet.gotoRelationshipTab();
 
@@ -686,9 +685,11 @@ definition {
 			key_type = "One to Many",
 			locator1 = "ObjectAdmin#SELECT_RELATIONSHIPS_TYPE_OPTION");
 
-		Select(
-			locator1 = "ObjectAdmin#SELECT_OBJECT_RELATIONSHIP",
-			value1 = "CustomObject13");
+		Click(locator1 = "ObjectCustomViews#SELECT_AUTO_COMPLETE");
+
+		Click(
+			key_columnOption = "Custom Object 13",
+			locator1 = "ObjectCustomViews#SELECT_AUTO_COMPLETE_OPTION");
 
 		Button.clickCancel();
 
@@ -781,8 +782,6 @@ definition {
 	@description = "LPS-135397 - Verify it is possible to collapse and expand a block of fields"
 	@priority = "4"
 	test CanCollapseAndExpandBlock {
-		property portal.upstream = "quarantine";
-
 		ObjectAdmin.addObjectViaAPI(
 			labelName = "Custom Object 16",
 			objectName = "CustomObject16",
@@ -1042,7 +1041,7 @@ definition {
 
 		ObjectAdmin.addObjectRelationshipViaUI(
 			label = "Relationship",
-			object = "ObjectB26",
+			object = "Object B 26",
 			type = "Many to Many");
 
 		AssertElementPresent(
@@ -1071,7 +1070,7 @@ definition {
 
 		ObjectAdmin.addObjectRelationshipViaUI(
 			label = "Relationship",
-			object = "CustomObjectB28",
+			object = "Custom Object B 28",
 			type = "One to Many");
 
 		AssertElementPresent(
@@ -1553,7 +1552,7 @@ definition {
 			key_tab = "Save",
 			locator1 = "Button#TAB_SUBMIT_BTN");
 
-		ObjectAdmin.assertObjectLayoutRelationshipFieldRequiredError();
+		FieldBase.assertRequiredFieldErrorPresent(fieldLabel = "Relationship");
 	}
 
 	@description = "LPS-135397 - Verify that the Relationship tab cannot be added first"
@@ -1660,7 +1659,7 @@ definition {
 
 		ObjectAdmin.addObjectRelationshipViaUI(
 			label = "Relationship",
-			object = "CustomObject41",
+			object = "Custom Object 41",
 			type = "One to Many");
 
 		AssertTextEquals(
@@ -1713,65 +1712,6 @@ definition {
 		ObjectPortlet.assertDeleteEntryButtonNotPresent(entry = "Custom Object 42");
 	}
 
-	@description = "LPS-139160 - Verify it is not possible to delete an Object via API after it was published"
-	@priority = "4"
-	test CannotDeletePublishedObjectViaApi {
-		ObjectAdmin.addObjectViaAPI(
-			labelName = "Custom Object 43",
-			objectName = "CustomObject43",
-			pluralLabelName = "Custom Objects 43");
-
-		ObjectAdmin.addObjectFieldViaAPI(
-			fieldBusinessType = "Text",
-			fieldLabelName = "Field",
-			fieldName = "customObjectField",
-			fieldType = "String",
-			isRequired = "false",
-			objectName = "CustomObject43");
-
-		ObjectAdmin.publishObjectViaAPI(objectName = "CustomObject43");
-
-		ObjectAdmin.deleteAllCustomObjectsViaAPI();
-
-		ObjectAdmin.openObjectAdmin();
-
-		ObjectAdmin.assertObjectStatus(
-			label = "Custom Object 43",
-			status = "Approved");
-	}
-
-	@description = "LPS-135400 - Verify it is not possible to delete a Relationship when an Object is published"
-	@priority = "5"
-	test CannotDeleteRelationshipWhenPublished {
-		property portal.acceptance = "true";
-
-		ObjectAdmin.addObjectViaAPI(
-			labelName = "Custom Object 44",
-			objectName = "CustomObject44",
-			pluralLabelName = "Custom Objects 44");
-
-		ObjectAdmin.addObjectRelationshipViaAPI(
-			objectName_1 = "CustomObject44",
-			objectName_2 = "CustomObject44",
-			relationshipLabel = "Relationship",
-			relationshipName = "relationship",
-			relationshipType = "oneToMany");
-
-		ObjectAdmin.publishObjectViaAPI(objectName = "CustomObject44");
-
-		ObjectAdmin.openObjectAdmin();
-
-		ObjectPortlet.selectCustomObject(label = "Custom Object 44");
-
-		ObjectAdmin.gotoRelationshipsTab();
-
-		AssertElementNotPresent(locator1 = "ObjectAdmin#KEBAB_MENU");
-
-		AssertElementNotPresent(
-			key_kebabOption = "Delete",
-			locator1 = "ObjectAdmin#KEBAB_MENU_OPTION");
-	}
-
 	@description = "LPS-135549 - Verify it is not possible to leave the Field Name field blank"
 	@priority = "4"
 	test CannotLeaveFieldNameBlank {
@@ -1793,7 +1733,7 @@ definition {
 			fieldName = "",
 			fieldType = "Text");
 
-		AssertElementPresent(locator1 = "ObjectAdmin#REQUIRED_ERROR_MESSAGE");
+		FieldBase.assertRequiredFieldErrorPresent(fieldLabel = "Field Name");
 	}
 
 	@description = "LPS-135549 - Verify it is not possible to leave the Label field blank"
@@ -1817,7 +1757,7 @@ definition {
 			fieldName = "customField",
 			fieldType = "Text");
 
-		ObjectAdmin.assertLabelFieldRequired();
+		FieldBase.assertRequiredFieldErrorPresent(fieldLabel = "Label");
 	}
 
 	@description = "LPS-135549 - Verify it is not possible to leave the Object Label field blank"
@@ -1837,7 +1777,7 @@ definition {
 
 		ObjectAdmin.saveCustomObject();
 
-		ObjectAdmin.assertObjectLabelFieldRequired();
+		FieldBase.assertRequiredFieldErrorPresent(fieldLabel = "Label");
 	}
 
 	@description = "LPS-135549 - Verify it is not possible to leave the Object Name field blank"
@@ -1852,7 +1792,7 @@ definition {
 
 		ObjectAdmin.saveCustomObject();
 
-		ObjectAdmin.assertObjectNameFieldRequired();
+		FieldBase.assertRequiredFieldErrorPresent(fieldLabel = "Object Name");
 	}
 
 	@description = "LPS-136595 - Verify it is not possible to leave the Picklist field empty when creating an Object Picklist field"
@@ -1875,7 +1815,7 @@ definition {
 
 		Button.clickSave();
 
-		CreateObject.assertRequiredPicklistOnField();
+		FieldBase.assertRequiredFieldErrorPresent(fieldLabel = "Picklist");
 	}
 
 	@description = "LPS-135400 - Verify it is not possible to leave the Relationship Name blank"
@@ -1895,10 +1835,10 @@ definition {
 		ObjectAdmin.addObjectRelationshipViaUI(
 			label = "Relationship",
 			name = "",
-			object = "CustomObject49",
+			object = "Custom Object 49",
 			type = "One to Many");
 
-		AssertElementPresent(locator1 = "ObjectAdmin#NAME_OBJECT_RELATIONSHIP_REQUIRED");
+		FieldBase.assertRequiredFieldErrorPresent(fieldLabel = "Name");
 	}
 
 	@description = "LPS-135400 - Verify it is not possible to leave the Relationship Object blank"
@@ -1919,7 +1859,7 @@ definition {
 			label = "Custom Relationship",
 			type = "One to Many");
 
-		CreateObject.assertRequiredPicklistOnField();
+		FieldBase.assertRequiredFieldErrorPresent(fieldLabel = "Object");
 	}
 
 	@description = "LPS-135400 - Verify it is not possible to leave the Relationship Type blank"
@@ -1938,9 +1878,9 @@ definition {
 
 		ObjectAdmin.addObjectRelationshipViaUI(
 			label = "Relationship",
-			object = "CustomObject51");
+			object = "Custom Object 51");
 
-		AssertElementPresent(locator1 = "ObjectAdmin#RELATIONSHIPS_TYPE_FORM_REQUIRED");
+		FieldBase.assertRequiredFieldErrorPresent(fieldLabel = "Type");
 	}
 
 	@description = "LPS-135549 - Verify it is not possible to leave the Type field blank"
@@ -1961,7 +1901,7 @@ definition {
 
 		ObjectAdmin.addObjectFieldViaUI(fieldLabel = "Custom Field");
 
-		ObjectAdmin.assertTypeFieldRequired();
+		FieldBase.assertRequiredFieldErrorPresent(fieldLabel = "Type");
 	}
 
 	@description = "LPS-135390 - Verify it is not possible to publish an Object without the Publish Object Definition permission"
@@ -2044,7 +1984,7 @@ definition {
 
 		AssertTextEquals(
 			locator1 = "Message#ERROR",
-			value1 = "The first character of a name must be an upper case letter.");
+			value1 = "The first character of a name must be an uppercase letter.");
 	}
 
 	@description = "LPS-135549 - Verify it is not possible to save with special characters for the Field Name"
@@ -2094,7 +2034,7 @@ definition {
 
 		AssertTextEquals(
 			locator1 = "Message#ERROR",
-			value1 = "The first character of a name must be an lower case letter.");
+			value1 = "The first character of a name must be a lowercase letter.");
 	}
 
 	@description = "LPS-135549 - Verify it is not possible to save with special characters for the Object Name"
@@ -2239,9 +2179,7 @@ definition {
 			fieldName = "Text",
 			fieldValue = "Entry 1");
 
-		AssertClick(
-			locator1 = "Button#MAIN_CONTENT_SUBMIT",
-			value1 = "Submit");
+		Button.clickSubmitForPublication();
 
 		AssertElementNotPresent(locator1 = "Message#SUCCESS_DISMISSIBLE");
 	}
@@ -3251,7 +3189,7 @@ definition {
 			fieldName = "Text",
 			fieldValue = "Entry 1");
 
-		FormPortlet.submitSuccessfully();
+		Button.clickSubmitForPublication();
 
 		Navigator.openURL();
 
@@ -4246,7 +4184,7 @@ definition {
 
 		ObjectAdmin.selectKebabMenuOption(kebabOption = "View");
 
-		ObjectAdmin.viewFieldDetails();
+		ObjectAdmin.viewDetails();
 	}
 
 	@description = "LPS-135549 - Verify it is possible to view the Details of a Field by clicking on its name"
@@ -4273,7 +4211,7 @@ definition {
 
 		ObjectAdmin.goToFieldsDetails(label = "Custom Field");
 
-		AssertElementPresent(locator1 = "ObjectAdmin#FIELDS_DETAILS_IFRAME");
+		AssertElementPresent(locator1 = "ObjectAdmin#SIDE_PANEL");
 	}
 
 	@description = "LPS-139803 - Verify it the Object Entry Title of a BigDecimal type is displayed on the Relationship field when adding an entry"
@@ -4352,7 +4290,7 @@ definition {
 
 		Button.clickSave();
 
-		ObjectAdmin.addObjectBoleanFieldEntryViaUI(
+		ObjectAdmin.addObjectBooleanFieldEntryViaUI(
 			objectName = "CustomObject112",
 			value = "true");
 
@@ -4950,7 +4888,7 @@ definition {
 
 		ObjectAdmin.selectKebabMenuOption(kebabOption = "View");
 
-		ObjectAdmin.viewFieldDetails();
+		ObjectAdmin.viewDetails();
 	}
 
 	@description = "LPS-135397 - Verify if it's possible to view a tab of relationship with entries"
@@ -5243,6 +5181,8 @@ definition {
 	@description = "LPS-135401 - Verify if Cascade deletion type of Relationship One to Many will allow the entry with relation (from the parent Object) and its relations to be deleted"
 	@priority = "5"
 	test CascadeDeletionOneToManyWillAllowDeleteParent {
+		property portal.acceptance = "true";
+
 		for (var letter : list "A,B") {
 			ObjectAdmin.addObjectViaAPI(
 				labelName = "Custom Object ${letter} 124",
@@ -5460,6 +5400,8 @@ definition {
 	@description = "LPS-135649 - Verify that a completed entry is displayed with an Approved status"
 	@priority = "5"
 	test CompletedEntryDisplaysApprovedStatus {
+		property portal.acceptance = "true";
+
 		ObjectAdmin.addObjectViaAPI(
 			labelName = "Custom Object 141629",
 			objectName = "CustomObject141629",
@@ -5726,6 +5668,8 @@ definition {
 	@description = "LPS-135401 - Verify if Disassociate deletion type of Relationship One to Many will allow the entry with relation (from the parent Object) to be deleted and its relations to be disassociated"
 	@priority = "5"
 	test DisassociateDeletionOneToManyWillAllowDeleteParent {
+		property portal.acceptance = "true";
+
 		for (var nameObject : list "A,B") {
 			ObjectAdmin.addObjectViaAPI(
 				labelName = "Custom Object ${nameObject} 129",
@@ -5899,7 +5843,13 @@ definition {
 
 		ObjectAdmin.addLayoutBlockViaUI(blockName = "Block Name");
 
-		ObjectAdmin.assertNotPossibleAddFieldOnBlockWithoutChooseOptionField();
+		Click(locator1 = "ObjectAdmin#ADD_FIELD_ON_BLOCK");
+
+		Click(
+			key_tab = "Save",
+			locator1 = "Button#TAB_SUBMIT_BTN");
+
+		FieldBase.assertRequiredFieldErrorPresent(fieldLabel = "Field");
 	}
 
 	@description = "LPS-140097 - Verify that other fields are not deleted when a Relationship field is deleted after a Relationship is deleted"
@@ -6317,10 +6267,10 @@ definition {
 
 		PageEditor.editCollectionDisplay(
 			fragmentName = "Collection Display",
-			listStyle = "Table",
-			selectedName = "Custom Objects 145");
+			selectedName = "Custom Objects 145",
+			styleDisplay = "Table");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		Navigator.openURL();
 
@@ -6524,8 +6474,6 @@ definition {
 	@description = "LPS-139005 - Verify that the Object entries are displayed again on Page fragments from an Object that was reactivated"
 	@priority = "4"
 	test ObjectEntriesReappearsPageFragmentsWhenReactivated {
-		property portal.upstream = "quarantine";
-
 		ObjectAdmin.addObjectViaAPI(
 			labelName = "Custom Object 142598",
 			objectName = "CustomObject142598",
@@ -6562,7 +6510,7 @@ definition {
 
 		VisualizeObjectCollectionDisplay.mapFragment(fieldLabel = "Custom Field");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		ObjectAdmin.openObjectAdmin();
 
@@ -6670,8 +6618,6 @@ definition {
 	@description = "LPS-139005 - Verify that pending and completed Object entries with workflow are displayed again on the workflow pages (My Workflow Tasks, My Submissions, and Submissions) when reactivated"
 	@priority = "4"
 	test ObjectEntriesReappearsWorkflowPagesWhenReactivated {
-		property portal.upstream = "quarantine";
-
 		ObjectAdmin.addObjectViaAPI(
 			labelName = "Custom Object 140887",
 			objectName = "CustomObject140887",
@@ -7384,7 +7330,7 @@ definition {
 
 		ObjectAdmin.addObjectRelationshipViaUI(
 			label = "Relationship",
-			object = "CustomObject162",
+			object = "Custom Object 162",
 			type = "One to Many");
 
 		ObjectAdmin.goToRelationshipsDetails(fieldName = "Relationship");
@@ -7395,8 +7341,6 @@ definition {
 	@description = "LPS-135401 - Verify if Prevent deletion type of Relationship Many to Many won't allow the user to delete an entry with relation"
 	@priority = "4"
 	test PreventDeletionManyToManyWontAllowDelete {
-		property portal.upstream = "quarantine";
-
 		for (var nameObject : list "A,B") {
 			ObjectAdmin.addObjectViaAPI(
 				labelName = "Custom Object ${nameObject} 163",
@@ -7581,7 +7525,7 @@ definition {
 
 		ObjectPortlet.viewEntryDetails(entry = "Entry B");
 
-		CreateObject.chooseEntryOnRelationshipField(entryOption = "Entry A");
+		ObjectPortlet.chooseEntryOnRelationshipField(entryOption = "Entry A");
 
 		Button.clickSave();
 
@@ -7658,7 +7602,7 @@ definition {
 
 		ObjectPortlet.viewEntryDetails(entry = "Entry B");
 
-		CreateObject.chooseEntryOnRelationshipField(entryOption = "Entry A");
+		ObjectPortlet.chooseEntryOnRelationshipField(entryOption = "Entry A");
 
 		Button.clickSave();
 
@@ -7756,7 +7700,7 @@ definition {
 
 		ObjectAdmin.addObjectRelationshipViaUI(
 			label = "Relationship Label",
-			object = "CustomObjectB168",
+			object = "Custom Object B 168",
 			type = "One to Many");
 
 		ObjectAdmin.openObjectAdmin();
@@ -7848,10 +7792,10 @@ definition {
 
 		PageEditor.editCollectionDisplay(
 			fragmentName = "Collection Display",
-			listStyle = "Table",
-			selectedName = "Custom Objects B 169");
+			selectedName = "Custom Objects B 169",
+			styleDisplay = "Table");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		PagesAdmin.gotoPageEllipsisMenuItem(
 			menuItem = "View",
@@ -8016,7 +7960,7 @@ definition {
 
 		ObjectAdmin.goToFieldsTab();
 
-		ObjectAdmin.assertNoResultsWereFound();
+		ObjectAdmin.assertObjectFieldNotPresent(fieldLabel = "Relationship");
 	}
 
 	@description = "LPS-139005 - Verify that the Relationship field is displayed again when the parent object is reactivated (One to Many)"
@@ -8658,7 +8602,7 @@ definition {
 			fieldName = "Text",
 			fieldValue = "Entry Test");
 
-		FormPortlet.submitSuccessfully();
+		Button.clickSubmitForPublication();
 
 		Navigator.openURL();
 

@@ -144,6 +144,10 @@ public class StringUtil_IW {
 		return StringUtil.extractLeadingDigits(s);
 	}
 
+	public byte[] hexStringToBytes(java.lang.String hexString) {
+		return StringUtil.hexStringToBytes(hexString);
+	}
+
 	public int indexOfAny(java.lang.String s, char[] chars) {
 		return StringUtil.indexOfAny(s, chars);
 	}

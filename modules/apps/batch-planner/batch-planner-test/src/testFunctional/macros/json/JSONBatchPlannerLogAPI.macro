@@ -44,6 +44,7 @@ definition {
               -d end=100 \
               -d -orderByComparator=
 		''';
+
 		var batchPlannerLogIds = JSONCurlUtil.post("${curl}", "$..['batchPlannerLogId']");
 
 		echo("batchPlannerLogIds: ${batchPlannerLogIds}");

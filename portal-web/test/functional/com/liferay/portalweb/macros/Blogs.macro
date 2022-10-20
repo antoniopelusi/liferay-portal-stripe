@@ -61,8 +61,6 @@ definition {
 		}
 
 		if (isSet(viewVideoHelpMessage)) {
-			Pause(locator1 = "3000");
-
 			Click.clickNoMouseOverNoWaitForVisible(locator1 = "BlogsEntry#VIDEO_EMBED_HELP_MESSAGE");
 
 			AssertTextEquals.assertPartialText(
@@ -106,29 +104,6 @@ definition {
 			depotName = "${depotName}",
 			imageFileName = "${imageFileName}",
 			navTab = "Documents and Media");
-
-		Button.clickPublish();
-	}
-
-	macro addEntryWithCoverImageFromDMFolders {
-		BlogsNavigator.gotoAddEntry();
-
-		BlogsEntry.addTitle(entryTitle = "${entryTitle}");
-
-		BlogsEntry.addEntryContent(
-			entryContent = "${entryContent}",
-			entrySubtitle = "${entrySubtitle}",
-			entryTitle = "${entryTitle}");
-
-		BlogsNavigator.gotoSelectFile();
-
-		ItemSelector.selectDMImage(
-			dmFolderName = "${dmFolderName}",
-			dmSubFolderName = "${dmSubFolderName}",
-			imageFileName = "${imageFileName}",
-			navTab = "${navTab}");
-
-		Pause(locator1 = "1000");
 
 		Button.clickPublish();
 	}
@@ -228,13 +203,17 @@ definition {
 				imageFileName = "${uploadedFileName}",
 				navTab = "${navTab}");
 		}
+		else if (isSet(depotName)) {
+			ItemSelector.selectRepositoryImage(
+				depotName = "${depotName}",
+				imageFileName = "${imageFileName}",
+				navTab = "${navTab}");
+		}
 		else {
 			ItemSelector.uploadFile(
 				navTab = "${navTab}",
 				uploadFileName = "${uploadFileName}");
 		}
-
-		Pause(locator1 = "3000");
 
 		SelectFrame(value1 = "relative-top");
 
@@ -246,6 +225,21 @@ definition {
 					key_editor = "coverImageCaption",
 					locator1 = "AlloyEditor#EDITOR",
 					value1 = "${captionField}");
+			}
+
+			if (isSet(captionFieldLink)) {
+				SelectFieldText(
+					key_editor = "coverImageCaption",
+					locator1 = "AlloyEditor#EDITOR",
+					value1 = "Caption");
+
+				Click(locator1 = "BlogsEntry#ENTRY_COVER_IMAGE_CAPTION_LINK_ICON");
+
+				Type(
+					locator1 = "BlogsEntry#ENTRY_COVER_IMAGE_CAPTION_LINK_INPUT",
+					value1 = "${captionFieldLink}");
+
+				Click(locator1 = "BlogsEntry#ENTRY_COVER_IMAGE_CAPTION_LINK_CHECK_ICON");
 			}
 		}
 
@@ -289,9 +283,9 @@ definition {
 
 		SelectFrameTop(value1 = "relative=top");
 
-		Pause(locator1 = "5000");
-
 		var key_assetTitle = "${entryTitle}";
+
+		WaitForVisible(locator1 = "AP#ASSET_ABSTRACT_TITLE");
 
 		AssertTextEquals(
 			locator1 = "AP#ASSET_ABSTRACT_TITLE",
@@ -317,9 +311,9 @@ definition {
 
 		SelectFrameTop(value1 = "relative=top");
 
-		Pause(locator1 = "5000");
-
 		var key_assetTitle = "${entryTitle}";
+
+		WaitForVisible(locator1 = "AP#ASSET_ABSTRACT_TITLE");
 
 		AssertTextEquals(
 			locator1 = "AP#ASSET_ABSTRACT_TITLE",
@@ -430,8 +424,6 @@ definition {
 		AssertClick(
 			locator1 = "Button#SUBMIT_FOR_PUBLICATION",
 			value1 = "Submit for Publication");
-
-		Pause(locator1 = "5000");
 
 		SelectFrame(value1 = "relative=top");
 	}
@@ -659,7 +651,9 @@ definition {
 		if (IsElementPresent.isVisible(locator1 = "Blogs#ENTRY_TABLE_ALL_CHECKBOX")) {
 			Click(locator1 = "Blogs#ENTRY_TABLE_ALL_CHECKBOX");
 
-			Click(locator1 = "Button#MOVE_TO_RECYCLE_BIN");
+			Click(
+				key_text = "trash",
+				locator1 = "ManagementBar#ANY_ICON");
 
 			VerifyElementPresent(locator1 = "Message#SUCCESS");
 		}

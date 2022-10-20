@@ -39,6 +39,8 @@ definition {
 
 		MenuItem.clickNoError(menuItem = "Delete");
 
+		Alert.viewSuccessMessage();
+
 		AssertElementNotPresent(locator1 = "Notifications#NOTIFICATIONS_CONTENT");
 	}
 
@@ -167,6 +169,23 @@ definition {
 		AssertTextEquals(
 			locator1 = "Message#EMPTY_INFO",
 			value1 = "You do not have any notifications.");
+	}
+
+	macro viewDeletedContent {
+		AssertTextEquals(
+			locator1 = "Notifications#NOTIFICATIONS_TITLE",
+			value1 = "Notification no longer applies.");
+
+		AssertTextEquals(
+			key_contentBody = "${contentBody}",
+			locator1 = "Notifications#NOTIFICATIONS_CONTENT",
+			value1 = "${contentBody}");
+
+		if (isSet(noOptions)) {
+			AssertElementNotPresent(
+				key_contentBody = "${contentBody}",
+				locator1 = "Notifications#NOTIFICATIONS_VERTICAL_ELLIPSIS");
+		}
 	}
 
 	macro viewExpiredContent {
@@ -346,9 +365,10 @@ definition {
 	}
 
 	macro waitForNotificationFlexibly {
-		Pause(locator1 = "${waitingTime}");
-
 		while (IsElementNotPresent(locator1 = "Notifications#PROFILE_BADGE_COUNT")) {
+
+			// We need to wait for the system time to pass by some time in order to verify the user is notified. There is currently no easy way to manipulate the system time in CI for automation. See LPS-157957.
+
 			Pause(locator1 = "${flexibleRefreshingTime}");
 
 			Refresh();

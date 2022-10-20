@@ -16,18 +16,21 @@ package com.liferay.object.admin.rest.internal.resource.v1_0;
 
 import com.liferay.object.admin.rest.dto.v1_0.ObjectView;
 import com.liferay.object.admin.rest.dto.v1_0.ObjectViewColumn;
+import com.liferay.object.admin.rest.dto.v1_0.ObjectViewFilterColumn;
 import com.liferay.object.admin.rest.dto.v1_0.ObjectViewSortColumn;
-import com.liferay.object.admin.rest.internal.dto.v1_0.util.ObjectViewUtil;
+import com.liferay.object.admin.rest.internal.dto.v1_0.converter.ObjectViewDTOConverter;
 import com.liferay.object.admin.rest.resource.v1_0.ObjectViewResource;
 import com.liferay.object.admin.rest.resource.v1_0.util.NameMapUtil;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.service.ObjectViewService;
 import com.liferay.object.service.persistence.ObjectViewColumnPersistence;
+import com.liferay.object.service.persistence.ObjectViewFilterColumnPersistence;
 import com.liferay.object.service.persistence.ObjectViewSortColumnPersistence;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.vulcan.dto.converter.DefaultDTOConverterContext;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
@@ -105,6 +108,9 @@ public class ObjectViewResourceImpl extends BaseObjectViewResourceImpl {
 					objectView.getObjectViewColumns(),
 					this::_toObjectViewColumn),
 				transformToList(
+					objectView.getObjectViewFilterColumns(),
+					this::_toObjectViewFilterColumn),
+				transformToList(
 					objectView.getObjectViewSortColumns(),
 					this::_toObjectViewSortColumn)));
 	}
@@ -119,6 +125,7 @@ public class ObjectViewResourceImpl extends BaseObjectViewResourceImpl {
 				objectView.getObjectDefinitionId(), false,
 				NameMapUtil.copy(objectView.getNameMap()),
 				objectView.getObjectViewColumns(),
+				objectView.getObjectViewFilterColumns(),
 				objectView.getObjectViewSortColumns()));
 	}
 
@@ -134,39 +141,47 @@ public class ObjectViewResourceImpl extends BaseObjectViewResourceImpl {
 					objectView.getObjectViewColumns(),
 					this::_toObjectViewColumn),
 				transformToList(
+					objectView.getObjectViewFilterColumns(),
+					this::_toObjectViewFilterColumn),
+				transformToList(
 					objectView.getObjectViewSortColumns(),
 					this::_toObjectViewSortColumn)));
 	}
 
 	private ObjectView _toObjectView(
-		com.liferay.object.model.ObjectView serviceBuilderObjectView) {
+			com.liferay.object.model.ObjectView serviceBuilderObjectView)
+		throws Exception {
 
-		return ObjectViewUtil.toObjectView(
-			HashMapBuilder.put(
-				"copy",
-				addAction(
-					ActionKeys.UPDATE, "postObjectViewCopy",
-					ObjectDefinition.class.getName(),
-					serviceBuilderObjectView.getObjectDefinitionId())
-			).put(
-				"delete",
-				addAction(
-					ActionKeys.DELETE, "deleteObjectView",
-					ObjectDefinition.class.getName(),
-					serviceBuilderObjectView.getObjectDefinitionId())
-			).put(
-				"get",
-				addAction(
-					ActionKeys.VIEW, "getObjectView",
-					ObjectDefinition.class.getName(),
-					serviceBuilderObjectView.getObjectDefinitionId())
-			).put(
-				"update",
-				addAction(
-					ActionKeys.UPDATE, "putObjectView",
-					ObjectDefinition.class.getName(),
-					serviceBuilderObjectView.getObjectDefinitionId())
-			).build(),
+		return _objectViewDTOConverter.toDTO(
+			new DefaultDTOConverterContext(
+				false,
+				HashMapBuilder.put(
+					"copy",
+					addAction(
+						ActionKeys.UPDATE, "postObjectViewCopy",
+						ObjectDefinition.class.getName(),
+						serviceBuilderObjectView.getObjectDefinitionId())
+				).put(
+					"delete",
+					addAction(
+						ActionKeys.DELETE, "deleteObjectView",
+						ObjectDefinition.class.getName(),
+						serviceBuilderObjectView.getObjectDefinitionId())
+				).put(
+					"get",
+					addAction(
+						ActionKeys.VIEW, "getObjectView",
+						ObjectDefinition.class.getName(),
+						serviceBuilderObjectView.getObjectDefinitionId())
+				).put(
+					"update",
+					addAction(
+						ActionKeys.UPDATE, "putObjectView",
+						ObjectDefinition.class.getName(),
+						serviceBuilderObjectView.getObjectDefinitionId())
+				).build(),
+				null, null, contextAcceptLanguage.getPreferredLocale(), null,
+				null),
 			serviceBuilderObjectView);
 	}
 
@@ -185,6 +200,24 @@ public class ObjectViewResourceImpl extends BaseObjectViewResourceImpl {
 			objectViewColumn.getPriority());
 
 		return serviceBuilderObjectViewColumn;
+	}
+
+	private com.liferay.object.model.ObjectViewFilterColumn
+		_toObjectViewFilterColumn(
+			ObjectViewFilterColumn objectViewFilterColumn) {
+
+		com.liferay.object.model.ObjectViewFilterColumn
+			serviceBuilderObjectViewFilterColumn =
+				_objectViewFilterColumnPersistence.create(0L);
+
+		serviceBuilderObjectViewFilterColumn.setFilterType(
+			objectViewFilterColumn.getFilterTypeAsString());
+		serviceBuilderObjectViewFilterColumn.setJSON(
+			objectViewFilterColumn.getJson());
+		serviceBuilderObjectViewFilterColumn.setObjectFieldName(
+			objectViewFilterColumn.getObjectFieldName());
+
+		return serviceBuilderObjectViewFilterColumn;
 	}
 
 	private com.liferay.object.model.ObjectViewSortColumn
@@ -206,6 +239,13 @@ public class ObjectViewResourceImpl extends BaseObjectViewResourceImpl {
 
 	@Reference
 	private ObjectViewColumnPersistence _objectViewColumnPersistence;
+
+	@Reference
+	private ObjectViewDTOConverter _objectViewDTOConverter;
+
+	@Reference
+	private ObjectViewFilterColumnPersistence
+		_objectViewFilterColumnPersistence;
 
 	@Reference
 	private ObjectViewService _objectViewService;

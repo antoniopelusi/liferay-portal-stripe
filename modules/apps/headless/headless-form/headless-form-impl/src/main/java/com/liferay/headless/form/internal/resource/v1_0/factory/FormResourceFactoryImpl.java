@@ -14,6 +14,7 @@
 
 package com.liferay.headless.form.internal.resource.v1_0.factory;
 
+import com.liferay.headless.form.internal.security.permission.LiberalPermissionChecker;
 import com.liferay.headless.form.resource.v1_0.FormResource;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.User;
@@ -191,7 +192,7 @@ public class FormResourceFactoryImpl implements FormResource.Factory {
 		}
 		else {
 			PermissionThreadLocal.setPermissionChecker(
-				_liberalPermissionCheckerFactory.create(user));
+				new LiberalPermissionChecker(user));
 		}
 
 		FormResource formResource = _componentServiceObjects.getService();
@@ -251,9 +252,6 @@ public class FormResourceFactoryImpl implements FormResource.Factory {
 
 	@Reference
 	private GroupLocalService _groupLocalService;
-
-	@Reference(target = "(permission.checker.type=liberal)")
-	private PermissionCheckerFactory _liberalPermissionCheckerFactory;
 
 	@Reference
 	private ResourceActionLocalService _resourceActionLocalService;

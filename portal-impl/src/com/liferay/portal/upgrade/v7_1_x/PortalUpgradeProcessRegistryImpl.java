@@ -15,11 +15,11 @@
 package com.liferay.portal.upgrade.v7_1_x;
 
 import com.liferay.portal.kernel.upgrade.DummyUpgradeProcess;
-import com.liferay.portal.kernel.upgrade.UpgradeProcess;
+import com.liferay.portal.kernel.upgrade.UpgradeProcessFactory;
+import com.liferay.portal.kernel.upgrade.util.UpgradeModulesFactory;
+import com.liferay.portal.kernel.upgrade.util.UpgradeVersionTreeMap;
 import com.liferay.portal.kernel.version.Version;
 import com.liferay.portal.upgrade.util.PortalUpgradeProcessRegistry;
-
-import java.util.TreeMap;
 
 /**
  * @author Alberto Chaparro
@@ -29,49 +29,78 @@ public class PortalUpgradeProcessRegistryImpl
 
 	@Override
 	public void registerUpgradeProcesses(
-		TreeMap<Version, UpgradeProcess> upgradeProcesses) {
+		UpgradeVersionTreeMap upgradeVersionTreeMap) {
 
-		upgradeProcesses.put(new Version(1, 0, 0), new UpgradeSchema());
+		upgradeVersionTreeMap.put(new Version(1, 0, 0), new UpgradeSchema());
 
-		upgradeProcesses.put(new Version(1, 1, 0), new UpgradeModules());
+		upgradeVersionTreeMap.put(
+			new Version(1, 1, 0),
+			UpgradeModulesFactory.create(
+				new String[] {
+					"com.liferay.asset.category.property.service",
+					"com.liferay.asset.entry.rel.service",
+					"com.liferay.asset.tag.stats.service",
+					"com.liferay.blogs.service",
+					"com.liferay.document.library.content.service",
+					"com.liferay.document.library.file.rank.service",
+					"com.liferay.document.library.sync.service",
+					"com.liferay.layout.page.template.service",
+					"com.liferay.message.boards.service",
+					"com.liferay.subscription.service",
+					"com.liferay.trash.service"
+				},
+				null));
 
-		upgradeProcesses.put(new Version(1, 1, 1), new UpgradeCounter());
+		upgradeVersionTreeMap.put(
+			new Version(1, 1, 1),
+			UpgradeProcessFactory.alterColumnType(
+				"Counter", "name", "VARCHAR(150) not null"));
 
-		upgradeProcesses.put(new Version(1, 1, 2), new UpgradeDB2());
+		upgradeVersionTreeMap.put(new Version(1, 1, 2), new UpgradeDB2());
 
-		upgradeProcesses.put(
+		upgradeVersionTreeMap.put(
 			new Version(2, 0, 0), new UpgradeAssetTagsPermission());
 
-		upgradeProcesses.put(
-			new Version(2, 0, 1), new UpgradeDocumentLibrary());
+		upgradeVersionTreeMap.put(
+			new Version(2, 0, 1),
+			UpgradeProcessFactory.alterColumnType(
+				"DLFileEntryType", "fileEntryTypeKey", "VARCHAR(75) null"));
 
-		upgradeProcesses.put(
-			new Version(2, 0, 2), new UpgradePasswordPolicyRegex());
+		upgradeVersionTreeMap.put(
+			new Version(2, 0, 2),
+			UpgradeProcessFactory.alterColumnType(
+				"PasswordPolicy", "regex", "STRING null"));
 
-		upgradeProcesses.put(
+		upgradeVersionTreeMap.put(
 			new Version(2, 0, 3), new UpgradePortalPreferences());
 
-		upgradeProcesses.put(new Version(2, 0, 4), new UpgradeUserGroup());
+		upgradeVersionTreeMap.put(
+			new Version(2, 0, 4),
+			UpgradeProcessFactory.alterColumnType(
+				"UserGroup", "name", "VARCHAR(255) null"));
 
-		upgradeProcesses.put(
+		upgradeVersionTreeMap.put(
 			new Version(2, 0, 5), new UpgradeAnnouncementsPortletId());
 
-		upgradeProcesses.put(
+		upgradeVersionTreeMap.put(
 			new Version(2, 0, 6), new UpgradeAnnouncementsPortletPreferences());
 
-		upgradeProcesses.put(
+		upgradeVersionTreeMap.put(
 			new Version(2, 0, 7),
 			new UpgradeCalendarTimeFormatPortletPreferences());
 
-		upgradeProcesses.put(
+		upgradeVersionTreeMap.put(
 			new Version(2, 0, 8),
 			new UpgradeCalendarClassNameIdsPortletPreferences());
 
-		upgradeProcesses.put(new Version(2, 0, 9), new DummyUpgradeProcess());
+		upgradeVersionTreeMap.put(
+			new Version(2, 0, 9), new DummyUpgradeProcess());
 
-		upgradeProcesses.put(new Version(2, 0, 10), new DummyUpgradeProcess());
+		upgradeVersionTreeMap.put(
+			new Version(2, 0, 10), new DummyUpgradeProcess());
 
-		upgradeProcesses.put(new Version(2, 0, 11), new DummyUpgradeProcess());
+		upgradeVersionTreeMap.put(
+			new Version(2, 0, 11), new DummyUpgradeProcess());
 	}
 
 }

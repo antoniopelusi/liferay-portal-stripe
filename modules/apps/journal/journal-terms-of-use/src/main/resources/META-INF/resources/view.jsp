@@ -17,14 +17,7 @@
 <%@ include file="/init.jsp" %>
 
 <%
-long termsOfUseGroupId = PrefsPropsUtil.getLong(themeDisplay.getCompanyId(), JournalServiceConfigurationKeys.TERMS_OF_USE_JOURNAL_ARTICLE_GROUP_ID, JournalServiceConfigurationValues.TERMS_OF_USE_JOURNAL_ARTICLE_GROUP_ID);
-String termsOfUseArticleId = PrefsPropsUtil.getString(themeDisplay.getCompanyId(), JournalServiceConfigurationKeys.TERMS_OF_USE_JOURNAL_ARTICLE_ID, JournalServiceConfigurationValues.TERMS_OF_USE_JOURNAL_ARTICLE_ID);
-
-JournalArticle journalArticle = null;
-
-if ((termsOfUseGroupId > 0) && Validator.isNotNull(termsOfUseArticleId)) {
-	journalArticle = JournalArticleLocalServiceUtil.fetchArticle(termsOfUseGroupId, termsOfUseArticleId);
-}
+JournalArticle journalArticle = journalArticleTermsOfUseDisplayContext.getJournalArticle();
 %>
 
 <c:choose>
@@ -36,6 +29,16 @@ if ((termsOfUseGroupId > 0) && Validator.isNotNull(termsOfUseArticleId)) {
 		/>
 	</c:when>
 	<c:otherwise>
-		<liferay-util:include page="/html/portal/terms_of_use_default.jsp" />
+		<p>
+			<span>
+				<liferay-ui:message key="placeholder-terms-of-use" />
+			</span>
+		</p>
+
+		<p>
+			<span>
+				<liferay-ui:message key="you-must-configure-terms-of-use" />
+			</span>
+		</p>
 	</c:otherwise>
 </c:choose>

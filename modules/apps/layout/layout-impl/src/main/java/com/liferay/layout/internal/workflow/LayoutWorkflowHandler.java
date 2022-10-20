@@ -18,9 +18,10 @@ import com.liferay.layout.internal.configuration.LayoutWorkflowHandlerConfigurat
 import com.liferay.layout.util.LayoutCopyHelper;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.WorkflowDefinitionLink;
+import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -56,7 +57,7 @@ public class LayoutWorkflowHandler extends BaseWorkflowHandler<Layout> {
 
 	@Override
 	public String getType(Locale locale) {
-		return LanguageUtil.get(locale, "content-page");
+		return _language.get(locale, "content-page");
 	}
 
 	@Override
@@ -106,11 +107,18 @@ public class LayoutWorkflowHandler extends BaseWorkflowHandler<Layout> {
 
 		Layout draftLayout = layout.fetchDraftLayout();
 
+		long originalUserId = PrincipalThreadLocal.getUserId();
+
 		try {
+			PrincipalThreadLocal.setName(userId);
+
 			_layoutCopyHelper.copyLayout(draftLayout, layout);
 		}
 		catch (Exception exception) {
 			throw new PortalException(exception);
+		}
+		finally {
+			PrincipalThreadLocal.setName(originalUserId);
 		}
 
 		_layoutLocalService.updateStatus(
@@ -127,6 +135,9 @@ public class LayoutWorkflowHandler extends BaseWorkflowHandler<Layout> {
 		_layoutConverterConfiguration = ConfigurableUtil.createConfigurable(
 			LayoutWorkflowHandlerConfiguration.class, properties);
 	}
+
+	@Reference
+	private Language _language;
 
 	private volatile LayoutWorkflowHandlerConfiguration
 		_layoutConverterConfiguration;

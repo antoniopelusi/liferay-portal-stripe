@@ -29,14 +29,11 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
-import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-import javax.portlet.PortletURL;
 
 /**
  * @author Ambrín Chaudhary
@@ -53,15 +50,8 @@ public abstract class BaseTinyMCEEditorConfigContributor
 		jsonObject.put(
 			"content_css",
 			StringBundler.concat(
-				HtmlUtil.escape(
-					PortalUtil.getStaticResourceURL(
-						themeDisplay.getRequest(),
-						themeDisplay.getPathThemeCss() + "/clay.css")),
-				StringPool.COMMA,
-				HtmlUtil.escape(
-					PortalUtil.getStaticResourceURL(
-						themeDisplay.getRequest(),
-						themeDisplay.getPathThemeCss() + "/main.css")))
+				HtmlUtil.escape(themeDisplay.getClayCSSURL()), StringPool.COMMA,
+				HtmlUtil.escape(themeDisplay.getMainCSSURL()))
 		).put(
 			"convert_urls", Boolean.FALSE
 		).put(
@@ -87,12 +77,12 @@ public abstract class BaseTinyMCEEditorConfigContributor
 
 		itemSelectorCriteria.add(itemSelectorCriterion);
 
-		PortletURL itemSelectorURL = itemSelector.getItemSelectorURL(
-			requestBackedPortletURLFactory, itemSelectedEventName,
-			itemSelectorCriteria.toArray(new ItemSelectorCriterion[0]));
-
 		jsonObject.put(
-			"filebrowserImageBrowseUrl", itemSelectorURL.toString()
+			"filebrowserImageBrowseUrl",
+			String.valueOf(
+				itemSelector.getItemSelectorURL(
+					requestBackedPortletURLFactory, itemSelectedEventName,
+					itemSelectorCriteria.toArray(new ItemSelectorCriterion[0])))
 		).put(
 			"invalid_elements", "script"
 		);

@@ -80,8 +80,26 @@ public class JournalFolderFixture {
 		}
 
 		return _journalFolderLocalService.addFolder(
-			serviceContext.getUserId(), serviceContext.getScopeGroupId(),
+			null, serviceContext.getUserId(), serviceContext.getScopeGroupId(),
 			parentFolderId, name, description, serviceContext);
+	}
+
+	public JournalFolder addFolder(
+			String externalReferenceCode, long parentFolderId, String name,
+			String description, ServiceContext serviceContext)
+		throws Exception {
+
+		JournalFolder folder = _journalFolderLocalService.fetchFolder(
+			serviceContext.getScopeGroupId(), parentFolderId, name);
+
+		if (folder != null) {
+			return folder;
+		}
+
+		return _journalFolderLocalService.addFolder(
+			externalReferenceCode, serviceContext.getUserId(),
+			serviceContext.getScopeGroupId(), parentFolderId, name, description,
+			serviceContext);
 	}
 
 	private final JournalFolderLocalService _journalFolderLocalService;

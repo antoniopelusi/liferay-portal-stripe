@@ -1,11 +1,14 @@
 @component-name = "portal-solutions"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
+	property osgi.modules.includes = "site-initializer-raylife-d2c";
 	property portal.release = "false";
 	property portal.upstream = "true";
-	property testray.main.component.name = "Raylife";
+	property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+	property testray.main.component.name = "Site Initializer Raylife D2C";
+
+	var testSiteName = "Raylife D2C";
+	var testSiteURL = "raylife-d2c";
 
 	setUp {
 		TestCase.setUpPortalInstance();
@@ -26,49 +29,48 @@ definition {
 		}
 	}
 
+	@description = "LPS-155319 - Verify that when Raylife D2C is created, the Objects APIs are created"
+	@priority = "5"
+	test AllObjectsIsCreatedForRaylifeD2c {
+		task ("Add site Raylife D2C") {
+			Raylife.createRaylifeSite(siteName = "${testSiteName}");
+		}
+
+		task ("Assert all object for Raylife D2C") {
+			Raylife.assertAllObjectsForRaylifeD2c();
+		}
+	}
+
 	@description = "Verify if Raylife can be created"
 	@priority = "5"
 	test CanRaylifeBeCreated {
-		ApplicationsMenu.gotoPortlet(
-			category = "Sites",
-			panel = "Control Panel",
-			portlet = "Sites");
+		Site.openSitesAdmin();
 
 		LexiconEntry.gotoAdd();
 
-		LexiconCard.clickCard(card = "Raylife");
+		LexiconCard.clickCard(card = "Raylife D2C");
 
 		SelectFrame(
 			key_title = "Add Site",
 			locator1 = "IFrame#MODAL_ANY");
 
-		PortletEntry.inputName(name = "Raylife");
+		PortletEntry.inputName(name = "${testSiteName}");
 
 		Click(locator1 = "Button#ADD");
 
-		AssertElementPresent(locator1 = "Raylife#SAVE_LOADING_ANIMATION");
+		Site.openSitesAdmin();
 
-		while (IsElementPresent(locator1 = "Raylife#SAVE_LOADING_ANIMATION")) {
-			Pause(locator1 = "1500");
+		while (IsElementNotPresent(key_siteName = "${testSiteName}", locator1 = "Sites#SITE_TABLE_NAME")) {
+			Refresh();
+
+			WaitForPageLoad();
 		}
-
-		WaitForElementPresent(
-			key_itemName = "Site Configuration",
-			locator1 = "ListGroupItem#ITEM_TEXT");
-
-		Click(
-			key_itemName = "Site Configuration",
-			locator1 = "ListGroupItem#ITEM_TEXT");
-
-		AssertTextEquals(
-			locator1 = "SitesEditSite#DETAILS_NAME",
-			value1 = "Raylife");
 	}
 
 	@description = "LPS-142178 - Verify if when Raylife is created, a Catalog in Commerce will be created for it as well."
 	@priority = "5"
 	test CatalogForRaylifeIsCreated {
-		Raylife.createRaylifeSite(siteName = "Raylife");
+		Raylife.createRaylifeSite(siteName = "${testSiteName}");
 
 		CommerceNavigator.gotoPortlet(
 			category = "Product Management",
@@ -90,11 +92,17 @@ definition {
 	@description = "LPS-142180 - Verify if, when Raylife is created, Products related to Raylife are also created."
 	@priority = "5"
 	test ProductsForRaylifeIsCreated {
-		Raylife.createRaylifeSite(siteName = "Raylife");
+		Raylife.createRaylifeSite(siteName = "${testSiteName}");
 
 		CommerceNavigator.gotoPortlet(
 			category = "Product Management",
 			portlet = "Products");
+
+		while (IsElementNotPresent(locator1 = "Raylife#PRODUCTS_NAME", productList = "General Liability,Professional Liability,Workers Compensation,Business Owners Policy")) {
+			Refresh();
+
+			WaitForPageLoad();
+		}
 
 		Raylife.viewProductsList(productList = "General Liability,Professional Liability,Workers Compensation,Business Owners Policy");
 	}

@@ -42,6 +42,7 @@ export function initializeConfig(backendConfig) {
 	const augmentedPanels = augmentPanelData(pluginsRootPath, sidebarPanels);
 
 	const syntheticItems = {
+		commonStyles: getCommonStyles(commonStyles),
 		commonStylesFields: getCommonStylesFields(commonStyles),
 		panels: generatePanels(augmentedPanels),
 		sidebarPanels: partitionPanels(augmentedPanels),
@@ -105,6 +106,18 @@ function generatePanels(sidebarPanels) {
 		},
 		[[]]
 	);
+}
+
+function getCommonStyles(commonStyles) {
+	return commonStyles.map((fieldSet) => {
+		return {
+			...fieldSet,
+			styles: fieldSet.styles.map((style) => ({
+				...style,
+				responsive: true,
+			})),
+		};
+	});
 }
 
 function getCommonStylesFields(commonStyles) {

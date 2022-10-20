@@ -5,7 +5,7 @@ html#{$cadmin-selector} {
 		.page-editor__fragments-widgets__tab {
 			&-card-item {
 				cursor: grab;
-				height: 112px;
+				height: 120px;
 				transition: transform ease 0.3s;
 				width: calc(50% - 4px);
 
@@ -14,6 +14,7 @@ html#{$cadmin-selector} {
 					transform: translateY(-4px);
 
 					.card {
+						border-radius: 4px;
 						box-shadow: none;
 
 						&::after {
@@ -27,6 +28,10 @@ html#{$cadmin-selector} {
 							top: 0;
 							width: 100%;
 						}
+
+						.page-editor__fragments-widgets__tab-highlight-button {
+							opacity: 1;
+						}
 					}
 				}
 
@@ -38,8 +43,8 @@ html#{$cadmin-selector} {
 				}
 
 				.card {
+					aspect-ratio: 1;
 					box-shadow: 0 0 0 1px $cadmin-gray-300;
-					height: 112px;
 				}
 
 				.card-item-first {
@@ -102,6 +107,10 @@ html#{$cadmin-selector} {
 					box-shadow: 0 0 0 2px $cadmin-primary-l1,
 						0 4px 8px fade_out($cadmin-gray-900, 0.9);
 					transform: translateX(-4px);
+
+					.page-editor__fragments-widgets__tab-highlight-button {
+						opacity: 1;
+					}
 				}
 
 				&.disabled {
@@ -125,6 +134,27 @@ html#{$cadmin-selector} {
 						font-size: 12px;
 						font-weight: 600;
 					}
+				}
+			}
+
+			&-highlight-button {
+				height: 16px;
+				opacity: 0;
+				overflow: visible;
+				width: 16px;
+
+				&:focus,
+				&:hover {
+					background: none;
+				}
+
+				&.highlighted,
+				&:focus {
+					opacity: 1;
+				}
+
+				svg {
+					margin: 0;
 				}
 			}
 		}

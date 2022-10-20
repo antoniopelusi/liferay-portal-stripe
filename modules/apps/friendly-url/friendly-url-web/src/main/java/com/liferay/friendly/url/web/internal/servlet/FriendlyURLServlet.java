@@ -35,7 +35,10 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
-import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
+import com.liferay.portal.kernel.security.permission.PermissionCheckerFactory;
+import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.ServiceContextFactory;
+import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -88,7 +91,7 @@ public class FriendlyURLServlet extends HttpServlet {
 					InfoItemPermissionProvider.class, className);
 
 			if (!infoItemPermissionProvider.hasPermission(
-					PermissionCheckerFactoryUtil.create(
+					_permissionCheckerFactory.create(
 						_portal.getUser(httpServletRequest)),
 					new InfoItemReference(
 						className, _getClassPK(httpServletRequest)),
@@ -121,15 +124,32 @@ public class FriendlyURLServlet extends HttpServlet {
 		try {
 			User user = _portal.getUser(httpServletRequest);
 
-			if (user.isDefaultUser()) {
+			if ((user == null) || user.isDefaultUser()) {
 				_writeJSON(httpServletResponse, JSONUtil.put("success", false));
 			}
 			else {
-				_writeJSON(
-					httpServletResponse,
-					_getFriendlyURLEntryLocalizationsJSONObject(
-						_getClassName(httpServletRequest),
-						_getClassPK(httpServletRequest)));
+				String className = _getClassName(httpServletRequest);
+				long classPK = _getClassPK(httpServletRequest);
+
+				InfoItemPermissionProvider<Object> infoItemPermissionProvider =
+					_infoItemServiceTracker.getFirstInfoItemService(
+						InfoItemPermissionProvider.class, className);
+
+				if (!infoItemPermissionProvider.hasPermission(
+						_permissionCheckerFactory.create(
+							_portal.getUser(httpServletRequest)),
+						new InfoItemReference(className, classPK),
+						ActionKeys.VIEW)) {
+
+					_writeJSON(
+						httpServletResponse, JSONUtil.put("success", false));
+				}
+				else {
+					_writeJSON(
+						httpServletResponse,
+						_getFriendlyURLEntryLocalizationsJSONObject(
+							className, classPK));
+				}
 			}
 		}
 		catch (Exception exception) {
@@ -154,7 +174,7 @@ public class FriendlyURLServlet extends HttpServlet {
 					InfoItemPermissionProvider.class, className);
 
 			if (!infoItemPermissionProvider.hasPermission(
-					PermissionCheckerFactoryUtil.create(
+					_permissionCheckerFactory.create(
 						_portal.getUser(httpServletRequest)),
 					new InfoItemReference(className, classPK),
 					ActionKeys.UPDATE)) {
@@ -181,27 +201,45 @@ public class FriendlyURLServlet extends HttpServlet {
 		}
 	}
 
+	@Override
+	protected void service(
+			HttpServletRequest httpServletRequest,
+			HttpServletResponse httpServletResponse)
+		throws IOException, ServletException {
+
+		ServiceContext serviceContext = _getServiceContext(httpServletRequest);
+
+		try {
+			ServiceContextThreadLocal.pushServiceContext(serviceContext);
+
+			super.service(httpServletRequest, httpServletResponse);
+		}
+		finally {
+			ServiceContextThreadLocal.popServiceContext();
+		}
+	}
+
 	private String _getClassName(HttpServletRequest httpServletRequest)
 		throws PortalException {
 
 		List<String> parts = StringUtil.split(
 			httpServletRequest.getPathInfo(), CharPool.SLASH);
 
-		return parts.get(0);
+		return parts.get(1);
 	}
 
 	private long _getClassPK(HttpServletRequest httpServletRequest) {
 		List<String> parts = StringUtil.split(
 			httpServletRequest.getPathInfo(), CharPool.SLASH);
 
-		return GetterUtil.getLong(parts.get(1));
+		return GetterUtil.getLong(parts.get(2));
 	}
 
 	private long _getEntryId(HttpServletRequest httpServletRequest) {
 		List<String> parts = StringUtil.split(
 			httpServletRequest.getPathInfo(), CharPool.SLASH);
 
-		return GetterUtil.getLong(parts.get(2));
+		return GetterUtil.getLong(parts.get(3));
 	}
 
 	private JSONObject _getFriendlyURLEntryLocalizationsJSONObject(
@@ -274,7 +312,27 @@ public class FriendlyURLServlet extends HttpServlet {
 		List<String> parts = StringUtil.split(
 			httpServletRequest.getPathInfo(), CharPool.SLASH);
 
-		return parts.get(3);
+		return parts.get(4);
+	}
+
+	private ServiceContext _getServiceContext(
+			HttpServletRequest httpServletRequest)
+		throws ServletException {
+
+		try {
+			ServiceContext serviceContext = ServiceContextFactory.getInstance(
+				httpServletRequest);
+
+			List<String> parts = StringUtil.split(
+				httpServletRequest.getPathInfo(), CharPool.SLASH);
+
+			serviceContext.setScopeGroupId(GetterUtil.getLong(parts.get(0)));
+
+			return serviceContext;
+		}
+		catch (PortalException portalException) {
+			throw new ServletException(portalException);
+		}
 	}
 
 	private JSONObject _serializeFriendlyURLEntryLocalization(
@@ -309,7 +367,7 @@ public class FriendlyURLServlet extends HttpServlet {
 		ServletOutputStream servletOutputStream =
 			httpServletResponse.getOutputStream();
 
-		servletOutputStream.print(jsonObject.toJSONString());
+		servletOutputStream.print(jsonObject.toString());
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
@@ -339,6 +397,9 @@ public class FriendlyURLServlet extends HttpServlet {
 
 	@Reference
 	private InfoItemServiceTracker _infoItemServiceTracker;
+
+	@Reference
+	private PermissionCheckerFactory _permissionCheckerFactory;
 
 	@Reference
 	private Portal _portal;

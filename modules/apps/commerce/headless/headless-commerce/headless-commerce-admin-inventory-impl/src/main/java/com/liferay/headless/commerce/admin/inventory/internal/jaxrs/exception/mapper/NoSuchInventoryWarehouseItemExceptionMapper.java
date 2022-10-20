@@ -14,7 +14,7 @@
 
 package com.liferay.headless.commerce.admin.inventory.internal.jaxrs.exception.mapper;
 
-import com.liferay.commerce.inventory.exception.NoSuchInventoryWarehouseException;
+import com.liferay.commerce.inventory.exception.NoSuchInventoryWarehouseItemException;
 import com.liferay.headless.commerce.core.exception.mapper.BaseExceptionMapper;
 
 import javax.ws.rs.core.Response;
@@ -37,11 +37,11 @@ import org.osgi.service.component.annotations.Component;
 )
 @Provider
 public class NoSuchInventoryWarehouseItemExceptionMapper
-	extends BaseExceptionMapper<NoSuchInventoryWarehouseException> {
+	extends BaseExceptionMapper<NoSuchInventoryWarehouseItemException> {
 
 	@Override
 	public String getErrorDescription() {
-		return "Warehouse not found";
+		return "Warehouse item not found";
 	}
 
 	@Override

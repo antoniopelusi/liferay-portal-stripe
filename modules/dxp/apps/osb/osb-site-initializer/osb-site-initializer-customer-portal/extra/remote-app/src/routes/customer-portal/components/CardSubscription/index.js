@@ -11,11 +11,12 @@
 
 import {useModal} from '@clayui/modal';
 import {useState} from 'react';
+import i18n from '../../../../common/I18n';
+import {StatusTag} from '../../../../common/components';
+import {useAppPropertiesContext} from '../../../../common/contexts/AppPropertiesContext';
+import {SLA_STATUS_TYPES} from '../../../../common/utils/constants';
+import getDateCustomFormat from '../../../../common/utils/getDateCustomFormat';
 import ModalCardSubscription from '../../containers/ModalCardSubscription';
-import {useCustomerPortal} from '../../context';
-import {STATUS_TAG_TYPES} from '../../utils/constants';
-import getDateCustomFormat from '../../utils/getDateCustomFormat';
-import StatusTag from '../StatusTag';
 
 const dateFormat = {
 	day: '2-digit',
@@ -27,8 +28,9 @@ const SUBSCRIPTION_IMAGE_FILE = {
 	'Analytics': 'analytics_icon.svg',
 	'Commerce': 'commerce_icon.svg',
 	'DXP': 'dxp_icon.svg',
-	'DXP Cloud': 'dxp_icon.svg',
 	'Enterprise Search': 'enterprise_icon.svg',
+	'LXC - SM': 'dxp_icon.svg',
+	'Liferay Experience Cloud': 'dxp_icon.svg',
 	'Portal': 'portal_icon.svg',
 };
 
@@ -36,7 +38,7 @@ const CardSubscription = ({
 	cardSubscriptionData,
 	selectedSubscriptionGroup,
 }) => {
-	const [{assetsPath}] = useCustomerPortal();
+	const {liferayWebDAV} = useAppPropertiesContext();
 	const [visible, setVisible] = useState(false);
 	const {observer, onClose} = useModal({
 		onClose: () => setVisible(false),
@@ -69,7 +71,7 @@ const CardSubscription = ({
 				<div className="text-center">
 					<img
 						className="w-25"
-						src={`${assetsPath}/assets/navigation-menu/${
+						src={`${liferayWebDAV}/assets/navigation-menu/${
 							SUBSCRIPTION_IMAGE_FILE[
 								selectedSubscriptionGroup
 							] || 'portal_icon.svg'
@@ -83,9 +85,9 @@ const CardSubscription = ({
 					</h5>
 
 					<p className="mb-1 text-center text-neutral-7 text-paragraph-sm">
-						{`Instance size: ${
-							cardSubscriptionData?.instanceSize || ' - '
-						}`}
+						{`${i18n.translate('instance-size')}: `}
+
+						{`${cardSubscriptionData?.instanceSize || ' - '}`}
 					</p>
 
 					<p className="mb-3 text-center">
@@ -100,7 +102,9 @@ const CardSubscription = ({
 
 					<div className="d-flex justify-content-center">
 						<StatusTag
-							currentStatus={STATUS_TAG_TYPES[subscriptionStatus]}
+							currentStatus={i18n.translate(
+								SLA_STATUS_TYPES[subscriptionStatus]
+							)}
 						/>
 					</div>
 				</div>

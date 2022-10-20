@@ -24,6 +24,7 @@ import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemListBuil
 import com.liferay.item.selector.ItemSelector;
 import com.liferay.item.selector.ItemSelectorCriterion;
 import com.liferay.item.selector.criteria.URLItemSelectorReturnType;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Group;
@@ -42,7 +43,6 @@ import com.liferay.staging.StagingGroupHelperUtil;
 import java.util.List;
 import java.util.Locale;
 
-import javax.portlet.ActionURL;
 import javax.portlet.PortletURL;
 
 /**
@@ -66,14 +66,12 @@ public class DepotAdminSitesDisplayContext {
 
 		return DropdownItemListBuilder.add(
 			dropdownItem -> {
-				ActionURL updateSearchableActionURL =
-					DepotEntryURLUtil.getUpdateSearchableActionURL(
-						depotEntryGroupRel.getDepotEntryGroupRelId(),
-						!depotEntryGroupRel.isSearchable(),
-						_currentURL.toString(), _liferayPortletResponse);
-
-				dropdownItem.setHref(updateSearchableActionURL.toString());
-
+				dropdownItem.setHref(
+					String.valueOf(
+						DepotEntryURLUtil.getUpdateSearchableActionURL(
+							depotEntryGroupRel.getDepotEntryGroupRelId(),
+							!depotEntryGroupRel.isSearchable(),
+							_currentURL.toString(), _liferayPortletResponse)));
 				dropdownItem.setLabel(
 					LanguageUtil.get(
 						PortalUtil.getHttpServletRequest(
@@ -82,21 +80,23 @@ public class DepotAdminSitesDisplayContext {
 			}
 		).add(
 			dropdownItem -> {
-				ActionURL updateDDMStructuresAvailableActionURL =
-					DepotEntryURLUtil.getUpdateDDMStructuresAvailableActionURL(
-						depotEntryGroupRel.getDepotEntryGroupRelId(),
-						!depotEntryGroupRel.isDdmStructuresAvailable(),
-						_currentURL.toString(), _liferayPortletResponse);
-
 				dropdownItem.setData(
 					HashMapBuilder.<String, Object>put(
 						"action", "shareWebContentStructures"
 					).put(
 						"shared", depotEntryGroupRel.isDdmStructuresAvailable()
 					).put(
-						"url", updateDDMStructuresAvailableActionURL.toString()
+						"url",
+						String.valueOf(
+							DepotEntryURLUtil.
+								getUpdateDDMStructuresAvailableActionURL(
+									depotEntryGroupRel.
+										getDepotEntryGroupRelId(),
+									!depotEntryGroupRel.
+										isDdmStructuresAvailable(),
+									_currentURL.toString(),
+									_liferayPortletResponse))
 					).build());
-
 				dropdownItem.setLabel(
 					LanguageUtil.get(
 						PortalUtil.getHttpServletRequest(
@@ -111,18 +111,12 @@ public class DepotAdminSitesDisplayContext {
 						"action", "disconnect"
 					).put(
 						"url",
-						() -> {
-							ActionURL disconnectSiteActionURL =
-								DepotEntryURLUtil.getDisconnectSiteActionURL(
-									depotEntryGroupRel.
-										getDepotEntryGroupRelId(),
-									_currentURL.toString(),
-									_liferayPortletResponse);
-
-							return disconnectSiteActionURL.toString();
-						}
+						() -> String.valueOf(
+							DepotEntryURLUtil.getDisconnectSiteActionURL(
+								depotEntryGroupRel.getDepotEntryGroupRelId(),
+								_currentURL.toString(),
+								_liferayPortletResponse))
 					).build());
-
 				dropdownItem.setDisabled(
 					depotEntryGroupRel.isDdmStructuresAvailable());
 				dropdownItem.setLabel(
@@ -165,7 +159,23 @@ public class DepotAdminSitesDisplayContext {
 		Group group = GroupServiceUtil.getGroup(
 			depotEntryGroupRel.getToGroupId());
 
-		return group.getDescriptiveName(locale);
+		StringBuilder sb = new StringBuilder();
+
+		sb.append(group.getDescriptiveName(locale));
+
+		if (group.isStaged() && !group.isStagedRemotely() &&
+			group.isStagingGroup()) {
+
+			sb.append(StringPool.SPACE);
+			sb.append(StringPool.OPEN_PARENTHESIS);
+			sb.append(
+				LanguageUtil.get(
+					PortalUtil.getHttpServletRequest(_liferayPortletRequest),
+					"staging"));
+			sb.append(StringPool.CLOSE_PARENTHESIS);
+		}
+
+		return sb.toString();
 	}
 
 	public boolean isLiveDepotEntry() throws PortalException {

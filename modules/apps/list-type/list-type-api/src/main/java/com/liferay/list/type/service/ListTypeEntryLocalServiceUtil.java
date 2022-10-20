@@ -316,6 +316,13 @@ public class ListTypeEntryLocalServiceUtil {
 		return getService().getListTypeEntry(listTypeEntryId);
 	}
 
+	public static ListTypeEntry getListTypeEntry(
+			long listTypeDefinitionId, String key)
+		throws PortalException {
+
+		return getService().getListTypeEntry(listTypeDefinitionId, key);
+	}
+
 	/**
 	 * Returns the list type entry with the matching UUID and company.
 	 *

@@ -12,6 +12,7 @@
  * details.
  */
 
+import {getSpritemap} from '@liferay/frontend-icons-web';
 import {render} from '@liferay/frontend-js-react-web';
 import {ClayAlert} from 'clay-alert';
 import {
@@ -19,8 +20,8 @@ import {
 	PortletBase,
 	STATUS_CODE,
 	delegate,
+	sub,
 } from 'frontend-js-web';
-import {Config} from 'metal-state';
 import ReactDOM from 'react-dom';
 
 import ItemSelectorPreview from '../../item_selector_preview/js/ItemSelectorPreview.es';
@@ -40,7 +41,28 @@ class ItemSelectorRepositoryEntryBrowser extends PortletBase {
 	/**
 	 * @inheritDoc
 	 */
-	created() {
+	created(props) {
+		const {
+			closeCaption,
+			editImageURL,
+			ffItemSelectorSingleFileUploaderEnabled = false,
+			maxFileSize = Liferay.PropsValues
+				.UPLOAD_SERVLET_REQUEST_IMPL_MAX_SIZE,
+			rootNode,
+			validExtensions = '*',
+			uploadItemReturnType,
+			uploadItemURL,
+		} = props;
+
+		this.closeCaption = closeCaption;
+		this.editImageURL = editImageURL;
+		this.ffItemSelectorSingleFileUploaderEnabled = ffItemSelectorSingleFileUploaderEnabled;
+		this.maxFileSize = this._convertMaxFileSize(maxFileSize);
+		this.rootNode = rootNode;
+		this.validExtensions = validExtensions;
+		this.uploadItemReturnType = uploadItemReturnType;
+		this.uploadItemURL = uploadItemURL;
+
 		this._eventHandler = new EventHandler();
 	}
 
@@ -277,7 +299,7 @@ class ItemSelectorRepositoryEntryBrowser extends PortletBase {
 					break;
 				case STATUS_CODE.SC_FILE_EXTENSION_EXCEPTION:
 					if (error.message) {
-						message = Liferay.Util.sub(
+						message = sub(
 							Liferay.Language.get(
 								'please-enter-a-file-with-a-valid-extension-x'
 							),
@@ -299,7 +321,7 @@ class ItemSelectorRepositoryEntryBrowser extends PortletBase {
 					break;
 				case STATUS_CODE.SC_FILE_SIZE_EXCEPTION:
 				case STATUS_CODE.SC_UPLOAD_REQUEST_CONTENT_LENGTH_EXCEPTION:
-					message = Liferay.Util.sub(
+					message = sub(
 						Liferay.Language.get(
 							'please-enter-a-file-with-a-valid-file-size-no-larger-than-x'
 						),
@@ -312,7 +334,7 @@ class ItemSelectorRepositoryEntryBrowser extends PortletBase {
 						Liferay.PropsValues
 							.UPLOAD_SERVLET_REQUEST_IMPL_MAX_SIZE;
 
-					message = Liferay.Util.sub(
+					message = sub(
 						Liferay.Language.get(
 							'request-is-larger-than-x-and-could-not-be-processed'
 						),
@@ -421,9 +443,7 @@ class ItemSelectorRepositoryEntryBrowser extends PortletBase {
 				closeable: true,
 				destroyOnHide: true,
 				message,
-				spritemap:
-					Liferay.ThemeDisplay.getPathThemeImages() +
-					'/clay/icons.svg',
+				spritemap: getSpritemap(),
 				style: 'danger',
 				title: '',
 				visible: true,
@@ -431,10 +451,7 @@ class ItemSelectorRepositoryEntryBrowser extends PortletBase {
 			this.one('.message-container')
 		);
 
-		this._hideTimeout = setTimeout(
-			() => this._closeAlert(),
-			this.hideAlertDelay
-		);
+		this._hideTimeout = setTimeout(() => this._closeAlert(), 5000);
 	}
 
 	/**
@@ -488,7 +505,7 @@ class ItemSelectorRepositoryEntryBrowser extends PortletBase {
 				this._previewFile(file);
 			}
 			else {
-				errorMessage = Liferay.Util.sub(
+				errorMessage = sub(
 					Liferay.Language.get(
 						'please-enter-a-file-with-a-valid-file-size-no-larger-than-x'
 					),
@@ -497,7 +514,7 @@ class ItemSelectorRepositoryEntryBrowser extends PortletBase {
 			}
 		}
 		else {
-			errorMessage = Liferay.Util.sub(
+			errorMessage = sub(
 				Liferay.Language.get(
 					'please-enter-a-file-with-a-valid-extension-x'
 				),
@@ -506,7 +523,7 @@ class ItemSelectorRepositoryEntryBrowser extends PortletBase {
 		}
 
 		if (errorMessage) {
-			var inputTypeFile = this.one('input[type="file"]');
+			const inputTypeFile = this.one('input[type="file"]');
 
 			if (inputTypeFile) {
 				inputTypeFile.value = '';
@@ -516,87 +533,5 @@ class ItemSelectorRepositoryEntryBrowser extends PortletBase {
 		}
 	}
 }
-
-/**
- * State definition.
- *
- * @static
- * @type {!Object}
- */
-ItemSelectorRepositoryEntryBrowser.STATE = {
-
-	/**
-	 * Text to show near the close icon in the Item Viewer
-	 *
-	 * @instance
-	 * @memberof ItemSelectorRepositoryEntryBrowser
-	 * @type {String}
-	 */
-	closeCaption: Config.string(),
-
-	/**
-	 * Endpoint to send the image edited in the Image Editor
-	 *
-	 * @instance
-	 * @memberof ItemSelectorRepositoryEntryBrowser
-	 * @type {String}
-	 */
-	editImageURL: Config.string(),
-
-	/**
-	 * The SingleFileUploader is enabled outside of ItemSelectorRepository entry browser
-	 *
-	 * @instance
-	 * @memberof ItemSelectorRepositoryEntryBrowser
-	 * @type {boolean}
-	 * @default false
-	 */
-	ffItemSelectorSingleFileUploaderEnabled: Config.bool().value(false),
-
-	/**
-	 * Time to hide the alert messages.
-	 *
-	 * @type {Number} milliseconds
-	 */
-	hideAlertDelay: Config.number().value(5000).internal(),
-
-	/**
-	 * Maximum allowed file size to drop in the item selector.
-	 *
-	 * @instance
-	 * @memberof ItemSelectorRepositoryEntryBrowser
-	 * @type {Number | String}
-	 */
-	maxFileSize: Config.oneOfType([Config.number(), Config.string()])
-		.setter('_convertMaxFileSize')
-		.value(Liferay.PropsValues.UPLOAD_SERVLET_REQUEST_IMPL_MAX_SIZE),
-
-	/**
-	 * The return type for the uploaded item.
-	 *
-	 * @instance
-	 * @memberof ItemSelectorRepositoryEntryBrowser
-	 * @type {String}
-	 */
-	uploadItemReturnType: Config.string(),
-
-	/**
-	 * URL to upload an item.
-	 *
-	 * @instance
-	 * @memberof ItemSelectorRepositoryEntryBrowser
-	 * @type {String}
-	 */
-	uploadItemURL: Config.string(),
-
-	/**
-	 * Valid extensions for files uploaded to the Item Selector.
-	 *
-	 * @instance
-	 * @memberof ItemSelectorRepositoryEntryBrowser
-	 * @type {String}
-	 */
-	validExtensions: Config.string().value('*'),
-};
 
 export default ItemSelectorRepositoryEntryBrowser;

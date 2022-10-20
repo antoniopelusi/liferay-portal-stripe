@@ -16,6 +16,21 @@ definition {
 		com.liferay.poshi.runner.util.JSONCurlUtil.post("${cleanCurl}");
 	}
 
+	macro getNumberOfSuccessfulWriteRequests {
+		var companyId = JSONCompany.getCompanyId();
+		var portalHostname = PropsUtil.get("portal.hostname");
+
+		var curl = "http://${portalHostname}:9202/liferay-${companyId}-${indexName}/_ccr/stats?pretty";
+
+		var ccrSynonymInfo = JSONCurlUtil.get("${curl}");
+
+		var successfulWriteRequests = RegexUtil.replace("${ccrSynonymInfo}", "successful_write_requests\" : (\d+)", "1");
+
+		echo("Number of successful_write_requests: ${successfulWriteRequests}");
+
+		return "${successfulWriteRequests}";
+	}
+
 	macro setupCrossClusterReplication {
 		ApplicationsMenu.gotoPortlet(
 			category = "Configuration",
@@ -50,6 +65,7 @@ definition {
 		echo("##");
 
 		var remoteClusterIndexList = JSONCurlUtil.get("http://localhost:9200/_cat/indices?h=index");
+
 		var remoteClusterIndexList = RegexUtil.replace("${remoteClusterIndexList}", "\n", ",");
 
 		for (var indexName : list "${remoteClusterIndexList}") {

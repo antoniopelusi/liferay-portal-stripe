@@ -21,12 +21,15 @@ import com.liferay.asset.tags.selector.web.internal.search.EntriesChecker;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -140,7 +143,6 @@ public class AssetTagsSelectorDisplayContext {
 		tagsSearchContainer.setOrderByComparator(
 			new AssetTagNameComparator(orderByAsc));
 		tagsSearchContainer.setOrderByType(orderByType);
-
 		tagsSearchContainer.setResultsAndTotal(
 			() -> AssetTagServiceUtil.getTags(
 				_getGroupIds(), _getKeywords(), tagsSearchContainer.getStart(),
@@ -163,16 +165,40 @@ public class AssetTagsSelectorDisplayContext {
 			return _groupIds;
 		}
 
-		_groupIds = StringUtil.split(
+		long[] groupIds = StringUtil.split(
 			ParamUtil.getString(_httpServletRequest, "groupIds"), 0L);
 
-		if (ArrayUtil.isEmpty(_groupIds)) {
+		if (ArrayUtil.isEmpty(groupIds)) {
 			ThemeDisplay themeDisplay =
 				(ThemeDisplay)_httpServletRequest.getAttribute(
 					WebKeys.THEME_DISPLAY);
 
-			_groupIds = new long[] {themeDisplay.getScopeGroupId()};
+			groupIds = new long[] {themeDisplay.getScopeGroupId()};
 		}
+
+		for (long groupId : groupIds) {
+			Group group = GroupLocalServiceUtil.fetchGroup(groupId);
+
+			if ((group == null) || !group.isLayout() ||
+				ArrayUtil.contains(groupIds, group.getParentGroupId())) {
+
+				continue;
+			}
+
+			try {
+				groupIds = ArrayUtil.append(
+					groupIds,
+					PortalUtil.getCurrentAndAncestorSiteGroupIds(
+						group.getParentGroupId()));
+			}
+			catch (PortalException portalException) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(portalException);
+				}
+			}
+		}
+
+		_groupIds = groupIds;
 
 		return _groupIds;
 	}
@@ -209,6 +235,9 @@ public class AssetTagsSelectorDisplayContext {
 
 		return _orderByCol;
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		AssetTagsSelectorDisplayContext.class);
 
 	private String _eventName;
 	private long[] _groupIds;

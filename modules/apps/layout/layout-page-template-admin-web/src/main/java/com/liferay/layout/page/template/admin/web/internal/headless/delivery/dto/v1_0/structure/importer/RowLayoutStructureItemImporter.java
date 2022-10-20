@@ -23,6 +23,7 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -59,12 +60,42 @@ public class RowLayoutStructureItemImporter
 			return rowStyledLayoutStructureItem;
 		}
 
+		if (definitionMap.containsKey("cssClasses")) {
+			List<String> cssClasses = (List<String>)definitionMap.get(
+				"cssClasses");
+
+			rowStyledLayoutStructureItem.setCssClasses(
+				new HashSet<>(cssClasses));
+		}
+
+		if (definitionMap.containsKey("customCSS")) {
+			rowStyledLayoutStructureItem.setCustomCSS(
+				String.valueOf(definitionMap.get("customCSS")));
+		}
+
+		if (definitionMap.containsKey("customCSSViewports")) {
+			List<Map<String, Object>> customCSSViewports =
+				(List<Map<String, Object>>)definitionMap.get(
+					"customCSSViewports");
+
+			for (Map<String, Object> customCSSViewport : customCSSViewports) {
+				rowStyledLayoutStructureItem.setCustomCSSViewport(
+					(String)customCSSViewport.get("id"),
+					(String)customCSSViewport.get("customCSS"));
+			}
+		}
+
 		rowStyledLayoutStructureItem.setGutters(
 			(Boolean)definitionMap.get("gutters"));
 
 		if (definitionMap.containsKey("indexed")) {
 			rowStyledLayoutStructureItem.setIndexed(
 				GetterUtil.getBoolean(definitionMap.get("indexed")));
+		}
+
+		if (definitionMap.containsKey("name")) {
+			rowStyledLayoutStructureItem.setName(
+				GetterUtil.getString(definitionMap.get("name")));
 		}
 
 		rowStyledLayoutStructureItem.setNumberOfColumns(

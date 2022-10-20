@@ -12,19 +12,52 @@
  * details.
  */
 
+import ClayPanel from '@clayui/panel';
 import classNames from 'classnames';
+import {ReactNode} from 'react';
 
 type ContainerProps = {
+	children: ReactNode;
 	className?: string;
+	collapsable?: boolean;
 	title?: string;
 };
 
-const Container: React.FC<ContainerProps> = ({children, className, title}) => (
-	<div className={classNames('bg-white border-1 rounded-xs p-4', className)}>
-		{title && <h5>{title}</h5>}
+const Container: React.FC<ContainerProps> = ({
+	children,
+	className,
+	collapsable = false,
+	title,
+}) => {
+	const containerTitle = <div>{title && <h5>{title}</h5>}</div>;
 
-		{children}
-	</div>
-);
+	if (collapsable) {
+		return (
+			<ClayPanel
+				className="p-4"
+				collapsable
+				defaultExpanded
+				displayTitle={containerTitle}
+				displayType="secondary"
+				showCollapseIcon
+			>
+				<ClayPanel.Body>{children}</ClayPanel.Body>
+			</ClayPanel>
+		);
+	}
+
+	return (
+		<div
+			className={classNames(
+				'bg-white border-1 rounded-xs p-4',
+				className
+			)}
+		>
+			{containerTitle}
+
+			{children}
+		</div>
+	);
+};
 
 export default Container;

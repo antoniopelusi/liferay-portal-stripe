@@ -14,38 +14,38 @@
 
 import {TreeView as ClayTreeView} from '@clayui/core';
 import ClayIcon from '@clayui/icon';
-import {Treeview} from 'frontend-js-components-web';
 import React from 'react';
-
-function findCategory(categoryId, categories = []) {
-	// eslint-disable-next-line no-for-of-loops/no-for-of-loops
-	for (const category of categories) {
-		if (category.id === categoryId) {
-			return category;
-		}
-
-		const childrenCategory = findCategory(categoryId, category.children);
-
-		if (childrenCategory) {
-			return childrenCategory;
-		}
-	}
-
-	return null;
-}
 
 const AssetCategoriesNavigationTreeView = ({
 	selectedCategoryId,
 	vocabularies,
 }) => {
-	const handleSelectionChange = (event, item) => {
-		event.preventDefault();
-
+	const handleSelectionChange = (item) => {
 		if (selectedCategoryId === item.id) {
 			return;
 		}
 
 		Liferay.Util.navigate(item.url);
+	};
+
+	const onClick = (event, item, expand) => {
+		event.preventDefault();
+
+		if (item.disabled) {
+			expand.toggle(item.id);
+
+			return;
+		}
+
+		handleSelectionChange(item);
+	};
+
+	const onKeyUp = (event, item) => {
+		if (event.key === ' ' || event.key === 'Enter') {
+			event.preventDefault();
+
+			handleSelectionChange(item);
+		}
 	};
 
 	return (
@@ -54,11 +54,18 @@ const AssetCategoriesNavigationTreeView = ({
 			defaultSelectedKeys={
 				new Set(selectedCategoryId ? [selectedCategoryId] : [])
 			}
+			showExpanderOnHover={false}
 		>
-			{(item) => (
+			{(item, expand) => (
 				<ClayTreeView.Item>
 					<ClayTreeView.ItemStack
-						onClick={(event) => handleSelectionChange(event, item)}
+						onClick={(event) => onClick(event, item, expand)}
+						onKeyDownCapture={(event) => {
+							if (event.key === ' ' && item.disabled) {
+								event.stopPropagation();
+							}
+						}}
+						onKeyUp={(event) => onKeyUp(event, item)}
 					>
 						<ClayIcon symbol={item.icon} />
 
@@ -68,9 +75,8 @@ const AssetCategoriesNavigationTreeView = ({
 					<ClayTreeView.Group items={item.children}>
 						{(item) => (
 							<ClayTreeView.Item
-								onClick={(event) =>
-									handleSelectionChange(event, item)
-								}
+								onClick={(event) => onClick(event, item)}
+								onKeyUp={(event) => onKeyUp(event, item)}
 							>
 								<ClayIcon symbol={item.icon} />
 
@@ -84,33 +90,4 @@ const AssetCategoriesNavigationTreeView = ({
 	);
 };
 
-const OldAssetCategoriesNavigationTreeView = ({
-	selectedCategoryId,
-	vocabularies,
-}) => {
-	const handleSelectionChange = ([selectedNodeId]) => {
-		if (selectedNodeId && selectedCategoryId !== selectedNodeId) {
-			const category = findCategory(selectedNodeId, vocabularies);
-
-			if (category) {
-				Liferay.Util.navigate(category.url);
-			}
-		}
-	};
-
-	return (
-		<Treeview
-			NodeComponent={Treeview.Card}
-			initialSelectedNodeIds={
-				selectedCategoryId ? [selectedCategoryId] : []
-			}
-			multiSelection={false}
-			nodes={vocabularies}
-			onSelectedNodesChange={handleSelectionChange}
-		/>
-	);
-};
-
-export default Liferay.__FF__.enableClayTreeView
-	? AssetCategoriesNavigationTreeView
-	: OldAssetCategoriesNavigationTreeView;
+export default AssetCategoriesNavigationTreeView;

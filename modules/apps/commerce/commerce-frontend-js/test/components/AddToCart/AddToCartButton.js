@@ -12,749 +12,118 @@
  * details.
  */
 
+import '../../tests_utilities/polyfills';
+
 import '@testing-library/jest-dom/extend-expect';
-import {act, cleanup, fireEvent, render, wait} from '@testing-library/react';
+import {cleanup, fireEvent, render} from '@testing-library/react';
+import fetchMock from 'fetch-mock';
 import React from 'react';
+import {act} from 'react-dom/test-utils';
 
-import ServiceProvider from '../../../src/main/resources/META-INF/resources/ServiceProvider';
 import AddToCartButton from '../../../src/main/resources/META-INF/resources/components/add_to_cart/AddToCartButton';
-import {
-	CP_INSTANCE_CHANGED,
-	CURRENT_ORDER_UPDATED,
-	PRODUCT_REMOVED_FROM_CART,
-} from '../../../src/main/resources/META-INF/resources/utilities/eventsDefinitions';
 
-jest.mock('../../../src/main/resources/META-INF/resources/ServiceProvider');
+const props = {
+	accountId: 43879,
+	cartId: '43882',
+	cartUUID: 'a711bf49-a2d3-2c8d-23c9-abaff7d288a5',
+	channel: {
+		currencyCode: 'USD',
+		groupId: '42398',
+		id: '42397',
+	},
+	settings: {
+		iconOnly: false,
+		productConfiguration: {
+			allowedOrderQuantities: [],
+			maxOrderQuantity: 50,
+			minOrderQuantity: 1,
+			multipleOrderQuantity: 1,
+		},
+	},
+	size: 'sm',
+};
 
-describe('AddToCartButton', () => {
-	const INITIAL_PROPS = {
-		channel: {
-			currencyCode: 'USD',
-			groupId: 56789,
-			id: 12345,
-		},
-		cpInstance: {
-			skuId: 12345,
-			stockQuantity: 10,
-		},
+describe('Add to Cart Button', () => {
+	let addToCartButton;
+	let button;
+
+	const addProductsToCartFn = jest.fn();
+	const onAdd = jest.fn();
+
+	const defaultProps = {
+		...props,
+		cpInstances: [
+			{
+				inCart: false,
+				quantity: 1,
+				skuId: 123,
+				skuOptions: [],
+			},
+			{
+				inCart: false,
+				quantity: 3,
+				skuId: 234,
+				skuOptions: [],
+			},
+		],
+		onAdd,
 	};
 
-	describe('by display settings', () => {
-		beforeEach(() => {
-			jest.resetAllMocks();
-
-			window.Liferay.Language.get = jest.fn();
-		});
-
-		afterEach(() => {
-			cleanup();
-		});
-
-		it('renders by default a large Button element with a text label and an icon with the default class names', () => {
-			const DEFAULT_CLASS_NAMES = [
-				'btn',
-				'btn-lg',
-				'btn-add-to-cart',
-				'btn-primary',
-			];
-
-			const {container} = render(<AddToCartButton {...INITIAL_PROPS} />);
-
-			const button = container.querySelector('button');
-			const icon = container.querySelector('.cart-icon svg');
-			const textLabel = container.querySelector('.text-truncate');
-
-			expect(button).toBeInTheDocument();
-			expect(icon).toBeInTheDocument();
-			expect(textLabel).toBeInTheDocument();
-
-			DEFAULT_CLASS_NAMES.forEach((className) => {
-				expect(button.classList.contains(className)).toBe(true);
-			});
-
-			expect(window.Liferay.Language.get).toHaveBeenCalledWith(
-				'add-to-cart'
-			);
-		});
-
-		it('renders a default-sized, block-styled Button element with a text label and an icon', () => {
-			const DEFAULT_CLASS_NAMES = [
-				'btn',
-				'btn-add-to-cart',
-				'btn-primary',
-			];
-
-			const BLOCK_CLASS_NAME = 'btn-block';
-			const LARGE_CLASS_NAME = 'btn-lg';
-
-			const settings = {
-				block: true,
-			};
-
-			const {container} = render(
-				<AddToCartButton {...{...INITIAL_PROPS, settings}} />
-			);
-
-			const button = container.querySelector('button');
-			const icon = container.querySelector('.cart-icon svg');
-			const textLabel = container.querySelector('.text-truncate');
-
-			expect(button).toBeInTheDocument();
-			expect(icon).toBeInTheDocument();
-			expect(textLabel).toBeInTheDocument();
-
-			expect(button.classList.contains(LARGE_CLASS_NAME)).toBe(false);
-
-			[...DEFAULT_CLASS_NAMES, BLOCK_CLASS_NAME].forEach((className) => {
-				expect(button.classList.contains(className)).toBe(true);
-			});
-		});
-
-		it('renders an icon-only-styled Button element with an icon and no text label', () => {
-			const DEFAULT_CLASS_NAMES = [
-				'btn',
-				'btn-lg',
-				'btn-add-to-cart',
-				'btn-primary',
-			];
-
-			const ICON_ONLY_CLASS_NAME = 'icon-only';
-
-			const settings = {
-				iconOnly: true,
-			};
-
-			const {container} = render(
-				<AddToCartButton {...{...INITIAL_PROPS, settings}} />
-			);
-
-			const button = container.querySelector('button');
-			const icon = container.querySelector('.cart-icon svg');
-			const textLabel = container.querySelector('.text-truncate');
-
-			expect(button).toBeInTheDocument();
-			expect(icon).toBeInTheDocument();
-
-			expect(textLabel).not.toBeInTheDocument();
-
-			[...DEFAULT_CLASS_NAMES, ICON_ONLY_CLASS_NAME].forEach(
-				(className) => {
-					expect(button.classList.contains(className)).toBe(true);
+	beforeEach(() => {
+		fetchMock.mock(
+			/\/o\/headless-commerce-delivery-cart\/v1.0\/carts\/[0-9]+\?nestedFields=cartItems/,
+			(_, options) => {
+				if (options.method === 'PATCH') {
+					addProductsToCartFn(JSON.parse(options.body));
 				}
-			);
 
-			expect(window.Liferay.Language.get).not.toHaveBeenCalled();
+				return {cartItems: []};
+			}
+		);
+
+		addToCartButton = render(<AddToCartButton {...defaultProps} />);
+
+		button = addToCartButton.container.querySelector('button');
+	});
+
+	afterEach(() => {
+		cleanup();
+
+		fetchMock.restore();
+
+		addProductsToCartFn.mockReset();
+	});
+
+	it('must render the component', () => {
+		expect(addToCartButton.container).toBeInTheDocument();
+	});
+
+	it('must be disabled consistently with its prop', () => {
+		addToCartButton.rerender(
+			<AddToCartButton {...defaultProps} disabled={true} />
+		);
+
+		expect(button.disabled).toBe(true);
+	});
+
+	it('must add multiple products to the cart', async () => {
+		await act(async () => {
+			await fireEvent.click(button);
 		});
 
-		it('ignores block-styled button settings, if requested to render an icon-only-styled button', () => {
-			const BLOCK_CLASS_NAME = 'btn-block';
-			const DEFAULT_CLASS_NAMES = [
-				'btn',
-				'btn-add-to-cart',
-				'btn-primary',
-			];
-			const ICON_ONLY_CLASS_NAME = 'icon-only';
-			const LARGE_CLASS_NAME = 'btn-lg';
-
-			const settings = {
-				block: true,
-				iconOnly: true,
-			};
-
-			const {container} = render(
-				<AddToCartButton {...{...INITIAL_PROPS, settings}} />
-			);
-
-			const button = container.querySelector('button');
-			const icon = container.querySelector('.cart-icon svg');
-			const textLabel = container.querySelector('.text-truncate');
-
-			expect(button).toBeInTheDocument();
-			expect(icon).toBeInTheDocument();
-
-			expect(textLabel).not.toBeInTheDocument();
-
-			expect(button.classList.contains(BLOCK_CLASS_NAME)).toBe(false);
-			expect(button.classList.contains(LARGE_CLASS_NAME)).toBe(false);
-
-			[...DEFAULT_CLASS_NAMES, ICON_ONLY_CLASS_NAME].forEach(
-				(className) => {
-					expect(button.classList.contains(className)).toBe(true);
-				}
-			);
-		});
-
-		it('renders a disabled Button element if requested via prop', () => {
-			const props = {
-				...INITIAL_PROPS,
-				settings: {
-					disabled: true,
+		expect(addProductsToCartFn).toHaveBeenCalledWith({
+			cartItems: [
+				{
+					options: '[]',
+					quantity: 1,
+					skuId: 123,
 				},
-			};
-
-			const {getByRole} = render(<AddToCartButton {...props} />);
-
-			const element = getByRole('button');
-
-			expect(element).toBeInTheDocument();
-			expect(element).toBeDisabled();
-		});
-	});
-
-	describe('by data flow', () => {
-		beforeEach(() => {
-			jest.resetAllMocks();
-		});
-
-		afterEach(() => {
-			cleanup();
-		});
-
-		it("renders a Button element with the 'is-added' class name when an item is already present in an order", () => {
-			const DEFAULT_CLASS_NAMES = [
-				'btn',
-				'btn-lg',
-				'btn-add-to-cart',
-				'btn-primary',
-			];
-			const IS_ADDED_CLASS_NAME = 'is-added';
-
-			const cpInstance = {
-				...INITIAL_PROPS.cpInstance,
-				inCart: true,
-			};
-
-			const {container} = render(
-				<AddToCartButton {...{...INITIAL_PROPS, cpInstance}} />
-			);
-
-			const button = container.querySelector('button');
-
-			expect(button).toBeInTheDocument();
-
-			[...DEFAULT_CLASS_NAMES, IS_ADDED_CLASS_NAME].forEach(
-				(className) => {
-					expect(button.classList.contains(className)).toBe(true);
-				}
-			);
-		});
-
-		it("renders a disabled Button element if no 'accountId' is provided", () => {
-			const cpInstance = {
-				...INITIAL_PROPS.cpInstance,
-				inCart: true,
-			};
-
-			const {getByRole} = render(
-				<AddToCartButton {...{...INITIAL_PROPS, cpInstance}} />
-			);
-
-			const element = getByRole('button');
-
-			expect(element).toBeInTheDocument();
-			expect(element).toBeDisabled();
-		});
-	});
-
-	describe('by interaction', () => {
-		const INTERACTION_PROPS = {
-			...INITIAL_PROPS,
-			cpInstance: {
-				...INITIAL_PROPS.cpInstance,
-				accountId: 12345,
-				quantity: 1,
-				skuOptions: '[]',
-				stockQuantity: 10,
-			},
-		};
-
-		const CART_ITEM = {
-			quantity: INTERACTION_PROPS.cpInstance.quantity,
-			skuId: INTERACTION_PROPS.cpInstance.skuId,
-			skuOptions: INTERACTION_PROPS.cpInstance.skuOptions,
-		};
-
-		beforeEach(() => {
-			jest.resetAllMocks();
-
-			ServiceProvider.DeliveryCartAPI = jest.fn().mockReturnValue({
-				createCartByChannelId: jest
-					.fn()
-					.mockReturnValue(Promise.resolve({id: 9999})),
-				createItemByCartId: jest.fn(() => Promise.resolve()),
-			});
-
-			window.Liferay.fire = jest.fn();
-		});
-
-		afterEach(() => {
-			cleanup();
-		});
-
-		it("on click, calls the API to add a cpInstance to the current open cart/order if the latter's ID is not '0'", async () => {
-			const orderId = 1234;
-
-			const {getByRole} = render(
-				<AddToCartButton {...{...INTERACTION_PROPS, orderId}} />
-			);
-
-			await act(async () => {
-				fireEvent.click(getByRole('button'));
-			});
-
-			await wait(() => {
-				expect(
-					ServiceProvider.DeliveryCartAPI('v1').createItemByCartId
-				).toHaveBeenCalledWith(orderId, CART_ITEM);
-
-				expect(
-					window.Liferay.fire
-				).toHaveBeenCalledWith(CURRENT_ORDER_UPDATED, {id: orderId});
-			});
-		});
-
-		it("on click, if cart/order ID is '0', calls the API to create the order and add a cpInstance to it", async () => {
-			const {getByRole} = render(
-				<AddToCartButton {...{...INTERACTION_PROPS}} />
-			);
-
-			await act(async () => {
-				fireEvent.click(getByRole('button'));
-			});
-
-			await wait(() => {
-				expect(
-					ServiceProvider.DeliveryCartAPI('v1').createCartByChannelId
-				).toHaveBeenCalledWith(INTERACTION_PROPS.channel.id, {
-					accountId: INTERACTION_PROPS.cpInstance.accountId,
-					cartItems: [CART_ITEM],
-					currencyCode: INTERACTION_PROPS.channel.currencyCode,
-				});
-
-				expect(
-					window.Liferay.fire
-				).toHaveBeenCalledWith(CURRENT_ORDER_UPDATED, {id: 9999});
-			});
-		});
-	});
-
-	describe('by event update', () => {
-		const INTERACTION_PROPS = {
-			...INITIAL_PROPS,
-			cpInstance: {
-				...INITIAL_PROPS.cpInstance,
-				accountId: 12345,
-				quantity: 1,
-				skuOptions: '[]',
-				stockQuantity: 10,
-			},
-		};
-
-		beforeEach(() => {
-			jest.resetAllMocks();
-
-			ServiceProvider.DeliveryCartAPI = jest.fn().mockReturnValue({
-				createCartByChannelId: jest
-					.fn()
-					.mockReturnValue(Promise.resolve({id: 9999})),
-				createItemByCartId: jest.fn(() => Promise.resolve()),
-			});
-
-			window.Liferay.fire = jest.fn();
-		});
-
-		afterEach(() => {
-			cleanup();
-		});
-
-		describe(`on '${PRODUCT_REMOVED_FROM_CART}' event`, () => {
-			it(`removes the 'is-added' class from the button element, if skuId matches`, async () => {
-				let removeCBTrigger;
-
-				window.Liferay.on = jest.fn((eventName, callback) => {
-					if (eventName === PRODUCT_REMOVED_FROM_CART) {
-						removeCBTrigger = callback;
-					}
-				});
-
-				const props = {
-					...INTERACTION_PROPS,
-					cpInstance: {
-						...INTERACTION_PROPS.cpInstance,
-						inCart: true,
-					},
-				};
-
-				const {getByRole} = render(<AddToCartButton {...props} />);
-
-				await act(async () => {
-					removeCBTrigger({
-						skuId: INTERACTION_PROPS.cpInstance.skuId,
-					});
-				});
-
-				await wait(() => {
-					const element = getByRole('button');
-
-					expect(element.classList.contains('is-added')).toBe(false);
-				});
-			});
-
-			it(`leaves the 'is-added' class in the button element, if skuId does not match`, async () => {
-				let removeCBTrigger;
-
-				window.Liferay.on = jest.fn((eventName, callback) => {
-					if (eventName === PRODUCT_REMOVED_FROM_CART) {
-						removeCBTrigger = callback;
-					}
-				});
-
-				const props = {
-					...INTERACTION_PROPS,
-					cpInstance: {
-						...INTERACTION_PROPS.cpInstance,
-						inCart: true,
-					},
-				};
-
-				const {getByRole} = render(<AddToCartButton {...props} />);
-
-				await act(async () => {
-					removeCBTrigger({skuId: 'fail'});
-				});
-
-				await wait(() => {
-					const element = getByRole('button');
-
-					expect(element.classList.contains('is-added')).toBe(true);
-				});
-			});
-		});
-
-		describe(`on '${CP_INSTANCE_CHANGED}' event`, () => {
-			it(
-				'calls the API and, if present in the order, updates the local cpInstance and renders ' +
-					"the button with the 'is-added' class name",
-				async () => {
-					const itemsContaining = {
-						items: [
-							{
-								skuId: INTERACTION_PROPS.cpInstance.skuId,
-							},
-						],
-					};
-
-					ServiceProvider.DeliveryCartAPI(
-						'v1'
-					).getItemsByCartId = jest
-						.fn()
-						.mockReturnValue(Promise.resolve(itemsContaining));
-
-					let resetCBTrigger;
-
-					window.Liferay.on = jest.fn((eventName, callback) => {
-						if (eventName.includes(CP_INSTANCE_CHANGED)) {
-							resetCBTrigger = callback;
-						}
-					});
-
-					const props = {
-						...INTERACTION_PROPS,
-						orderId: 123,
-						settings: {
-							namespace: 'someNamespace',
-						},
-					};
-
-					const incomingCPInstance = {
-						cpInstance: {
-							skuId: INTERACTION_PROPS.cpInstance.skuId,
-							stockQuantity: 10,
-						},
-					};
-
-					const {getByRole} = render(<AddToCartButton {...props} />);
-
-					await act(async () => {
-						resetCBTrigger(incomingCPInstance);
-					});
-
-					await wait(() => {
-						const element = getByRole('button');
-
-						expect(
-							ServiceProvider.DeliveryCartAPI('v1')
-								.getItemsByCartId
-						).toHaveBeenCalledWith(props.orderId);
-						expect(element.classList.contains('is-added')).toBe(
-							true
-						);
-					});
-				}
-			);
-
-			it(
-				'calls the API and, if not present in the order, updates the local cpInstance and renders ' +
-					"the button without the 'is-added' class name",
-				async () => {
-					const itemsNotContaining = {
-						items: [
-							{
-								skuId: 'meh',
-							},
-						],
-					};
-
-					ServiceProvider.DeliveryCartAPI(
-						'v1'
-					).getItemsByCartId = jest
-						.fn()
-						.mockReturnValue(Promise.resolve(itemsNotContaining));
-
-					let resetCBTrigger;
-
-					window.Liferay.on = jest.fn((eventName, callback) => {
-						if (eventName.includes(CP_INSTANCE_CHANGED)) {
-							resetCBTrigger = callback;
-						}
-					});
-
-					const props = {
-						...INTERACTION_PROPS,
-						orderId: 123,
-						settings: {
-							namespace: 'someNamespace',
-						},
-					};
-
-					const incomingCPInstance = {
-						cpInstance: {
-							skuId: INTERACTION_PROPS.cpInstance.skuId,
-							stockQuantity: 10,
-						},
-					};
-
-					const {getByRole} = render(<AddToCartButton {...props} />);
-
-					await act(async () => {
-						resetCBTrigger(incomingCPInstance);
-					});
-
-					await wait(() => {
-						const element = getByRole('button');
-
-						expect(
-							ServiceProvider.DeliveryCartAPI('v1')
-								.getItemsByCartId
-						).toHaveBeenCalledWith(props.orderId);
-						expect(element.classList.contains('is-added')).toBe(
-							false
-						);
-					});
-				}
-			);
-
-			it(`shows as enabled if the cpInstance is purchasable`, async () => {
-				const itemsContaining = {
-					items: [
-						{
-							skuId: INTERACTION_PROPS.cpInstance.skuId,
-						},
-					],
-				};
-
-				ServiceProvider.DeliveryCartAPI(
-					'v1'
-				).getItemsByCartId = jest
-					.fn()
-					.mockReturnValue(Promise.resolve(itemsContaining));
-
-				let resetCBTrigger;
-
-				window.Liferay.on = jest.fn((eventName, callback) => {
-					if (eventName.includes(CP_INSTANCE_CHANGED)) {
-						resetCBTrigger = callback;
-					}
-				});
-
-				const props = {
-					...INTERACTION_PROPS,
-					orderId: 123,
-					settings: {
-						namespace: 'someNamespace',
-					},
-				};
-
-				const incomingCPInstance = {
-					cpInstance: {
-						purchasable: true,
-						skuId: INTERACTION_PROPS.cpInstance.skuId,
-						stockQuantity: 10,
-					},
-				};
-
-				const {getByRole} = render(<AddToCartButton {...props} />);
-
-				await act(async () => {
-					resetCBTrigger(incomingCPInstance);
-				});
-
-				await wait(() => {
-					expect(getByRole('button').disabled).toBe(false);
-				});
-			});
-
-			it(`shows as disabled if the cpInstance is not purchasable`, async () => {
-				const itemsContaining = {
-					items: [
-						{
-							skuId: INTERACTION_PROPS.cpInstance.skuId,
-						},
-					],
-				};
-
-				ServiceProvider.DeliveryCartAPI(
-					'v1'
-				).getItemsByCartId = jest
-					.fn()
-					.mockReturnValue(Promise.resolve(itemsContaining));
-
-				let resetCBTrigger;
-
-				window.Liferay.on = jest.fn((eventName, callback) => {
-					if (eventName.includes(CP_INSTANCE_CHANGED)) {
-						resetCBTrigger = callback;
-					}
-				});
-
-				const props = {
-					...INTERACTION_PROPS,
-					orderId: 123,
-					settings: {
-						namespace: 'someNamespace',
-					},
-				};
-
-				const incomingCPInstance = {
-					cpInstance: {
-						purchasable: false,
-						skuId: INTERACTION_PROPS.cpInstance.skuId,
-						stockQuantity: 10,
-					},
-				};
-
-				const {getByRole} = render(<AddToCartButton {...props} />);
-
-				await act(async () => {
-					resetCBTrigger(incomingCPInstance);
-				});
-
-				await wait(() => {
-					expect(getByRole('button').disabled).toBe(true);
-				});
-			});
-
-			it(`shows as enabled if the cpInstance is purchasable and back ordering is allowed, even if stock quantity is <= 0`, async () => {
-				const itemsContaining = {
-					items: [
-						{
-							skuId: INTERACTION_PROPS.cpInstance.skuId,
-						},
-					],
-				};
-
-				ServiceProvider.DeliveryCartAPI(
-					'v1'
-				).getItemsByCartId = jest
-					.fn()
-					.mockReturnValue(Promise.resolve(itemsContaining));
-
-				let resetCBTrigger;
-
-				window.Liferay.on = jest.fn((eventName, callback) => {
-					if (eventName.includes(CP_INSTANCE_CHANGED)) {
-						resetCBTrigger = callback;
-					}
-				});
-
-				const props = {
-					...INTERACTION_PROPS,
-					orderId: 123,
-					settings: {
-						namespace: 'someNamespace',
-					},
-				};
-
-				const incomingCPInstance = {
-					cpInstance: {
-						backOrderAllowed: true,
-						purchasable: true,
-						skuId: INTERACTION_PROPS.cpInstance.skuId,
-						stockQuantity: 0,
-					},
-				};
-
-				const {getByRole} = render(<AddToCartButton {...props} />);
-
-				await act(async () => {
-					resetCBTrigger(incomingCPInstance);
-				});
-
-				await wait(() => {
-					expect(getByRole('button').disabled).toBe(false);
-				});
-			});
-
-			it(`shows as disabled if the cpInstance is purchasable, back ordering is not allowed and stock quantity <= 0`, async () => {
-				const itemsContaining = {
-					items: [
-						{
-							skuId: INTERACTION_PROPS.cpInstance.skuId,
-						},
-					],
-				};
-
-				ServiceProvider.DeliveryCartAPI(
-					'v1'
-				).getItemsByCartId = jest
-					.fn()
-					.mockReturnValue(Promise.resolve(itemsContaining));
-
-				let resetCBTrigger;
-
-				window.Liferay.on = jest.fn((eventName, callback) => {
-					if (eventName.includes(CP_INSTANCE_CHANGED)) {
-						resetCBTrigger = callback;
-					}
-				});
-
-				const props = {
-					...INTERACTION_PROPS,
-					orderId: 123,
-					settings: {
-						namespace: 'someNamespace',
-					},
-				};
-
-				const incomingCPInstance = {
-					cpInstance: {
-						backOrderAllowed: false,
-						purchasable: true,
-						skuId: INTERACTION_PROPS.cpInstance.skuId,
-						stockQuantity: 0,
-					},
-				};
-
-				const {getByRole} = render(<AddToCartButton {...props} />);
-
-				await act(async () => {
-					resetCBTrigger(incomingCPInstance);
-				});
-
-				await wait(() => {
-					expect(getByRole('button').disabled).toBe(true);
-				});
-			});
+				{
+					options: '[]',
+					quantity: 3,
+					skuId: 234,
+				},
+			],
 		});
 	});
 });

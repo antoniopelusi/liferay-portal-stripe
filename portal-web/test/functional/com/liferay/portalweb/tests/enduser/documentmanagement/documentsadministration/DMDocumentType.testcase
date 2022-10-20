@@ -310,7 +310,7 @@ definition {
 		ItemSelector.uploadFile(uploadFileName = "Document_2.jpg");
 
 		AssertElementPresent(
-			key_imageFileName = "Document_2",
+			key_imageFileName = "document_2",
 			locator1 = "DDMEditStructure#FORM_FIELD_CONTAINER_PREDEFINED_IMAGE");
 
 		PortletEntry.save();
@@ -322,7 +322,7 @@ definition {
 		PortletEntry.inputTitle(title = "DM Document Title");
 
 		AssertElementPresent(
-			key_imageFileName = "Document_2",
+			key_imageFileName = "document_2",
 			locator1 = "DDMEditStructure#FORM_FIELD_CONTAINER_PREDEFINED_IMAGE");
 	}
 
@@ -803,14 +803,16 @@ definition {
 			dmDocumentTypeFieldNames = "Text",
 			dmDocumentTypeName = "DM Document Type Name");
 
-		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+		Navigator.gotoPage(pageName = "Documents and Media Page");
 
-		DMDocument.addCP(
+		DMDocument.addPG(
 			dmDocumentDescription = "DM Document Description",
+			dmDocumentFile = "Document_1.txt",
 			dmDocumentTitle = "DM Document Title",
 			dmDocumentTypeName = "DM Document Type Name",
-			navTab = "Documents and Media",
 			textField = "Test Text");
+
+		AssertConsoleTextNotPresent(value1 = "NoSuchFileEntryMetadataException");
 
 		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
 

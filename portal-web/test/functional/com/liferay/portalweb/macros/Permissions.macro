@@ -43,7 +43,14 @@ definition {
 			userLoginEmailAddress = "test@liferay.com",
 			userLoginFullName = "Test Test");
 
-		Navigator.gotoPage(pageName = "${pageName}");
+		if (isSet(siteName)) {
+			Navigator.gotoSitePage(
+				pageName = "${pageName}",
+				siteName = "${siteName}");
+		}
+		else {
+			Navigator.gotoPage(pageName = "${pageName}");
+		}
 
 		DMFolder.addPG(
 			dmFolder = "${dmFolder}",
@@ -232,8 +239,6 @@ definition {
 	}
 
 	macro setUpRegRoleLoginUserCP {
-		PortalSettings.editConfigurationUsersDefaultUserAssociationsCP(roleTitle = "");
-
 		JSONUser.addUser(
 			userEmailAddress = "${userEmailAddress}",
 			userFirstName = "${userFirstName}",
@@ -257,6 +262,7 @@ definition {
 			pageName = "${pageName}",
 			portletName = "${portletName}",
 			roleTitle = "${roleTitle}",
+			siteName = "${siteName}",
 			userEmailAddress = "${userEmailAddress}",
 			userFirstName = "${userFirstName}",
 			userLastName = "${userLastName}",
@@ -270,14 +276,23 @@ definition {
 	macro setUpRegRolePG {
 		JSONUserAPI._disablePasswordChangeRequired();
 
+		if (isSet(siteName)) {
+			var siteName = "${siteName}";
+		}
+		else {
+			var siteName = "Guest";
+		}
+
 		JSONLayout.addPublicLayout(
-			groupName = "Guest",
+			groupName = "${siteName}",
 			layoutName = "${pageName}");
 
-		Navigator.gotoPage(pageName = "${pageName}");
+		Navigator.gotoSitePage(
+			pageName = "${pageName}",
+			siteName = "${siteName}");
 
 		JSONLayout.addWidgetToPublicLayout(
-			groupName = "Guest",
+			groupName = "${siteName}",
 			layoutName = "${pageName}",
 			widgetName = "${portletName}");
 
@@ -344,8 +359,6 @@ definition {
 			configurationScope = "Virtual Instance Scope");
 
 		Portlet.waitForForm();
-
-		PortalSettings.editConfigurationUsersDefaultUserAssociationsCP(roleTitle = "");
 
 		JSONUser.addUser(
 			userEmailAddress = "${userEmailAddress}",
@@ -445,12 +458,7 @@ definition {
 	}
 
 	macro setUpSiteTeamRoleLoginUserPG {
-		ApplicationsMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
-
-		User.addCP(
+		JSONUser.addUser(
 			userBirthday = "${userBirthday}",
 			userEmailAddress = "${userEmailAddress}",
 			userEmailAddressVariation = "${userEmailAddressVariation}",
@@ -458,46 +466,29 @@ definition {
 			userGender = "${userGender}",
 			userLastName = "${userLastName}",
 			userMiddleName = "${userMiddleName}",
-			userScreenName = "${userScreenName}",
-			userScreenNameVariation = "${userScreenNameVariation}");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
-
-		User.editPasswordCP(
-			currentPassword = "${currentPassword}",
-			newPassword = "${newPassword}",
-			userEmailAddress = "${userEmailAddress}",
 			userScreenName = "${userScreenName}");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Sites",
-			panel = "Control Panel",
-			portlet = "Sites");
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "${userEmailAddress}");
 
-		Site.addBlankCP(siteName = "${siteName}");
+		JSONGroup.addGroup(groupName = "${siteName}");
 
-		ProductMenu.gotoPortlet(
-			category = "People",
-			portlet = "Memberships");
+		JSONGroup.assignUserToGroup(
+			groupName = "${siteName}",
+			userEmailAddress = "${userEmailAddress}");
 
-		Site.assignUserAsMemberCP(
-			userFirstName = "${userFirstName}",
-			userLastName = "${userLastName}",
-			userMiddleName = "${userMiddleName}",
-			userScreenName = "${userScreenName}");
+		JSONTeam.addTeam(
+			siteName = "${siteName}",
+			teamDescription = "${teamDescription}",
+			teamName = "${teamName}");
 
 		PagesAdmin.openPagesAdmin(siteURLKey = "${siteName}");
 
 		ProductMenu.gotoPortlet(
 			category = "People",
 			portlet = "Teams");
-
-		Team.addCP(
-			teamDescription = "${teamDescription}",
-			teamName = "${teamName}");
 
 		Team.assignMembersCP(
 			siteName = "${siteName}",
@@ -506,28 +497,6 @@ definition {
 			userLastName = "${userLastName}",
 			userNameIsNotFound = "${userNameIsNotFound}",
 			userScreenName = "${userScreenName}");
-
-		ProductMenu.gotoPortlet(
-			category = "Site Builder",
-			portlet = "Pages");
-
-		PagesAdmin.addPage(pageName = "${pageName}");
-
-		Navigator.gotoSitePage(
-			pageName = "${pageName}",
-			siteName = "${siteName}");
-
-		Portlet.addPG(
-			i = "${i}",
-			pageName = "${pageName}",
-			portletName = "${portletName}",
-			siteName = "${siteName}",
-			siteURL = "true");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Roles");
 
 		User.logoutAndLoginPG(
 			userLoginEmailAddress = "${userLoginEmailAddress}",

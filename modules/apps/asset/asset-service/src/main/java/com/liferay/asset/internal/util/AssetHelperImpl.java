@@ -42,15 +42,21 @@ import com.liferay.portal.kernel.portlet.LiferayPortletURL;
 import com.liferay.portal.kernel.portlet.PortletBag;
 import com.liferay.portal.kernel.portlet.PortletBagPool;
 import com.liferay.portal.kernel.search.BaseModelSearchResult;
+import com.liferay.portal.kernel.search.BooleanClause;
+import com.liferay.portal.kernel.search.BooleanClauseFactoryUtil;
+import com.liferay.portal.kernel.search.BooleanClauseOccur;
+import com.liferay.portal.kernel.search.BooleanQuery;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.Indexer;
+import com.liferay.portal.kernel.search.Query;
 import com.liferay.portal.kernel.search.QueryConfig;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchContextFactory;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.SortFactoryUtil;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.PortletLocalService;
 import com.liferay.portal.kernel.theme.PortletDisplay;
@@ -64,7 +70,12 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.search.hits.SearchHit;
+import com.liferay.portal.search.hits.SearchHits;
 import com.liferay.portal.search.legacy.searcher.SearchRequestBuilderFactory;
+import com.liferay.portal.search.query.Queries;
+import com.liferay.portal.search.searcher.SearchResponse;
+import com.liferay.portal.search.searcher.Searcher;
 import com.liferay.portal.search.sort.FieldSort;
 import com.liferay.portal.search.sort.SortOrder;
 import com.liferay.portal.search.sort.Sorts;
@@ -276,6 +287,33 @@ public class AssetHelperImpl implements AssetHelper {
 		return assetEntries;
 	}
 
+	public List<AssetEntry> getAssetEntries(SearchHits searchHits) {
+		if (searchHits.getTotalHits() <= 0) {
+			return Collections.emptyList();
+		}
+
+		List<AssetEntry> assetEntries = new ArrayList<>();
+
+		for (SearchHit searchHit : searchHits.getSearchHits()) {
+			com.liferay.portal.search.document.Document document =
+				searchHit.getDocument();
+
+			String className = GetterUtil.getString(
+				document.getString(Field.ENTRY_CLASS_NAME));
+			long classPK = GetterUtil.getLong(
+				document.getString(Field.ENTRY_CLASS_PK));
+
+			AssetEntry assetEntry = _assetEntryLocalService.fetchEntry(
+				className, classPK);
+
+			if (assetEntry != null) {
+				assetEntries.add(assetEntry);
+			}
+		}
+
+		return assetEntries;
+	}
+
 	@Override
 	public String getAssetKeywords(String className, long classPK) {
 		String[] tagNames = _assetTagLocalService.getTagNames(
@@ -446,6 +484,31 @@ public class AssetHelperImpl implements AssetHelper {
 	}
 
 	@Override
+	public SearchHits search(
+			SearchContext searchContext,
+			List<AssetEntryQuery> assetEntryQueries, int start, int end)
+		throws Exception {
+
+		_prepareSearchContext(assetEntryQueries, end, searchContext, start);
+
+		SearchResponse searchResponse = _searcher.search(
+			_searchRequestBuilderFactory.builder(
+				searchContext
+			).emptySearchEnabled(
+				true
+			).fields(
+				Field.ENTRY_CLASS_NAME, Field.ENTRY_CLASS_PK, Field.UID
+			).highlightEnabled(
+				false
+			).sorts(
+				_getSearchSorts(
+					assetEntryQueries.get(0), searchContext.getLocale())
+			).build());
+
+		return searchResponse.getSearchHits();
+	}
+
+	@Override
 	public BaseModelSearchResult<AssetEntry> searchAssetEntries(
 			AssetEntryQuery assetEntryQuery, long[] assetCategoryIds,
 			String[] assetTagNames, Map<String, Serializable> attributes,
@@ -501,6 +564,29 @@ public class AssetHelperImpl implements AssetHelper {
 		AssetSearcher assetSearcher = _getAssetSearcher(assetEntryQuery);
 
 		return assetSearcher.searchCount(searchContext);
+	}
+
+	@Override
+	public long searchCount(
+			SearchContext searchContext,
+			List<AssetEntryQuery> assetEntryQueries, int start, int end)
+		throws Exception {
+
+		_prepareSearchContext(assetEntryQueries, end, searchContext, start);
+
+		SearchResponse searchResponse = _searcher.search(
+			_searchRequestBuilderFactory.builder(
+				searchContext
+			).emptySearchEnabled(
+				true
+			).highlightEnabled(
+				false
+			).sorts(
+				_getSearchSorts(
+					assetEntryQueries.get(0), searchContext.getLocale())
+			).build());
+
+		return searchResponse.getCount();
 	}
 
 	private AssetSearcher _getAssetSearcher(AssetEntryQuery assetEntryQuery) {
@@ -590,6 +676,53 @@ public class AssetHelperImpl implements AssetHelper {
 	}
 
 	private void _prepareSearchContext(
+			List<AssetEntryQuery> assetEntryQueries, int end,
+			SearchContext searchContext, int start)
+		throws Exception {
+
+		for (AssetEntryQuery assetEntryQuery : assetEntryQueries) {
+			SearchContext assetEntryQuerySearchContext = new SearchContext();
+
+			_prepareSearchContext(
+				assetEntryQuerySearchContext, assetEntryQuery, start, end);
+
+			long[] groupIds = searchContext.getGroupIds();
+
+			if (ArrayUtil.isEmpty(groupIds)) {
+				groupIds = new long[0];
+			}
+
+			searchContext.setGroupIds(
+				ArrayUtil.append(
+					groupIds, assetEntryQuerySearchContext.getGroupIds()));
+
+			AssetSearcher assetSearcher = _getAssetSearcher(assetEntryQuery);
+
+			BooleanQuery booleanQuery = assetSearcher.getFullQuery(
+				assetEntryQuerySearchContext);
+
+			BooleanClause<Query>[] booleanClauses =
+				searchContext.getBooleanClauses();
+
+			if (booleanClauses == null) {
+				searchContext.setBooleanClauses(
+					new BooleanClause[] {
+						BooleanClauseFactoryUtil.create(
+							booleanQuery, BooleanClauseOccur.SHOULD.getName())
+					});
+			}
+			else {
+				searchContext.setBooleanClauses(
+					ArrayUtil.append(
+						booleanClauses,
+						BooleanClauseFactoryUtil.create(
+							booleanQuery,
+							BooleanClauseOccur.SHOULD.getName())));
+			}
+		}
+	}
+
+	private void _prepareSearchContext(
 			SearchContext searchContext, AssetEntryQuery assetEntryQuery,
 			int start, int end)
 		throws Exception {
@@ -666,6 +799,9 @@ public class AssetHelperImpl implements AssetHelper {
 	private AssetTagLocalService _assetTagLocalService;
 
 	@Reference
+	private ClassNameLocalService _classNameLocalService;
+
+	@Reference
 	private DDMIndexer _ddmIndexer;
 
 	@Reference
@@ -676,6 +812,12 @@ public class AssetHelperImpl implements AssetHelper {
 
 	@Reference
 	private PortletLocalService _portletLocalService;
+
+	@Reference
+	private Queries _queries;
+
+	@Reference
+	private Searcher _searcher;
 
 	@Reference
 	private SearchRequestBuilderFactory _searchRequestBuilderFactory;

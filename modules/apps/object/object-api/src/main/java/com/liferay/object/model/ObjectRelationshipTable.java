@@ -67,6 +67,10 @@ public class ObjectRelationshipTable
 	public final Column<ObjectRelationshipTable, Long> objectFieldId2 =
 		createColumn(
 			"objectFieldId2", Long.class, Types.BIGINT, Column.FLAG_DEFAULT);
+	public final Column<ObjectRelationshipTable, Long> parameterObjectFieldId =
+		createColumn(
+			"parameterObjectFieldId", Long.class, Types.BIGINT,
+			Column.FLAG_DEFAULT);
 	public final Column<ObjectRelationshipTable, String> deletionType =
 		createColumn(
 			"deletionType", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);

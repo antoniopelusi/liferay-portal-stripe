@@ -12,7 +12,7 @@
  * details.
  */
 
-import {fetch} from 'frontend-js-web';
+import {fetch, openConfirmModal} from 'frontend-js-web';
 
 const HEADERS = {
 	'Accept': 'application/json',
@@ -49,7 +49,14 @@ export function getURL(path, params) {
 		...params,
 	};
 
-	const uri = new URL(`${window.location.origin}${path}`);
+	let pathContext = themeDisplay.getPathContext();
+
+	if (!pathContext || pathContext === '/') {
+		pathContext = '';
+	}
+
+	const uri = new URL(`${window.location.origin}${pathContext}${path}`);
+
 	const keys = Object.keys(params);
 
 	keys.forEach((key) => uri.searchParams.set(key, params[key]));
@@ -74,18 +81,21 @@ export function deleteItem(endpoint) {
 export function confirmDelete(endpoint) {
 	return (item) =>
 		new Promise((resolve, reject) => {
-			const confirmed = confirm(
-				Liferay.Language.get('are-you-sure-you-want-to-delete-this')
-			);
-
-			if (confirmed) {
-				deleteItem(endpoint + item.id)
-					.then(() => resolve(true))
-					.catch((error) => reject(error));
-			}
-			else {
-				resolve(false);
-			}
+			openConfirmModal({
+				message: Liferay.Language.get(
+					'are-you-sure-you-want-to-delete-this'
+				),
+				onConfirm: (isConfirmed) => {
+					if (isConfirmed) {
+						deleteItem(endpoint + item.id)
+							.then(() => resolve(true))
+							.catch((error) => reject(error));
+					}
+					else {
+						resolve(false);
+					}
+				},
+			});
 		});
 }
 

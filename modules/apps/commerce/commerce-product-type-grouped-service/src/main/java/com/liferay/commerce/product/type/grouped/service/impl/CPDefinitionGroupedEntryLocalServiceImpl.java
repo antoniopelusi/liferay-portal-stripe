@@ -23,19 +23,27 @@ import com.liferay.commerce.product.type.grouped.constants.GroupedCPTypeConstant
 import com.liferay.commerce.product.type.grouped.exception.CPDefinitionGroupedEntryQuantityException;
 import com.liferay.commerce.product.type.grouped.model.CPDefinitionGroupedEntry;
 import com.liferay.commerce.product.type.grouped.service.base.CPDefinitionGroupedEntryLocalServiceBaseImpl;
+import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.OrderByComparator;
-import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
-import com.liferay.portal.spring.extender.service.ServiceReference;
+import com.liferay.portal.kernel.uuid.PortalUUID;
 
 import java.util.List;
+
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Andrea Di Giorgi
  */
+@Component(
+	enabled = false,
+	property = "model.class.name=com.liferay.commerce.product.type.grouped.model.CPDefinitionGroupedEntry",
+	service = AopService.class
+)
 public class CPDefinitionGroupedEntryLocalServiceImpl
 	extends CPDefinitionGroupedEntryLocalServiceBaseImpl {
 
@@ -147,10 +155,9 @@ public class CPDefinitionGroupedEntryLocalServiceImpl
 			CPDefinitionGroupedEntry newCPDefinitionGroupedEntry =
 				(CPDefinitionGroupedEntry)cpDefinitionGroupedEntry.clone();
 
-			newCPDefinitionGroupedEntry.setUuid(PortalUUIDUtil.generate());
+			newCPDefinitionGroupedEntry.setUuid(_portalUUID.generate());
 			newCPDefinitionGroupedEntry.setCPDefinitionGroupedEntryId(
 				counterLocalService.increment());
-
 			newCPDefinitionGroupedEntry.setCPDefinitionId(newCPDefinitionId);
 
 			cpDefinitionGroupedEntryLocalService.addCPDefinitionGroupedEntry(
@@ -291,10 +298,13 @@ public class CPDefinitionGroupedEntryLocalServiceImpl
 		}
 	}
 
-	@ServiceReference(type = CPDefinitionLocalService.class)
+	@Reference
 	private CPDefinitionLocalService _cpDefinitionLocalService;
 
-	@ServiceReference(type = CProductLocalService.class)
+	@Reference
 	private CProductLocalService _cProductLocalService;
+
+	@Reference
+	private PortalUUID _portalUUID;
 
 }

@@ -41,15 +41,26 @@ public class PortalCacheHelperUtil {
 	}
 
 	public static <K extends Serializable, V> PortalCache<K, V> getPortalCache(
-		String portalCacheManagerName, String portalCacheName, boolean blocking,
-		boolean mvcc) {
+		String portalCacheManagerName, String portalCacheName, boolean mvcc) {
 
 		PortalCacheManager<?, ?> portalCacheManager =
 			PortalCacheManagerProvider.getPortalCacheManager(
 				portalCacheManagerName);
 
 		return (PortalCache<K, V>)portalCacheManager.getPortalCache(
-			portalCacheName, blocking, mvcc);
+			portalCacheName, mvcc);
+	}
+
+	public static <K extends Serializable, V> PortalCache<K, V> getPortalCache(
+		String portalCacheManagerName, String portalCacheName, boolean mvcc,
+		boolean sharded) {
+
+		PortalCacheManager<?, ?> portalCacheManager =
+			PortalCacheManagerProvider.getPortalCacheManager(
+				portalCacheManagerName);
+
+		return (PortalCache<K, V>)portalCacheManager.getPortalCache(
+			portalCacheName, mvcc, sharded);
 	}
 
 	public static <K extends Serializable, V> void putWithoutReplicator(
@@ -105,6 +116,16 @@ public class PortalCacheHelperUtil {
 				portalCacheManagerName);
 
 		portalCacheManager.removePortalCache(portalCacheName);
+	}
+
+	public static void removePortalCaches(
+		String portalCacheManagerName, long companyId) {
+
+		PortalCacheManager<?, ?> portalCacheManager =
+			PortalCacheManagerProvider.getPortalCacheManager(
+				portalCacheManagerName);
+
+		portalCacheManager.removePortalCaches(companyId);
 	}
 
 	public static <K extends Serializable> void removeWithoutReplicator(

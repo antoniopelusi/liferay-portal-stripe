@@ -71,6 +71,7 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.TempFileEntryUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.repository.temporaryrepository.TemporaryFileEntryRepository;
 import com.liferay.portlet.documentlibrary.constants.DLConstants;
 import com.liferay.portlet.documentlibrary.service.base.DLAppServiceBaseImpl;
 import com.liferay.portlet.documentlibrary.util.DLAppUtil;
@@ -84,6 +85,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Queue;
 
 /**
@@ -343,10 +345,8 @@ public class DLAppServiceImpl extends DLAppServiceBaseImpl {
 			mimeType.equals(ContentTypes.APPLICATION_OCTET_STREAM)) {
 
 			if (size == 0) {
-				String extension = DLAppUtil.getExtension(
-					title, sourceFileName);
-
-				mimeType = MimeTypesUtil.getExtensionContentType(extension);
+				mimeType = MimeTypesUtil.getExtensionContentType(
+					DLAppUtil.getExtension(title, sourceFileName));
 			}
 			else {
 				File file = null;
@@ -1337,6 +1337,17 @@ public class DLAppServiceImpl extends DLAppServiceBaseImpl {
 
 		for (com.liferay.portal.kernel.model.Repository repository :
 				repositories) {
+
+			if (Objects.equals(
+					repository.getClassName(),
+					TemporaryFileEntryRepository.class.getName())) {
+
+				if (_log.isDebugEnabled()) {
+					_log.debug("Skipping temporary file entry repository");
+				}
+
+				continue;
+			}
 
 			fileEntry = fetchFileEntryByUuidAndRepositoryId(
 				uuid, repository.getRepositoryId());
@@ -2840,10 +2851,8 @@ public class DLAppServiceImpl extends DLAppServiceBaseImpl {
 			mimeType.equals(ContentTypes.APPLICATION_OCTET_STREAM)) {
 
 			if (size == 0) {
-				String extension = DLAppUtil.getExtension(
-					title, sourceFileName);
-
-				mimeType = MimeTypesUtil.getExtensionContentType(extension);
+				mimeType = MimeTypesUtil.getExtensionContentType(
+					DLAppUtil.getExtension(title, sourceFileName));
 			}
 			else {
 				File file = null;

@@ -97,6 +97,66 @@ definition {
 		}
 	}
 
+	@description = "This test assigns an account role to a regular user via Account Admin and asserts that it displays in Users Admin edit user page."
+	@priority = "3"
+	test AccountRoleDisplaysInUsersAdmin {
+		task ("Given a regular user is added to a business account") {
+			JSONUser.addUser(
+				userEmailAddress = "userea@liferay.com",
+				userFirstName = "userfn",
+				userLastName = "userln",
+				userScreenName = "usersn");
+
+			JSONAccountEntry.addAccountEntry(
+				accountEntryName = "Account Name",
+				accountEntryType = "Business");
+
+			Accounts.openAccountsAdmin();
+
+			LexiconEntry.gotoEntry(rowEntry = "Account Name");
+
+			Accounts.assignUsers(
+				accountName = "Account Name",
+				assigneeName = "userfn");
+		}
+
+		task ("When an account role is assigned to a regular user through Account Admin") {
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Assign Roles",
+				rowEntry = "userfn userln");
+
+			SelectFrame(
+				key_title = "Assign Roles",
+				locator1 = "IFrame#MODAL_ANY");
+
+			Check(
+				key_tableEntry = "Account Administrator",
+				locator1 = "LexiconTable#TABLE_ENTRY_CHECKBOX");
+
+			SelectFrameTop();
+
+			Button.click(button = "Done");
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("Then the role is also displayed in Users Admin") {
+			User.openUsersAdmin();
+
+			UserNavigator.gotoUser(userScreenName = "usersn");
+
+			UserNavigator.gotoMemberships();
+
+			AssertElementPresent(
+				key_accountName = "Account Name",
+				locator1 = "UsersAndOrganizationsEditUser#ACCOUNTS_TABLE_ACCOUNT_NAMES");
+
+			AssertElementPresent(
+				key_accountRole = "Account Administrator",
+				locator1 = "UsersAndOrganizationsEditUser#ACCOUNTS_TABLE_ACCOUNT_ROLES");
+		}
+	}
+
 	@description = "This is a use case for LPS-101893. It asserts all accounts display properly across pages."
 	@priority = "4"
 	test AccountsDisplayWhenChangingPagination {
@@ -518,6 +578,28 @@ definition {
 		Accounts.viewAssignee(assigneeName = "userfn");
 	}
 
+	@description = "This is a use case for LPS-157661. It asserts that account avatar can be added in creation."
+	@priority = "3"
+	test CanAddAccountWithAvatar {
+		Accounts.openAccountsAdmin();
+
+		Accounts.addBusinessAccount(
+			accountLogo = "marketplace_icon.png",
+			accountName = "Business Account Name");
+
+		AssertVisible(
+			key_imageName = "account_entry_logo",
+			locator1 = "UsersAndOrganizationsEditUser#DETAILS_PROFILE_IMAGE");
+
+		Accounts.openAccountsAdmin();
+
+		Accounts.gotoEdit(accountName = "Business Account Name");
+
+		AssertVisible(
+			key_imageName = "account_entry_logo",
+			locator1 = "UsersAndOrganizationsEditUser#DETAILS_PROFILE_IMAGE");
+	}
+
 	@description = "This test adds and removes a user assignee to an Owned or account specific role."
 	@priority = "4"
 	test CanAddAndRemoveAssigneeToAnOwnedAccountRole {
@@ -782,6 +864,54 @@ definition {
 			addressStreet2 = "1-26-7 Ebisu Nishi",
 			addressType = "Shipping",
 			phoneNumber = "+81 3-5456-5796");
+	}
+
+	@description = "Use case for LPS-149125. This test asserts that regular users are displayed in Account Admin when selecting users for an account"
+	@priority = "4"
+	test CanAddRegularUserViaAssignUser {
+		task ("Given there is a regular user added in Users Admin and a business account,") {
+			JSONUser.addUser(
+				userEmailAddress = "userea@liferay.com",
+				userFirstName = "userfn",
+				userLastName = "userln",
+				userScreenName = "usersn");
+
+			JSONAccountEntry.addAccountEntry(
+				accountEntryName = "Account Name",
+				accountEntryType = "Business");
+		}
+
+		task ("When a user selects a user to add to an account via Account Admin") {
+			Accounts.openAccountsAdmin();
+
+			LexiconEntry.gotoEntry(rowEntry = "Account Name");
+
+			Accounts.assignUsers(
+				accountName = "Account Name",
+				assigneeName = "userfn");
+		}
+
+		task ("Then the regular user is displayed and can be assigned to the account") {
+			Accounts.openAccountsAdmin();
+
+			LexiconEntry.gotoEntry(rowEntry = "Account Name");
+
+			Accounts.gotoAssigneeTab(assigneeTab = "Users");
+
+			Accounts.viewAssignee(assigneeName = "userfn");
+		}
+
+		task ("and the account is displayed in the Memberships tab in Edit User page") {
+			User.openUsersAdmin();
+
+			UserNavigator.gotoUser(userScreenName = "usersn");
+
+			UserNavigator.gotoMemberships();
+
+			AssertElementPresent(
+				key_accountName = "Account Name",
+				locator1 = "UsersAndOrganizationsEditUser#ACCOUNTS_TABLE_ACCOUNT_NAMES");
+		}
 	}
 
 	@description = "This test assigns an existing user to account through the Users tab"
@@ -3433,6 +3563,33 @@ definition {
 		LexiconEntry.viewNoEntry(rowEntry = "Account without Role");
 	}
 
+	@description = "Use case for LPS-139430. Asserts an account can be removed from a user through the Users Admin portlet"
+	@priority = "3"
+	test RemoveAccountFromUserViaUsersAdmin {
+		task ("Given an account user is created under account") {
+			JSONAccountEntry.addAccountEntry(
+				accountEntryName = "Account Name",
+				accountEntryType = "Business");
+
+			JSONAccountEntryUser.addAccountEntryUser(
+				accountEntryName = "Account Name",
+				userEmailAddress = "userea@liferay.com",
+				userFirstName = "userfn",
+				userLastName = "userln",
+				userScreenName = "usersn");
+		}
+
+		task ("When removing this account through Users Admin") {
+			User.removeAccountCP(
+				accountName = "Account Name",
+				userScreenName = "usersn");
+		}
+
+		task ("Then the user should no longer have this account listed in their memberships") {
+			LexiconTable.viewTableEntryNotPresent(tableEntry = "Account Name");
+		}
+	}
+
 	@description = "This test replaces user in Person Account with another existing user. It asserts that first user was replaced by the second user and isn't assigned to the account anymore."
 	@priority = "5"
 	test SelectingUserWillReplaceExistingUserInPersonAccount {
@@ -3612,8 +3769,6 @@ definition {
 		Accounts.gotoAssigneeTab(assigneeTab = "Users");
 
 		LexiconEntry.gotoAdd();
-
-		Pause(locator1 = "3000");
 
 		SelectFrame(
 			key_title = "Assign Users to Account with Domain",

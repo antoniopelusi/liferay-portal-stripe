@@ -5,11 +5,12 @@ definition {
 	property custom.properties = "session.store.password=true${line.separator}company.security.auth.type=screenName";
 	property osgi.app.includes = "sharepoint-soap";
 	property portal.release = "false";
+	property portal.upstream = "true";
 	property test.run.environment = "EE";
 	property testray.main.component.name = "Sharepoint";
 
 	setUp {
-		TestCase.setUpPortalInstance();
+		TestCase.setUpPortalInstance(authenticationMethod = "By Screen Name");
 
 		var sharepointVmHostName = PropsUtil.get("cmis.repository.vm.host.name");
 
@@ -17,7 +18,7 @@ definition {
 			locator1 = "build-test-sharepoint.xml",
 			value1 = "clean-sharepoint-repository -Dssh.host=${sharepointVmHostName}");
 
-		User.loginPG(
+		User.firstLoginByScreenNamePG(
 			authenticationMethod = "By Screen Name",
 			userScreenName = "test");
 
@@ -37,7 +38,7 @@ definition {
 
 		User.logoutPG();
 
-		User.loginPG(
+		User.firstLoginUI(
 			authenticationMethod = "By Screen Name",
 			password = "password",
 			userScreenName = "administrator");
@@ -54,6 +55,7 @@ definition {
 
 		DMRepository.addSharepoint(
 			dmRepositoryLibraryName = "Documents",
+			dmRepositoryLibraryPath = "Shared Documents",
 			dmRepositoryName = "Sharepoint",
 			dmRepositorySiteURL = "http://${sharepointVmHostName}",
 			dmServerVersion = "2013");
@@ -88,7 +90,7 @@ definition {
 
 			User.logoutPG();
 
-			User.loginPG(
+			User.firstLoginUI(
 				authenticationMethod = "By Screen Name",
 				password = "test",
 				userScreenName = "test");
@@ -98,15 +100,13 @@ definition {
 	@priority = "4"
 	@refactorneeded
 	test CheckinDocument {
-		property test.name.skip.portal.instance = "CPSharepoint#CheckinDocument";
+		property test.name.skip.portal.instance = "CPSharepoint2013#CheckinDocument";
 
 		DMRepository.gotoCP(dmRepositoryName = "Sharepoint Repository Name");
 
 		DMDocument.addCP(
 			dmDocumentFile = "Document_3.txt",
 			dmDocumentTitle = "Document_3.txt");
-
-		Pause(locator1 = "5000");
 
 		DMDocument.checkoutCP(
 			dmDocumentTitle = "Document_3.txt",
@@ -124,8 +124,6 @@ definition {
 
 		DMNavigator.gotoDocumentCP(dmDocumentTitle = "Document_3.txt");
 
-		Pause(locator1 = "5000");
-
 		DMDocument.viewCheckedoutCP(dmRepositoryName = "true");
 
 		DMDocument.checkinCP(dmRepositoryName = "true");
@@ -137,8 +135,6 @@ definition {
 			portlet = "Documents and Media");
 
 		DMRepository.gotoCP(dmRepositoryName = "Sharepoint Repository Name");
-
-		Pause(locator1 = "5000");
 
 		var key_dmDocumentTitle = "Document_3.txt";
 
@@ -154,6 +150,8 @@ definition {
 	@priority = "4"
 	@refactorneeded
 	test DeleteDocumentInSubfolder {
+		property test.name.skip.portal.instance = "CPSharepoint2013#DeleteDocumentInSubfolder";
+
 		DMRepository.gotoCP(dmRepositoryName = "Sharepoint Repository Name");
 
 		DMFolder.addCP(dmFolderName = "DM Folder3 Name");
@@ -210,7 +208,7 @@ definition {
 	@priority = "4"
 	@refactorneeded
 	test DeleteSubfolder {
-		property test.name.skip.portal.instance = "CPSharepoint#DeleteSubfolder";
+		property test.name.skip.portal.instance = "CPSharepoint2013#DeleteSubfolder";
 
 		DMRepository.gotoCP(dmRepositoryName = "Sharepoint Repository Name");
 
@@ -236,7 +234,7 @@ definition {
 	@priority = "4"
 	@refactorneeded
 	test EditDocumentFile {
-		property test.name.skip.portal.instance = "CPSharepoint#EditDocumentFile";
+		property test.name.skip.portal.instance = "CPSharepoint2013#EditDocumentFile";
 
 		DMRepository.gotoCP(dmRepositoryName = "Sharepoint Repository Name");
 
@@ -288,7 +286,7 @@ definition {
 	@priority = "4"
 	@refactorneeded
 	test EditRepository {
-		property test.name.skip.portal.instance = "CPSharepoint#EditRepository";
+		property test.name.skip.portal.instance = "CPSharepoint2013#EditRepository";
 
 		Navigator.openURL();
 
@@ -355,7 +353,7 @@ definition {
 	@priority = "4"
 	@refactorneeded
 	test MoveCheckedoutDocumentToFolder {
-		property test.name.skip.portal.instance = "CPSharepoint#MoveCheckedoutDocumentToFolder";
+		property test.name.skip.portal.instance = "CPSharepoint2013#MoveCheckedoutDocumentToFolder";
 
 		Navigator.openURL();
 
@@ -426,7 +424,7 @@ definition {
 	@priority = "4"
 	@refactorneeded
 	test MoveDocumentToHome {
-		property test.name.skip.portal.instance = "CPSharepoint#MoveDocumentToHome";
+		property test.name.skip.portal.instance = "CPSharepoint2013#MoveDocumentToHome";
 
 		DMRepository.gotoCP(dmRepositoryName = "Sharepoint Repository Name");
 
@@ -462,7 +460,7 @@ definition {
 	@priority = "4"
 	@refactorneeded
 	test SearchDocumentViaHome {
-		property test.name.skip.portal.instance = "CPSharepoint#SearchDocumentViaHome";
+		property test.name.skip.portal.instance = "CPSharepoint2013#SearchDocumentViaHome";
 
 		DMRepository.gotoCP(dmRepositoryName = "Sharepoint Repository Name");
 
@@ -486,7 +484,7 @@ definition {
 	@priority = "4"
 	@refactorneeded
 	test ViewEditedCheckedoutDocument {
-		property test.name.skip.portal.instance = "CPSharepoint#ViewEditedCheckedoutDocument";
+		property test.name.skip.portal.instance = "CPSharepoint2013#ViewEditedCheckedoutDocument";
 
 		DMRepository.gotoCP(dmRepositoryName = "Sharepoint Repository Name");
 
@@ -536,7 +534,7 @@ definition {
 	@priority = "4"
 	@refactorneeded
 	test ViewOriginalFileExtensionAfterUnsuccessfulExtensionChange {
-		property test.name.skip.portal.instance = "CPSharepoint#ViewOriginalFileExtensionAfterUnsuccessfulExtensionChange";
+		property test.name.skip.portal.instance = "CPSharepoint2013#ViewOriginalFileExtensionAfterUnsuccessfulExtensionChange";
 
 		DMRepository.gotoCP(dmRepositoryName = "Sharepoint Repository Name");
 
@@ -574,7 +572,7 @@ definition {
 	@priority = "4"
 	@refactorneeded
 	test ViewOriginalFileExtensionAfterUnsuccessfulExtensionRemoval {
-		property test.name.skip.portal.instance = "CPSharepoint#ViewOriginalFileExtensionAfterUnsuccessfulExtensionRemoval";
+		property test.name.skip.portal.instance = "CPSharepoint2013#ViewOriginalFileExtensionAfterUnsuccessfulExtensionRemoval";
 
 		DMRepository.gotoCP(dmRepositoryName = "Sharepoint Repository Name");
 

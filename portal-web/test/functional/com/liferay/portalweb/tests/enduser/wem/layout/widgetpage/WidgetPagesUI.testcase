@@ -114,8 +114,7 @@ definition {
 	@priority = "4"
 	@uitest
 	test AddPrivatePage {
-		property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-		property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		task ("Add a private page") {
 			PagesAdmin.addPrivatePage(pageName = "Test Private Page");
@@ -142,7 +141,7 @@ definition {
 
 			PagesAdmin.openPageEllipsisMenu(pageName = "Test Page Name");
 
-			MenuItem.viewOrder(menuItemList = "View,-,Convert to content page...,-,Copy page,-,Configure,Permissions,-,Delete");
+			MenuItem.viewOrder(menuItemList = "View,Convert to content page...,Copy page,Configure,Permissions,Delete");
 		}
 	}
 

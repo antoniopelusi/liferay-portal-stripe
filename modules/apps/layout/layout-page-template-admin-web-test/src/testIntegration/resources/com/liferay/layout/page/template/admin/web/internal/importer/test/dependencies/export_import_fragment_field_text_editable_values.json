@@ -1,0 +1,16 @@
+{
+	"com.liferay.fragment.entry.processor.editable.EditableFragmentEntryProcessor": {
+		"element-text": {
+			"config": {
+				"en_US": {
+					"href": "http://www.myexample.com",
+					"target": "_blank"
+				},
+				"mapperType": "link"
+			},
+			"defaultValue": "\n\t\tHeading example\n\t",
+			"en_US": "My example",
+			"es_ES": "Mi ejemplo"
+		}
+	}
+}

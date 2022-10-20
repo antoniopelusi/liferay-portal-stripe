@@ -53,6 +53,7 @@ else {
 }
 %>
 
-<liferay-ui:menu
-	menu="<%= igViewFileVersionDisplayContext.getMenu() %>"
+<clay:dropdown-actions
+	dropdownItems="<%= igViewFileVersionDisplayContext.getActionDropdownItems() %>"
+	propsTransformer="document_library/js/DLFileEntryDropdownPropsTransformer"
 />

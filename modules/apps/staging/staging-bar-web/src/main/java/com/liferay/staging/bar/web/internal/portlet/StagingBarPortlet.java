@@ -16,6 +16,7 @@ package com.liferay.staging.bar.web.internal.portlet;
 
 import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.service.AssetEntryLocalService;
+import com.liferay.asset.util.LinkedAssetEntryIdsUtil;
 import com.liferay.exportimport.kernel.exception.RemoteExportException;
 import com.liferay.exportimport.kernel.staging.LayoutStagingUtil;
 import com.liferay.exportimport.kernel.staging.Staging;
@@ -102,7 +103,8 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/view.jsp",
 		"javax.portlet.name=" + StagingBarPortletKeys.STAGING_BAR,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=power-user,user"
+		"javax.portlet.security-role-ref=power-user,user",
+		"javax.portlet.version=3.0"
 	},
 	service = Portlet.class
 )
@@ -282,6 +284,13 @@ public class StagingBarPortlet extends MVCPortlet {
 
 			httpServletRequest.setAttribute(
 				WebKeys.LAYOUT_ASSET_ENTRY, originalAssetEntry);
+
+			if (originalAssetEntry instanceof AssetEntry) {
+				AssetEntry assetEntry = (AssetEntry)originalAssetEntry;
+
+				LinkedAssetEntryIdsUtil.addLinkedAssetEntryId(
+					httpServletRequest, assetEntry.getEntryId());
+			}
 
 			themeDisplay.setScopeGroupId(originalScopeGroupId);
 
@@ -620,6 +629,12 @@ public class StagingBarPortlet extends MVCPortlet {
 
 			httpServletRequest.setAttribute(
 				WebKeys.LAYOUT_ASSET_ENTRY, scopedAssetEntry);
+
+			if (scopedAssetEntry != null) {
+				LinkedAssetEntryIdsUtil.replaceLinkedAssetEntryId(
+					httpServletRequest, assetEntry.getEntryId(),
+					scopedAssetEntry.getEntryId());
+			}
 		}
 	}
 

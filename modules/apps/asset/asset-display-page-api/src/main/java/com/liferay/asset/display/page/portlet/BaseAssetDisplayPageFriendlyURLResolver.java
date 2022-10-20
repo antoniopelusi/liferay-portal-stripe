@@ -22,6 +22,7 @@ import com.liferay.asset.kernel.AssetRendererFactoryRegistryUtil;
 import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.model.AssetRendererFactory;
 import com.liferay.asset.kernel.service.AssetEntryService;
+import com.liferay.asset.util.LinkedAssetEntryIdsUtil;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.info.constants.InfoDisplayWebKeys;
 import com.liferay.info.exception.NoSuchInfoItemException;
@@ -54,7 +55,6 @@ import com.liferay.portal.kernel.portlet.FriendlyURLResolver;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
@@ -64,6 +64,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
@@ -125,9 +126,15 @@ public abstract class BaseAssetDisplayPageFriendlyURLResolver
 		httpServletRequest.setAttribute(
 			LayoutDisplayPageWebKeys.LAYOUT_DISPLAY_PAGE_PROVIDER,
 			layoutDisplayPageProvider);
-		httpServletRequest.setAttribute(
-			WebKeys.LAYOUT_ASSET_ENTRY,
-			_getAssetEntry(layoutDisplayPageObjectProvider));
+
+		AssetEntry assetEntry = _getAssetEntry(layoutDisplayPageObjectProvider);
+
+		httpServletRequest.setAttribute(WebKeys.LAYOUT_ASSET_ENTRY, assetEntry);
+
+		if (assetEntry != null) {
+			LinkedAssetEntryIdsUtil.addLinkedAssetEntryId(
+				httpServletRequest, assetEntry.getEntryId());
+		}
 
 		Locale locale = portal.getLocale(httpServletRequest);
 		Layout layout = _getLayoutDisplayPageObjectProviderLayout(
@@ -195,23 +202,42 @@ public abstract class BaseAssetDisplayPageFriendlyURLResolver
 			groupId, layoutDisplayPageObjectProvider,
 			layoutDisplayPageProvider);
 
-		HttpServletRequest httpServletRequest =
-			(HttpServletRequest)requestContext.get("request");
+		String originalFriendlyURL = _getOriginalFriendlyURL(friendlyURL);
 
-		HttpSession httpSession = httpServletRequest.getSession();
+		String localizedFriendlyURL = originalFriendlyURL;
 
-		Locale locale = (Locale)httpSession.getAttribute(WebKeys.LOCALE);
+		String urlTitle = layoutDisplayPageObjectProvider.getURLTitle(
+			getLocale(requestContext));
 
-		if (locale != null) {
-			String urlTitle = layoutDisplayPageObjectProvider.getURLTitle(
-				locale);
+		if (Validator.isNotNull(urlTitle)) {
+			localizedFriendlyURL = getURLSeparator() + urlTitle;
+		}
 
-			if (Validator.isNotNull(urlTitle)) {
-				friendlyURL = getURLSeparator() + urlTitle;
+		if (!Objects.equals(originalFriendlyURL, localizedFriendlyURL)) {
+			return new LayoutFriendlyURLComposite(
+				layout, localizedFriendlyURL, true);
+		}
+
+		return new LayoutFriendlyURLComposite(layout, friendlyURL, false);
+	}
+
+	protected Locale getLocale(Map<String, Object> requestContext) {
+		Locale locale = (Locale)requestContext.get(WebKeys.LOCALE);
+
+		if (locale == null) {
+			HttpServletRequest httpServletRequest =
+				(HttpServletRequest)requestContext.get("request");
+
+			HttpSession httpSession = httpServletRequest.getSession();
+
+			locale = (Locale)httpSession.getAttribute(WebKeys.LOCALE);
+
+			if (locale == null) {
+				locale = portal.getLocale(httpServletRequest);
 			}
 		}
 
-		return new LayoutFriendlyURLComposite(layout, friendlyURL);
+		return locale;
 	}
 
 	@Reference
@@ -288,9 +314,9 @@ public abstract class BaseAssetDisplayPageFriendlyURLResolver
 			Map<String, String[]> params)
 		throws NoSuchInfoItemException {
 
-		long classPK = _getVersionClassPK(params);
+		String version = _getVersion(params);
 
-		if (classPK <= 0) {
+		if (Validator.isNull(version)) {
 			return layoutDisplayPageObjectProvider.getDisplayObject();
 		}
 
@@ -305,7 +331,7 @@ public abstract class BaseAssetDisplayPageFriendlyURLResolver
 						layoutDisplayPageObjectProvider.getClassNameId()),
 					infoItemIdentifier.getInfoItemServiceFilter());
 
-		infoItemIdentifier.setVersion(InfoItemIdentifier.VERSION_LATEST);
+		infoItemIdentifier.setVersion(version);
 
 		return infoItemObjectProvider.getInfoItem(infoItemIdentifier);
 	}
@@ -411,6 +437,16 @@ public abstract class BaseAssetDisplayPageFriendlyURLResolver
 				template, infoItemFieldValues, locale));
 	}
 
+	private String _getOriginalFriendlyURL(String friendlyURL) {
+		int pos = friendlyURL.indexOf(Portal.FRIENDLY_URL_SEPARATOR);
+
+		if ((pos == -1) || (pos == 0)) {
+			return friendlyURL;
+		}
+
+		return friendlyURL.substring(0, pos);
+	}
+
 	private String _getURLSeparator(String friendlyURL) {
 		List<String> paths = StringUtil.split(friendlyURL, CharPool.SLASH);
 
@@ -437,14 +473,14 @@ public abstract class BaseAssetDisplayPageFriendlyURLResolver
 		return StringPool.BLANK;
 	}
 
-	private long _getVersionClassPK(Map<String, String[]> params) {
+	private String _getVersion(Map<String, String[]> params) {
 		String[] versions = params.get("version");
 
 		if (ArrayUtil.isEmpty(versions)) {
-			return 0;
+			return StringPool.BLANK;
 		}
 
-		return GetterUtil.getLong(versions[0]);
+		return versions[0];
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

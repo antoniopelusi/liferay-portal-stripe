@@ -75,6 +75,22 @@ public interface StructuredContentFolderResource {
 			Long assetLibraryId, String callbackURL, Object object)
 		throws Exception;
 
+	public void
+			deleteAssetLibraryStructuredContentFolderByExternalReferenceCode(
+				Long assetLibraryId, String externalReferenceCode)
+		throws Exception;
+
+	public StructuredContentFolder
+			getAssetLibraryStructuredContentFolderByExternalReferenceCode(
+				Long assetLibraryId, String externalReferenceCode)
+		throws Exception;
+
+	public StructuredContentFolder
+			putAssetLibraryStructuredContentFolderByExternalReferenceCode(
+				Long assetLibraryId, String externalReferenceCode,
+				StructuredContentFolder structuredContentFolder)
+		throws Exception;
+
 	public Page<com.liferay.portal.vulcan.permission.Permission>
 			getAssetLibraryStructuredContentFolderPermissionsPage(
 				Long assetLibraryId, String roleNames)
@@ -98,6 +114,21 @@ public interface StructuredContentFolderResource {
 
 	public Response postSiteStructuredContentFolderBatch(
 			Long siteId, String callbackURL, Object object)
+		throws Exception;
+
+	public void deleteSiteStructuredContentFolderByExternalReferenceCode(
+			Long siteId, String externalReferenceCode)
+		throws Exception;
+
+	public StructuredContentFolder
+			getSiteStructuredContentFolderByExternalReferenceCode(
+				Long siteId, String externalReferenceCode)
+		throws Exception;
+
+	public StructuredContentFolder
+			putSiteStructuredContentFolderByExternalReferenceCode(
+				Long siteId, String externalReferenceCode,
+				StructuredContentFolder structuredContentFolder)
 		throws Exception;
 
 	public Page<com.liferay.portal.vulcan.permission.Permission>

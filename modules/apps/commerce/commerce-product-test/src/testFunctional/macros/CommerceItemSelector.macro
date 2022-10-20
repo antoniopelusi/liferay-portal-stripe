@@ -24,7 +24,6 @@ definition {
 
 	macro uploadSingleFile {
 		var key_uploadFileName = "${uploadFileName}";
-
 		var filePath = TestCase.getDependenciesDirPath(fileName = "${uploadFileName}");
 
 		WaitForElementPresent(locator1 = "ItemSelector#ITEM_SELECTOR_IFRAME");
@@ -44,6 +43,8 @@ definition {
 		AssertClick(
 			locator1 = "ItemSelector#ADD_BUTTON",
 			value1 = "Add");
+
+		SelectFrameTop();
 	}
 
 }

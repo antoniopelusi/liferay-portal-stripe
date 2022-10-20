@@ -22,15 +22,16 @@ import com.liferay.info.item.renderer.InfoItemRendererTracker;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.taglib.servlet.PipingServletResponseFactory;
 import com.liferay.taglib.util.IncludeTag;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.PageContext;
 
 /**
  * @author Fabio Mastrorilli
+ * @author Alessio Antonio Rendina
  */
 public class GalleryTag extends IncludeTag {
 
@@ -45,7 +46,8 @@ public class GalleryTag extends IncludeTag {
 			infoItemRenderer.render(
 				CPDefinitionLocalServiceUtil.getCPDefinition(_cpDefinitionId),
 				(HttpServletRequest)pageContext.getRequest(),
-				(HttpServletResponse)pageContext.getResponse());
+				PipingServletResponseFactory.createPipingServletResponse(
+					pageContext));
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
@@ -55,7 +57,7 @@ public class GalleryTag extends IncludeTag {
 			return SKIP_BODY;
 		}
 
-		return super.doStartTag();
+		return SKIP_BODY;
 	}
 
 	public long getCPDefinitionId() {
@@ -92,19 +94,6 @@ public class GalleryTag extends IncludeTag {
 		_infoItemRendererTracker = null;
 		_namespace = StringPool.BLANK;
 	}
-
-	@Override
-	protected String getPage() {
-		return _PAGE;
-	}
-
-	@Override
-	protected void setAttributes(HttpServletRequest httpServletRequest) {
-		httpServletRequest.setAttribute(
-			"liferay-commerce:gallery:namespace", _namespace);
-	}
-
-	private static final String _PAGE = "/gallery/page.jsp";
 
 	private static final Log _log = LogFactoryUtil.getLog(GalleryTag.class);
 

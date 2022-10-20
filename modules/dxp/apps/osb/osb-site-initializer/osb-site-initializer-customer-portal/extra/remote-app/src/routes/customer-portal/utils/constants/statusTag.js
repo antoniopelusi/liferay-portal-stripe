@@ -22,7 +22,7 @@ export const STATUS_TAG_TYPE_NAMES = {
 	active: 'Active',
 	expired: 'Expired',
 	future: 'Future',
-	inProgress: 'In Progress',
+	inProgress: 'In-Progress',
 	invited: 'Invited',
-	notActivated: 'Not Activated',
+	notActivated: 'Not-Activated',
 };

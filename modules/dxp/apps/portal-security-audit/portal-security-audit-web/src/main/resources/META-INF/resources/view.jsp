@@ -45,6 +45,7 @@
 			>
 				<liferay-portlet:renderURL varImpl="rowURL">
 					<portlet:param name="mvcPath" value="/view_audit_event.jsp" />
+					<portlet:param name="redirect" value="<%= currentURL %>" />
 					<portlet:param name="auditEventId" value="<%= String.valueOf(event.getAuditEventId()) %>" />
 				</liferay-portlet:renderURL>
 
@@ -54,6 +55,7 @@
 			<hr class="separator" />
 
 			<liferay-ui:search-iterator
+				markupView="lexicon"
 				searchContainer="<%= auditDisplayContext.getSearchContainer() %>"
 			/>
 		</liferay-ui:search-container>

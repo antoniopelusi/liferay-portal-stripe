@@ -156,9 +156,7 @@ definition {
 		var dmFileEntryId = JSONDocument.getFileEntryId(
 			dmDocumentTitle = "Document_1.jpg",
 			groupName = "Test Site Name");
-
 		var portalURL = PropsUtil.get("portal.url");
-
 		var siteId = JSONGroupAPI._getGroupIdByName(
 			groupName = "Test Site Name",
 			site = "true");

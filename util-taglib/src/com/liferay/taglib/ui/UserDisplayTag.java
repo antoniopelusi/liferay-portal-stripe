@@ -139,7 +139,6 @@ public class UserDisplayTag extends TagSupport {
 	}
 
 	public void setMarkupView(String markupView) {
-		_markupView = markupView;
 	}
 
 	public void setShowLink(boolean showLink) {
@@ -179,20 +178,12 @@ public class UserDisplayTag extends TagSupport {
 			return _endPage;
 		}
 
-		if (Validator.isNotNull(_markupView)) {
-			return "/html/taglib/ui/user_display/" + _markupView + "/end.jsp";
-		}
-
 		return "/html/taglib/ui/user_display/end.jsp";
 	}
 
 	protected String getStartPage() {
 		if (Validator.isNotNull(_startPage)) {
 			return _startPage;
-		}
-
-		if (Validator.isNotNull(_markupView)) {
-			return "/html/taglib/ui/user_display/" + _markupView + "/start.jsp";
 		}
 
 		return "/html/taglib/ui/user_display/start.jsp";
@@ -202,7 +193,6 @@ public class UserDisplayTag extends TagSupport {
 	private int _displayStyle = 1;
 	private String _endPage;
 	private String _imageCssClass;
-	private String _markupView;
 	private boolean _showLink = true;
 	private boolean _showUserDetails = true;
 	private boolean _showUserName = true;

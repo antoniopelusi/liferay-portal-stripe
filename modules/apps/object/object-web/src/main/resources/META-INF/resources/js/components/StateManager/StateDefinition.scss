@@ -1,0 +1,17 @@
+.lfr-objects__state-definition {
+	&-card-state {
+		align-items: center;
+		cursor: not-allowed;
+		display: flex;
+		justify-content: space-between;
+
+		&-name {
+			width: 50%;
+		}
+
+		&-next-status {
+			margin-left: 10px;
+			width: 50%;
+		}
+	}
+}

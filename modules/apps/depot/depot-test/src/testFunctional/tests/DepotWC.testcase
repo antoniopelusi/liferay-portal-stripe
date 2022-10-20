@@ -64,8 +64,6 @@ definition {
 
 		ClickNoError(locator1 = "Icon#DELETE");
 
-		AssertConfirm(value1 = "Are you sure you want to move the selected entries to the Recycle Bin?");
-
 		AssertTextEquals(
 			locator1 = "Message#EMPTY_INFO",
 			value1 = "No web content was found.");
@@ -113,9 +111,9 @@ definition {
 	}
 
 	@description = "This ensures that a web content folder can be edited in a depot."
+	@e2e
 	@priority = "3"
 	@refactordone
-	@uitest
 	test CanEditFolder {
 		DepotNavigator.openDepotWebContentAdmin(depotName = "Test Depot Name");
 
@@ -189,9 +187,9 @@ definition {
 	}
 
 	@description = "This ensures that a web content can be edited in a depot."
+	@e2e
 	@priority = "5"
 	@refactordone
-	@uitest
 	test CanEditWebContent {
 		property portal.acceptance = "true";
 
@@ -207,7 +205,7 @@ definition {
 			webContentContent = "WC WebContent Content",
 			webContentTitle = "WC WebContent Title");
 
-		Depot.viewNoPanel(panelName = "Display Page Template");
+		Depot.viewNoPanel(panelName = "Display Page");
 
 		PortletEntry.publish();
 

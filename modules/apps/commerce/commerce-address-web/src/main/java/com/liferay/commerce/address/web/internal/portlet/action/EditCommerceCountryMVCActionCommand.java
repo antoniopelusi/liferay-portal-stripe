@@ -23,7 +23,7 @@ import com.liferay.portal.kernel.exception.CountryA3Exception;
 import com.liferay.portal.kernel.exception.CountryNameException;
 import com.liferay.portal.kernel.exception.DuplicateCountryException;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Country;
@@ -152,8 +152,7 @@ public class EditCommerceCountryMVCActionCommand extends BaseMVCActionCommand {
 			deleteCountryIds = new long[] {countryId};
 		}
 		else {
-			deleteCountryIds = StringUtil.split(
-				ParamUtil.getString(actionRequest, "deleteCountryIds"), 0L);
+			deleteCountryIds = ParamUtil.getLongValues(actionRequest, "rowIds");
 		}
 
 		for (long deleteCountryId : deleteCountryIds) {
@@ -251,7 +250,7 @@ public class EditCommerceCountryMVCActionCommand extends BaseMVCActionCommand {
 
 		for (Map.Entry<Locale, String> entry : nameMap.entrySet()) {
 			_countryLocalService.updateCountryLocalization(
-				country, LanguageUtil.getLanguageId(entry.getKey()),
+				country, _language.getLanguageId(entry.getKey()),
 				entry.getValue());
 		}
 
@@ -273,6 +272,9 @@ public class EditCommerceCountryMVCActionCommand extends BaseMVCActionCommand {
 
 	@Reference
 	private CountryService _countryService;
+
+	@Reference
+	private Language _language;
 
 	@Reference
 	private Portal _portal;

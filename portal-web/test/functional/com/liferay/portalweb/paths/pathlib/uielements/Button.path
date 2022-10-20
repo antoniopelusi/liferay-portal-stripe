@@ -12,7 +12,7 @@
 <tbody>
 <tr>
 	<td>ADD</td>
-	<td>//button[contains(@id, 'addButton')]</td>
+	<td>//button[contains(@id, 'addButton')] | //button[contains(@data-qa-id, 'addButton')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -137,7 +137,7 @@
 </tr>
 <tr>
 	<td>TRASH_ENABLED</td>
-	<td>//button[*[name()='svg'][contains(@class,'lexicon-icon-trash')]]</td>
+	<td>//button[*[name()='svg'][contains(@class,'lexicon-icon-trash')]] | //a[contains(@class,'btn')]/*[name()='svg'][contains(@class,'trash')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -256,6 +256,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>COLOR_PICKER_BUTTON</td>
+	<td>//div[contains(@class,'input-group')]//button[contains(@class,'clay-color-btn')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>COLOR_PICKER</td>
 	<td>//label[normalize-space(text())='${key_fieldLabel}']/following-sibling::div//div[contains(@class,'color-picker')]//button[contains(@class,'clay-color-btn')] | //div[contains(@class,'color-picker')][./label[normalize-space(text())='${key_fieldLabel}']]//button[contains(@class,'clay-color-btn')] | //label[normalize-space(text())='${key_fieldLabel}']/following-sibling::div//div[contains(@class,'color-picker')]//button[contains(@class,'color-picker__selector')]</td>
 	<td></td>
@@ -326,6 +331,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>EXPAND</td>
+	<td>//button[*[name()='svg'][contains(@class,'lexicon-icon-expand')]]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>SECONDARY_BY_TITLE</td>
 	<td>//button[contains(@class,'btn-secondary') and contains (@title,'${key_value}')]</td>
 	<td></td>
@@ -357,7 +367,12 @@
 </tr>
 <tr>
 	<td>DUPLICATE</td>
-	<td>//button[contains(@class, 'ddm-form-field-repeatable-add-button p-0 btn btn-sm btn-primary')]</td>
+	<td>//button[contains(@class, 'repeatable-add-button')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DUPLICATE_SPECIFIC</td>
+	<td>//button[contains(@class, 'repeatable-add-button') and contains(@aria-label, '${key_label}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -387,7 +402,7 @@
 </tr>
 <tr>
 	<td>EXECUTE</td>
-	<td>//button[contains(.,'Execute')]</td>
+	<td>//button[contains(.,'Execute')] | //div[contains(@id,'${method}')]//button[contains(.,'Execute')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -486,6 +501,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>LOCALIZATION_GENERIC_1</td>
+	<td>xpath=(//div[contains(@class,'form-group')]//div[contains(@class,'localized')]//button[contains(@class,'localized')])[1]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>LOCALIZATION_GENERIC_2</td>
 	<td>xpath=(//div[contains(@class,'form-group')]//div[contains(@class,'localized')]//button[contains(@class,'localized')])[2]</td>
 	<td></td>
@@ -511,6 +531,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>MODAL_DELETE</td>
+	<td>//div[contains(@class, 'modal-content')]//button[contains(., 'Delete')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>MORE_MESSAGES</td>
 	<td>//a[contains(@class,'btn') and contains(.,'More Messages')]</td>
 	<td></td>
@@ -532,7 +557,7 @@
 </tr>
 <tr>
 	<td>MOVE_TO_RECYCLE_BIN</td>
-	<td>//a[contains(@class,'btn') and contains(.,'Move to Recycle Bin')] | //button[contains(.,'Move to Recycle Bin')] | //*[contains(@class, 'icon-trash')]</td>
+	<td>//a[contains(@class,'btn') and contains(.,'Delete')] | //button[contains(.,'Delete')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -761,6 +786,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>SELECT_BUTTON</td>
+	<td>//label[text()='${key_fieldName}']/..//*[text()='Select']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>SELECT_CONTENT</td>
 	<td>//div[@data-fieldname='${key_fieldName}']//button[contains(.,'Select')]</td>
 	<td></td>
@@ -818,6 +848,11 @@
 <tr>
 	<td>SHARE_SIDENAV</td>
 	<td>//a[contains(@class,'btn')][contains(.,'Share')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SHOW_MORE</td>
+	<td>//button[contains(.,'Show More')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -953,6 +988,11 @@
 <tr>
 	<td>BUTTON_PLUS_PRODUCT_VISIBILITY</td>
 	<td>//li[contains(@class,'nav-item')]//button[contains(@title,'${key_webContentTitle}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BUTTON_WITH_VALUE</td>
+	<td>//button[contains(.,'${value}') or contains(@title,'${value}')]</td>
 	<td></td>
 </tr>
 </tbody>

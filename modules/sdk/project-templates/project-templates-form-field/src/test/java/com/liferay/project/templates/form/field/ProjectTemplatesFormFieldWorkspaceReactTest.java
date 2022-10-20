@@ -27,6 +27,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Properties;
 
 import org.junit.Assert;
@@ -85,15 +86,27 @@ public class ProjectTemplatesFormFieldWorkspaceReactTest
 			new File(workspaceDir, "modules"), "form-field", name,
 			"--liferay-version", _liferayVersion, "--js-framework", "react");
 
-		testContains(
-			gradleProjectDir, "build.gradle",
-			"compileOnly group: \"com.liferay\", name: " +
-				"\"com.liferay.dynamic.data.mapping.api\"",
-			"compileOnly group: \"com.liferay\", name: " +
-				"\"com.liferay.frontend.js.loader.modules.extender.api\"",
-			"jsCompile group: \"com.liferay\", name: " +
-				"\"com.liferay.dynamic.data.mapping.form.field.type\"",
-			DEPENDENCY_PORTAL_KERNEL);
+		if (Objects.equals("7.2.1-1", _liferayVersion)) {
+			testContains(
+				gradleProjectDir, "build.gradle",
+				"compileOnly group: \"com.liferay\", name: " +
+					"\"com.liferay.dynamic.data.mapping.api\"",
+				"compileOnly group: \"com.liferay\", name: " +
+					"\"com.liferay.frontend.js.loader.modules.extender.api\"",
+				"jsCompile group: \"com.liferay\", name: " +
+					"\"com.liferay.dynamic.data.mapping.form.field.type\"",
+				DEPENDENCY_PORTAL_KERNEL);
+		}
+		else {
+			testContains(
+				gradleProjectDir, "build.gradle",
+				"compileOnly group: \"com.liferay.portal\", name: " +
+					"\"release.portal.api\"",
+				"jsCompile group: \"com.liferay\", name: " +
+					"\"com.liferay.dynamic.data.mapping.form.field.type\"",
+				DEPENDENCY_RELEASE_PORTAL_API);
+		}
+
 		testContains(
 			gradleProjectDir, "package.json", "\"@babel/cli\": \"^7.2.3\"",
 			"\"@liferay/portal-" + _liferayVersion.substring(0, 3) +

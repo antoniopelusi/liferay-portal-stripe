@@ -87,6 +87,7 @@ public class ObjectRelationshipModelImpl
 		{"createDate", Types.TIMESTAMP}, {"modifiedDate", Types.TIMESTAMP},
 		{"objectDefinitionId1", Types.BIGINT},
 		{"objectDefinitionId2", Types.BIGINT}, {"objectFieldId2", Types.BIGINT},
+		{"parameterObjectFieldId", Types.BIGINT},
 		{"deletionType", Types.VARCHAR}, {"dbTableName", Types.VARCHAR},
 		{"label", Types.VARCHAR}, {"name", Types.VARCHAR},
 		{"reverse", Types.BOOLEAN}, {"type_", Types.VARCHAR}
@@ -107,6 +108,7 @@ public class ObjectRelationshipModelImpl
 		TABLE_COLUMNS_MAP.put("objectDefinitionId1", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("objectDefinitionId2", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("objectFieldId2", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("parameterObjectFieldId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("deletionType", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("dbTableName", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("label", Types.VARCHAR);
@@ -116,7 +118,7 @@ public class ObjectRelationshipModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table ObjectRelationship (mvccVersion LONG default 0 not null,uuid_ VARCHAR(75) null,objectRelationshipId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,objectDefinitionId1 LONG,objectDefinitionId2 LONG,objectFieldId2 LONG,deletionType VARCHAR(75) null,dbTableName VARCHAR(75) null,label STRING null,name VARCHAR(75) null,reverse BOOLEAN,type_ VARCHAR(75) null)";
+		"create table ObjectRelationship (mvccVersion LONG default 0 not null,uuid_ VARCHAR(75) null,objectRelationshipId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,objectDefinitionId1 LONG,objectDefinitionId2 LONG,objectFieldId2 LONG,parameterObjectFieldId LONG,deletionType VARCHAR(75) null,dbTableName VARCHAR(75) null,label STRING null,name VARCHAR(75) null,reverse BOOLEAN,type_ VARCHAR(75) null)";
 
 	public static final String TABLE_SQL_DROP = "drop table ObjectRelationship";
 
@@ -365,6 +367,13 @@ public class ObjectRelationshipModelImpl
 			"objectFieldId2",
 			(BiConsumer<ObjectRelationship, Long>)
 				ObjectRelationship::setObjectFieldId2);
+		attributeGetterFunctions.put(
+			"parameterObjectFieldId",
+			ObjectRelationship::getParameterObjectFieldId);
+		attributeSetterBiConsumers.put(
+			"parameterObjectFieldId",
+			(BiConsumer<ObjectRelationship, Long>)
+				ObjectRelationship::setParameterObjectFieldId);
 		attributeGetterFunctions.put(
 			"deletionType", ObjectRelationship::getDeletionType);
 		attributeSetterBiConsumers.put(
@@ -648,6 +657,21 @@ public class ObjectRelationshipModelImpl
 	public long getOriginalObjectFieldId2() {
 		return GetterUtil.getLong(
 			this.<Long>getColumnOriginalValue("objectFieldId2"));
+	}
+
+	@JSON
+	@Override
+	public long getParameterObjectFieldId() {
+		return _parameterObjectFieldId;
+	}
+
+	@Override
+	public void setParameterObjectFieldId(long parameterObjectFieldId) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_parameterObjectFieldId = parameterObjectFieldId;
 	}
 
 	@JSON
@@ -1030,6 +1054,8 @@ public class ObjectRelationshipModelImpl
 		objectRelationshipImpl.setObjectDefinitionId1(getObjectDefinitionId1());
 		objectRelationshipImpl.setObjectDefinitionId2(getObjectDefinitionId2());
 		objectRelationshipImpl.setObjectFieldId2(getObjectFieldId2());
+		objectRelationshipImpl.setParameterObjectFieldId(
+			getParameterObjectFieldId());
 		objectRelationshipImpl.setDeletionType(getDeletionType());
 		objectRelationshipImpl.setDBTableName(getDBTableName());
 		objectRelationshipImpl.setLabel(getLabel());
@@ -1069,6 +1095,8 @@ public class ObjectRelationshipModelImpl
 			this.<Long>getColumnOriginalValue("objectDefinitionId2"));
 		objectRelationshipImpl.setObjectFieldId2(
 			this.<Long>getColumnOriginalValue("objectFieldId2"));
+		objectRelationshipImpl.setParameterObjectFieldId(
+			this.<Long>getColumnOriginalValue("parameterObjectFieldId"));
 		objectRelationshipImpl.setDeletionType(
 			this.<String>getColumnOriginalValue("deletionType"));
 		objectRelationshipImpl.setDBTableName(
@@ -1209,6 +1237,9 @@ public class ObjectRelationshipModelImpl
 			getObjectDefinitionId2();
 
 		objectRelationshipCacheModel.objectFieldId2 = getObjectFieldId2();
+
+		objectRelationshipCacheModel.parameterObjectFieldId =
+			getParameterObjectFieldId();
 
 		objectRelationshipCacheModel.deletionType = getDeletionType();
 
@@ -1357,6 +1388,7 @@ public class ObjectRelationshipModelImpl
 	private long _objectDefinitionId1;
 	private long _objectDefinitionId2;
 	private long _objectFieldId2;
+	private long _parameterObjectFieldId;
 	private String _deletionType;
 	private String _dbTableName;
 	private String _label;
@@ -1406,6 +1438,8 @@ public class ObjectRelationshipModelImpl
 		_columnOriginalValues.put("objectDefinitionId1", _objectDefinitionId1);
 		_columnOriginalValues.put("objectDefinitionId2", _objectDefinitionId2);
 		_columnOriginalValues.put("objectFieldId2", _objectFieldId2);
+		_columnOriginalValues.put(
+			"parameterObjectFieldId", _parameterObjectFieldId);
 		_columnOriginalValues.put("deletionType", _deletionType);
 		_columnOriginalValues.put("dbTableName", _dbTableName);
 		_columnOriginalValues.put("label", _label);
@@ -1458,17 +1492,19 @@ public class ObjectRelationshipModelImpl
 
 		columnBitmasks.put("objectFieldId2", 1024L);
 
-		columnBitmasks.put("deletionType", 2048L);
+		columnBitmasks.put("parameterObjectFieldId", 2048L);
 
-		columnBitmasks.put("dbTableName", 4096L);
+		columnBitmasks.put("deletionType", 4096L);
 
-		columnBitmasks.put("label", 8192L);
+		columnBitmasks.put("dbTableName", 8192L);
 
-		columnBitmasks.put("name", 16384L);
+		columnBitmasks.put("label", 16384L);
 
-		columnBitmasks.put("reverse", 32768L);
+		columnBitmasks.put("name", 32768L);
 
-		columnBitmasks.put("type_", 65536L);
+		columnBitmasks.put("reverse", 65536L);
+
+		columnBitmasks.put("type_", 131072L);
 
 		_columnBitmasks = Collections.unmodifiableMap(columnBitmasks);
 	}

@@ -14,8 +14,8 @@
 
 package com.liferay.on.demand.admin.web.internal.portlet.action;
 
+import com.liferay.on.demand.admin.constants.OnDemandAdminPortletKeys;
 import com.liferay.on.demand.admin.manager.OnDemandAdminManager;
-import com.liferay.on.demand.admin.web.internal.constants.OnDemandAdminPortletKeys;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.service.CompanyLocalService;
@@ -50,7 +50,7 @@ public class RequestAdminAccessMVCActionCommand extends BaseMVCActionCommand {
 		long companyId = ParamUtil.getLong(actionRequest, "companyId");
 
 		String loginURL = _onDemandAdminManager.getLoginURL(
-			_companyLocalService.getCompany(companyId),
+			_companyLocalService.getCompany(companyId), actionRequest,
 			_portal.getUserId(actionRequest));
 
 		if (Validator.isNotNull(loginURL)) {

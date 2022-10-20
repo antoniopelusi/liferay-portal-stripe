@@ -389,14 +389,7 @@ definition {
 
 		SelectFrame(locator1 = "IFrame#MODAL_BODY");
 
-		AssertTextEquals(
-			key_roleTitle = "${roleTitle}",
-			locator1 = "UsersAndOrganizationsAssignOrganizationalRoles#ROLE_TITLE",
-			value1 = "${roleTitle}");
-
-		Click(
-			key_roleTitle = "${roleTitle}",
-			locator1 = "UsersAndOrganizationsAssignOrganizationalRoles#ROLE_TITLE");
+		LexiconTable.clickTableEntryTitle(tableEntry = "${roleTitle}");
 
 		Navigator.gotoNavItem(navItem = "Available");
 
@@ -419,15 +412,9 @@ definition {
 
 		Navigator.gotoNavItem(navItem = "Current");
 
-		AssertTextEquals(
-			key_userScreenName = "${userScreenName}",
-			locator1 = "UsersAndOrganizationsAssignUsers#USER_TABLE_USER_NAME",
-			value1 = "${userFirstName} ${userLastName}");
+		LexiconEntry.viewEntryName(rowEntry = "${userFirstName} ${userLastName}");
 
-		AssertTextEquals(
-			key_userScreenName = "${userScreenName}",
-			locator1 = "UserGroupsAssignUsers#USER_TABLE_SCREEN_NAME",
-			value1 = "${userScreenName}");
+		LexiconEntry.viewEntryName(rowEntry = "${userScreenName}");
 
 		IFrame.selectTopFrame();
 
@@ -534,6 +521,8 @@ definition {
 			locator1 = "UsersAndOrganizationsEditUser#DETAILS_CATEGORY_SELECT",
 			value1 = "Select");
 
+		WaitForLiferayEvent.initializeLiferayEventLog();
+
 		AssertClick(
 			key_vocabularyName = "${vocabularyName}",
 			locator1 = "UsersAndOrganizationsEditUser#DETAILS_CATEGORY_SELECT",
@@ -543,7 +532,7 @@ definition {
 			locator1 = "Modal#HEADER",
 			value1 = "Select ${vocabularyName}");
 
-		AssetCategorization.selectCategory(categoryName = "${categoryName}");
+		AssetCategorization.selectCategories(categoryNameList = "${categoryName}");
 
 		PortletEntry.save();
 	}
@@ -668,38 +657,6 @@ definition {
 			value1 = "${orgName}");
 	}
 
-	macro selectParentOrganizationCP {
-		var key_orgName = "${orgName}";
-
-		LexiconEntry.openEntryMenu(rowEntry = "${orgName}");
-
-		MenuItem.click(menuItem = "Edit");
-
-		AssertClick(
-			locator1 = "UsersAndOrganizationsEditOrganization#PARENT_ORGANIZATION_SELECT_BUTTON",
-			value1 = "Select");
-
-		SelectFrame(locator1 = "UsersAndOrganizationsSelectOrganization#SELECT_ORGANIZATION_IFRAME");
-
-		AssertTextEquals(
-			locator1 = "ContentRow#ORGANIZATION_TABLE_NAME",
-			value1 = "${orgName}");
-
-		var key_orgName = "${parentOrgName}";
-
-		AssertClick(
-			locator1 = "UsersAndOrganizationsSelectOrganization#ORGANIZATION_TABLE_CHOOSE_BUTTON",
-			value1 = "Choose");
-
-		SelectFrame(value1 = "relative=top");
-
-		AssertTextEquals(
-			locator1 = "UsersAndOrganizationsEditOrganization#PARENT_ORGANIZATION_TABLE_NAME",
-			value1 = "${parentOrgName}");
-
-		PortletEntry.save();
-	}
-
 	macro tearDownCP {
 		ApplicationsMenu.gotoPortlet(
 			category = "Users",
@@ -732,9 +689,7 @@ definition {
 						locator1 = "UsersAndOrganizationsOrganization#MENU_ASSIGN_USERS",
 						value1 = "Assign Users");
 
-					AssertClick(
-						locator1 = "UsersAndOrganizationsAssignUsers#CURRENT_TAB",
-						value1 = "Current");
+					Navigator.gotoNavTab(navTab = "Current");
 
 					if ((IsElementPresent(locator1 = "Checkbox#SELECT_ALL")) && (IsVisible(locator1 = "Checkbox#SELECT_ALL"))) {
 						Uncheck(locator1 = "Checkbox#SELECT_ALL");
@@ -748,9 +703,7 @@ definition {
 							value1 = "No users were found.");
 					}
 
-					AssertClick.assertPartialTextClickAt(
-						locator1 = "UsersAndOrganizationsAssignUsers#BACK",
-						value1 = "Back");
+					Navigator.gotoBack();
 
 					AssertClickNoError(
 						locator1 = "UsersAndOrganizationsOrganization#MENU_DELETE",
@@ -851,7 +804,9 @@ definition {
 				locator1 = "UsersAndOrganizationsEditOrganization#PARENT_ORGANIZATION_SELECT_BUTTON",
 				value1 = "Change");
 
-			SelectFrame(locator1 = "UsersAndOrganizationsSelectOrganization#SELECT_ORGANIZATION_IFRAME");
+			SelectFrame(
+				key_title = "Select Parent Organization",
+				locator1 = "IFrame#MODAL_ANY");
 
 			AssertTextEquals(
 				locator1 = "ContentRow#ORGANIZATION_TABLE_NAME",
@@ -866,7 +821,9 @@ definition {
 				locator1 = "UsersAndOrganizationsEditOrganization#PARENT_ORGANIZATION_SELECT_BUTTON",
 				value1 = "Select");
 
-			SelectFrame(locator1 = "UsersAndOrganizationsSelectOrganization#SELECT_ORGANIZATION_IFRAME");
+			SelectFrame(
+				key_title = "Select Parent Organization",
+				locator1 = "IFrame#MODAL_ANY");
 
 			AssertTextEquals(
 				locator1 = "ContentRow#ORGANIZATION_TABLE_NAME",

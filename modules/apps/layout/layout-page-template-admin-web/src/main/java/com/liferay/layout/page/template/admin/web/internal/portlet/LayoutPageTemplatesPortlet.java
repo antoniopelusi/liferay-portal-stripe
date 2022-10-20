@@ -24,6 +24,7 @@ import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalService;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
@@ -76,7 +77,8 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.template-path=/META-INF/resources/",
 		"javax.portlet.init-param.view-template=/view.jsp",
 		"javax.portlet.name=" + LayoutPageTemplateAdminPortletKeys.LAYOUT_PAGE_TEMPLATES,
-		"javax.portlet.resource-bundle=content.Language"
+		"javax.portlet.resource-bundle=content.Language",
+		"javax.portlet.version=3.0"
 	},
 	service = Portlet.class
 )
@@ -147,6 +149,12 @@ public class LayoutPageTemplatesPortlet extends MVCPortlet {
 		renderRequest.setAttribute(
 			LayoutPageTemplateAdminWebKeys.ITEM_SELECTOR, _itemSelector);
 
+		if ((scopeGroup != null) && scopeGroup.isCompany()) {
+			renderResponse.setTitle(
+				_language.get(
+					themeDisplay.getLocale(), "widget-page-templates"));
+		}
+
 		super.doDispatch(renderRequest, renderResponse);
 	}
 
@@ -158,6 +166,9 @@ public class LayoutPageTemplatesPortlet extends MVCPortlet {
 
 	@Reference
 	private ItemSelector _itemSelector;
+
+	@Reference
+	private Language _language;
 
 	private volatile LayoutPageTemplateAdminWebConfiguration
 		_layoutPageTemplateAdminWebConfiguration;

@@ -14,9 +14,12 @@
 
 package com.liferay.asset.auto.tagger.configuration;
 
+import org.osgi.annotation.versioning.ProviderType;
+
 /**
  * @author Alejandro Tardín
  */
+@ProviderType
 public interface AssetAutoTaggerConfiguration {
 
 	public int getMaximumNumberOfTagsPerAsset();
@@ -24,5 +27,7 @@ public interface AssetAutoTaggerConfiguration {
 	public boolean isAvailable();
 
 	public boolean isEnabled();
+
+	public boolean isUpdateAutoTags();
 
 }

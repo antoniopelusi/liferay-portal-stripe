@@ -296,8 +296,6 @@ definition {
 			dmDocumentFile = "Document_3.txt",
 			dmDocumentTitle = "Document_3.txt");
 
-		Pause(locator1 = "5000");
-
 		DMDocument.checkoutCP(
 			dmDocumentTitle = "Document_3.txt",
 			dmRepositoryName = "true");
@@ -309,8 +307,6 @@ definition {
 		DMDocument.viewIconLockedCP(dmDocumentTitle = "Document_3.txt");
 
 		DMNavigator.gotoDocumentCP(dmDocumentTitle = "Document_3.txt");
-
-		Pause(locator1 = "5000");
 
 		DMDocument.viewCheckedoutCP(dmRepositoryName = "true");
 
@@ -615,12 +611,14 @@ definition {
 
 		LexiconEntry.changeDisplayStyle(displayStyle = "list");
 
+		AssertElementPresent.assertVisible(
+			key_dmFolderName = "Collaboration Test Application",
+			locator1 = "DocumentsAndMedia#DESCRIPTIVE_LIST_FOLDER_TITLE");
+
 		AssertClick(
 			key_dmFolderName = "Collaboration Test Application",
 			locator1 = "DocumentsAndMedia#DESCRIPTIVE_LIST_FOLDER_TITLE",
 			value1 = "Collaboration Test Application");
-
-		Pause(locator1 = "3000");
 
 		AssertElementNotPresent(
 			key_dmDocumentTitle = "Document_1.doc",
@@ -774,7 +772,7 @@ definition {
 
 		DMDocument.enableActionsMenuOnPortlet();
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		ContentPagesNavigator.openViewContentPage(
 			pageName = "Test Content Page Name",

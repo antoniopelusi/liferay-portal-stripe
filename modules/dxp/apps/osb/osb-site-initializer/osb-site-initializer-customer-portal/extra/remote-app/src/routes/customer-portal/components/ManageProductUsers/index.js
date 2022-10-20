@@ -10,7 +10,8 @@
  */
 
 import {useEffect, useState} from 'react';
-import client from '../../../../apolloClient';
+import i18n from '../../../../common/I18n';
+import {useAppPropertiesContext} from '../../../../common/contexts/AppPropertiesContext';
 import {
 	getAnalyticsCloudWorkspace,
 	getDXPCloudEnvironment,
@@ -22,6 +23,7 @@ import ManageProductButton from '../ManageProductButton';
 const ManageProductUser = ({project, subscriptionGroups}) => {
 	const [dxpCloudProjectId, setDxpCloudProjectId] = useState('');
 	const [analyctsCloudGroupId, setAnalyctsCloudGroupId] = useState('');
+	const {client} = useAppPropertiesContext();
 
 	const activatedLinkDXPC = `https://console.liferay.cloud/projects/${dxpCloudProjectId}/overview`;
 	const activatedLinkAC = `https://analytics.liferay.com/workspace/${analyctsCloudGroupId}/sites`;
@@ -61,7 +63,7 @@ const ManageProductUser = ({project, subscriptionGroups}) => {
 			}
 		};
 		getAnalyticsCloudWorkspaces();
-	}, [project.accountKey]);
+	}, [client, project.accountKey]);
 
 	const isActiveStatusDXPC =
 		subscriptionGroups.find(
@@ -79,25 +81,32 @@ const ManageProductUser = ({project, subscriptionGroups}) => {
 			{(isActiveStatusDXPC || isActiveStatusAC) && (
 				<div className="bg-brand-primary-lighten-6 border-0 card card-flat cp-manager-product-container mt-5">
 					<div className="p-4">
-						<p className="h4">Manage Product Users</p>
+						<p className="h4">
+							{i18n.translate('manage-product-users')}
+						</p>
 
 						<p className="mt-2 text-neutral-7 text-paragraph-sm">
-							Manage roles and permissions of users within each
-							product.
+							{i18n.translate(
+								'manage-roles-and-permissions-of-users-within-each-product'
+							)}
 						</p>
 
 						<div className="d-flex">
 							{isActiveStatusDXPC && (
 								<ManageProductButton
 									activatedLink={activatedLinkDXPC}
-									activatedTitle="Manage DXP Cloud Users"
+									activatedTitle={i18n.translate(
+										'manage-lxc-sm-users'
+									)}
 								/>
 							)}
 
 							{isActiveStatusAC && (
 								<ManageProductButton
 									activatedLink={activatedLinkAC}
-									activatedTitle="Manage Analytics Cloud Users"
+									activatedTitle={i18n.translate(
+										'manage-analytics-cloud-users'
+									)}
 								/>
 							)}
 						</div>

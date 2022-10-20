@@ -3,6 +3,10 @@
 html#{$cadmin-selector} {
 	.cadmin {
 		.applications-menu-modal {
+			.btn-monospaced {
+				color: $cadmin-secondary;
+			}
+
 			.modal-dialog {
 				margin: 0;
 				max-width: none;
@@ -18,8 +22,12 @@ html#{$cadmin-selector} {
 				padding: 0;
 			}
 
-			.btn-monospaced {
-				color: $cadmin-secondary;
+			.tab-pane {
+				$footerHeight: 65px;
+				$headerHeight: 60px;
+
+				max-height: calc(100vh - #{$footerHeight + $headerHeight});
+				overflow-y: auto;
 			}
 		}
 
@@ -63,8 +71,6 @@ html#{$cadmin-selector} {
 
 		.applications-menu-nav-columns {
 			column-count: 1;
-			margin-left: -$cadmin-grid-gutter-width / 2;
-			margin-right: -$cadmin-grid-gutter-width / 2;
 			orphans: 1;
 			widows: 1;
 
@@ -82,6 +88,7 @@ html#{$cadmin-selector} {
 
 			.col-md {
 				display: inline-block;
+				word-break: break-word;
 			}
 		}
 

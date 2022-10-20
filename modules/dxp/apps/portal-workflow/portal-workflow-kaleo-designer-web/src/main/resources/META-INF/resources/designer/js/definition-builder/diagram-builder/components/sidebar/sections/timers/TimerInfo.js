@@ -22,11 +22,11 @@ const TimerInfo = ({
 	timerIdentifier,
 	timersIndex,
 }) => {
-	const [timerDescription, setTimerDescription] = useState(description || '');
-	const [timerName, setTimerName] = useState(name || '');
+	const [timerDescription, setTimerDescription] = useState([description]);
+	const [timerName, setTimerName] = useState([name]);
 
 	useEffect(() => {
-		if (timerDescription && timerName) {
+		if (timerDescription !== undefined || timerName !== undefined) {
 			setTimerSections((previousSections) => {
 				const updatedSectios = [...previousSections];
 				const section = previousSections.find(
@@ -35,7 +35,6 @@ const TimerInfo = ({
 
 				section.description = timerDescription;
 				section.name = timerName;
-
 				updatedSectios.splice(timersIndex, 1, section);
 
 				return updatedSectios;

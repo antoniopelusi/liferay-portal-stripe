@@ -68,10 +68,10 @@ if (portletTitleBasedNavigation) {
 </c:if>
 
 <div <%= portletTitleBasedNavigation ? "class=\"container-fluid container-fluid-max-xl container-form-lg\"" : StringPool.BLANK %>>
-	<liferay-portlet:actionURL name="moveKBObject" var="moveKBObjectURL" />
+	<liferay-portlet:actionURL name="/knowledge_base/move_kb_object" var="moveKBObjectURL" />
 
 	<aui:form action="<%= moveKBObjectURL %>" method="post" name="fm">
-		<aui:input name="mvcPath" type="hidden" value='<%= templatePath + "move_object.jsp" %>' />
+		<aui:input name="mvcPath" type="hidden" value="/admin/common/move_object.jsp" />
 		<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
 		<aui:input name="resourceClassNameId" type="hidden" value="<%= String.valueOf(resourceClassNameId) %>" />
 		<aui:input name="resourcePrimKey" type="hidden" value="<%= String.valueOf(resourcePrimKey) %>" />
@@ -136,7 +136,7 @@ if (portletTitleBasedNavigation) {
 				title: '<liferay-ui:message key="select-parent" />',
 
 				<liferay-portlet:renderURL var="selectKBObjectURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
-					<portlet:param name="mvcPath" value='<%= templatePath + "select_parent.jsp" %>' />
+					<portlet:param name="mvcPath" value="/admin/common/select_parent.jsp" />
 					<portlet:param name="resourceClassNameId" value="<%= String.valueOf(resourceClassNameId) %>" />
 					<portlet:param name="resourcePrimKey" value="<%= String.valueOf(resourcePrimKey) %>" />
 					<portlet:param name="parentResourceClassNameId" value="<%= String.valueOf(parentResourceClassNameId) %>" />

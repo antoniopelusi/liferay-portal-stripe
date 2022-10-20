@@ -101,6 +101,12 @@ public interface PortalInstanceResource {
 			return new PortalInstanceResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -146,6 +152,7 @@ public interface PortalInstanceResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -235,7 +242,7 @@ public interface PortalInstanceResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-portal-instances/v1.0/portal-instances");
 
 			httpInvoker.userNameAndPassword(
@@ -316,7 +323,7 @@ public interface PortalInstanceResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-portal-instances/v1.0/portal-instances");
 
 			httpInvoker.userNameAndPassword(
@@ -395,7 +402,7 @@ public interface PortalInstanceResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-portal-instances/v1.0/portal-instances/{portalInstanceId}");
 
 			httpInvoker.path("portalInstanceId", portalInstanceId);
@@ -476,7 +483,7 @@ public interface PortalInstanceResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-portal-instances/v1.0/portal-instances/{portalInstanceId}");
 
 			httpInvoker.path("portalInstanceId", portalInstanceId);
@@ -561,7 +568,7 @@ public interface PortalInstanceResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-portal-instances/v1.0/portal-instances/{portalInstanceId}");
 
 			httpInvoker.path("portalInstanceId", portalInstanceId);
@@ -642,7 +649,7 @@ public interface PortalInstanceResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-portal-instances/v1.0/portal-instances/{portalInstanceId}/activate");
 
 			httpInvoker.path("portalInstanceId", portalInstanceId);
@@ -723,7 +730,7 @@ public interface PortalInstanceResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-portal-instances/v1.0/portal-instances/{portalInstanceId}/deactivate");
 
 			httpInvoker.path("portalInstanceId", portalInstanceId);

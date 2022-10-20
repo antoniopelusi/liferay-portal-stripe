@@ -31,8 +31,7 @@ definition {
 	@description = "This is a test for LPS-103104. Can add pages of different types via page tree panel."
 	@priority = "3"
 	test AddAllTypesOfPages {
-		property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-		property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		task ("Add different types of pages via page tree") {
 			ApplicationsMenu.gotoSite(site = "Test Site Name");
@@ -54,7 +53,7 @@ definition {
 
 			PagesFinder.addPublicContentPage(pageName = "Test Content Page");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			PagesFinder.goToPagesFinder();
 
@@ -101,7 +100,7 @@ definition {
 
 			PagesFinder.addContentPage(pageName = "Test Content Page");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View public page names in page tree") {
@@ -263,7 +262,7 @@ definition {
 				selectedAsset = "All Types",
 				tabName = "Collections");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a collection page based on dynamic collection via page tree") {
@@ -274,7 +273,7 @@ definition {
 				selectedAsset = "All Types",
 				tabName = "Collections");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View collection page names in page tree") {
@@ -349,9 +348,8 @@ definition {
 	@description = "This is a test for LPS-102544. Can navigate to both public and private pages from pages finder."
 	@priority = "5"
 	test NavigateToBothPageTypes {
-		property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-		property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 		property portal.acceptance = "true";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		task ("Add a public and private pages") {
 			JSONLayout.addPublicLayout(
@@ -414,8 +412,7 @@ definition {
 	@description = "This is a test for LPS-133709. The user can navigate to private and public pages defined in navigation menu via the Page Tree."
 	@priority = "4"
 	test NavigateToPrivateAndPublicPagesDefinedInNavigationMenu {
-		property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-		property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		task ("Add a public content page") {
 			JSONLayout.addPublicLayout(
@@ -641,8 +638,8 @@ definition {
 		}
 
 		task ("Preview draft via Page Tree") {
-			PagesAdmin.gotoPageEllipsisMenuItem(
-				menuItem = "Preview Draft",
+			PagesFinder.gotoPageEllipsisItem(
+				item = "Preview Draft",
 				pageName = "Test Page Name*");
 
 			SelectWindow.selectPopUp(locator1 = "null");
@@ -667,7 +664,7 @@ definition {
 		task ("Discard the draft in Pages admin") {
 			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
 
-			PageEditor.clickDiscardDraft(pageName = "Test Page Name");
+			PagesAdmin.discardDraft(pageName = "Test Page Name");
 		}
 
 		task ("Access to the Page Tree") {
@@ -675,8 +672,8 @@ definition {
 		}
 
 		task ("Preview draft via Page Tree") {
-			PagesAdmin.gotoPageEllipsisMenuItem(
-				menuItem = "Preview Draft",
+			PagesFinder.gotoPageEllipsisItem(
+				item = "Preview Draft",
 				pageName = "Test Page Name*");
 
 			SelectWindow.selectPopUp(locator1 = "null");
@@ -697,7 +694,7 @@ definition {
 				collectionName = "Basic Components",
 				fragmentName = "Button");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Access to the Page Tree") {
@@ -858,8 +855,7 @@ definition {
 	@description = "This is a test for LPS-133709. The user can switch site navigation menus via page type selector in Page Tree."
 	@priority = "4"
 	test SwitchNavigationMenusViaPageTypeSelector {
-		property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-		property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		task ("Add two public pages") {
 			for (var n : list "1,2") {

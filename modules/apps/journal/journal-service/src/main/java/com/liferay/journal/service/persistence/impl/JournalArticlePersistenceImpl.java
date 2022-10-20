@@ -3977,7 +3977,7 @@ public class JournalArticlePersistenceImpl
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>JournalArticleModelImpl</code>.
 	 * </p>
 	 *
-	 * @param DDMStructureKey the ddm structure key
+	 * @param DDMStructureKeys the ddm structure keys
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -7065,7 +7065,7 @@ public class JournalArticlePersistenceImpl
 	 * </p>
 	 *
 	 * @param resourcePrimKey the resource prim key
-	 * @param status the status
+	 * @param statuses the statuses
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -10405,7 +10405,7 @@ public class JournalArticlePersistenceImpl
 	 * </p>
 	 *
 	 * @param groupId the group ID
-	 * @param folderId the folder ID
+	 * @param folderIds the folder IDs
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -17129,7 +17129,7 @@ public class JournalArticlePersistenceImpl
 	 * </p>
 	 *
 	 * @param groupId the group ID
-	 * @param layoutUuid the layout uuid
+	 * @param layoutUuids the layout uuids
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -21409,7 +21409,7 @@ public class JournalArticlePersistenceImpl
 	 *
 	 * @param resourcePrimKey the resource prim key
 	 * @param indexable the indexable
-	 * @param status the status
+	 * @param statuses the statuses
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -22910,23 +22910,6 @@ public class JournalArticlePersistenceImpl
 					}
 				}
 				else {
-					if (list.size() > 1) {
-						Collections.sort(list, Collections.reverseOrder());
-
-						if (_log.isWarnEnabled()) {
-							if (!productionMode || !useFinderCache) {
-								finderArgs = new Object[] {
-									groupId, externalReferenceCode, version
-								};
-							}
-
-							_log.warn(
-								"JournalArticlePersistenceImpl.fetchByG_ERC_V(long, String, double, boolean) with parameters (" +
-									StringUtil.merge(finderArgs) +
-										") yields a result set with more than 1 result. This violates the logical unique restriction. There is no order guarantee on which result is returned by this finder.");
-						}
-					}
-
 					JournalArticle journalArticle = list.get(0);
 
 					result = journalArticle;
@@ -24159,7 +24142,7 @@ public class JournalArticlePersistenceImpl
 	 *
 	 * @param groupId the group ID
 	 * @param folderId the folder ID
-	 * @param status the status
+	 * @param statuses the statuses
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -29602,7 +29585,7 @@ public class JournalArticlePersistenceImpl
 	 *
 	 * @param groupId the group ID
 	 * @param articleId the article ID
-	 * @param status the status
+	 * @param statuses the statuses
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -34293,6 +34276,10 @@ public class JournalArticlePersistenceImpl
 			journalArticle.setUuid(uuid);
 		}
 
+		if (Validator.isNull(journalArticle.getExternalReferenceCode())) {
+			journalArticle.setExternalReferenceCode(journalArticle.getUuid());
+		}
+
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
@@ -34414,7 +34401,9 @@ public class JournalArticlePersistenceImpl
 	 */
 	@Override
 	public JournalArticle fetchByPrimaryKey(Serializable primaryKey) {
-		if (ctPersistenceHelper.isProductionMode(JournalArticle.class)) {
+		if (ctPersistenceHelper.isProductionMode(
+				JournalArticle.class, primaryKey)) {
+
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
@@ -34844,6 +34833,9 @@ public class JournalArticlePersistenceImpl
 			CTColumnResolutionType.STRICT, ctStrictColumnNames);
 
 		_uniqueIndexColumnNames.add(new String[] {"uuid_", "groupId"});
+
+		_uniqueIndexColumnNames.add(
+			new String[] {"groupId", "externalReferenceCode", "version"});
 
 		_uniqueIndexColumnNames.add(
 			new String[] {"groupId", "articleId", "version"});

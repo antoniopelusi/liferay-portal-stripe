@@ -1,0 +1,59 @@
+{
+	"deletedItems": [
+	],
+	"items": {
+		"root": {
+			"children": [
+				"z896587a-c659-43f5-9e22"
+			],
+			"itemId": "root",
+			"parentId": "",
+			"type": "root"
+		},
+		"z896587a-c659-43f5-9e22": {
+			"children": [
+			],
+			"config": {
+				"landscapeMobile": {
+					"styles": {
+						"marginBottom": "1",
+						"marginLeft": "1",
+						"marginRight": "1",
+						"marginTop": "1"
+					}
+				},
+				"portraitMobile": {
+					"styles": {
+						"marginBottom": "2",
+						"marginLeft": "2",
+						"marginRight": "2",
+						"marginTop": "2"
+					}
+				},
+				"styles": {
+					"marginBottom": "3",
+					"marginLeft": "3",
+					"marginRight": "3",
+					"marginTop": "3"
+				},
+				"tablet": {
+					"styles": {
+						"marginBottom": "4",
+						"marginLeft": "4",
+						"marginRight": "4",
+						"marginTop": "4"
+					}
+				},
+				"widthType": "fluid"
+			},
+			"itemId": "z896587a-c659-43f5-9e22",
+			"parentId": "root",
+			"type": "container"
+		}
+	},
+	"rootItems": {
+		"dropZone": "",
+		"main": "root"
+	},
+	"version": 1.1
+}

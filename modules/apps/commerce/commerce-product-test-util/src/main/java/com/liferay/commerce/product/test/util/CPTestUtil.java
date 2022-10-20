@@ -734,7 +734,6 @@ public class CPTestUtil {
 					return null;
 				}
 			).build());
-
 		searchContext.setCompanyId(group.getCompanyId());
 		searchContext.setGroupIds(new long[] {group.getGroupId()});
 
@@ -911,7 +910,7 @@ public class CPTestUtil {
 				displayDateHour, displayDateMinute, expirationDateMonth,
 				expirationDateDay, expirationDateYear, expirationDateHour,
 				expirationDateMinute, false, sku, false, 0, null, null, 0L,
-				serviceContext);
+				WorkflowConstants.STATUS_DRAFT, serviceContext);
 
 		CPDefinitionInventory cpDefinitionInventory =
 			CPDefinitionInventoryLocalServiceUtil.
@@ -1007,7 +1006,7 @@ public class CPTestUtil {
 				displayDateYear, displayDateHour, displayDateMinute,
 				expirationDateMonth, expirationDateDay, expirationDateYear,
 				expirationDateHour, expirationDateMinute, false, sku, false, 0,
-				null, null, 0L, serviceContext);
+				null, null, 0L, WorkflowConstants.STATUS_DRAFT, serviceContext);
 
 		CPDefinitionInventory cpDefinitionInventory =
 			CPDefinitionInventoryLocalServiceUtil.
@@ -1119,7 +1118,8 @@ public class CPTestUtil {
 			displayDateMonth, displayDateDay, displayDateYear, displayDateHour,
 			displayDateMinute, expirationDateMonth, expirationDateDay,
 			expirationDateYear, expirationDateHour, expirationDateMinute, false,
-			sku, false, 0, null, null, 0L, serviceContext);
+			sku, false, 0, null, null, 0L, WorkflowConstants.STATUS_DRAFT,
+			serviceContext);
 	}
 
 	private static CPOptionConfiguration _getCPOptionConfiguration()

@@ -14,36 +14,75 @@
 
 import {Align} from '@clayui/drop-down';
 import ClayIcon from '@clayui/icon';
+import classNames from 'classnames';
 import {useContext} from 'react';
 
 import {AccountContext} from '../../context/AccountContext';
 import i18n from '../../i18n';
-import {Liferay} from '../../services/liferay/liferay';
-import {Avatar} from '../Avatar';
+import {ForwardIcon} from '../../images';
+import {Liferay} from '../../services/liferay';
+import Avatar from '../Avatar';
 import DropDown from '../DropDown';
+import Tooltip from '../Tooltip';
 import useSidebarActions from './useSidebarActions';
 
-const SidebarFooter = () => {
+type SidebarProps = {
+	expanded: boolean;
+	onClick: () => void;
+};
+
+const SidebarFooter: React.FC<SidebarProps> = ({expanded, onClick}) => {
 	const [{myUserAccount}] = useContext(AccountContext);
 	const MANAGE_DROPDOWN = useSidebarActions();
 
 	return (
-		<div className="testray-sidebar-footer">
-			<div className="divider divider-full" />
+		<div className="cursor-pointer testray-sidebar-footer">
+			<div className="d-flex justify-content-end">
+				<Tooltip
+					position="right"
+					title={expanded ? undefined : i18n.translate('expand')}
+				>
+					<div onClick={onClick}>
+						<ForwardIcon
+							className={classNames('forward-icon ', {
+								'forward-icon-expanded': expanded,
+							})}
+						/>
+					</div>
+				</Tooltip>
+			</div>
 
 			<DropDown
 				items={MANAGE_DROPDOWN}
 				position={Align.RightBottom}
 				trigger={
-					<div className="align-items-center d-flex testray-sidebar-item">
-						<ClayIcon fontSize={16} symbol="cog" />
+					<div>
+						<Tooltip
+							position="right"
+							title={
+								expanded ? undefined : i18n.translate('manage')
+							}
+						>
+							<div className="testray-sidebar-item">
+								<ClayIcon fontSize={16} symbol="cog" />
 
-						<span className="ml-1 testray-sidebar-text">
-							{i18n.translate('manage')}
-						</span>
+								<span
+									className={classNames(
+										'ml-1 testray-sidebar-text',
+										{
+											'testray-sidebar-text-expanded': expanded,
+										}
+									)}
+								>
+									{i18n.translate('manage')}
+								</span>
+							</div>
+						</Tooltip>
 					</div>
 				}
 			/>
+
+			<div className="divider divider-full" />
 
 			<DropDown
 				items={[
@@ -65,12 +104,24 @@ const SidebarFooter = () => {
 				]}
 				position={Align.RightBottom}
 				trigger={
-					<div className="testray-sidebar-item">
-						<Avatar
-							displayName
-							name={Liferay.ThemeDisplay.getUserName()}
-							url={myUserAccount?.image}
-						/>
+					<div>
+						<Tooltip
+							position="right"
+							title={
+								expanded
+									? undefined
+									: Liferay.ThemeDisplay.getUserName()
+							}
+						>
+							<div className="testray-avatar-dropdown testray-sidebar-item">
+								<Avatar
+									displayName
+									expanded={expanded}
+									name={Liferay.ThemeDisplay.getUserName()}
+									url={myUserAccount?.image}
+								/>
+							</div>
+						</Tooltip>
 					</div>
 				}
 			/>

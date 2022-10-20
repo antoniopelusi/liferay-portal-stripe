@@ -18,6 +18,7 @@ export const LAYOUT_DATA_ITEM_TYPES = {
 	column: 'column',
 	container: 'container',
 	dropZone: 'drop-zone',
+	form: 'form',
 	fragment: 'fragment',
 	fragmentDropZone: 'fragment-drop-zone',
 	root: 'root',

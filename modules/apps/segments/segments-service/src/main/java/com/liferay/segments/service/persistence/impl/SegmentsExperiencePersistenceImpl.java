@@ -10144,7 +10144,7 @@ public class SegmentsExperiencePersistenceImpl
 	 * </p>
 	 *
 	 * @param groupId the group ID
-	 * @param segmentsEntryId the segments entry ID
+	 * @param segmentsEntryIds the segments entry IDs
 	 * @param classNameId the class name ID
 	 * @param classPK the class pk
 	 * @param active the active
@@ -11138,7 +11138,9 @@ public class SegmentsExperiencePersistenceImpl
 	 */
 	@Override
 	public SegmentsExperience fetchByPrimaryKey(Serializable primaryKey) {
-		if (ctPersistenceHelper.isProductionMode(SegmentsExperience.class)) {
+		if (ctPersistenceHelper.isProductionMode(
+				SegmentsExperience.class, primaryKey)) {
+
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 

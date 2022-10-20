@@ -12,7 +12,11 @@
  * details.
  */
 
-import {postForm} from 'frontend-js-web';
+import {
+	getCheckedCheckboxes,
+	openConfirmModal,
+	postForm,
+} from 'frontend-js-web';
 
 export default function propsTransformer({
 	additionalProps: {deleteEntriesCmd, deleteEntriesURL, trashEnabled},
@@ -23,14 +27,7 @@ export default function propsTransformer({
 		...otherProps,
 		onActionButtonClick: (event, {item}) => {
 			if (item?.data?.action === 'deleteEntries') {
-				if (
-					trashEnabled ||
-					confirm(
-						Liferay.Language.get(
-							'are-you-sure-you-want-to-delete-this'
-						)
-					)
-				) {
+				const deleteAction = () => {
 					const form = document.getElementById(
 						`${portletNamespace}fm`
 					);
@@ -46,7 +43,7 @@ export default function propsTransformer({
 					postForm(form, {
 						data: {
 							cmd: deleteEntriesCmd,
-							deleteEntryIds: Liferay.Util.listCheckedExcept(
+							deleteEntryIds: getCheckedCheckboxes(
 								form,
 								`${portletNamespace}allRowIds`
 							),
@@ -55,6 +52,22 @@ export default function propsTransformer({
 							),
 						},
 						url: deleteEntriesURL,
+					});
+				};
+
+				if (trashEnabled) {
+					deleteAction();
+				}
+				else {
+					openConfirmModal({
+						message: Liferay.Language.get(
+							'are-you-sure-you-want-to-delete-this'
+						),
+						onConfirm: (isConfimed) => {
+							if (isConfimed) {
+								deleteAction();
+							}
+						},
 					});
 				}
 			}

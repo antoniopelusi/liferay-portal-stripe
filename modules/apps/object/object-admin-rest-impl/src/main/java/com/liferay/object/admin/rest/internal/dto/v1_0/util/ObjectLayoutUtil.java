@@ -60,48 +60,47 @@ public class ObjectLayoutUtil {
 	}
 
 	public static ObjectLayoutTab toObjectLayoutTab(
-		com.liferay.object.model.ObjectLayoutTab
-			serviceBuilderObjectLayoutTab) {
+		com.liferay.object.model.ObjectLayoutTab objectLayoutTab) {
 
-		if (serviceBuilderObjectLayoutTab == null) {
+		if (objectLayoutTab == null) {
 			return null;
 		}
 
 		return new ObjectLayoutTab() {
 			{
-				id = serviceBuilderObjectLayoutTab.getObjectLayoutTabId();
+				id = objectLayoutTab.getObjectLayoutTabId();
 				name = LocalizedMapUtil.getLanguageIdMap(
-					serviceBuilderObjectLayoutTab.getNameMap());
+					objectLayoutTab.getNameMap());
 				objectLayoutBoxes = TransformUtil.transformToArray(
-					serviceBuilderObjectLayoutTab.getObjectLayoutBoxes(),
+					objectLayoutTab.getObjectLayoutBoxes(),
 					ObjectLayoutUtil::_toObjectLayoutBox,
 					ObjectLayoutBox.class);
 				objectRelationshipId =
-					serviceBuilderObjectLayoutTab.getObjectRelationshipId();
-				priority = serviceBuilderObjectLayoutTab.getPriority();
+					objectLayoutTab.getObjectRelationshipId();
+				priority = objectLayoutTab.getPriority();
 			}
 		};
 	}
 
 	private static ObjectLayoutBox _toObjectLayoutBox(
-		com.liferay.object.model.ObjectLayoutBox
-			serviceBuilderObjectLayoutBox) {
+		com.liferay.object.model.ObjectLayoutBox objectLayoutBox) {
 
-		if (serviceBuilderObjectLayoutBox == null) {
+		if (objectLayoutBox == null) {
 			return null;
 		}
 
 		return new ObjectLayoutBox() {
 			{
-				collapsable = serviceBuilderObjectLayoutBox.getCollapsable();
-				id = serviceBuilderObjectLayoutBox.getObjectLayoutBoxId();
+				collapsable = objectLayoutBox.getCollapsable();
+				id = objectLayoutBox.getObjectLayoutBoxId();
 				name = LocalizedMapUtil.getLanguageIdMap(
-					serviceBuilderObjectLayoutBox.getNameMap());
+					objectLayoutBox.getNameMap());
 				objectLayoutRows = TransformUtil.transformToArray(
-					serviceBuilderObjectLayoutBox.getObjectLayoutRows(),
+					objectLayoutBox.getObjectLayoutRows(),
 					ObjectLayoutUtil::_toObjectLayoutRow,
 					ObjectLayoutRow.class);
-				priority = serviceBuilderObjectLayoutBox.getPriority();
+				priority = objectLayoutBox.getPriority();
+				type = ObjectLayoutBox.Type.create(objectLayoutBox.getType());
 			}
 		};
 	}

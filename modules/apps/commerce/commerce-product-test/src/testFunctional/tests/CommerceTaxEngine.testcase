@@ -1,10 +1,9 @@
 @component-name = "portal-commerce"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "true";
 	property portal.upstream = "true";
+	property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 	property testray.main.component.name = "Order Management";
 
 	setUp {
@@ -211,10 +210,20 @@ definition {
 			keyName = "Test",
 			keyReferenceCode = "Test Reference");
 
-		CommerceEntry.addTaxCategory(
+		CommerceEntry.viewTaxCategory(
 			keyDescription = "Test Description",
-			keyName = "Test 2",
+			keyName = "Test",
 			keyReferenceCode = "Test Reference");
+
+		CommerceEntry.addTaxCategory(
+			keyDescription = "Test Description 2",
+			keyName = "Test 2",
+			keyReferenceCode = "Test Reference 2");
+
+		CommerceEntry.viewTaxCategory(
+			keyDescription = "Test Description 2",
+			keyName = "Test 2",
+			keyReferenceCode = "Test Reference 2");
 
 		CommerceNavigator.gotoPortlet(
 			category = "Store Management",
@@ -280,6 +289,8 @@ definition {
 			value1 = "0100");
 
 		Button.click(button = "Submit");
+
+		SelectFrameTop();
 
 		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
 
@@ -402,10 +413,29 @@ definition {
 			keyName = "Test",
 			keyReferenceCode = "Test Reference");
 
-		CommerceEntry.addTaxCategory(
+		CommerceEntry.viewTaxCategory(
 			keyDescription = "Test Description",
+			keyName = "Test",
+			keyReferenceCode = "Test Reference");
+
+		CommerceEntry.addTaxCategory(
+			keyDescription = "Test Description 2",
 			keyName = "Test 2",
 			keyReferenceCode = "Test Reference");
+
+		Alert.viewErrorMessage(errorMessage = "Please enter a unique external reference code.");
+
+		Click(locator1 = "Icon#BACK");
+
+		CommerceEntry.addTaxCategory(
+			keyDescription = "Test Description 2",
+			keyName = "Test 2",
+			keyReferenceCode = "Test Reference 2");
+
+		CommerceEntry.viewTaxCategory(
+			keyDescription = "Test Description 2",
+			keyName = "Test 2",
+			keyReferenceCode = "Test Reference 2");
 
 		CommerceNavigator.gotoPortlet(
 			category = "Store Management",
@@ -589,6 +619,8 @@ definition {
 
 		Button.click(button = "Submit");
 
+		SelectFrameTop();
+
 		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
 
 		Button.clickSave();
@@ -637,11 +669,7 @@ definition {
 
 		Refresh();
 
-		CommerceNavigator.gotoMiniCart();
-
-		Button.click(button = "View Details");
-
-		Button.click(button = "Checkout");
+		CommerceCheckout.gotoCheckout();
 
 		Type(
 			key_fieldName = "Name",
@@ -724,6 +752,11 @@ definition {
 			keyName = "Test",
 			keyReferenceCode = "Test Reference");
 
+		CommerceEntry.viewTaxCategory(
+			keyDescription = "Test Description",
+			keyName = "Test",
+			keyReferenceCode = "Test Reference");
+
 		CommerceNavigator.gotoPortlet(
 			category = "Store Management",
 			portlet = "Channels");
@@ -764,6 +797,11 @@ definition {
 			portlet = "Tax Categories");
 
 		CommerceEntry.addTaxCategory(
+			keyDescription = "Test Description",
+			keyName = "Test",
+			keyReferenceCode = "Test Reference");
+
+		CommerceEntry.viewTaxCategory(
 			keyDescription = "Test Description",
 			keyName = "Test",
 			keyReferenceCode = "Test Reference");

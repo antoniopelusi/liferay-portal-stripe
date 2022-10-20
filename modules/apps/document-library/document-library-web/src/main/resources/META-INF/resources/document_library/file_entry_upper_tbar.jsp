@@ -72,6 +72,7 @@ FileVersion fileVersion = dlViewFileEntryDisplayContext.getFileVersion();
 						<clay:link
 							data-analytics-file-entry-id="<%= fileEntry.getFileEntryId() %>"
 							data-analytics-file-entry-title="<%= fileEntry.getTitle() %>"
+							data-analytics-file-entry-version="<%= fileEntry.getVersion() %>"
 							displayType="primary"
 							href="<%= DLURLHelperUtil.getDownloadURL(fileEntry, fileVersion, themeDisplay, StringPool.BLANK, false, true) %>"
 							icon="download"
@@ -84,8 +85,9 @@ FileVersion fileVersion = dlViewFileEntryDisplayContext.getFileVersion();
 				</c:if>
 
 				<li class="tbar-item">
-					<liferay-ui:menu
-						menu="<%= dlViewFileEntryDisplayContext.getMenu() %>"
+					<clay:dropdown-actions
+						dropdownItems="<%= dlViewFileEntryDisplayContext.getActionDropdownItems() %>"
+						propsTransformer="document_library/js/DLFileEntryDropdownPropsTransformer"
 					/>
 				</li>
 			</ul>

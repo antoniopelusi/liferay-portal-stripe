@@ -87,7 +87,7 @@ definition {
 
 		ScrollWebElementIntoView(locator1 = "ACAssets#TECHNOLOGY_BAR_CHART");
 
-		Pause(locator1 = "5000");
+		ACUtils.waitForScrollDown();
 
 		MouseOver(locator1 = "ACAssets#TECHNOLOGY_BAR_CHART");
 
@@ -115,7 +115,7 @@ definition {
 		var key_metricTitle = "${metricTitle}";
 		var key_metricValue = "${metricValue}";
 
-		while (IsElementNotPresent(locator1 = "ACAssets#METRIC_VALUE") && (maxIterations = "50")) {
+		while ((IsElementNotPresent(locator1 = "ACAssets#METRIC_VALUE")) && (maxIterations = "50")) {
 			TestUtils.hardRefresh();
 
 			if ("${timeFilter}" != "Custom Range") {
@@ -165,9 +165,7 @@ definition {
 			}
 		}
 
-		AssertTextEquals(
-			locator1 = "ACAssets#METRIC_VALUE",
-			value1 = "${metricValue}");
+		AssertElementPresent(locator1 = "ACAssets#METRIC_VALUE");
 	}
 
 }

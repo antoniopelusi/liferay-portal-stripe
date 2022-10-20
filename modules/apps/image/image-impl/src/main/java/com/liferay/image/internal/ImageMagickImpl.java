@@ -55,6 +55,10 @@ public class ImageMagickImpl implements ImageMagick {
 				"Cannot call \"convert\" when ImageMagick is disabled");
 		}
 
+		if (_globalSearchPath == null) {
+			reset();
+		}
+
 		ProcessExecutor processExecutor = _getProcessExecutor();
 
 		LiferayConvertCmd liferayConvertCmd = new LiferayConvertCmd();

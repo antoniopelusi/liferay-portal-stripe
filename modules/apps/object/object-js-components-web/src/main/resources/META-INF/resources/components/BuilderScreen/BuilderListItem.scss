@@ -1,0 +1,50 @@
+.lfr-object {
+	&__object-custom-view-builder-item {
+		&--dragging {
+			background: transparent;
+			background-color: #f7f8f9;
+			border-radius: 0;
+			box-shadow: 0 0 0 0.125rem #80acff;
+			cursor: grabbing;
+			margin-bottom: 5px;
+			margin-top: 5px;
+			opacity: 0.5;
+			padding-top: 20px;
+		}
+	}
+
+	&__object-builder-list-item-dropdown {
+		width: 192px !important;
+	}
+
+	&__object-custom-view-builder-item-icon {
+		margin-right: 10px;
+	}
+
+	&__object-builder-list-item-first-column {
+		display: flex;
+		max-width: 278px;
+		padding-top: 4px;
+		word-break: break-all;
+	}
+
+	&__object-builder-list-item-second-column {
+		left: 336px !important;
+		position: absolute;
+		top: 23px;
+	}
+
+	&__object-builder-list-item-third-column {
+		&--not-draggable {
+			left: 22rem !important;
+			top: 0.5rem;
+		}
+
+		p {
+			max-width: 200px;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+	}
+}

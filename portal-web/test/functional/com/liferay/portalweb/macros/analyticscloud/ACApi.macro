@@ -1,0 +1,122 @@
+definition {
+
+	macro createNewExportSchedule {
+		var analyticsCloudURL = PropsUtil.get("analytics.cloud.url");
+
+		var curl = '''
+			${analyticsCloudURL}/api/reports/export/${type}\?fromDate=${startDate}T${startTime}Z\&toDate=${endDate}T${endTime}Z
+			-H "Authorization: Bearer ${token}"
+			''';
+
+		static var apiResponse = JSONCurlUtil.get("${curl}", "$");
+
+		return "${apiResponse}";
+	}
+
+	macro createQueryData {
+		var analyticsCloudURL = PropsUtil.get("analytics.cloud.url");
+
+		var curl = '''
+			${analyticsCloudURL}/api/reports -H "Authorization: Bearer ${token}"
+			''';
+
+		static var apiResponse = JSONCurlUtil.get("${curl}", "$");
+
+		return "${apiResponse}";
+	}
+
+	macro getTokenValue {
+		if (IsElementNotPresent(locator1 = "ACSettings#COPY_TOKEN_BUTTON")) {
+			ACUtils.clickAnyButton(button = "Generate Token");
+		}
+
+		WaitForElementPresent(locator1 = "ACSettings#COPY_TOKEN_BUTTON");
+
+		// Use getAttribute to get the token value from the page's HTML
+
+		var token = selenium.getAttribute("//button[@aria-label='Click to Copy']@data-clipboard-text");
+
+		return "${token}";
+	}
+
+	macro viewApiResponseForError {
+
+		// Checks if the API response message explains the reason for the error
+
+		if (contains("${apiResponse}", "${message}")) {
+			echo("Correct error message - PASSED");
+		}
+		else {
+			fail("Wrong error message - ${apiResponse}");
+		}
+
+		// Checks if the status value is ERROR
+
+		if (contains("${apiResponse}", "status=ERROR")) {
+			echo("Correct status - PASSED");
+		}
+		else {
+			fail("Wrong status - ${apiResponse}");
+		}
+	}
+
+	macro viewApiResponseForExportProcess {
+
+		// Checks if the API response message is correct
+
+		if (contains("${apiResponse}", "${message}")) {
+			echo("Correct message - PASSED");
+		}
+		else {
+			fail("New export schedule was not created: Wrong message - ${apiResponse}");
+		}
+
+		// Checks if the fromDate value is the same as the one used to create the schedule
+
+		if (contains("${apiResponse}", "fromDate=${startDate}T${startTime}Z")) {
+			echo("Correct fromDate - PASSED");
+		}
+		else {
+			fail("New export schedule was not created: Wrong fromDate - ${apiResponse}");
+		}
+
+		// Checks if the toDate value is the same as the one used to create the schedule
+
+		if (contains("${apiResponse}", "toDate=${endDate}T${endTime}Z")) {
+			echo("Correct toDate - PASSED");
+		}
+		else {
+			fail("New export schedule was not created: Wrong toDate - ${apiResponse}");
+		}
+
+		// Checks if the type value is the same as the one used to create the schedule
+
+		if (contains("${apiResponse}", "type=${upperCaseType}")) {
+			echo("Correct type - PASSED");
+		}
+		else {
+			fail("New export schedule was not created: Wrong type - ${apiResponse}");
+		}
+
+		// Checks if the status value is the same as the one used to create the schedule
+
+		if (contains("${apiResponse}", "status=${status}")) {
+			echo("Correct status - PASSED");
+		}
+		else {
+			fail("New export schedule was not created: Wrong status - ${apiResponse}");
+		}
+	}
+
+	macro viewApiResponseForQueryData {
+		for (var type : list "${typeList}") {
+			if (contains("${apiResponse}", "${type}={href=http://osbasahbackend:8080/api/reports/${type}}")) {
+				echo("${type} - PASSED");
+			}
+			else {
+				fail("${apiResponse}");
+			}
+		}
+	}
+
+}

@@ -12,10 +12,16 @@
  * details.
  */
 
-import {createContext, useReducer} from 'react';
+import {ReactNode, createContext, useEffect, useReducer} from 'react';
 
 import i18n from '../i18n';
-import {ActionMap} from '../types';
+import {Action, ActionMap} from '../types';
+
+export type HeaderActions = {
+	actions: Action[];
+	item?: any;
+	mutate?: any;
+};
 
 type DropdownItem = {
 	divider?: boolean;
@@ -45,21 +51,23 @@ export type HeaderTitle = {
 };
 
 type InitialState = {
-	actions: Dropdown;
 	dropdown: Dropdown;
+	headerActions: HeaderActions;
 	heading: HeaderTitle[];
+	symbol: string;
 	tabs: HeaderTabs[];
 };
 
 export const initialState: InitialState = {
-	actions: [],
 	dropdown: [],
+	headerActions: {actions: []},
 	heading: [
 		{
 			category: i18n.translate('project'),
 			title: i18n.translate('project-directory'),
 		},
 	],
+	symbol: '',
 	tabs: [],
 };
 
@@ -68,18 +76,20 @@ export const HeaderContext = createContext<
 >([initialState, () => null]);
 
 export enum HeaderTypes {
-	SET_ACTIONS = 'SET_ACTIONS',
 	SET_DROPDOWN = 'SET_DROPDOWN',
+	SET_HEADER_ACTIONS = 'SET_HEADER_ACTIONS',
 	SET_HEADING = 'SET_HEADING',
 	SET_RESET_HEADER = 'SET_RESET_HEADER',
+	SET_SYMBOL = 'SET_SYMBOL',
 	SET_TABS = 'SET_TABS',
 }
 
 export type HeaderActionsPayload = {
-	[HeaderTypes.SET_ACTIONS]: Dropdown;
 	[HeaderTypes.SET_DROPDOWN]: Dropdown;
+	[HeaderTypes.SET_HEADER_ACTIONS]: HeaderActions;
 	[HeaderTypes.SET_HEADING]: {append?: boolean; heading: HeaderTitle[]};
 	[HeaderTypes.SET_RESET_HEADER]: null;
+	[HeaderTypes.SET_SYMBOL]: string;
 	[HeaderTypes.SET_TABS]: HeaderTabs[];
 };
 
@@ -89,10 +99,10 @@ export type AppActions = ActionMap<HeaderActionsPayload>[keyof ActionMap<
 
 const reducer = (state: InitialState, action: AppActions): InitialState => {
 	switch (action.type) {
-		case HeaderTypes.SET_ACTIONS: {
+		case HeaderTypes.SET_HEADER_ACTIONS: {
 			return {
 				...state,
-				actions: action.payload,
+				headerActions: action.payload,
 			};
 		}
 
@@ -123,13 +133,26 @@ const reducer = (state: InitialState, action: AppActions): InitialState => {
 			return initialState;
 		}
 
+		case HeaderTypes.SET_SYMBOL: {
+			return {
+				...state,
+				symbol: action.payload,
+			};
+		}
+
 		default:
 			return state;
 	}
 };
 
-const HeaderContextProvider: React.FC = ({children}) => {
+const HeaderContextProvider: React.FC<{children: ReactNode}> = ({children}) => {
 	const [state, dispatch] = useReducer(reducer, initialState);
+
+	useEffect(() => {
+		const {title} = state.heading[state.heading.length - 1];
+
+		document.title = title;
+	}, [state.heading]);
 
 	return (
 		<HeaderContext.Provider value={[state, dispatch]}>

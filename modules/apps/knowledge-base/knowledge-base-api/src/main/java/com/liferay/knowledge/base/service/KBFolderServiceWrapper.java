@@ -100,6 +100,16 @@ public class KBFolderServiceWrapper
 	}
 
 	@Override
+	public com.liferay.knowledge.base.model.KBFolder
+			getKBFolderByExternalReferenceCode(
+				long groupId, String externalReferenceCode)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _kbFolderService.getKBFolderByExternalReferenceCode(
+			groupId, externalReferenceCode);
+	}
+
+	@Override
 	public com.liferay.knowledge.base.model.KBFolder getKBFolderByUrlTitle(
 			long groupId, long parentKbFolderId, String urlTitle)
 		throws com.liferay.portal.kernel.exception.PortalException {

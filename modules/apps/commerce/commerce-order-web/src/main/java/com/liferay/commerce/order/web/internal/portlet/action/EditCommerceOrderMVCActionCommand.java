@@ -35,7 +35,7 @@ import com.liferay.commerce.service.CommerceShipmentService;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -437,7 +437,7 @@ public class EditCommerceOrderMVCActionCommand extends BaseMVCActionCommand {
 		_commerceOrderService.updateTermsAndConditions(
 			commerceOrder.getCommerceOrderId(),
 			GetterUtil.getLong(commerceDeliveryTermId), 0,
-			LanguageUtil.getLanguageId(actionRequest.getLocale()));
+			_language.getLanguageId(actionRequest.getLocale()));
 	}
 
 	private void _updateOrderSummary(ActionRequest actionRequest)
@@ -462,18 +462,17 @@ public class EditCommerceOrderMVCActionCommand extends BaseMVCActionCommand {
 			actionRequest, "totalDiscountAmount");
 
 		_commerceOrderService.updateCommerceOrderPrices(
-			commerceOrder.getCommerceOrderId(), new BigDecimal(subtotal),
-			new BigDecimal(subtotalDiscountAmount),
-			commerceOrder.getSubtotalDiscountPercentageLevel1(),
-			commerceOrder.getSubtotalDiscountPercentageLevel2(),
-			commerceOrder.getSubtotalDiscountPercentageLevel3(),
-			commerceOrder.getSubtotalDiscountPercentageLevel4(),
-			new BigDecimal(shippingAmount),
+			commerceOrder.getCommerceOrderId(), new BigDecimal(shippingAmount),
 			new BigDecimal(shippingDiscountAmount),
 			commerceOrder.getShippingDiscountPercentageLevel1(),
 			commerceOrder.getShippingDiscountPercentageLevel2(),
 			commerceOrder.getShippingDiscountPercentageLevel3(),
 			commerceOrder.getShippingDiscountPercentageLevel4(),
+			new BigDecimal(subtotal), new BigDecimal(subtotalDiscountAmount),
+			commerceOrder.getSubtotalDiscountPercentageLevel1(),
+			commerceOrder.getSubtotalDiscountPercentageLevel2(),
+			commerceOrder.getSubtotalDiscountPercentageLevel3(),
+			commerceOrder.getSubtotalDiscountPercentageLevel4(),
 			new BigDecimal(taxAmount), new BigDecimal(total),
 			new BigDecimal(totalDiscountAmount),
 			commerceOrder.getTotalDiscountPercentageLevel1(),
@@ -536,7 +535,7 @@ public class EditCommerceOrderMVCActionCommand extends BaseMVCActionCommand {
 		_commerceOrderService.updateTermsAndConditions(
 			commerceOrder.getCommerceOrderId(), 0,
 			GetterUtil.getLong(commercePaymentTermId),
-			LanguageUtil.getLanguageId(actionRequest.getLocale()));
+			_language.getLanguageId(actionRequest.getLocale()));
 	}
 
 	private void _updatePrintedNote(ActionRequest actionRequest)
@@ -640,17 +639,22 @@ public class EditCommerceOrderMVCActionCommand extends BaseMVCActionCommand {
 			(CommerceContext)actionRequest.getAttribute(
 				CommerceWebKeys.COMMERCE_CONTEXT);
 
-		_commerceOrderService.updateCommerceOrder(
+		_commerceOrderEngine.updateCommerceOrder(
 			commerceOrder.getExternalReferenceCode(),
 			commerceOrder.getCommerceOrderId(),
 			commerceOrder.getBillingAddressId(),
-			commerceOrder.getShippingAddressId(),
-			commerceOrder.getCommercePaymentMethodKey(),
 			commerceOrder.getCommerceShippingMethodId(),
+			commerceOrder.getShippingAddressId(),
+			commerceOrder.getAdvanceStatus(),
+			commerceOrder.getCommercePaymentMethodKey(),
+			commerceOrder.getPurchaseOrderNumber(),
+			new BigDecimal(shippingPrice),
 			commerceOrder.getShippingOptionName(),
-			commerceOrder.getPurchaseOrderNumber(), new BigDecimal(subtotal),
-			new BigDecimal(shippingPrice), new BigDecimal(total),
-			commerceOrder.getAdvanceStatus(), commerceContext);
+			commerceOrder.getShippingWithTaxAmount(), new BigDecimal(subtotal),
+			commerceOrder.getSubtotalWithTaxAmount(),
+			commerceOrder.getTaxAmount(), new BigDecimal(total),
+			commerceOrder.getTotalDiscountAmount(),
+			commerceOrder.getTotalWithTaxAmount(), commerceContext, false);
 	}
 
 	@Reference
@@ -674,6 +678,9 @@ public class EditCommerceOrderMVCActionCommand extends BaseMVCActionCommand {
 
 	@Reference
 	private CommerceShipmentService _commerceShipmentService;
+
+	@Reference
+	private Language _language;
 
 	@Reference
 	private Portal _portal;

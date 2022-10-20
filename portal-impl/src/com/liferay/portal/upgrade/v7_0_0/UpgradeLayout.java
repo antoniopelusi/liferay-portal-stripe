@@ -15,6 +15,8 @@
 package com.liferay.portal.upgrade.v7_0_0;
 
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.dao.db.DBType;
+import com.liferay.portal.kernel.dao.db.DBTypeToSQLMap;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.util.LoggingTimer;
 
@@ -29,15 +31,26 @@ public class UpgradeLayout extends UpgradeProcess {
 				StringBundler.concat(
 					"delete from Layout where layoutPrototypeUuid != '' and ",
 					"layoutPrototypeUuid not in (select uuid_ from ",
-					"LayoutPrototype) and layoutPrototypeLinkEnabled = TRUE"));
+					"LayoutPrototype) and layoutPrototypeLinkEnabled = ",
+					"[$TRUE$]"));
 		}
 	}
 
 	protected void deleteOrphanedFriendlyURL() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
-			runSQL(
+			String sql =
 				"delete from LayoutFriendlyURL where plid not in (select " +
-					"plid from Layout)");
+					"plid from Layout)";
+
+			DBTypeToSQLMap dbTypeToSQLMap = new DBTypeToSQLMap(sql);
+
+			sql =
+				"delete from LayoutFriendlyURL where not exists (select null " +
+					"from Layout where Layout.plid = LayoutFriendlyURL.plid)";
+
+			dbTypeToSQLMap.add(DBType.POSTGRESQL, sql);
+
+			runSQL(dbTypeToSQLMap);
 		}
 	}
 
@@ -65,7 +78,7 @@ public class UpgradeLayout extends UpgradeProcess {
 					"update Layout set layoutPrototypeUuid = null where ",
 					"layoutPrototypeUuid != '' and layoutPrototypeUuid not in ",
 					"(select uuid_ from LayoutPrototype) and ",
-					"layoutPrototypeLinkEnabled = FALSE"));
+					"layoutPrototypeLinkEnabled = [$FALSE$]"));
 		}
 	}
 

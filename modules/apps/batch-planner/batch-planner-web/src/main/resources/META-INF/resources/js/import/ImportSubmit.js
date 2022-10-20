@@ -17,8 +17,8 @@ import ClayModal, {useModal} from '@clayui/modal';
 import PropTypes from 'prop-types';
 import React, {useCallback, useState} from 'react';
 
+import ImportModal from './ImportModal';
 import ImportPreviewModalBody from './ImportPreviewModalBody';
-import ImportProcessModalBody from './ImportProcessModalBody';
 
 function ImportSubmit({
 	evaluateForm,
@@ -57,28 +57,23 @@ function ImportSubmit({
 				{Liferay.Language.get('next')}
 			</ClayButton>
 
-			{modalVisibile && (
-				<ClayModal
-					observer={observer}
-					size={stage === 'import' ? 'md' : 'lg'}
-				>
-					{stage === 'preview' && (
-						<ImportPreviewModalBody
-							closeModal={onClose}
-							fieldsSelections={fieldsSelections}
-							fileContent={fileContent}
-							startImport={() => setStage('import')}
-						/>
-					)}
-
-					{stage === 'import' && (
-						<ImportProcessModalBody
-							closeModal={onClose}
-							formDataQuerySelector={formDataQuerySelector}
-							formImportURL={formImportURL}
-						/>
-					)}
+			{modalVisibile && stage === 'preview' && (
+				<ClayModal observer={observer} size="lg">
+					<ImportPreviewModalBody
+						closeModal={onClose}
+						fieldsSelections={fieldsSelections}
+						fileContent={fileContent}
+						startImport={() => setStage('import')}
+					/>
 				</ClayModal>
+			)}
+
+			{modalVisibile && stage === 'import' && (
+				<ImportModal
+					closeModal={onClose}
+					formDataQuerySelector={formDataQuerySelector}
+					formImportURL={formImportURL}
+				/>
 			)}
 		</span>
 	);

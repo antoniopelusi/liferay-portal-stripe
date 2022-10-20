@@ -63,6 +63,7 @@ function _renderSegmentEditComponent({
 	hasUpdatePermission = undefined,
 	contributors = undefined,
 	showInEditMode = undefined,
+	isSegmentationEnabled = true,
 } = {}) {
 	return render(
 		<SegmentEdit
@@ -75,6 +76,7 @@ function _renderSegmentEditComponent({
 			initialSegmentName={{
 				en_US: 'Segment title',
 			}}
+			isSegmentationEnabled={isSegmentationEnabled}
 			locale="en_US"
 			redirect={redirect}
 			showInEditMode={showInEditMode}
@@ -84,6 +86,13 @@ function _renderSegmentEditComponent({
 }
 
 describe('SegmentEdit', () => {
+	beforeAll(() => {
+		window.Liferay = {
+			...Liferay,
+			FeatureFlags: {},
+		};
+	});
+
 	it('renders', () => {
 		const {asFragment} = _renderSegmentEditComponent();
 
@@ -195,5 +204,60 @@ describe('SegmentEdit', () => {
 			);
 			done();
 		});
+	});
+
+	it('renders a dissmisible alert if Segmentation service is disabled', () => {
+		const isSegmentationEnabled = false;
+
+		const {container, getByText} = _renderSegmentEditComponent({
+			isSegmentationEnabled,
+		});
+
+		expect(getByText('segmentation-is-disabled')).toBeInTheDocument();
+
+		expect(
+			container.getElementsByClassName(
+				'segment-edit-page-root--with-warning'
+			).length
+		).toBe(1);
+
+		expect(
+			container.querySelectorAll(
+				'.alert-dismissible .lexicon-icon.lexicon-icon-times'
+			).length
+		).toBe(1);
+	});
+
+	it('renders a dismissible alert which is effectively dismissible', async () => {
+		const isSegmentationEnabled = false;
+
+		const {
+			container,
+			getByLabelText,
+			getByText,
+			queryByText,
+		} = _renderSegmentEditComponent({
+			isSegmentationEnabled,
+		});
+
+		expect(getByText('segmentation-is-disabled')).toBeInTheDocument();
+
+		const dismissButton = getByLabelText('Close', {selector: 'button'});
+
+		fireEvent.click(dismissButton);
+
+		expect(queryByText('segmentation-is-disabled')).not.toBeInTheDocument();
+
+		expect(
+			container.querySelectorAll(
+				'.alert-dismissible .lexicon-icon.lexicon-icon-times'
+			).length
+		).toBe(0);
+
+		expect(
+			container.getElementsByClassName(
+				'segment-edit-page-root--with-warning'
+			).length
+		).toBe(0);
 	});
 });

@@ -12,7 +12,11 @@
  * details.
  */
 
-import {delegate} from 'frontend-js-web';
+import {
+	createPortletURL,
+	delegate,
+	openSelectionModal as openSelectionModalUtil,
+} from 'frontend-js-web';
 
 export default function ({
 	baseSelectDefaultAddressURL,
@@ -36,16 +40,20 @@ export default function ({
 	};
 
 	const openSelectionModal = (title, type) => {
-		Liferay.Util.openSelectionModal({
+		openSelectionModalUtil({
 			buttonAddLabel: Liferay.Language.get('save'),
+			containerProps: {
+				className: '',
+			},
 			id: '<portlet:namespace />selectDefaultAddress',
+			iframeBodyCssClass: '',
 			multiple: true,
 			onSelect: (selectedItem) => {
 				if (!selectedItem) {
 					return;
 				}
 
-				const updateAccountEntryDefaultAddressesURL = Liferay.Util.PortletURL.createPortletURL(
+				const updateAccountEntryDefaultAddressesURL = createPortletURL(
 					baseUpdateAccountEntryDefaultAddressesURL,
 					{addressId: selectedItem.entityid, type}
 				);
@@ -57,10 +65,7 @@ export default function ({
 			},
 			selectEventName: '<portlet:namespace />selectDefaultAddress',
 			title,
-			url: Liferay.Util.PortletURL.createPortletURL(
-				baseSelectDefaultAddressURL,
-				{type}
-			),
+			url: createPortletURL(baseSelectDefaultAddressURL, {type}),
 		});
 	};
 

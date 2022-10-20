@@ -14,6 +14,8 @@
 
 package com.liferay.portal.vulcan.jaxrs.exception.mapper;
 
+import com.liferay.petra.string.StringBundler;
+
 import javax.ws.rs.core.Response;
 
 import javax.xml.bind.annotation.XmlRootElement;
@@ -71,6 +73,13 @@ public class Problem {
 
 	public void setType(String type) {
 		_type = type;
+	}
+
+	@Override
+	public String toString() {
+		return StringBundler.concat(
+			"{detail=", _detail, ", status=", _status, ", title=", _title,
+			", type=", _type, "}");
 	}
 
 	private String _detail;

@@ -17,9 +17,9 @@ package com.liferay.gradle.plugins.js.transpiler;
 import com.liferay.gradle.plugins.js.transpiler.internal.util.JSTranspilerPluginUtil;
 import com.liferay.gradle.plugins.node.NodePlugin;
 import com.liferay.gradle.plugins.node.YarnPlugin;
-import com.liferay.gradle.plugins.node.tasks.NpmInstallTask;
-import com.liferay.gradle.plugins.node.tasks.PackageRunTask;
-import com.liferay.gradle.plugins.node.tasks.YarnInstallTask;
+import com.liferay.gradle.plugins.node.task.NpmInstallTask;
+import com.liferay.gradle.plugins.node.task.PackageRunTask;
+import com.liferay.gradle.plugins.node.task.YarnInstallTask;
 import com.liferay.gradle.util.GradleUtil;
 import com.liferay.gradle.util.copy.RenameDependencyClosure;
 

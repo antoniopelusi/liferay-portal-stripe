@@ -4,7 +4,7 @@ import com.liferay.gradle.util.StringUtil
 task cleanSidecar
 task deploySidecar(type: Copy)
 
-String elasticsearchClientVersion = "7.17.1"
+String elasticsearchClientVersion = "7.16.3"
 String luceneVersion = "8.11.1"
 String sidecarElasticsearchServerVersion = file('src/main/resources/META-INF/sidecar.version').text
 
@@ -30,14 +30,13 @@ cleanSidecar {
 dependencies {
 	compileInclude group: "com.carrotsearch", name: "hppc", version: "0.8.1"
 	compileInclude group: "com.fasterxml.jackson.dataformat", name: "jackson-dataformat-cbor", version: "2.12.6"
-	compileInclude group: "com.fasterxml.jackson.dataformat", name: "jackson-dataformat-smile", version: "2.10.4"
+	compileInclude group: "com.fasterxml.jackson.dataformat", name: "jackson-dataformat-smile", version: "2.13.2"
 	compileInclude group: "com.fasterxml.jackson.dataformat", name: "jackson-dataformat-yaml", version: "2.10.4"
-	compileInclude group: "com.google.code.gson", name: "gson", version: "2.8.4"
 	compileInclude group: "com.liferay", name: "org.apache.logging.log4j", version: "2.17.1.LIFERAY-PATCHED-1"
 	compileInclude group: "com.liferay", name: "org.apache.logging.log4j.core", version: "2.17.1.LIFERAY-PATCHED-1"
 	compileInclude group: "com.liferay", name: "org.elasticsearch.plugin.legacy.geo", version: elasticsearchClientVersion
-	compileInclude group: "commons-codec", name: "commons-codec", version: "1.11"
-	compileInclude group: "commons-io", name: "commons-io", version: "2.8.0"
+	compileInclude group: "commons-codec", name: "commons-codec", version: "1.15"
+	compileInclude group: "commons-io", name: "commons-io", version: "2.11.0"
 	compileInclude group: "commons-lang", name: "commons-lang", version: "2.6"
 	compileInclude group: "commons-logging", name: "commons-logging", version: "1.2"
 	compileInclude group: "joda-time", name: "joda-time", version: "2.10.10"
@@ -71,11 +70,12 @@ dependencies {
 	compileInclude group: "org.yaml", name: "snakeyaml", version: "1.26"
 
 	compileOnly group: "com.fasterxml.jackson.core", name: "jackson-core", version: "2.13.2"
-	compileOnly group: "com.fasterxml.woodstox", name: "woodstox-core", version: "6.2.3"
+	compileOnly group: "com.fasterxml.woodstox", name: "woodstox-core", version: "6.2.6"
+	compileOnly group: "com.google.code.gson", name: "gson", version: "2.9.0"
 	compileOnly group: "com.ibm.icu", name: "icu4j", version: "62.1"
+	compileOnly group: "com.liferay", name: "biz.aQute.bnd.annotation", version: "4.2.0.LIFERAY-PATCHED-2"
 	compileOnly group: "com.liferay.portal", name: "com.liferay.portal.impl", version: "default"
 	compileOnly group: "com.liferay.portal", name: "com.liferay.portal.kernel", version: "default"
-	compileOnly group: "commons-collections", name: "commons-collections", version: "3.2.2"
 	compileOnly group: "org.codehaus.woodstox", name: "stax2-api", version: "4.2.1"
 	compileOnly group: "org.osgi", name: "org.osgi.annotation.versioning", version: "1.1.0"
 	compileOnly group: "org.osgi", name: "org.osgi.service.cm", version: "1.6.0"
@@ -102,7 +102,6 @@ dependencies {
 	compileOnly project(":core:petra:petra-reflect")
 	compileOnly project(":core:petra:petra-string")
 
-	testCompile group: "com.liferay", name: "biz.aQute.bnd.annotation", version: "4.2.0.LIFERAY-PATCHED-2"
 	testCompile group: "com.liferay.portal", name: "com.liferay.util.java", version: "default"
 	testCompile project(":apps:portal-search:portal-search")
 	testCompile project(":apps:portal-search:portal-search-test-util")

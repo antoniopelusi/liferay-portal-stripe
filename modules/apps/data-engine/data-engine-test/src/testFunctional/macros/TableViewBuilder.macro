@@ -1,36 +1,9 @@
 definition {
 
-	macro addBasicTableView {
-		AppBuilderAdmin.switchTab(tabName = "Table Views");
-
-		AppBuilderAdmin.add();
-
-		TableViewBuilder.addColumnByDoubleClick(fieldType = "${fieldType}");
-
-		TableViewBuilder.setName(tableViewName = "${tableViewName}");
-
-		TableViewBuilder.save();
-	}
-
 	macro addColumnByDoubleClick {
 		var key_fieldLabel = "${fieldType}";
 
 		DoubleClick(locator1 = "FormViewBuilder#SIDEBAR_FIELD_LABEL");
-
-		TableViewBuilder.validateColumnLabel(columnLabel = "${fieldType}");
-
-		TableViewBuilder.validateColumnLabelAtSidebar(columnLabel = "${fieldType}");
-	}
-
-	macro addColumnByDragAndDrop {
-		Pause(locator1 = "10000");
-
-		var key_fieldLabel = "${fieldType}";
-
-		DragAndDrop.javaScriptDragAndDropToObject(
-			locator1 = "FormViewBuilder#SIDEBAR_FIELD_LABEL",
-			locator2 = "TableViewBuilder#ADD_FIELD_POSITION",
-			value1 = "${fieldType}");
 
 		TableViewBuilder.validateColumnLabel(columnLabel = "${fieldType}");
 
@@ -83,10 +56,6 @@ definition {
 		Click(
 			key_columnLabel = "${columnLabel}",
 			locator1 = "TableViewBuilder#FILTER_DROPDOWN");
-	}
-
-	macro save {
-		AppBuilderAdmin.save();
 	}
 
 	macro searchByItem {

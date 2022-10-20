@@ -1,10 +1,9 @@
 @component-name = "portal-commerce"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "true";
 	property portal.upstream = "true";
+	property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 	property testray.main.component.name = "Product Info Management";
 
 	setUp {
@@ -35,6 +34,8 @@ definition {
 			locator1 = "Button#SUBMIT",
 			value1 = "Submit");
 
+		SelectFrameTop();
+
 		AssertClick(
 			locator1 = "CommerceEntry#PRODUCT_IMAGE_SELECT_FILE",
 			value1 = "Select File");
@@ -42,6 +43,8 @@ definition {
 		SelectFrameTop();
 
 		CommerceItemSelector.uploadSingleFile(uploadFileName = "Commerce_Black.jpg");
+
+		SelectFrameTop();
 
 		Button.clickSave();
 
@@ -74,6 +77,55 @@ definition {
 			locator1 = "WCPreview#PREVIEW_IMAGE");
 	}
 
+	@description = "Verify that by creating a new catalog with a language other than English, base pricelist and promotion will be translated into the new language and new product fields will have the new language as the default locale."
+	@priority = "3"
+	test CatalogProductsPromotionsAndPriceListsAreLocalized {
+		property portal.acceptance = "false";
+
+		task ("Given a catalog is created with Spanish set as the default catalog language") {
+			CommerceJSONCatalogsAPI._addCatalog(
+				catalogLanguage = "es_ES",
+				catalogName = "Spanish Catalog");
+		}
+
+		task ("When the user goes to the price lists page") {
+			CommercePriceLists.openPriceListsAdmin();
+		}
+
+		task ("Then the base price list name for the new catalog is in Spanish") {
+			AssertElementPresent(
+				key_entryName = "Spanish Catalog lista de precios base",
+				locator1 = "CommerceNavigation#ENTRY_NAME");
+		}
+
+		task ("When the user goes to the promotions page") {
+			CommercePromotions.openPromotionsAdmin();
+		}
+
+		task ("Then the base promotion name for the new catalog is in Spanish") {
+			AssertElementPresent(
+				key_entryName = "Spanish Catalog promoción base",
+				locator1 = "CommerceNavigation#ENTRY_NAME");
+		}
+
+		task ("When the user creates a new product for the catalog") {
+			CommerceJSONProductsAPI._addCommerceProduct(
+				catalogName = "Spanish Catalog",
+				productName = "Test Product",
+				productType = "Simple");
+
+			CommerceProducts.openProductsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Test Product");
+		}
+
+		task ("Then the locale selected for the editable fields is Spanish") {
+			AssertElementPresent(
+				key_locale = "es-ES",
+				locator1 = "Translation#CURRENT_LOCALE");
+		}
+	}
+
 	test CreateNewCatalog {
 		property portal.acceptance = "false";
 
@@ -91,6 +143,8 @@ definition {
 		AssertClickNoError(
 			locator1 = "Button#SUBMIT",
 			value1 = "Submit");
+
+		SelectFrameTop();
 
 		Refresh();
 
@@ -126,6 +180,8 @@ definition {
 			locator1 = "Button#SUBMIT",
 			value1 = "Submit");
 
+		SelectFrameTop();
+
 		Click(locator1 = "Icon#BACK");
 
 		AssertElementPresent(
@@ -155,7 +211,11 @@ definition {
 
 		CommerceItemSelector.uploadSingleFile(uploadFileName = "Commerce_Black.jpg");
 
+		SelectFrameTop();
+
 		Button.clickSave();
+
+		SelectFrameTop();
 
 		Alert.viewSuccessMessage();
 
@@ -199,6 +259,8 @@ definition {
 		AssertClickNoError(
 			locator1 = "Button#SUBMIT",
 			value1 = "Submit");
+
+		SelectFrameTop();
 
 		Click(locator1 = "Icon#BACK");
 
@@ -261,6 +323,37 @@ definition {
 			locator1 = "Permissions#INLINE_PERMISSIONS_VIEW_CHECKBOX");
 	}
 
+	@description = "Verify that Master Catalog is created by default and cannot be deleted."
+	@priority = "3"
+	test MasterCatalogIsCreatedByDefaultAndCannotBeDeleted {
+		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
+		property portal.acceptance = "false";
+
+		task ("When the admin goes to the catalogs page") {
+			CommerceCatalog.openCatalogsAdmin();
+		}
+
+		task ("Then Master catalog is present") {
+			AssertElementPresent(
+				key_entryName = "Master",
+				locator1 = "CommerceNavigation#ENTRY_NAME");
+		}
+
+		task ("When the admin tries to delete the Master catalog") {
+			ClickNoError(
+				key_value = "Master",
+				locator1 = "CommerceEntry#BODY_VERTICAL_ELLIPSIS");
+
+			CommerceEntry.clickNoError(menuItem = "Delete");
+		}
+
+		task ("Then the Master catalog cannot be deleted") {
+			AssertElementPresent(
+				key_entryName = "Master",
+				locator1 = "CommerceNavigation#ENTRY_NAME");
+		}
+	}
+
 	@description = "This is a test for COMMERCE-6272. RemoveACatalog"
 	@priority = "3"
 	test RemoveACatalog {
@@ -281,6 +374,8 @@ definition {
 			locator1 = "Button#SUBMIT",
 			value1 = "Submit");
 
+		SelectFrameTop();
+
 		Click(locator1 = "Icon#BACK");
 
 		ClickNoError(
@@ -294,6 +389,148 @@ definition {
 		AssertElementNotPresent(
 			key_entryName = "Test Catalog",
 			locator1 = "CommerceEntry#ENTRY_NAME_BODY_VERTICAL_ELLIPSIS");
+	}
+
+	@description = "Verify users without permission cannot add, edit, or delete catalogs."
+	@priority = "3"
+	test UserWithoutPermissionCannotAddEditOrDeleteCatalogs {
+		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
+		property portal.acceptance = "false";
+
+		task ("Given a user") {
+			JSONUser.addUser(
+				userEmailAddress = "userea@liferay.com",
+				userFirstName = "userfn",
+				userLastName = "userln",
+				userScreenName = "usersn");
+
+			JSONUser.setFirstPassword(
+				agreeToTermsAndAnswerReminderQuery = "true",
+				requireReset = "false",
+				userEmailAddress = "userea@liferay.com");
+		}
+
+		task ("And given the user has permission to view catalogs in the catalog section of the admin panel") {
+			Permissions.definePermissionViaJSONAPI(
+				resourceAction = "VIEW_CONTROL_PANEL",
+				resourceName = "90",
+				roleTitle = "User");
+
+			Permissions.definePermissionViaJSONAPI(
+				resourceAction = "ACCESS_IN_CONTROL_PANEL",
+				resourceName = "com_liferay_commerce_catalog_web_internal_portlet_CommerceCatalogsPortlet",
+				roleTitle = "User");
+
+			Permissions.definePermissionViaJSONAPI(
+				resourceAction = "VIEW",
+				resourceName = "com.liferay.commerce.product.model.CommerceCatalog",
+				roleTitle = "User");
+
+			Permissions.definePermissionViaJSONAPI(
+				resourceAction = "VIEW_COMMERCE_CATALOGS",
+				resourceName = "com.liferay.commerce.catalog",
+				roleTitle = "User");
+		}
+
+		task ("And given the user does not have permission to add, update, or delete catalogs") {
+			Permissions.removePermissionViaAPI(
+				resourceAction = "ADD_COMMERCE_CATALOG",
+				resourceName = "com.liferay.commerce.catalog",
+				roleTitle = "User");
+
+			Permissions.removePermissionViaAPI(
+				resourceAction = "UPDATE",
+				resourceName = "com.liferay.commerce.product.model.CommerceCatalog",
+				roleTitle = "User");
+
+			Permissions.removePermissionViaAPI(
+				resourceAction = "DELETE",
+				resourceName = "com.liferay.commerce.product.model.CommerceCatalog",
+				roleTitle = "User");
+		}
+
+		task ("When the user goes to the catalogs page") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "userea@liferay.com",
+				userLoginFullName = "userfn userln");
+
+			CommerceCatalog.openCatalogsAdmin();
+		}
+
+		task ("Then the user cannot add a new catalog") {
+			AssertElementNotPresent(locator1 = "Button#PLUS");
+		}
+
+		task ("And the user cannot edit or delete  a catalog") {
+			AssertElementNotPresent(locator1 = "CommerceEntry#DROPDOWN");
+
+			AssertElementNotPresent(locator1 = "Button#EDIT");
+
+			AssertElementNotPresent(locator1 = "Button#DELETE");
+		}
+	}
+
+	@description = "Verify users with the permission to edit catalog permissions can edit the permissions on a catalog."
+	@priority = "3"
+	test UserWithPermissionCanEditAPermissionOnACatalog {
+		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
+		property portal.acceptance = "false";
+
+		task ("Given a user") {
+			JSONUser.addUser(
+				userEmailAddress = "userea@liferay.com",
+				userFirstName = "userfn",
+				userLastName = "userln",
+				userScreenName = "usersn");
+
+			JSONUser.setFirstPassword(
+				agreeToTermsAndAnswerReminderQuery = "true",
+				requireReset = "false",
+				userEmailAddress = "userea@liferay.com");
+		}
+
+		task ("And given a catalog") {
+			CommerceJSONCatalogsAPI._addCatalog(catalogName = "Test Catalog");
+		}
+
+		task ("And given the user has permission to view catalogs in the admin panel and edit catalog permissions") {
+			CommercePermissions.defineCatalogPermissionsViaJSONAPI(
+				permissions = "true",
+				roleTitle = "User",
+				view = "true");
+		}
+
+		task ("When the user logs in and edits the catalog permissions") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "userea@liferay.com",
+				userLoginFullName = "userfn userln");
+
+			CommerceCatalog.openCatalogsAdmin();
+
+			Click(
+				key_indexNumber = "2",
+				key_text = "Permissions",
+				locator1 = "Button#ANY_N");
+
+			IFrame.selectPermissionsFrame();
+
+			CommercePermissions.defineSingleRolePermissionsPG(
+				permissions = "delete,permissions,update,view",
+				roleTitle = "Site Member");
+
+			IFrame.closeFrame();
+		}
+
+		task ("Then those permissions should be saved on the catalog") {
+			Click(
+				key_indexNumber = "2",
+				key_text = "Permissions",
+				locator1 = "Button#ANY_N");
+
+			CommercePermissions.assertSingleRolePermissionsPG(
+				permissions = "delete,permissions,update,view",
+				roleTitle = "Site Member");
+		}
 	}
 
 }

@@ -14,6 +14,7 @@
 
 package com.liferay.jenkins.results.parser.testray;
 
+import com.liferay.jenkins.results.parser.Dom4JUtil;
 import com.liferay.jenkins.results.parser.JenkinsMaster;
 import com.liferay.jenkins.results.parser.JenkinsResultsParserUtil;
 import com.liferay.jenkins.results.parser.TestrayResultsParserUtil;
@@ -31,6 +32,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.Element;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -38,6 +43,11 @@ import org.json.JSONObject;
  * @author Michael Hashimoto
  */
 public abstract class BaseTestrayServer implements TestrayServer {
+
+	@Override
+	public JenkinsResultsParserUtil.HTTPAuthorization getHTTPAuthorization() {
+		return _httpAuthorization;
+	}
 
 	@Override
 	public TestrayProject getTestrayProjectByID(int projectID) {
@@ -76,6 +86,13 @@ public abstract class BaseTestrayServer implements TestrayServer {
 		if (TestrayS3Bucket.googleCredentialsAvailable()) {
 			_importCaseResultsToGCP(topLevelBuild);
 		}
+	}
+
+	@Override
+	public void setHTTPAuthorization(
+		JenkinsResultsParserUtil.HTTPAuthorization httpAuthorization) {
+
+		_httpAuthorization = httpAuthorization;
 	}
 
 	@Override
@@ -169,10 +186,68 @@ public abstract class BaseTestrayServer implements TestrayServer {
 
 		File resultsDir = getResultsDir();
 
-		File resultsTarGzFile = new File(
-			resultsDir.getParentFile(), sb.toString());
+		File gcpResultsDir = new File(
+			resultsDir.getParentFile(), "gcp-results");
 
-		JenkinsResultsParserUtil.tarGzip(resultsDir, resultsTarGzFile);
+		try {
+			JenkinsResultsParserUtil.copy(resultsDir, gcpResultsDir);
+		}
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
+		}
+
+		for (File gcpResultFile :
+				JenkinsResultsParserUtil.findFiles(gcpResultsDir, ".*.xml")) {
+
+			try {
+				Document document = Dom4JUtil.parse(
+					JenkinsResultsParserUtil.read(gcpResultFile));
+
+				Element rootElement = document.getRootElement();
+
+				for (Element testcaseElement :
+						rootElement.elements("testcase")) {
+
+					Element propertiesElement = testcaseElement.element(
+						"properties");
+
+					for (Element propertyElement :
+							propertiesElement.elements("property")) {
+
+						String propertyName = propertyElement.attributeValue(
+							"name");
+
+						if ((propertyName == null) ||
+							!propertyName.equals("testray.testcase.warnings")) {
+
+							continue;
+						}
+
+						for (Element element : propertyElement.elements()) {
+							propertyElement.remove(element);
+						}
+					}
+				}
+
+				String gcpResultFileContent = Dom4JUtil.format(
+					rootElement, false);
+
+				gcpResultFileContent = gcpResultFileContent.replaceAll(
+					"(<property name=\"testray.testcase.warnings\" " +
+						"value=\"\\d+\")>\\s+<\\/property>",
+					"$1/>");
+
+				JenkinsResultsParserUtil.write(
+					gcpResultFile, gcpResultFileContent);
+			}
+			catch (DocumentException | IOException exception) {
+			}
+		}
+
+		File resultsTarGzFile = new File(
+			gcpResultsDir.getParentFile(), sb.toString());
+
+		JenkinsResultsParserUtil.tarGzip(gcpResultsDir, resultsTarGzFile);
 
 		TestrayS3Bucket testrayS3Bucket = TestrayS3Bucket.getInstance();
 
@@ -201,7 +276,7 @@ public abstract class BaseTestrayServer implements TestrayServer {
 					"&orderByCol=testrayProjectId");
 
 				JSONObject jsonObject = JenkinsResultsParserUtil.toJSONObject(
-					projectAPIURL, true);
+					projectAPIURL, true, getHTTPAuthorization());
 
 				JSONArray dataJSONArray = jsonObject.getJSONArray("data");
 
@@ -232,6 +307,7 @@ public abstract class BaseTestrayServer implements TestrayServer {
 
 	private static final int _DELTA = 50;
 
+	private JenkinsResultsParserUtil.HTTPAuthorization _httpAuthorization;
 	private Map<Integer, TestrayProject> _testrayProjectsByID;
 	private Map<String, TestrayProject> _testrayProjectsByName;
 	private final URL _url;

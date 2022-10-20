@@ -154,8 +154,8 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 			Map<Locale, String> descriptionMap, Map<Locale, String> keywordsMap,
 			Map<Locale, String> robotsMap, String type, boolean hidden,
 			Map<Locale, String> friendlyURLMap, boolean hasIconImage,
-			byte[] iconBytes, long masterLayoutPlid, long styleBookEntryId,
-			ServiceContext serviceContext)
+			byte[] iconBytes, long styleBookEntryId, long faviconFileEntryId,
+			long masterLayoutPlid, ServiceContext serviceContext)
 		throws PortalException {
 
 		// Layout
@@ -193,8 +193,8 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 			return layoutLocalService.updateLayout(
 				groupId, privateLayout, layoutId, parentLayoutId, nameMap,
 				titleMap, descriptionMap, keywordsMap, robotsMap, type, hidden,
-				friendlyURLMap, hasIconImage, iconBytes, masterLayoutPlid,
-				styleBookEntryId, serviceContext);
+				friendlyURLMap, hasIconImage, iconBytes, styleBookEntryId,
+				faviconFileEntryId, masterLayoutPlid, serviceContext);
 		}
 
 		layoutLocalService.updateAsset(
@@ -229,11 +229,8 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 				layout, hasIconImage, iconBytes, "iconImageId", 0, 0, 0);
 		}
 
-		boolean layoutPrototypeLinkEnabled = ParamUtil.getBoolean(
-			serviceContext, "layoutPrototypeLinkEnabled");
-
-		layout.setLayoutPrototypeLinkEnabled(layoutPrototypeLinkEnabled);
-
+		layout.setLayoutPrototypeLinkEnabled(
+			ParamUtil.getBoolean(serviceContext, "layoutPrototypeLinkEnabled"));
 		layout.setExpandoBridgeAttributes(serviceContext);
 
 		LayoutUtil.update(layout);
@@ -730,7 +727,7 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 			}
 			else if (methodName.equals("updateLayout") &&
 					 ((arguments.length == 15) || (arguments.length == 16) ||
-					  (arguments.length == 17))) {
+					  (arguments.length == 18))) {
 
 				Map<Locale, String> friendlyURLMap = null;
 
@@ -745,8 +742,9 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 					friendlyURLMap = (Map<Locale, String>)arguments[11];
 				}
 
-				long masterLayoutPlid = 0;
 				long styleBookEntryId = 0;
+				long faviconFileEntryId = 0;
+				long masterLayoutPlid = 0;
 
 				ServiceContext serviceContext = null;
 
@@ -758,11 +756,12 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 
 					serviceContext = (ServiceContext)arguments[15];
 				}
-				else if (arguments.length == 17) {
-					masterLayoutPlid = (Long)arguments[14];
-					styleBookEntryId = (Long)arguments[15];
+				else if (arguments.length == 18) {
+					styleBookEntryId = (Long)arguments[14];
+					faviconFileEntryId = (Long)arguments[15];
+					masterLayoutPlid = (Long)arguments[16];
 
-					serviceContext = (ServiceContext)arguments[16];
+					serviceContext = (ServiceContext)arguments[17];
 				}
 
 				returnValue = updateLayout(
@@ -775,9 +774,20 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 					(Map<Locale, String>)arguments[8], (String)arguments[9],
 					(Boolean)arguments[10], friendlyURLMap,
 					(Boolean)arguments[12], (byte[])arguments[13],
-					masterLayoutPlid, styleBookEntryId, serviceContext);
+					styleBookEntryId, faviconFileEntryId, masterLayoutPlid,
+					serviceContext);
 			}
 			else {
+				if (methodName.equals("updateLayout") &&
+					(arguments.length == 11)) {
+
+					updateLookAndFeel(
+						(LayoutLocalService)_targetObject, (Long)arguments[0],
+						(Boolean)arguments[1], (Long)arguments[2],
+						(String)arguments[5], (String)arguments[6],
+						(String)arguments[8]);
+				}
+
 				try {
 					Class<?> clazz = LayoutLocalServiceStagingAdvice.class;
 

@@ -1,52 +1,58 @@
 {
 	"object-entries": [
 		{
-			"applicationId": "123456",
+			"applicationCreateDate": "2022-03-09",
 			"applicationStatus": "incomplete",
-			"dateFiled": "2022-03-09",
+			"email": "test@liferay.com",
 			"externalReferenceCode": "RAYAPP-001",
-			"policySent": false,
-			"product": "Home"
+			"firstName": "Test",
+			"lastName": "Test",
+			"productName": "Home"
 		},
 		{
-			"applicationId": "123567",
+			"applicationCreateDate": "2022-02-16",
 			"applicationStatus": "quoted",
-			"dateFiled": "2022-02-16",
+			"email": "raylife@liferay.com",
 			"externalReferenceCode": "RAYAPP-002",
-			"policySent": false,
-			"product": "Auto"
+			"firstName": "Test",
+			"lastName": "Test",
+			"productName": "Auto"
 		},
 		{
-			"applicationId": "123734",
+			"applicationCreateDate": "2022-02-10",
 			"applicationStatus": "reviewed",
-			"dateFiled": "2022-02-10",
+			"email": "test@liferay.com",
 			"externalReferenceCode": "RAYAPP-005",
-			"policySent": false,
-			"product": "Life"
+			"firstName": "Test",
+			"lastName": "Test",
+			"productName": "Life"
 		},
 		{
-			"applicationId": "123784",
+			"applicationCreateDate": "2022-02-16",
 			"applicationStatus": "incomplete",
-			"dateFiled": "2022-02-16",
+			"email": "matt@liferay.com",
 			"externalReferenceCode": "RAYAPP-003",
-			"policySent": false,
-			"product": "Auto"
+			"firstName": "Matt",
+			"lastName": "Test",
+			"productName": "Auto"
 		},
 		{
-			"applicationId": "123789",
+			"applicationCreateDate": "2022-02-16",
 			"applicationStatus": "quoted",
-			"dateFiled": "2022-02-16",
+			"email": "test@liferay.com",
 			"externalReferenceCode": "RAYAPP-004",
-			"policySent": false,
-			"product": "Home"
+			"firstName": "Test",
+			"lastName": "Test",
+			"productName": "Home"
 		},
 		{
-			"applicationId": "437852",
+			"applicationCreateDate": "2022-03-04",
 			"applicationStatus": "reviewed",
-			"dateFiled": "2022-03-04",
+			"email": "scott@liferay.com",
 			"externalReferenceCode": "RAYAPP-006",
-			"policySent": false,
-			"product": "Home"
+			"firstName": "Scott",
+			"lastName": "Test",
+			"productName": "Home"
 		}
 	],
 	"objectDefinitionName": "RaylifeApplication"

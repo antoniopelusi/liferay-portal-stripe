@@ -35,7 +35,13 @@ import ClayModal, {useModal} from '@clayui/modal';
 import ClayMultiSelect from '@clayui/multi-select';
 import ClaySticker from '@clayui/sticker';
 import ClayTable from '@clayui/table';
-import {fetch, objectToFormData} from 'frontend-js-web';
+import {
+	fetch,
+	getOpener,
+	objectToFormData,
+	openConfirmModal,
+	sub,
+} from 'frontend-js-web';
 import React, {useCallback, useRef, useState} from 'react';
 
 const CollaboratorRow = ({
@@ -385,7 +391,7 @@ const ManageCollaborators = ({
 
 					if (!isEmailAddressValid(item.value)) {
 						return Promise.resolve({
-							error: Liferay.Util.sub(
+							error: sub(
 								Liferay.Language.get(
 									'x-is-not-a-valid-email-address'
 								),
@@ -424,7 +430,7 @@ const ManageCollaborators = ({
 							}
 
 							return {
-								error: Liferay.Util.sub(
+								error: sub(
 									Liferay.Language.get(
 										'user-x-does-not-exist'
 									),
@@ -443,7 +449,7 @@ const ManageCollaborators = ({
 					erroredResults.map(({error}) => error)
 				);
 
-				if (erroredResults.length === 0) {
+				if (!erroredResults.length) {
 					setMultiSelectValue('');
 				}
 
@@ -547,7 +553,7 @@ const ManageCollaborators = ({
 	};
 
 	const showNotification = (message, error) => {
-		const parentOpenToast = Liferay.Util.getOpener().Liferay.Util.openToast;
+		const parentOpenToast = getOpener().Liferay.Util.openToast;
 
 		const openToastParams = {message};
 
@@ -584,29 +590,38 @@ const ManageCollaborators = ({
 			userIds.push(selectedItemsKeys[i]);
 		}
 
-		if (publicationsUserRoleUserIds.length > 0) {
-			let key = Liferay.Language.get(
-				'you-are-inviting-user-x-who-does-not-have-access-to-publications'
-			);
+		const langKey =
+			publicationsUserRoleUserIds.length > 1
+				? Liferay.Language.get(
+						'you-are-inviting-users-x-who-do-not-have-access-to-publications'
+				  )
+				: Liferay.Language.get(
+						'you-are-inviting-user-x-who-does-not-have-access-to-publications'
+				  );
 
-			if (publicationsUserRoleUserIds.length > 1) {
-				key = Liferay.Language.get(
-					'you-are-inviting-users-x-who-do-not-have-access-to-publications'
-				);
-			}
-
-			if (
-				!confirm(
-					Liferay.Util.sub(
-						key,
-						publicationsUserRoleEmailAddresses.join(', ')
-					)
-				)
-			) {
-				return;
-			}
+		if (publicationsUserRoleUserIds.length) {
+			openConfirmModal({
+				message: sub(
+					langKey,
+					publicationsUserRoleEmailAddresses.join(', ')
+				),
+				onConfirm: (isConfirmed) => {
+					if (publicationsUserRoleUserIds.length && isConfirmed) {
+						sendInvite(
+							publicationsUserRoleUserIds,
+							roleValues,
+							userIds
+						);
+					}
+				},
+			});
 		}
+		else {
+			sendInvite(publicationsUserRoleUserIds, roleValues, userIds);
+		}
+	};
 
+	const sendInvite = (publicationsUserRoleUserIds, roleValues, userIds) => {
 		const updatedRolesKeys = Object.keys(updatedRoles);
 
 		for (let i = 0; i < updatedRolesKeys.length; i++) {
@@ -700,7 +715,7 @@ const ManageCollaborators = ({
 	const renderCollaborators = () => {
 		let users = [];
 
-		if (collaborators && collaborators.length > 0) {
+		if (collaborators && !!collaborators.length) {
 			users = collaborators.slice(0);
 		}
 
@@ -710,7 +725,7 @@ const ManageCollaborators = ({
 			users.push(selectedUserData[keys[i]]);
 		}
 
-		if (users.length === 0) {
+		if (!users.length) {
 			return '';
 		}
 
@@ -821,7 +836,6 @@ const ManageCollaborators = ({
 								<ClayMultiSelect
 									filter={multiSelectFilter}
 									inputName={`${namespace}userEmailAddress`}
-									inputValue={multiSelectValue}
 									items={[]}
 									menuRenderer={SharingAutocomplete}
 									onChange={handleChange}
@@ -850,6 +864,7 @@ const ManageCollaborators = ({
 											: []
 									}
 									spritemap={spritemap}
+									value={multiSelectValue}
 								/>
 							</ClayInput.GroupItem>
 
@@ -901,7 +916,7 @@ const ManageCollaborators = ({
 							</ClayInput.GroupItem>
 						</ClayInput.Group>
 
-						{emailAddressErrorMessages.length > 0 && (
+						{!!emailAddressErrorMessages.length && (
 							<ClayForm.FeedbackGroup>
 								{emailAddressErrorMessages.map(
 									(emailAddressErrorMessage) => (
@@ -924,13 +939,13 @@ const ManageCollaborators = ({
 		return (
 			<ClayButton
 				disabled={
-					Object.keys(selectedItems).length === 0 &&
-					Object.keys(updatedRoles).length === 0
+					!Object.keys(selectedItems).length &&
+					!Object.keys(updatedRoles).length
 				}
 				displayType="primary"
 				type="submit"
 			>
-				{Object.keys(updatedRoles).length === 0
+				{!Object.keys(updatedRoles).length
 					? Liferay.Language.get('send')
 					: Liferay.Language.get('save')}
 			</ClayButton>
@@ -988,18 +1003,27 @@ const ManageCollaborators = ({
 										displayType="secondary"
 										onClick={() => {
 											if (
-												(Object.keys(selectedItems)
-													.length === 0 &&
-													Object.keys(updatedRoles)
-														.length === 0) ||
-												confirm(
-													Liferay.Language.get(
-														'discard-unsaved-changes'
-													)
-												)
+												Object.keys(selectedItems) ===
+													0 &&
+												Object.keys(updatedRoles) === 0
 											) {
 												onClose();
 												resetForm();
+											}
+											else {
+												openConfirmModal({
+													message: Liferay.Language.get(
+														'discard-unsaved-changes'
+													),
+													onConfirm: (
+														isConfirmed
+													) => {
+														if (isConfirmed) {
+															onClose();
+															resetForm();
+														}
+													},
+												});
 											}
 										}}
 									>
@@ -1021,7 +1045,7 @@ const ManageCollaborators = ({
 			return trigger;
 		}
 
-		if (!collaborators || collaborators.length === 0) {
+		if (!collaborators || !collaborators.length) {
 			return (
 				<ClayButtonWithIcon
 					className="rounded-circle"
@@ -1104,7 +1128,7 @@ const ManageCollaborators = ({
 			);
 		}
 
-		if (users.length === 0) {
+		if (!users.length) {
 			columns.push(
 				<div className="autofit-col">
 					<ClaySticker

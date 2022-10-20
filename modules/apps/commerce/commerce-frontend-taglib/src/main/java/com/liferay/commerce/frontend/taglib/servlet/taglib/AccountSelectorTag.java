@@ -28,6 +28,7 @@ import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.frontend.icons.FrontendIconsUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -92,8 +93,7 @@ public class AccountSelectorTag extends IncludeTag {
 					WebKeys.THEME_DISPLAY);
 
 			if (Validator.isNull(_spritemap)) {
-				_spritemap =
-					themeDisplay.getPathThemeImages() + "/clay/icons.svg";
+				_spritemap = FrontendIconsUtil.getSpritemap(themeDisplay);
 			}
 
 			HttpServletRequest parentHttpServletRequest = getRequest();
@@ -170,7 +170,8 @@ public class AccountSelectorTag extends IncludeTag {
 
 			String setCurrentAccountURL =
 				PortalUtil.getPortalURL(parentHttpServletRequest) +
-					"/o/commerce-ui/set-current-account";
+					PortalUtil.getPathContext() +
+						"/o/commerce-ui/set-current-account";
 
 			httpServletRequest.setAttribute(
 				"liferay-commerce:account-selector:setCurrentAccountURL",

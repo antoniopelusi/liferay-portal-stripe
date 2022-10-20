@@ -12,17 +12,18 @@
 import {ClaySelect} from '@clayui/form';
 import ClayIcon from '@clayui/icon';
 import {useEffect, useMemo, useState} from 'react';
-import client from '../../../../../apolloClient';
+import i18n from '../../../../../common/I18n';
 import {Button} from '../../../../../common/components';
-import {useApplicationProvider} from '../../../../../common/context/AppPropertiesProvider';
+import {useAppPropertiesContext} from '../../../../../common/contexts/AppPropertiesContext';
 import {
 	getAccountSubscriptions,
-	getAccountSubscriptionsTerms,
+	getCommerceOrderItems,
 } from '../../../../../common/services/liferay/graphql/queries';
 import {getCommonLicenseKey} from '../../../../../common/services/liferay/rest/raysource/LicenseKeys';
 import {ROLE_TYPES} from '../../../../../common/utils/constants';
 import downloadFromBlob from '../../../../../common/utils/downloadFromBlob';
 import getCurrentEndDate from '../../../../../common/utils/getCurrentEndDate';
+import getKebabCase from '../../../../../common/utils/getKebabCase';
 import {useCustomerPortal} from '../../../context';
 import {EXTENSION_FILE_TYPES, STATUS_CODE} from '../../../utils/constants';
 import {getYearlyTerms} from '../../../utils/getYearlyTerms';
@@ -36,9 +37,10 @@ const ActivationKeysInputs = ({
 	const [{project, userAccount}] = useCustomerPortal();
 
 	const {
-		createSupportRequest,
-		licenseKeyDownloadURL,
-	} = useApplicationProvider();
+		client,
+		provisioningServerAPI,
+		submitSupportTicketURL,
+	} = useAppPropertiesContext();
 
 	const [accountSubscriptions, setAccountSubscriptions] = useState([]);
 
@@ -47,10 +49,7 @@ const ActivationKeysInputs = ({
 		setSelectedAccountSubscriptionName,
 	] = useState('');
 
-	const [
-		accountSubscriptionsTermsDates,
-		setAccountSubscriptionsTermsDates,
-	] = useState([]);
+	const [orderItemsDates, setAccountOrderItemsDates] = useState([]);
 	const [selectDateInterval, setSelectedDateInterval] = useState();
 
 	const [hasLicenseDownloadError, setLicenseDownloadError] = useState(false);
@@ -68,43 +67,43 @@ const ActivationKeysInputs = ({
 				const items = data.c?.accountSubscriptions?.items;
 				setAccountSubscriptions(data.c?.accountSubscriptions?.items);
 
-				setSelectedAccountSubscriptionName(items[0].name);
+				setSelectedAccountSubscriptionName(getKebabCase(items[0].name));
 			}
 		};
 
 		fetchAccountSubscriptions();
-	}, [accountKey, productKey]);
+	}, [accountKey, client, productKey]);
 
 	useEffect(() => {
-		const getSubscriptionTerms = async () => {
-			const filterAccountSubscriptionERC = `accountSubscriptionERC eq '${accountKey}_${productKey}_${selectedAccountSubscriptionName.toLowerCase()}'`;
+		const getOrderItems = async () => {
+			const filterAccountSubscriptionERC = `customFields/accountSubscriptionERC eq '${accountKey}_${productKey}_${selectedAccountSubscriptionName.toLowerCase()}'`;
 
 			const {data} = await client.query({
-				query: getAccountSubscriptionsTerms,
+				fetchPolicy: 'network-only',
+				query: getCommerceOrderItems,
 				variables: {
 					filter: filterAccountSubscriptionERC,
 				},
 			});
 
 			if (data) {
-				const accountSubscriptionsTerms =
-					data.c?.accountSubscriptionTerms?.items || [];
+				const orderItems = data?.orderItems?.items || [];
 
-				if (accountSubscriptionsTerms.length) {
+				if (orderItems.length) {
 					const dateIntervals = getYearlyTerms(
-						accountSubscriptionsTerms[0]
+						JSON.parse(orderItems[0].options)
 					);
 
-					setAccountSubscriptionsTermsDates(dateIntervals);
+					setAccountOrderItemsDates(dateIntervals);
 					setSelectedDateInterval(dateIntervals[0]);
 				}
 			}
 		};
 
 		if (selectedAccountSubscriptionName) {
-			getSubscriptionTerms();
+			getOrderItems();
 		}
-	}, [accountKey, productKey, selectedAccountSubscriptionName]);
+	}, [accountKey, client, productKey, selectedAccountSubscriptionName]);
 
 	useEffect(() => {
 		if (selectedAccountSubscriptionName && selectDateInterval) {
@@ -118,7 +117,7 @@ const ActivationKeysInputs = ({
 			selectDateInterval.endDate.toISOString(),
 			selectDateInterval.startDate.toISOString(),
 			selectedAccountSubscriptionName.toLowerCase(),
-			licenseKeyDownloadURL,
+			provisioningServerAPI,
 			encodeURI(productTitle),
 			sessionId
 		);
@@ -145,32 +144,32 @@ const ActivationKeysInputs = ({
 		() => ({
 			messageRequestersAdministrators: (
 				<p className="mt-3 text-neutral-7 text-paragraph">
-					{`The requested activation key is not yet available. For more
-                     information about the availability of your ${productTitle} 
-                     activation keys, please `}
+					{i18n.sub(
+						'the-requested-activation-key-is-not-yet-available-for-more-information-about-the-availability-of-your-x-activation-keys-please',
+						[getKebabCase(productTitle)]
+					)}
 
 					<a
-						href={createSupportRequest}
+						href={submitSupportTicketURL}
 						rel="noreferrer"
 						target="_blank"
 					>
 						<u className="font-weight-bold text-neutral-9">
-							contact the Support team.
+							{i18n.translate('contact-the-support-team')}
 						</u>
 					</a>
 				</p>
 			),
 			messageUsers: (
 				<p className="mt-3 text-neutral-7 text-paragraph">
-					{`The requested activation key is not yet available. If you need
-                 more information about the availability of your ${productTitle} activation keys, please ask one of your Administrator
-                 team members to update your permissions, so you can contact
-                 Liferay Support. Alternatively, team members with Administrator
-                 or Requester role can submit a support ticket on your behalf.`}
+					{i18n.sub(
+						'the-requested-activation-key-is-not-yet-available-if-you-need-more-information-about-the-availability-of-your-x-activation-keys-please-ask-one-of-your-administrator-team-members-to-update-your-permissions-so-you-can-contact-liferay-support-alternatively-team-members-with-administrator-or-requester-role-can-submit-a-support-ticket-on-your-behalf',
+						[getKebabCase(productTitle)]
+					)}
 				</p>
 			),
 		}),
-		[createSupportRequest, productTitle]
+		[submitSupportTicketURL, productTitle]
 	);
 
 	const currentEnterpriseMessage = useMemo(() => {
@@ -187,13 +186,17 @@ const ActivationKeysInputs = ({
 	return (
 		<div className="mt-3">
 			<p className="text-paragraph">
-				Select an active Liferay {productTitle} subscription to download
-				the activation key.
+				{i18n.sub(
+					'select-an-active-liferay-x-subscription-to-download-the-activation-key',
+					[getKebabCase(productTitle)]
+				)}
+				.
 			</p>
 
 			<div className="d-flex mb-3">
 				<label className="cp-subscription-select mr-3">
-					Subscription
+					{i18n.sub('subscription')}
+
 					<div className="position-relative">
 						<ClayIcon
 							className="select-icon"
@@ -203,7 +206,7 @@ const ActivationKeysInputs = ({
 						<ClaySelect
 							onChange={(event) =>
 								setSelectedAccountSubscriptionName(
-									event.target.value
+									getKebabCase(event.target.value)
 								)
 							}
 							value={selectedAccountSubscriptionName}
@@ -222,7 +225,8 @@ const ActivationKeysInputs = ({
 				</label>
 
 				<label className="cp-subscription-term-select">
-					Subscription Term
+					{i18n.translate('subscription-term')}
+
 					<div className="position-relative">
 						<ClayIcon
 							className="select-icon"
@@ -232,30 +236,26 @@ const ActivationKeysInputs = ({
 						<ClaySelect
 							onChange={(event) => {
 								setSelectedDateInterval(
-									accountSubscriptionsTermsDates[
-										event.target.value
-									]
+									orderItemsDates[event.target.value]
 								);
 							}}
 						>
-							{accountSubscriptionsTermsDates.map(
-								(dateInterval, index) => {
-									const formattedDate = `${getCurrentEndDate(
-										dateInterval.startDate
-									)} - ${getCurrentEndDate(
-										dateInterval.endDate
-									)}`;
+							{orderItemsDates.map((dateInterval, index) => {
+								const formattedDate = `${getCurrentEndDate(
+									dateInterval.startDate
+								)} - ${getCurrentEndDate(
+									dateInterval.endDate
+								)}`;
 
-									return (
-										<ClaySelect.Option
-											className="options"
-											key={index}
-											label={formattedDate}
-											value={index}
-										/>
-									);
-								}
-							)}
+								return (
+									<ClaySelect.Option
+										className="options"
+										key={index}
+										label={formattedDate}
+										value={index}
+									/>
+								);
+							})}
 						</ClaySelect>
 					</div>
 				</label>
@@ -271,7 +271,7 @@ const ActivationKeysInputs = ({
 				prependIcon="download"
 				type="button"
 			>
-				Download Key
+				{i18n.translate('download-key')}
 			</Button>
 
 			{hasLicenseDownloadError && currentEnterpriseMessage}

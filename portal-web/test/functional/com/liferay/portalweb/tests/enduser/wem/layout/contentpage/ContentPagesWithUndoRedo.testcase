@@ -54,7 +54,7 @@ definition {
 		task ("Configure the style of Button") {
 			PageEditor.gotoStyle(fragmentName = "Button");
 
-			PageEditor.configureFragment(alignment = "Center");
+			PageEditor.configureFragment(alignment = "Align Center");
 		}
 
 		task ("Duplicate the Button fragment") {
@@ -63,8 +63,12 @@ definition {
 
 		task ("Remove the duplicated Button") {
 			PageEditor.removeFragment(
-				duplicateFragment = "true",
-				fragmentName = "Button");
+				fragmentName = "Button",
+				index = "2");
+
+			PageEditor.viewFragmentNotPresent(
+				fragmentName = "Button",
+				position = "2");
 		}
 
 		task ("Navigate to specific interaction states via Undo History") {
@@ -78,7 +82,7 @@ definition {
 
 			PageEditor.viewFragmentStyle(
 				alignment = "center",
-				fragmentName = "button");
+				fragmentName = "Button");
 
 			for (var menuItem : list "Add Button,Update Button Configuration,Duplicate Button,Delete Button") {
 				MenuItem.viewVisible(menuItem = "${menuItem}");
@@ -90,7 +94,7 @@ definition {
 
 			PageEditor.viewFragmentStyle(
 				alignment = "center",
-				fragmentName = "button");
+				fragmentName = "Button");
 
 			for (var menuItem : list "Add Button,Update Button Configuration,Duplicate Button,Delete Button") {
 				MenuItem.viewVisible(menuItem = "${menuItem}");
@@ -107,7 +111,7 @@ definition {
 
 			PageEditor.viewFragmentStyle(
 				alignment = "center",
-				fragmentName = "button");
+				fragmentName = "Button");
 
 			for (var menuItem : list "Add Button,Update Button Configuration,Duplicate Button,Delete Button") {
 				MenuItem.viewVisible(menuItem = "${menuItem}");
@@ -151,7 +155,7 @@ definition {
 		task ("Configure the style of Heading") {
 			PageEditor.gotoStyle(fragmentName = "Heading");
 
-			PageEditor.configureFragment(alignment = "Center");
+			PageEditor.configureFragment(alignment = "Align Center");
 		}
 
 		task ("Duplicate the Tabs fragment") {
@@ -160,8 +164,12 @@ definition {
 
 		task ("Remove the duplicated Tabs") {
 			PageEditor.removeFragment(
-				duplicateFragment = "true",
-				fragmentName = "Tabs");
+				fragmentName = "Tabs",
+				index = "2");
+
+			PageEditor.viewFragmentNotPresent(
+				fragmentName = "Tabs",
+				position = "2");
 		}
 
 		task ("View the Undo button is enabled but the Redo button is disabled") {
@@ -227,7 +235,7 @@ definition {
 
 			PageEditor.viewFragmentStyle(
 				alignment = "center",
-				fragmentName = "heading");
+				fragmentName = "Heading");
 
 			Click(
 				key_text = "redo",
@@ -482,7 +490,9 @@ definition {
 		}
 
 		task ("Remove the fragment composition via Selection panel") {
-			PageEditor.removeFragmentViaPageStructure(fragmentName = "Container");
+			PageEditor.gotoEllipsisMenuItemInPageElementsPanel(
+				fragmentName = "Container",
+				menuItem = "Delete");
 
 			for (var fragmentName : list "Container,Grid") {
 				PageEditor.viewFragmentNotPresent(fragmentName = "${fragmentName}");
@@ -517,9 +527,9 @@ definition {
 		}
 
 		task ("Configure the number of Tabs to 2") {
-			PageEditor.gotoConfiguration(fragmentName = "Tabs");
-
-			PageEditor.configureFragment(numberOfTabs = "2");
+			PageEditor.editTabs(
+				numberOfTabs = "2",
+				panel = "General");
 
 			AssertVisible(
 				key_navItem = "Tab 2",
@@ -674,9 +684,9 @@ definition {
 
 		task ("Change the number of Tabs 19 times") {
 			for (var i : list "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19") {
-				PageEditor.gotoConfiguration(fragmentName = "Tabs");
-
-				PageEditor.configureFragment(numberOfTabs = "${i}");
+				PageEditor.editTabs(
+					numberOfTabs = "${i}",
+					panel = "General");
 			}
 		}
 
@@ -692,9 +702,9 @@ definition {
 
 		task ("Change the number of Tabs 18 times") {
 			for (var i : list "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18") {
-				PageEditor.gotoConfiguration(fragmentName = "Tabs");
-
-				PageEditor.configureFragment(numberOfTabs = "${i}");
+				PageEditor.editTabs(
+					numberOfTabs = "${i}",
+					panel = "General");
 			}
 		}
 
@@ -710,9 +720,9 @@ definition {
 
 		task ("Change the number of Tabs 18 times") {
 			for (var i : list "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18") {
-				PageEditor.gotoConfiguration(fragmentName = "Tabs");
-
-				PageEditor.configureFragment(numberOfTabs = "${i}");
+				PageEditor.editTabs(
+					numberOfTabs = "${i}",
+					panel = "General");
 			}
 		}
 
@@ -728,9 +738,9 @@ definition {
 
 		task ("Change the number of Tabs 18 times") {
 			for (var i : list "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18") {
-				PageEditor.gotoConfiguration(fragmentName = "Tabs");
-
-				PageEditor.configureFragment(numberOfTabs = "${i}");
+				PageEditor.editTabs(
+					numberOfTabs = "${i}",
+					panel = "General");
 			}
 		}
 
@@ -746,16 +756,16 @@ definition {
 
 		task ("Change the number of Tabs 19 times") {
 			for (var i : list "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19") {
-				PageEditor.gotoConfiguration(fragmentName = "Tabs");
-
-				PageEditor.configureFragment(numberOfTabs = "${i}");
+				PageEditor.editTabs(
+					numberOfTabs = "${i}",
+					panel = "General");
 			}
 		}
 
 		task ("Undo 100 times") {
 			var count = "0";
 
-			while ("${count}" != "100" && (maxIterations = "100")) {
+			while (("${count}" != "100") && (maxIterations = "100")) {
 				Click(
 					key_text = "undo",
 					locator1 = "Icon#ANY");
@@ -811,7 +821,7 @@ definition {
 		task ("Configure the style of Button") {
 			PageEditor.gotoStyle(fragmentName = "Button");
 
-			PageEditor.configureFragment(alignment = "Center");
+			PageEditor.configureFragment(alignment = "Align Center");
 		}
 
 		task ("Duplicate the Button") {
@@ -820,8 +830,12 @@ definition {
 
 		task ("Remove the duplicated Button") {
 			PageEditor.removeFragment(
-				duplicateFragment = "true",
-				fragmentName = "Button");
+				fragmentName = "Button",
+				index = "2");
+
+			PageEditor.viewFragmentNotPresent(
+				fragmentName = "Button",
+				position = "2");
 		}
 
 		task ("Add a Heading fragment below the Button") {
@@ -908,11 +922,11 @@ definition {
 		task ("Configure the style of Heading") {
 			PageEditor.gotoStyle(fragmentName = "Heading");
 
-			PageEditor.configureFragment(alignment = "Center");
+			PageEditor.configureFragment(alignment = "Align Center");
 
 			PageEditor.viewFragmentStyle(
 				alignment = "center",
-				fragmentName = "heading");
+				fragmentName = "Heading");
 		}
 
 		task ("Refresh the page") {

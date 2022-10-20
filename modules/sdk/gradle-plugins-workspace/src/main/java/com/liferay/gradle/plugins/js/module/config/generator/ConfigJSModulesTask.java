@@ -14,7 +14,7 @@
 
 package com.liferay.gradle.plugins.js.module.config.generator;
 
-import com.liferay.gradle.plugins.node.tasks.ExecuteNodeScriptTask;
+import com.liferay.gradle.plugins.node.task.ExecuteNodeScriptTask;
 import com.liferay.gradle.util.FileUtil;
 import com.liferay.gradle.util.GradleUtil;
 import com.liferay.gradle.util.Validator;

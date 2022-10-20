@@ -1,0 +1,5 @@
+Bundle-Name: Liferay Object Scripting Implementation
+Bundle-SymbolicName: com.liferay.object.scripting.impl
+Bundle-Version: 1.0.3
+DynamicImport-Package: *
+-dsannotations-options: inherit

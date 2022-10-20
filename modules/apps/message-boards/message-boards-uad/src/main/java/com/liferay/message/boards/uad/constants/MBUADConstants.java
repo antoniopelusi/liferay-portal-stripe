@@ -28,6 +28,10 @@ public class MBUADConstants {
 		"userId", "statusByUserId"
 	};
 
+	public static final String[] USER_ID_FIELD_NAMES_MB_SUSPICIOUS_ACTIVITY = {
+		"userId"
+	};
+
 	public static final String[] USER_ID_FIELD_NAMES_MB_THREAD = {
 		"userId", "rootMessageUserId", "lastPostByUserId", "statusByUserId"
 	};

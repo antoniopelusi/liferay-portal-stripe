@@ -51,6 +51,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ANY_PLACEHOLDER</td>
+	<td>//input[contains(@placeholder,'${key_placeHolder}') and not(contains(@class,'disabled'))]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ASSET_PRIORITY</td>
 	<td>//input[contains(@id,'assetPriority')]</td>
 	<td></td>
@@ -316,8 +321,18 @@
 	<td></td>
 </tr>
 <tr>
+	<td>GENERIC_NUMBER_INPUT_N</td>
+	<td>xpath=(//div[label[contains(.,'${key_fieldLabel}')]]//input[@type='number'])[${key_indexNumber}]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>GENERIC_TEXT_INPUT</td>
 	<td>//div[label[contains(.,'${key_fieldLabel}')]]//input[@type='text'] | //div[contains(@class,'ddm-field') and contains(.,'${key_fieldLabel}')]//input[@type='text']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>GENERIC_TEXT_INPUT_N</td>
+	<td>xpath=(//div[label[contains(.,'${key_fieldLabel}')]]//input[@type='text'] | //div[contains(@class,'ddm-field') and contains(.,'${key_fieldLabel}')]//input[@type='text'])[${key_indexNumber}]</td>
 	<td></td>
 </tr>
 <tr>
@@ -491,8 +506,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>PIWIK</td>
-	<td>//textarea[contains(@id,'piwik')]</td>
+	<td>MATOMO</td>
+	<td>//textarea[contains(@id,'matomo')]</td>
 	<td></td>
 </tr>
 <tr>

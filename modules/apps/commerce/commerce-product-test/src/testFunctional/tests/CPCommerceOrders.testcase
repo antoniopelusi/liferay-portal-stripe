@@ -1,10 +1,9 @@
 @component-name = "portal-commerce"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "true";
 	property portal.upstream = "true";
+	property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 	property testray.main.component.name = "Order Management";
 
 	setUp {
@@ -84,6 +83,621 @@ definition {
 		Alert.viewErrorMessage(errorMessage = "Unable to create a new order as the open order limit has been reached.");
 	}
 
+	@description = "Verify users can add a minimum order amount rule that applies to order subtotals. Orders that have a subtotal less than the minimum cannot be checked out"
+	@priority = "3"
+	test AddAnOrderRuleOfTypeMinimumOrderSubtotalAmount {
+		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
+		property osgi.module.configuration.file.names = "com.liferay.commerce.order.rule.configuration.COREntryConfiguration.config";
+		property osgi.module.configurations = "enabled=&quot;true&quot;";
+		property portal.acceptance = "false";
+
+		task ("Given a Minium site with a buyer user") {
+			CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
+		}
+
+		task ("When the user creates a new order rule") {
+			CommerceOrders.openOrderRulesAdmin();
+
+			CommerceOrders.addOrderRule(
+				active = "true",
+				orderRuleDescription = "Test Order Rule Description",
+				orderRuleName = "Test Order Rule",
+				orderRuleType = "Minimum Order Amount");
+		}
+
+		task ("Then the order rule is applied to the order total by default") {
+			AssertSelectedLabel(
+				key_selectFieldLabel = "Apply To",
+				locator1 = "Select#ANY",
+				value1 = "Total");
+		}
+
+		task ("When the minimum order amount value is set to 50.00") {
+			Type(
+				key_text = "Minimum Order Amount",
+				locator1 = "TextInput#ANY",
+				value1 = "50.00");
+		}
+
+		task ("And the rule is applied to the order subtotal") {
+			Select(
+				key_selectFieldLabel = "Apply To",
+				locator1 = "Select#ANY",
+				value1 = "Subtotal");
+		}
+
+		task ("And the rule is published") {
+			Button.clickPublish();
+		}
+
+		task ("Then the new minimum order amount for Subtotal is created and with the set values") {
+			CommerceOrders.openOrderRulesAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Test Order Rule");
+
+			CommerceOrders.assertOrderRulesEntry(
+				amount = "50.00",
+				applyTo = "Subtotal",
+				orderRuleDescription = "Test Order Rule Description",
+				orderRuleName = "Test Order Rule",
+				orderRuleType = "Minimum Order Amount");
+		}
+
+		task ("When the buyer adds a product into the cart with a price less than $50.00 and goes to the order details") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "U-Joint",
+				productQuantity = "1");
+
+			CommerceNavigator.gotoMiniCart();
+
+			Button.click(button = "View Details");
+		}
+
+		task ("Then a warning message is shown that indicates the additional amount to meet the requirement for the order") {
+			AssertTextEquals(
+				locator1 = "Modal#BODY",
+				value1 = "The minimum order amount is $ 50.00. This order needs an additional $ 26.00 to meet the requirement.");
+		}
+
+		task ("And there is no checkout button in that order's order details page") {
+			AssertElementNotPresent(locator1 = "Button#CHECKOUT");
+		}
+	}
+
+	@description = "Verify buyers with the View Billing Address permission can set a new billing address during the checkout process."
+	@priority = "3"
+	test ANewBillingAddressCanBeWrittenDuringCheckout {
+		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
+
+		task ("Given a Minium site with a buyer user") {
+			CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
+		}
+
+		task ("And given the buyer user has permission to view billing addresses") {
+			Permissions.definePermissionViaJSONAPI(
+				resourceAction = "VIEW_BILLING_ADDRESS",
+				resourceName = "com.liferay.commerce.order",
+				roleTitle = "Buyer",
+				roleType = "account");
+		}
+
+		task ("When an order is placed by the buyer user") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "U-Joint",
+				productQuantity = "1");
+
+			CommerceCheckout.gotoCheckoutViaMiniCart();
+		}
+
+		task ("Then during the checkout process, the buyer can set a new billing address which will be visible at the Order Summary") {
+			CommerceCheckout.initializersCheckout(
+				billingAddressAddress = "Test Address",
+				billingAddressCity = "Test City",
+				billingAddressCountry = "United States",
+				billingAddressName = "Address Name",
+				billingAddressZipCode = "91767",
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code",
+				productName = "U-Joint",
+				productQuantity = "1",
+				productUnitPrice = "24",
+				shippingMethod = "Standard");
+		}
+	}
+
+	@description = "Verify guests can set a new billing address during the checkout process."
+	@priority = "3"
+	test ANewBillingAddressCanBeWrittenDuringCheckoutByGuestUser {
+		task ("Given a Speedwell site") {
+			CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Speedwell");
+		}
+
+		task ("And given guest checkout is enabled for the site") {
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Speedwell Portal");
+
+			Check.checkToggleSwitch(
+				key_toggleSwitchLabel = "Guest Checkout",
+				locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+
+			Button.clickSave();
+		}
+
+		task ("When an order is placed by a guest user") {
+			User.logoutPG();
+
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/speedwell/catalog");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "U-Joint",
+				productQuantity = "1");
+
+			CommerceCheckout.gotoCheckoutViaMiniCart();
+		}
+
+		task ("Then during the checkout process, the guest can set a new billing address which will be visible at the Order Summary") {
+			CommerceCheckout.initializersCheckout(
+				billingAddressAddress = "Test Address",
+				billingAddressCity = "Test City",
+				billingAddressCountry = "United States",
+				billingAddressName = "Address Name",
+				billingAddressZipCode = "91767",
+				guestEmail = "buyer@liferay.com",
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code",
+				productName = "U-Joint",
+				productQuantity = "1",
+				productUnitPrice = "24",
+				shippingMethod = "Standard");
+		}
+	}
+
+	@description = "Verify buyers without the View Billing Address permission cannot view the billing address of pending and placed orders."
+	@priority = "3"
+	test AssertBillingAddressIsNotVisibleToBuyerUserWithoutPermission {
+		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
+
+		task ("Given a Minium site with a buyer user") {
+			CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
+		}
+
+		task ("And given a default billing address for the Commerce Account is set") {
+			Accounts.openAccountsAdmin();
+
+			LexiconEntry.gotoEntry(rowEntry = "Commerce Account");
+
+			AssertClick(
+				locator1 = "Account#DEFAULT_ACCOUNT_ADDRESSES_SET_DEFAULT_BILLING",
+				value1 = "Set Default Address");
+
+			SelectFrame(
+				key_title = "Set Default Billing Address",
+				locator1 = "IFrame#MODAL_ANY");
+
+			Accounts.addAddressViaSetDefaultAddress(
+				addressCity = "Diamond Bar",
+				addressCountry = "United States",
+				addressName = "Liferay, Inc.",
+				addressPostalCode = "91765",
+				addressRegion = "California",
+				addressStreet1 = "1400 Montefino Ave",
+				addressType = "Billing",
+				phoneNumber = "+1-877-543-3729");
+
+			Refresh();
+		}
+
+		task ("And given the buyer user does not have permission to view billing addresses") {
+			Permissions.removePermissionViaAPI(
+				resourceAction = "VIEW_BILLING_ADDRESS",
+				resourceName = "com.liferay.commerce.order",
+				roleTitle = "Buyer",
+				roleType = "account");
+		}
+
+		task ("When the buyer starts a new order from pending orders") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			CommerceAcceleratorsInitializer.createNewOrderFromPendingOrders();
+		}
+
+		task ("Then the billing address cannot be viewed or set from the pending order details page") {
+			AssertElementNotPresent(locator1 = "CommerceOrders#PENDING_ORDERS_BILLING_ADDRESS_DROPDOWN");
+		}
+
+		task ("When the user completes the checkout process for the order and goes to the order details for the placed order") {
+			CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "U-Joint",
+				productQuantity = "1");
+
+			CommerceCheckout.gotoCheckoutViaMiniCart();
+
+			CommerceCheckout.initializersCheckout(
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code",
+				productName = "U-Joint",
+				productQuantity = "1",
+				productUnitPrice = "24",
+				shippingMethod = "Standard",
+				viewBillingAddressPermission = "false");
+
+			Button.click(button = "Go to Order Details");
+		}
+
+		task ("Then the billing address cannot be viewed or set from the placed order details page") {
+			AssertElementNotPresent(locator1 = "CommerceOrders#PENDING_ORDERS_BILLING_ADDRESS_DROPDOWN");
+		}
+	}
+
+	@description = "Verify buyers with the View Billing Address permission can view the billing address of an order at the order summary."
+	@priority = "3"
+	test AssertBillingAddressIsVisibleToBuyerUserWithPermission {
+		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
+
+		task ("Given a Minium site with a buyer user") {
+			CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
+		}
+
+		task ("And given the buyer user has permission to view billing addresses") {
+			Permissions.definePermissionViaJSONAPI(
+				resourceAction = "VIEW_BILLING_ADDRESS",
+				resourceName = "com.liferay.commerce.order",
+				roleTitle = "Buyer",
+				roleType = "account");
+		}
+
+		task ("When an order is placed by the buyer user") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "U-Joint",
+				productQuantity = "1");
+
+			CommerceCheckout.gotoCheckoutViaMiniCart();
+		}
+
+		task ("Then at the Order Summary, the buyer can view the billing address of the order") {
+			CommerceCheckout.initializersCheckout(
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code",
+				productName = "U-Joint",
+				productQuantity = "1",
+				productUnitPrice = "24",
+				shippingMethod = "Standard");
+		}
+	}
+
+	@description = "Verify buyers without the View Billing Address permission cannot set a new billing address during the checkout process or view the billing address at the order summary."
+	@priority = "3"
+	test AssertDefaultBillingAddressIsNotVisibleToBuyerUserWithoutPermission {
+		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
+
+		task ("Given a Minium site with a buyer user") {
+			CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
+		}
+
+		task ("And given a default billing address for the Commerce Account is set") {
+			Accounts.openAccountsAdmin();
+
+			LexiconEntry.gotoEntry(rowEntry = "Commerce Account");
+
+			AssertClick(
+				locator1 = "Account#DEFAULT_ACCOUNT_ADDRESSES_SET_DEFAULT_BILLING",
+				value1 = "Set Default Address");
+
+			SelectFrame(
+				key_title = "Set Default Billing Address",
+				locator1 = "IFrame#MODAL_ANY");
+
+			Accounts.addAddressViaSetDefaultAddress(
+				addressCity = "Diamond Bar",
+				addressCountry = "United States",
+				addressName = "Liferay, Inc.",
+				addressPostalCode = "91765",
+				addressRegion = "California",
+				addressStreet1 = "1400 Montefino Ave",
+				addressType = "Billing",
+				phoneNumber = "+1-877-543-3729");
+
+			Refresh();
+		}
+
+		task ("And given the buyer user does not have permission to view billing addresses") {
+			Permissions.removePermissionViaAPI(
+				resourceAction = "VIEW_BILLING_ADDRESS",
+				resourceName = "com.liferay.commerce.order",
+				roleTitle = "Buyer",
+				roleType = "account");
+		}
+
+		task ("When an order is placed by the buyer user") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "U-Joint",
+				productQuantity = "1");
+
+			CommerceCheckout.gotoCheckoutViaMiniCart();
+		}
+
+		task ("Then during the checkout process the buyer cannot set a billing address, use the shipping address as the billing address, or view the default billing address at the order summary") {
+			CommerceCheckout.initializersCheckout(
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code",
+				productName = "U-Joint",
+				productQuantity = "1",
+				productUnitPrice = "24",
+				shippingMethod = "Standard",
+				viewBillingAddressPermission = "false");
+		}
+	}
+
+	@description = "Verify an error message appears when a buyer tries placing an order without the View Billing Address permission if a default billing address is not set."
+	@priority = "3"
+	test AssertErrorMessageWhenAnOrderIsPlacedByBuyerWithoutPermissionToViewBillingAddress {
+		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
+
+		task ("Given a Minium site with a buyer user") {
+			CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
+		}
+
+		task ("And given the buyer user does not have permission to view billing addresses") {
+			Permissions.removePermissionViaAPI(
+				resourceAction = "VIEW_BILLING_ADDRESS",
+				resourceName = "com.liferay.commerce.order",
+				roleTitle = "Buyer",
+				roleType = "account");
+		}
+
+		task ("When the buyer tries checking out a new order") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "U-Joint",
+				productQuantity = "1");
+
+			CommerceCheckout.gotoCheckoutViaMiniCart();
+
+			CommerceCheckout.setAddress(
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code");
+
+			Click(locator1 = "Button#CONTINUE");
+
+			Click(
+				key_radioOption = "Standard",
+				locator1 = "CommerceEntry#RADIO_BUTTON");
+
+			Click(locator1 = "Button#CONTINUE");
+		}
+
+		task ("Then an error message is shown which states a default billing address has not been set") {
+			Alert.viewErrorMessage(errorMessage = "No default billing address has been created for this account. Please contact the system administrator to create an order.");
+		}
+	}
+
+	@description = "Verify guests can view the billing address of an order at the order summary."
+	@priority = "3"
+	test AssertGuestCanViewBillingAddressDuringCheckout {
+		task ("Given a Speedwell site") {
+			CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Speedwell");
+		}
+
+		task ("And given guest checkout is enabled for the site") {
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Speedwell Portal");
+
+			Check.checkToggleSwitch(
+				key_toggleSwitchLabel = "Guest Checkout",
+				locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+
+			Button.clickSave();
+		}
+
+		task ("When an order is placed by a guest user") {
+			User.logoutPG();
+
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/speedwell/catalog");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "U-Joint",
+				productQuantity = "1");
+
+			CommerceCheckout.gotoCheckoutViaMiniCart();
+		}
+
+		task ("Then at the Order Summary, the guest can view the billing address of the order") {
+			CommerceCheckout.initializersCheckout(
+				guestEmail = "buyer@liferay.com",
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code",
+				productName = "U-Joint",
+				productQuantity = "1",
+				productUnitPrice = "24",
+				shippingMethod = "Standard");
+		}
+	}
+
+	@description = "Verify a Sales Manager can limit who can see the billing address associated with an account"
+	@priority = "3"
+	test AssertPermissionToViewBillingAddressIsPresent {
+		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
+
+		task ("Given a Minium site with a buyer user") {
+			CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
+		}
+
+		task ("When the admin goes to the Account Roles page") {
+			Role.openRolesAdmin();
+
+			CommerceEntry.gotoMenuTab(menuTab = "Account Roles");
+		}
+
+		task ("And clicks the buyer role") {
+			LexiconEntry.gotoEntry(rowEntry = "Buyer");
+		}
+
+		task ("And goes to the Define Permissions tab") {
+			CommerceEntry.gotoMenuTab(menuTab = "Define Permissions");
+		}
+
+		task ("Then the View Billing Address permission is present") {
+			Role.viewPermissionCP(
+				permissionDefinitionValue = "View Billing Address",
+				permissionNavigationValue = "Open Carts > Commerce Orders:");
+		}
+	}
+
 	@description = "This is a test for COMMERCE-6912. Bulk delete orders"
 	@priority = "3"
 	test BulkDeleteOrders {
@@ -118,6 +732,156 @@ definition {
 		AssertElementPresent(locator1 = "CommerceNavigation#EMPTY_SEARCH_CONTAINER");
 	}
 
+	@description = "This is a test for the story COMMERCE-9217, with the testplan COMMERCE-9336 and test ticket COMMERCE-9358"
+	@priority = "3"
+	test CanButtonRetryPaymentDisappearIfThePaymentMethodIsDisabled {
+		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
+		property portal.acceptance = "false";
+
+		task ("Given the Admin already created a Minium Site and a buyer account") {
+			CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
+		}
+
+		task ("Given the Admin has already configured Paypal as an active payment method and is configured into Sandbox with the Client ID and Client Secret") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Store Management",
+				panel = "Commerce",
+				portlet = "Channels");
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			CommerceChannels.activatePaymentMethod(paymentMethod = "PayPal");
+
+			SelectFrame.selectFrameTop();
+
+			CommerceChannels.configurationPaypal(mode = "Sandbox");
+
+			SelectFrame.selectFrameTop();
+		}
+
+		task ("Given the Admin create an order using API and the Admin change the Payment Status to 'Authorized' but PayPal is disabled") {
+			CommerceJSONOrdersAPI._addCommerceOrder(
+				accountEntryName = "Commerce Account",
+				orderStatus = "2",
+				paymentMethod = "paypal",
+				paymentStatus = "2");
+
+			CommerceJSONOrdersAPI._addCommerceOrderItem(productSKU = "MIN55861");
+
+			CommerceNavigator.gotoPortlet(
+				category = "Order Management",
+				portlet = "Orders");
+
+			var orderId = CommerceJSONOrdersAPI._getCommerceOrder();
+
+			CommerceNavigator.gotoEntry(entryName = "${orderId}");
+
+			Button.click(button = "Check Out");
+
+			CommerceEntry.gotoMenuTab(menuTab = "Payments");
+
+			AssertElementPresent(
+				locator1 = "CommerceEntry#ORDER_PAYMENT_STATUS",
+				paymentStatus = "Authorized");
+
+			AssertElementPresent(
+				locator1 = "CommerceEntry#ORDER_PAYMENT_METHOD",
+				paymentMethod = "PayPal");
+		}
+
+		task ("When the Buyer goes to Minium") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+		}
+
+		task ("And goes into the 'Placed Orders' page") {
+			CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Placed Orders");
+		}
+
+		task ("Then the button 'Retry Payment' and 'Reorder' is present because PayPal is active") {
+			Click(
+				key_orderAuthor = "Commerce Account",
+				locator1 = "CommerceAccelerators#ORDERS_ENTRY_VIEW_BUTTON");
+
+			AssertElementPresent(
+				key_orderStatus = "In Progress",
+				locator1 = "CommerceOrders#PENDING_ORDERS_ORDER_STATUS");
+
+			AssertElementPresent(
+				key_text = "Retry Payment",
+				locator1 = "Button#ANY");
+
+			AssertElementPresent(
+				key_text = "Reorder",
+				locator1 = "Button#ANY");
+		}
+
+		task ("When the Admin disable Paypal ") {
+			User.logoutPG();
+
+			User.firstLoginPG();
+
+			ApplicationsMenu.gotoPortlet(
+				category = "Store Management",
+				panel = "Commerce",
+				portlet = "Channels");
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			CommerceChannels.disablePaymentMethod(paymentMethod = "PayPal");
+		}
+
+		task ("And the Buyer goes back to Minium") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+		}
+
+		task ("And goes into the 'Placed Orders' page") {
+			CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Placed Orders");
+		}
+
+		task ("Then the button 'Retry Payment' is not present because PayPal is disabled") {
+			Click(
+				key_orderAuthor = "Commerce Account",
+				locator1 = "CommerceAccelerators#ORDERS_ENTRY_VIEW_BUTTON");
+
+			AssertElementPresent(
+				key_orderStatus = "In Progress",
+				locator1 = "CommerceOrders#PENDING_ORDERS_ORDER_STATUS");
+
+			AssertElementNotPresent(
+				key_text = "Retry Payment",
+				locator1 = "Button#ANY");
+		}
+
+		task ("But the 'Reorder' is present") {
+			AssertElementPresent(
+				key_text = "Reorder",
+				locator1 = "Button#ANY");
+		}
+	}
+
 	@description = "This is a test for COMMERCE-6210. Shipment cancelled"
 	@ignore = "true"
 	@priority = "3"
@@ -128,24 +892,637 @@ definition {
 
 	}
 
-	@description = "[Please Update]"
-	@ignore = "true"
+	@description = "This is a test for bug COMMERCE-9467"
+	@priority = "5"
+	test CanEditAddressOfAnOpenOrderWithAddressAlreadySet {
+		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
+		property portal.acceptance = "true";
+
+		task ("Given the Admin already created a Minium Site and a buyer account") {
+			CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
+		}
+
+		task ("When the buyer goes to Minium") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+		}
+
+		task ("And buyer adds a product to the cart") {
+			FrontStore.addInitializerProductToCart(
+				productName = "U-Joint",
+				productQuantity = "1");
+		}
+
+		task ("And the buyer creates an open order") {
+			CommerceCheckout.gotoCheckoutViaMiniCart();
+
+			CommerceCheckout.setAddress(
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code");
+
+			Click(locator1 = "Button#CONTINUE");
+		}
+
+		task ("And the admin goes into orders portlet") {
+			User.logoutPG();
+
+			User.loginUserPG(
+				password = "test",
+				userEmailAddress = "test@liferay.com");
+
+			CommerceNavigator.gotoPortlet(
+				category = "Order Management",
+				portlet = "Orders");
+		}
+
+		task ("Then the admin edits Billing and Shipping Address and can see the changes on the address") {
+			Click(locator1 = "CommerceAccelerators#ACCOUNT_SELECTOR_ORDER_ID");
+
+			for (var addressType : list "Billing,Shipping") {
+				Click(
+					key_text = "${addressType} Address",
+					locator1 = "CommerceOrders#EDIT_SHIPMENT_DETAILS");
+
+				CommerceOrders.editOrderAddressCP(
+					editedCity = "${addressType} City",
+					editedCountry = "Italy",
+					editedName = "${addressType} Address Name",
+					editedRegion = "Lombardia",
+					editedStreet1 = "${addressType} Street 1",
+					editedZipCode = "${addressType} Zip");
+
+				Refresh();
+
+				CommerceOrders.viewOrderAddress(
+					addressCity = "${addressType} City",
+					addressRegion = "Lombardia",
+					addressStreet1 = "${addressType} Street 1",
+					addressType = "${addressType}",
+					addressZipCode = "${addressType} Zip");
+			}
+		}
+	}
+
+	@description = "COMMERCE-7982. A system admin can edit order measurement unit."
 	@priority = "3"
 	test CanEditOrderMeasurementUnit {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-7982 CanEditOrderMeasurementUnit Pending Implementation
+		task ("Given a minium site created") {
+			CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+		}
 
+		task ("And an account associated with the site") {
+			ApplicationsMenu.gotoSite(site = "Minium");
+
+			CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+			CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "Commerce Account");
+		}
+
+		task ("And a user with role Buyer") {
+			CommerceAcceleratorsInitializer.inviteNewMemberWithRoleToAccount(
+				accountName = "Commerce Account",
+				emailAddress = "buyer@liferay.com",
+				role = "Buyer",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userScreenName = "buyeruser");
+
+			ApplicationsMenu.gotoPortlet(
+				category = "Users",
+				panel = "Control Panel",
+				portlet = "Users and Organizations");
+
+			CommerceLogin.editPasswordCP(
+				newPassword = "ttest",
+				requirePasswordReset = "true",
+				userScreenName = "buyeruser");
+		}
+
+		task ("And an order created by the user") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				newPassword = "test",
+				password = "ttest",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "U-Joint",
+				productQuantity = "1");
+
+			CommerceCheckout.gotoCheckout();
+
+			CommerceCheckout.initializersCheckout(
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code",
+				productName = "U-Joint",
+				productQuantity = "1",
+				productUnitPrice = "24",
+				shippingMethod = "Standard");
+		}
+
+		task ("When the admin Orders page is reached by the admin") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "test@liferay.com",
+				userLoginFullName = "Test Test");
+
+			CommerceOrders.openOrdersAdmin();
+		}
+
+		task ("And the order detail page is opened") {
+			CommerceNavigator.gotoOrderEntryViaAdmin(status = "Pending");
+		}
+
+		task ("Then the admin can set any Unit of Measure by selecting it from a list via the opened order item's detail sidebar") {
+			CommerceNavigator.gotoEntry(entryName = "MIN55861");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+			for (var orderItemMeasurementUnit : list ",inches,ounces,piece(s),Feet,pounds,meters,kilograms,millimeters,grams") {
+				Select(
+					key_fieldLabel = "Measurement Units",
+					locator1 = "Select#GENERIC_SELECT_FIELD",
+					value1 = "${orderItemMeasurementUnit}");
+			}
+
+			Button.clickSave();
+
+			Refresh();
+		}
+
+		task ("And the chosen unit of measure is displayed next to the item's quantity in the order detail") {
+			CommerceOrders.viewOrdersEntry(
+				addressAddress = "Test Address",
+				addressCity = "Test City",
+				addressZipCode = "Test Zip Code",
+				productListPrice = "24.00",
+				productName = "U-Joint",
+				productQuantity = "1.00 grams",
+				productSku = "MIN55861",
+				productTotalPrice = "24.00");
+		}
+
+		task ("Then the admin edits the UoM by choosing a different one via the opened order item's detail sidebar") {
+			CommerceOrders.editOrderItemDetails(
+				orderItemMeasurementUnit = "meters",
+				orderItemSku = "MIN55861");
+		}
+
+		task ("And the new UoM is displayed next to the item's quantity in the order detail") {
+			CommerceOrders.viewOrdersEntry(
+				addressAddress = "Test Address",
+				addressCity = "Test City",
+				addressZipCode = "Test Zip Code",
+				productListPrice = "24.00",
+				productName = "U-Joint",
+				productQuantity = "1.00 meters",
+				productSku = "MIN55861",
+				productTotalPrice = "24.00");
+		}
 	}
 
-	@description = "[Please Update]"
-	@ignore = "true"
+	@description = "This is a test for the story COMMERCE-9217, with the testplan COMMERCE-9336 and test ticket COMMERCE-9345"
+	@priority = "3"
+	test CanReorderAFailedPayment {
+		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
+		property portal.acceptance = "false";
+
+		task ("Given the Admin already created a Minium Site and a buyer account") {
+			CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
+		}
+
+		task ("Given the Admin has already configured Paypal as an active payment method and is configured into Sandbox with the Client ID and Client Secret") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Store Management",
+				panel = "Commerce",
+				portlet = "Channels");
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			CommerceChannels.activatePaymentMethod(paymentMethod = "PayPal");
+
+			SelectFrame.selectFrameTop();
+
+			CommerceChannels.configurationPaypal(mode = "Sandbox");
+
+			SelectFrame.selectFrameTop();
+		}
+
+		task ("Given the Admin create an open order using API and the Admin change the Payment Status to 'Failed'") {
+			CommerceJSONOrdersAPI._addCommerceOrder(
+				accountEntryName = "Commerce Account",
+				orderStatus = "2",
+				paymentMethod = "paypal",
+				paymentStatus = "4");
+
+			CommerceJSONOrdersAPI._addCommerceOrderItem(productSKU = "MIN55861");
+
+			CommerceNavigator.gotoPortlet(
+				category = "Order Management",
+				portlet = "Orders");
+
+			var orderId = CommerceJSONOrdersAPI._getCommerceOrder();
+
+			CommerceNavigator.gotoEntry(entryName = "${orderId}");
+
+			Button.click(button = "Check Out");
+
+			CommerceEntry.gotoMenuTab(menuTab = "Payments");
+
+			AssertElementPresent(
+				locator1 = "CommerceEntry#ORDER_PAYMENT_STATUS",
+				paymentStatus = "Failed");
+
+			AssertElementPresent(
+				locator1 = "CommerceEntry#ORDER_PAYMENT_METHOD",
+				paymentMethod = "PayPal");
+		}
+
+		task ("When the Buyer goes to Minium") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+		}
+
+		task ("And goes into the 'Placed Orders' page") {
+			CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Placed Orders");
+		}
+
+		task ("Then the 'Retry Payment' is not present because the payment status is 'Failed'") {
+			Click(
+				key_orderAuthor = "Commerce Account",
+				locator1 = "CommerceAccelerators#ORDERS_ENTRY_VIEW_BUTTON");
+
+			AssertElementNotPresent(
+				key_text = "Retry Payment",
+				locator1 = "Button#ANY");
+		}
+
+		task ("But the 'Reorder' is present") {
+			AssertElementPresent(
+				key_text = "Reorder",
+				locator1 = "Button#ANY");
+		}
+
+		task ("And if the buyer click on the 'Reorder' the checkout start again") {
+			Click(
+				key_text = "Reorder",
+				locator1 = "Button#ANY");
+
+			CommerceCheckout.setAddress(
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code");
+
+			Click(locator1 = "Button#CONTINUE");
+
+			Click(
+				key_radioOption = "Standard",
+				locator1 = "CommerceEntry#RADIO_BUTTON");
+
+			Click(locator1 = "Button#CONTINUE");
+
+			CommerceCheckout.viewCheckoutOrderSummary(
+				addressAddress = "Test Address",
+				addressCity = "Test City",
+				addressCountry = "United States",
+				addressName = "Address Name",
+				paymentMethod = "PayPal",
+				productName = "U-Joint",
+				productPrice = "24",
+				productQuantity = "1",
+				subtotalValue = "24",
+				totalValue = "39");
+		}
+	}
+
+	@description = "This is a test for the story COMMERCE-9217, with the testplan COMMERCE-9336 and test ticket COMMERCE-9338"
+	@priority = "3"
+	test CanRetryAnIncompletePayment {
+		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
+		property portal.acceptance = "false";
+
+		task ("Given the Admin already created a Minium Site and a buyer account") {
+			CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
+		}
+
+		task ("Given the Admin has already configured Paypal as an active payment method and is configured into Sandbox with the Client ID and Client Secret") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Store Management",
+				panel = "Commerce",
+				portlet = "Channels");
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			CommerceChannels.activatePaymentMethod(paymentMethod = "PayPal");
+
+			SelectFrame.selectFrameTop();
+
+			CommerceChannels.configurationPaypal(mode = "Sandbox");
+
+			SelectFrame.selectFrameTop();
+		}
+
+		task ("Given the Admin create an order using API and the Admin change the Payment Status to 'Authorized'") {
+			CommerceJSONOrdersAPI._addCommerceOrder(
+				accountEntryName = "Commerce Account",
+				orderStatus = "2",
+				paymentMethod = "paypal",
+				paymentStatus = "2");
+
+			CommerceJSONOrdersAPI._addCommerceOrderItem(productSKU = "MIN55861");
+
+			CommerceNavigator.gotoPortlet(
+				category = "Order Management",
+				portlet = "Orders");
+
+			var orderId = CommerceJSONOrdersAPI._getCommerceOrder();
+
+			CommerceNavigator.gotoEntry(entryName = "${orderId}");
+
+			Button.click(button = "Check Out");
+
+			CommerceEntry.gotoMenuTab(menuTab = "Payments");
+
+			AssertElementPresent(
+				locator1 = "CommerceEntry#ORDER_PAYMENT_STATUS",
+				paymentStatus = "Authorized");
+
+			AssertElementPresent(
+				locator1 = "CommerceEntry#ORDER_PAYMENT_METHOD",
+				paymentMethod = "PayPal");
+		}
+
+		task ("When the Buyer goes to Minium") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+		}
+
+		task ("And goes into the 'Placed Orders' page") {
+			CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Placed Orders");
+		}
+
+		task ("Then the Order Status is 'In Progress' and the button 'Retry Payment' is present to continue the checkout Options") {
+			Click(
+				key_orderAuthor = "Commerce Account",
+				locator1 = "CommerceAccelerators#ORDERS_ENTRY_VIEW_BUTTON");
+
+			AssertElementPresent(
+				key_orderStatus = "In Progress",
+				locator1 = "CommerceOrders#PENDING_ORDERS_ORDER_STATUS");
+
+			AssertElementPresent(
+				key_text = "Retry Payment",
+				locator1 = "Button#ANY");
+		}
+	}
+
+	@description = "This is a test for the story COMMERCE-9217, with the testplan COMMERCE-9336 and test ticket COMMERCE-9408"
+	@priority = "3"
+	test CanRetryAnIncompletePaymentWithAnOpenOrder {
+		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
+		property portal.acceptance = "false";
+
+		task ("Given the Admin already created a Minium Site and a buyer account") {
+			CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
+		}
+
+		task ("Given the Admin has already configured Paypal as an active payment method and is configured into Sandbox with the Client ID and Client Secret") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Store Management",
+				panel = "Commerce",
+				portlet = "Channels");
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			CommerceChannels.activatePaymentMethod(paymentMethod = "PayPal");
+
+			SelectFrame.selectFrameTop();
+
+			CommerceChannels.configurationPaypal(mode = "Sandbox");
+
+			SelectFrame.selectFrameTop();
+		}
+
+		task ("Given the Admin create an open order using API and the Admin change the Payment Status to 'Authorized'") {
+			CommerceJSONOrdersAPI._addCommerceOrder(
+				accountEntryName = "Commerce Account",
+				orderStatus = "2",
+				paymentMethod = "paypal",
+				paymentStatus = "2");
+
+			CommerceJSONOrdersAPI._addCommerceOrderItem(productSKU = "MIN55861");
+
+			CommerceNavigator.gotoPortlet(
+				category = "Order Management",
+				portlet = "Orders");
+
+			var orderId = CommerceJSONOrdersAPI._getCommerceOrder();
+
+			CommerceNavigator.gotoEntry(entryName = "${orderId}");
+
+			CommerceEntry.gotoMenuTab(menuTab = "Payments");
+
+			AssertElementPresent(
+				locator1 = "CommerceEntry#ORDER_PAYMENT_STATUS",
+				paymentStatus = "Authorized");
+
+			AssertElementPresent(
+				locator1 = "CommerceEntry#ORDER_PAYMENT_METHOD",
+				paymentMethod = "PayPal");
+		}
+
+		task ("When the Buyer goes to Minium") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+		}
+
+		task ("And goes into the 'Pending Orders' page") {
+			CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Pending Orders");
+		}
+
+		task ("Then the 'Retry Payment' is not present because the order is still on open") {
+			Click(
+				key_orderAuthor = "Commerce Account",
+				locator1 = "CommerceAccelerators#ORDERS_ENTRY_VIEW_BUTTON");
+
+			AssertElementNotPresent(
+				key_text = "Retry Payment",
+				locator1 = "Button#ANY");
+		}
+	}
+
+	@description = "COMMERCE-7983. A system admin can set order quantity to decimal."
 	@priority = "3"
 	test CanSetOrderQuantityToDecimal {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-7983 CanSetOrderQuantityToDecimal Pending Implementation
+		task ("Given a minium site created") {
+			CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+		}
 
+		task ("And an account associated with the site") {
+			ApplicationsMenu.gotoSite(site = "Minium");
+
+			CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
+
+			CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "Commerce Account");
+		}
+
+		task ("And a user with role Buyer") {
+			CommerceAcceleratorsInitializer.inviteNewMemberWithRoleToAccount(
+				accountName = "Commerce Account",
+				emailAddress = "buyer@liferay.com",
+				role = "Buyer",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userScreenName = "buyeruser");
+
+			ApplicationsMenu.gotoPortlet(
+				category = "Users",
+				panel = "Control Panel",
+				portlet = "Users and Organizations");
+
+			CommerceLogin.editPasswordCP(
+				newPassword = "ttest",
+				requirePasswordReset = "true",
+				userScreenName = "buyeruser");
+		}
+
+		task ("And an order created by the user") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				newPassword = "test",
+				password = "ttest",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "U-Joint",
+				productQuantity = "1");
+
+			CommerceCheckout.gotoCheckout();
+
+			CommerceCheckout.initializersCheckout(
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code",
+				productName = "U-Joint",
+				productQuantity = "1",
+				productUnitPrice = "24",
+				shippingMethod = "Standard");
+		}
+
+		task ("When the admin Orders page is reached by the admin") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "test@liferay.com",
+				userLoginFullName = "Test Test");
+
+			CommerceOrders.openOrdersAdmin();
+		}
+
+		task ("And the order detail page is opened") {
+			CommerceNavigator.gotoOrderEntryViaAdmin(status = "Pending");
+		}
+
+		task ("Then the admin can set a decimal quantity for the item via the opened order item's detail sidebar") {
+			CommerceOrders.editOrderItemDetails(
+				orderItemQuantity = "1.2",
+				orderItemSku = "MIN55861");
+		}
+
+		task ("And the right formatted quantity is displayed in the special column") {
+			CommerceOrders.viewOrdersEntry(
+				addressAddress = "Test Address",
+				addressCity = "Test City",
+				addressZipCode = "Test Zip Code",
+				productListPrice = "24.00",
+				productName = "U-Joint",
+				productQuantity = "1.20",
+				productSku = "MIN55861",
+				productTotalPrice = "24.00");
+		}
 	}
 
 	@description = "This is a test for COMMERCE-5843. Deactivate Currency"
@@ -221,11 +1598,8 @@ definition {
 		Button.clickSave();
 	}
 
-	@ignore = "true"
 	test EditOrder {
-		property portal.acceptance = "quarantine";
-		property portal.release = "quarantine";
-		property portal.upstream = "quarantine";
+		property portal.acceptance = "false";
 
 		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
 
@@ -251,15 +1625,7 @@ definition {
 			productName = "ABS Sensor",
 			productQuantity = "2");
 
-		Pause(locator1 = "5000");
-
-		CommerceNavigator.gotoMiniCart();
-
-		Button.click(button = "View Details");
-
-		Button.click(button = "Checkout");
-
-		Pause(locator1 = "3000");
+		CommerceCheckout.gotoCheckout();
 
 		CommerceCheckout.initializersCheckout(
 			newAddressAddress = "Test Address",
@@ -296,7 +1662,7 @@ definition {
 			paymentMethod = "Money Order",
 			productListPrice = "50.00",
 			productName = "ABS Sensor",
-			productQuantity = "4",
+			productQuantity = "4.00",
 			productSku = "MIN93015",
 			productTotalPrice = "100.00");
 	}
@@ -329,15 +1695,7 @@ definition {
 			productName = "ABS Sensor",
 			productQuantity = "2");
 
-		Pause(locator1 = "5000");
-
-		CommerceNavigator.gotoMiniCart();
-
-		Button.click(button = "View Details");
-
-		Button.click(button = "Checkout");
-
-		Pause(locator1 = "3000");
+		CommerceCheckout.gotoCheckout();
 
 		CommerceCheckout.initializersCheckout(
 			newAddressAddress = "Test Address",
@@ -442,15 +1800,7 @@ definition {
 			productName = "U-Joint",
 			productQuantity = "1");
 
-		Refresh();
-
-		CommerceNavigator.gotoMiniCart();
-
-		Button.click(button = "View Details");
-
-		Button.click(button = "Checkout");
-
-		Pause(locator1 = "5000");
+		CommerceCheckout.gotoCheckout();
 
 		CommerceCheckout.initializersCheckout(
 			newAddressAddress = "Test Address",
@@ -854,11 +2204,7 @@ definition {
 
 		Refresh();
 
-		CommerceNavigator.gotoMiniCart();
-
-		Button.click(button = "View Details");
-
-		Button.click(button = "Checkout");
+		CommerceCheckout.gotoCheckout();
 
 		CommerceCheckout.initializersCheckout(
 			newAddressAddress = "Test Address",
@@ -901,6 +2247,89 @@ definition {
 		AssertElementPresent(
 			key_orderStatus = "Approved",
 			locator1 = "CommerceOrders#ORDER_ELLIPSIS_BY_STATUS");
+	}
+
+	@description = ""
+	@priority = "3"
+	test MakeAnOrderWithThreeActiveMinimumOrderAmountsWithDifferentPriority {
+		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
+		property osgi.module.configuration.file.names = "com.liferay.commerce.order.rule.configuration.COREntryConfiguration.config";
+		property osgi.module.configurations = "enabled=&quot;true&quot;";
+		property portal.acceptance = "false";
+
+		task ("Given a Minium site with a buyer user") {
+			CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
+		}
+
+		task ("And given an active minimum order total rule of priority 0 and minimum of 25.00") {
+			CommerceJSONOrdersAPI._addOrderRule(
+				amount = "25.00",
+				applyTo = "Total",
+				orderRuleDescription = "Test Order Rule Description",
+				orderRuleName = "Test Order Rule",
+				orderRuleType = "Minimum Order Amount",
+				priority = "0");
+		}
+
+		task ("And given an active minimum order subtotal rule of priority 1 and minimum of 50.00") {
+			CommerceJSONOrdersAPI._addOrderRule(
+				amount = "50.00",
+				applyTo = "Subtotal",
+				orderRuleDescription = "Test Order Rule 2 Description",
+				orderRuleName = "Test Order Rule 2",
+				orderRuleType = "Minimum Order Amount",
+				priority = "1");
+		}
+
+		task ("And given an active minimum order subtotal rule of priority 2 and minimum of 75.00") {
+			CommerceJSONOrdersAPI._addOrderRule(
+				amount = "75.00",
+				applyTo = "Subtotal",
+				orderRuleDescription = "Test Order Rule 3 Description",
+				orderRuleName = "Test Order Rule 3",
+				orderRuleType = "Minimum Order Amount",
+				priority = "2");
+		}
+
+		task ("When the buyer adds a product into the cart with a price less than $25.00 and goes to the order details") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "U-Joint",
+				productQuantity = "1");
+
+			CommerceNavigator.gotoMiniCart();
+
+			Button.click(button = "View Details");
+		}
+
+		task ("Then a warning message is shown that indicates the additional amount to meet the requirement for the order according to the priority of order rules") {
+			AssertTextEquals(
+				locator1 = "Modal#BODY",
+				value1 = "The minimum order amount is $ 75.00. This order needs an additional $ 51.00 to meet the requirement.");
+		}
+
+		task ("And there is no checkout button in that order's order details page") {
+			AssertElementNotPresent(locator1 = "Button#CHECKOUT");
+		}
 	}
 
 	@description = "This is a test for COMMERCE-6211. Stock management from order"
@@ -1004,8 +2433,6 @@ definition {
 			productName = "U-Joint",
 			productQuantity = "2");
 
-		Pause(locator1 = "5000");
-
 		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
 
 		CommerceAcceleratorsInitializer.createNewAccountViaFront(accountName = "Commerce Account 2");
@@ -1017,8 +2444,6 @@ definition {
 		FrontStore.addInitializerProductToCart(
 			productName = "Transmission Cooler Line Assembly",
 			productQuantity = "3");
-
-		Pause(locator1 = "5000");
 
 		CommerceNavigator.gotoPortlet(
 			category = "Order Management",
@@ -1067,15 +2492,13 @@ definition {
 			productName = "U-Joint",
 			productQuantity = "1");
 
-		Pause(locator1 = "5000");
+		Click(locator1 = "Button#ANGLE_DOWN");
 
-		CommerceNavigator.gotoMiniCart();
+		WaitForElementPresent(locator1 = "CommerceAccelerators#ACCOUNT_SELECTOR_ORDER_ID");
 
-		Button.click(button = "View Details");
+		var orderId = selenium.getText("CommerceAccelerators#ACCOUNT_SELECTOR_ORDER_ID");
 
-		Button.click(button = "Checkout");
-
-		Pause(locator1 = "3000");
+		CommerceCheckout.gotoCheckout();
 
 		CommerceCheckout.initializersCheckout(
 			newAddressAddress = "Test Address",
@@ -1096,6 +2519,7 @@ definition {
 
 		AssertElementPresent(
 			key_orderQuantity = "1",
+			key_reference = "MIN55861",
 			locator1 = "CommerceEntry#ON_ORDER_QUANTITY");
 
 		CommerceNavigator.gotoEntry(entryName = "MIN55861");
@@ -1104,6 +2528,7 @@ definition {
 
 		AssertElementPresent(
 			key_orderQuantity = "1",
+			key_reference = "${orderId}",
 			locator1 = "CommerceEntry#ON_ORDER_QUANTITY");
 	}
 

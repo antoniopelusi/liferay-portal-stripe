@@ -36,7 +36,7 @@ int nextStatus = KBUtil.getNextStatus(kbComment.getStatus());
 		showWhenSingleIcon="<%= true %>"
 	>
 		<c:if test="<%= previousStatus != KBCommentConstants.STATUS_NONE %>">
-			<liferay-portlet:actionURL name="updateKBCommentStatus" varImpl="previousStatusURL">
+			<liferay-portlet:actionURL name="/knowledge_base/update_kb_comment_status" varImpl="previousStatusURL">
 				<portlet:param name="redirect" value="<%= currentURL %>" />
 				<portlet:param name="kbCommentId" value="<%= String.valueOf(kbComment.getKbCommentId()) %>" />
 				<portlet:param name="kbCommentStatus" value="<%= String.valueOf(previousStatus) %>" />
@@ -49,7 +49,7 @@ int nextStatus = KBUtil.getNextStatus(kbComment.getStatus());
 		</c:if>
 
 		<c:if test="<%= nextStatus != KBCommentConstants.STATUS_NONE %>">
-			<liferay-portlet:actionURL name="updateKBCommentStatus" varImpl="nextStatusURL">
+			<liferay-portlet:actionURL name="/knowledge_base/update_kb_comment_status" varImpl="nextStatusURL">
 				<portlet:param name="redirect" value="<%= currentURL %>" />
 				<portlet:param name="kbCommentId" value="<%= String.valueOf(kbComment.getKbCommentId()) %>" />
 				<portlet:param name="kbCommentStatus" value="<%= String.valueOf(nextStatus) %>" />
@@ -62,7 +62,7 @@ int nextStatus = KBUtil.getNextStatus(kbComment.getStatus());
 		</c:if>
 
 		<c:if test="<%= KBCommentPermission.contains(permissionChecker, kbComment, KBActionKeys.DELETE) %>">
-			<liferay-portlet:actionURL name="deleteKBComment" varImpl="deleteURL">
+			<liferay-portlet:actionURL name="/knowledge_base/delete_kb_comment" varImpl="deleteURL">
 				<portlet:param name="redirect" value="<%= currentURL %>" />
 				<portlet:param name="kbCommentId" value="<%= String.valueOf(kbComment.getKbCommentId()) %>" />
 			</liferay-portlet:actionURL>

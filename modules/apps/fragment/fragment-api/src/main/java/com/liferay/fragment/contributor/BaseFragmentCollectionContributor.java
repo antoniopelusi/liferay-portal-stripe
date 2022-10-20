@@ -381,8 +381,15 @@ public abstract class BaseFragmentCollectionContributor
 		String js = _read(path, jsonObject.getString("jsPath"), "index.js");
 
 		boolean cacheable = jsonObject.getBoolean("cacheable");
+
 		String configuration = _read(
-			path, jsonObject.getString("configurationPath"), "index.json");
+			path, jsonObject.getString("configurationPath"),
+			"configuration.json");
+
+		if (Validator.isNull(configuration)) {
+			configuration = _read(
+				path, jsonObject.getString("configurationPath"), "index.json");
+		}
 
 		String thumbnailURL = _getImagePreviewURL(
 			jsonObject.getString("thumbnail"));
@@ -401,6 +408,7 @@ public abstract class BaseFragmentCollectionContributor
 		fragmentEntry.setConfiguration(configuration);
 		fragmentEntry.setIcon(jsonObject.getString("icon", "code"));
 		fragmentEntry.setType(type);
+		fragmentEntry.setTypeOptions(jsonObject.getString("typeOptions"));
 		fragmentEntry.setImagePreviewURL(thumbnailURL);
 
 		return fragmentEntry;

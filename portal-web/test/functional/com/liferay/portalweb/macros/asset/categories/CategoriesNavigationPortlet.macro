@@ -20,6 +20,7 @@ definition {
 
 		for (var vocabularyName : list "${vocabularyNameList}") {
 			var column = "${n}";
+
 			var key_column = "${column}";
 
 			AssertTextEquals(
@@ -33,6 +34,7 @@ definition {
 
 		for (var categoryName : list "${categoryNameList}") {
 			var column = "${n}";
+
 			var key_column = "${column}";
 
 			if ("${categoryName}" != "Null") {

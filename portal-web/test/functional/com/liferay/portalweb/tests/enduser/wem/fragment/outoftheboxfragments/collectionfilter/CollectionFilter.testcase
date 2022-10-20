@@ -56,7 +56,6 @@ definition {
 				groupName = "Test Site Name",
 				title = "SUV",
 				vocabularyName = "Type");
-
 			var carId = JSONCategory.addCategory(
 				groupName = "Test Site Name",
 				title = "Car",
@@ -118,7 +117,7 @@ definition {
 			PageEditor.editCollectionDisplay(
 				fragmentName = "Collection Display",
 				infoListProviderName = "Basic Web Content",
-				listStyle = "Bordered List");
+				styleDisplay = "Bordered List");
 		}
 
 		task ("View the title of three web contents shown in the first Collection Display") {
@@ -140,7 +139,7 @@ definition {
 				fragmentName = "Collection Display",
 				index = "2",
 				infoListProviderName = "Basic Document",
-				listStyle = "Bulleted List");
+				styleDisplay = "Bulleted List");
 		}
 
 		task ("View the title of documents shown in the second Collection Display") {
@@ -286,12 +285,10 @@ definition {
 				groupName = "Test Site Name",
 				title = "9 inch",
 				vocabularyName = "Size");
-
 			var inch95Id = JSONCategory.addCategory(
 				groupName = "Test Site Name",
 				title = "9.5 inch",
 				vocabularyName = "Size");
-
 			var inch100Id = JSONCategory.addCategory(
 				groupName = "Test Site Name",
 				title = "10 inch",
@@ -310,12 +307,10 @@ definition {
 				groupName = "Test Site Name",
 				title = "United States",
 				vocabularyName = "Warehouse");
-
 			var cnId = JSONCategory.addCategory(
 				groupName = "Test Site Name",
 				title = "China",
 				vocabularyName = "Warehouse");
-
 			var esId = JSONCategory.addCategory(
 				groupName = "Test Site Name",
 				title = "Spain",
@@ -386,8 +381,8 @@ definition {
 			PageEditor.editCollectionDisplay(
 				fragmentName = "Collection Display",
 				listItemStyle = "Title",
-				listStyle = "Bordered List",
-				selectedName = "Manual Collection");
+				selectedName = "Manual Collection",
+				styleDisplay = "Bordered List");
 		}
 
 		task ("Add a Grid above the Container") {
@@ -499,7 +494,7 @@ definition {
 
 			IFrame.closeFrame();
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Navigate to page in view mode") {
@@ -579,7 +574,7 @@ definition {
 	@description = "This is a test for LPS-131947. Collection Filters with category works in display page template."
 	@priority = "4"
 	test FilterResultsOfCollectionDisplayByCategoryInDisplayPageTemplate {
-		property testray.main.component.name = "Display Pages";
+		property testray.component.names = "Display Pages,Fragments";
 
 		task ("Add a vocabulary") {
 			JSONCategory.addVocabulary(
@@ -665,7 +660,7 @@ definition {
 			PageEditor.editCollectionDisplay(
 				assetListName = "Hot Sale",
 				fragmentName = "Collection Display",
-				listStyle = "Bordered List");
+				styleDisplay = "Bordered List");
 		}
 
 		task ("Add a Collection Filter above the Collection Display") {
@@ -701,7 +696,7 @@ definition {
 		}
 
 		task ("Publish the display page template") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Select the display page template as Specific in the first web content") {
@@ -847,7 +842,7 @@ definition {
 		}
 
 		task ("Publish the page") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View the Collection Filter doesn't appear at view mode") {
@@ -891,7 +886,7 @@ definition {
 
 			IFrame.closeFrame();
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Filter results of Collection Display by keywords at View mode") {
@@ -1049,7 +1044,7 @@ definition {
 
 			IFrame.closeFrame();
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Filter results of Collection Display by multiple keywords at View mode") {
@@ -1189,9 +1184,9 @@ definition {
 			PageEditor.editCollectionDisplay(
 				fragmentName = "Collection Display",
 				listItemStyle = "Title",
-				listStyle = "Inline List",
 				maxNumberOfItemsToDisplay = "6",
-				selectedName = "Dynamic Collection");
+				selectedName = "Dynamic Collection",
+				styleDisplay = "Inline List");
 		}
 
 		task ("Add a Grid above the Container") {
@@ -1323,7 +1318,7 @@ definition {
 
 			IFrame.closeFrame();
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Navigate to page in view mode") {
@@ -1420,13 +1415,11 @@ definition {
 				parentCategoryName = "Category Name",
 				title = "Subcategory A",
 				vocabularyName = "Vocabulary Name");
-
 			var subcategoryBId = JSONCategory.addSubcategory(
 				groupName = "Test Site Name",
 				parentCategoryName = "Category Name",
 				title = "Subcategory B",
 				vocabularyName = "Vocabulary Name");
-
 			var subcategoryCId = JSONCategory.addSubcategory(
 				groupName = "Test Site Name",
 				parentCategoryName = "Category Name",
@@ -1642,7 +1635,7 @@ definition {
 
 			IFrame.closeFrame();
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Navigate to page at view mode") {
@@ -1827,9 +1820,9 @@ definition {
 			PageEditor.editCollectionDisplay(
 				fragmentName = "Collection Display",
 				listItemStyle = "Title",
-				listStyle = "Bordered List",
 				maxNumberOfItemsToDisplay = "6",
-				selectedName = "Dynamic Collection");
+				selectedName = "Dynamic Collection",
+				styleDisplay = "Bordered List");
 		}
 
 		task ("Add a Collection Filter above the Container") {
@@ -1908,7 +1901,7 @@ definition {
 
 			IFrame.closeFrame();
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Navigate to page at view mode") {
@@ -2080,9 +2073,9 @@ definition {
 			PageEditor.editCollectionDisplay(
 				fragmentName = "Collection Display",
 				listItemStyle = "Title",
-				listStyle = "Inline List",
 				maxNumberOfItemsToDisplay = "6",
-				selectedName = "Manual Collection");
+				selectedName = "Manual Collection",
+				styleDisplay = "Inline List");
 		}
 
 		task ("Add a Grid above the Container") {
@@ -2214,7 +2207,7 @@ definition {
 
 			IFrame.closeFrame();
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Navigate to page in view mode") {
@@ -2303,12 +2296,10 @@ definition {
 				groupName = "Test Site Name",
 				title = "Category A",
 				vocabularyName = "Vocabulary Name");
-
 			var categoryBId = JSONCategory.addCategory(
 				groupName = "Test Site Name",
 				title = "Category B",
 				vocabularyName = "Vocabulary Name");
-
 			var categoryCId = JSONCategory.addCategory(
 				groupName = "Test Site Name",
 				title = "Category C",
@@ -2406,9 +2397,9 @@ definition {
 			PageEditor.editCollectionDisplay(
 				fragmentName = "Collection Display",
 				listItemStyle = "Title",
-				listStyle = "Bulleted List",
 				maxNumberOfItemsToDisplay = "6",
-				selectedName = "Manual Collection");
+				selectedName = "Manual Collection",
+				styleDisplay = "Bulleted List");
 		}
 
 		task ("Add a Collection Filter above the Container") {
@@ -2529,7 +2520,7 @@ definition {
 
 			IFrame.closeFrame();
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Navigate to page in view mode") {
@@ -2734,9 +2725,9 @@ definition {
 			PageEditor.editCollectionDisplay(
 				fragmentName = "Collection Display",
 				listItemStyle = "Title",
-				listStyle = "Bordered List",
 				maxNumberOfItemsToDisplay = "6",
-				selectedName = "Manual Collection");
+				selectedName = "Manual Collection",
+				styleDisplay = "Bordered List");
 		}
 
 		task ("Add a Collection Filter above the Container") {
@@ -2815,7 +2806,7 @@ definition {
 
 			IFrame.closeFrame();
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Navigate to page in view mode") {
@@ -2980,9 +2971,9 @@ definition {
 			PageEditor.editCollectionDisplay(
 				fragmentName = "Collection Display",
 				listItemStyle = "Title",
-				listStyle = "Numbered List",
 				maxNumberOfItemsToDisplay = "6",
-				selectedName = "Manual Collection");
+				selectedName = "Manual Collection",
+				styleDisplay = "Numbered List");
 		}
 
 		task ("Add a Collection Filter above the Container") {
@@ -3063,7 +3054,7 @@ definition {
 
 			IFrame.closeFrame();
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Navigate to page in view mode") {
@@ -3192,7 +3183,7 @@ definition {
 
 			AssertTextEquals(
 				locator1 = "PageEditor#ITEM_CONFIGURATION_ALERT_INFO",
-				value1 = "Display a collection on the page that support at least one filter type.");
+				value1 = "Display a collection on the page that supports at least one filter type.");
 		}
 
 		task ("Add the second Grid below the first one") {
@@ -3224,7 +3215,7 @@ definition {
 			PageEditor.editCollectionDisplay(
 				assetListName = "Levis",
 				fragmentName = "Collection Display",
-				listStyle = "Bordered List");
+				styleDisplay = "Bordered List");
 		}
 
 		task ("Select the Tesla in the second Collection Display and Select the Bordered List as List Style") {
@@ -3232,7 +3223,7 @@ definition {
 				assetListName = "Tesla",
 				fragmentName = "Collection Display",
 				index = "2",
-				listStyle = "Bordered List");
+				styleDisplay = "Bordered List");
 		}
 
 		task ("Select the Levis as Target Collection and Select the Keywords as Filter in the first Collection Filter") {
@@ -3306,7 +3297,7 @@ definition {
 
 			IFrame.closeFrame();
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Filter results of multiple Collection Displays by multiple Collection Filters at View mode") {
@@ -3382,12 +3373,10 @@ definition {
 				groupName = "Test Site Name",
 				title = "Large",
 				vocabularyName = "Size");
-
 			var mediumId = JSONCategory.addCategory(
 				groupName = "Test Site Name",
 				title = "Medium",
 				vocabularyName = "Size");
-
 			var smallId = JSONCategory.addCategory(
 				groupName = "Test Site Name",
 				title = "Small",
@@ -3407,13 +3396,11 @@ definition {
 				parentCategoryName = "Pure Color",
 				title = "Blue",
 				vocabularyName = "Color");
-
 			var redId = JSONCategory.addSubcategory(
 				groupName = "Test Site Name",
 				parentCategoryName = "Pure Color",
 				title = "Red",
 				vocabularyName = "Color");
-
 			var greenId = JSONCategory.addSubcategory(
 				groupName = "Test Site Name",
 				parentCategoryName = "Pure Color",
@@ -3473,8 +3460,8 @@ definition {
 			PageEditor.editCollectionDisplay(
 				fragmentName = "Collection Display",
 				listItemStyle = "Title",
-				listStyle = "Bordered List",
-				selectedName = "Dynamic Collection");
+				selectedName = "Dynamic Collection",
+				styleDisplay = "Bordered List");
 		}
 
 		task ("Add a Grid above the Container") {
@@ -3670,7 +3657,7 @@ definition {
 
 			IFrame.closeFrame();
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Navigate to page in view mode") {
@@ -3744,7 +3731,6 @@ definition {
 				groupName = "Test Site Name",
 				title = "SUV",
 				vocabularyName = "Type");
-
 			var carId = JSONCategory.addCategory(
 				groupName = "Test Site Name",
 				title = "Car",
@@ -3862,18 +3848,18 @@ definition {
 			Page.searchInCollectionFilter(searchTerm = "Toyota");
 
 			AssertTextEquals.assertPartialText(
-				index = "2",
+				index = "1",
 				locator1 = "PageEditor#COLLECTION_DISPLAY_EMPTY_STATE",
 				value1 = "No Results Found");
 
 			AssertTextEquals.assertPartialText(
-				index = "2",
+				index = "1",
 				locator1 = "PageEditor#COLLECTION_DISPLAY_EMPTY_STATE",
 				value1 = "Sorry, no results were found.");
 
 			IFrame.closeFrame();
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View No Results Found in Collection Dipslay when search BMW at View mode") {
@@ -3897,12 +3883,12 @@ definition {
 			Page.searchInCollectionFilter(searchTerm = "BMW");
 
 			AssertTextEquals.assertPartialText(
-				index = "2",
+				index = "1",
 				locator1 = "PageEditor#COLLECTION_DISPLAY_EMPTY_STATE",
 				value1 = "No Results Found");
 
 			AssertTextEquals.assertPartialText(
-				index = "2",
+				index = "1",
 				locator1 = "PageEditor#COLLECTION_DISPLAY_EMPTY_STATE",
 				value1 = "Sorry, no results were found.");
 		}
@@ -3928,7 +3914,7 @@ definition {
 			PageEditor.editCollectionDisplay(
 				assetListName = "Dynamic Collection",
 				fragmentName = "Collection Display",
-				listStyle = "Bordered List");
+				styleDisplay = "Bordered List");
 		}
 
 		task ("Add a Collection Filter above the Collection Display") {
@@ -3972,18 +3958,18 @@ definition {
 				title = "Type");
 
 			AssertTextEquals.assertPartialText(
-				index = "2",
+				index = "1",
 				locator1 = "PageEditor#COLLECTION_DISPLAY_EMPTY_STATE",
 				value1 = "No Results Found");
 
 			AssertTextEquals.assertPartialText(
-				index = "2",
+				index = "1",
 				locator1 = "PageEditor#COLLECTION_DISPLAY_EMPTY_STATE",
 				value1 = "Sorry, no results were found.");
 
 			IFrame.closeFrame();
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View No Results Found in Collection Dipslay when select Hatchback at View mode") {
@@ -4010,12 +3996,12 @@ definition {
 				title = "Type");
 
 			AssertTextEquals.assertPartialText(
-				index = "2",
+				index = "1",
 				locator1 = "PageEditor#COLLECTION_DISPLAY_EMPTY_STATE",
 				value1 = "No Results Found");
 
 			AssertTextEquals.assertPartialText(
-				index = "2",
+				index = "1",
 				locator1 = "PageEditor#COLLECTION_DISPLAY_EMPTY_STATE",
 				value1 = "Sorry, no results were found.");
 		}

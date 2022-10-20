@@ -1,0 +1,633 @@
+@component-name = "portal-headless-frontend-infrastructure"
+definition {
+
+	property testray.main.component.name = "Headless Frontend Infrastructure";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			BlogPostingAPI.deleteAllBlogPostings();
+
+			var response = HeadlessWebcontentAPI.returnAllstructuredContentId();
+
+			HeadlessWebcontentAPI.deleteAllStructuredContent(structuredContentId = "${response}");
+
+			JSONCategory.deleteVocabulary(
+				groupName = "Guest",
+				vocabularyName = "Vocabulary Name");
+		}
+	}
+
+	@priority = "5"
+	test CanConsumeGraphQLAPIsForHeadlessAdminContent {
+		property portal.acceptance = "true";
+
+		task ("Given a basic web content is created") {
+			HeadlessWebcontent.addBasicWebContent(
+				content = "Web Content Content",
+				groupName = "Guest",
+				title = "Web Content Title");
+		}
+
+		task ("Given navigate to headless admin content endpoint") {
+			APIExplorer.navigateToOpenAPI(
+				api = "headless-admin-content",
+				version = "v1.0");
+		}
+
+		task ("When executing query structured content title") {
+			var siteId = JSONGroupAPI._getGroupIdByNameNoSelenium(
+				groupName = "Guest",
+				site = "true");
+
+			APIExplorer.executeGraphqlQuery(query = "query {structuredContents(siteKey:&quot;${siteId}&quot;){items{title}}}");
+		}
+
+		task ("Then the value in respone equals to the one we created") {
+			AssertTextEquals.assertPartialText(
+				locator1 = "OpenAPI#GRAPHQL_RESPONSE",
+				value1 = "&quot;title&quot;: &quot;Web Content Title&quot;");
+		}
+	}
+
+	@priority = "5"
+	test CanConsumeGraphQLAPIsForHeadlessAdminTaxonomy {
+		property portal.acceptance = "true";
+
+		task ("Given a vocabulary is added") {
+			JSONCategory.addVocabulary(
+				groupName = "Guest",
+				title = "Vocabulary Name");
+		}
+
+		task ("Given navigate to headless admin taxonomy endpoint") {
+			APIExplorer.navigateToOpenAPI(
+				api = "headless-admin-taxonomy",
+				version = "v1.0");
+		}
+
+		task ("When executing query taxonomy vocabulary name") {
+			var siteId = JSONGroupAPI._getGroupIdByNameNoSelenium(
+				groupName = "Guest",
+				site = "true");
+
+			APIExplorer.executeGraphqlQuery(query = "query{taxonomyVocabularies(siteKey:&quot;${siteId}&quot;){items{name}}}");
+		}
+
+		task ("Then the value in respone equals to the one we created") {
+			AssertTextEquals.assertPartialText(
+				locator1 = "OpenAPI#GRAPHQL_RESPONSE",
+				value1 = "&quot;name&quot;: &quot;Vocabulary Name&quot;");
+		}
+	}
+
+	@priority = "5"
+	test CanConsumeGraphQLAPIsForHeadlessDelivery {
+		property portal.acceptance = "true";
+
+		task ("Given a blog entry with a custom headline is created") {
+			BlogPostingAPI.getIdOfCreatedBlogPosting(
+				articleBody = "myArticleBody",
+				headline = "headline of my blog posting");
+		}
+
+		task ("Given navigate to headless delivery endpoint") {
+			APIExplorer.navigateToOpenAPI(
+				api = "headless-delivery",
+				version = "v1.0");
+		}
+
+		task ("When executing query blog headline") {
+			var siteId = JSONGroupAPI._getGroupIdByNameNoSelenium(
+				groupName = "Guest",
+				site = "true");
+
+			APIExplorer.executeGraphqlQuery(query = "query{blogPostings(siteKey:&quot;${siteId}&quot;){items{headline}}}");
+		}
+
+		task ("Then the value in respone equals to the one we created") {
+			AssertTextEquals.assertPartialText(
+				locator1 = "OpenAPI#GRAPHQL_RESPONSE",
+				value1 = "&quot;headline&quot;: &quot;headline of my blog posting&quot;");
+		}
+	}
+
+	@priority = "5"
+	test CanLoadHeadlessAdminContentOpenAPI {
+		property portal.acceptance = "true";
+
+		task ("Given navigate to headless admin content endpoint") {
+			var api = "headless-admin-content";
+
+			APIExplorer.navigateToOpenAPI(
+				api = "${api}",
+				version = "v1.0");
+		}
+
+		task ("Then headless admin content api loaded with no errors") {
+			var portalURL = PropsUtil.get("portal.url");
+
+			AssertTextEquals(
+				locator1 = "Select#HEADLESS_SERVERS",
+				value1 = "${portalURL}/o/${api}/");
+
+			AssertConsoleTextNotPresent(value1 = "Failed to load API definition");
+		}
+	}
+
+	@priority = "5"
+	test CanLoadHeadlessAdminTaxonomyOpenAPI {
+		property portal.acceptance = "true";
+
+		task ("Given navigate to headless admin taxonomy endpoint") {
+			var api = "headless-admin-taxonomy";
+
+			APIExplorer.navigateToOpenAPI(
+				api = "${api}",
+				version = "v1.0");
+		}
+
+		task ("Then headless admin taxonomy api loaded with no errors") {
+			var portalURL = PropsUtil.get("portal.url");
+
+			AssertTextEquals(
+				locator1 = "Select#HEADLESS_SERVERS",
+				value1 = "${portalURL}/o/${api}/");
+
+			AssertConsoleTextNotPresent(value1 = "Failed to load API definition");
+		}
+	}
+
+	@description = "Load headless delivery openAPI explorer"
+	@priority = "5"
+	test CanLoadHeadlessDeliveryOpenAPI {
+		property portal.acceptance = "true";
+
+		task ("Given navigate to headless delivery endpoint") {
+			APIExplorer.navigateToOpenAPI(
+				api = "headless-delivery",
+				version = "v1.0");
+		}
+
+		task ("Then headless delivery api loaded with no errors") {
+			var portalURL = PropsUtil.get("portal.url");
+
+			AssertTextEquals(
+				locator1 = "Select#HEADLESS_SERVERS",
+				value1 = "${portalURL}/o/headless-delivery/");
+
+			AssertConsoleTextNotPresent(value1 = "Failed to load API definition");
+		}
+	}
+
+	@priority = "5"
+	test CanRetrieveSiteBlogPostingsWithHeadlessDeliveryOpenAPI {
+		property portal.acceptance = "true";
+
+		task ("Given navigate to headless delivery endpoint") {
+			APIExplorer.navigateToOpenAPI(
+				api = "headless-delivery",
+				version = "v1.0");
+		}
+
+		task ("When executing getSiteBlogPosingPage with siteID as the parameter") {
+			var siteId = JSONGroupAPI._getGroupIdByNameNoSelenium(
+				groupName = "Guest",
+				site = "true");
+
+			APIExplorer.executeAPIMethodWithParameters(
+				method = "getSiteBlogPostingsPage",
+				parameter = "siteId",
+				service = "BlogPosting");
+		}
+
+		task ("Then the shown response code is 200") {
+			AssertTextEquals(
+				locator1 = "OpenAPI#RESPONSE_CODE",
+				method = "getSiteBlogPostingsPage",
+				value1 = "200");
+		}
+	}
+
+	@priority = "5"
+	test CanRetrieveSiteKeywordsWithHeadlessAdminTaxonomyOpenAPI {
+		property portal.acceptance = "true";
+
+		task ("Given navigate to headless admin taxonomy endpoint") {
+			APIExplorer.navigateToOpenAPI(
+				api = "headless-admin-taxonomy",
+				version = "v1.0");
+		}
+
+		task ("When executing getSiteKeywordsPage with siteID as the parameter") {
+			var siteId = JSONGroupAPI._getGroupIdByNameNoSelenium(
+				groupName = "Guest",
+				site = "true");
+
+			APIExplorer.executeAPIMethodWithParameters(
+				method = "getSiteKeywordsPage",
+				parameter = "siteId",
+				service = "Keyword");
+		}
+
+		task ("Then the shown response code is 200") {
+			AssertTextEquals(
+				locator1 = "OpenAPI#RESPONSE_CODE",
+				method = "getSiteKeywordsPage",
+				value1 = "200");
+		}
+	}
+
+	@priority = "5"
+	test CanRetrieveSiteStructuredContentsWithHeadlessAdminContentOpenAPI {
+		property portal.acceptance = "true";
+
+		task ("Given navigate to headless admin content endpoint") {
+			APIExplorer.navigateToOpenAPI(
+				api = "headless-admin-content",
+				version = "v1.0");
+		}
+
+		task ("When executing getSiteStructuredContentsPage with siteID as the parameter") {
+			var siteId = JSONGroupAPI._getGroupIdByNameNoSelenium(
+				groupName = "Guest",
+				site = "true");
+
+			APIExplorer.executeAPIMethodWithParameters(
+				method = "getSiteStructuredContentsPage",
+				parameter = "siteId",
+				service = "StructuredContent");
+		}
+
+		task ("Then the shown response code is 200") {
+			AssertTextEquals(
+				locator1 = "OpenAPI#RESPONSE_CODE",
+				method = "getSiteStructuredContentsPage",
+				value1 = "200");
+		}
+	}
+
+	@priority = "5"
+	test CanReturnExceptionOfUnacceptableHeaderWithHeadlessAdminContentOpenAPI {
+		property portal.acceptance = "true";
+
+		task ("Given Navigate to headless admin taxonomy endpoint") {
+			APIExplorer.navigateToOpenAPI(
+				api = "headless-admin-taxonomy",
+				version = "v1.0");
+		}
+
+		task ("Given add Accept-Language header and set value to test") {
+			APIExplorer.addHeaders(
+				headerKey = "Accept-Language",
+				headerValue = "test");
+		}
+
+		task ("When executing postSiteTaxonomyVocabulary with siteID as the parameter") {
+			var siteId = JSONGroupAPI._getGroupIdByNameNoSelenium(
+				groupName = "Guest",
+				site = "true");
+			var requestBody = '''{"name": "Vocubulary Name"}''';
+
+			APIExplorer.executeAPIMethodWithParameters(
+				method = "postSiteTaxonomyVocabulary",
+				parameter = "siteId",
+				requestBody = "${requestBody}",
+				service = "TaxonomyVocabulary");
+		}
+
+		task ("Then header Accept-Language is included in request under Curl section") {
+			AssertTextEquals.assertPartialText(
+				locator1 = "OpenAPI#CURL_COMMAND",
+				method = "postSiteTaxonomyVocabulary",
+				service = "TaxonomyVocabulary",
+				value1 = "-H 'Accept-Language: test'");
+		}
+
+		task ("And Then BAD request is included in response section") {
+			AssertTextEquals(
+				locator1 = "OpenAPI#RESPONSE_CODE",
+				method = "postSiteTaxonomyVocabulary",
+				value1 = "406");
+
+			AssertTextEquals.assertPartialText(
+				locator1 = "OpenAPI#RESPONSE_BODY",
+				method = "postSiteTaxonomyVocabulary",
+				value1 = "&quot;status&quot;: &quot;NOT_ACCEPTABLE&quot;");
+		}
+
+		task ("And Then assert details message in console") {
+			AssertConsoleTextPresent(value1 = "NotAcceptableException: No locales match the accepted languages: test");
+		}
+	}
+
+	@priority = "5"
+	test HeaderWorksInNegativeCaseWithHeadlessAdminContentOpenAPI {
+		property portal.acceptance = "true";
+
+		task ("Given a structure is created in a site with english as default language") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "Guest");
+
+			NavItem.gotoStructures();
+
+			WebContentStructures.addCP(structureName = "content-structure");
+
+			FormViewBuilder.addFieldByDoubleClick(fieldType = "Text");
+
+			FormFields.editFieldReference(key_fieldReference = "Text");
+
+			Button.clickSave();
+
+			var ddmStructureId = WebContentStructures.getDdmStructureId(structureName = "content-structure");
+		}
+
+		task ("Given Navigate to headless admin content endpoint") {
+			APIExplorer.navigateToOpenAPI(
+				api = "headless-admin-content",
+				version = "v1.0");
+		}
+
+		task ("Given add Accept-Language header and set value to es-ES") {
+			APIExplorer.addHeaders(
+				headerKey = "Accept-Language",
+				headerValue = "es-ES");
+		}
+
+		task ("When executing postSiteStructuredContentDraft with siteID as the parameter and structuredId in the body") {
+			var siteId = JSONGroupAPI._getGroupIdByNameNoSelenium(
+				groupName = "Guest",
+				site = "true");
+			var requestBody = '''
+				{
+					"contentStructureId": ${ddmStructureId},
+					"title": "title of structured content"
+				}
+			''';
+
+			APIExplorer.executeAPIMethodWithParameters(
+				method = "postSiteStructuredContentDraft",
+				parameter = "siteId",
+				requestBody = "${requestBody}",
+				service = "StructuredContent");
+		}
+
+		task ("Then header Accept-Language is included in request under Curl section") {
+			AssertTextEquals.assertPartialText(
+				locator1 = "OpenAPI#CURL_COMMAND",
+				method = "postSiteStructuredContentDraft",
+				service = "StructuredContent",
+				value1 = "-H 'Accept-Language: es-ES'");
+		}
+
+		task ("And Then BAD request is included in response section") {
+			AssertTextEquals(
+				locator1 = "OpenAPI#RESPONSE_CODE",
+				method = "postSiteStructuredContentDraft",
+				value1 = "400");
+
+			AssertTextEquals.assertPartialText(
+				locator1 = "OpenAPI#RESPONSE_BODY",
+				method = "postSiteStructuredContentDraft",
+				value1 = "&quot;status&quot;: &quot;BAD_REQUEST&quot;");
+		}
+
+		task ("And Then assert details message in console") {
+			AssertConsoleTextPresent(value1 = "BadRequestException: Structured content must include the default language en-US");
+		}
+	}
+
+	@priority = "5"
+	test HeaderWorksInNegativeCaseWithHeadlessDeliveryOpenAPI {
+		property portal.acceptance = "true";
+
+		task ("Given a structure is created in a site with english as default language") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+
+			NavItem.gotoStructures();
+
+			WebContentStructures.addCP(structureName = "content-structure");
+
+			FormViewBuilder.addFieldByDoubleClick(fieldType = "Text");
+
+			FormFields.editFieldReference(key_fieldReference = "Text");
+
+			Button.clickSave();
+
+			var ddmStructureId = WebContentStructures.getDdmStructureId(structureName = "content-structure");
+		}
+
+		task ("Given navigate to headless delivery endpoint") {
+			APIExplorer.navigateToOpenAPI(
+				api = "headless-delivery",
+				version = "v1.0");
+		}
+
+		task ("Given add Accept-Language header and set value to es-ES") {
+			APIExplorer.addHeaders(
+				headerKey = "Accept-Language",
+				headerValue = "es-ES");
+		}
+
+		task ("When executing postSiteStructuredContent with siteID as the parameter and structuredId in the body") {
+			var siteId = JSONGroupAPI._getGroupIdByNameNoSelenium(
+				groupName = "Guest",
+				site = "true");
+			var requestBody = '''
+				{
+					"contentStructureId": ${ddmStructureId},
+					"title": "title of structured content"
+				}
+			''';
+
+			APIExplorer.executeAPIMethodWithParameters(
+				method = "postSiteStructuredContent",
+				parameter = "siteId",
+				requestBody = "${requestBody}",
+				service = "StructuredContent");
+		}
+
+		task ("Then header Accept-Language is included in request under Curl section") {
+			AssertTextEquals.assertPartialText(
+				locator1 = "OpenAPI#CURL_COMMAND",
+				method = "postSiteStructuredContent",
+				service = "StructuredContent",
+				value1 = "-H 'Accept-Language: es-ES'");
+		}
+
+		task ("And Then BAD request is included in response section") {
+			AssertTextEquals(
+				locator1 = "OpenAPI#RESPONSE_CODE",
+				method = "postSiteStructuredContent",
+				value1 = "400");
+
+			AssertTextEquals.assertPartialText(
+				locator1 = "OpenAPI#RESPONSE_BODY",
+				method = "postSiteStructuredContent",
+				value1 = "&quot;status&quot;: &quot;BAD_REQUEST&quot;");
+		}
+
+		task ("And Then assert details message in console") {
+			AssertConsoleTextPresent(value1 = "BadRequestException: Structured content must include the default language en-US");
+		}
+	}
+
+	@priority = "5"
+	test HeaderWorksInPositiveCaseWithHeadlessAdminContentOpenAPI {
+		property portal.acceptance = "true";
+
+		task ("Given a web content with en-US and es-ES languages included") {
+			JSONWebcontent.addBasicWebContentLocalized(
+				contentMap = "en_US:WC Content,es_ES:WC Contenido",
+				groupName = "Guest",
+				titleMap = "en_US:WC Title,es_ES:WC Titulo");
+		}
+
+		task ("Given navigate to headless admin content endpoint") {
+			APIExplorer.navigateToOpenAPI(
+				api = "headless-admin-content",
+				version = "v1.0");
+		}
+
+		task ("Given add Accept-Language header and set value to es-ES") {
+			APIExplorer.addHeaders(
+				headerKey = "Accept-Language",
+				headerValue = "es-ES");
+		}
+
+		task ("When executing getSiteStructuredContentsPage with siteID as the parameter") {
+			var siteId = JSONGroupAPI._getGroupIdByNameNoSelenium(
+				groupName = "Guest",
+				site = "true");
+
+			APIExplorer.executeAPIMethodWithParameters(
+				method = "getSiteStructuredContentsPage",
+				parameter = "siteId",
+				service = "StructuredContent");
+		}
+
+		task ("Then header Accept-Language is included in request under Curl section") {
+			AssertTextEquals.assertPartialText(
+				locator1 = "OpenAPI#CURL_COMMAND",
+				method = "getSiteStructuredContentsPage",
+				service = "StructuredContent",
+				value1 = "-H 'Accept-Language: es-ES'");
+		}
+
+		task ("And Then the es-ES content is included in response") {
+			AssertTextEquals.assertPartialText(
+				locator1 = "OpenAPI#RESPONSE_BODY",
+				method = "getSiteStructuredContentsPage",
+				value1 = "WC Contenido");
+		}
+	}
+
+	@priority = "5"
+	test HeaderWorksInPositiveCaseWithHeadlessAdminTaxonomyOpenAPI {
+		property portal.acceptance = "true";
+
+		task ("Given a vocabulary with en-US and es-ES languages included") {
+			JSONCategory.addVocabulary(
+				groupName = "Guest",
+				titleMap = "en_US:Vocabulary Name,es_ES:Vocabulary Nombre");
+		}
+
+		task ("Given navigate to headless admin taxonomy endpoint") {
+			APIExplorer.navigateToOpenAPI(
+				api = "headless-admin-taxonomy",
+				version = "v1.0");
+		}
+
+		task ("Given add Accept-Language header and set value to es-ES") {
+			APIExplorer.addHeaders(
+				headerKey = "Accept-Language",
+				headerValue = "es-ES");
+		}
+
+		task ("When executing getSiteTaxonomyVocabulariesPage with siteID as the parameter") {
+			var siteId = JSONGroupAPI._getGroupIdByNameNoSelenium(
+				groupName = "Guest",
+				site = "true");
+
+			APIExplorer.executeAPIMethodWithParameters(
+				method = "getSiteTaxonomyVocabulariesPage",
+				parameter = "siteId",
+				service = "TaxonomyVocabulary");
+		}
+
+		task ("Then header Accept-Language is included in request under Curl section") {
+			AssertTextEquals.assertPartialText(
+				locator1 = "OpenAPI#CURL_COMMAND",
+				method = "getSiteTaxonomyVocabulariesPage",
+				service = "TaxonomyVocabulary",
+				value1 = "-H 'Accept-Language: es-ES'");
+		}
+
+		task ("And Then the es-ES content is included in response") {
+			AssertTextEquals.assertPartialText(
+				locator1 = "OpenAPI#RESPONSE_BODY",
+				method = "getSiteTaxonomyVocabulariesPage",
+				value1 = "Vocabulary Nombre");
+		}
+	}
+
+	@priority = "5"
+	test HeaderWorksInPositiveCaseWithHeadlessDeliveryOpenAPI {
+		property portal.acceptance = "true";
+
+		task ("Given a web content with en-US and es-ES languages included") {
+			JSONWebcontent.addBasicWebContentLocalized(
+				contentMap = "en_US:WC Content,es_ES:WC Contenido",
+				groupName = "Guest",
+				titleMap = "en_US:WC Title,es_ES:WC Titulo");
+		}
+
+		task ("Given navigate to headless delivery endpoint") {
+			APIExplorer.navigateToOpenAPI(
+				api = "headless-delivery",
+				version = "v1.0");
+		}
+
+		task ("Given add Accept-Language header and set value to es-ES") {
+			APIExplorer.addHeaders(
+				headerKey = "Accept-Language",
+				headerValue = "es-ES");
+		}
+
+		task ("When executing getSiteStructuredContentsPage with siteID as the parameter") {
+			var siteId = JSONGroupAPI._getGroupIdByNameNoSelenium(
+				groupName = "Guest",
+				site = "true");
+
+			APIExplorer.executeAPIMethodWithParameters(
+				method = "getSiteStructuredContentsPage",
+				parameter = "siteId",
+				service = "StructuredContent");
+		}
+
+		task ("Then header Accept-Language is included in request under Curl section") {
+			AssertTextEquals.assertPartialText(
+				locator1 = "OpenAPI#CURL_COMMAND",
+				method = "getSiteStructuredContentsPage",
+				service = "StructuredContent",
+				value1 = "-H 'Accept-Language: es-ES'");
+		}
+
+		task ("And Then the es-ES content is included in response") {
+			AssertTextEquals.assertPartialText(
+				locator1 = "OpenAPI#RESPONSE_BODY",
+				method = "getSiteStructuredContentsPage",
+				value1 = "WC Contenido");
+		}
+	}
+
+}

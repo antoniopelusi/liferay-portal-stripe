@@ -105,6 +105,12 @@ public interface SLAResource {
 			return new SLAResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -150,6 +156,7 @@ public interface SLAResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -245,7 +252,7 @@ public interface SLAResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/portal-workflow-metrics/v1.0/processes/{processId}/slas");
 
 			httpInvoker.path("processId", processId);
@@ -326,7 +333,7 @@ public interface SLAResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/portal-workflow-metrics/v1.0/processes/{processId}/slas");
 
 			httpInvoker.path("processId", processId);
@@ -405,7 +412,7 @@ public interface SLAResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/portal-workflow-metrics/v1.0/processes/{processId}/slas/batch");
 
 			httpInvoker.path("processId", processId);
@@ -483,7 +490,7 @@ public interface SLAResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/portal-workflow-metrics/v1.0/slas/{slaId}");
 
 			httpInvoker.path("slaId", slaId);
@@ -561,7 +568,7 @@ public interface SLAResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/portal-workflow-metrics/v1.0/slas/{slaId}/batch");
 
 			httpInvoker.path("slaId", slaId);
@@ -638,7 +645,7 @@ public interface SLAResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/portal-workflow-metrics/v1.0/slas/{slaId}");
 
 			httpInvoker.path("slaId", slaId);
@@ -718,7 +725,7 @@ public interface SLAResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/portal-workflow-metrics/v1.0/slas/{slaId}");
 
 			httpInvoker.path("slaId", slaId);
@@ -796,7 +803,7 @@ public interface SLAResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/portal-workflow-metrics/v1.0/slas/{slaId}/batch");
 
 			httpInvoker.path("slaId", slaId);

@@ -3,7 +3,7 @@
 <project basedir="." default="war" name="portal-web" xmlns:antelope="antlib:ise.antelope.tasks" xmlns:if="ant:if">
 	<import file="../build-common-web.xml" />
 
-	<property name="artifact.version" value="5.0.108" />
+	<property name="artifact.version" value="5.0.135" />
 	<property name="war.file" value="${ant.project.name}" />
 
 	<path id="jspc.common.classpath">
@@ -20,8 +20,6 @@
 		<pathelement location="${project.dir}/lib/development/jstl-impl.jar" />
 		<pathelement location="${project.dir}/lib/development/mail.jar" />
 		<pathelement location="${project.dir}/lib/development/velocity.jar" />
-		<pathelement location="${project.dir}/lib/portal/commons-collections.jar" />
-		<pathelement location="${project.dir}/lib/portal/commons-fileupload.jar" />
 		<pathelement location="${project.dir}/lib/portal/commons-lang.jar" />
 		<pathelement location="${project.dir}/lib/portal/commons-logging.jar" />
 		<pathelement location="${project.dir}/lib/portal/dom4j.jar" />

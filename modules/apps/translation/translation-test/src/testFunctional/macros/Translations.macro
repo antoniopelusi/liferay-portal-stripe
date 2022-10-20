@@ -151,6 +151,31 @@ definition {
 				locator1 = "FormFields#CHECKBOX");
 		}
 
+		if (isSet(multiplePageExperiencesSelector)) {
+			AssertElementPresent(
+				key_fieldLabel = "Export Experiences",
+				locator1 = "FormFields#LABEL");
+
+			AssertChecked.assertCheckedNotVisible(
+				locator1 = "Radio#ANY",
+				radioLabel = "Default Experience");
+
+			AssertNotChecked.assertNotCheckedNotVisible(
+				locator1 = "Radio#ANY",
+				radioLabel = "All Experiences");
+		}
+
+		if (isSet(noMultiplePageExperiencesSelector)) {
+			AssertElementNotPresent(
+				key_fieldLabel = "Export Experiences",
+				locator1 = "FormFields#LABEL");
+
+			AssertElementNotPresent(
+				key_fieldName = "exportExperience",
+				key_radioOption = "Default Experience",
+				locator1 = "FormFields#RADIO_OPTION_LABEL");
+		}
+
 		if (isSet(exportFileFormat)) {
 			Select(
 				locator1 = "Select#EXPORT_FILE_FORMAT",
@@ -161,6 +186,16 @@ definition {
 			Check.checkNotVisible(
 				checkboxName = "${languageList}",
 				locator1 = "Checkbox#ANY_CHECKBOX");
+		}
+
+		if ("${multiplePageExperiencesSelector}" == "All Experiences") {
+			Check.checkNotVisible(
+				locator1 = "Radio#ANY",
+				radioLabel = "All Experiences");
+
+			AssertChecked.assertCheckedNotVisible(
+				locator1 = "Radio#ANY",
+				radioLabel = "All Experiences");
 		}
 
 		if (isSet(experienceList)) {
@@ -328,9 +363,7 @@ definition {
 		else {
 			Button.clickPublish();
 
-			while (IsElementPresent(key_text = "Publish", locator1 = "Button#ANY_DISABLED")) {
-				Pause(locator1 = "1000");
-			}
+			WaitForVisible(locator1 = "Button#TRANSLATIONS_DONE");
 
 			if (isSet(successFileName)) {
 				Translations.viewImportResult(
@@ -348,7 +381,11 @@ definition {
 			if (isSet(downloadCSVErrorReport)) {
 				Button.click(button = "Download CSV Error Report");
 
+				var errorReportName = selenium.getAttribute("//a[normalize-space()='Download CSV Error Report']@download");
+
 				DownloadTempFile();
+
+				return "${errorReportName}";
 			}
 
 			if (isSet(uploadAnotherFile)) {
@@ -362,8 +399,8 @@ definition {
 
 	macro openToTranslateEntry {
 		var classNameId = JSONClassname._getClassNameId(value = "com.liferay.journal.model.JournalArticle");
-
 		var urlTitle = StringUtil.replace("${webContentTitle}", " ", "-");
+
 		var urlTitle = StringUtil.lowerCase("${urlTitle}");
 
 		var resourcePrimKey = JSONWebcontentAPI._getResourcePrimKeyByURLTitle(
@@ -418,25 +455,15 @@ definition {
 		var value4 = ListUtil.toString("${list}", "");
 
 		var value4 = '''-----BEGIN PRIVATE KEY-----${value4}=${lineSeparater}-----END PRIVATE KEY-----${lineSeparater}''';
-
 		var attribute1 = '''"type" : "${value1}"''';
-
 		var attribute2 = '''"project_id" : "${value2}"''';
-
 		var attribute3 = '''"private_key_id" : "${value3}"''';
-
 		var attribute4 = '''"private_key" : "${value4}"''';
-
 		var attribute5 = '''"client_email" : "${value5}"''';
-
 		var attribute6 = '''"client_id" : "${value6}"''';
-
 		var attribute7 = '''"auth_uri" : "${value7}"''';
-
 		var attribute8 = '''"token_uri" : "${value8}"''';
-
 		var attribute9 = '''"auth_provider_x509_cert_url" : "${value9}"''';
-
 		var attribute10 = '''"client_x509_cert_url" : "${value10}"''';
 		var list = ListUtil.newList();
 
@@ -470,7 +497,9 @@ definition {
 	macro translateContentPageFile {
 		if (contains("${translationFileName}", " ") && contains("${translationFileName}", "(") && contains("${translationFileName}", ")")) {
 			var translationFileName = StringUtil.extractLast("${translationFileName}", " ");
+
 			var translationFileName = StringUtil.replace("${translationFileName}", "(", "?");
+
 			var translationFileName = StringUtil.replace("${translationFileName}", ")", "?");
 		}
 
@@ -484,7 +513,7 @@ definition {
 		}
 
 		AntCommand(
-			locator1 = "build-test.xml",
+			locator1 = "build-test-translation.xml",
 			value1 = "update-translation-file -Doperation=${operation} -Dcontentpage.translation.fragment.target.original=<![CDATA[${fragmentContent}]]></target> -Dcontentpage.translation.fragment.target=<![CDATA[${fragmentContentTranslation}]]></target> -Dcontentpage.translation.title.target.original=<![CDATA[${pageName}]]></target> -Dcontentpage.translation.title.target=<![CDATA[${pageNameTranslation}]]></target> -Dtranslation.file.encoding=${encoding} -Dtranslation.file.name=${translationFileName} -Dcontentpage.translation.file=${contentPageTranslation} -Dtranslation.zip.file.name=${translationZipFileName}");
 	}
 
@@ -568,12 +597,12 @@ definition {
 
 		if ("${os}" == "true") {
 			AntCommand(
-				locator1 = "build-test.xml",
+				locator1 = "build-test-translation.xml",
 				value1 = "update-translation-file -Doperation=${operation} -Dtranslation.content.target.original=60![CDATA[60p62${webContentContent}60/p62]]6260/target62 -Dtranslation.content.target=60![CDATA[60p62${contentTranslation}60/p62]]6260/target62 -Dtranslation.description.target.original=60![CDATA[60p62${webContentDescription}60/p62]]6260/target62 -Dtranslation.description.target=60![CDATA[60p62${descriptionTranslation}60/p62]]6260/target62 -Dtranslation.file.encoding=${encoding} -Dtranslation.title.target.original=60![CDATA[${webContentTitle}]]6260/target62 -Dtranslation.title.target=60![CDATA[${titleTranslation}]]6260/target62 -Dtranslation.zip.file.name=${translationZipFileName} -Dtranslation.file.name=${translationFileName} -Dtranslation.file.rename=${translationFileRename}");
 		}
 		else {
 			AntCommand(
-				locator1 = "build-test.xml",
+				locator1 = "build-test-translation.xml",
 				value1 = "update-translation-file -Doperation=${operation} -Dtranslation.content.target.original=<![CDATA[<p>${webContentContent}</p>]]></target> -Dtranslation.content.target=<![CDATA[<p>${contentTranslation}</p>]]></target> -Dtranslation.description.target.original=<![CDATA[<p>${webContentDescription}</p>]]></target> -Dtranslation.description.target=<![CDATA[<p>${descriptionTranslation}</p>]]></target> -Dtranslation.file.encoding=${encoding} -Dtranslation.title.target.original=<![CDATA[${webContentTitle}]]></target> -Dtranslation.title.target=<![CDATA[${titleTranslation}]]></target> -Dtranslation.zip.file.name=${translationZipFileName} -Dtranslation.file.name=${translationFileName} -Dtranslation.file.rename=${translationFileRename}");
 		}
 	}
@@ -615,18 +644,29 @@ definition {
 			locator1 = "Button#ANY_TITLE");
 	}
 
+	macro unzipTranslationFile {
+		if (contains("${fileName}", " ")) {
+			var fileName = StringUtil.replace("${fileName}", " ", "*");
+		}
+
+		AntCommand(
+			locator1 = "build-test-translation.xml",
+			value1 = "unzip-translation-file -DfileName=${fileName}");
+	}
+
 	macro updateTranslateFileID {
 		if (contains("${translationZipFileName}", " ")) {
 			var translationZipFileName = StringUtil.replace("${translationZipFileName}", " ", "*");
 		}
 
 		AntCommand(
-			locator1 = "build-test.xml",
+			locator1 = "build-test-translation.xml",
 			value1 = "update-translation-file-id -Dtranslation.file.name=${translationFileName} -Dtranslation.entry.type=${translationEntryType} -Dtranslation.zip.file.name=${translationZipFileName}");
 	}
 
 	macro uploadTranslationsFile {
 		var tempFileDirectory = selenium.getOutputDirName();
+
 		var filePath = "${tempFileDirectory}/${filePath}/${fileName}";
 
 		UploadFile(
@@ -706,7 +746,7 @@ definition {
 	}
 
 	macro viewCSVErrorReport {
-		var fileContent = TestCase.getTempFileContent(fileName = "translation-error.csv");
+		var fileContent = TestCase.getTempFileContent(fileName = "${errorReportName}");
 
 		if (contains("${fileContent}", "${reportContent}")) {
 			echo("The import translation error can be viewed in the report.");
@@ -849,7 +889,7 @@ definition {
 		}
 
 		if (isSet(webContentContent)) {
-			Pause(locator1 = "3000");
+			AssertElementPresent.assertVisible(locator1 = "CKEditor#BODY_FIELD_IFRAME_2");
 
 			SelectFrame.selectFrameNoLoading(locator1 = "CKEditor#BODY_FIELD_IFRAME_2");
 
@@ -861,7 +901,7 @@ definition {
 		}
 
 		if (isSet(webContentDescription)) {
-			Pause(locator1 = "3000");
+			AssertElementPresent.assertVisible(locator1 = "CKEditor#BODY_FIELD_IFRAME");
 
 			SelectFrame.selectFrameNoLoading(locator1 = "CKEditor#BODY_FIELD_IFRAME");
 
@@ -1009,17 +1049,17 @@ definition {
 				value1 = "Translate");
 
 			AssertTextEquals(
-				index = "7",
+				index = "6",
 				locator1 = "MenuItem#DROPDOWN_MENU_ITEM_SPECIFIC",
 				value1 = "View History");
 
 			AssertTextEquals(
-				index = "11",
+				index = "9",
 				locator1 = "MenuItem#DROPDOWN_MENU_ITEM_SPECIFIC",
 				value1 = "Export for Translation");
 
 			AssertTextEquals(
-				index = "12",
+				index = "10",
 				locator1 = "MenuItem#DROPDOWN_MENU_ITEM_SPECIFIC",
 				value1 = "Import Translation");
 		}

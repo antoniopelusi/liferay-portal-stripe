@@ -8,6 +8,12 @@ definition {
 
 	macro clickAdd {
 		Button.click(button = "Add");
+
+		SelectFrameTop();
+
+		if (IsElementPresent(locator1 = "Modal#MODAL_SHOW")) {
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+		}
 	}
 
 	macro clickAddRow {
@@ -24,6 +30,8 @@ definition {
 
 	macro clickCancel {
 		Button.click(button = "Cancel");
+
+		SelectFrameTop();
 	}
 
 	macro clickCheckOut {
@@ -120,6 +128,8 @@ definition {
 
 	macro clickSubmitButton {
 		Click(locator1 = "Button#SUBMIT");
+
+		SelectFrameTop();
 	}
 
 	macro clickSubmitForPublication {

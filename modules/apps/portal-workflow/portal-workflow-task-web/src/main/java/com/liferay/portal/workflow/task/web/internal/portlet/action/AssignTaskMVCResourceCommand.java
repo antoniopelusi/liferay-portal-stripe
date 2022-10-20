@@ -14,6 +14,8 @@
 
 package com.liferay.portal.workflow.task.web.internal.portlet.action;
 
+import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.portlet.JSONPortletResponseUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCResourceCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCResourceCommand;
 import com.liferay.portal.kernel.servlet.SessionMessages;
@@ -60,22 +62,6 @@ public class AssignTaskMVCResourceCommand extends BaseMVCResourceCommand {
 			resourceRequest, "assigneeUserId");
 		String comment = ParamUtil.getString(resourceRequest, "comment");
 
-		_checkWorkflowTaskAssignmentPermission(workflowTaskId, themeDisplay);
-
-		workflowTaskManager.assignWorkflowTaskToUser(
-			themeDisplay.getCompanyId(), themeDisplay.getUserId(),
-			workflowTaskId, assigneeUserId, comment, null, null);
-
-		SessionMessages.add(resourceRequest, "requestProcessed", "");
-	}
-
-	@Reference
-	protected WorkflowTaskManager workflowTaskManager;
-
-	private void _checkWorkflowTaskAssignmentPermission(
-			long workflowTaskId, ThemeDisplay themeDisplay)
-		throws Exception {
-
 		WorkflowTask workflowTask = workflowTaskManager.getWorkflowTask(
 			themeDisplay.getCompanyId(), workflowTaskId);
 
@@ -85,7 +71,23 @@ public class AssignTaskMVCResourceCommand extends BaseMVCResourceCommand {
 
 		_workflowTaskPermissionChecker.check(
 			groupId, workflowTask, themeDisplay.getPermissionChecker());
+
+		JSONPortletResponseUtil.writeJSON(
+			resourceRequest, resourceResponse,
+			JSONUtil.put(
+				"hasPermission",
+				_workflowTaskPermissionChecker.hasPermission(
+					groupId,
+					workflowTaskManager.assignWorkflowTaskToUser(
+						themeDisplay.getCompanyId(), themeDisplay.getUserId(),
+						workflowTaskId, assigneeUserId, comment, null, null),
+					themeDisplay.getPermissionChecker())));
+
+		SessionMessages.add(resourceRequest, "requestProcessed", "");
 	}
+
+	@Reference
+	protected WorkflowTaskManager workflowTaskManager;
 
 	private final WorkflowTaskPermissionChecker _workflowTaskPermissionChecker =
 		new WorkflowTaskPermissionChecker();

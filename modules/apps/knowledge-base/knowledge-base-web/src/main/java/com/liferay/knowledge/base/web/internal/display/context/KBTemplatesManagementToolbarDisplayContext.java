@@ -41,7 +41,7 @@ import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -59,18 +59,16 @@ public class KBTemplatesManagementToolbarDisplayContext {
 	public KBTemplatesManagementToolbarDisplayContext(
 			HttpServletRequest httpServletRequest,
 			LiferayPortletRequest liferayPortletRequest,
-			LiferayPortletResponse liferayPortletResponse, String templatePath)
+			LiferayPortletResponse liferayPortletResponse)
 		throws PortalException {
 
 		_httpServletRequest = httpServletRequest;
 		_liferayPortletRequest = liferayPortletRequest;
 		_liferayPortletResponse = liferayPortletResponse;
-		_templatePath = templatePath;
 
 		_currentURLObj = PortletURLUtil.getCurrent(
-			_liferayPortletRequest, _liferayPortletResponse);
-
-		_themeDisplay = (ThemeDisplay)_httpServletRequest.getAttribute(
+			liferayPortletRequest, liferayPortletResponse);
+		_themeDisplay = (ThemeDisplay)httpServletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
 		_createSearchContainer();
@@ -91,16 +89,14 @@ public class KBTemplatesManagementToolbarDisplayContext {
 	public List<String> getAvailableActions(KBTemplate kbTemplate)
 		throws PortalException {
 
-		List<String> availableActions = new ArrayList<>();
-
 		if (KBTemplatePermission.contains(
 				_themeDisplay.getPermissionChecker(), kbTemplate,
 				ActionKeys.DELETE)) {
 
-			availableActions.add("deleteKBTemplates");
+			return Collections.singletonList("deleteKBTemplates");
 		}
 
-		return availableActions;
+		return Collections.emptyList();
 	}
 
 	public CreationMenu getCreationMenu() {
@@ -119,7 +115,7 @@ public class KBTemplatesManagementToolbarDisplayContext {
 					PortletURLBuilder.createRenderURL(
 						_liferayPortletResponse
 					).setMVCPath(
-						_templatePath + "edit_template.jsp"
+						"/admin/common/edit_kb_template.jsp"
 					).setRedirect(
 						PortalUtil.getCurrentURL(_httpServletRequest)
 					).buildPortletURL());
@@ -152,7 +148,7 @@ public class KBTemplatesManagementToolbarDisplayContext {
 		return PortletURLBuilder.createRenderURL(
 			_liferayPortletResponse
 		).setMVCPath(
-			"/admin/view_templates.jsp"
+			"/admin/view_kb_templates.jsp"
 		).buildPortletURL();
 	}
 
@@ -161,7 +157,13 @@ public class KBTemplatesManagementToolbarDisplayContext {
 			_getCurrentSortingURL()
 		).setParameter(
 			"orderByType",
-			Objects.equals(getOrderByType(), "asc") ? "desc" : "asc"
+			() -> {
+				if (Objects.equals(getOrderByType(), "asc")) {
+					return "desc";
+				}
+
+				return "asc";
+			}
 		).buildPortletURL();
 	}
 
@@ -174,14 +176,13 @@ public class KBTemplatesManagementToolbarDisplayContext {
 	}
 
 	private void _createSearchContainer() throws PortalException {
-		PortletURL iteratorURL = PortletURLBuilder.createRenderURL(
-			_liferayPortletResponse
-		).setMVCPath(
-			"/admin/view_templates.jsp"
-		).buildPortletURL();
-
 		_searchContainer = new KBTemplateSearch(
-			_liferayPortletRequest, iteratorURL);
+			_liferayPortletRequest,
+			PortletURLBuilder.createRenderURL(
+				_liferayPortletResponse
+			).setMVCPath(
+				"/admin/view_kb_templates.jsp"
+			).buildPortletURL());
 
 		String keywords = _getKeywords();
 
@@ -212,7 +213,7 @@ public class KBTemplatesManagementToolbarDisplayContext {
 		return PortletURLBuilder.create(
 			PortletURLUtil.clone(_currentURLObj, _liferayPortletResponse)
 		).setMVCPath(
-			"/admin/view_templates.jsp"
+			"/admin/view_kb_templates.jsp"
 		).buildPortletURL();
 	}
 
@@ -264,7 +265,6 @@ public class KBTemplatesManagementToolbarDisplayContext {
 	private final LiferayPortletRequest _liferayPortletRequest;
 	private final LiferayPortletResponse _liferayPortletResponse;
 	private SearchContainer<KBTemplate> _searchContainer;
-	private final String _templatePath;
 	private final ThemeDisplay _themeDisplay;
 
 }

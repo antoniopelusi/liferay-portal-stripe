@@ -1,11 +1,13 @@
 {
 	"dependencies": {
+		"frontend-js-web": "*"
 	},
-	"name": "@liferay/frontend-icon-admin-web",
+	"main": "js/index.js",
+	"name": "@liferay/frontend-icons-web",
 	"scripts": {
 		"build": "liferay-npm-scripts build",
 		"checkFormat": "liferay-npm-scripts check",
 		"format": "liferay-npm-scripts fix"
 	},
-	"version": "1.0.0"
+	"version": "1.0.13"
 }

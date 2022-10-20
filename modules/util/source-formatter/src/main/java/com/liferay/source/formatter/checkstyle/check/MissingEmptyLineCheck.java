@@ -32,12 +32,19 @@ public class MissingEmptyLineCheck extends BaseCheck {
 	@Override
 	public int[] getDefaultTokens() {
 		return new int[] {
-			TokenTypes.ASSIGN, TokenTypes.METHOD_CALL, TokenTypes.VARIABLE_DEF
+			TokenTypes.ASSIGN, TokenTypes.INSTANCE_INIT, TokenTypes.METHOD_CALL,
+			TokenTypes.VARIABLE_DEF
 		};
 	}
 
 	@Override
 	protected void doVisitToken(DetailAST detailAST) {
+		if (detailAST.getType() == TokenTypes.INSTANCE_INIT) {
+			_checkMissingEmptyLineInInstanceInit(detailAST);
+
+			return;
+		}
+
 		if (detailAST.getType() == TokenTypes.METHOD_CALL) {
 			_checkMissingEmptyLinesAroundMethodCall(detailAST);
 
@@ -346,6 +353,21 @@ public class MissingEmptyLineCheck extends BaseCheck {
 			if ((firstChildDetailAST.getType() == TokenTypes.METHOD_CALL) &&
 				variableName.equals(getVariableName(firstChildDetailAST))) {
 
+				List<String> enforceEmptyLineBeforeMethodNames =
+					getAttributeValues(_ENFORCE_EMPTY_LINE_BEFORE_METHOD_NAMES);
+
+				String methodName = getMethodName(detailAST);
+
+				if (enforceEmptyLineBeforeMethodNames.contains(methodName) &&
+					Validator.isNull(getParameterDetailAST(detailAST))) {
+
+					log(
+						startLineNumber,
+						_MSG_MISSING_EMPTY_LINE_BEFORE_METHOD_NAME,
+						StringBundler.concat(
+							variableName, StringPool.PERIOD, methodName));
+				}
+
 				return;
 			}
 		}
@@ -456,6 +478,57 @@ public class MissingEmptyLineCheck extends BaseCheck {
 			log(
 				nextExpressionStartLineNumber,
 				_MSG_MISSING_EMPTY_LINE_BEFORE_VARIABLE_USE, name);
+		}
+	}
+
+	private void _checkMissingEmptyLineInInstanceInit(DetailAST detailAST) {
+		DetailAST firstChildDetailAST = detailAST.getFirstChild();
+
+		if ((firstChildDetailAST == null) ||
+			(firstChildDetailAST.getType() != TokenTypes.SLIST)) {
+
+			return;
+		}
+
+		List<DetailAST> exprDetailASTList = getAllChildTokens(
+			firstChildDetailAST, false, TokenTypes.EXPR);
+
+		if (exprDetailASTList.size() < 2) {
+			return;
+		}
+
+		DetailAST previousExprDetailAST = null;
+
+		for (DetailAST exprDetailAST : exprDetailASTList) {
+			if (previousExprDetailAST == null) {
+				previousExprDetailAST = exprDetailAST;
+
+				continue;
+			}
+
+			firstChildDetailAST = exprDetailAST.getFirstChild();
+			DetailAST previousExprFirstChildDetailAST =
+				previousExprDetailAST.getFirstChild();
+
+			if ((firstChildDetailAST.getType() != TokenTypes.METHOD_CALL) ||
+				(previousExprFirstChildDetailAST.getType() !=
+					TokenTypes.ASSIGN)) {
+
+				previousExprDetailAST = exprDetailAST;
+
+				continue;
+			}
+
+			int previousExprEndLineNo = getEndLineNumber(previousExprDetailAST);
+
+			if ((previousExprEndLineNo + 1) == exprDetailAST.getLineNo()) {
+				log(
+					previousExprFirstChildDetailAST,
+					_MSG_MISSING_EMPTY_LINE_LINE_NUMBER, "after",
+					previousExprEndLineNo);
+			}
+
+			previousExprDetailAST = exprDetailAST;
 		}
 	}
 
@@ -674,6 +747,9 @@ public class MissingEmptyLineCheck extends BaseCheck {
 	private static final String _ENFORCE_EMPTY_LINE_AFTER_METHOD_NAMES =
 		"enforceEmptyLineAfterMethodNames";
 
+	private static final String _ENFORCE_EMPTY_LINE_BEFORE_METHOD_NAMES =
+		"enforceEmptyLineBeforeMethodNames";
+
 	private static final String _MSG_MISSING_EMPTY_LINE_AFTER_METHOD_NAME =
 		"empty.line.missing.after.method.name";
 
@@ -684,6 +760,9 @@ public class MissingEmptyLineCheck extends BaseCheck {
 	private static final String
 		_MSG_MISSING_EMPTY_LINE_AFTER_VARIABLE_REFERENCE =
 			"empty.line.missing.after.variable.reference";
+
+	private static final String _MSG_MISSING_EMPTY_LINE_BEFORE_METHOD_NAME =
+		"empty.line.missing.before.method.name";
 
 	private static final String _MSG_MISSING_EMPTY_LINE_BEFORE_VARIABLE_ASSIGN =
 		"empty.line.missing.before.variable.assign";

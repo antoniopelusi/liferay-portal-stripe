@@ -140,11 +140,20 @@ Set<PublicRenderParameter> publicRenderParameters = (Set<PublicRenderParameter>)
 	for (PublicRenderParameterConfiguration publicRenderParameterConfiguration : publicRenderParameterConfigurations) {
 	%>
 
-		Liferay.Util.disableToggleBoxes(
-			'<portlet:namespace /><%= PublicRenderParameterConfiguration.IGNORE_PREFIX + HtmlUtil.escapeJS(publicRenderParameterConfiguration.getPublicRenderParameterName()) %>',
-			'<portlet:namespace /><%= PublicRenderParameterConfiguration.MAPPING_PREFIX + HtmlUtil.escapeJS(publicRenderParameterConfiguration.getPublicRenderParameterName()) %>',
-			true
+		var ignoreInput = document.getElementById(
+			'<portlet:namespace /><%= PublicRenderParameterConfiguration.IGNORE_PREFIX + HtmlUtil.escapeJS(publicRenderParameterConfiguration.getPublicRenderParameterName()) %>'
 		);
+		var mappingInput = document.getElementById(
+			'<portlet:namespace /><%= PublicRenderParameterConfiguration.MAPPING_PREFIX + HtmlUtil.escapeJS(publicRenderParameterConfiguration.getPublicRenderParameterName()) %>'
+		);
+
+		if (ignoreInput && mappingInput) {
+			mappingInput.disabled = ignoreInput.checked;
+
+			ignoreInput.addEventListener('click', () => {
+				Liferay.Util.toggleDisabled(mappingInput, !mappingInput.disabled);
+			});
+		}
 
 	<%
 	}

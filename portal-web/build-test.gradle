@@ -1,4 +1,4 @@
-import com.liferay.gradle.plugins.defaults.tasks.ReplaceRegexTask
+import com.liferay.gradle.plugins.defaults.task.ReplaceRegexTask
 import com.liferay.gradle.util.GradleUtil
 
 import java.util.regex.Matcher
@@ -9,7 +9,7 @@ import org.gradle.util.GUtil
 
 buildscript {
 	dependencies {
-		classpath group: "com.liferay", name: "com.liferay.gradle.plugins.defaults", version: "7.0.314"
+		classpath group: "com.liferay", name: "com.liferay.gradle.plugins.defaults", version: "8.0.13"
 		classpath group: "com.liferay", name: "com.liferay.gradle.plugins.maven.plugin.builder", version: "1.2.3"
 		classpath group: "de.undercouch", name: "gradle-download-task", version: "3.3.0"
 		classpath group: "gradle.plugin.org.ysb33r.gradle", name: "gradletest", version: "1.1"
@@ -45,10 +45,6 @@ apply plugin: "com.liferay.poshi.runner"
 apply plugin: "com.liferay.poshi.runner.resources.defaults"
 
 poshiRunner {
-	if (project.hasProperty("poshiRunnerExtProperties")) {
-		poshiPropertiesFile = new File(projectDir.parentFile, project.properties["poshiRunnerExtProperties"])
-	}
-
 	openCVVersion = "2.4.10-0.10"
 }
 
@@ -62,6 +58,12 @@ configurations {
 dependencies {
 	if (poshiRunner.poshiPropertiesFile && poshiRunner.poshiPropertiesFile.exists()) {
 		Properties poshiRunnerProperties = GUtil.loadProperties(poshiRunner.poshiPropertiesFile)
+
+		File poshiExtPropertiesFile = file("poshi-ext.properties")
+
+		if (poshiExtPropertiesFile.exists()) {
+			poshiRunnerProperties = GUtil.loadProperties(poshiExtPropertiesFile)
+		}
 
 		String testBaseDirName = poshiRunnerProperties.getProperty("test.base.dir.name")
 
@@ -107,16 +109,18 @@ dependencies {
 poshiRunnerResources {
 	baseName "portal"
 
-	dirs = ["test/functional/com/liferay/portalweb"]
+	Properties testProperties = GUtil.loadProperties(file("poshi.properties"))
 
-	Properties testProperties = GUtil.loadProperties(file("../test.properties"))
+	String testBaseDirName = testProperties.getProperty("test.base.dir.name")
 
-	String testSubrepoDirs = testProperties.getProperty("test.subrepo.dirs")
+	if ((testBaseDirName != null) && !testBaseDirName.isEmpty()) {
+		dirs.add(testBaseDirName)
+	}
 
-	if ((testSubrepoDirs != null) && !testSubrepoDirs.isEmpty()) {
-		testSubrepoDirs = testSubrepoDirs.replace("\${project.dir}", "..");
+	String testDirs = testProperties.getProperty("test.dirs")
 
-		dirs.addAll(testSubrepoDirs.split(","))
+	if ((testDirs != null) && !testDirs.isEmpty()) {
+		dirs.addAll(testDirs.split(","))
 	}
 }
 

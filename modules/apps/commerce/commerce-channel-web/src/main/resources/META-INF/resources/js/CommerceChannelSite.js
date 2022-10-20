@@ -12,7 +12,7 @@
  * details.
  */
 
-import {delegate, openSelectionModal} from 'frontend-js-web';
+import {delegate, openSelectionModal, sub} from 'frontend-js-web';
 
 export default function ({
 	itemSelectorUrl,
@@ -57,7 +57,7 @@ export default function ({
 
 							rowColumns.push(selectedItem.name);
 							rowColumns.push(
-								`<a class="float-right modify-link" data-rowId="${selectedItem.id}" href="javascript:;">${removeCommerceChannelSiteIcon}</a>`
+								`<a class="float-right modify-link" data-rowId="${selectedItem.id}" href="javascript:void(0);">${removeCommerceChannelSiteIcon}</a>`
 							);
 
 							const siteGroupInput = document.getElementById(
@@ -73,7 +73,7 @@ export default function ({
 							searchContainer.updateDataStore();
 						},
 						selectEventName: 'sitesSelectItem',
-						title: Liferay.Util.sub(
+						title: sub(
 							Liferay.Language.get('select-x'),
 							Liferay.Language.get('site')
 						),

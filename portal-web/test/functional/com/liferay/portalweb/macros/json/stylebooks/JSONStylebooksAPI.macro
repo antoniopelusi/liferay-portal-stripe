@@ -13,6 +13,7 @@ definition {
 			  -d name=${styleBookEntryName} \
 			  -d styleBookEntryKey=
 		''';
+
 		var styleBookEntryId = JSONCurlUtil.post("${curl}", "$.styleBookEntryId");
 
 		if ("${styleBookEntryId}" == "") {

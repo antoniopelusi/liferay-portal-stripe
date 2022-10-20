@@ -63,4 +63,9 @@ public class UnrecognizedPropertyExceptionMapper
 		return new Problem(Response.Status.BAD_REQUEST, sb.toString());
 	}
 
+	@Override
+	protected boolean isSanitize() {
+		return false;
+	}
+
 }

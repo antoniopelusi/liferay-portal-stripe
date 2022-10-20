@@ -25,11 +25,9 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
-import com.liferay.portal.util.PropsUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -53,6 +51,7 @@ public class LayoutStructure {
 
 		try {
 			Set<String> deletedItemIds = new HashSet<>();
+			Set<String> deletedPortletIds = new HashSet<>();
 
 			JSONObject layoutStructureJSONObject =
 				JSONFactoryUtil.createJSONObject(layoutStructure);
@@ -63,6 +62,8 @@ public class LayoutStructure {
 			JSONObject itemsJSONObject =
 				layoutStructureJSONObject.getJSONObject("items");
 
+			List<FormStyledLayoutStructureItem> formStyledLayoutStructureItems =
+				new ArrayList<>();
 			Map<Long, LayoutStructureItem> fragmentLayoutStructureItems =
 				new HashMap<>(itemsJSONObject.length());
 			Map<String, LayoutStructureItem> layoutStructureItems =
@@ -74,19 +75,9 @@ public class LayoutStructure {
 
 				layoutStructureItems.put(key, layoutStructureItem);
 
-				if (layoutStructureItem instanceof
-						FragmentStyledLayoutStructureItem) {
-
-					FragmentStyledLayoutStructureItem
-						fragmentStyledLayoutStructureItem =
-							(FragmentStyledLayoutStructureItem)
-								layoutStructureItem;
-
-					fragmentLayoutStructureItems.put(
-						fragmentStyledLayoutStructureItem.
-							getFragmentEntryLinkId(),
-						fragmentStyledLayoutStructureItem);
-				}
+				_updateLayoutStructureItemMaps(
+					layoutStructureItem, formStyledLayoutStructureItems,
+					fragmentLayoutStructureItems);
 			}
 
 			JSONArray deletedLayoutStructureItemJSONArray = Optional.ofNullable(
@@ -109,15 +100,18 @@ public class LayoutStructure {
 					deletedItemIds.addAll(
 						deletedLayoutStructureItem.getChildrenItemIds());
 
+					deletedPortletIds.addAll(
+						deletedLayoutStructureItem.getPortletIds());
+
 					deletedLayoutStructureItems.put(
 						deletedLayoutStructureItem.getItemId(),
 						deletedLayoutStructureItem);
 				});
 
 			return new LayoutStructure(
-				deletedItemIds, deletedLayoutStructureItems,
-				fragmentLayoutStructureItems, layoutStructureItems,
-				rootItemsJSONObject.getString("main"));
+				deletedItemIds, deletedLayoutStructureItems, deletedPortletIds,
+				formStyledLayoutStructureItems, fragmentLayoutStructureItems,
+				layoutStructureItems, rootItemsJSONObject.getString("main"));
 		}
 		catch (JSONException jsonException) {
 			if (_log.isDebugEnabled()) {
@@ -131,6 +125,8 @@ public class LayoutStructure {
 	public LayoutStructure() {
 		_deletedItemIds = new HashSet<>();
 		_deletedLayoutStructureItems = new HashMap<>();
+		_deletedPortletIds = new HashSet<>();
+		_formStyledLayoutStructureItems = new ArrayList<>();
 		_fragmentLayoutStructureItems = new HashMap<>();
 		_layoutStructureItems = new HashMap<>();
 		_mainItemId = StringPool.BLANK;
@@ -197,6 +193,17 @@ public class LayoutStructure {
 		return dropZoneLayoutStructureItem;
 	}
 
+	public LayoutStructureItem addFormStyledLayoutStructureItem(
+		String parentItemId, int position) {
+
+		FormStyledLayoutStructureItem formStyledLayoutStructureItem =
+			new FormStyledLayoutStructureItem(parentItemId);
+
+		_updateLayoutStructure(formStyledLayoutStructureItem, position);
+
+		return formStyledLayoutStructureItem;
+	}
+
 	public LayoutStructureItem addFragmentDropZoneLayoutStructureItem(
 		String parentItemId, int position) {
 
@@ -228,6 +235,10 @@ public class LayoutStructure {
 
 		_layoutStructureItems.put(
 			layoutStructureItem.getItemId(), layoutStructureItem);
+
+		_updateLayoutStructureItemMaps(
+			layoutStructureItem, _formStyledLayoutStructureItems,
+			_fragmentLayoutStructureItems);
 
 		return layoutStructureItem;
 	}
@@ -363,6 +374,12 @@ public class LayoutStructure {
 		return null;
 	}
 
+	public List<FormStyledLayoutStructureItem>
+		getFormStyledLayoutStructureItems() {
+
+		return _formStyledLayoutStructureItems;
+	}
+
 	public Map<Long, LayoutStructureItem> getFragmentLayoutStructureItems() {
 		return _fragmentLayoutStructureItems;
 	}
@@ -396,6 +413,10 @@ public class LayoutStructure {
 
 	public boolean isItemMarkedForDeletion(String itemId) {
 		return _deletedItemIds.contains(itemId);
+	}
+
+	public boolean isPortletMarkedForDeletion(String portletId) {
+		return _deletedPortletIds.contains(portletId);
 	}
 
 	public void markLayoutStructureItemForDeletion(
@@ -435,6 +456,8 @@ public class LayoutStructure {
 
 		_deletedItemIds.add(itemId);
 		_deletedItemIds.addAll(deletedLayoutStructureItem.getChildrenItemIds());
+
+		_deletedPortletIds.addAll(portletIds);
 	}
 
 	public LayoutStructureItem moveLayoutStructureItem(
@@ -515,7 +538,7 @@ public class LayoutStructure {
 	public String toString() {
 		JSONObject jsonObject = toJSONObject();
 
-		return jsonObject.toJSONString();
+		return jsonObject.toString();
 	}
 
 	public void unmarkLayoutStructureItemForDeletion(String itemId) {
@@ -539,6 +562,9 @@ public class LayoutStructure {
 		_deletedItemIds.remove(itemId);
 		_deletedItemIds.removeAll(
 			deletedLayoutStructureItem.getChildrenItemIds());
+
+		_deletedPortletIds.removeAll(
+			deletedLayoutStructureItem.getPortletIds());
 
 		_deletedLayoutStructureItems.remove(itemId);
 	}
@@ -672,15 +698,43 @@ public class LayoutStructure {
 		return deletedLayoutStructureItems;
 	}
 
+	private static void _updateLayoutStructureItemMaps(
+		LayoutStructureItem layoutStructureItem,
+		List<FormStyledLayoutStructureItem> formStyledLayoutStructureItems,
+		Map<Long, LayoutStructureItem> fragmentLayoutStructureItems) {
+
+		if (layoutStructureItem instanceof FormStyledLayoutStructureItem) {
+			FormStyledLayoutStructureItem formStyledLayoutStructureItem =
+				(FormStyledLayoutStructureItem)layoutStructureItem;
+
+			formStyledLayoutStructureItems.add(formStyledLayoutStructureItem);
+		}
+		else if (layoutStructureItem instanceof
+					FragmentStyledLayoutStructureItem) {
+
+			FragmentStyledLayoutStructureItem
+				fragmentStyledLayoutStructureItem =
+					(FragmentStyledLayoutStructureItem)layoutStructureItem;
+
+			fragmentLayoutStructureItems.put(
+				fragmentStyledLayoutStructureItem.getFragmentEntryLinkId(),
+				fragmentStyledLayoutStructureItem);
+		}
+	}
+
 	private LayoutStructure(
 		Set<String> deletedItemIds,
 		Map<String, DeletedLayoutStructureItem> deletedLayoutStructureItems,
+		Set<String> deletedPortletIds,
+		List<FormStyledLayoutStructureItem> formStyledLayoutStructureItems,
 		Map<Long, LayoutStructureItem> fragmentLayoutStructureItems,
 		Map<String, LayoutStructureItem> layoutStructureItems,
 		String mainItemId) {
 
 		_deletedItemIds = deletedItemIds;
 		_deletedLayoutStructureItems = deletedLayoutStructureItems;
+		_deletedPortletIds = deletedPortletIds;
+		_formStyledLayoutStructureItems = formStyledLayoutStructureItems;
 		_fragmentLayoutStructureItems = fragmentLayoutStructureItems;
 		_layoutStructureItems = layoutStructureItems;
 		_mainItemId = mainItemId;
@@ -693,12 +747,9 @@ public class LayoutStructure {
 			new ColumnLayoutStructureItem(parentItemId);
 
 		columnLayoutStructureItem.setSize(size);
-
-		if (GetterUtil.getBoolean(PropsUtil.get("feature.flag.LPS-119551"))) {
-			columnLayoutStructureItem.setViewportConfiguration(
-				ViewportSize.MOBILE_LANDSCAPE.getViewportSizeId(),
-				JSONUtil.put("size", 12));
-		}
+		columnLayoutStructureItem.setViewportConfiguration(
+			ViewportSize.MOBILE_LANDSCAPE.getViewportSizeId(),
+			JSONUtil.put("size", 12));
 
 		_updateLayoutStructure(columnLayoutStructureItem, position);
 	}
@@ -794,8 +845,6 @@ public class LayoutStructure {
 			}
 
 			if (!updateEmpty &&
-				GetterUtil.getBoolean(
-					PropsUtil.get("feature.flag.LPS-119551")) &&
 				Objects.equals(
 					ViewportSize.MOBILE_LANDSCAPE.getViewportSizeId(),
 					viewportSizeId)) {
@@ -826,8 +875,6 @@ public class LayoutStructure {
 
 			if (columnViewportConfigurationJSONObject.has("size") &&
 				!updateEmpty &&
-				GetterUtil.getBoolean(
-					PropsUtil.get("feature.flag.LPS-119551")) &&
 				Objects.equals(
 					ViewportSize.PORTRAIT_MOBILE.getViewportSizeId(),
 					viewportSizeId)) {
@@ -877,18 +924,15 @@ public class LayoutStructure {
 
 		viewportConfigurationJSONObject.put("numberOfColumns", numberOfColumns);
 
-		if (GetterUtil.getBoolean(PropsUtil.get("feature.flag.LPS-119551")) &&
-			Objects.equals(
+		if (Objects.equals(
 				ViewportSize.MOBILE_LANDSCAPE.getViewportSizeId(),
 				viewportSizeId)) {
 
 			viewportConfigurationJSONObject.put("modulesPerRow", 1);
 		}
-		else if (GetterUtil.getBoolean(
-					PropsUtil.get("feature.flag.LPS-119551")) &&
-				 Objects.equals(
-					 ViewportSize.PORTRAIT_MOBILE.getViewportSizeId(),
-					 viewportSizeId) &&
+		else if (Objects.equals(
+					ViewportSize.PORTRAIT_MOBILE.getViewportSizeId(),
+					viewportSizeId) &&
 				 viewportConfigurationJSONObject.has("modulesPerRow")) {
 
 			viewportConfigurationJSONObject.remove("modulesPerRow");
@@ -919,6 +963,9 @@ public class LayoutStructure {
 	private final Set<String> _deletedItemIds;
 	private final Map<String, DeletedLayoutStructureItem>
 		_deletedLayoutStructureItems;
+	private final Set<String> _deletedPortletIds;
+	private final List<FormStyledLayoutStructureItem>
+		_formStyledLayoutStructureItems;
 	private final Map<Long, LayoutStructureItem> _fragmentLayoutStructureItems;
 	private final Map<String, LayoutStructureItem> _layoutStructureItems;
 	private String _mainItemId;

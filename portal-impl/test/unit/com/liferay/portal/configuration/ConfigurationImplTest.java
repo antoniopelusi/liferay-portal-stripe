@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayInputStream;
 import com.liferay.portal.kernel.model.CompanyConstants;
 import com.liferay.portal.kernel.test.rule.NewEnv;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
+import com.liferay.portal.util.PropsFiles;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,6 +59,7 @@ public class ConfigurationImplTest {
 	@NewEnv(type = NewEnv.Type.JVM)
 	@NewEnv.Environment(
 		variables = {
+			"LIFERAY_INCLUDE_MINUS_AND_MINUS_OVERRIDE=a.properties,b.properties",
 			"LIFERAY_LIFERAY_PERIOD_HOME=/liferay",
 			"LIFERAY_SETUP_PERIOD_WIZARD_PERIOD_ENABLED=false",
 			"LIFERAY_INDEX_PERIOD_ON_PERIOD_STARTUP=false",
@@ -103,6 +105,25 @@ public class ConfigurationImplTest {
 			configurationImpl.get(
 				"layout.static.portlets.start.column-1",
 				new Filter("user", "/home")));
+
+		// LPS-151913
+
+		Assert.assertArrayEquals(
+			new String[0], configurationImpl.getArray("include-and-override"));
+
+		configurationImpl = new ConfigurationImpl(
+			testResourceClassLoader, PropsFiles.PORTAL, CompanyConstants.SYSTEM,
+			null);
+
+		String[] includeAndOverrides = configurationImpl.getArray(
+			"include-and-override");
+
+		Assert.assertEquals(
+			"a.properties",
+			includeAndOverrides[includeAndOverrides.length - 2]);
+		Assert.assertEquals(
+			"b.properties",
+			includeAndOverrides[includeAndOverrides.length - 1]);
 	}
 
 	@NewEnv(type = NewEnv.Type.JVM)

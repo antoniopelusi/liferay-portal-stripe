@@ -47,7 +47,7 @@
 </tr>
 <tr>
 	<td>DRAFT_AUTO_SAVE</td>
-	<td>//div/small[contains(@id,'saveStatus') and contains(.,'Draft Saved at')]</td>
+	<td>//div[contains(@class,'management-bar')]//span[contains(@id,'saveStatus') and contains(.,'Draft Saved at')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -57,7 +57,7 @@
 </tr>
 <tr>
 	<td>EMPTY_INFO</td>
-	<td>//div[contains(@class,'sheet')]/div[contains(@class,'sheet-text')]</td>
+	<td>//div[contains(@class,'sheet')]/div[contains(@class,'sheet-text')] | //div[contains(@class,'taglib-empty-result-message')]/div[contains(@class,'text-secondary')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -73,6 +73,11 @@
 <tr>
 	<td>SUBTITLE</td>
 	<td>//p[contains(@class,'text-secondary')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SUBTITLE_WITH_LABEL</td>
+	<td>//div[*//label[normalize-space()='${fieldLabel}']]//*[self::div or self::p][contains(@class,'text-secondary')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -473,6 +478,11 @@
 <tr>
 	<td>WARNING_SPECIFIC</td>
 	<td>//div[contains(@class,'alert') and (contains(@class,'alert-warning'))][contains(.,'${key_warningMessage}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WARNING_SPECIFIC_LINK</td>
+	<td>//div[contains(@class,'alert') and (contains(@class,'alert-warning'))]/a[contains(.,'${key_warningMessage}')]</td>
 	<td></td>
 </tr>
 <tr>

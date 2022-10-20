@@ -153,6 +153,30 @@
 				</licenses>
 			</library>
 			<library>
+				<file-name>lib/development/byte-buddy.jar</file-name>
+				<version>1.12.10</version>
+				<project-name>Byte Buddy</project-name>
+				<project-url>https://github.com/raphw/byte-buddy</project-url>
+				<licenses>
+					<license>
+						<license-name>Apache License 2.0</license-name>
+						<license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
+					</license>
+				</licenses>
+			</library>
+			<library>
+				<file-name>lib/development/byte-buddy-agent.jar</file-name>
+				<version>1.12.10</version>
+				<project-name>Byte Buddy Agent</project-name>
+				<project-url>https://github.com/raphw/byte-buddy</project-url>
+				<licenses>
+					<license>
+						<license-name>Apache License 2.0</license-name>
+						<license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
+					</license>
+				</licenses>
+			</library>
+			<library>
 				<file-name>lib/development/catalina.jar</file-name>
 				<version>9.0.56</version>
 				<project-name>Tomcat</project-name>
@@ -166,7 +190,7 @@
 			</library>
 			<library>
 				<file-name>lib/development/com.liferay.jenkins.results.parser.jar</file-name>
-				<version>1.0.1029</version>
+				<version>1.0.1060</version>
 				<project-name>Liferay Jenkins Results Parser</project-name>
 				<licenses>
 					<license>
@@ -177,7 +201,7 @@
 			</library>
 			<library>
 				<file-name>lib/development/com.liferay.poshi.core.jar</file-name>
-				<version>1.0.59</version>
+				<version>1.0.63</version>
 				<project-name>Liferay Poshi Core</project-name>
 				<licenses>
 					<license>
@@ -191,6 +215,18 @@
 				<version>4.2</version>
 				<project-name>Apache Commons Collections</project-name>
 				<project-url>http://commons.apache.org/proper/commons-collections/</project-url>
+				<licenses>
+					<license>
+						<license-name>Apache License 2.0</license-name>
+						<license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
+					</license>
+				</licenses>
+			</library>
+			<library>
+				<file-name>lib/development/commons-compress.jar</file-name>
+				<version>1.21</version>
+				<project-name>Commons Compress</project-name>
+				<project-url>http://commons.apache.org/compress</project-url>
 				<licenses>
 					<license>
 						<license-name>Apache License 2.0</license-name>
@@ -267,18 +303,6 @@
 					<license>
 						<license-name>BSD Style License</license-name>
 						<license-url>http://en.wikipedia.org/wiki/BSD_licenses</license-url>
-					</license>
-				</licenses>
-			</library>
-			<library>
-				<file-name>lib/development/gson.jar</file-name>
-				<version>2.2.4</version>
-				<project-name>Gson</project-name>
-				<project-url>http://code.google.com/p/google-gson</project-url>
-				<licenses>
-					<license>
-						<license-name>Apache License 2.0</license-name>
-						<license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
 					</license>
 				</licenses>
 			</library>
@@ -603,10 +627,22 @@
 				</licenses>
 			</library>
 			<library>
-				<file-name>lib/development/mockito.jar</file-name>
-				<version>1.9.5</version>
+				<file-name>lib/development/mockito-core.jar</file-name>
+				<version>4.5.1</version>
 				<project-name>Mockito</project-name>
-				<project-url>http://code.google.com/p/mockito</project-url>
+				<project-url>https://github.com/mockito/mockito</project-url>
+				<licenses>
+					<license>
+						<license-name>MIT License</license-name>
+						<license-url>http://opensource.org/licenses/MIT</license-url>
+					</license>
+				</licenses>
+			</library>
+			<library>
+				<file-name>lib/development/mockito-inline.jar</file-name>
+				<version>4.5.1</version>
+				<project-name>Mockito</project-name>
+				<project-url>https://github.com/mockito/mockito</project-url>
 				<licenses>
 					<license>
 						<license-name>MIT License</license-name>
@@ -616,7 +652,7 @@
 			</library>
 			<library>
 				<file-name>lib/development/mysql.jar</file-name>
-				<version>8.0.21</version>
+				<version>8.0.29</version>
 				<project-name>MySQL Connector/J</project-name>
 				<project-url>http://www.mysql.com/products/connector/j</project-url>
 				<licenses>
@@ -724,85 +760,13 @@
 			</library>
 			<library>
 				<file-name>lib/development/postgresql.jar</file-name>
-				<version>42.2.5</version>
+				<version>42.4.1</version>
 				<project-name>PostgreSQL JDBC Driver</project-name>
 				<project-url>http://jdbc.postgresql.org</project-url>
 				<licenses>
 					<license>
 						<license-name>BSD Style License</license-name>
 						<license-url>http://en.wikipedia.org/wiki/BSD_licenses</license-url>
-					</license>
-				</licenses>
-			</library>
-			<library>
-				<file-name>lib/development/powermock-api-mockito.jar</file-name>
-				<version>1.6.1</version>
-				<project-name>Powermock</project-name>
-				<project-url>http://code.google.com/p/powermock</project-url>
-				<licenses>
-					<license>
-						<license-name>Apache License 2.0</license-name>
-						<license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
-					</license>
-				</licenses>
-			</library>
-			<library>
-				<file-name>lib/development/powermock-api-support.jar</file-name>
-				<version>1.6.1</version>
-				<project-name>Powermock</project-name>
-				<project-url>http://code.google.com/p/powermock</project-url>
-				<licenses>
-					<license>
-						<license-name>Apache License 2.0</license-name>
-						<license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
-					</license>
-				</licenses>
-			</library>
-			<library>
-				<file-name>lib/development/powermock-core.jar</file-name>
-				<version>1.6.1</version>
-				<project-name>Powermock</project-name>
-				<project-url>http://code.google.com/p/powermock</project-url>
-				<licenses>
-					<license>
-						<license-name>Apache License 2.0</license-name>
-						<license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
-					</license>
-				</licenses>
-			</library>
-			<library>
-				<file-name>lib/development/powermock-module-junit4.jar</file-name>
-				<version>1.6.1</version>
-				<project-name>Powermock</project-name>
-				<project-url>http://code.google.com/p/powermock</project-url>
-				<licenses>
-					<license>
-						<license-name>Apache License 2.0</license-name>
-						<license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
-					</license>
-				</licenses>
-			</library>
-			<library>
-				<file-name>lib/development/powermock-module-junit4-common.jar</file-name>
-				<version>1.6.1</version>
-				<project-name>Powermock</project-name>
-				<project-url>http://code.google.com/p/powermock</project-url>
-				<licenses>
-					<license>
-						<license-name>Apache License 2.0</license-name>
-						<license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
-					</license>
-				</licenses>
-			</library>
-			<library>
-				<file-name>lib/development/powermock-reflect.jar</file-name>
-				<version>1.6.1</version>
-				<project-name>Powermock</project-name>
-				<project-url>http://code.google.com/p/powermock</project-url>
-				<licenses>
-					<license>
-						<license-name>Apache License 2.0</license-name>
-						<license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
 					</license>
 				</licenses>
 			</library>
@@ -917,7 +881,7 @@
 			</library>
 			<library>
 				<file-name>lib/development/spring-instrument.jar</file-name>
-				<version>5.2.20</version>
+				<version>5.2.22</version>
 				<project-name>Spring</project-name>
 				<project-url>http://www.springframework.org</project-url>
 				<licenses>
@@ -947,7 +911,7 @@
 			</library>
 			<library>
 				<file-name>lib/development/spring-test.jar</file-name>
-				<version>5.2.20</version>
+				<version>5.2.22</version>
 				<project-name>Spring</project-name>
 				<project-url>http://www.springframework.org</project-url>
 				<licenses>
@@ -1071,54 +1035,6 @@
 				</licenses>
 			</library>
 			<library>
-				<file-name>lib/portal/commons-beanutils.jar</file-name>
-				<version>1.9.4</version>
-				<project-name>Commons Beanutils</project-name>
-				<project-url>http://commons.apache.org/beanutils</project-url>
-				<licenses>
-					<license>
-						<license-name>Apache License 2.0</license-name>
-						<license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
-					</license>
-				</licenses>
-			</library>
-			<library>
-				<file-name>lib/portal/commons-codec.jar</file-name>
-				<version>1.13</version>
-				<project-name>Commons Codec</project-name>
-				<project-url>http://commons.apache.org/codec</project-url>
-				<licenses>
-					<license>
-						<license-name>Apache License 2.0</license-name>
-						<license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
-					</license>
-				</licenses>
-			</library>
-			<library>
-				<file-name>lib/portal/commons-collections.jar</file-name>
-				<version>3.2.2</version>
-				<project-name>Commons Collections</project-name>
-				<project-url>http://commons.apache.org/collections</project-url>
-				<licenses>
-					<license>
-						<license-name>Apache License 2.0</license-name>
-						<license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
-					</license>
-				</licenses>
-			</library>
-			<library>
-				<file-name>lib/portal/commons-compress.jar</file-name>
-				<version>1.21</version>
-				<project-name>Commons Compress</project-name>
-				<project-url>http://commons.apache.org/compress</project-url>
-				<licenses>
-					<license>
-						<license-name>Apache License 2.0</license-name>
-						<license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
-					</license>
-				</licenses>
-			</library>
-			<library>
 				<file-name>lib/portal/commons-configuration.jar</file-name>
 				<version>1.10.LIFERAY-PATCHED-2</version>
 				<project-name>Commons Configuration</project-name>
@@ -1127,32 +1043,6 @@
 					<license>
 						<license-name>Apache License 2.0</license-name>
 						<license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
-					</license>
-				</licenses>
-			</library>
-			<library>
-				<file-name>lib/portal/commons-fileupload.jar</file-name>
-				<version>1.3.3</version>
-				<project-name>Commons FileUpload</project-name>
-				<project-url>http://commons.apache.org/fileupload</project-url>
-				<licenses>
-					<license>
-						<license-name>Apache License 2.0</license-name>
-						<license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
-						<copyright-notice>Copyright (c) 2002-2006 The Apache Software Foundation</copyright-notice>
-					</license>
-				</licenses>
-			</library>
-			<library>
-				<file-name>lib/portal/commons-io.jar</file-name>
-				<version>2.8.0</version>
-				<project-name>Commons IO</project-name>
-				<project-url>http://commons.apache.org/io</project-url>
-				<licenses>
-					<license>
-						<license-name>Apache License 2.0</license-name>
-						<license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
-						<copyright-notice>Copyright (c) 2001-2007 The Apache Software Foundation</copyright-notice>
 					</license>
 				</licenses>
 			</library>
@@ -1210,7 +1100,7 @@
 			</library>
 			<library>
 				<file-name>lib/portal/hikaricp.jar</file-name>
-				<version>2.6.3</version>
+				<version>4.0.3</version>
 				<project-name>HikariCP</project-name>
 				<project-url>https://github.com/brettwooldridge/HikariCP</project-url>
 				<licenses>
@@ -1221,44 +1111,8 @@
 				</licenses>
 			</library>
 			<library>
-				<file-name>lib/portal/httpclient.jar</file-name>
-				<version>4.5.13</version>
-				<project-name>HttpComponents</project-name>
-				<project-url>http://hc.apache.org</project-url>
-				<licenses>
-					<license>
-						<license-name>Apache License 2.0</license-name>
-						<license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
-					</license>
-				</licenses>
-			</library>
-			<library>
-				<file-name>lib/portal/httpcore.jar</file-name>
-				<version>4.4.14</version>
-				<project-name>HttpComponents</project-name>
-				<project-url>http://hc.apache.org</project-url>
-				<licenses>
-					<license>
-						<license-name>Apache License 2.0</license-name>
-						<license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
-					</license>
-				</licenses>
-			</library>
-			<library>
-				<file-name>lib/portal/httpmime.jar</file-name>
-				<version>4.5.13</version>
-				<project-name>HttpComponents</project-name>
-				<project-url>http://hc.apache.org</project-url>
-				<licenses>
-					<license>
-						<license-name>Apache License 2.0</license-name>
-						<license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
-					</license>
-				</licenses>
-			</library>
-			<library>
 				<file-name>lib/portal/jabsorb.jar</file-name>
-				<version>1.3.2.LIFERAY-PATCHED-1</version>
+				<version>1.3.2.LIFERAY-PATCHED-2</version>
 				<project-name>jabsorb</project-name>
 				<project-url>http://jabsorb.org</project-url>
 				<licenses>
@@ -1272,20 +1126,8 @@
 				</comments>
 			</library>
 			<library>
-				<file-name>lib/portal/jackson-databind.jar</file-name>
-				<version>2.13.2.2</version>
-				<project-name>Jackson Databind</project-name>
-				<project-url>https://github.com/FasterXML/jackson-databind</project-url>
-				<licenses>
-					<license>
-						<license-name>Apache License 2.0</license-name>
-						<license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
-					</license>
-				</licenses>
-			</library>
-			<library>
 				<file-name>lib/portal/javassist.jar</file-name>
-				<version>3.18.2 GA</version>
+				<version>3.29.0 GA</version>
 				<project-name>Javassist</project-name>
 				<project-url>http://www.csg.is.titech.ac.jp/~chiba/javassist</project-url>
 				<licenses>
@@ -1322,37 +1164,13 @@
 			</library>
 			<library>
 				<file-name>lib/portal/jaxb-runtime.jar</file-name>
-				<version>2.3.1</version>
+				<version>2.3.1.LIFERAY-PATCHED-1</version>
 				<project-name>Java Architecture for XML Binding</project-name>
 				<project-url>https://javaee.github.io/jaxb-v2/</project-url>
 				<licenses>
 					<license>
 						<license-name>CDDL 1.0</license-name>
 						<license-url>http://glassfish.java.net/public/CDDLv1.0.html</license-url>
-					</license>
-				</licenses>
-			</library>
-			<library>
-				<file-name>lib/portal/jaxrpc.jar</file-name>
-				<version>1.1</version>
-				<project-name>Java API for XML-based RPC</project-name>
-				<project-url>http://jax-rpc.dev.java.net</project-url>
-				<licenses>
-					<license>
-						<license-name>CDDL 1.0</license-name>
-						<license-url>http://glassfish.java.net/public/CDDLv1.0.html</license-url>
-					</license>
-				</licenses>
-			</library>
-			<library>
-				<file-name>lib/portal/jaxrs-api.jar</file-name>
-				<version>2.1</version>
-				<project-name>Java API for RESTful Web Services</project-name>
-				<project-url>http://jax-rs-spec.java.net</project-url>
-				<licenses>
-					<license>
-						<license-name>CDDL 1.1</license-name>
-						<license-url>https://oss.oracle.com/licenses/CDDL-1.1</license-url>
 					</license>
 				</licenses>
 			</library>
@@ -1383,33 +1201,9 @@
 				</licenses>
 			</library>
 			<library>
-				<file-name>lib/portal/jersey-common.jar</file-name>
-				<version>2.26</version>
-				<project-name>Jersey core common packages</project-name>
-				<project-url>https://jersey.github.io/</project-url>
-				<licenses>
-					<license>
-						<license-name>CDDL 1.1</license-name>
-						<license-url>https://oss.oracle.com/licenses/CDDL+GPL-1.1</license-url>
-					</license>
-				</licenses>
-			</library>
-			<library>
 				<file-name>lib/portal/jodd-json.jar</file-name>
 				<version>6.0.3</version>
 				<project-name>Jodd JSON</project-name>
-				<project-url>http://jodd.org</project-url>
-				<licenses>
-					<license>
-						<license-name>BSD Style License</license-name>
-						<license-url>http://en.wikipedia.org/wiki/BSD_licenses</license-url>
-					</license>
-				</licenses>
-			</library>
-			<library>
-				<file-name>lib/portal/jodd-proxetta.jar</file-name>
-				<version>6.0.0</version>
-				<project-name>Jodd Proxetta</project-name>
 				<project-url>http://jodd.org</project-url>
 				<licenses>
 					<license>
@@ -1432,7 +1226,7 @@
 			</library>
 			<library>
 				<file-name>lib/portal/json-java.jar</file-name>
-				<version>20180813</version>
+				<version>20220320</version>
 				<project-name>JSON in Java</project-name>
 				<project-url>https://github.com/douglascrockford/JSON-java</project-url>
 				<licenses>
@@ -1542,7 +1336,7 @@
 			</library>
 			<library>
 				<file-name>lib/portal/spring-aop.jar</file-name>
-				<version>5.2.20</version>
+				<version>5.2.22</version>
 				<project-name>Spring</project-name>
 				<project-url>http://www.springframework.org</project-url>
 				<licenses>
@@ -1557,7 +1351,7 @@
 			</library>
 			<library>
 				<file-name>lib/portal/spring-beans.jar</file-name>
-				<version>5.2.20</version>
+				<version>5.2.22</version>
 				<project-name>Spring</project-name>
 				<project-url>http://www.springframework.org</project-url>
 				<licenses>
@@ -1572,7 +1366,7 @@
 			</library>
 			<library>
 				<file-name>lib/portal/spring-context.jar</file-name>
-				<version>5.2.20</version>
+				<version>5.2.22</version>
 				<project-name>Spring</project-name>
 				<project-url>http://www.springframework.org</project-url>
 				<licenses>
@@ -1587,7 +1381,7 @@
 			</library>
 			<library>
 				<file-name>lib/portal/spring-core.jar</file-name>
-				<version>5.2.20</version>
+				<version>5.2.22</version>
 				<project-name>Spring</project-name>
 				<project-url>http://www.springframework.org</project-url>
 				<licenses>
@@ -1602,7 +1396,7 @@
 			</library>
 			<library>
 				<file-name>lib/portal/spring-expression.jar</file-name>
-				<version>5.2.20</version>
+				<version>5.2.22</version>
 				<project-name>Spring</project-name>
 				<project-url>http://www.springframework.org</project-url>
 				<licenses>
@@ -1617,7 +1411,7 @@
 			</library>
 			<library>
 				<file-name>lib/portal/spring-jdbc.jar</file-name>
-				<version>5.2.20</version>
+				<version>5.2.22</version>
 				<project-name>Spring</project-name>
 				<project-url>http://www.springframework.org</project-url>
 				<licenses>
@@ -1632,7 +1426,7 @@
 			</library>
 			<library>
 				<file-name>lib/portal/spring-orm.jar</file-name>
-				<version>5.2.20.LIFERAY-PATCHED-1</version>
+				<version>5.2.22.LIFERAY-PATCHED-1</version>
 				<project-name>Spring</project-name>
 				<project-url>http://www.springframework.org</project-url>
 				<licenses>
@@ -1647,7 +1441,7 @@
 			</library>
 			<library>
 				<file-name>lib/portal/spring-tx.jar</file-name>
-				<version>5.2.20</version>
+				<version>5.2.22</version>
 				<project-name>Spring</project-name>
 				<project-url>http://www.springframework.org</project-url>
 				<licenses>
@@ -1662,7 +1456,7 @@
 			</library>
 			<library>
 				<file-name>lib/portal/spring-web.jar</file-name>
-				<version>5.2.20</version>
+				<version>5.2.22</version>
 				<project-name>Spring</project-name>
 				<project-url>http://www.springframework.org</project-url>
 				<licenses>
@@ -1674,18 +1468,6 @@
 				<comments>
 					This does not include missing OSGi headers. See LPS-49575.
 				</comments>
-			</library>
-			<library>
-				<file-name>lib/portal/portletmvc4spring-framework.jar</file-name>
-				<version>5.2.0</version>
-				<project-name>PortletMVC4Spring</project-name>
-				<project-url>https://github.com/liferay/portletmvc4spring</project-url>
-				<licenses>
-					<license>
-						<license-name>Apache License 2.0</license-name>
-						<license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
-					</license>
-				</licenses>
 			</library>
 			<library>
 				<file-name>lib/portal/stax-ex.jar</file-name>
@@ -1723,7 +1505,7 @@
 			</library>
 			<library>
 				<file-name>lib/portal/xercesImpl.jar</file-name>
-				<version>2.12.1</version>
+				<version>2.12.2</version>
 				<project-name>Xerces</project-name>
 				<project-url>http://xerces.apache.org/xerces2-j</project-url>
 				<licenses>
@@ -1764,41 +1546,6 @@
 						<license-name>Apache License 2.0</license-name>
 						<license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
 						<copyright-notice>Copyright (c) 2000 World Wide Web Consortium, http://www.w3.org</copyright-notice>
-					</license>
-				</licenses>
-			</library>
-			<library>
-				<file-name>lib/portal/xmlsec.jar</file-name>
-				<version>2.1.7</version>
-				<project-name>XML Security</project-name>
-				<project-url>http://santuario.apache.org</project-url>
-				<licenses>
-					<license>
-						<license-name>Apache License 2.0</license-name>
-						<license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
-						<copyright-notice>Copyright (c) 1999-2006 The Apache Software Foundation.</copyright-notice>
-					</license>
-					<license>
-						<license-name>Apache License 2.0</license-name>
-						<license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
-						<copyright-notice>Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.</copyright-notice>
-					</license>
-					<license>
-						<license-name>Apache License 2.0</license-name>
-						<license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
-						<copyright-notice>(c) 2001, Institute for Data Communications Systems, http://www.nue.et-inf.uni-siegen.de</copyright-notice>
-					</license>
-				</licenses>
-			</library>
-			<library>
-				<file-name>lib/portal/xz.jar</file-name>
-				<version>1.8</version>
-				<project-name>XZ</project-name>
-				<project-url>http://tukaani.org/xz/java.html</project-url>
-				<licenses>
-					<license>
-						<license-name>Public Domain</license-name>
-						<license-url>http://en.wikipedia.org/wiki/Public_domain</license-url>
 					</license>
 				</licenses>
 			</library>

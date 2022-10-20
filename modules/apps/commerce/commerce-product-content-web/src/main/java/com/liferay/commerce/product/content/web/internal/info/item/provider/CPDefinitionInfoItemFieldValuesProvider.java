@@ -14,10 +14,10 @@
 
 package com.liferay.commerce.product.content.web.internal.info.item.provider;
 
+import com.liferay.asset.info.item.provider.AssetEntryInfoItemFieldSetProvider;
 import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.asset.kernel.service.AssetCategoryLocalService;
-import com.liferay.commerce.context.CommerceContext;
-import com.liferay.commerce.context.CommerceContextFactory;
+import com.liferay.commerce.context.CommerceContextThreadLocal;
 import com.liferay.commerce.currency.model.CommerceMoney;
 import com.liferay.commerce.inventory.CPDefinitionInventoryEngine;
 import com.liferay.commerce.inventory.CPDefinitionInventoryEngineRegistry;
@@ -33,19 +33,22 @@ import com.liferay.commerce.product.service.CommerceChannelLocalService;
 import com.liferay.commerce.product.util.CPDefinitionHelper;
 import com.liferay.commerce.product.util.CPInstanceHelper;
 import com.liferay.commerce.service.CPDefinitionInventoryLocalService;
+import com.liferay.expando.info.item.provider.ExpandoInfoItemFieldSetProvider;
+import com.liferay.info.exception.NoSuchInfoItemException;
 import com.liferay.info.field.InfoFieldValue;
 import com.liferay.info.item.InfoItemFieldValues;
 import com.liferay.info.item.InfoItemReference;
 import com.liferay.info.item.field.reader.InfoItemFieldReaderFieldSetProvider;
 import com.liferay.info.item.provider.InfoItemFieldValuesProvider;
 import com.liferay.info.localized.InfoLocalizedValue;
+import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.LocaleUtil;
-import com.liferay.portal.kernel.util.Portal;
+import com.liferay.template.info.item.provider.TemplateInfoItemFieldSetProvider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,6 +64,7 @@ import org.osgi.service.component.annotations.Reference;
  * @author Eudaldo Alonso
  * @author Marco Leo
  * @author Alec Sloan
+ * @author Allen Ziegenfus
  */
 @Component(
 	enabled = false, immediate = true,
@@ -73,16 +77,32 @@ public class CPDefinitionInfoItemFieldValuesProvider
 	public InfoItemFieldValues getInfoItemFieldValues(
 		CPDefinition cpDefinition) {
 
-		return InfoItemFieldValues.builder(
-		).infoFieldValues(
-			_getCPDefinitionInfoFieldValues(cpDefinition)
-		).infoFieldValues(
-			_infoItemFieldReaderFieldSetProvider.getInfoFieldValues(
-				CPDefinition.class.getName(), cpDefinition)
-		).infoItemReference(
-			new InfoItemReference(
-				CPDefinition.class.getName(), cpDefinition.getCPDefinitionId())
-		).build();
+		try {
+			return InfoItemFieldValues.builder(
+			).infoFieldValues(
+				_getCPDefinitionInfoFieldValues(cpDefinition)
+			).infoFieldValues(
+				_assetEntryInfoItemFieldSetProvider.getInfoFieldValues(
+					CPDefinition.class.getName(),
+					cpDefinition.getCPDefinitionId())
+			).infoFieldValues(
+				_expandoInfoItemFieldSetProvider.getInfoFieldValues(
+					CPDefinition.class.getName(), cpDefinition)
+			).infoFieldValues(
+				_templateInfoItemFieldSetProvider.getInfoFieldValues(
+					CPDefinition.class.getName(), cpDefinition)
+			).infoFieldValues(
+				_infoItemFieldReaderFieldSetProvider.getInfoFieldValues(
+					CPDefinition.class.getName(), cpDefinition)
+			).infoItemReference(
+				new InfoItemReference(
+					CPDefinition.class.getName(),
+					cpDefinition.getCPDefinitionId())
+			).build();
+		}
+		catch (NoSuchInfoItemException noSuchInfoItemException) {
+			return ReflectionUtil.throwException(noSuchInfoItemException);
+		}
 	}
 
 	private String _getAvailabilityStatus(
@@ -514,15 +534,10 @@ public class CPDefinitionInfoItemFieldValuesProvider
 			return StringPool.BLANK;
 		}
 
-		CommerceContext commerceContext = _commerceContextFactory.create(
-			themeDisplay.getCompanyId(),
-			_commerceChannelLocalService.getCommerceChannelGroupIdBySiteGroupId(
-				themeDisplay.getScopeGroupId()),
-			themeDisplay.getUserId(), 0, 0);
-
 		CommerceMoney commerceMoney =
 			_commerceProductPriceCalculation.getFinalPrice(
-				cpInstance.getCPInstanceId(), 1, commerceContext);
+				cpInstance.getCPInstanceId(), 1,
+				CommerceContextThreadLocal.get());
 
 		if (commerceMoney.isEmpty()) {
 			return StringPool.BLANK;
@@ -577,10 +592,11 @@ public class CPDefinitionInfoItemFieldValuesProvider
 	private AssetCategoryLocalService _assetCategoryLocalService;
 
 	@Reference
-	private CommerceChannelLocalService _commerceChannelLocalService;
+	private AssetEntryInfoItemFieldSetProvider
+		_assetEntryInfoItemFieldSetProvider;
 
 	@Reference
-	private CommerceContextFactory _commerceContextFactory;
+	private CommerceChannelLocalService _commerceChannelLocalService;
 
 	@Reference
 	private CommerceInventoryEngine _commerceInventoryEngine;
@@ -606,10 +622,13 @@ public class CPDefinitionInfoItemFieldValuesProvider
 	private CPInstanceHelper _cpInstanceHelper;
 
 	@Reference
+	private ExpandoInfoItemFieldSetProvider _expandoInfoItemFieldSetProvider;
+
+	@Reference
 	private InfoItemFieldReaderFieldSetProvider
 		_infoItemFieldReaderFieldSetProvider;
 
 	@Reference
-	private Portal _portal;
+	private TemplateInfoItemFieldSetProvider _templateInfoItemFieldSetProvider;
 
 }

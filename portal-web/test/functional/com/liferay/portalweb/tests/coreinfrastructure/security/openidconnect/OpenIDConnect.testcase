@@ -12,6 +12,129 @@ definition {
 		User.firstLoginPG();
 	}
 
+	@description = "This is a use case for LPS-139642 TC6-3: Assert error message when add invalid auth server local metadata."
+	@priority = "3"
+	test AssertErrorMessageWhenAddInvalidAuthServerLocalMetadata {
+		property test.name.skip.portal.instance = "OpenIDConnect#AssertErrorMessageWhenAddInvalidAuthServerLocalMetadata";
+
+		task ("Add Auth Server Local Metadata with invalid metadata") {
+			OAuthClient.openOAuthClientAdmin(navbar = "Auth Server Local Metadata");
+
+			OAuthClient.addInvalidAuthServer();
+		}
+
+		task ("Assert error message displays in the UI") {
+			Alert.viewErrorMessage(errorMessage = "Invalid Authorization Server Metadata: The value must not be null or empty string");
+		}
+
+		task ("Add Auth Server Local Metadata with empty metadata") {
+			OAuthClient.openOAuthClientAdmin(navbar = "Auth Server Local Metadata");
+
+			OAuthClient.addInvalidAuthServer(authServerMetadata = "");
+		}
+
+		task ("Assert error message pops up") {
+			AssertConfirm.assertConfirmationNoError(value1 = "Ill-formatted Metadata JSON");
+		}
+	}
+
+	@description = "This is a use case for LPS-139642 TC2: Verify OAuth client configurations could be removed and readded."
+	@priority = "4"
+	test AssertOAuthClientCanBeRemovedAndReadded {
+		property test.name.skip.portal.instance = "OpenIDConnect#AssertOAuthClientCouldBeRemovedAndReadded";
+
+		task ("Given: Add an OAuth Client") {
+			OAuthClient.openOAuthClientAdmin(navbar = "Clients");
+
+			OAuthClient.addClient(
+				jsonFileName = "okta.json",
+				wellknownURI = "https://dev-5081331.okta.com/.well-known/openid-configuration");
+		}
+
+		task ("When: Delete the OAuth Client") {
+			OAuthClient.deleteClient(rowIndexNumber = "1");
+		}
+
+		task ("Then: Verify that the OAuth Client entry is removed from the UI") {
+			AssertElementNotPresent(
+				key_rowIndexNumber = "1",
+				locator1 = "Icon#ROW_VERTICAL_ELLIPSIS_N");
+		}
+
+		task ("When: Readd the OAuth Client with the same configurations") {
+			OAuthClient.openOAuthClientAdmin(navbar = "Clients");
+
+			OAuthClient.addClient(
+				jsonFileName = "okta.json",
+				wellknownURI = "https://dev-5081331.okta.com/.well-known/openid-configuration");
+		}
+
+		task ("Then: Verify that the entry is readded in the UI") {
+			AssertElementPresent(
+				key_rowIndexNumber = "1",
+				locator1 = "Icon#ROW_VERTICAL_ELLIPSIS_N");
+		}
+	}
+
+	@description = "This is a use case for LPS-139642 TC7: Verify OAuth client cannot be created with duplicate client ID."
+	@priority = "4"
+	test AssertOAuthClientCannotBeAddedWithDuplicateClientID {
+		property test.name.skip.portal.instance = "OpenIDConnect#AssertOAuthClientCannotBeAddedWithDuplicateClientID";
+
+		task ("Given: Add an OAuth Client") {
+			OAuthClient.openOAuthClientAdmin(navbar = "Clients");
+
+			OAuthClient.addClient(
+				jsonFileName = "okta.json",
+				wellknownURI = "https://dev-5081331.okta.com/.well-known/openid-configuration");
+		}
+
+		task ("When: Add another OAuth Client with the same client ID") {
+			OAuthClient.openOAuthClientAdmin(navbar = "Clients");
+
+			OAuthClient.addClient(
+				jsonFileName = "okta.json",
+				wellknownURI = "https://dev-5081331.okta.com/.well-known/openid-configuration");
+		}
+
+		task ("Then: Verify that the OAuth Client entry cannot be created with duplicate client ID") {
+			Alert.viewErrorMessage(errorMessage = "Duplicate Client");
+		}
+	}
+
+	@description = "This is a use case for LPS-139642 TC-10: A regular role is assigned to OIDC user if a regular role is defined through the property."
+	@priority = "5"
+	test AssertRegularRoleIsAssignedToOIDCUser {
+		property custom.properties = "open.id.connect.user.info.processor.impl.issuer=https://dev-5081331.okta.com${line.separator}open.id.connect.user.info.processor.impl.regular.role=Administrator";
+		property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.openid.connect.configuration.OpenIdConnectConfiguration.config";
+		property osgi.module.configurations = "enabled=&quot;true&quot;${line.separator}tokenRefreshOffset=&quot;120&quot;";
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "OpenIDConnect#AssertRegularRoleIsAssignedToOIDCUser";
+
+		var userEmailAddress = PropsUtil.get("openid.provider.okta.test.account.email.address");
+		var userPassword = PropsUtil.get("openid.provider.okta.test.account.password");
+
+		task ("Given: Add the OSGI configuration file") {
+			OSGiConfig.copyOSGiConfigFile(
+				osgiConfigFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/openidconnect/dependencies",
+				osgiConfigFileName = "com.liferay.portal.security.sso.openid.connect.internal.configuration.OpenIdConnectProviderConfiguration~Okta.config");
+		}
+
+		task ("When: Logout and login with OpenID Connect") {
+			User.logoutPG();
+
+			User.loginUserWithOpenIDConnectEnabledPG(
+				userEmailAddress = "${userEmailAddress}",
+				userPassword = "${userPassword}");
+		}
+
+		task ("Then: Verify that administrator role is assigned to OIDC user") {
+			MyAccount.openMyAccountAdmin();
+
+			User.viewUserInfomationRolesCP(roleTitle = "Administrator");
+		}
+	}
+
 	@description = "This is a use case for LPS-124898 TC-6: Verify Refresh Token Offset is not existing in the Instance Settings."
 	@priority = "4"
 	test AssertTokenRefreshOffsetCannotBeSetAtInstanceLevel {
@@ -27,7 +150,7 @@ definition {
 		AssertElementNotPresent(locator1 = "OpenIDConnect#TOKEN_REFRESH_OFFSET");
 	}
 
-	@description = "This is a use case for LPS-124900 TC-4: Users should be logged out when they don't have a valid access token because a misconfigured refresh token lifetime at Portal."
+	@description = "This is a use case for LPS-124900 TC-4 and LPS-139642 TC-5: Users should be logged out when they don't have a valid access token because a misconfigured refresh token lifetime at Portal."
 	@priority = "4"
 	test AssertUserIsLoggedOutWithHigherRefreshToken {
 		property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.openid.connect.configuration.OpenIdConnectConfiguration.config";
@@ -40,10 +163,20 @@ definition {
 				value1 = "prepare-selenium-keycloak-server");
 		}
 
-		task ("Add the OSGI configuration file") {
-			OSGiConfig.copyOSGiConfigFile(
-				osgiConfigFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/openidconnect/dependencies",
-				osgiConfigFileName = "com.liferay.portal.security.sso.openid.connect.internal.configuration.OpenIdConnectProviderConfiguration~default.config");
+		task ("Add Auth Server Local Metadata") {
+			OAuthClient.openOAuthClientAdmin(navbar = "Auth Server Local Metadata");
+
+			OAuthClient.addAuthServer(jsonFileName = "keycloak-local-metadata.json");
+
+			var wellknownURI = OAuthClient.getWellKnownURI();
+		}
+
+		task ("Add OAuth Client") {
+			OAuthClient.openOAuthClientAdmin(navbar = "Clients");
+
+			OAuthClient.addClient(
+				jsonFileName = "keycloak.json",
+				wellknownURI = "${wellknownURI}");
 		}
 
 		User.logoutPG();
@@ -53,7 +186,15 @@ definition {
 				userEmailAddress = "user1",
 				userPassword = "test");
 
-			Pause(locator1 = "70000");
+			// This pause is required to allow the test to wait for the  access token to expire.
+
+			Pause(locator1 = "60000");
+
+			while (IsElementPresent(locator1 = "UserBar#USER_AVATAR_IMAGE")) {
+				Pause(locator1 = "1000");
+
+				Refresh();
+			}
 
 			MyAccount.openMyAccountAdmin();
 
@@ -61,17 +202,83 @@ definition {
 		}
 	}
 
-	@description = "This is a use case for LPS-105151. Users could configure multiple OpenID Connect providers."
+	@description = "This is a use case for LPS-139642 TC6-2: Cannot add OAuth client with empty configuration."
+	@priority = "3"
+	test CannotAddOAuthClientWithEmptyConfiguration {
+		property test.name.skip.portal.instance = "OpenIDConnect#CannotAddOAuthClientWithEmptyConfiguration";
+
+		task ("Add an OAuth Client with empty well-known URI") {
+			OAuthClient.openOAuthClientAdmin(navbar = "Clients");
+
+			OAuthClient.addInvalidClient(jsonFileName = "okta.json");
+		}
+
+		task ("Assert error message displays in the UI") {
+			Alert.viewErrorMessage(errorMessage = "Invalid Authorization Server Well-known URI");
+		}
+
+		task ("Add an OAuth Client with empty client information") {
+			OAuthClient.openOAuthClientAdmin(navbar = "Clients");
+
+			OAuthClient.addInvalidClient(
+				clientInfo = "",
+				wellknownURI = "https://dev-5081331.okta.com/.well-known/openid-configuration");
+		}
+
+		task ("Assert error message pops up") {
+			AssertConfirm.assertConfirmationNoError(value1 = "Ill-formatted Info JSON");
+		}
+
+		task ("Add an OAuth Client with empty auth request parameters") {
+			OAuthClient.openOAuthClientAdmin(navbar = "Clients");
+
+			OAuthClient.addInvalidClient(
+				authRequestParametersJSON = "",
+				jsonFileName = "okta.json",
+				wellknownURI = "https://dev-5081331.okta.com/.well-known/openid-configuration");
+		}
+
+		task ("Assert error message pops up") {
+			AssertConfirm.assertConfirmationNoError(value1 = "Ill-formatted Default Authorization Request Parameters JSON");
+		}
+
+		task ("Add an OAuth Client with empty token request parameters") {
+			OAuthClient.openOAuthClientAdmin(navbar = "Clients");
+
+			OAuthClient.addInvalidClient(
+				jsonFileName = "okta.json",
+				tokenRequestParametersJSON = "",
+				wellknownURI = "https://dev-5081331.okta.com/.well-known/openid-configuration");
+		}
+
+		task ("Assert error message pops up") {
+			AssertConfirm.assertConfirmationNoError(value1 = "Ill-formatted Default Token Request Parameters JSON");
+		}
+	}
+
+	@description = "This is a use case for LPS-139642 TC6-1: Cannot add OAuth client with invalid configurations."
+	@priority = "3"
+	test CannotAddOAuthClientWithInvalidConfigurations {
+		property test.name.skip.portal.instance = "OpenIDConnect#CannotAddOAuthClientWithInvalidConfigurations";
+
+		task ("Add an OAuth Client with invalid client information") {
+			OAuthClient.openOAuthClientAdmin(navbar = "Clients");
+
+			OAuthClient.addInvalidClient(wellknownURI = "https://dev-5081331.okta.com/.well-known/openid-configuration");
+		}
+
+		task ("Assert error message displays in the UI") {
+			Alert.viewErrorMessage(errorMessage = "Invalid Client Information: The value must not be null or empty string");
+		}
+	}
+
+	@description = "This is a use case for LPS-105151 and LPS-139642 TC-3: Users could configure multiple OpenID Connect providers."
 	@priority = "4"
 	test ConfigureMultipleOpenIDConnectProviders {
 		property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.openid.connect.configuration.OpenIdConnectConfiguration.config";
 		property osgi.module.configurations = "enabled=&quot;true&quot;";
 		property test.name.skip.portal.instance = "OpenIDConnect#ConfigureMultipleOpenIDConnectProviders";
 
-		var openIdConnectClientId = PropsUtil.get("google.client.id.2");
-		var openIdConnectClientSecret = PropsUtil.get("google.client.secret.2");
-		var openIdConnectClientId1 = PropsUtil.get("google.client.id.3");
-		var openIdConnectClientSecret1 = PropsUtil.get("google.client.secret.3");
 		var userEmailAddress = PropsUtil.get("email.address.2");
 		var userPassword = PropsUtil.get("email.password.2");
 
@@ -82,44 +289,19 @@ definition {
 				virtualHost = "www.able.com");
 		}
 
-		task ("Add CP www.baker.com") {
-			HeadlessPortalInstanceAPI.addPortalInstance(
-				domain = "www.baker.com",
-				portalInstanceId = "www.baker.com",
-				virtualHost = "www.baker.com");
-		}
-
-		task ("Add SSO OpenID Connect provider") {
-			SystemSettings.openSystemSettingsAdmin();
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "SSO",
-				configurationName = "OpenID Connect Provider Connection",
-				configurationScope = "Virtual Instance Scope");
-
-			OpenIDConnect.addProvider(
-				openIdConnectClientId = "${openIdConnectClientId}",
-				openIdConnectClientSecret = "${openIdConnectClientSecret}",
-				providerName = "Google");
-		}
-
-		task ("Login at www.able.com and add SSO OpenID Connect provider") {
+		task ("Add OAuth Clients") {
 			User.firstLoginPG(
 				password = "test",
 				userEmailAddress = "test@www.able.com",
 				virtualHostsURL = "http://www.able.com:8080");
 
-			PortalSettings.openInstanceSettingsAdmin(baseURL = "http://www.able.com:8080");
+			OAuthClient.openOAuthClientAdmin(
+				baseURL = "http://www.able.com:8080",
+				navbar = "Clients");
 
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "SSO",
-				configurationName = "OpenID Connect Provider Connection",
-				configurationScope = "Virtual Instance Scope");
+			OAuthClient.addClient(jsonFileName = "googleClient2.json");
 
-			OpenIDConnect.addProvider(
-				openIdConnectClientId = "${openIdConnectClientId1}",
-				openIdConnectClientSecret = "${openIdConnectClientSecret1}",
-				providerName = "Test Google");
+			OAuthClient.addClient(jsonFileName = "googleClient3.json");
 		}
 
 		task ("Sign out and go to able.com") {
@@ -132,98 +314,88 @@ definition {
 			OpenIDConnect.viewProvider();
 
 			AssertElementPresent(
-				key_providerNname = "Test Google",
+				key_providerNname = "Google2",
 				locator1 = "OpenIDConnectLogin#OPENID_CONNECT_DROPDOWN_OPTION");
-		}
-
-		task ("Login and logout at baker.com and view provider") {
-			User.firstLoginPG(
-				password = "test",
-				userEmailAddress = "test@www.baker.com",
-				virtualHostsURL = "http://www.baker.com:8080");
-
-			UserBar.signOut();
-
-			Navigator.openSpecificURL(
-				domain = "www.baker.com",
-				url = "http://www.baker.com:8080/");
-
-			OpenIDConnect.viewProvider();
 		}
 	}
 
-	@description = "This is a use case for LPS-105151. Enabled system level OpenID Connect Provider is also enabled in instance."
-	@priority = "4"
-	test EnabledOpenIDConnectOnSystemLevel {
-		property dummy.socket.proxy.disabled = "true";
-		property portal.ssl.enabled = "true";
-		property test.name.skip.portal.instance = "OpenIDConnect#EnabledOpenIDConnectOnSystemLevel";
+	@description = "This is a workaround usecase for LPS-139642 TC-11: Verify the OAuth client of System level should apply to OAuth client of virtual instance."
+	@priority = "5"
+	test ConfigureOnSystemLevelShouldApplyToInstanceLevel {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "OpenIDConnect#ConfigureOnSystemLevelShouldApplyToInstanceLevel";
 
-		var openIdConnectClientId = PropsUtil.get("google.client.id.2");
-		var openIdConnectClientSecret = PropsUtil.get("google.client.secret.2");
-		var userEmailAddress = PropsUtil.get("email.address.2");
-		var userPassword = PropsUtil.get("email.password.2");
+		task ("Given: Add the OSGI configuration file") {
+			OSGiConfig.copyOSGiConfigFile(
+				osgiConfigFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/openidconnect/dependencies",
+				osgiConfigFileName = "com.liferay.portal.security.sso.openid.connect.internal.configuration.OpenIdConnectProviderConfiguration~Okta.config");
 
-		task ("Add CP") {
+			OAuthClient.viewOAuthClient();
+		}
+
+		task ("When: Add virtual instance and login at able.com") {
 			HeadlessPortalInstanceAPI.addPortalInstance(
 				domain = "www.able.com",
 				portalInstanceId = "www.able.com",
 				virtualHost = "www.able.com");
-		}
 
-		task ("Goto new CP url and sign in") {
-			Navigator.openSpecificURL(
+			User.firstLoginUI(
 				domain = "www.able.com",
-				url = "https://www.able.com:8443/");
-
-			OpenIDConnect.viewNoProvider();
+				password = "test",
+				specificURL = "http://www.able.com:8080",
+				userEmailAddress = "test@www.able.com");
 		}
 
-		task ("Enable openID connect CP") {
-			Navigator.openURL(baseURL = "https://localhost:8443");
-
-			SystemSettings.openSystemSettingsAdmin();
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "SSO",
-				configurationName = "OpenID Connect",
-				configurationScope = "System Scope");
-
-			PortalSettings.enableOpenIDConnectCP(systemLevel = "true");
-		}
-
-		task ("Add OpenID connect provider") {
-			SystemSettings.openSystemSettingsAdmin();
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "SSO",
-				configurationName = "OpenID Connect Provider Connection",
-				configurationScope = "Virtual Instance Scope");
-
-			OpenIDConnect.addProvider(
-				openIdConnectClientId = "${openIdConnectClientId}",
-				openIdConnectClientSecret = "${openIdConnectClientSecret}",
-				providerName = "Google");
-		}
-
-		task ("Go to able.com and assert openId connect") {
-			Navigator.openSpecificURL(
-				domain = "www.able.com",
-				url = "https://www.able.com:8443/");
-
-			OpenIDConnect.viewProvider();
+		task ("Then: Verify that the OAuth client should display on the virtual instance") {
+			OAuthClient.viewOAuthClient(baseURL = "http://www.able.com:8080");
 		}
 	}
 
-	@description = "This is a use case for LPS-105151. Users could login with instance-level configured OpenID Connect provider."
+	@description = "This is a use case for LPS-154744. TC4-1: The OIDC user is assigned the regular role which contains multiple spaces given through the property."
+	@priority = "4"
+	test MultipleSpacesRoleNameCanBeAssignedToOIDCUser {
+		property custom.properties = "open.id.connect.user.info.processor.impl.issuer=https://dev-5081331.okta.com${line.separator}open.id.connect.user.info.processor.impl.regular.role=My Custom Regular Role";
+		property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.openid.connect.configuration.OpenIdConnectConfiguration.config";
+		property osgi.module.configurations = "enabled=&quot;true&quot;${line.separator}tokenRefreshOffset=&quot;120&quot;";
+		property test.name.skip.portal.instance = "OpenIDConnect#MultipleSpacesRoleNameCanBeAssignedToOIDCUser";
+
+		var userEmailAddress = PropsUtil.get("openid.provider.okta.test.account.email.address");
+		var userPassword = PropsUtil.get("openid.provider.okta.test.account.password");
+
+		task ("Given: Set up OKTA OIDC Provider") {
+			OSGiConfig.copyOSGiConfigFile(
+				osgiConfigFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/openidconnect/dependencies",
+				osgiConfigFileName = "com.liferay.portal.security.sso.openid.connect.internal.configuration.OpenIdConnectProviderConfiguration~Okta.config");
+		}
+
+		task ("And: Add a regular role which contains multiple spaces") {
+			JSONRole.addRegularRole(
+				roleKey = "My Custom Regular Role",
+				roleTitle = "My Custom Regular Role");
+		}
+
+		task ("When: Login with OpenID Connect") {
+			User.logoutPG();
+
+			User.loginUserWithOpenIDConnectEnabledPG(
+				userEmailAddress = "${userEmailAddress}",
+				userPassword = "${userPassword}");
+		}
+
+		task ("Then: Multiple spaces role name can be assigned to OKTA user") {
+			MyAccount.openMyAccountAdmin();
+
+			User.viewUserInfomationRolesCP(roleTitle = "My Custom Regular Role");
+		}
+	}
+
+	@description = "This is a use case for LPS-105151 and LPS-139642 TC-9: Users could login with instance-level configured OpenID Connect provider."
 	@priority = "4"
 	test OpenIDConnectOnInstanceLevelSmoke {
 		property portal.acceptance = "true";
 		property portal.ssl.enabled = "true";
 		property test.name.skip.portal.instance = "OpenIDConnect#OpenIDConnectOnInstanceLevelSmoke";
 
-		var openIdConnectClientId = PropsUtil.get("google.client.id.1");
-		var openIdConnectClientSecret = PropsUtil.get("google.client.secret.1");
 		var userEmailAddress = PropsUtil.get("email.address.2");
 		var userPassword = PropsUtil.get("email.password.2");
 
@@ -250,18 +422,12 @@ definition {
 			PortalSettings.enableOpenIDConnectCP();
 		}
 
-		task ("Add SSO openID connect provider") {
-			PortalSettings.openInstanceSettingsAdmin(baseURL = "https://www.able.com:8443");
+		task ("Add OAuth Client") {
+			OAuthClient.openOAuthClientAdmin(
+				baseURL = "https://www.able.com:8443",
+				navbar = "Clients");
 
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "SSO",
-				configurationName = "OpenID Connect Provider Connection",
-				configurationScope = "Virtual Instance Scope");
-
-			OpenIDConnect.addProvider(
-				openIdConnectClientId = "${openIdConnectClientId}",
-				openIdConnectClientSecret = "${openIdConnectClientSecret}",
-				providerName = "Google");
+			OAuthClient.addClient(jsonFileName = "googleClient1.json");
 		}
 
 		task ("Sign out and Login at able.com with OpenID Connect enabled") {
@@ -359,13 +525,12 @@ definition {
 		}
 	}
 
-	@description = "This is a use case for LRQA-72792. Users could login and logout using Azure as OpenID Connect provider. Blocked by LRQA-73513."
+	@description = "This is a use case for LRQA-72792. Users could login and logout using Azure as OpenID Connect provider."
 	@priority = "5"
 	test OpenIDConnectSmokeWithAzure {
 		property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.openid.connect.configuration.OpenIdConnectConfiguration.config";
 		property osgi.module.configurations = "enabled=&quot;true&quot;${line.separator}tokenRefreshOffset=&quot;120&quot;";
-		property portal.release = "quarantine";
-		property portal.upstream = "quarantine";
+		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "OpenIDConnect#OpenIDConnectSmokeWithAzure";
 
 		var userEmailAddress = PropsUtil.get("openid.provider.azure.test.account.email.address");
@@ -390,7 +555,7 @@ definition {
 		}
 	}
 
-	@description = "This is a use case for LRQA-72792. Users could login and logout using Okta as OpenID Connect provider."
+	@description = "This is a use case for LRQA-72792 and LPS-139642 TC1: Users could login and logout using Okta as OpenID Connect provider."
 	@priority = "5"
 	test OpenIDConnectSmokeWithOkta {
 		property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.openid.connect.configuration.OpenIdConnectConfiguration.config";
@@ -401,10 +566,12 @@ definition {
 		var userEmailAddress = PropsUtil.get("openid.provider.okta.test.account.email.address");
 		var userPassword = PropsUtil.get("openid.provider.okta.test.account.password");
 
-		task ("Add the OSGI configuration file") {
-			OSGiConfig.copyOSGiConfigFile(
-				osgiConfigFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/openidconnect/dependencies",
-				osgiConfigFileName = "com.liferay.portal.security.sso.openid.connect.internal.configuration.OpenIdConnectProviderConfiguration~Okta.config");
+		task ("Add OAuth Client") {
+			OAuthClient.openOAuthClientAdmin(navbar = "Clients");
+
+			OAuthClient.addClient(
+				jsonFileName = "okta.json",
+				wellknownURI = "https://dev-5081331.okta.com/.well-known/openid-configuration");
 		}
 
 		task ("Logout and login with OpenID Connect") {
@@ -453,7 +620,7 @@ definition {
 	@description = "This is a use case for LPS-148619. User could log in and log out using Google as OpenID Connect provider, using custom parameters for the connection."
 	test OpenIDConnectWithGoogleCustomParameters {
 		property dummy.socket.proxy.disabled = "true";
-		property test.name.skip.portal.instance = "OpenIDConnect#EnabledOpenIDConnectOnSystemLevel";
+		property test.name.skip.portal.instance = "OpenIDConnect#OpenIDConnectWithGoogleCustomParameters";
 
 		var customTokenRequestParameters = "resource=https://contacts.google.com";
 		var customAuthorizationRequestParameters = "access_type=offline";
@@ -506,7 +673,10 @@ definition {
 		}
 
 		task (" And the user is still logged in after the first access token's lifetime is over and they receive a new access token in the background") {
-			Pause(locator1 = "65000");
+
+			// This pause is required to allow the test to wait for the new access token to be generated.
+
+			Pause(locator1 = "60000");
 
 			Refresh();
 
@@ -530,6 +700,7 @@ definition {
 	@priority = "4"
 	test VerifyTokenRefreshOffsetMinimum {
 		property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.openid.connect.internal.configuration.OpenIdConnectProviderConfiguration~default.config";
+		property portal.release = "quarantine";
 		property portal.upstream = "quarantine";
 		property test.name.skip.portal.instance = "OpenIDConnect#VerifyTokenRefreshOffsetMinimum";
 
@@ -571,7 +742,9 @@ definition {
 				userEmailAddress = "user1",
 				userPassword = "test");
 
-			Pause(locator1 = "65000");
+			// This pause is required to allow the test to wait for the new access token to be generated.
+
+			Pause(locator1 = "60000");
 
 			Refresh();
 

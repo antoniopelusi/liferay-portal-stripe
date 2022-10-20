@@ -39,18 +39,23 @@ definition {
 
 		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
 
-		DMDocument.downloadCP(dmDocumentTitle = "これは文書です");
+		DMDocument.downloadCP(
+			dmDocumentSize = "68 B",
+			dmDocumentTitle = "これは文書です");
 
 		AssertTextNotPresent(value1 = "The requested resource could not be found.");
 
 		DMDocument.assertFileNameFromTempFolder(fileName = "これは文書です.txt");
+
+		DMDocument.assertFileExtensionFromTempFolder(
+			downloadedFile = "これは文書です.txt",
+			fileExtension = ".txt");
 	}
 
 	@description = "This test ensures that a Japanese file can be downloaded by file name."
 	@priority = "5"
 	test CanDownloadJapaneseFileByFileName {
 		var portalURL = PropsUtil.get("portal.url");
-
 		var siteId = JSONGroupAPI._getGroupIdByName(
 			groupName = "Guest",
 			site = "true");
@@ -75,7 +80,6 @@ definition {
 	@priority = "5"
 	test CanDownloadJapaneseFileByTitle {
 		var portalURL = PropsUtil.get("portal.url");
-
 		var siteId = JSONGroupAPI._getGroupIdByName(
 			groupName = "Guest",
 			site = "true");

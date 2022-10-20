@@ -24,7 +24,7 @@ import {
 	WORKFLOW_STATUS_APPROVED,
 } from '../../../src/main/resources/META-INF/resources/components/mini_cart/util/constants';
 import {DEFAULT_LABELS} from '../../../src/main/resources/META-INF/resources/components/mini_cart/util/labels';
-import * as BaseUtils from '../../../src/main/resources/META-INF/resources/utilities';
+import * as Basetests_utilities from '../../../src/main/resources/META-INF/resources/utilities';
 
 describe('MiniCart Order Button', () => {
 	const DEFAULT_BUTTON_CLASSES = ['btn', 'btn-block', 'btn-primary'];
@@ -39,7 +39,7 @@ describe('MiniCart Order Button', () => {
 	};
 
 	beforeEach(() => {
-		jest.spyOn(BaseUtils, 'liferayNavigate');
+		jest.spyOn(Basetests_utilities, 'liferayNavigate');
 	});
 
 	afterEach(() => {
@@ -82,7 +82,9 @@ describe('MiniCart Order Button', () => {
 			});
 
 			await wait(() => {
-				expect(BaseUtils.liferayNavigate).not.toHaveBeenCalled();
+				expect(
+					Basetests_utilities.liferayNavigate
+				).not.toHaveBeenCalled();
 			});
 		});
 	});
@@ -165,9 +167,9 @@ describe('MiniCart Order Button', () => {
 				});
 
 				await wait(() => {
-					expect(BaseUtils.liferayNavigate).toHaveBeenCalledWith(
-						CONTEXT_MOCK.actionURLs.checkoutURL
-					);
+					expect(
+						Basetests_utilities.liferayNavigate
+					).toHaveBeenCalledWith(CONTEXT_MOCK.actionURLs.checkoutURL);
 
 					expect(button.innerHTML).toMatchSnapshot();
 				});
@@ -197,7 +199,9 @@ describe('MiniCart Order Button', () => {
 					});
 
 					await wait(() => {
-						expect(BaseUtils.liferayNavigate).toHaveBeenCalledWith(
+						expect(
+							Basetests_utilities.liferayNavigate
+						).toHaveBeenCalledWith(
 							CONTEXT_MOCK.actionURLs.orderDetailURL
 						);
 					});
@@ -233,7 +237,9 @@ describe('MiniCart Order Button', () => {
 					});
 
 					await wait(() => {
-						expect(BaseUtils.liferayNavigate).toHaveBeenCalledWith(
+						expect(
+							Basetests_utilities.liferayNavigate
+						).toHaveBeenCalledWith(
 							CONTEXT_MOCK.actionURLs.checkoutURL
 						);
 					});
@@ -267,7 +273,9 @@ describe('MiniCart Order Button', () => {
 					});
 
 					await wait(() => {
-						expect(BaseUtils.liferayNavigate).toHaveBeenCalledWith(
+						expect(
+							Basetests_utilities.liferayNavigate
+						).toHaveBeenCalledWith(
 							CONTEXT_MOCK.actionURLs.orderDetailURL
 						);
 					});

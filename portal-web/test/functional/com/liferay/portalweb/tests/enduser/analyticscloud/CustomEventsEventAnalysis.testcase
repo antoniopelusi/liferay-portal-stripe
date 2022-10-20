@@ -1,6 +1,8 @@
 @component-name = "portal-analytics-cloud"
 definition {
 
+	property analytics.cloud.release = "true";
+	property analytics.cloud.upstream = "true";
 	property custom.properties = "jsonws.web.service.paths.excludes=";
 	property portal.release = "false";
 	property portal.upstream = "true";
@@ -61,6 +63,8 @@ definition {
 	tearDown {
 		var testPortalInstance = PropsUtil.get("test.portal.instance");
 
+		ACUtils.tearDownAC();
+
 		ACUtils.tearDownDXP();
 
 		if ("${testPortalInstance}" == "true") {
@@ -69,10 +73,6 @@ definition {
 		else {
 			JSONGroup.deleteGroupByName(groupName = "Site Name");
 		}
-
-		JSONUser.tearDownNonAdminUsers();
-
-		ACUtils.tearDownAC();
 	}
 
 	@description = "Feature ID: LRAC-7868 | Automation ID: LRAC-10314 | Test Summary: Event Analysis in an empty state"
@@ -317,6 +317,97 @@ definition {
 		}
 	}
 
+	@description = "Bug: LRAC-9589 | Automation ID: LRAC-11541 | Test Summary: Check that the vote and posted events appear as a default event"
+	@priority = "2"
+	test CheckVoteAndPostedEventsAppearLikeDefaultEvent {
+		var layoutName = "DM Page";
+		var defaultEventNameList = "VOTE,posted";
+
+		task ("Add a new public widget page") {
+			ACUtils.addPage(layoutName = "${layoutName}");
+		}
+
+		task ("Create a Document And Media") {
+			ACUtils.createDMAndAddToPage(layoutName = "${layoutName}");
+		}
+
+		task ("Switch the property in AC") {
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
+		}
+
+		task ("Navigation to default events tab") {
+			ACNavigation.goToSettings();
+
+			ACSettings.goToDefinitions();
+
+			ACSettings.goToEvents();
+
+			ACNavigation.openItem(itemName = "Default Events");
+		}
+
+		task ("Unhide default event") {
+			for (var defaultEventName : list "${defaultEventNameList}") {
+				ACDefinitions.unhideEvent(customEventName = "${defaultEventName}");
+			}
+		}
+
+		task ("Go to DXP") {
+			ACUtils.launchDXP();
+		}
+
+		task ("View the DM Page") {
+			ACUtils.navigateToSitePage(
+				pageName = "${layoutName}",
+				siteName = "Site Name");
+		}
+
+		task ("Add a Comment for DM") {
+			DMDocumentComment.addPG(
+				commentBody = "This is for test",
+				dmDocumentTitle = "DM AC Title");
+		}
+
+		task ("Choose a rating star for the DM") {
+			DMDocument.expandInfo();
+
+			Ratings.rateStar(ratingStarCount = "4");
+		}
+
+		task ("Close sessions") {
+			ACUtils.closeAllSessionsAndWait();
+		}
+
+		task ("Switch the property in AC and go to event analysis") {
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
+
+			ACNavigation.goToEventAnalysis();
+		}
+
+		task ("Click to add event and switch tab to Custom") {
+			ACEventAnalysis.clickToAddEventButton();
+
+			ACNavigation.switchTabInCard(tabName = "Custom");
+		}
+
+		task ("Search for default event in the custom tab and check that it doesn't appear") {
+			for (var defaultEventName : list "${defaultEventNameList}") {
+				ACEventAnalysis.searchEventAnalysis(searchItem = "${defaultEventName}");
+
+				ACEventAnalysis.viewEventAnalysisListNotPresent(eventList = "${defaultEventName}");
+			}
+		}
+
+		task ("Switch tab to default and search for default event in the default tab and check that it appears") {
+			ACNavigation.switchTabInCard(tabName = "Default");
+
+			ACEventAnalysis.viewEventAnalysisList(eventList = "${defaultEventNameList}");
+		}
+	}
+
 	@description = "Feature ID: LRAC-4266 | Automation ID: LRAC-10292 | Test Summary: Creating Events from All tab, default tab and custom tab and Event Attributes"
 	@priority = "5"
 	test CreateEventAnalysisFromAllAndDefaultAndCustomTab {
@@ -455,8 +546,9 @@ definition {
 	@description = "Feature ID: LRAC-4266 | Automation ID: LRAC-10306 | Test Summary: Remove Attribute"
 	@priority = "5"
 	test RemoveAttribute {
+		property test.name.skip.portal.instance = "CustomEventsEventAnalysis#RemoveAttribute";
+
 		var attributeName = "pageTitle";
-		var dataSource = StringUtil.extractFirst("${assignedPropertyName}", " ");
 
 		task ("Fill fields and create custom event") {
 			var customEventName = ACCustomEvents.generateCustomEventName();
@@ -491,7 +583,7 @@ definition {
 
 			ACTimeFilter.setLast24Hours();
 
-			ACEventAnalysis.viewAnalysisInformation(informationValueList = "ac page - site name - ${dataSource}");
+			ACEventAnalysis.viewAnalysisInformation(informationValueList = "ac page - site name - liferay dxp");
 		}
 
 		task ("Remove the breakdown from the analysis") {
@@ -499,7 +591,7 @@ definition {
 		}
 
 		task ("Check that the breakdown information does not appear in the result") {
-			ACEventAnalysis.viewAnalysisInformationNotPresent(informationValueList = "ac page - site name - ${dataSource}");
+			ACEventAnalysis.viewAnalysisInformationNotPresent(informationValueList = "ac page - site name - liferay dxp");
 		}
 
 		task ("Check that the breakdown does not appear on the dashboard") {
@@ -516,6 +608,8 @@ definition {
 	@description = "Feature ID: LRAC-4266 | Automation ID: LRAC-10301 | Test Summary: Search Event Attribute from Event tab"
 	@priority = "3"
 	test SearchEventAttributeInEventTab {
+		property test.name.skip.portal.instance = "CustomEventsEventAnalysis#SearchEventAttributeInEventTab";
+
 		var defaultAttributeName = "pageTitle";
 		var customAttributeName = "category";
 
@@ -562,13 +656,15 @@ definition {
 		task ("Search for an attribute that doesn't exist and check that it doesn't appear") {
 			ACEventAnalysis.searchEventAnalysis(searchItem = "acqa");
 
-			ACUtils.viewNoResultsMessage(noResultMessage = "There are no items found.");
+			ACUtils.viewGenericText(textValueList = "There are no items found.");
 		}
 	}
 
 	@description = "Feature ID: LRAC-4266 | Automation ID: LRAC-10295 | Test Summary: Search for events in different tabs"
 	@priority = "3"
 	test SearchEventsInDifferentTabs {
+		property test.name.skip.portal.instance = "CustomEventsEventAnalysis#SearchEventsInDifferentTabs";
+
 		var defaultEventName = "pageViewed";
 
 		task ("Fill fields and create custom event") {

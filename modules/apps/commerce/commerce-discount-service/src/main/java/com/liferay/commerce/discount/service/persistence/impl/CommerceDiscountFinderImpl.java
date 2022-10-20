@@ -31,17 +31,20 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.Type;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.security.permission.InlineSQLHelperUtil;
-import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.spring.extender.service.ServiceReference;
 
 import java.util.Iterator;
 import java.util.List;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * @author Riccardo Alberti
  */
+@Component(enabled = false, service = CommerceDiscountFinder.class)
 public class CommerceDiscountFinderImpl
 	extends CommerceDiscountFinderBaseImpl implements CommerceDiscountFinder {
 
@@ -145,8 +148,7 @@ public class CommerceDiscountFinderImpl
 			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
 			queryPos.add(
-				PortalUtil.getClassNameId(
-					CommercePricingClass.class.getName()));
+				_portal.getClassNameId(CommercePricingClass.class.getName()));
 			queryPos.add(commercePricingClassId);
 
 			if (Validator.isNotNull(title)) {
@@ -203,7 +205,7 @@ public class CommerceDiscountFinderImpl
 			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
 			queryPos.add(
-				PortalUtil.getClassNameId(CommerceDiscount.class.getName()));
+				_portal.getClassNameId(CommerceDiscount.class.getName()));
 			queryPos.add(commerceDiscountId);
 			queryPos.add(commerceAccountId);
 			queryPos.add(commerceChannelId);
@@ -282,8 +284,7 @@ public class CommerceDiscountFinderImpl
 			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
 			queryPos.add(
-				PortalUtil.getClassNameId(
-					CommercePricingClass.class.getName()));
+				_portal.getClassNameId(CommercePricingClass.class.getName()));
 			queryPos.add(commercePricingClassId);
 
 			if (Validator.isNotNull(title)) {
@@ -472,13 +473,10 @@ public class CommerceDiscountFinderImpl
 			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
 			queryPos.add(cpDefinitionId);
+			queryPos.add(_portal.getClassNameId(CPDefinition.class.getName()));
+			queryPos.add(_portal.getClassNameId(AssetCategory.class.getName()));
 			queryPos.add(
-				PortalUtil.getClassNameId(CPDefinition.class.getName()));
-			queryPos.add(
-				PortalUtil.getClassNameId(AssetCategory.class.getName()));
-			queryPos.add(
-				PortalUtil.getClassNameId(
-					CommercePricingClass.class.getName()));
+				_portal.getClassNameId(CommercePricingClass.class.getName()));
 
 			return (List<CommerceDiscount>)QueryUtil.list(
 				sqlQuery, getDialect(), QueryUtil.ALL_POS, QueryUtil.ALL_POS);
@@ -612,15 +610,12 @@ public class CommerceDiscountFinderImpl
 
 			queryPos.add(CommerceDiscountConstants.TARGET_PRODUCTS);
 			queryPos.add(cpDefinitionId);
-			queryPos.add(
-				PortalUtil.getClassNameId(CPDefinition.class.getName()));
+			queryPos.add(_portal.getClassNameId(CPDefinition.class.getName()));
 			queryPos.add(CommerceDiscountConstants.TARGET_CATEGORIES);
-			queryPos.add(
-				PortalUtil.getClassNameId(AssetCategory.class.getName()));
+			queryPos.add(_portal.getClassNameId(AssetCategory.class.getName()));
 			queryPos.add(CommerceDiscountConstants.TARGET_PRODUCT_GROUPS);
 			queryPos.add(
-				PortalUtil.getClassNameId(
-					CommercePricingClass.class.getName()));
+				_portal.getClassNameId(CommercePricingClass.class.getName()));
 
 			return (List<CommerceDiscount>)QueryUtil.list(
 				sqlQuery, getDialect(), QueryUtil.ALL_POS, QueryUtil.ALL_POS);
@@ -642,7 +637,7 @@ public class CommerceDiscountFinderImpl
 			 (commerceChannelId == null))) {
 
 			queryPos.add(
-				PortalUtil.getClassNameId(CommerceDiscount.class.getName()));
+				_portal.getClassNameId(CommerceDiscount.class.getName()));
 		}
 
 		if (companyId != null) {
@@ -660,7 +655,10 @@ public class CommerceDiscountFinderImpl
 		return queryPos;
 	}
 
-	@ServiceReference(type = CustomSQL.class)
+	@Reference
 	private CustomSQL _customSQL;
+
+	@Reference
+	private Portal _portal;
 
 }

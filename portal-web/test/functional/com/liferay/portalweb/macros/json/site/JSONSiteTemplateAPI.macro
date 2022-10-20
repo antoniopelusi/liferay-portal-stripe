@@ -65,7 +65,6 @@ definition {
 
 	macro _getAllNonDefaultSiteTemplateId {
 		var companyId = JSONCompany.getCompanyId();
-
 		var portalURL = JSONCompany.getPortalURL();
 
 		var curl = '''
@@ -84,15 +83,15 @@ definition {
 	macro _getSiteTemplateIdByName {
 		Variables.assertDefined(parameterList = "${siteTemplateName}");
 
-		var companyId = JSONCompany.getCompanyId();
-
 		var portalURL = JSONCompany.getPortalURL();
+		var companyId = JSONCompany.getCompanyId();
 
 		var curl = '''
 			${portalURL}/api/jsonws/layoutsetprototype/get-layout-set-prototypes \
                           -u test@liferay.com:test \
                           -d companyId=${companyId}
 		''';
+
 		var layoutSetPrototypeId = JSONCurlUtil.post("${curl}", "$.[?(@['nameCurrentValue'] == '${siteTemplateName}')]['layoutSetPrototypeId']");
 
 		if ("${layoutSetPrototypeId}" == "") {

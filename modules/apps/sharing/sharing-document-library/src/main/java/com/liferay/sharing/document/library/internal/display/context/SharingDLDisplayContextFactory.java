@@ -27,8 +27,10 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.sharing.configuration.SharingConfiguration;
 import com.liferay.sharing.configuration.SharingConfigurationFactory;
+import com.liferay.sharing.display.context.util.SharingDropdownItemFactory;
 import com.liferay.sharing.display.context.util.SharingMenuItemFactory;
 import com.liferay.sharing.display.context.util.SharingToolbarItemFactory;
+import com.liferay.sharing.document.library.internal.constants.SharingDLWebKeys;
 import com.liferay.sharing.security.permission.SharingPermission;
 import com.liferay.sharing.service.SharingEntryLocalService;
 
@@ -79,13 +81,8 @@ public class SharingDLDisplayContextFactory implements DLDisplayContextFactory {
 		HttpServletResponse httpServletResponse, FileVersion fileVersion) {
 
 		try {
-			ThemeDisplay themeDisplay =
-				(ThemeDisplay)httpServletRequest.getAttribute(
-					WebKeys.THEME_DISPLAY);
-
 			SharingConfiguration sharingConfiguration =
-				_sharingConfigurationFactory.getGroupSharingConfiguration(
-					themeDisplay.getSiteGroup());
+				_getSharingConfiguration(httpServletRequest);
 
 			if (!sharingConfiguration.isEnabled()) {
 				return parentDLViewFileVersionDisplayContext;
@@ -100,9 +97,9 @@ public class SharingDLDisplayContextFactory implements DLDisplayContextFactory {
 			return new SharingDLViewFileVersionDisplayContext(
 				parentDLViewFileVersionDisplayContext, httpServletRequest,
 				httpServletResponse, fileEntry, fileVersion,
-				_sharingEntryLocalService, _sharingMenuItemFactory,
-				_sharingToolbarItemFactory, _sharingPermission,
-				sharingConfiguration);
+				_sharingEntryLocalService, _sharingDropdownItemFactory,
+				_sharingMenuItemFactory, _sharingToolbarItemFactory,
+				_sharingPermission, sharingConfiguration);
 		}
 		catch (PortalException portalException) {
 			throw new SystemException(
@@ -112,8 +109,36 @@ public class SharingDLDisplayContextFactory implements DLDisplayContextFactory {
 		}
 	}
 
+	private SharingConfiguration _getSharingConfiguration(
+		HttpServletRequest httpServletRequest) {
+
+		SharingConfiguration sharingConfiguration =
+			(SharingConfiguration)httpServletRequest.getAttribute(
+				SharingDLWebKeys.SHARING_CONFIGURATION);
+
+		if (sharingConfiguration != null) {
+			return sharingConfiguration;
+		}
+
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		sharingConfiguration =
+			_sharingConfigurationFactory.getGroupSharingConfiguration(
+				themeDisplay.getSiteGroup());
+
+		httpServletRequest.setAttribute(
+			SharingDLWebKeys.SHARING_CONFIGURATION, sharingConfiguration);
+
+		return sharingConfiguration;
+	}
+
 	@Reference
 	private SharingConfigurationFactory _sharingConfigurationFactory;
+
+	@Reference
+	private SharingDropdownItemFactory _sharingDropdownItemFactory;
 
 	@Reference
 	private SharingEntryLocalService _sharingEntryLocalService;

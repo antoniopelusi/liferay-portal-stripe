@@ -280,7 +280,7 @@ function EditSXPBlueprintForm({
 					.fieldSets;
 
 				if (
-					fieldSets.length > 0 &&
+					!!fieldSets.length &&
 					!isCustomJSONSXPElement(uiConfigurationValues)
 				) {
 					fieldSets.map(({fields}) => {
@@ -320,7 +320,7 @@ function EditSXPBlueprintForm({
 					}
 				}
 
-				if (Object.keys(configErrors).length > 0) {
+				if (Object.keys(configErrors).length) {
 					elementInstancesArray[index] = {
 						uiConfigurationValues: configErrors,
 					};
@@ -328,7 +328,7 @@ function EditSXPBlueprintForm({
 			}
 		);
 
-		if (elementInstancesArray.length > 0) {
+		if (elementInstancesArray.length) {
 			errors.elementInstances = elementInstancesArray;
 		}
 
@@ -686,22 +686,21 @@ function EditSXPBlueprintForm({
 				signal: controllerRef.current.signal,
 			}
 		)
-			.then((response) =>
-				response.json().then((data) => ({
+			.then((response) => {
+				return response.json().then((data) => ({
 					ok: response.ok,
 					responseContent: data,
-					status: response.status,
-				}))
-			)
-			.then(({ok, responseContent, status}) => {
-				const errorResponse = getResultsError(
-					status === 400 ? {msg: responseContent.title} : {}
-				);
-
+				}));
+			})
+			.then(({ok, responseContent}) => {
 				setPreviewInfo({
 					loading: false,
 					results: parseResponseContent(
-						ok ? responseContent : errorResponse
+						ok
+							? responseContent
+							: getResultsError({
+									msg: responseContent?.title,
+							  })
 					),
 				});
 			})
@@ -802,11 +801,11 @@ function EditSXPBlueprintForm({
 									value: keywordQueryContributors,
 								},
 								{
-									label: 'ModelPrefilterContributor',
+									label: 'ModelPreFilterContributor',
 									value: modelPrefilterContributors,
 								},
 								{
-									label: 'QueryPrefilterContributor',
+									label: 'QueryPreFilterContributor',
 									value: queryPrefilterContributors,
 								},
 							]}
@@ -951,7 +950,6 @@ function EditSXPBlueprintForm({
 				responseString={previewInfo.results.responseString}
 				totalHits={previewInfo.results.searchHits?.totalHits}
 				visible={openSidebar === SIDEBARS.PREVIEW}
-				warnings={previewInfo.results.warnings}
 			/>
 
 			<div

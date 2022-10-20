@@ -85,7 +85,7 @@ ManifestSummary manifestSummary = ExportImportHelperUtil.getManifestSummary(user
 	%>
 
 	<c:if test="<%= le.getType() == LocaleException.TYPE_EXPORT_IMPORT %>">
-		<liferay-ui:message arguments="<%= new String[] {StringUtil.merge(le.getSourceAvailableLocales(), StringPool.COMMA_AND_SPACE), StringUtil.merge(le.getTargetAvailableLocales(), StringPool.COMMA_AND_SPACE)} %>" key="the-available-languages-in-the-lar-file-x-do-not-match-the-site's-available-languages-x" translateArguments="<%= false %>" />
+		<liferay-ui:message arguments="<%= new String[] {StringUtil.merge(le.getSourceAvailableLanguageIds(), StringPool.COMMA_AND_SPACE), StringUtil.merge(le.getTargetAvailableLanguageIds(), StringPool.COMMA_AND_SPACE)} %>" key="the-available-languages-in-the-lar-file-x-do-not-match-the-site's-available-languages-x" translateArguments="<%= false %>" />
 	</c:if>
 </liferay-ui:error>
 
@@ -330,7 +330,7 @@ ManifestSummary manifestSummary = ExportImportHelperUtil.getManifestSummary(user
 																			"portlettitle", portletTitle
 																		).build()
 																	%>'
-																	href="javascript:;"
+																	href="javascript:void(0);"
 																	id='<%= "contentLink_" + portlet.getRootPortletId() %>'
 																	label="change"
 																	method="get"
@@ -357,7 +357,7 @@ ManifestSummary manifestSummary = ExportImportHelperUtil.getManifestSummary(user
 									<aui:fieldset cssClass="content-options" label="for-each-of-the-selected-content-types,-import-their">
 										<span class="selected-labels" id="<portlet:namespace />selectedContentOptions"></span>
 
-										<aui:a cssClass="modify-link" href="javascript:;" id="contentOptionsLink" label="change" method="get" />
+										<aui:a cssClass="modify-link" href="javascript:void(0);" id="contentOptionsLink" label="change" method="get" />
 
 										<div class="hide" id="<portlet:namespace />contentOptions">
 											<ul class="lfr-tree list-unstyled">

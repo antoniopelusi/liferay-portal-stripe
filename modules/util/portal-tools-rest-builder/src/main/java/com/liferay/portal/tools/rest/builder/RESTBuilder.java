@@ -334,6 +334,7 @@ public class RESTBuilder {
 
 				_createBaseResourceImplFile(
 					context, escapedVersion, schemaName);
+				_createLiberalPermissionCheckerFile(context);
 				_createPropertiesFile(
 					context, escapedVersion,
 					String.valueOf(context.get("schemaPath")));
@@ -889,6 +890,24 @@ public class RESTBuilder {
 			file,
 			FreeMarkerUtil.processTemplate(
 				_copyrightFile, "graphql_servlet_data", context));
+	}
+
+	private void _createLiberalPermissionCheckerFile(
+			Map<String, Object> context)
+		throws Exception {
+
+		File file = new File(
+			StringBundler.concat(
+				_configYAML.getImplDir(), "/",
+				StringUtil.replace(_configYAML.getApiPackagePath(), '.', '/'),
+				"/internal/security/permission/LiberalPermissionChecker.java"));
+
+		_files.add(file);
+
+		FileUtil.write(
+			file,
+			FreeMarkerUtil.processTemplate(
+				_copyrightFile, "liberal_permission_checker", context));
 	}
 
 	private void _createOpenAPIResourceFile(

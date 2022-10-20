@@ -17,11 +17,11 @@ import TableKeyDetails from '../TableKeyDetails';
 
 const ModalKeyDetails = ({
 	activationKeys,
-	assetsPath,
 	downloadActivationLicenseKey,
-	licenseKeyDownloadURL,
+	liferayWebDAV,
 	observer,
 	onClose,
+	provisioningServerAPI,
 	sessionId,
 }) => {
 	const [valueToCopyToClipboard, setValueToCopyToClipboard] = useState('');
@@ -53,7 +53,7 @@ const ModalKeyDetails = ({
 
 				<TableKeyDetails
 					activationKeys={activationKeys}
-					assetsPath={assetsPath}
+					liferayWebDAV={liferayWebDAV}
 					setValueToCopyToClipboard={setValueToCopyToClipboard}
 				/>
 
@@ -68,7 +68,7 @@ const ModalKeyDetails = ({
 						onClick={() =>
 							downloadActivationLicenseKey(
 								activationKeys.id,
-								licenseKeyDownloadURL,
+								provisioningServerAPI,
 								sessionId
 							)
 						}

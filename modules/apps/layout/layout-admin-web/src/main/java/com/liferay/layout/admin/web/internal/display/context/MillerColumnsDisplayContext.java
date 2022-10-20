@@ -247,13 +247,10 @@ public class MillerColumnsDisplayContext {
 				).setParameter(
 					"selPlid", layout.getPlid()
 				).buildString()
+			).put(
+				"viewUrl",
+				_layoutsAdminDisplayContext.getEditOrViewLayoutURL(layout)
 			);
-
-			if (_layoutsAdminDisplayContext.isShowViewLayoutAction(layout)) {
-				layoutJSONObject.put(
-					"viewUrl",
-					_layoutsAdminDisplayContext.getViewLayoutURL(layout));
-			}
 
 			layoutsJSONArray.put(layoutJSONObject);
 		}
@@ -275,9 +272,7 @@ public class MillerColumnsDisplayContext {
 		).put(
 			"url",
 			_layoutsAdminDisplayContext.getSelectLayoutPageTemplateEntryURL(
-				_layoutsAdminDisplayContext.
-					getFirstLayoutPageTemplateCollectionId(),
-				layout.getPlid(), layout.isPrivateLayout())
+				0, layout.getPlid(), layout.isPrivateLayout())
 		);
 	}
 

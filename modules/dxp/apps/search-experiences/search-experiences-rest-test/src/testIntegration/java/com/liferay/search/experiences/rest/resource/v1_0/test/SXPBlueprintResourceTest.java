@@ -18,6 +18,7 @@ import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.odata.entity.EntityField;
 import com.liferay.search.experiences.rest.client.dto.v1_0.SXPBlueprint;
 import com.liferay.search.experiences.rest.client.http.HttpInvoker;
 import com.liferay.search.experiences.rest.client.pagination.Page;
@@ -74,6 +75,28 @@ public class SXPBlueprintResourceTest extends BaseSXPBlueprintResourceTestCase {
 		super.testGetSXPBlueprintsPageWithFilterDateTimeEquals();
 	}
 
+	@Override
+	@Test
+	public void testGetSXPBlueprintsPageWithSortInteger() throws Exception {
+		testGetSXPBlueprintsPageWithSort(
+			EntityField.Type.INTEGER,
+			(entityField, sxpBlueprint1, sxpBlueprint2) -> {
+				if (BeanTestUtil.hasProperty(
+						sxpBlueprint1, entityField.getName())) {
+
+					BeanTestUtil.setProperty(
+						sxpBlueprint1, entityField.getName(), 0);
+				}
+
+				if (BeanTestUtil.hasProperty(
+						sxpBlueprint2, entityField.getName())) {
+
+					BeanTestUtil.setProperty(
+						sxpBlueprint2, entityField.getName(), 1);
+				}
+			});
+	}
+
 	@Ignore
 	@Override
 	@Test
@@ -96,16 +119,19 @@ public class SXPBlueprintResourceTest extends BaseSXPBlueprintResourceTestCase {
 				"description", RandomTestUtil.randomString()
 			).put(
 				"title", RandomTestUtil.randomString()
-			).toJSONString());
+			).toString());
 
 		SXPBlueprint postSXPBlueprint = testPostSXPBlueprint_addSXPBlueprint(
 			sxpBlueprint);
 
 		sxpBlueprint.setCreateDate(postSXPBlueprint.getCreateDate());
+		sxpBlueprint.setExternalReferenceCode(
+			postSXPBlueprint.getExternalReferenceCode());
 		sxpBlueprint.setId(postSXPBlueprint.getId());
 		sxpBlueprint.setModifiedDate(postSXPBlueprint.getModifiedDate());
 		sxpBlueprint.setSchemaVersion(postSXPBlueprint.getSchemaVersion());
 		sxpBlueprint.setUserName(postSXPBlueprint.getUserName());
+		sxpBlueprint.setVersion(postSXPBlueprint.getVersion());
 
 		Assert.assertEquals(
 			sxpBlueprint.toString(), postSXPBlueprint.toString());

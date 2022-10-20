@@ -19,11 +19,12 @@ import com.liferay.document.library.display.context.BaseDLViewFileVersionDisplay
 import com.liferay.document.library.display.context.DLUIItemKeys;
 import com.liferay.document.library.display.context.DLViewFileVersionDisplayContext;
 import com.liferay.document.library.kernel.model.DLFileEntryConstants;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownGroupItem;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.servlet.taglib.ui.BaseUIItem;
-import com.liferay.portal.kernel.servlet.taglib.ui.Menu;
 import com.liferay.portal.kernel.servlet.taglib.ui.ToolbarItem;
 import com.liferay.portal.kernel.settings.PortletInstanceSettingsLocator;
 import com.liferay.portal.kernel.settings.Settings;
@@ -34,12 +35,14 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.sharing.configuration.SharingConfiguration;
+import com.liferay.sharing.display.context.util.SharingDropdownItemFactory;
 import com.liferay.sharing.display.context.util.SharingMenuItemFactory;
 import com.liferay.sharing.display.context.util.SharingToolbarItemFactory;
 import com.liferay.sharing.security.permission.SharingPermission;
 import com.liferay.sharing.service.SharingEntryLocalService;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
@@ -57,6 +60,7 @@ public class SharingDLViewFileVersionDisplayContext
 		HttpServletResponse httpServletResponse, FileEntry fileEntry,
 		FileVersion fileVersion,
 		SharingEntryLocalService sharingEntryLocalService,
+		SharingDropdownItemFactory sharingDropdownItemFactory,
 		SharingMenuItemFactory sharingMenuItemFactory,
 		SharingToolbarItemFactory sharingToolbarItemFactory,
 		SharingPermission sharingPermission,
@@ -69,6 +73,7 @@ public class SharingDLViewFileVersionDisplayContext
 		_httpServletRequest = httpServletRequest;
 		_fileEntry = fileEntry;
 		_sharingEntryLocalService = sharingEntryLocalService;
+		_sharingDropdownItemFactory = sharingDropdownItemFactory;
 		_sharingMenuItemFactory = sharingMenuItemFactory;
 		_sharingToolbarItemFactory = sharingToolbarItemFactory;
 		_sharingPermission = sharingPermission;
@@ -79,20 +84,18 @@ public class SharingDLViewFileVersionDisplayContext
 	}
 
 	@Override
-	public Menu getMenu() throws PortalException {
-		Menu menu = super.getMenu();
+	public List<DropdownItem> getActionDropdownItems() throws PortalException {
+		List<DropdownItem> dropdownItems = super.getActionDropdownItems();
 
 		if (!_isShowShareAction() || !_sharingConfiguration.isEnabled()) {
-			return menu;
+			return dropdownItems;
 		}
 
-		_addSharingUIItem(
-			menu.getMenuItems(),
-			_sharingMenuItemFactory.createShareMenuItem(
+		return _addSharingDropdownItem(
+			dropdownItems,
+			_sharingDropdownItemFactory.createShareDropdownItem(
 				DLFileEntryConstants.getClassName(),
 				_fileEntry.getFileEntryId(), _httpServletRequest));
-
-		return menu;
 	}
 
 	@Override
@@ -143,8 +146,80 @@ public class SharingDLViewFileVersionDisplayContext
 		return false;
 	}
 
+	private List<DropdownItem> _addSharingDropdownItem(
+		List<DropdownItem> dropdownItems, DropdownItem sharingDropdownItem) {
+
+		int i = 1;
+
+		for (DropdownItem dropdownItem : dropdownItems) {
+			if (dropdownItem instanceof DropdownGroupItem) {
+				DropdownGroupItem dropdownGroupItem =
+					(DropdownGroupItem)dropdownItem;
+
+				if (_addSharingDropdownItemGroup(
+						(List<DropdownItem>)dropdownGroupItem.get("items"),
+						sharingDropdownItem)) {
+
+					return dropdownItems;
+				}
+			}
+			else if (Objects.equals(
+						DLUIItemKeys.DOWNLOAD, dropdownItem.get("key"))) {
+
+				break;
+			}
+
+			i++;
+		}
+
+		if (i >= dropdownItems.size()) {
+			dropdownItems.add(sharingDropdownItem);
+		}
+		else {
+			dropdownItems.add(i, sharingDropdownItem);
+		}
+
+		return dropdownItems;
+	}
+
+	private boolean _addSharingDropdownItemGroup(
+		List<DropdownItem> dropdownItems, DropdownItem sharingDropdownItem) {
+
+		int i = 1;
+
+		for (DropdownItem dropdownItem : dropdownItems) {
+			if (dropdownItem instanceof DropdownGroupItem) {
+				DropdownGroupItem dropdownGroupItem =
+					(DropdownGroupItem)dropdownItem;
+
+				if (_addSharingDropdownItemGroup(
+						(List<DropdownItem>)dropdownGroupItem.get("items"),
+						sharingDropdownItem)) {
+
+					return true;
+				}
+			}
+			else if (Objects.equals(
+						DLUIItemKeys.DOWNLOAD, dropdownItem.get("key"))) {
+
+				break;
+			}
+
+			i++;
+		}
+
+		if (i < dropdownItems.size()) {
+			dropdownItems.add(i, sharingDropdownItem);
+
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
-	 * @see com.liferay.document.library.opener.onedrive.web.internal.display.context.DLOpenerOneDriveDLViewFileVersionDisplayContext#_addEditInOffice365UIItem(List, BaseUIItem)
+	 * @see com.liferay.document.library.opener.onedrive.web.internal.display.context.DLOpenerOneDriveDLViewFileVersionDisplayContext#_addEditInOffice365UIItem(
+	 *      List, BaseUIItem)
 	 */
 	private <T extends BaseUIItem> List<T> _addSharingUIItem(
 		List<T> uiItems, T sharingUIItem) {
@@ -212,6 +287,7 @@ public class SharingDLViewFileVersionDisplayContext
 	private final FileEntry _fileEntry;
 	private final HttpServletRequest _httpServletRequest;
 	private final SharingConfiguration _sharingConfiguration;
+	private final SharingDropdownItemFactory _sharingDropdownItemFactory;
 	private final SharingEntryLocalService _sharingEntryLocalService;
 	private final SharingMenuItemFactory _sharingMenuItemFactory;
 	private final SharingPermission _sharingPermission;

@@ -14,17 +14,25 @@
 
 package com.liferay.frontend.icons.web.internal.servlet;
 
+import com.liferay.frontend.icons.web.internal.configuration.FrontendIconsPacksConfiguration;
 import com.liferay.frontend.icons.web.internal.model.FrontendIconsResourcePack;
 import com.liferay.frontend.icons.web.internal.repository.FrontendIconsResourcePackRepository;
 import com.liferay.frontend.icons.web.internal.util.SVGUtil;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.module.configuration.ConfigurationException;
+import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.util.ContentTypes;
-import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,6 +51,7 @@ import org.osgi.service.component.annotations.Reference;
 	immediate = true,
 	property = {
 		"osgi.http.whiteboard.context.path=/icons",
+		"osgi.http.whiteboard.servlet.name=com.liferay.frontend.icons.web.internal.servlet.FrontendIconsServlet",
 		"osgi.http.whiteboard.servlet.pattern=/icons/*"
 	},
 	service = Servlet.class
@@ -55,7 +64,7 @@ public class FrontendIconsServlet extends HttpServlet {
 		HttpServletResponse httpServletResponse) {
 
 		try {
-			httpServletResponse.setCharacterEncoding("UTF-8");
+			httpServletResponse.setCharacterEncoding(StringPool.UTF8);
 			httpServletResponse.setContentType(ContentTypes.IMAGE_SVG_XML);
 			httpServletResponse.setStatus(HttpServletResponse.SC_OK);
 
@@ -68,14 +77,25 @@ public class FrontendIconsServlet extends HttpServlet {
 				return;
 			}
 
-			FrontendIconsResourcePack frontendIconsResourcePack =
-				_frontendIconsResourcePackRepository.
-					getFrontendIconsResourcePack(
-						(Long)httpServletRequest.getAttribute(
-							WebKeys.COMPANY_ID),
-						matcher.group(1));
+			String[] iconPacks = null;
 
-			if (frontendIconsResourcePack == null) {
+			String path = matcher.group(1);
+
+			if (path.equals("site")) {
+				FrontendIconsPacksConfiguration
+					frontendIconsPacksConfiguration =
+						_configurationProvider.getGroupConfiguration(
+							FrontendIconsPacksConfiguration.class,
+							GetterUtil.getLong(matcher.group(2)));
+
+				iconPacks = frontendIconsPacksConfiguration.selectedIconPacks();
+			}
+			else if (path.equals("pack")) {
+				String name = matcher.group(2);
+
+				iconPacks = new String[] {StringUtil.toUpperCase(name)};
+			}
+			else {
 				httpServletResponse.setStatus(HttpServletResponse.SC_NOT_FOUND);
 
 				return;
@@ -83,10 +103,27 @@ public class FrontendIconsServlet extends HttpServlet {
 
 			PrintWriter printWriter = httpServletResponse.getWriter();
 
-			printWriter.write(
-				SVGUtil.getSVGSpritemap(frontendIconsResourcePack));
+			List<FrontendIconsResourcePack> frontendIconsResourcePacks =
+				new ArrayList<>();
+
+			for (String iconPack : iconPacks) {
+				frontendIconsResourcePacks.add(
+					_frontendIconsResourcePackRepository.
+						getFrontendIconsResourcePack(
+							(Long)httpServletRequest.getAttribute(
+								WebKeys.COMPANY_ID),
+							iconPack));
+			}
+
+			if (frontendIconsResourcePacks.isEmpty()) {
+				httpServletResponse.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			}
+			else {
+				printWriter.write(
+					SVGUtil.getSVGSpritemap(frontendIconsResourcePacks));
+			}
 		}
-		catch (Exception exception) {
+		catch (ConfigurationException | IOException exception) {
 			if (_log.isDebugEnabled()) {
 				_log.debug(exception);
 			}
@@ -98,13 +135,14 @@ public class FrontendIconsServlet extends HttpServlet {
 	private static final Log _log = LogFactoryUtil.getLog(
 		FrontendIconsServlet.class);
 
-	private static final Pattern _pattern = Pattern.compile("^/(.*).svg");
+	private static final Pattern _pattern = Pattern.compile(
+		"^/(.*?)/(.*?).svg");
+
+	@Reference
+	private ConfigurationProvider _configurationProvider;
 
 	@Reference
 	private FrontendIconsResourcePackRepository
 		_frontendIconsResourcePackRepository;
-
-	@Reference
-	private Portal _portal;
 
 }

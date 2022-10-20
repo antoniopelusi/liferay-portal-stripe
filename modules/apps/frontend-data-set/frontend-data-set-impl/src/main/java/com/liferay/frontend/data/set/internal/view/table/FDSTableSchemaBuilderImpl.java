@@ -17,6 +17,8 @@ package com.liferay.frontend.data.set.internal.view.table;
 import com.liferay.frontend.data.set.view.table.FDSTableSchema;
 import com.liferay.frontend.data.set.view.table.FDSTableSchemaBuilder;
 import com.liferay.frontend.data.set.view.table.FDSTableSchemaField;
+import com.liferay.petra.function.UnsafeConsumer;
+import com.liferay.petra.reflect.ReflectionUtil;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -27,66 +29,61 @@ import java.util.Map;
 public class FDSTableSchemaBuilderImpl implements FDSTableSchemaBuilder {
 
 	@Override
-	public <T extends FDSTableSchemaField> T addFDSTableSchemaField(
-		Class<T> clazz, String fieldName) {
-
-		FDSTableSchemaField fdsTableSchemaField = null;
-
-		try {
-			fdsTableSchemaField = clazz.newInstance();
-
-			fdsTableSchemaField.setFieldName(fieldName);
-
-			_fdsTableSchemaFieldsMap.put(fieldName, fdsTableSchemaField);
-		}
-		catch (Exception exception) {
-			throw new RuntimeException(exception);
-		}
-
-		return clazz.cast(fdsTableSchemaField);
-	}
-
-	@Override
-	public <T extends FDSTableSchemaField> T addFDSTableSchemaField(
-		Class<T> clazz, String fieldName, String label) {
-
-		FDSTableSchemaField fdsTableSchemaField = addFDSTableSchemaField(
-			clazz, fieldName);
-
-		fdsTableSchemaField.setLabel(label);
-
-		return clazz.cast(fdsTableSchemaField);
-	}
-
-	@Override
-	public void addFDSTableSchemaField(
-		FDSTableSchemaField fdsTableSchemaField) {
-
+	public FDSTableSchemaBuilder add(FDSTableSchemaField fdsTableSchemaField) {
 		_fdsTableSchemaFieldsMap.put(
 			fdsTableSchemaField.getFieldName(), fdsTableSchemaField);
+
+		return this;
 	}
 
 	@Override
-	public FDSTableSchemaField addFDSTableSchemaField(String fieldName) {
-		FDSTableSchemaField fdsTableSchemaField = new FDSTableSchemaField();
+	public FDSTableSchemaBuilder add(String fieldName) {
+		_addFDSTableSchemaField(fieldName);
 
-		fdsTableSchemaField.setFieldName(fieldName);
-
-		_fdsTableSchemaFieldsMap.put(fieldName, fdsTableSchemaField);
-
-		return fdsTableSchemaField;
+		return this;
 	}
 
 	@Override
-	public FDSTableSchemaField addFDSTableSchemaField(
-		String fieldName, String label) {
+	public FDSTableSchemaBuilder add(String fieldName, String label) {
+		_addFDSTableSchemaField(fieldName, label);
 
-		FDSTableSchemaField fdsTableSchemaField = addFDSTableSchemaField(
+		return this;
+	}
+
+	@Override
+	public FDSTableSchemaBuilder add(
+		String fieldName, String label,
+		UnsafeConsumer<FDSTableSchemaField, Throwable> unsafeConsumer) {
+
+		FDSTableSchemaField fdsTableSchemaField = _addFDSTableSchemaField(
+			fieldName, label);
+
+		try {
+			unsafeConsumer.accept(fdsTableSchemaField);
+		}
+		catch (Throwable throwable) {
+			return ReflectionUtil.throwException(throwable);
+		}
+
+		return this;
+	}
+
+	@Override
+	public FDSTableSchemaBuilder add(
+		String fieldName,
+		UnsafeConsumer<FDSTableSchemaField, Throwable> unsafeConsumer) {
+
+		FDSTableSchemaField fdsTableSchemaField = _addFDSTableSchemaField(
 			fieldName);
 
-		fdsTableSchemaField.setLabel(label);
+		try {
+			unsafeConsumer.accept(fdsTableSchemaField);
+		}
+		catch (Throwable throwable) {
+			return ReflectionUtil.throwException(throwable);
+		}
 
-		return fdsTableSchemaField;
+		return this;
 	}
 
 	@Override
@@ -96,17 +93,28 @@ public class FDSTableSchemaBuilderImpl implements FDSTableSchemaBuilder {
 		return _fdsTableSchema;
 	}
 
-	@Override
-	public void removeFDSTableSchemaField(String fieldName) {
-		_fdsTableSchemaFieldsMap.remove(fieldName);
+	private FDSTableSchemaField _addFDSTableSchemaField(String fieldName) {
+		FDSTableSchemaField fdsTableSchemaField = new FDSTableSchemaField();
+
+		fdsTableSchemaField.setFieldName(fieldName);
+
+		_fdsTableSchemaFieldsMap.put(fieldName, fdsTableSchemaField);
+
+		return fdsTableSchemaField;
 	}
 
-	@Override
-	public void setFDSTableSchema(FDSTableSchema fdsTableSchema) {
-		_fdsTableSchema = fdsTableSchema;
+	private FDSTableSchemaField _addFDSTableSchemaField(
+		String fieldName, String label) {
+
+		FDSTableSchemaField fdsTableSchemaField = _addFDSTableSchemaField(
+			fieldName);
+
+		fdsTableSchemaField.setLabel(label);
+
+		return fdsTableSchemaField;
 	}
 
-	private FDSTableSchema _fdsTableSchema = new FDSTableSchema();
+	private final FDSTableSchema _fdsTableSchema = new FDSTableSchema();
 	private final Map<String, FDSTableSchemaField> _fdsTableSchemaFieldsMap =
 		new LinkedHashMap<>();
 

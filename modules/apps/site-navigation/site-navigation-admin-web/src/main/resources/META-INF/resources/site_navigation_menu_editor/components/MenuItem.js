@@ -21,7 +21,7 @@ import ClayLayout from '@clayui/layout';
 import ClayModal, {useModal} from '@clayui/modal';
 import {useIsMounted} from '@liferay/frontend-js-react-web';
 import classNames from 'classnames';
-import {fetch, objectToFormData, openToast} from 'frontend-js-web';
+import {fetch, objectToFormData, openToast, sub} from 'frontend-js-web';
 import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 
@@ -159,7 +159,7 @@ export function MenuItem({item}) {
 					style={itemStyle}
 				>
 					<ClayCheckbox
-						aria-label={Liferay.Util.sub(
+						aria-label={sub(
 							Liferay.Language.get('select-x'),
 							`${title} (${type})`
 						)}
@@ -192,17 +192,30 @@ export function MenuItem({item}) {
 										)}
 									</ClayCard.Description>
 
-									<ClayLabel
-										className="mt-1"
-										displayType="secondary"
-									>
-										{type}
-									</ClayLabel>
+									<div className="d-flex">
+										<ClayLabel
+											className="mt-1"
+											displayType="secondary"
+										>
+											{type}
+										</ClayLabel>
+
+										{item.dynamic && (
+											<ClayLabel
+												className="mt-1"
+												displayType="info"
+											>
+												{Liferay.Language.get(
+													'dynamic'
+												)}
+											</ClayLabel>
+										)}
+									</div>
 								</ClayLayout.ContentCol>
 
 								<ClayLayout.ContentCol gutters>
 									<ClayButtonWithIcon
-										aria-label={Liferay.Util.sub(
+										aria-label={sub(
 											Liferay.Language.get('delete-x'),
 											`${title} (${type})`
 										)}
@@ -281,8 +294,8 @@ function DeletionModal({
 				</p>
 
 				<ClayRadioGroup
-					onSelectedValueChange={(type) => setDeletionType(type)}
-					selectedValue={deletionType}
+					onChange={(type) => setDeletionType(type)}
+					value={deletionType}
 				>
 					<ClayRadio
 						label={Liferay.Language.get('only-delete-this-item')}

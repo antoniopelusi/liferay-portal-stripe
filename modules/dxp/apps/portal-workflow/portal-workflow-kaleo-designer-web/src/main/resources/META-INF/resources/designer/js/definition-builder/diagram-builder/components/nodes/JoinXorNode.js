@@ -30,13 +30,13 @@ export default function JoinXorNode({
 	return (
 		<BaseNode
 			actions={actions}
-			className="join-xor-node"
 			description={description}
 			descriptionSidebar={descriptionSidebar}
 			icon="arrow-xor"
 			id={id}
 			label={label}
 			newNode={newNode}
+			nodeTypeClassName="join-xor-node"
 			notifications={notifications}
 			type="join-xor"
 			{...otherProps}

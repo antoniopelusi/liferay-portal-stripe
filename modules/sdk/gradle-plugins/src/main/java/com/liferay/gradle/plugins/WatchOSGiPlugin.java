@@ -19,8 +19,8 @@ import aQute.bnd.osgi.Constants;
 import com.liferay.gradle.plugins.extensions.BundleExtension;
 import com.liferay.gradle.plugins.internal.util.GradleUtil;
 import com.liferay.gradle.plugins.internal.util.IncludeResourceCompileIncludeInstruction;
-import com.liferay.gradle.plugins.tasks.ExecuteBndTask;
-import com.liferay.gradle.plugins.tasks.WatchTask;
+import com.liferay.gradle.plugins.task.ExecuteBndTask;
+import com.liferay.gradle.plugins.task.WatchTask;
 import com.liferay.gradle.plugins.util.BndUtil;
 
 import java.io.File;

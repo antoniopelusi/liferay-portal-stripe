@@ -15,24 +15,31 @@
 package com.liferay.commerce.price.list.internal.upgrade.v2_1_0;
 
 import com.liferay.commerce.price.list.constants.CommercePriceListConstants;
-import com.liferay.commerce.price.list.internal.upgrade.base.BaseCommercePriceListUpgradeProcess;
+import com.liferay.portal.kernel.upgrade.UpgradeProcess;
+import com.liferay.portal.kernel.upgrade.UpgradeProcessFactory;
+import com.liferay.portal.kernel.upgrade.UpgradeStep;
 
 /**
  * @author Alessio Antonio Rendina
  */
-public class CommercePriceListUpgradeProcess
-	extends BaseCommercePriceListUpgradeProcess {
+public class CommercePriceListUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	public void doUpgrade() throws Exception {
-		addColumn("CommercePriceList", "type_", "VARCHAR(75)");
-		addColumn("CommercePriceList", "catalogBasePriceList", "BOOLEAN");
-
 		runSQL(
 			"UPDATE CommercePriceList SET type_ = '" +
 				CommercePriceListConstants.TYPE_PRICE_LIST + "'");
 
 		runSQL("UPDATE CommercePriceList SET catalogBasePriceList = [$FALSE$]");
+	}
+
+	@Override
+	protected UpgradeStep[] getPreUpgradeSteps() {
+		return new UpgradeStep[] {
+			UpgradeProcessFactory.addColumns(
+				"CommercePriceList", "type_ VARCHAR(75)",
+				"catalogBasePriceList BOOLEAN")
+		};
 	}
 
 }

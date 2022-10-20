@@ -1,6 +1,6 @@
 Bundle-Name: Liferay Source Formatter
 Bundle-SymbolicName: com.liferay.source.formatter
-Bundle-Version: 1.0.1218
+Bundle-Version: 1.0.1251
 Import-Package:\
 	!javax.portlet,\
 	\
@@ -17,7 +17,6 @@ Main-Class: com.liferay.source.formatter.SourceFormatter
 	@com.liferay.petra.concurrent-*.jar!/com/liferay/petra/concurrent/ConcurrentMapperHashMap.class,\
 	@com.liferay.petra.concurrent-*.jar!/com/liferay/petra/concurrent/ConcurrentReferenceKeyHashMap.class,\
 	@com.liferay.petra.concurrent-*.jar!/com/liferay/petra/concurrent/ConcurrentReferenceKeyHashMap$*.class,\
-	@com.liferay.petra.content-*.jar!/com/liferay/petra/content/ContentUtil.class,\
 	@com.liferay.petra.memory-*.jar!/com/liferay/petra/memory/EqualityPhantomReference.class,\
 	@com.liferay.petra.memory-*.jar!/com/liferay/petra/memory/EqualitySoftReference.class,\
 	@com.liferay.petra.memory-*.jar!/com/liferay/petra/memory/EqualityWeakReference.class,\

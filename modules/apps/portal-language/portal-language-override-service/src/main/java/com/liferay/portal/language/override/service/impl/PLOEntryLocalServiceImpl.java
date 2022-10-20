@@ -17,10 +17,14 @@ package com.liferay.portal.language.override.service.impl;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
+import com.liferay.portal.kernel.model.ModelHintsUtil;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.language.override.exception.PLOEntryKeyException;
+import com.liferay.portal.language.override.exception.PLOEntryValueException;
 import com.liferay.portal.language.override.model.PLOEntry;
 import com.liferay.portal.language.override.service.base.PLOEntryLocalServiceBaseImpl;
 
@@ -49,6 +53,8 @@ public class PLOEntryLocalServiceImpl extends PLOEntryLocalServiceBaseImpl {
 		throws PortalException {
 
 		PLOEntry ploEntry = fetchPLOEntry(companyId, key, languageId);
+
+		_validate(key, value);
 
 		if (ploEntry == null) {
 			ploEntry = createPLOEntry(counterLocalService.increment());
@@ -122,7 +128,7 @@ public class PLOEntryLocalServiceImpl extends PLOEntryLocalServiceBaseImpl {
 		throws PortalException {
 
 		for (Map.Entry<Locale, String> entry : localizationMap.entrySet()) {
-			String languageId = LanguageUtil.getLanguageId(entry.getKey());
+			String languageId = _language.getLanguageId(entry.getKey());
 			String value = StringUtil.trim(entry.getValue());
 
 			if ((value == null) || value.equals(StringPool.BLANK)) {
@@ -133,6 +139,26 @@ public class PLOEntryLocalServiceImpl extends PLOEntryLocalServiceBaseImpl {
 			}
 		}
 	}
+
+	private void _validate(String key, String value) throws PortalException {
+		if (Validator.isBlank(key)) {
+			throw new PLOEntryKeyException.MustNotBeNull();
+		}
+
+		int keyMaxLength = ModelHintsUtil.getMaxLength(
+			PLOEntry.class.getName(), "key");
+
+		if (key.length() > keyMaxLength) {
+			throw new PLOEntryKeyException.MustBeShorter(keyMaxLength);
+		}
+
+		if (Validator.isBlank(value)) {
+			throw new PLOEntryValueException.MustNotBeNull();
+		}
+	}
+
+	@Reference
+	private Language _language;
 
 	@Reference
 	private UserLocalService _userLocalService;

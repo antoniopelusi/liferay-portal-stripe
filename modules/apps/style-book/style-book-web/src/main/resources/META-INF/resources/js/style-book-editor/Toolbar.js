@@ -17,12 +17,15 @@ import ClayLayout from '@clayui/layout';
 import ClayPopover from '@clayui/popover';
 import classNames from 'classnames';
 import {ALIGN_POSITIONS, align} from 'frontend-js-web';
-import React, {useContext, useLayoutEffect, useRef, useState} from 'react';
+import React, {useLayoutEffect, useRef, useState} from 'react';
 
 import PreviewSelector from './PreviewSelector';
 import PublishButton from './PublishButton';
-import {StyleBookContext} from './StyleBookContext';
+import Undo from './Undo';
+import UndoHistory from './UndoHistory';
 import {DRAFT_STATUS} from './constants/draftStatusConstants';
+import {usePreviewLayout} from './contexts/LayoutContext';
+import {useDraftStatus} from './contexts/StyleBookEditorContext';
 
 const STATUS_TO_LABEL = {
 	[DRAFT_STATUS.draftSaved]: Liferay.Language.get('saved'),
@@ -30,8 +33,8 @@ const STATUS_TO_LABEL = {
 	[DRAFT_STATUS.saving]: `${Liferay.Language.get('saving')}...`,
 };
 
-export default function Toolbar() {
-	const {previewLayout} = useContext(StyleBookContext);
+export default React.memo(function Toolbar() {
+	const previewLayout = usePreviewLayout();
 
 	return (
 		<div className="management-bar navbar style-book-editor__toolbar">
@@ -53,6 +56,14 @@ export default function Toolbar() {
 						<DraftStatus />
 					</li>
 
+					<li className="nav-item">
+						<Undo />
+					</li>
+
+					<li className="nav-item">
+						<UndoHistory />
+					</li>
+
 					<li className="mx-2 nav-item">
 						<HelpInformation />
 					</li>
@@ -64,10 +75,10 @@ export default function Toolbar() {
 			</ClayLayout.ContainerFluid>
 		</div>
 	);
-}
+});
 
 function DraftStatus() {
-	const {draftStatus} = useContext(StyleBookContext);
+	const draftStatus = useDraftStatus();
 
 	return (
 		<div>

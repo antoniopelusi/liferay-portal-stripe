@@ -14,29 +14,18 @@
 
 package com.liferay.commerce.price.list.internal.upgrade.v2_1_0;
 
-import com.liferay.commerce.price.list.internal.upgrade.base.BaseCommercePriceListUpgradeProcess;
+import com.liferay.portal.kernel.upgrade.UpgradeProcess;
+import com.liferay.portal.kernel.upgrade.UpgradeProcessFactory;
+import com.liferay.portal.kernel.upgrade.UpgradeStep;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 /**
  * @author Riccardo Alberti
  */
-public class CommerceTierPriceEntryUpgradeProcess
-	extends BaseCommercePriceListUpgradeProcess {
+public class CommerceTierPriceEntryUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	public void doUpgrade() throws Exception {
-		addColumn("CommerceTierPriceEntry", "discountDiscovery", "BOOLEAN");
-		addColumn("CommerceTierPriceEntry", "discountLevel1", "DECIMAL(30,16)");
-		addColumn("CommerceTierPriceEntry", "discountLevel2", "DECIMAL(30,16)");
-		addColumn("CommerceTierPriceEntry", "discountLevel3", "DECIMAL(30,16)");
-		addColumn("CommerceTierPriceEntry", "discountLevel4", "DECIMAL(30,16)");
-		addColumn("CommerceTierPriceEntry", "displayDate", "DATE");
-		addColumn("CommerceTierPriceEntry", "expirationDate", "DATE");
-		addColumn("CommerceTierPriceEntry", "status", "INTEGER");
-		addColumn("CommerceTierPriceEntry", "statusByUserId", "LONG");
-		addColumn("CommerceTierPriceEntry", "statusByUserName", "VARCHAR(75)");
-		addColumn("CommerceTierPriceEntry", "statusDate", "DATE");
-
 		runSQL(
 			"update CommerceTierPriceEntry set displayDate = lastPublishDate");
 		runSQL(
@@ -45,6 +34,20 @@ public class CommerceTierPriceEntryUpgradeProcess
 		runSQL("update CommerceTierPriceEntry set statusByUserId = userId");
 		runSQL("update CommerceTierPriceEntry set statusByUserName = userName");
 		runSQL("update CommerceTierPriceEntry set statusDate = modifiedDate");
+	}
+
+	@Override
+	protected UpgradeStep[] getPreUpgradeSteps() {
+		return new UpgradeStep[] {
+			UpgradeProcessFactory.addColumns(
+				"CommerceTierPriceEntry", "discountDiscovery BOOLEAN",
+				"discountLevel1 DECIMAL(30,16)",
+				"discountLevel2 DECIMAL(30,16)",
+				"discountLevel3 DECIMAL(30,16)",
+				"discountLevel4 DECIMAL(30,16)", "displayDate DATE",
+				"expirationDate DATE", "status INTEGER", "statusByUserId LONG",
+				"statusByUserName VARCHAR(75)", "statusDate DATE")
+		};
 	}
 
 }

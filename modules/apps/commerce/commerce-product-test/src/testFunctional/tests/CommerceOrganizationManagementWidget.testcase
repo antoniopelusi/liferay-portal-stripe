@@ -1,0 +1,237 @@
+@component-name = "portal-commerce"
+definition {
+
+	property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+	property testray.main.component.name = "Order Management";
+
+	setUp {
+		CommerceConfiguration.commerceSetUp(minium = "true");
+
+		task ("Setup: Add a Minium page with an Organization Management widget") {
+			JSONLayout.addPublicLayout(
+				groupName = "Minium",
+				layoutName = "Organization Management Widget Page");
+
+			JSONLayout.addWidgetToPublicLayout(
+				groupName = "Minium",
+				layoutName = "Organization Management Widget Page",
+				widgetName = "Organization Management");
+		}
+
+		task ("Setup: Add an organization") {
+			JSONOrganization.addOrganization(
+				organizationName = "Organization 1",
+				organizationSite = "false");
+		}
+
+		task ("Setup: Add buyer account") {
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
+		}
+	}
+
+	tearDown {
+		CommerceConfiguration.commerceTearDown();
+	}
+
+	@description = "COMMERCE-9403. Verify new users can be added using the Organization Management widget."
+	@priority = "3"
+	test CanAddNewUserUsingWidget {
+		task ("Given the Organization Management Widget Page is reached and the account svg node is reached") {
+			Navigator.openSitePage(
+				pageName = "Organization Management Widget Page",
+				siteName = "Minium");
+
+			CommerceWidget.gotoSVGNode(
+				key_nodeName = "Organization 1",
+				key_orgType = "user");
+		}
+
+		task ("Then the admin is able to create and add a new user to the Organization by adding the user email and selecting the organization role") {
+			CommerceWidget.addUserViaOrganizationManagementWidget(
+				key_roleOption = "Organization User",
+				value = "user@liferay.com");
+
+			CommerceWidget.assertOrganizationManagementWigetTitlePresent(key_nodeName = "user@life");
+		}
+
+		task ("Then the user is present in the admin console") {
+			CommerceWidget.assertOrganizationManagementWigetTitlePresent(key_nodeName = "user@life");
+		}
+	}
+
+	@description = "COMMERCE-9402. Verify the store admin can associate existing accounts to an organization by using the Organization Management widget."
+	@priority = "3"
+	test CanAssociateExistingAccountUsingWidget {
+		task ("Given an account and the Organization Management Widget Page is reached") {
+			JSONAccountEntry.addAccountEntry(
+				accountEntryName = "Commerce Account",
+				accountEntryType = "Business");
+
+			Navigator.openSitePage(
+				pageName = "Organization Management Widget Page",
+				siteName = "Minium");
+		}
+
+		task ("And the account svg node is reached") {
+			CommerceWidget.gotoSVGNode(
+				key_nodeName = "Organization 1",
+				key_orgType = "account");
+		}
+
+		task ("When the admin is able to select an existing account to be associated with the organization") {
+			CommerceWidget.associateAccountWithOrganization(
+				key_radioOption = "Select Accounts",
+				value = "Commerce Account");
+		}
+
+		task ("Then the account is present in the admin console") {
+			CommerceWidget.assertOrganizationManagementWigetTitlePresent(key_nodeName = "Commerce Account");
+		}
+	}
+
+	@description = "COMMERCE-9403. Verify the store admin can associate existing users to an organization by using the Organization Management widget."
+	@priority = "3"
+	test CanAssociateExistingUserUsingWidget {
+		task ("Given an Organization Management Widget Page is reached") {
+			Navigator.openSitePage(
+				pageName = "Organization Management Widget Page",
+				siteName = "Minium");
+		}
+
+		task ("When the user svg node is reached") {
+			CommerceWidget.gotoSVGNode(
+				key_nodeName = "Organization 1",
+				key_orgType = "user");
+		}
+
+		task ("And the admin is able to add an existing user's email to be associated with the organization") {
+			CommerceWidget.addUserViaOrganizationManagementWidget(
+				key_roleOption = "Organization User",
+				value = "buyer@liferay.com");
+		}
+
+		task ("Then the user is present in the admin console") {
+			CommerceWidget.assertOrganizationManagementWigetTitlePresent(key_nodeName = "Buyer User");
+		}
+	}
+
+	@description = "COMMERCE-9401. Verify new accounts can be created using the Organization Management widget."
+	@priority = "3"
+	test CanCreateAccountUsingWidget {
+		task ("Given the Organization Management Widget Page is reached") {
+			Navigator.openSitePage(
+				pageName = "Organization Management Widget Page",
+				siteName = "Minium");
+		}
+
+		task ("And the organization svg node is clicked") {
+			CommerceWidget.gotoSVGNode(
+				key_nodeName = "Organization 1",
+				key_orgType = "account");
+		}
+
+		task ("When the admin is able to create a new account") {
+			CommerceWidget.addAccountViaOrganizationManagementWidget(
+				key_radioOption = "Create New Account",
+				value = "Account 1");
+		}
+
+		task ("Then the new account is present in the admin console") {
+			CommerceWidget.assertOrganizationManagementWigetTitlePresent(key_nodeName = "Account 1");
+		}
+	}
+
+	@description = "COMMERCE-9400. Verify new child organizations can be created using the Organization Management widget."
+	@priority = "3"
+	test CanCreateOrganizationUsingWidget {
+		task ("Given the Organization Management Widget Page is reached") {
+			Navigator.openSitePage(
+				pageName = "Organization Management Widget Page",
+				siteName = "Minium");
+		}
+
+		task ("When the organization node is reached") {
+			CommerceWidget.gotoSVGNode(
+				key_nodeName = "Organization 1",
+				key_orgType = "organization");
+		}
+
+		task ("And the admin is able to create a new child organization") {
+			CommerceWidget.canCreateChildOrganization(value = "Child Org 1");
+		}
+
+		task ("Then the new child organization is present in the admin console") {
+			CommerceWidget.assertOrganizationManagementWigetTitlePresent(key_nodeName = "Child Org 1");
+		}
+	}
+
+	@description = "COMMERCE-9404. Verify accounts and organizations can be moved using the Organization Management widget."
+	@priority = "3"
+	test CanMoveAccountsAndOrganizationsInWidget {
+		task ("Given a new organization with a child organization") {
+			JSONOrganization.addOrganization(
+				organizationName = "Organization 2",
+				organizationSite = "false");
+
+			JSONOrganization.addOrganization(
+				organizationName = "Child Org 1",
+				organizationSite = "false",
+				parentOrganizationName = "Organization 2");
+		}
+
+		task ("And given the account belongs to Organization 2") {
+			Accounts.assignOrganizations(
+				accountName = "Commerce Account",
+				assigneeName = "Organization 2");
+		}
+
+		task ("When the Organization Management Widget Page is reached") {
+			Navigator.openSitePage(
+				pageName = "Organization Management Widget Page",
+				siteName = "Minium");
+		}
+
+		task ("And the admin is able to drag and drop the account to Organization 1 and the admin is able to drag and drop the child organization to Organization 1") {
+			CommerceWidget.canDragAndDropOrganizaitionAndChildOrganization(
+				key_nodeChild = "Child Org 1",
+				key_nodeDestination = "Organization 1",
+				key_nodeName = "Organization 2",
+				key_nodeOrigin = "Commerce Account");
+		}
+
+		task ("Then the admin is able to click on the child organization ellipses and click remove to move the child organization outside the parent organization") {
+			CommerceWidget.removeChildOrganization(
+				key_nodeChild = "Child Org 1",
+				key_nodeName = "Organization 1");
+
+			CommerceWidget.assertOrganizationManagementWigetTitlePresent(key_nodeName = "Child Org 1");
+		}
+	}
+
+	@description = "COMMERCE-9399. Verify organizations can be viewed in the Organization Management widget."
+	@priority = "3"
+	test CanViewOrganizationWidget {
+		task ("When the Organization Management Widget Page is reached") {
+			CommerceWidget.openOrganizationWidget();
+		}
+
+		task ("Then the organization is shown within the widget") {
+			CommerceWidget.assertOrganizationManagementWigetTitlePresent(key_nodeName = "Organization 1");
+		}
+	}
+
+}

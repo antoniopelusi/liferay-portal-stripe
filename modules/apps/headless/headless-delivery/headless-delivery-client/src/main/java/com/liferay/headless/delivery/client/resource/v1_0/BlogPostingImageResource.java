@@ -107,6 +107,12 @@ public interface BlogPostingImageResource {
 			return new BlogPostingImageResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -152,6 +158,7 @@ public interface BlogPostingImageResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -236,7 +243,7 @@ public interface BlogPostingImageResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-delivery/v1.0/blog-posting-images/{blogPostingImageId}");
 
 			httpInvoker.path("blogPostingImageId", blogPostingImageId);
@@ -314,7 +321,7 @@ public interface BlogPostingImageResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-delivery/v1.0/blog-posting-images/batch");
 
 			httpInvoker.userNameAndPassword(
@@ -393,7 +400,7 @@ public interface BlogPostingImageResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-delivery/v1.0/blog-posting-images/{blogPostingImageId}");
 
 			httpInvoker.path("blogPostingImageId", blogPostingImageId);
@@ -500,7 +507,7 @@ public interface BlogPostingImageResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-delivery/v1.0/sites/{siteId}/blog-posting-images");
 
 			httpInvoker.path("siteId", siteId);
@@ -595,7 +602,7 @@ public interface BlogPostingImageResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-delivery/v1.0/sites/{siteId}/blog-posting-images");
 
 			httpInvoker.path("siteId", siteId);
@@ -680,7 +687,7 @@ public interface BlogPostingImageResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-delivery/v1.0/sites/{siteId}/blog-posting-images/batch");
 
 			httpInvoker.path("siteId", siteId);

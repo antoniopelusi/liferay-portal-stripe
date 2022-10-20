@@ -30,26 +30,29 @@ const BASE_PROPS = {
 	portletNamespace: 'test',
 };
 
-const SCHEMA = {
-	'currencyCode': {
+const SCHEMA = [
+	{
+		name: 'currencyCode',
 		type: 'string',
 	},
-	'id': {
-		format: 'int64',
+	{
+		name: 'id',
 		type: 'integer',
 	},
-	'name': {
+	{
+		name: 'name',
 		type: 'string',
 	},
-	'type': {
+	{
+		name: 'type',
 		type: 'string',
 	},
-	'x-class-name': {
-		default: 'com.liferay.headless.commerce.admin.channel.dto.v1_0.Channel',
+	{
+		name: 'x-class-name',
 		readOnly: true,
 		type: 'string',
 	},
-};
+];
 
 const FILE_SCHEMA = ['currencyCode', 'type', 'name'];
 const fileContent = [
@@ -58,6 +61,15 @@ const fileContent = [
 ];
 
 describe('ImportForm', () => {
+	beforeEach(() => {
+		const mockDiv = document.createElement('div');
+		mockDiv.setAttribute(
+			'id',
+			`${BASE_PROPS.portletNamespace}downloadTemplateAlert`
+		);
+		document.body.appendChild(mockDiv);
+	});
+
 	afterEach(cleanup);
 
 	it('must render', () => {

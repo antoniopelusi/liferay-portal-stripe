@@ -16,7 +16,6 @@ package com.liferay.translation.web.internal.display.context;
 
 import com.liferay.info.item.InfoItemServiceTracker;
 import com.liferay.info.localized.InfoLocalizedValue;
-import com.liferay.petra.apache.http.components.URIBuilder;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
@@ -27,14 +26,14 @@ import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
+import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.url.URLBuilder;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortalUtil;
-import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.segments.constants.SegmentsEntryConstants;
@@ -46,8 +45,6 @@ import com.liferay.segments.service.SegmentsExperienceServiceUtil;
 import com.liferay.translation.exporter.TranslationInfoItemFieldValuesExporter;
 import com.liferay.translation.exporter.TranslationInfoItemFieldValuesExporterTracker;
 import com.liferay.translation.info.item.provider.InfoItemLanguagesProvider;
-
-import java.net.URI;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -249,6 +246,18 @@ public class ExportTranslationDisplayContext {
 		return infoItemLanguagesProvider.getDefaultLanguageId(_models.get(0));
 	}
 
+	private long _getDraftLayoutPlid(long classPK) {
+		Layout layout = LayoutLocalServiceUtil.fetchLayout(classPK);
+
+		Layout draftLayout = layout.fetchDraftLayout();
+
+		if (draftLayout != null) {
+			return draftLayout.getPlid();
+		}
+
+		return classPK;
+	}
+
 	private JSONObject _getExportFileFormatJSONObject(
 		TranslationInfoItemFieldValuesExporter
 			translationInfoItemFieldValuesExporter) {
@@ -269,22 +278,27 @@ public class ExportTranslationDisplayContext {
 	}
 
 	private String _getExportTranslationURLString() throws Exception {
-		URIBuilder.URIBuilderWrapper uriBuilderWrapper = URIBuilder.create(
-			PortalUtil.getPortalURL(_httpServletRequest) + Portal.PATH_MODULE +
-				"/translation/export_translation"
+		URLBuilder urlBuilder = URLBuilder.create(
+			StringBundler.concat(
+				_themeDisplay.getPortalURL(), PortalUtil.getPathContext(),
+				Portal.PATH_MODULE, "/translation/export_translation")
 		).addParameter(
 			"classNameId", String.valueOf(_classNameId)
 		);
 
 		for (long classPK : _classPKs) {
-			uriBuilderWrapper.addParameter("classPK", String.valueOf(classPK));
+			if (_className.equals(Layout.class.getName())) {
+				urlBuilder.addParameter(
+					"classPK", String.valueOf(_getDraftLayoutPlid(classPK)));
+			}
+			else {
+				urlBuilder.addParameter("classPK", String.valueOf(classPK));
+			}
 		}
 
-		uriBuilderWrapper.addParameter("groupId", String.valueOf(_groupId));
+		urlBuilder.addParameter("groupId", String.valueOf(_groupId));
 
-		URI uri = uriBuilderWrapper.build();
-
-		return uri.toString();
+		return urlBuilder.build();
 	}
 
 	private JSONArray _getLocalesJSONArray(
@@ -341,9 +355,7 @@ public class ExportTranslationDisplayContext {
 	}
 
 	private boolean _isMultipleExperiences() {
-		if (!GetterUtil.getBoolean(PropsUtil.get("feature.flag.LPS-142736")) ||
-			!_className.equals(Layout.class.getName())) {
-
+		if (!_className.equals(Layout.class.getName())) {
 			return false;
 		}
 
@@ -352,7 +364,7 @@ public class ExportTranslationDisplayContext {
 				SegmentsExperienceLocalServiceUtil.getSegmentsExperiencesCount(
 					_groupId, _classNameId, classPK);
 
-			if (segmentsExperiencesCount >= 1) {
+			if (segmentsExperiencesCount > 1) {
 				return true;
 			}
 		}

@@ -245,6 +245,13 @@ describe('Variants', () => {
 });
 
 describe('Review and Run test', () => {
+	beforeAll(() => {
+		window.Liferay = {
+			...Liferay,
+			FeatureFlags: {},
+		};
+	});
+
 	it('Can view review experiment modal', async () => {
 		const {findByText, getAllByDisplayValue, getByText} = renderApp({
 			initialSegmentsExperiment: segmentsExperiment,
@@ -640,9 +647,6 @@ describe('Winner declared', () => {
 			initialSegmentsVariants: segmentsVariants,
 			winnerSegmentsVariantId: '1',
 		});
-
-		const winner = getByText('-is-the-winner-variant');
-		within(winner).getByText('Variant');
 
 		getByText('publish-winner');
 		getByText('discard-test');

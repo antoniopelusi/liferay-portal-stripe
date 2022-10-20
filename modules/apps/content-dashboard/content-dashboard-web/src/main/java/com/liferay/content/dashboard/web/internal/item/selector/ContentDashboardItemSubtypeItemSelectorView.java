@@ -16,13 +16,13 @@ package com.liferay.content.dashboard.web.internal.item.selector;
 
 import com.liferay.asset.kernel.AssetRendererFactoryRegistryUtil;
 import com.liferay.asset.kernel.model.AssetRendererFactory;
+import com.liferay.content.dashboard.info.item.ClassNameClassPKInfoItemIdentifier;
+import com.liferay.content.dashboard.item.type.ContentDashboardItemSubtype;
+import com.liferay.content.dashboard.item.type.ContentDashboardItemSubtypeFactory;
 import com.liferay.content.dashboard.web.internal.display.context.ContentDashboardItemSubtypeItemSelectorViewDisplayContext;
-import com.liferay.content.dashboard.web.internal.info.item.provider.util.ClassNameClassPKInfoItemIdentifier;
 import com.liferay.content.dashboard.web.internal.item.ContentDashboardItemFactory;
 import com.liferay.content.dashboard.web.internal.item.ContentDashboardItemFactoryTracker;
 import com.liferay.content.dashboard.web.internal.item.selector.criteria.content.dashboard.type.criterion.ContentDashboardItemSubtypeItemSelectorCriterion;
-import com.liferay.content.dashboard.web.internal.item.type.ContentDashboardItemSubtype;
-import com.liferay.content.dashboard.web.internal.item.type.ContentDashboardItemSubtypeFactory;
 import com.liferay.content.dashboard.web.internal.search.request.ContentDashboardItemSearchClassMapperTracker;
 import com.liferay.content.dashboard.web.internal.util.ContentDashboardGroupUtil;
 import com.liferay.document.library.kernel.model.DLFileEntryType;
@@ -41,7 +41,7 @@ import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
@@ -185,21 +185,29 @@ public class ContentDashboardItemSubtypeItemSelectorView
 		for (String className :
 				_contentDashboardItemFactoryTracker.getClassNames()) {
 
-			Optional<ContentDashboardItemFactory<?>>
-				contentDashboardItemFactoryOptional =
-					_contentDashboardItemFactoryTracker.
-						getContentDashboardItemFactoryOptional(className);
+			ContentDashboardItemFactory<?> contentDashboardItemFactory =
+				_contentDashboardItemFactoryTracker.
+					getContentDashboardItemFactory(className);
 
-			contentDashboardItemFactoryOptional.flatMap(
-				ContentDashboardItemFactory::
-					getContentDashboardItemSubtypeFactoryOptional
-			).ifPresent(
-				contentDashboardItemSubtypeFactory ->
-					_populateContentDashboardItemTypesJSONArray(
-						className, contentDashboardItemSubtypeFactory,
-						checkedContentDashboardItemSubtypesInfoItemReferences,
-						contentDashboardItemTypesJSONArray, themeDisplay)
-			);
+			if (contentDashboardItemFactory == null) {
+				continue;
+			}
+
+			Optional<ContentDashboardItemSubtypeFactory>
+				contentDashboardItemSubtypeFactoryOptional =
+					contentDashboardItemFactory.
+						getContentDashboardItemSubtypeFactoryOptional();
+
+			if (contentDashboardItemSubtypeFactoryOptional.isPresent()) {
+				ContentDashboardItemSubtypeFactory
+					contentDashboardItemSubtypeFactory =
+						contentDashboardItemSubtypeFactoryOptional.get();
+
+				_populateContentDashboardItemTypesJSONArray(
+					className, contentDashboardItemSubtypeFactory,
+					checkedContentDashboardItemSubtypesInfoItemReferences,
+					contentDashboardItemTypesJSONArray, themeDisplay);
+			}
 		}
 
 		return contentDashboardItemTypesJSONArray;
@@ -245,7 +253,7 @@ public class ContentDashboardItemSubtypeItemSelectorView
 					return labelInfoLocalizedValue.getValue(locale);
 				}
 
-				return LanguageUtil.format(
+				return _language.format(
 					locale, "x-group-x",
 					new String[] {
 						labelInfoLocalizedValue.getValue(locale),
@@ -407,6 +415,9 @@ public class ContentDashboardItemSubtypeItemSelectorView
 
 	@Reference
 	private InfoItemServiceTracker _infoItemServiceTracker;
+
+	@Reference
+	private Language _language;
 
 	@Reference(
 		target = "(osgi.web.symbolicname=com.liferay.content.dashboard.web)"

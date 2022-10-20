@@ -196,6 +196,9 @@ definition {
 	}
 
 	macro assertCanChooseDataSourceOptions {
+
+		// Accounts and Salesforce tests are no longer possible to run after this one from LRAC-11571
+
 		Click(
 			key_sourceType = "Liferay DXP",
 			locator1 = "ACSettings#DXP_DATA_SOURCE_CHOOSE_OPTION");
@@ -204,15 +207,13 @@ definition {
 
 		Click(locator1 = "ACUtils#MODAL_CLOSE_BUTTON");
 
-		Click(
-			key_sourceType = "Salesforce",
-			locator1 = "ACSettings#DXP_DATA_SOURCE_CHOOSE_OPTION");
-
-		ACUtils.assertItemsName(itemList = "Configure Salesforce");
-
-		Click(
-			key_breadcrumbName = "Add Data Source",
-			locator1 = "BreadcrumbPortlet#BREADCRUMB_PAGE");
+		//Click(
+		//	key_sourceType = "Salesforce",
+		//	locator1 = "ACSettings#DXP_DATA_SOURCE_CHOOSE_OPTION");
+		//ACUtils.assertItemsName(itemList = "Configure Salesforce");
+		//Click(
+		//	key_breadcrumbName = "Add Data Source",
+		//	locator1 = "BreadcrumbPortlet#BREADCRUMB_PAGE");
 
 		Click(
 			key_sourceType = "CSV File",
@@ -455,6 +456,26 @@ definition {
 		Alert.viewSuccessMessage();
 	}
 
+	macro clearProperty {
+		ACUtils.searchBar(searchItem = "${propertyName}");
+
+		ACNavigation.openItem(itemName = "${propertyName}");
+
+		ACUtils.clickAnyButton(buttonName = "Clear Data");
+
+		Copy(locator1 = "ACSettings#DELETE_CONFIRMATION_MESSAGE");
+
+		Click(locator1 = "ACSettings#DELETE_CONFIRMATION_INPUT");
+
+		Paste(locator1 = "ACSettings#DELETE_CONFIRMATION_INPUT");
+
+		Click(locator1 = "ACSettings#DELETE_CONFIRMATION_BUTTON");
+
+		Alert.viewSuccessMessage();
+
+		ACUtils.waitForClearProperty();
+	}
+
 	macro clickGenericAddOrConfirmationButton {
 		Click(locator1 = "ACDXPSettings#AC_GENERIC_ADD_OR_CONFIRMATION_BUTTON");
 	}
@@ -546,11 +567,11 @@ definition {
 
 		ACSettings.goToProperties();
 
-		KeyPress(
-			locator1 = "ACSettings#SELECT_ALL_CHECKBOX",
-			value1 = "\SPACE");
+		if (IsElementPresent(locator1 = "ACSettings#SELECT_ALL_CHECKBOX")) {
+			KeyPress(
+				locator1 = "ACSettings#SELECT_ALL_CHECKBOX",
+				value1 = "\SPACE");
 
-		if (IsElementPresent(locator1 = "ACSettings#GENERIC_DELETE_BUTTON")) {
 			Click(locator1 = "ACSettings#GENERIC_DELETE_BUTTON");
 
 			Copy(locator1 = "ACSettings#DELETE_CONFIRMATION_MESSAGE");
@@ -766,6 +787,7 @@ definition {
 			title = "${propertyName}");
 
 		var propertyId = selenium.getText("ACSettings#HEADER_DESCRIPTION");
+
 		var propertyId = StringUtil.extractLast("${propertyId}", " ");
 
 		return "${propertyId}";
@@ -773,7 +795,9 @@ definition {
 
 	macro getUsagePercentage {
 		var usageSince = selenium.getText("//div[contains(@class,'overview-usage')][.//h3[contains(@class,'metric-name')][normalize-space(text())='${metricName}']]//span[contains(@class,'usage-since')]");
+
 		var percentage = StringUtil.extractFirst("${usageSince}", "since");
+
 		var percentage = StringUtil.trim("${percentage}");
 
 		return "${percentage}";
@@ -858,6 +882,27 @@ definition {
 		Click(locator1 = "ACDataControlAndPrivacy#REQUEST_SUPPRESSED_OPTIONS");
 	}
 
+	@summary = "Rename an existing Data Source"
+	macro renameDataSource {
+		Click(locator1 = "Icon#EDIT_PENCIL");
+
+		Click(
+			inputFieldId = "dataSourceName",
+			locator1 = "TextInput#INPUT_ID");
+
+		KeyPress(
+			inputFieldId = "dataSourceName",
+			locator1 = "TextInput#INPUT_ID",
+			value1 = "\BACK_SPACE");
+
+		Type(
+			inputFieldId = "dataSourceName",
+			locator1 = "TextInput#INPUT_ID",
+			value1 = "${dataSourceNewName}");
+
+		Button.clickSubmitButton();
+	}
+
 	@summary = "Takes the token from Analytics Clouds to use on during the DXP connection process"
 	macro takeTokenFromAnalyticsCloud {
 		ACSettings.goToDataSources();
@@ -865,6 +910,19 @@ definition {
 		Click(locator1 = "ACDXPSettings#AC_GENERIC_ADD_OR_CONFIRMATION_BUTTON");
 
 		Click(locator1 = "ACSettings#DXP_DATA_SOURCE_OPTION");
+
+		Copy(locator1 = "ACSettings#TOKEN_INPUT_FIELD");
+	}
+
+	@summary = "Takes the token from an existing data source to make a reconnection"
+	macro takeTokenFromExistingDataSource {
+		ACSettings.goToDataSources();
+
+		ACUtils.searchBar(searchItem = "${dataSourceName}");
+
+		ACNavigation.openItem(itemName = "${dataSourceName}");
+
+		ACUtils.clickAnyButton(button = "Reconnect");
 
 		Copy(locator1 = "ACSettings#TOKEN_INPUT_FIELD");
 	}

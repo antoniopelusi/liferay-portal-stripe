@@ -1,4 +1,4 @@
-import com.liferay.gradle.plugins.node.tasks.DownloadNodeModuleTask
+import com.liferay.gradle.plugins.node.task.DownloadNodeModuleTask
 
 buildscript {
 	dependencies {

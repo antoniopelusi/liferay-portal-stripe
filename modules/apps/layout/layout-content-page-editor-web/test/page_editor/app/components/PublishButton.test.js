@@ -13,11 +13,11 @@
  */
 
 import '@testing-library/jest-dom/extend-expect';
-import {fireEvent, render} from '@testing-library/react';
+import {act, fireEvent, render, screen} from '@testing-library/react';
 import React from 'react';
 
 import PublishButton from '../../../../src/main/resources/META-INF/resources/page_editor/app/components/PublishButton';
-import {StyleErrorsContextProvider} from '../../../../src/main/resources/META-INF/resources/page_editor/app/contexts/StyleErrorsContext';
+import useCheckFormsValidity from '../../../../src/main/resources/META-INF/resources/page_editor/app/utils/useCheckFormsValidity';
 
 jest.mock(
 	'../../../../src/main/resources/META-INF/resources/page_editor/app/config',
@@ -31,66 +31,87 @@ jest.mock(
 	})
 );
 
-const ERRORS = {
-	defaultId: {background: {error: 'I am an error', value: 'error'}},
-};
+jest.mock(
+	'../../../../src/main/resources/META-INF/resources/page_editor/app/components/FormValidationModal',
+	() => ({FormValidationModal: () => 'Form Validation Modal'})
+);
 
-const renderComponent = ({
-	handleSubmit = () => {},
-	errors,
-	canPublish = true,
-}) => {
+jest.mock(
+	'../../../../src/main/resources/META-INF/resources/page_editor/app/utils/useCheckFormsValidity',
+	() => jest.fn()
+);
+
+const renderComponent = ({onPublish = () => {}, canPublish = true} = {}) => {
 	const ref = React.createRef();
 
 	return render(
-		<StyleErrorsContextProvider initialState={errors}>
-			<PublishButton
-				canPublish={canPublish}
-				formRef={ref}
-				handleSubmit={handleSubmit}
-				label="publish"
-			/>
-		</StyleErrorsContextProvider>
+		<PublishButton
+			canPublish={canPublish}
+			formRef={ref}
+			label="publish"
+			onPublish={onPublish}
+		/>
 	);
 };
 
 describe('PublishButton', () => {
+	afterEach(() => {
+		useCheckFormsValidity.mockClear();
+	});
+
 	it('renders PublishButton component', () => {
-		const {getByLabelText} = renderComponent({});
+		useCheckFormsValidity.mockImplementation(() => () =>
+			Promise.resolve(true)
+		);
 
-		expect(getByLabelText('publish')).toBeInTheDocument();
+		renderComponent();
+
+		expect(screen.getByLabelText('publish')).toBeInTheDocument();
 	});
 
-	it('calls handleSubmit when the button is clicked', () => {
-		const handleSubmit = jest.fn((event) => event.preventDefault());
-		const {getByLabelText} = renderComponent({handleSubmit});
-		const button = getByLabelText('publish');
+	it('calls onPublish when the button is clicked', async () => {
+		const onPublish = jest.fn(() => {});
 
-		fireEvent.click(button);
+		renderComponent({onPublish});
 
-		expect(handleSubmit).toHaveBeenCalled();
-	});
+		const button = screen.getByLabelText('publish');
 
-	it('opens a modal when the button is clicked and there are errors', async () => {
-		const {getByLabelText} = renderComponent({errors: ERRORS});
-		const button = getByLabelText('publish');
+		await fireEvent.click(button);
 
-		fireEvent.click(button);
-
-		expect(getByLabelText('style-errors-detected')).toBeInTheDocument();
+		expect(onPublish).toHaveBeenCalled();
 	});
 
 	it('does not allow to publish if canPublish is false', () => {
-		const handleSubmit = jest.fn((event) => event.preventDefault());
-		const {getByLabelText} = renderComponent({
+		const onPublish = jest.fn(() => {});
+
+		renderComponent({
 			canPublish: false,
-			handleSubmit,
+			onPublish,
 		});
-		const button = getByLabelText('publish');
+
+		const button = screen.getByLabelText('publish');
 
 		fireEvent.click(button);
 
-		expect(handleSubmit).not.toHaveBeenCalled();
+		expect(onPublish).not.toHaveBeenCalled();
 		expect(button).toBeDisabled();
+	});
+
+	it('does not call onPublish when some form is invalid', async () => {
+		useCheckFormsValidity.mockImplementation(() => () =>
+			Promise.resolve(false)
+		);
+
+		const onPublish = jest.fn(() => {});
+
+		renderComponent({onPublish});
+
+		const button = screen.getByLabelText('publish');
+
+		await act(async () => {
+			fireEvent.click(button);
+		});
+
+		expect(onPublish).not.toHaveBeenCalled();
 	});
 });

@@ -18,6 +18,7 @@ import com.liferay.commerce.frontend.taglib.internal.servlet.ServletContextUtil;
 import com.liferay.frontend.js.loader.modules.extender.npm.NPMResolver;
 import com.liferay.frontend.taglib.soy.servlet.taglib.ComponentRendererTag;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.frontend.icons.FrontendIconsUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.WebKeys;
 
@@ -40,6 +41,7 @@ public class ProductDetailsModalTag extends ComponentRendererTag {
 				"/243817358+w+h+q80+re0+cr1+ar0+st0" +
 					"/006-fully-built-engine-by-the-experts.jpg");
 		putValue("settings", null);
+		putValue("sku", "AR351184");
 
 		HttpServletRequest httpServletRequest = getRequest();
 
@@ -47,10 +49,7 @@ public class ProductDetailsModalTag extends ComponentRendererTag {
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-		putValue(
-			"spritemap", themeDisplay.getPathThemeImages() + "/clay/icons.svg");
-
-		putValue("sku", "AR351184");
+		putValue("spritemap", FrontendIconsUtil.getSpritemap(themeDisplay));
 
 		setTemplateNamespace("ProductDetailsModal.render");
 

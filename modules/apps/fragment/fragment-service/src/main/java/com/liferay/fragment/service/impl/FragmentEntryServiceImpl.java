@@ -50,7 +50,8 @@ public class FragmentEntryServiceImpl extends FragmentEntryServiceBaseImpl {
 			long groupId, long fragmentCollectionId, String fragmentEntryKey,
 			String name, String css, String html, String js, boolean cacheable,
 			String configuration, String icon, long previewFileEntryId,
-			int type, int status, ServiceContext serviceContext)
+			int type, String typeOptions, int status,
+			ServiceContext serviceContext)
 		throws PortalException {
 
 		_portletResourcePermission.check(
@@ -60,7 +61,7 @@ public class FragmentEntryServiceImpl extends FragmentEntryServiceBaseImpl {
 		return fragmentEntryLocalService.addFragmentEntry(
 			getUserId(), groupId, fragmentCollectionId, fragmentEntryKey, name,
 			css, html, js, cacheable, configuration, icon, previewFileEntryId,
-			type, status, serviceContext);
+			type, typeOptions, status, serviceContext);
 	}
 
 	@Override
@@ -431,25 +432,6 @@ public class FragmentEntryServiceImpl extends FragmentEntryServiceBaseImpl {
 	public FragmentEntry updateFragmentEntry(
 			long fragmentEntryId, long fragmentCollectionId, String name,
 			String css, String html, String js, boolean cacheable,
-			String configuration, long previewFileEntryId, int status)
-		throws PortalException {
-
-		FragmentEntry fragmentEntry =
-			fragmentEntryLocalService.getFragmentEntry(fragmentEntryId);
-
-		_portletResourcePermission.check(
-			getPermissionChecker(), fragmentEntry.getGroupId(),
-			FragmentActionKeys.MANAGE_FRAGMENT_ENTRIES);
-
-		return fragmentEntryLocalService.updateFragmentEntry(
-			getUserId(), fragmentEntryId, fragmentCollectionId, name, css, html,
-			js, cacheable, configuration, previewFileEntryId, status);
-	}
-
-	@Override
-	public FragmentEntry updateFragmentEntry(
-			long fragmentEntryId, long fragmentCollectionId, String name,
-			String css, String html, String js, boolean cacheable,
 			String configuration, String icon, long previewFileEntryId,
 			int status)
 		throws PortalException {
@@ -463,7 +445,29 @@ public class FragmentEntryServiceImpl extends FragmentEntryServiceBaseImpl {
 
 		return fragmentEntryLocalService.updateFragmentEntry(
 			getUserId(), fragmentEntryId, fragmentCollectionId, name, css, html,
-			js, cacheable, configuration, icon, previewFileEntryId, status);
+			js, cacheable, configuration, icon, previewFileEntryId,
+			fragmentEntry.getTypeOptions(), status);
+	}
+
+	@Override
+	public FragmentEntry updateFragmentEntry(
+			long fragmentEntryId, long fragmentCollectionId, String name,
+			String css, String html, String js, boolean cacheable,
+			String configuration, String icon, long previewFileEntryId,
+			String typeOptions, int status)
+		throws PortalException {
+
+		FragmentEntry fragmentEntry =
+			fragmentEntryLocalService.getFragmentEntry(fragmentEntryId);
+
+		_portletResourcePermission.check(
+			getPermissionChecker(), fragmentEntry.getGroupId(),
+			FragmentActionKeys.MANAGE_FRAGMENT_ENTRIES);
+
+		return fragmentEntryLocalService.updateFragmentEntry(
+			getUserId(), fragmentEntryId, fragmentCollectionId, name, css, html,
+			js, cacheable, configuration, icon, previewFileEntryId, typeOptions,
+			status);
 	}
 
 	@Override
@@ -479,83 +483,6 @@ public class FragmentEntryServiceImpl extends FragmentEntryServiceBaseImpl {
 
 		return fragmentEntryLocalService.updateFragmentEntry(
 			fragmentEntryId, name);
-	}
-
-	@Override
-	public FragmentEntry updateFragmentEntry(
-			long fragmentEntryId, String name, String css, String html,
-			String js, boolean cacheable, String configuration, int status)
-		throws PortalException {
-
-		FragmentEntry fragmentEntry =
-			fragmentEntryLocalService.getFragmentEntry(fragmentEntryId);
-
-		_portletResourcePermission.check(
-			getPermissionChecker(), fragmentEntry.getGroupId(),
-			FragmentActionKeys.MANAGE_FRAGMENT_ENTRIES);
-
-		return fragmentEntryLocalService.updateFragmentEntry(
-			getUserId(), fragmentEntryId,
-			fragmentEntry.getFragmentCollectionId(), name, css, html, js,
-			cacheable, configuration, fragmentEntry.getPreviewFileEntryId(),
-			status);
-	}
-
-	@Override
-	public FragmentEntry updateFragmentEntry(
-			long fragmentEntryId, String name, String css, String html,
-			String js, boolean cacheable, String configuration,
-			long previewFileEntryId, int status)
-		throws PortalException {
-
-		FragmentEntry fragmentEntry =
-			fragmentEntryLocalService.getFragmentEntry(fragmentEntryId);
-
-		_portletResourcePermission.check(
-			getPermissionChecker(), fragmentEntry.getGroupId(),
-			FragmentActionKeys.MANAGE_FRAGMENT_ENTRIES);
-
-		return fragmentEntryLocalService.updateFragmentEntry(
-			getUserId(), fragmentEntryId,
-			fragmentEntry.getFragmentCollectionId(), name, css, html, js,
-			cacheable, configuration, previewFileEntryId, status);
-	}
-
-	@Override
-	public FragmentEntry updateFragmentEntry(
-			long fragmentEntryId, String name, String css, String html,
-			String js, String configuration, int status)
-		throws PortalException {
-
-		FragmentEntry fragmentEntry =
-			fragmentEntryLocalService.getFragmentEntry(fragmentEntryId);
-
-		_portletResourcePermission.check(
-			getPermissionChecker(), fragmentEntry.getGroupId(),
-			FragmentActionKeys.MANAGE_FRAGMENT_ENTRIES);
-
-		return fragmentEntryLocalService.updateFragmentEntry(
-			getUserId(), fragmentEntryId, name, css, html, js, configuration,
-			status);
-	}
-
-	@Override
-	public FragmentEntry updateFragmentEntry(
-			long fragmentEntryId, String name, String css, String html,
-			String js, String configuration, long previewFileEntryId,
-			int status)
-		throws PortalException {
-
-		FragmentEntry fragmentEntry =
-			fragmentEntryLocalService.getFragmentEntry(fragmentEntryId);
-
-		_portletResourcePermission.check(
-			getPermissionChecker(), fragmentEntry.getGroupId(),
-			FragmentActionKeys.MANAGE_FRAGMENT_ENTRIES);
-
-		return fragmentEntryLocalService.updateFragmentEntry(
-			getUserId(), fragmentEntryId, name, css, html, js, configuration,
-			previewFileEntryId, status);
 	}
 
 	@Reference

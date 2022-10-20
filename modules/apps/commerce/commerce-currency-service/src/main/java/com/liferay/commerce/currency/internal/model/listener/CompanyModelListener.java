@@ -14,6 +14,7 @@
 
 package com.liferay.commerce.currency.internal.model.listener;
 
+import com.liferay.commerce.currency.internal.model.listener.util.ImportDefaultValuesUtil;
 import com.liferay.commerce.currency.service.CommerceCurrencyLocalService;
 import com.liferay.portal.kernel.model.BaseModelListener;
 import com.liferay.portal.kernel.model.Company;
@@ -27,6 +28,12 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(enabled = false, immediate = true, service = ModelListener.class)
 public class CompanyModelListener extends BaseModelListener<Company> {
+
+	@Override
+	public void onAfterCreate(Company company) {
+		ImportDefaultValuesUtil.importDefaultValues(
+			_commerceCurrencyLocalService, company);
+	}
 
 	@Override
 	public void onBeforeRemove(Company company) {

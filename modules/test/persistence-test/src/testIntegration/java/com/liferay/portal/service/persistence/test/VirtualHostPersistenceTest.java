@@ -166,6 +166,13 @@ public class VirtualHostPersistenceTest {
 	}
 
 	@Test
+	public void testCountByCompanyId() throws Exception {
+		_persistence.countByCompanyId(RandomTestUtil.nextLong());
+
+		_persistence.countByCompanyId(0L);
+	}
+
+	@Test
 	public void testCountByHostname() throws Exception {
 		_persistence.countByHostname("");
 
@@ -180,6 +187,24 @@ public class VirtualHostPersistenceTest {
 			RandomTestUtil.nextLong(), RandomTestUtil.nextLong());
 
 		_persistence.countByC_L(0L, 0L);
+	}
+
+	@Test
+	public void testCountByNotL_H() throws Exception {
+		_persistence.countByNotL_H(RandomTestUtil.nextLong(), "");
+
+		_persistence.countByNotL_H(0L, "null");
+
+		_persistence.countByNotL_H(0L, (String)null);
+	}
+
+	@Test
+	public void testCountByNotL_HArrayable() throws Exception {
+		_persistence.countByNotL_H(
+			RandomTestUtil.nextLong(),
+			new String[] {
+				RandomTestUtil.randomString(), "", "null", null, null
+			});
 	}
 
 	@Test

@@ -244,8 +244,6 @@ definition {
 	@description = "Verify that user can nagivate through pages."
 	@priority = "3"
 	test CanNavigateThroughPages {
-		property portal.upstream = "quarantine";
-
 		for (var kfProcessName : list "1,2,3,4") {
 			KaleoFormsAdmin.submitNewProcess(kfProcessName = "Kaleo Forms Process");
 
@@ -350,7 +348,7 @@ definition {
 
 	@description = "Verify that user can search by Column Value and view the search result."
 	@priority = "3"
-	test CanSearchByColunmValue {
+	test CanSearchByColumnValue {
 		KaleoFormsAdmin.submitNewProcess(kfProcessName = "Kaleo Forms Process");
 
 		KaleoFormsNewSubmissions.addNewContacts(

@@ -17,7 +17,7 @@ package com.liferay.staging.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.exportimport.kernel.service.StagingLocalServiceUtil;
 import com.liferay.layout.test.util.LayoutTestUtil;
-import com.liferay.petra.reflect.ReflectionUtil;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.portal.kernel.exception.NoSuchGroupException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -31,6 +31,7 @@ import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.Sync;
 import com.liferay.portal.kernel.test.rule.SynchronousDestinationTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.PropsValuesTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
@@ -39,11 +40,9 @@ import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
-import com.liferay.portal.util.PropsValues;
 import com.liferay.staging.StagingGroupHelper;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
+import java.util.function.Supplier;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -147,14 +146,21 @@ public class StagingGroupHelperTest {
 
 		Assert.assertEquals(
 			_remoteLiveGroup,
-			_stagingGroupHelper.fetchLiveGroup(_remoteStagingGroup));
+			_executeWithRemoteCredentials(
+				() -> _stagingGroupHelper.fetchLiveGroup(_remoteStagingGroup)));
 		Assert.assertEquals(
 			_remoteLiveGroup,
-			_stagingGroupHelper.fetchLiveGroup(_remoteStagingScopeGroup));
+			_executeWithRemoteCredentials(
+				() -> _stagingGroupHelper.fetchLiveGroup(
+					_remoteStagingScopeGroup)));
 
-		Assert.assertNull(_stagingGroupHelper.fetchLiveGroup(_remoteLiveGroup));
 		Assert.assertNull(
-			_stagingGroupHelper.fetchLiveGroup(_remoteLiveScopeGroup));
+			_executeWithRemoteCredentials(
+				() -> _stagingGroupHelper.fetchLiveGroup(_remoteLiveGroup)));
+		Assert.assertNull(
+			_executeWithRemoteCredentials(
+				() -> _stagingGroupHelper.fetchLiveGroup(
+					_remoteLiveScopeGroup)));
 
 		Assert.assertNull(_stagingGroupHelper.fetchLiveGroup(_regularGroup));
 	}
@@ -231,15 +237,23 @@ public class StagingGroupHelperTest {
 
 		Assert.assertEquals(
 			_remoteLiveGroup,
-			_stagingGroupHelper.fetchRemoteLiveGroup(_remoteStagingGroup));
+			_executeWithRemoteCredentials(
+				() -> _stagingGroupHelper.fetchRemoteLiveGroup(
+					_remoteStagingGroup)));
 		Assert.assertEquals(
 			_remoteLiveGroup,
-			_stagingGroupHelper.fetchRemoteLiveGroup(_remoteStagingScopeGroup));
+			_executeWithRemoteCredentials(
+				() -> _stagingGroupHelper.fetchRemoteLiveGroup(
+					_remoteStagingScopeGroup)));
 
 		Assert.assertNull(
-			_stagingGroupHelper.fetchRemoteLiveGroup(_remoteLiveGroup));
+			_executeWithRemoteCredentials(
+				() -> _stagingGroupHelper.fetchRemoteLiveGroup(
+					_remoteLiveGroup)));
 		Assert.assertNull(
-			_stagingGroupHelper.fetchRemoteLiveGroup(_remoteLiveScopeGroup));
+			_executeWithRemoteCredentials(
+				() -> _stagingGroupHelper.fetchRemoteLiveGroup(
+					_remoteLiveScopeGroup)));
 
 		Assert.assertNull(
 			_stagingGroupHelper.fetchRemoteLiveGroup(_regularGroup));
@@ -904,38 +918,42 @@ public class StagingGroupHelperTest {
 		_remoteLiveGroup = GroupTestUtil.addGroup();
 		_remoteStagingGroup = GroupTestUtil.addGroup();
 
-		_setPortalProperty(
-			"TUNNELING_SERVLET_SHARED_SECRET",
-			"F0E1D2C3B4A5968778695A4B3C2D1E0F");
+		try (SafeCloseable safeCloseable1 =
+				PropsValuesTestUtil.swapWithSafeCloseable(
+					"TUNNELING_SERVLET_SHARED_SECRET",
+					"F0E1D2C3B4A5968778695A4B3C2D1E0F");
+			SafeCloseable safeCloseable2 =
+				PropsValuesTestUtil.swapWithSafeCloseable(
+					"TUNNELING_SERVLET_SHARED_SECRET_HEX", true)) {
 
-		_setPortalProperty("TUNNELING_SERVLET_SHARED_SECRET_HEX", true);
+			int serverPort = PortalUtil.getPortalServerPort(false);
 
-		int serverPort = PortalUtil.getPortalServerPort(false);
+			Assert.assertFalse(
+				"Invalid server port: " + serverPort,
+				(serverPort < 1) || (serverPort > 65535));
 
-		Assert.assertFalse(
-			"Invalid server port: " + serverPort,
-			(serverPort < 1) || (serverPort > 65535));
+			String pathContext = PortalUtil.getPathContext();
 
-		String pathContext = PortalUtil.getPathContext();
+			UserTestUtil.setUser(TestPropsValues.getUser());
 
-		UserTestUtil.setUser(TestPropsValues.getUser());
+			ServiceContext serviceContext = new ServiceContext();
 
-		ServiceContext serviceContext = new ServiceContext();
+			serviceContext.setAttribute(
+				"staged--staged-portlet_" + _PORTLET_ID_BLOGS + "--", "false");
+			serviceContext.setAttribute(
+				"staged--staged-portlet_" + _PORTLET_ID_BOOKMARKS + "--",
+				"true");
 
-		serviceContext.setAttribute(
-			"staged--staged-portlet_" + _PORTLET_ID_BLOGS + "--", "false");
-		serviceContext.setAttribute(
-			"staged--staged-portlet_" + _PORTLET_ID_BOOKMARKS + "--", "true");
+			StagingLocalServiceUtil.enableRemoteStaging(
+				TestPropsValues.getUserId(), _remoteStagingGroup, false, false,
+				"localhost", serverPort, pathContext, false,
+				_remoteLiveGroup.getGroupId(), serviceContext);
 
-		StagingLocalServiceUtil.enableRemoteStaging(
-			TestPropsValues.getUserId(), _remoteStagingGroup, false, false,
-			"localhost", serverPort, pathContext, false,
-			_remoteLiveGroup.getGroupId(), serviceContext);
+			GroupUtil.clearCache();
 
-		GroupUtil.clearCache();
-
-		_remoteLiveGroup = GroupLocalServiceUtil.getGroup(
-			_remoteLiveGroup.getGroupId());
+			_remoteLiveGroup = GroupLocalServiceUtil.getGroup(
+				_remoteLiveGroup.getGroupId());
+		}
 	}
 
 	private Group _addScopeGroup(Group group) throws Exception {
@@ -952,20 +970,17 @@ public class StagingGroupHelperTest {
 			false, true, null);
 	}
 
-	private void _setPortalProperty(String propertyName, Object value)
-		throws Exception {
+	private Group _executeWithRemoteCredentials(Supplier<Group> groupSupplier) {
+		try (SafeCloseable safeCloseable1 =
+				PropsValuesTestUtil.swapWithSafeCloseable(
+					"TUNNELING_SERVLET_SHARED_SECRET",
+					"F0E1D2C3B4A5968778695A4B3C2D1E0F");
+			SafeCloseable safeCloseable2 =
+				PropsValuesTestUtil.swapWithSafeCloseable(
+					"TUNNELING_SERVLET_SHARED_SECRET_HEX", true)) {
 
-		Field field = ReflectionUtil.getDeclaredField(
-			PropsValues.class, propertyName);
-
-		field.setAccessible(true);
-
-		Field modifiersField = Field.class.getDeclaredField("modifiers");
-
-		modifiersField.setAccessible(true);
-		modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
-
-		field.set(null, value);
+			return groupSupplier.get();
+		}
 	}
 
 	private static final String _PORTLET_ID_BLOGS =

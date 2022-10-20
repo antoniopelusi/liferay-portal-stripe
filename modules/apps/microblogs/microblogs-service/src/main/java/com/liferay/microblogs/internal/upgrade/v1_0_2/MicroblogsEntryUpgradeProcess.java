@@ -30,10 +30,6 @@ public class MicroblogsEntryUpgradeProcess extends UpgradeProcess {
 
 	private void _removeReceiverUserId() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
-			if (!hasColumn("MicroblogsEntry", "receiverUserId")) {
-				return;
-			}
-
 			alterTableDropColumn("MicroblogsEntry", "receiverUserId");
 		}
 	}

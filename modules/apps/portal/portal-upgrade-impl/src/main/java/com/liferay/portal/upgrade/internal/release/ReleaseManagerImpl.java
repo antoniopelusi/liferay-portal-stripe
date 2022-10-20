@@ -19,13 +19,9 @@ import com.liferay.osgi.service.tracker.collections.map.PropertyServiceReference
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapListener;
-import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.configuration.Configuration;
-import com.liferay.portal.kernel.configuration.ConfigurationFactoryUtil;
-import com.liferay.portal.kernel.dao.db.DB;
-import com.liferay.portal.kernel.dao.db.DBManagerUtil;
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Release;
@@ -50,7 +46,6 @@ import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
 
 import org.osgi.framework.BundleContext;
@@ -149,13 +144,8 @@ public class ReleaseManagerImpl implements ReleaseManager {
 
 	@Activate
 	protected void activate(BundleContext bundleContext) {
-		DB db = DBManagerUtil.getDB();
-
 		_serviceTrackerMap = ServiceTrackerMapFactory.openMultiValueMap(
-			bundleContext, UpgradeStep.class,
-			StringBundler.concat(
-				"(&(upgrade.bundle.symbolic.name=*)(|(upgrade.db.type=any)",
-				"(upgrade.db.type=", db.getDBType(), ")))"),
+			bundleContext, UpgradeStep.class, null,
 			new PropertyServiceReferenceMapper<String, UpgradeStep>(
 				"upgrade.bundle.symbolic.name"),
 			new ReleaseManagerImpl.UpgradeServiceTrackerCustomizer(
@@ -165,15 +155,23 @@ public class ReleaseManagerImpl implements ReleaseManager {
 					"upgrade.from.schema.version")),
 			new ReleaseManagerImpl.UpgradeInfoServiceTrackerMapListener());
 
-		Set<String> upgradedBundleSymbolicNames = new HashSet<>();
+		synchronized (this) {
+			Set<String> bundleSymbolicNames = null;
 
-		Set<String> bundleSymbolicNames = _serviceTrackerMap.keySet();
+			if (!PropsValues.UPGRADE_DATABASE_AUTO_RUN) {
+				bundleSymbolicNames = new HashSet<>();
 
-		while (upgradedBundleSymbolicNames.addAll(bundleSymbolicNames)) {
-			for (String bundleSymbolicName : bundleSymbolicNames) {
-				if (!PropsValues.UPGRADE_DATABASE_AUTO_RUN &&
-					(_releaseLocalService.fetchRelease(bundleSymbolicName) !=
-						null)) {
+				for (Release release :
+						_releaseLocalService.getReleases(
+							QueryUtil.ALL_POS, QueryUtil.ALL_POS)) {
+
+					bundleSymbolicNames.add(release.getBundleSymbolicName());
+				}
+			}
+
+			for (String bundleSymbolicName : _serviceTrackerMap.keySet()) {
+				if ((bundleSymbolicNames != null) &&
+					bundleSymbolicNames.contains(bundleSymbolicName)) {
 
 					continue;
 				}
@@ -181,15 +179,21 @@ public class ReleaseManagerImpl implements ReleaseManager {
 				List<UpgradeInfo> upgradeSteps = _serviceTrackerMap.getService(
 					bundleSymbolicName);
 
-				_upgradeExecutor.execute(
-					bundleSymbolicName, upgradeSteps,
-					OutputStreamContainerConstants.FACTORY_NAME_DUMMY);
+				try {
+					_upgradeExecutor.execute(
+						bundleSymbolicName, upgradeSteps,
+						OutputStreamContainerConstants.FACTORY_NAME_DUMMY);
+				}
+				catch (Throwable throwable) {
+					_log.error(
+						"Failed upgrade process for module " +
+							bundleSymbolicName,
+						throwable);
+				}
 			}
 
-			bundleSymbolicNames = _serviceTrackerMap.keySet();
+			_activated = true;
 		}
-
-		_activated = true;
 	}
 
 	@Deactivate
@@ -280,53 +284,12 @@ public class ReleaseManagerImpl implements ReleaseManager {
 					"upgrade.from.schema.version");
 			String toSchemaVersionString = (String)serviceReference.getProperty(
 				"upgrade.to.schema.version");
-			Object buildNumberObject = serviceReference.getProperty(
-				"build.number");
-
-			UpgradeStep upgradeStep = _bundleContext.getService(
-				serviceReference);
-
-			if (upgradeStep == null) {
-				if (_log.isWarnEnabled()) {
-					_log.warn(
-						"Skipping service " + serviceReference +
-							" because it does not implement UpgradeStep");
-				}
-
-				return null;
-			}
-
-			int buildNumber = 0;
-
-			if (buildNumberObject == null) {
-				try {
-					Class<? extends UpgradeStep> clazz = upgradeStep.getClass();
-
-					Configuration configuration =
-						ConfigurationFactoryUtil.getConfiguration(
-							clazz.getClassLoader(), "service");
-
-					Properties properties = configuration.getProperties();
-
-					buildNumber = GetterUtil.getInteger(
-						properties.getProperty("build.number"));
-				}
-				catch (Exception exception) {
-					if (_log.isDebugEnabled()) {
-						_log.debug(
-							"Unable to read service.properties for " +
-								serviceReference,
-							exception);
-					}
-				}
-			}
-			else {
-				buildNumber = GetterUtil.getInteger(buildNumberObject);
-			}
+			int buildNumber = GetterUtil.getInteger(
+				serviceReference.getProperty("build.number"));
 
 			return new UpgradeInfo(
 				fromSchemaVersionString, toSchemaVersionString, buildNumber,
-				upgradeStep);
+				_bundleContext.getService(serviceReference));
 		}
 
 		@Override
@@ -357,11 +320,14 @@ public class ReleaseManagerImpl implements ReleaseManager {
 			String key, UpgradeInfo upgradeInfo,
 			List<UpgradeInfo> upgradeInfos) {
 
-			if (_activated && UpgradeStepRegistratorThreadLocal.isEnabled() &&
-				(PropsValues.UPGRADE_DATABASE_AUTO_RUN ||
-				 (_releaseLocalService.fetchRelease(key) == null))) {
+			synchronized (ReleaseManagerImpl.this) {
+				if (_activated &&
+					UpgradeStepRegistratorThreadLocal.isEnabled() &&
+					(PropsValues.UPGRADE_DATABASE_AUTO_RUN ||
+					 (_releaseLocalService.fetchRelease(key) == null))) {
 
-				_upgradeExecutor.execute(key, upgradeInfos, null);
+					_upgradeExecutor.execute(key, upgradeInfos, null);
+				}
 			}
 		}
 

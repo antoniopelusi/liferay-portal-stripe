@@ -5,6 +5,7 @@
 **/TEST-frontend-js.xml
 **/liferay/logs/*.log
 **/liferay/logs/*.xml
+**/liferay/logs/companies/*
 **/pmd-reports
 *.bak
 *.iml
@@ -37,8 +38,9 @@
 /baseline-reports
 /benchmarks/*.csv
 /benchmarks/*.sql
-/benchmarks/lib
-/benchmarks/log
+/benchmarks/benchmarks-actual.properties
+/benchmarks/benchmarks.*.properties
+/benchmarks/liferay
 /bin
 /build
 /build.*.properties
@@ -87,6 +89,7 @@
 /portal-web/*.iws
 /portal-web/ROOT.war
 /portal-web/build
+/portal-web/poshi-ext.properties
 /portal-web/classes
 /portal-web/docroot/WEB-INF/classes
 /portal-web/docroot/WEB-INF/lib

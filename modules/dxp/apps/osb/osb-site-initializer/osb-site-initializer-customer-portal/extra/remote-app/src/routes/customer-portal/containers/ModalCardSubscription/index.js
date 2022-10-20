@@ -12,11 +12,12 @@
 import {useQuery} from '@apollo/client';
 import ClayModal from '@clayui/modal';
 import React, {useState} from 'react';
-import {Button, Table} from '../../../../common/components';
-import {getAccountSubscriptionsTerms} from '../../../../common/services/liferay/graphql/queries';
-import StatusTag from '../../components/StatusTag';
-import {STATUS_TAG_TYPES} from '../../utils/constants';
-import getDateCustomFormat from '../../utils/getDateCustomFormat';
+import i18n from '../../../../common/I18n';
+import {Button, StatusTag, Table} from '../../../../common/components';
+import {getCommerceOrderItems} from '../../../../common/services/liferay/graphql/queries';
+import {SLA_STATUS_TYPES} from '../../../../common/utils/constants';
+import getDateCustomFormat from '../../../../common/utils/getDateCustomFormat';
+import getKebabCase from '../../../../common/utils/getKebabCase';
 
 const dateFormat = {
 	day: '2-digit',
@@ -40,7 +41,7 @@ const columns = [
 		bodyClass: 'border-0',
 		expanded: true,
 		header: {
-			name: 'Start - End Date',
+			name: i18n.translate('start-end-date'),
 			styles:
 				'bg-neutral-1 font-weight-bold text-neutral-8 table-cell-expand-smaller py-3',
 		},
@@ -50,7 +51,7 @@ const columns = [
 		align: 'center',
 		bodyClass: 'border-0',
 		header: {
-			name: 'Provisioned',
+			name: i18n.translate('provisioned'),
 			styles:
 				'bg-neutral-1 font-weight-bold text-neutral-8 table-cell-expand-smaller py-3',
 		},
@@ -60,7 +61,7 @@ const columns = [
 		align: 'center',
 		bodyClass: 'border-0',
 		header: {
-			name: 'Purchased',
+			name: i18n.translate('purchased'),
 			styles:
 				'bg-neutral-1 font-weight-bold text-neutral-8 table-cell-expand-smaller py-3',
 		},
@@ -70,7 +71,7 @@ const columns = [
 		align: 'center',
 		bodyClass: 'border-0',
 		header: {
-			name: 'Instance Size',
+			name: i18n.translate('instance-size'),
 			styles:
 				'bg-neutral-1 font-weight-bold text-neutral-8 table-cell-expand-smaller py-3',
 		},
@@ -80,7 +81,7 @@ const columns = [
 		align: 'center',
 		bodyClass: 'border-0',
 		header: {
-			name: 'Status',
+			name: i18n.translate('status'),
 			styles:
 				'bg-neutral-1 font-weight-bold text-neutral-8 table-cell-expand-smaller py-3',
 		},
@@ -96,19 +97,17 @@ const ModalCardSubscription = ({
 }) => {
 	const [activePage, setActivePage] = useState(1);
 
-	const {data: subscriptionsTerms} = useQuery(getAccountSubscriptionsTerms, {
+	const {data} = useQuery(getCommerceOrderItems, {
 		variables: {
-			filter: `accountSubscriptionERC eq '${accountSubscriptionERC}'`,
+			filter: `customFields/accountSubscriptionERC eq '${accountSubscriptionERC}'`,
 			page: activePage,
 			pageSize: 5,
 		},
 	});
 
-	const dataAccountSubscriptionTerms =
-		subscriptionsTerms?.c?.accountSubscriptionTerms?.items || [];
+	const dataOrderItems = data?.orderItems?.items || [];
 
-	const totalCount =
-		subscriptionsTerms?.c?.accountSubscriptionTerms?.totalCount;
+	const totalCount = data?.orderItems?.totalCount;
 
 	const columnsWithoutProvisioned = () => {
 		const customColumns = [...columns];
@@ -117,16 +116,54 @@ const ModalCardSubscription = ({
 		return customColumns;
 	};
 
+	const getRowByColumns = () => {
+		return dataOrderItems.map(({customFields, options, quantity}) => {
+			const optionsParsed = JSON.parse(options);
+			const fields = customFields.reduce(
+				(fieldsAccumulator, currentField) => ({
+					...fieldsAccumulator,
+					[currentField.name]: currentField.customValue.data,
+				}),
+				{}
+			);
+
+			return {
+				'instance-size': optionsParsed.instanceSize || '-',
+				'provisioned': fields.provisionedCount || '-',
+				'quantity': quantity || '-',
+				'start-end-date': `${getDateCustomFormat(
+					optionsParsed.startDate,
+					dateFormat
+				)} - ${getDateCustomFormat(optionsParsed.endDate, dateFormat)}`,
+				'subscription-term-status':
+					(fields.status && (
+						<StatusTag
+							currentStatus={i18n.translate(
+								SLA_STATUS_TYPES[
+									`${fields.status.toLowerCase()}`
+								]
+							)}
+						/>
+					)) ||
+					'-',
+			};
+		});
+	};
+
 	return (
 		<ClayModal center observer={observer} size="lg">
 			<div className="pt-4 px-4">
 				<div className="d-flex justify-content-between mb-4">
 					<div className="flex-row mb-1">
 						<h6 className="text-brand-primary">
-							SUBSCRIPTION TERMS
+							{i18n.translate('subscription-terms').toUpperCase()}
 						</h6>
 
-						<h2 className="text-neutral-10">{`${subscriptionGroup} ${subscriptionName}`}</h2>
+						<h2 className="text-neutral-10">{`${i18n.translate(
+							getKebabCase(subscriptionGroup)
+						)} ${i18n.translate(
+							getKebabCase(subscriptionName)
+						)}`}</h2>
 					</div>
 
 					<Button
@@ -154,38 +191,7 @@ const ModalCardSubscription = ({
 							setActivePage,
 							totalCount,
 						}}
-						rows={dataAccountSubscriptionTerms.map(
-							({
-								endDate,
-								instanceSize,
-								provisioned,
-								quantity,
-								startDate,
-								subscriptionTermStatus,
-							}) => ({
-								'instance-size': instanceSize || '-',
-								'provisioned': provisioned || '-',
-								'quantity': quantity || '-',
-								'start-end-date': `${getDateCustomFormat(
-									startDate,
-									dateFormat
-								)} - ${getDateCustomFormat(
-									endDate,
-									dateFormat
-								)}`,
-								'subscription-term-status':
-									(subscriptionTermStatus && (
-										<StatusTag
-											currentStatus={
-												STATUS_TAG_TYPES[
-													`${subscriptionTermStatus.toLowerCase()}`
-												]
-											}
-										/>
-									)) ||
-									'-',
-							})
-						)}
+						rows={getRowByColumns()}
 						tableVerticalAlignment="middle"
 					/>
 				</div>

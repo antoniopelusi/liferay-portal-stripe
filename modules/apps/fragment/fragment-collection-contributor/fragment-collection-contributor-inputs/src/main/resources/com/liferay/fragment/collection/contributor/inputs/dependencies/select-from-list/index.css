@@ -1,0 +1,14 @@
+.forms-select-from-list .form-control {
+	position: relative;
+}
+
+.forms-select-from-list .form-control .lexicon-icon {
+	position: absolute;
+	right: 1ch;
+	top: 50%;
+	transform: translateY(-45%);
+}
+
+.forms-select-from-list .dropdown-item {
+	cursor: pointer;
+}

@@ -12,21 +12,6 @@
  * details.
  */
 
-import classNames from 'classnames';
-
-type CodeProps = {
-	className?: string;
-};
-
-const Code: React.FC<CodeProps> = ({children, className}) => (
-	<div
-		className={classNames(
-			'bg-light font-italic p-2 text-secondary',
-			className
-		)}
-	>
-		{children}
-	</div>
-);
+import Code from './Code';
 
 export default Code;

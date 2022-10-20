@@ -162,11 +162,11 @@ function MiniCart({
 				labels: {...DEFAULT_LABELS, ...labels},
 				openCart,
 				productURLSeparator,
+				setCartState,
 				setIsUpdating,
 				summaryDataMapper,
 				toggleable,
 				updateCartModel,
-				updateCartState: setCartState,
 			}}
 		>
 			{!!CartViews[CART] && (

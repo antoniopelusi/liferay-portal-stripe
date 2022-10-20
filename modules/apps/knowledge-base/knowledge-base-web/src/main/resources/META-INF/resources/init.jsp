@@ -21,14 +21,15 @@
 <%@ taglib uri="http://liferay.com/tld/asset" prefix="liferay-asset" %><%@
 taglib uri="http://liferay.com/tld/aui" prefix="aui" %><%@
 taglib uri="http://liferay.com/tld/clay" prefix="clay" %><%@
-taglib uri="http://liferay.com/tld/document-library" prefix="liferay-document-library" %><%@
 taglib uri="http://liferay.com/tld/editor" prefix="liferay-editor" %><%@
 taglib uri="http://liferay.com/tld/expando" prefix="liferay-expando" %><%@
 taglib uri="http://liferay.com/tld/frontend" prefix="liferay-frontend" %><%@
 taglib uri="http://liferay.com/tld/portlet" prefix="liferay-portlet" %><%@
 taglib uri="http://liferay.com/tld/ratings" prefix="liferay-ratings" %><%@
+taglib uri="http://liferay.com/tld/react" prefix="react" %><%@
 taglib uri="http://liferay.com/tld/rss" prefix="liferay-rss" %><%@
 taglib uri="http://liferay.com/tld/security" prefix="liferay-security" %><%@
+taglib uri="http://liferay.com/tld/site-navigation" prefix="liferay-site-navigation" %><%@
 taglib uri="http://liferay.com/tld/social-bookmarks" prefix="liferay-social-bookmarks" %><%@
 taglib uri="http://liferay.com/tld/theme" prefix="liferay-theme" %><%@
 taglib uri="http://liferay.com/tld/ui" prefix="liferay-ui" %><%@
@@ -82,7 +83,6 @@ page import="com.liferay.knowledge.base.model.KBTemplate" %><%@
 page import="com.liferay.knowledge.base.service.KBArticleLocalServiceUtil" %><%@
 page import="com.liferay.knowledge.base.service.KBArticleServiceUtil" %><%@
 page import="com.liferay.knowledge.base.service.KBCommentLocalServiceUtil" %><%@
-page import="com.liferay.knowledge.base.service.KBCommentServiceUtil" %><%@
 page import="com.liferay.knowledge.base.service.KBFolderLocalServiceUtil" %><%@
 page import="com.liferay.knowledge.base.service.KBFolderServiceUtil" %><%@
 page import="com.liferay.knowledge.base.util.KnowledgeBaseUtil" %><%@
@@ -114,6 +114,7 @@ page import="com.liferay.knowledge.base.web.internal.security.permission.resourc
 page import="com.liferay.knowledge.base.web.internal.security.permission.resource.KBCommentPermission" %><%@
 page import="com.liferay.knowledge.base.web.internal.security.permission.resource.KBFolderPermission" %><%@
 page import="com.liferay.knowledge.base.web.internal.security.permission.resource.KBTemplatePermission" %><%@
+page import="com.liferay.knowledge.base.web.internal.servlet.taglib.clay.KBArticleAttachmentHorizontalCard" %><%@
 page import="com.liferay.knowledge.base.web.internal.social.SocialBookmarksUtil" %><%@
 page import="com.liferay.knowledge.base.web.internal.util.AdminUtil" %><%@
 page import="com.liferay.knowledge.base.web.internal.util.KBArticleAssetEntriesUtil" %><%@
@@ -167,6 +168,7 @@ page import="com.liferay.portal.kernel.util.StringUtil" %><%@
 page import="com.liferay.portal.kernel.util.Validator" %><%@
 page import="com.liferay.portal.kernel.util.WebKeys" %><%@
 page import="com.liferay.portal.kernel.workflow.WorkflowConstants" %><%@
+page import="com.liferay.portal.util.PropsUtil" %><%@
 page import="com.liferay.ratings.kernel.RatingsType" %><%@
 page import="com.liferay.ratings.kernel.definition.PortletRatingsDefinitionUtil" %><%@
 page import="com.liferay.subscription.exception.NoSuchSubscriptionException" %><%@
@@ -202,8 +204,6 @@ page import="javax.portlet.WindowState" %>
 String redirect = PortalUtil.escapeRedirect(ParamUtil.getString(request, "redirect", currentURL));
 
 String rootPortletId = portletDisplay.getRootPortletId();
-
-String templatePath = portletConfig.getInitParameter("template-path");
 
 KBGroupServiceConfiguration kbGroupServiceConfiguration = ConfigurationProviderUtil.getConfiguration(KBGroupServiceConfiguration.class, new GroupServiceSettingsLocator(themeDisplay.getScopeGroupId(), KBConstants.SERVICE_NAME));
 

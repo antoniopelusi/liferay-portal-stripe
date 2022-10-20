@@ -1,5 +1,9 @@
 <div class="search-total-label">
-	${languageUtil.format(locale, "x-results-for-x", [searchContainer.getTotal(), "<strong>" + htmlUtil.escape(searchResultsPortletDisplayContext.getKeywords()) + "</strong>"], false)}
+	<#if searchContainer.getTotal() == 1>
+		${languageUtil.format(locale, "x-result-for-x", [searchContainer.getTotal(), "<strong>" + htmlUtil.escape(searchResultsPortletDisplayContext.getKeywords()) + "</strong>"], false)}
+	<#else>
+		${languageUtil.format(locale, "x-results-for-x", [searchContainer.getTotal(), "<strong>" + htmlUtil.escape(searchResultsPortletDisplayContext.getKeywords()) + "</strong>"], false)}
+	</#if>
 </div>
 
 <div class="display-list">
@@ -117,7 +121,7 @@
 									<#if entry.isDocumentFormVisible()>
 										<div class="expand-details h6 text-default">
 											<span class="list-group-text" style="">
-												<a href="javascript:;">
+												<a href="javascript:void(0);">
 													<@liferay.language key="details" />...
 												</a>
 											</span>

@@ -193,7 +193,7 @@ definition {
 
 		FormsAdminNavigator.gotoPublishedForm();
 
-		FormPortlet.waitFormRenderer(text = "Enviar");
+		FormPortlet.waitFormRenderer(text = "Submit");
 
 		FormFields.viewTextLabel(
 			fieldLabel = "Text Field On Spanish Portal",
@@ -203,7 +203,9 @@ definition {
 			fieldName = "${fieldTextField}",
 			fieldValue = "Text Field Value");
 
-		FormPortlet.submitLocalizedSuccessfully(buttonName = "Enviar");
+		FormPortlet.submit();
+
+		Alert.viewSuccessMessage();
 
 		Navigator.openURL();
 
@@ -423,21 +425,19 @@ definition {
 
 		FormViewBuilder.validateFieldLabel(fieldLabel = "Text ES");
 
-		Pause(locator1 = "6000");
-
-		Refresh();
+		WaitForElementPresent(
+			key_fieldName = "Text ES",
+			locator1 = "FormViewBuilder#TEXT_FIELD");
 
 		FormViewBuilder.editText(
 			fieldName = "Text ES",
 			fieldValue = "Text ES");
 
-		FormPortlet.submitLocalizedSuccessfully(buttonName = "Enviar");
+		FormPortlet.submit();
 
-		Navigator.openURL();
+		Alert.viewSuccessMessage();
 
-		ProductMenu.gotoPortlet(
-			category = "Content & Data",
-			portlet = "Forms");
+		FormsAdmin.openFormsAdmin(siteURLKey = "guest");
 
 		FormsAdminNavigator.gotoViewEntries();
 
@@ -745,7 +745,9 @@ definition {
 			fieldName = "${textFieldRequiredName2}",
 			fieldValue = "文本再次输入中文");
 
-		FormPortlet.submitLocalizedSuccessfully(buttonName = "提交");
+		FormPortlet.submit();
+
+		Alert.viewSuccessMessage();
 
 		Navigator.openURL();
 
@@ -843,21 +845,19 @@ definition {
 
 		FormViewBuilder.validateFieldLabel(fieldLabel = "Text ES");
 
-		Pause(locator1 = "6000");
-
-		Refresh();
+		WaitForElementPresent(
+			key_fieldName = "Text ES",
+			locator1 = "FormViewBuilder#TEXT_FIELD");
 
 		FormViewBuilder.editText(
 			fieldName = "Text ES",
 			fieldValue = "Text ES");
 
-		FormPortlet.submitLocalizedSuccessfully(buttonName = "Enviar");
+		FormPortlet.submit();
 
-		Navigator.openURL();
+		Alert.viewSuccessMessage();
 
-		ProductMenu.gotoPortlet(
-			category = "Content & Data",
-			portlet = "Forms");
+		FormsAdmin.openFormsAdmin(siteURLKey = "guest");
 
 		FormsAdminNavigator.gotoViewEntries();
 
@@ -1681,7 +1681,9 @@ definition {
 
 		FormFields.selectAutoCompleteOption(autocompleteOption = "Manzana");
 
-		Button.click(button = "Enviar");
+		FormPortlet.submit();
+
+		Alert.viewSuccessMessage();
 
 		FormPortlet.viewSuccessPage(
 			successPageDescription = "Your information was successfully received. Thank you for filling out the form.",

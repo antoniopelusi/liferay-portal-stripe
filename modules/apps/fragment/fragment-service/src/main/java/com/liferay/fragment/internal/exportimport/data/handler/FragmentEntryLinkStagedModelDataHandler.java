@@ -24,13 +24,11 @@ import com.liferay.exportimport.kernel.staging.MergeLayoutPrototypesThreadLocal;
 import com.liferay.exportimport.staged.model.repository.StagedModelRepository;
 import com.liferay.fragment.model.FragmentEntry;
 import com.liferay.fragment.model.FragmentEntryLink;
-import com.liferay.fragment.service.FragmentEntryLinkLocalService;
 import com.liferay.fragment.service.FragmentEntryLocalService;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MapUtil;
-import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.segments.model.SegmentsExperience;
@@ -242,30 +240,24 @@ public class FragmentEntryLinkStagedModelDataHandler
 			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
 				SegmentsExperience.class);
 
-		long segmentsExperienceId = MapUtil.getLong(
-			segmentsExperienceIds, fragmentEntryLink.getSegmentsExperienceId(),
-			fragmentEntryLink.getSegmentsExperienceId());
-
-		importedFragmentEntryLink.setSegmentsExperienceId(segmentsExperienceId);
+		importedFragmentEntryLink.setSegmentsExperienceId(
+			MapUtil.getLong(
+				segmentsExperienceIds,
+				fragmentEntryLink.getSegmentsExperienceId(),
+				fragmentEntryLink.getSegmentsExperienceId()));
 
 		importedFragmentEntryLink.setClassPK(referenceClassPK);
 		importedFragmentEntryLink.setPlid(referenceClassPK);
-
-		String html =
+		importedFragmentEntryLink.setHtml(
 			_dlReferencesExportImportContentProcessor.
 				replaceImportContentReferences(
 					portletDataContext, fragmentEntryLink,
-					fragmentEntryLink.getHtml());
-
-		importedFragmentEntryLink.setHtml(html);
-
-		String editableValues =
+					fragmentEntryLink.getHtml()));
+		importedFragmentEntryLink.setEditableValues(
 			_fragmentEntryLinkExportImportContentProcessor.
 				replaceImportContentReferences(
 					portletDataContext, fragmentEntryLink,
-					fragmentEntryLink.getEditableValues());
-
-		importedFragmentEntryLink.setEditableValues(editableValues);
+					fragmentEntryLink.getEditableValues()));
 
 		FragmentEntryLink existingFragmentEntryLink =
 			_stagedModelRepository.fetchStagedModelByUuidAndGroupId(
@@ -313,16 +305,10 @@ public class FragmentEntryLinkStagedModelDataHandler
 		_fragmentEntryLinkExportImportContentProcessor;
 
 	@Reference
-	private FragmentEntryLinkLocalService _fragmentEntryLinkLocalService;
-
-	@Reference
 	private FragmentEntryLocalService _fragmentEntryLocalService;
 
 	@Reference
 	private GroupLocalService _groupLocalService;
-
-	@Reference
-	private Portal _portal;
 
 	@Reference(
 		target = "(model.class.name=com.liferay.fragment.model.FragmentEntryLink)",

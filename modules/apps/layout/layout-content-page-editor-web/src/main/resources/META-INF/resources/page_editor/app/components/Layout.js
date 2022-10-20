@@ -32,6 +32,7 @@ import {
 } from '../contexts/ControlsContext';
 import {useSelector} from '../contexts/StoreContext';
 import {deepEqual} from '../utils/checkDeepEqual';
+import {useDropContainerId} from '../utils/drag-and-drop/useDragAndDrop';
 import FragmentWithControls from './layout-data-items/FragmentWithControls';
 import {
 	CollectionItemWithControls,
@@ -39,6 +40,7 @@ import {
 	ColumnWithControls,
 	ContainerWithControls,
 	DropZoneWithControls,
+	FormWithControls,
 	Root,
 	RowWithControls,
 } from './layout-data-items/index';
@@ -49,6 +51,7 @@ const LAYOUT_DATA_ITEMS = {
 	[LAYOUT_DATA_ITEM_TYPES.column]: ColumnWithControls,
 	[LAYOUT_DATA_ITEM_TYPES.container]: ContainerWithControls,
 	[LAYOUT_DATA_ITEM_TYPES.dropZone]: DropZoneWithControls,
+	[LAYOUT_DATA_ITEM_TYPES.form]: FormWithControls,
 	[LAYOUT_DATA_ITEM_TYPES.fragment]: FragmentWithControls,
 	[LAYOUT_DATA_ITEM_TYPES.fragmentDropZone]: Root,
 	[LAYOUT_DATA_ITEM_TYPES.root]: Root,
@@ -96,7 +99,7 @@ export default function Layout({mainItemId}) {
 	const hasWarningMessages =
 		config.isConversionDraft &&
 		config.layoutConversionWarningMessages &&
-		config.layoutConversionWarningMessages.length > 0;
+		!!config.layoutConversionWarningMessages.length;
 
 	return (
 		<>
@@ -126,14 +129,21 @@ export default function Layout({mainItemId}) {
 			)}
 
 			{mainItem && (
-				<div
-					className="page-editor"
-					id="page-editor"
-					onClick={onClick}
-					ref={layoutRef}
-				>
-					<LayoutDataItem item={mainItem} layoutData={layoutData} />
-				</div>
+				<>
+					<div
+						className="page-editor"
+						id="page-editor"
+						onClick={onClick}
+						ref={layoutRef}
+					>
+						<LayoutDataItem
+							item={mainItem}
+							layoutData={layoutData}
+						/>
+					</div>
+
+					<LayoutClassManager layoutRef={layoutRef} />
+				</>
 			)}
 		</>
 	);
@@ -266,3 +276,18 @@ LayoutDataItemInteractionFilter.propTypes = {
 	componentRef: PropTypes.object.isRequired,
 	item: getLayoutDataItemPropTypes().isRequired,
 };
+
+function LayoutClassManager({layoutRef}) {
+	const dropContainerId = useDropContainerId();
+
+	useEffect(() => {
+		if (dropContainerId) {
+			layoutRef.current?.classList.add('is-dragging');
+		}
+		else {
+			layoutRef.current?.classList.remove('is-dragging');
+		}
+	}, [dropContainerId, layoutRef]);
+
+	return null;
+}

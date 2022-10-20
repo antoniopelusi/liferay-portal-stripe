@@ -14,12 +14,13 @@
 
 package com.liferay.commerce.address.web.internal.frontend.taglib.servlet.taglib;
 
-import com.liferay.commerce.address.web.internal.servlet.taglib.ui.constants.CommerceCountryScreenNavigationConstants;
+import com.liferay.commerce.address.web.internal.constants.CommerceCountryScreenNavigationConstants;
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationCategory;
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationEntry;
 import com.liferay.frontend.taglib.servlet.taglib.util.JSPRenderer;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.model.Country;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 
 import java.io.IOException;
@@ -65,13 +66,22 @@ public class CommerceCountryChannelsScreenNavigationCategory
 		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
 			"content.Language", locale, getClass());
 
-		return LanguageUtil.get(resourceBundle, "channels");
+		return _language.get(resourceBundle, "channels");
 	}
 
 	@Override
 	public String getScreenNavigationKey() {
 		return CommerceCountryScreenNavigationConstants.
 			SCREEN_NAVIGATION_KEY_COMMERCE_COUNTRY_GENERAL;
+	}
+
+	@Override
+	public boolean isVisible(User user, Country country) {
+		if (country == null) {
+			return false;
+		}
+
+		return true;
 	}
 
 	@Override
@@ -87,6 +97,9 @@ public class CommerceCountryChannelsScreenNavigationCategory
 
 	@Reference
 	private JSPRenderer _jspRenderer;
+
+	@Reference
+	private Language _language;
 
 	@Reference(
 		target = "(osgi.web.symbolicname=com.liferay.commerce.address.web)"

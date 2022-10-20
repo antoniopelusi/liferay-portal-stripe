@@ -118,6 +118,21 @@ public interface JournalFolderModel
 	public void setUuid(String uuid);
 
 	/**
+	 * Returns the external reference code of this journal folder.
+	 *
+	 * @return the external reference code of this journal folder
+	 */
+	@AutoEscape
+	public String getExternalReferenceCode();
+
+	/**
+	 * Sets the external reference code of this journal folder.
+	 *
+	 * @param externalReferenceCode the external reference code of this journal folder
+	 */
+	public void setExternalReferenceCode(String externalReferenceCode);
+
+	/**
 	 * Returns the folder ID of this journal folder.
 	 *
 	 * @return the folder ID of this journal folder
@@ -430,16 +445,6 @@ public interface JournalFolderModel
 	 */
 	@Override
 	public long getTrashEntryClassPK();
-
-	/**
-	 * Returns the trash handler for this journal folder.
-	 *
-	 * @return the trash handler for this journal folder
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public com.liferay.portal.kernel.trash.TrashHandler getTrashHandler();
 
 	/**
 	 * Returns <code>true</code> if this journal folder is in the Recycle Bin.

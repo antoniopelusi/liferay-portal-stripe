@@ -163,6 +163,7 @@ definition {
 		var onTimeItems = selenium.getText("WorkflowMetrics#DASHBOARD_TOTAL_ONTIME_ITEMS_VALUE");
 		var untrackedItems = selenium.getText("WorkflowMetrics#DASHBOARD_TOTAL_UNTRACKED_ITEMS_VALUE");
 		var expectedResult = ${overdueItems} + ${onTimeItems};
+
 		var expectedResultTotal = ${expectedResult} + ${untrackedItems};
 
 		AssertTextEquals(

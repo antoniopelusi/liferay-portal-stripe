@@ -13,7 +13,6 @@
  */
 
 import ActionsLinkRenderer from './ActionLinkRenderer';
-import ActionsDropdownRenderer from './ActionsDropdownRenderer';
 import BooleanRenderer from './BooleanRenderer';
 import DateRenderer from './DateRenderer';
 import DateTimeRenderer from './DateTimeRenderer';
@@ -27,11 +26,9 @@ import LinkRenderer from './LinkRenderer';
 import ListRenderer from './ListRenderer';
 import QuantitySelectorRenderer from './QuantitySelectorRenderer';
 import StatusRenderer from './StatusRenderer';
-import TooltipSummaryRenderer from './TooltipSummaryRenderer';
 
 export const dataRenderers = {
 	actionLink: ActionsLinkRenderer,
-	actionsDropdown: ActionsDropdownRenderer,
 	boolean: BooleanRenderer,
 	date: DateRenderer,
 	dateTime: DateTimeRenderer,
@@ -42,7 +39,6 @@ export const dataRenderers = {
 	list: ListRenderer,
 	quantitySelector: QuantitySelectorRenderer,
 	status: StatusRenderer,
-	tooltipSummary: TooltipSummaryRenderer,
 };
 
 export const inputRenderers = {

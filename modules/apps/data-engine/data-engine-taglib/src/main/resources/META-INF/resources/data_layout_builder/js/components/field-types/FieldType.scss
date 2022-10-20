@@ -18,7 +18,6 @@ $fieldTypeFieldSet: #5aca75;
 	&:hover:not(.disabled) {
 		border-color: #80acff;
 		box-shadow: 0 2px 4px rgba(39, 40, 51, 0.12);
-		transform: translateX(-2px);
 	}
 
 	&.disabled .autofit-col {

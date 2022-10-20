@@ -1,0 +1,318 @@
+@component-name = "portal-wcm"
+definition {
+
+	property custom.properties = "feature.flag.LPS-143206=true";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Content Pages";
+
+	setUp {
+		task ("Set up instance and sign in") {
+			TestCase.setUpPortalInstance();
+
+			User.firstLoginPG();
+		}
+
+		task ("Add a site") {
+			JSONGroup.addGroup(groupName = "Test Site Name");
+		}
+
+		task ("Add a content page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Page Name",
+				type = "content");
+		}
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
+		}
+	}
+
+	@description = "This is a test for LPS-142050. In page editor, selecting Custom in units could insert any type of character."
+	@priority = "4"
+	test ConfigureCustomUnit {
+		task ("Given a page designer has a Heading fragment on a content page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("When the page designer accesses to the Styles panel of Heading") {
+			PageEditor.gotoStyle(fragmentName = "Heading");
+		}
+
+		task ("Then the page designer sees the default unit of Border Width is PX") {
+			AssertTextEquals(
+				key_fieldLabel = "Border Width",
+				locator1 = "Dropdown#DROPDOWN_TOGGLE_BUTTON_WITH_LABEL",
+				value1 = "PX");
+		}
+
+		task ("When the page designer selects custom unit for Border Width of Heading") {
+			PageEditor.configureFragment(
+				fieldLabel = "Border Width",
+				unit = "CUSTOM");
+		}
+
+		task ("Then the page designer could define a custom unit for Border Width") {
+			PageEditor.configureFragment(borderWidth = "3rem");
+
+			AssertTextEquals(
+				key_fieldLabel = "Border Width",
+				locator1 = "Dropdown#DROPDOWN_TOGGLE_BUTTON_WITH_LABEL",
+				value1 = "REM");
+
+			AssertTextEquals(
+				key_text = "Border Width",
+				locator1 = "TextInput#ANY",
+				value1 = "3");
+
+			PageEditor.viewFragmentStyle(
+				borderWidth = "3rem",
+				fragmentName = "Heading");
+		}
+	}
+
+	@description = "This is a test for LPS-136279. View the styles of color selectors."
+	@priority = "4"
+	test ViewStylesOfColorInputs {
+		task ("Given a page designer has a Heading fragment on a content page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("When the page designer accesses to the Styles panel of Heading") {
+			PageEditor.gotoStyle(fragmentName = "Heading");
+		}
+
+		task ("Then the page designer sees the styles of color selectors") {
+			task ("View the Inherited · computed value shown in Text Color, Background Color and Border Color selectors") {
+				AssertTextEquals(
+					key_fieldLabel = "Text Color",
+					locator1 = "Button#COLOR_PICKER",
+					value1 = "Inherited · #272833");
+
+				AssertTextEquals(
+					key_fieldLabel = "Background Color",
+					locator1 = "Button#COLOR_PICKER",
+					value1 = "Inherited · #00000000");
+
+				AssertTextEquals(
+					key_fieldLabel = "Border Color",
+					locator1 = "Button#COLOR_PICKER",
+					value1 = "Inherited · #272833");
+			}
+
+			task ("View the tooltip shown when hover on icon of selectors") {
+				MouseOver(
+					key_fieldLabel = "Text Color",
+					locator1 = "Icon#COLOR_PICKER_ICON");
+
+				AssertVisible(
+					key_content = "Text Color",
+					locator1 = "Tooltip#FLOATING_TOOLTIP_CONTENT");
+
+				MouseOver(
+					key_fieldLabel = "Text Color",
+					locator1 = "Icon#COLOR_PICKER_ICON");
+
+				AssertVisible(
+					key_content = "Background Color",
+					locator1 = "Tooltip#FLOATING_TOOLTIP_CONTENT");
+
+				MouseOver(
+					key_fieldLabel = "Border Color",
+					locator1 = "Icon#COLOR_PICKER_ICON");
+
+				AssertVisible(
+					key_content = "Border Color",
+					locator1 = "Tooltip#FLOATING_TOOLTIP_CONTENT");
+			}
+		}
+	}
+
+	@description = "This is a test for LPS-136279. View the styles of Font Family, Font Weight, Font Size, Border Radius and Shadow selectors."
+	@priority = "4"
+	test ViewStylesOfSelectInputs {
+		task ("Given a page designer has a Heading fragment on a content page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("When the page designer accesses to the Styles panel of Heading") {
+			PageEditor.gotoStyle(fragmentName = "Heading");
+		}
+
+		task ("Then the page designer sees the styles of Font Family, Font Weight, Font Size, Border Radius and Shadow selectors") {
+			task ("View the Font Family, Font Weight, Font Size, Border Radius and Shadow selectors use icon") {
+				for (var fieldName : list "font-family,bold,font-size,corner-radius,shadow") {
+					AssertElementPresent(
+						key_text = "${fieldName}",
+						locator1 = "Select#GENERIC_SELECT_FIELD_WITH_ICON");
+				}
+			}
+
+			task ("View the Inherited · computed value is shown in the Font Family, Font Weight and Font Size selectors by default") {
+				AssertTextEquals(
+					key_text = "font-family",
+					locator1 = "Select#GENERIC_SELECT_FIELD_WITH_ICON_TEXT",
+					value1 = "Inherited · system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Oxygen-Sans, Ubuntu, Cantarell, &quot;Helvetica Neue&quot;, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;");
+
+				AssertTextEquals(
+					key_text = "bold",
+					locator1 = "Select#GENERIC_SELECT_FIELD_WITH_ICON_TEXT",
+					value1 = "Inherited · 400");
+
+				AssertTextEquals(
+					key_text = "font-size",
+					locator1 = "Select#GENERIC_SELECT_FIELD_WITH_ICON_TEXT",
+					value1 = "Inherited · 14px");
+			}
+
+			task ("View the Default · computed value is shown in Border Radius and Shadow selectors by default") {
+				AssertTextEquals(
+					key_text = "corner-radius",
+					locator1 = "Select#GENERIC_SELECT_FIELD_WITH_ICON_TEXT",
+					value1 = "Default · 0px");
+
+				AssertTextEquals(
+					key_text = "shadow",
+					locator1 = "Select#GENERIC_SELECT_FIELD_WITH_ICON_TEXT",
+					value1 = "Default · none");
+			}
+
+			task ("View the tooltip shown when hover on icon of selectors") {
+				MouseOver(
+					key_text = "font-family",
+					locator1 = "Icon#ANY");
+
+				AssertVisible(
+					key_content = "Font Family",
+					locator1 = "Tooltip#FLOATING_TOOLTIP_CONTENT");
+
+				MouseOver(
+					key_text = "bold",
+					locator1 = "Icon#ANY");
+
+				AssertVisible(
+					key_content = "Font Weight",
+					locator1 = "Tooltip#FLOATING_TOOLTIP_CONTENT");
+
+				MouseOver(
+					key_text = "font-size",
+					locator1 = "Icon#ANY");
+
+				AssertVisible(
+					key_content = "Font Size",
+					locator1 = "Tooltip#FLOATING_TOOLTIP_CONTENT");
+
+				MouseOver(
+					key_text = "corner-radius",
+					locator1 = "Icon#ANY");
+
+				AssertVisible(
+					key_content = "Border Radius",
+					locator1 = "Tooltip#FLOATING_TOOLTIP_CONTENT");
+
+				MouseOver(
+					key_text = "shadow",
+					locator1 = "Icon#ANY");
+
+				AssertVisible(
+					key_content = "Shadow",
+					locator1 = "Tooltip#FLOATING_TOOLTIP_CONTENT");
+			}
+		}
+	}
+
+	@description = "This is a test for LPS-136279. The text align should be indicated by align icon."
+	@priority = "4"
+	test ViewStylesOfTextAlignButtons {
+		task ("Given a page designer has a Heading fragment on a content page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("When the page designer accesses to the Styles panel of Heading") {
+			PageEditor.gotoStyle(fragmentName = "Heading");
+		}
+
+		task ("Then the page designer sees the styles of text align buttons") {
+			task ("View the align left, align center, align right and align justify icons are shown in Text section") {
+				for (var fieldName : list "align-left,align-center,align-right,align-justify") {
+					AssertVisible(
+						key_text = "${fieldName}",
+						locator1 = "PageEditor#TEXT_ALIGN_ICON");
+				}
+			}
+
+			task ("View the align left icon is selected") {
+				AssertVisible(
+					key_text = "align-left",
+					locator1 = "PageEditor#ACTIVE_TEXT_ALIGN_ICON");
+			}
+
+			task ("View the tooltip shown when hover on icon of text align") {
+				MouseOver(
+					key_text = "align-left",
+					locator1 = "PageEditor#TEXT_ALIGN_ICON");
+
+				AssertVisible(
+					key_content = "Align Left",
+					locator1 = "Tooltip#FLOATING_TOOLTIP_CONTENT");
+
+				MouseOver(
+					key_text = "align-center",
+					locator1 = "PageEditor#TEXT_ALIGN_ICON");
+
+				AssertVisible(
+					key_content = "Align Center",
+					locator1 = "Tooltip#FLOATING_TOOLTIP_CONTENT");
+
+				MouseOver(
+					key_text = "align-right",
+					locator1 = "PageEditor#TEXT_ALIGN_ICON");
+
+				AssertVisible(
+					key_content = "Align Right",
+					locator1 = "Tooltip#FLOATING_TOOLTIP_CONTENT");
+
+				MouseOver(
+					key_text = "align-justify",
+					locator1 = "PageEditor#TEXT_ALIGN_ICON");
+
+				AssertVisible(
+					key_content = "Justify",
+					locator1 = "Tooltip#FLOATING_TOOLTIP_CONTENT");
+			}
+		}
+	}
+
+}

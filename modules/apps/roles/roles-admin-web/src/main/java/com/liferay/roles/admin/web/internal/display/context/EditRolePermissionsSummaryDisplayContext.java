@@ -91,8 +91,9 @@ public class EditRolePermissionsSummaryDisplayContext {
 
 		_searchContainer = new SearchContainer(
 			_liferayPortletRequest, null, null,
-			SearchContainer.DEFAULT_CUR_PARAM, 50, _getPermissionsAllURL(),
-			_getHeaderNames(), "this-role-does-not-have-any-permissions");
+			SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_DELTA,
+			_getPermissionsAllURL(), _getHeaderNames(),
+			"this-role-does-not-have-any-permissions");
 
 		_searchContainer.setResultsAndTotal(
 			ListUtil.sort(_getPermissionDisplays()));
@@ -261,10 +262,6 @@ public class EditRolePermissionsSummaryDisplayContext {
 
 			String actionId = permissionDisplay.getActionId();
 
-			ResultRow row = new ResultRow(
-				new Object[] {permissionDisplay.getPermission(), role},
-				actionId, i);
-
 			List<Group> groups = Collections.emptyList();
 
 			int scope = ResourceConstants.SCOPE_COMPANY;
@@ -291,6 +288,23 @@ public class EditRolePermissionsSummaryDisplayContext {
 			else {
 				scope = ResourceConstants.SCOPE_GROUP_TEMPLATE;
 			}
+
+			Permission permission = permissionDisplay.getPermission();
+
+			String[] primKeys = {permission.getPrimKey()};
+
+			if (scope == ResourceConstants.SCOPE_GROUP) {
+				primKeys = new String[groups.size()];
+
+				for (int j = 0; j < groups.size(); j++) {
+					Group group = groups.get(j);
+
+					primKeys[j] = String.valueOf(group.getGroupId());
+				}
+			}
+
+			ResultRow row = new ResultRow(
+				new Object[] {permission, role, primKeys}, actionId, i);
 
 			boolean selected =
 				ResourcePermissionLocalServiceUtil.hasScopeResourcePermission(

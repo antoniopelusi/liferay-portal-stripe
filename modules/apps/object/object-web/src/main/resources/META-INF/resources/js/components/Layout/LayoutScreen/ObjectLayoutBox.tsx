@@ -15,12 +15,12 @@
 import ClayButton from '@clayui/button';
 import {ClayToggle} from '@clayui/form';
 import {useModal} from '@clayui/modal';
-import React, {useContext, useState} from 'react';
+import React, {useState} from 'react';
 
 import Panel from '../../Panel/Panel';
-import LayoutContext, {TYPES} from '../context';
-import {TObjectLayoutRow} from '../types';
-import DropdownWithDeleteButton from './DropdownWithDeleteButton';
+import {TYPES, useLayoutContext} from '../objectLayoutContext';
+import {BoxType, TObjectLayoutRow} from '../types';
+import HeaderDropdown from './HeaderDropdown';
 import ModalAddObjectLayoutField from './ModalAddObjectLayoutField';
 import ObjectLayoutRows from './ObjectLayoutRows';
 
@@ -30,6 +30,7 @@ interface IObjectLayoutBoxProps extends React.HTMLAttributes<HTMLElement> {
 	label: string;
 	objectLayoutRows?: TObjectLayoutRow[];
 	tabIndex: number;
+	type: BoxType;
 }
 
 const ObjectLayoutBox: React.FC<IObjectLayoutBoxProps> = ({
@@ -38,8 +39,9 @@ const ObjectLayoutBox: React.FC<IObjectLayoutBoxProps> = ({
 	label,
 	objectLayoutRows,
 	tabIndex,
+	type,
 }) => {
-	const [{isViewOnly}, dispatch] = useContext(LayoutContext);
+	const [{isViewOnly}, dispatch] = useLayoutContext();
 	const [visibleModal, setVisibleModal] = useState(false);
 	const {observer, onClose} = useModal({
 		onClose: () => setVisibleModal(false),
@@ -72,18 +74,20 @@ const ObjectLayoutBox: React.FC<IObjectLayoutBoxProps> = ({
 								toggled={collapsable}
 							/>
 
-							<ClayButton
-								className="ml-4"
-								disabled={isViewOnly}
-								displayType="secondary"
-								onClick={() => setVisibleModal(true)}
-								small
-							>
-								{Liferay.Language.get('add-field')}
-							</ClayButton>
+							{type === 'regular' && (
+								<ClayButton
+									className="ml-4"
+									disabled={isViewOnly}
+									displayType="secondary"
+									onClick={() => setVisibleModal(true)}
+									small
+								>
+									{Liferay.Language.get('add-field')}
+								</ClayButton>
+							)}
 
-							<DropdownWithDeleteButton
-								onClick={() => {
+							<HeaderDropdown
+								deleteElement={() => {
 									dispatch({
 										payload: {
 											boxIndex,
@@ -96,6 +100,7 @@ const ObjectLayoutBox: React.FC<IObjectLayoutBoxProps> = ({
 						</>
 					}
 					title={label}
+					type={type}
 				/>
 
 				{!!objectLayoutRows?.length && (

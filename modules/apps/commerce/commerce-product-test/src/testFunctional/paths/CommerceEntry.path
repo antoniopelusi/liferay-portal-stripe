@@ -11,8 +11,58 @@
 
 <tbody>
 <tr>
+	<td>ACCOUNT_ORDER_DEFAULTS_ENTRY</td>
+	<td>//div[contains(.,'${key_defaultOption}')][@class='sheet-section']//div[@class='sheet-text']/following-sibling::span | //div[contains(.,'${key_defaultOption}')][@class='sheet-section']//div[@class='sheet-text']/following-sibling::h4</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ANY_MENU_ITEM</td>
 	<td>//div[contains(@class,'show')]//button[contains(.,'${key_menuItem}')] | //div[contains(@class,'show')]//a[contains(.,'${key_menuItem}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ASSERT_FRAGMENTS_TEXT_IN_SF</td>
+	<td>//h1[(contains(@class,"component-heading")) and (contains(@data-lfr-editable-id,"${key_id}"))][contains(text(),"${key_fragmentText}")] | //h1[(contains(@class,"component-heading")) and (contains(@data-lfr-editable-id,"${key_id}"))]/p[contains(text(),"${key_fragmentText}")]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ANY_SELECT</td>
+	<td>//div[not(contains(@class,'hide'))]//div[contains(@class,'input-select-wrapper')][label[contains(.,'${key_selectFieldLabel}')]]/select</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONFIGURATION_PANEL_COLLAPSED</td>
+	<td>//a[@aria-expanded='false' and contains(@aria-controls,'')][contains(.,'${key_panel}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONFIGURATION_PANEL_EXPANDED</td>
+	<td>//a[@aria-expanded='true' and contains(@aria-controls,'')][contains(.,'${key_panel}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SELECT_ITEM_FROM_LIST</td>
+	<td>//div[contains(@class,'table-list-title')]/a[contains(.,'${key_itemName}')]//following::div//a[contains(.,'Select')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VIEW_ITEM_FROM_LIST</td>
+	<td>//div[contains(@class,'table-list-title')]/a[contains(.,'${key_itemName}')]//following::div//a[contains(.,'View')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WISH_LIST_NAME</td>
+	<td>//td[contains(@class,'lfr-name-column')]//*[contains(.,'${wishListName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SELECTED_TABLE_PAGINATION</td>
+	<td>//li[contains(@class,'page-item active')]//button[contains(.,'${key_pageNumber}')]</td>
+		<td></td>
+</tr>
+<tr>
+	<td>VIEW_DISABLED_ENTRY</td>
+	<td>//label[contains(text(),'${key_entryName}')]/..//select[@class='form-control disabled']</td>
 	<td></td>
 </tr>
 <tr>
@@ -23,6 +73,11 @@
 <tr>
 	<td>PRODUCT_CARD_COMPARE_CHECKBOX</td>
 	<td>//p[@title='${key_productName}']//../..//input[contains(@aria-label,'Compare')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PRODUCT_CARD_COMPARE_CHECKBOX_DISABLED</td>
+	<td>//p[@title='${key_productName}']//../..//input[contains(@aria-label,'Compare') and @disabled]</td>
 	<td></td>
 </tr>
 <tr>
@@ -101,6 +156,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>INVENTORY_EXPECTED_INCOMING_DELIVERY_DATE</td>
+	<td>//span[contains(@id,'displayDate')]/input[@placeholder=@placeholder='h:mm am/pm']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>DISPLAY_PAGE_ANY</td>
 	<td>//span[contains (@id,'displayPageNameInput')]</td>
 	<td></td>
@@ -162,14 +222,15 @@
 </tr>
 <tr>
 	<td>ASSERT_NOTIFICATION_QUEUE</td>
-	<td>//div[contains(@class,'dnd-tr with-bg')]//div[contains(text(), '${key_name}')][${key_order}]</td>
+	<td>//div[contains(@class,'dnd-tr')]//div[contains(text(),'${key_name}')][${key_order}]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>NAME_FIELD</td>
 	<td>//div/input[contains(@id,'name')]</td>
 	<td></td>
-</tr><tr>
+</tr>
+<tr>
 	<td>NAME_FIELD_SPECIAL</td>
 	<td>//label[contains(.,'Title')]//..//input[@type="text"]</td>
 	<td></td>
@@ -290,6 +351,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>PRODUCT_ENTRY_IMAGE</td>
+	<td>//img[@class='sticker-img'][contains(@src,'${key_src}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>PRODUCT_IMAGE_SELECT_FILE</td>
 	<td>//div[contains(@class,'image-selector')]//button[contains(.,'Select File')]</td>
 	<td></td>
@@ -357,6 +423,11 @@
 <tr>
 	<td>TAGS_FIELD</td>
 	<td>//div/ul/li/span/span/input[contains(@id,'assetTagName')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TREEVIEW_NODE_COLLAPSED_PAGES</td>
+	<td>//div[contains(normalize-space(text()), '${key_site}')]//..//..//div//button[contains(@class,'component-expander')][@aria-expanded='false']</td>
 	<td></td>
 </tr>
 <tr>
@@ -437,6 +508,11 @@
 <tr>
 	<td>COST_FIELD</td>
 	<td>//div/input[contains(@id,'cost')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SALE_PRICE_FIELD</td>
+	<td>//div/input[contains(@id,'promoPrice')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -555,6 +631,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>TABLE_ENTRY_ROW_NUMBER</td>
+	<td>//div[@class='dnd-tbody']/div[contains(@class,'dnd-tr')][${key_rowNumber}]//a</td>
+	<td></td>
+</tr>
+<tr>
 	<td>TABLE_ENTRY_STATUS</td>
 	<td>//h4[contains(.,'${key_table}')]//..//div/a[contains(.,'${key_entryName}')]/parent::div/parent::div/parent::div//div[@class='dnd-td']/span[contains(@class,'label')][contains(.,'${key_entryStatus}')]</td>
 	<td></td>
@@ -570,13 +651,18 @@
 	<td></td>
 </tr>
 <tr>
+	<td>TABLE_ELIGIBILITY_ENTRY</td>
+	<td>//h4[contains(.,'${key_table}')]//..//div[@class='dnd-td'][contains(.,'${key_entryName}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>TABLE_CELL_BY_COLUMN_ORDER</td>
 	<td>//div[contains(@class,'title')]//*[text()='${key_entryName}']/../../../div[@class='dnd-td'][${key_columnNumber}]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>TABLE_ENTRY_EDIT_BUTTON</td>
-	<td>//h4[contains(.,'${key_table}')]//..//div/a[contains(.,'${key_entryName}')]//..//..//../div/a[contains(.,'Edit')]</td>
+	<td>//h4[contains(.,'${key_table}')]//..//div/a[contains(.,'${key_entryName}')]//..//..//../div/a[contains(.,'Edit')] | //div[contains(.,'${key_table}')]//div[@class='dnd-tr'][contains(.,'${key_entryName}')]//a[contains(text(),'Edit')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -607,7 +693,14 @@
 	<td>//a[contains(.,'${key_entryName}')]/../../..//button[contains(@class, 'dropdown-toggle') and contains(@class, 'btn-unstyled') and contains(@class, 'component-action')]</td>
 	<td></td>
 </tr>
+<tr>
+	<td>ANY_FRAGMENT_DROP_TARGET_N</td>
+	<td>//div[@aria-label='${key_targetFragmentName}'][${key_index}]/div[contains(@class,'page-editor__topper__content')]</td>
+	<td></td>
+</tr>
+
 <!--CATALOGS-->
+
 <tr>
 	<td>CATALOGS_FORM</td>
 	<td>//label[contains(.,'${key_title}')]/../select[contains(@class,'form-control')]</td>
@@ -618,7 +711,9 @@
 	<td>//input[@id='baseCommercePriceListId']/../input[@placeholder='Type Here']</td>
 	<td></td>
 </tr>
+
 <!--CHANNEL-->
+
 <tr>
 	<td>PAYMENT_METHODS_SIDE_PANEL_NAV_ITEMS</td>
 	<td>//div[contains(@class,'side-panel')]//li[a[span[contains(text(),'${navItem}')]]]</td>
@@ -629,7 +724,9 @@
 	<td>//p[@title='${key_productName}']//following-sibling::p[@class='card-text']//span[@class='price-value']</td>
 	<td></td>
 </tr>
+
 <!--DIAGRAM-->
+
 <tr>
 	<td>VERIFY_PIN</td>
 	<td>//div[contains(@class,'diagram-pins-container')]//*[name()='svg']//*[name()='circle' and @fill='${key_color}']</td>
@@ -675,7 +772,9 @@
 	<td>//select[contains(@aria-label,'Select Label')]</td>
 	<td></td>
 </tr>
+
 <!--OPTION-->
+
 <tr>
 	<td>ADD_RELATION_FIELD</td>
 	<td>//div[h4[contains(.,'${key_title}')]]//input[@type='text']</td>
@@ -716,7 +815,9 @@
 	<td>//div[(text() = '${key_table}')]//..//..//..//a[(text() = "${key_entryName}")]</td>
 	<td></td>
 </tr>
+
 <!--IFRAME-->
+
 <tr>
 	<td>IFRAME_SIDE_PANEL</td>
 	<td>//div[contains(@class,'side-panel') and contains(@class,'is-visible')]//iframe</td>
@@ -732,7 +833,9 @@
 	<td>//div[@class='side-panel-iframe-title']//h3</td>
 	<td></td>
 </tr>
+
 <!--PRICE-->
+
 <tr>
 	<td>INPUT_PRICE</td>
 	<td>//div/label[contains(.,'Price') and not(contains(.,'Promo'))]/..//input</td>
@@ -743,7 +846,9 @@
 	<td>//a[text()='${key_name}']//..//..//..//span[@class='workflow-status']//*[contains(.,'')]</td>
 	<td></td>
 </tr>
+
 <!--IMAGES-->
+
 <tr>
 	<td>IMAGES_PLUS_BUTTON</td>
 	<td>//h4[contains(.,'Images')]//..//button[contains(@class,'btn-primary')]</td>
@@ -754,13 +859,17 @@
 	<td>//span[contains(text(),'${key_itemName}')]/../../../../../../..//div[contains(@class,'product-card')]//a//picture[@data-fileentryid="${key_fileEntryId}"]</td>
 	<td></td>
 </tr>
+
 <!--ATTACHMENT-->
+
 <tr>
 	<td>ATTACHMENT_PLUS_BUTTON</td>
 	<td>//h4[contains(.,'Attachments')]//..//button[contains(@class,'btn-primary')]</td>
 	<td></td>
 </tr>
+
 <!--ORDER-->
+
 <tr>
 	<td>ACTIVE_ORDER_ID</td>
 	<td>//span[@class='order-id']</td>
@@ -787,6 +896,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>SEARCH_MAPPED_PRODUCTS_RESULT</td>
+	<td>//div[@class='table-list-title']//p[contains(text(),'${key_entryName}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>SEARCH_ORDER_ID_RESULT</td>
 	<td>//p[@class='table-list-title' and contains(.,'${key_entryName}')]/a</td>
 	<td></td>
@@ -796,7 +910,19 @@
 	<td>(//*[contains(@class, 'table-list-title')])[1]/a</td>
 	<td></td>
 </tr>
+<tr>
+	<td>ORDER_PAYMENT_STATUS</td>
+	<td>//h4[contains(.,'Payment Status')]//..//div//span[contains(@class,'label')]//*[contains(.,'${paymentStatus}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ORDER_PAYMENT_METHOD</td>
+	<td>//h4[contains(.,'Payment Method')]//..//div//span[contains(@class,'payment-name') and contains(.,'${paymentMethod}')]</td>
+	<td></td>
+</tr>
+
 <!--CHANNELS-->
+
 <tr>
 	<td>SEARCH_TABLES_CHANNELS</td>
 	<td>//h4[contains(text(),'${key_nameTableChannels}')]</td>
@@ -812,7 +938,14 @@
 	<td>//label[contains(.,'${key_fieldLabel}')]/../select/option[@selected and contains(.,'${key_value}')]</td>
 	<td></td>
 </tr>
+<tr>
+	<td>BUTTON_WITH_NAME</td>
+	<td>//*[not(self::div)][contains(@class,'btn')][normalize-space()='${key_text}'][contains(@name,'${key_buttonName}')][not(contains(@class,'navbar'))]</td>
+	<td></td>
+</tr>
+
 <!--PRODUCT-->
+
 <tr>
 	<td>ANY_AUTOCOMPLETE_TEXT_FIELD</td>
 	<td>//label[text()='${key_label}']/following::div[@id="autocomplete-root"]//input[@type="text"]</td>
@@ -839,8 +972,28 @@
 	<td></td>
 </tr>
 <tr>
+	<td>PAYMENT_SUBSCRIPTION_TOGGLE_ACTIVE</td>
+	<td>//h4[contains(text(), 'Payment Subscription')]//following-sibling::span[contains(@class,'toggle-switch-handle')]//following::div[contains(@class,'collapse show')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>DELIVERY_SUBSCRIPTION_TOGGLE</td>
 	<td>//h4[contains(text(), 'Delivery Subscription')]//following-sibling::span[contains(@class,'toggle-switch-handle')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SUBSCRIPTION_TOGGLE</td>
+	<td>//h4[contains(text(), '${key_subscriptionName}')]//following-sibling::span[contains(@class,'toggle-switch-handle')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SUBSCRIPTION_FIELD_LABEL</td>
+	<td>//h4[contains(text(), '${key_subscriptionName}')]/..//label[contains(.,'${key_subscriptionFieldLabel}')]/..//select</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TOGGLE_SWITCH_BUTTON</td>
+	<td>xpath=(//label[(contains(.,'${key_buttonName}')) or (contains(@for,'${key_buttonName}'))])[${key_indexNumber}]//input</td>
 	<td></td>
 </tr>
 <tr>
@@ -863,7 +1016,39 @@
 	<td>//img[@class='aspect-ratio-item-center-middle aspect-ratio-item-fluid aspect-ratio-item-vertical-fluid']//..//..//..//..//..//..//h2[contains(text(),'${key_productName}')]</td>
 	<td></td>
 </tr>
+<tr>
+	<td>PRODUCT_ID</td>
+	<td>//div[contains(@class,'header-info')]//span[contains(.,'ID')]/..//strong</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PRODUCT_ERC</td>
+	<td>//div[contains(@class,'header-info')]//span[contains(.,'ERC')]/..//strong</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PRODUCT_STATUS_BASED_ON_PRODUCT_NAME</td>
+	<td>//a[text()='${key_productName}']/../../../div/span[contains(@class,'workflow-status')]//strong[contains(.,'${key_status}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PRODUCT_ENTRY_BASED_ON_STATUS</td>
+	<td>//span[contains(@class,'workflow-status')]//strong[contains(.,'${key_status}')]/../../../..//a[text()='${key_productName}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PRODUCT_ENTRY_BASED_ON_STATUS_WITH_ROW</td>
+	<td>xpath=((//strong[contains(.,'${key_status}')])[${key_row}]/../../../..//a[text()='${key_productName}'])</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PRODUCT_STATUS_BASED_ON_PRODUCT_NAME_WITH_ROW</td>
+	<td>xpath=((//a[text()='${key_productName}'])[${key_row}]/../../..//strong[contains(.,'${key_status}')])</td>
+	<td></td>
+</tr>
+
 <!--OPTION-->
+
 <tr>
 	<td>DELETE_OPTION_BUTTON</td>
 	<td>//h4[contains(.,'Option')]//..//button[contains(.,'Delete')]</td>
@@ -921,12 +1106,17 @@
 </tr>
 <tr>
 	<td>ON_ORDER_QUANTITY</td>
-	<td>//div[@class="dnd-tr with-bg"]//div[contains(text(),'${key_orderQuantity}')]</td>
+	<td>//div[@class="dnd-tr"]//*[text()='${key_reference}']//..//..//..//div[(@class="dnd-td") and (text()='${key_orderQuantity}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>SEARCH_PRODUCT_RELATIONS</td>
-	<td>//input[@data-qa-id='searchInput']</td>
+	<td>//input[@placeholder='Search for']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TABLE_SEARCH_BY_NAME_AND_COLUMN_CONTENT</td>
+	<td>//div[@class='dnd-td' and contains(.,'${key_productName}')]/following-sibling::div[${key_columnNumber}][contains(text(),'${key_value}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -961,10 +1151,12 @@
 </tr>
 <tr>
 	<td>QUANTITY_IN_SHIPMENT_BY_WAREHOUSE</td>
-	<td>//div[contains(@class,'dnd-tbody')]//div[contains(text(),'${key_warehouseName}')]/..//div[5]</td>
+	<td>//div[contains(@class,'dnd-tbody')]//div[contains(text(),'${key_warehouseName}')]/..//div[6]</td>
 	<td></td>
 </tr>
+
 <!--WAREHOUSES-->
+
 <tr>
 	<td>WAREHOUSE_INVENTORY_ITEM_QUANTITY</td>
 	<td>//input[contains(@id,'_com_liferay_commerce_product_definitions_web_internal_portlet_CPDefinitionsPortlet_commerceInventoryWarehouseItemQuantity${key_value1}')]</td>
@@ -988,6 +1180,14 @@
 <tr>
 	<td>SPECIFIC_MENU_ITEM</td>
 	<td>//a[contains(text(),'${key_itemName}')]//..//..//*[name()='svg'][contains(@class,'lexicon-icon lexicon-icon-ellipsis-v')]</td>
+	<td></td>
+</tr>
+
+<!--VISIBILITY-->
+
+<tr>
+	<td>CHECK_SPECIFIC_TOGGLE_SWITCH</td>
+	<td>//h4[contains(.,"${key_name}")]//span[contains(@id,'toggle-switch')]//..//..//..//div[contains(@class,'collapse show')]</td>
 	<td></td>
 </tr>
 </tbody>

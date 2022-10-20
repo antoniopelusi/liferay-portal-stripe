@@ -79,28 +79,22 @@ public class DocumentLibraryTypeContentUpgradeProcess extends UpgradeProcess {
 		try (LoggingTimer loggingTimer = new LoggingTimer();
 			PreparedStatement preparedStatement1 = connection.prepareStatement(
 				"select content, id_ from JournalArticle where content like " +
-					"?")) {
+					"'%type=\"document_library\"%'");
+			ResultSet resultSet = preparedStatement1.executeQuery();
+			PreparedStatement preparedStatement2 =
+				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
+					connection,
+					"update JournalArticle set content = ? where id_ = ?")) {
 
-			preparedStatement1.setString(1, "%type=\"document_library\"%");
+			while (resultSet.next()) {
+				preparedStatement2.setString(
+					1, _convertContent(resultSet.getString(1)));
+				preparedStatement2.setLong(2, resultSet.getLong(2));
 
-			ResultSet resultSet1 = preparedStatement1.executeQuery();
-
-			while (resultSet1.next()) {
-				String content = resultSet1.getString(1);
-				long id = resultSet1.getLong(2);
-
-				try (PreparedStatement preparedStatement2 =
-						AutoBatchPreparedStatementUtil.concurrentAutoBatch(
-							connection,
-							"update JournalArticle set content = ? where id_ " +
-								"= ?")) {
-
-					preparedStatement2.setString(1, _convertContent(content));
-					preparedStatement2.setLong(2, id);
-
-					preparedStatement2.executeUpdate();
-				}
+				preparedStatement2.addBatch();
 			}
+
+			preparedStatement2.executeBatch();
 		}
 	}
 

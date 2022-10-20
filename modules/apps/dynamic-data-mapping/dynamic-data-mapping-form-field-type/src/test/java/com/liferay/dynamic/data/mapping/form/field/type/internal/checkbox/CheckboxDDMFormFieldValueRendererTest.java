@@ -19,6 +19,7 @@ import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
 import com.liferay.dynamic.data.mapping.test.util.DDMFormValuesTestUtil;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
@@ -30,7 +31,6 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 /**
@@ -96,6 +96,9 @@ public class CheckboxDDMFormFieldValueRendererTest {
 		checkboxDDMFormFieldValueRenderer.checkboxDDMFormFieldValueAccessor =
 			new CheckboxDDMFormFieldValueAccessor();
 
+		ReflectionTestUtil.setFieldValue(
+			checkboxDDMFormFieldValueRenderer, "_language", language);
+
 		return checkboxDDMFormFieldValueRenderer;
 	}
 
@@ -103,7 +106,7 @@ public class CheckboxDDMFormFieldValueRendererTest {
 		Locale locale, String key, String returnValue) {
 
 		Mockito.when(
-			language.get(Matchers.eq(locale), Matchers.eq(key))
+			language.get(Mockito.eq(locale), Mockito.eq(key))
 		).thenReturn(
 			returnValue
 		);

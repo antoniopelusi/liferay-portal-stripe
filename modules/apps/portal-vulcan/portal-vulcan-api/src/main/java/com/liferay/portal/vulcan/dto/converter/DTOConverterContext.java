@@ -63,6 +63,12 @@ public interface DTOConverterContext {
 		return LocaleThreadLocal.getDefaultLocale();
 	}
 
+	public default UriInfo getUriInfo() {
+		Optional<UriInfo> uriInfoOptional = getUriInfoOptional();
+
+		return uriInfoOptional.orElse(null);
+	}
+
 	public default Optional<UriInfo> getUriInfoOptional() {
 		return Optional.empty();
 	}

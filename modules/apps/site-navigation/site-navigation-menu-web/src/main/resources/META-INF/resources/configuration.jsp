@@ -351,6 +351,7 @@ SiteNavigationMenu siteNavigationMenu = siteNavigationMenuDisplayContext.getSite
 			);
 
 			Liferay.Util.openSelectionModal({
+				height: '70vh',
 				onSelect: function (selectedItem) {
 					if (selectedItem) {
 						rootMenuItemIdInput.value =
@@ -363,6 +364,7 @@ SiteNavigationMenu siteNavigationMenu = siteNavigationMenuDisplayContext.getSite
 				},
 				selectEventName:
 					'<%= siteNavigationMenuDisplayContext.getRootMenuItemEventName() %>',
+				size: 'md',
 				title:
 					'<liferay-ui:message key="select-site-navigation-menu-item" />',
 				url: uri,
@@ -392,11 +394,13 @@ SiteNavigationMenu siteNavigationMenu = siteNavigationMenuDisplayContext.getSite
 			Liferay.Util.openSelectionModal({
 				id: '<portlet:namespace />selectSiteNavigationMenu',
 				onSelect: function (selectedItem) {
-					if (selectedItem) {
-						navigationMenuName.innerText = selectedItem.name;
+					const itemValue = JSON.parse(selectedItem.value);
+
+					if (itemValue) {
+						navigationMenuName.innerText = itemValue.name;
 						rootMenuItemIdInput.value = '0';
-						rootMenuItemNameSpan.innerText = selectedItem.name;
-						siteNavigationMenuIdInput.value = selectedItem.id;
+						rootMenuItemNameSpan.innerText = itemValue.name;
+						siteNavigationMenuIdInput.value = itemValue.id;
 
 						removeSiteNavigationMenu.classList.toggle('hide');
 

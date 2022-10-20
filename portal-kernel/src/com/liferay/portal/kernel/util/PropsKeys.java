@@ -439,6 +439,12 @@ public interface PropsKeys {
 	public static final String COMPANY_DEFAULT_TIME_ZONE =
 		"company.default.time.zone";
 
+	public static final String COMPANY_DEFAULT_VIRTUAL_HOST_MAIL_DOMAIN =
+		"company.default.virtual.host.mail.domain";
+
+	public static final String COMPANY_DEFAULT_VIRTUAL_HOST_NAME =
+		"company.default.virtual.host.name";
+
 	public static final String COMPANY_DEFAULT_WEB_ID =
 		"company.default.web.id";
 
@@ -447,6 +453,8 @@ public interface PropsKeys {
 
 	public static final String COMPANY_ENCRYPTION_KEY_SIZE =
 		"company.encryption.key.size";
+
+	public static final String COMPANY_LOG_ENABLED = "company.log.enabled";
 
 	public static final String COMPANY_LOGIN_PREPOPULATE_DOMAIN =
 		"company.login.prepopulate.domain";
@@ -669,6 +677,12 @@ public interface PropsKeys {
 
 	public static final String DEFAULT_USER_PUBLIC_LAYOUTS_LAR =
 		"default.user.public.layouts.lar";
+
+	public static final String DEPENDENCY_MANAGER_SYNC_TIMEOUT =
+		"dependency.manager.sync.timeout";
+
+	public static final String DEPENDENCY_MANAGER_THREAD_POOL_ENABLED =
+		"dependency.manager.thread.pool.enabled";
 
 	public static final String DIRECT_SERVLET_CONTEXT_ENABLED =
 		"direct.servlet.context.enabled";
@@ -1172,6 +1186,9 @@ public interface PropsKeys {
 
 	public static final String INDEXER_ENABLED = "indexer.enabled";
 
+	public static final String INITIAL_SYSTEM_CHECK_ENABLED =
+		"initial.system.check.enabled";
+
 	public static final String INVOKER_FILTER_CHAIN_ENABLED =
 		"invoker.filter.chain.cache.enabled";
 
@@ -1412,14 +1429,8 @@ public interface PropsKeys {
 
 	public static final String LIFERAY_HOME = "liferay.home";
 
-	public static final String LIFERAY_LIB_GLOBAL_SHARED_DIR =
-		"liferay.lib.global.shared.dir";
-
 	public static final String LIFERAY_SHIELDED_CONTAINER_LIB_PORTAL_DIR =
 		"liferay.shielded.container.lib.portal.dir";
-
-	public static final String LIFERAY_WEB_PORTAL_DIR =
-		"liferay.web.portal.dir";
 
 	/**
 	 * @deprecated As of Mueller (7.2.x), with no direct replacement
@@ -1765,9 +1776,6 @@ public interface PropsKeys {
 
 	public static final String MODULE_FRAMEWORK_PROPERTIES =
 		"module.framework.properties.";
-
-	public static final String MODULE_FRAMEWORK_RESOLVER_REVISION_BATCH_SIZE =
-		"module.framework.resolver.revision.batch.size";
 
 	public static final String MODULE_FRAMEWORK_RUNTIME_START_LEVEL =
 		"module.framework.runtime.start.level";
@@ -2775,6 +2783,9 @@ public interface PropsKeys {
 
 	public static final String TRASH_SEARCH_LIMIT = "trash.search.limit";
 
+	public static final String TUNNEL_SERVLET_HIDE_EXCEPTION_DATA =
+		"tunnel.servlet.hide.exception.data";
+
 	public static final String TUNNELING_SERVLET_ENCRYPTION_ALGORITHM =
 		"tunneling.servlet.encryption.algorithm";
 
@@ -2801,6 +2812,12 @@ public interface PropsKeys {
 
 	public static final String UPGRADE_DATABASE_TRANSACTIONS_DISABLED =
 		"upgrade.database.transactions.disabled";
+
+	public static final String UPGRADE_LOG_CONTEXT_ENABLED =
+		"upgrade.log.context.enabled";
+
+	public static final String UPGRADE_LOG_CONTEXT_NAME =
+		"upgrade.log.context.name";
 
 	public static final String UPGRADE_REPORT_ENABLED =
 		"upgrade.report.enabled";
@@ -2948,6 +2965,9 @@ public interface PropsKeys {
 
 	public static final String VIRTUAL_HOSTS_IGNORE_PATHS =
 		"virtual.hosts.ignore.paths";
+
+	public static final String VIRTUAL_HOSTS_STRICT_ACCESS =
+		"virtual.hosts.strict.access";
 
 	public static final String VIRTUAL_HOSTS_VALID_HOSTS =
 		"virtual.hosts.valid.hosts";

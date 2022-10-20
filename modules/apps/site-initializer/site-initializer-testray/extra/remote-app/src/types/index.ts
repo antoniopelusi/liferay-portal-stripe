@@ -12,6 +12,18 @@
  * details.
  */
 
+import {KeyedMutator} from 'swr';
+
+export type ActionsHookParameter = {isHeaderActions?: boolean};
+
+export type Action<T = any> = {
+	action?: (item: T, mutate: KeyedMutator<any>) => void;
+	disabled?: boolean;
+	icon?: string;
+	name: ((item: T) => string) | string;
+	permission?: keyof typeof TestrayActions | boolean;
+};
+
 export type ActionMap<M extends {[index: string]: any}> = {
 	[Key in keyof M]: M[Key] extends undefined
 		? {
@@ -23,12 +35,24 @@ export type ActionMap<M extends {[index: string]: any}> = {
 		  };
 };
 
+export type Actions = keyof typeof TestrayActions;
+
 export enum DescriptionType {
 	MARKDOWN = 'markdown',
 	PLAINTEXT = 'plaintext',
 }
 
 export enum SortOption {
-	ASC = 'asc',
-	DESC = 'desc',
+	ASC = 'ASC',
+	DESC = 'DESC',
+}
+
+export type SortDirection = keyof typeof SortOption;
+
+export enum TestrayActions {
+	'CREATE',
+	'DELETE',
+	'INDEX',
+	'PERMISSIONS',
+	'UPDATE',
 }

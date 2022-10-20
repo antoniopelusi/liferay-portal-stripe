@@ -10,13 +10,16 @@
 		background: $cadmin-primary-l2;
 		display: flex;
 		min-height: 40px;
-		padding: 0 24px;
 	}
 
 	&-search {
 		.container-fluid {
 			height: 40px;
 		}
+	}
+
+	&-clear-selected {
+		color: $cadmin-gray-900;
 	}
 
 	&-loader {

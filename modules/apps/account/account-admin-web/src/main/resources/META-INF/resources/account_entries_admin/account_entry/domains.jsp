@@ -57,7 +57,7 @@ List<String> domains = accountEntryDisplay.getDomains();
 					linkCssClass="btn btn-secondary btn-sm"
 					message="add"
 					method="get"
-					url="javascript:;"
+					url="javascript:void(0);"
 				/>
 			</span>
 		</clay:content-col>
@@ -89,7 +89,7 @@ List<String> domains = accountEntryDisplay.getDomains();
 			/>
 
 			<liferay-ui:search-container-column-text>
-				<a class="float-right modify-link" data-rowId="<%= domain %>" href="javascript:;"><%= removeDomainIcon %></a>
+				<a class="float-right modify-link" data-rowId="<%= domain %>" href="javascript:void(0);"><%= removeDomainIcon %></a>
 			</liferay-ui:search-container-column-text>
 		</liferay-ui:search-container-row>
 
@@ -136,6 +136,9 @@ List<String> domains = accountEntryDisplay.getDomains();
 			event.preventDefault();
 
 			Liferay.Util.openModal({
+				containerProps: {
+					className: '',
+				},
 				customEvents: [
 					{
 						name:
@@ -153,7 +156,7 @@ List<String> domains = accountEntryDisplay.getDomains();
 									rowColumns.push(
 										'<a class="float-right modify-link" data-rowId="' +
 											domain +
-											'" href="javascript:;"><%= UnicodeFormatter.toString(removeDomainIcon) %></a>'
+											'" href="javascript:void(0);"><%= UnicodeFormatter.toString(removeDomainIcon) %></a>'
 									);
 
 									searchContainer.addRow(rowColumns, domain);
@@ -169,6 +172,7 @@ List<String> domains = accountEntryDisplay.getDomains();
 					},
 				],
 				id: '<%= liferayPortletResponse.getNamespace() %>addDomains',
+				iframeBodyCssClass: '',
 				title: '<liferay-ui:message key="add-domain" />',
 				url:
 					'<%=

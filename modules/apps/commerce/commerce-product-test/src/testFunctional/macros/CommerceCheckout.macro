@@ -1,89 +1,21 @@
 definition {
 
-	macro initializersCheckout {
-		WaitForElementPresent(locator1 = "CommerceAccelerators#CHECKOUT_PORTLET_BODY");
-
-		if (isSet(newAddressName)) {
-			Type(
-				key_fieldName = "Name",
-				locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
-				value1 = "${newAddressName}");
-
-			Type(
-				key_fieldName = "Address",
-				locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
-				value1 = "${newAddressAddress}");
-
-			Select(
-				key_fieldName = "Country",
-				locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_SELECT",
-				value1 = "${newAddressCountry}");
-
-			Type(
-				key_fieldName = "Zip",
-				locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
-				value1 = "${newAddressZipCode}");
-
-			Type(
-				key_fieldName = "City",
-				locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
-				value1 = "${newAddressCity}");
-
-			if (isSet(guestEmail)) {
-				Type(
-					locator1 = "CommerceAccelerators#GUEST_CHECKOUT_EMAIL",
-					value1 = "${guestEmail}");
-			}
-		}
+	macro checkout {
+		CommerceCheckout.setAddress(
+			guestEmail = "${guestEmail}",
+			newAddressAddress = "${newAddressAddress}",
+			newAddressCity = "${newAddressCity}",
+			newAddressCountry = "${newAddressCountry}",
+			newAddressName = "${newAddressName}",
+			newAddressZipCode = "${newAddressZipCode}");
 
 		Click(locator1 = "Button#CONTINUE");
 
-		var subtotal = ${productUnitPrice} * ${productQuantity};
+		Click(
+			key_radioOption = "${shippingMethod}",
+			locator1 = "CommerceEntry#RADIO_BUTTON");
 
-		if (isSet(singleShippingOption)) {
-			if (isSet(shippingMethod)) {
-				if ("${shippingMethod}" == "Standard") {
-					var total = ${subtotal} + 15;
-				}
-				else if ("${shippingMethod}" == "Expedited") {
-					var total = ${subtotal} + 25;
-				}
-				else if (isSet(customDeliveryValue)) {
-					var total = ${subtotal} + ${customDeliveryValue};
-				}
-				else {
-					var total = "${subtotal}";
-				}
-			}
-			else {
-				var total = "${subtotal}";
-			}
-		}
-		else if (isSet(shippingMethod)) {
-			if (IsElementPresent(key_label = "Shipping Method", locator1 = "CommerceAccelerators#CHECKOUT_MULTI_STEP_INDICATOR_LABEL")) {
-				Click(
-					key_radioOption = "${shippingMethod}",
-					locator1 = "CommerceEntry#RADIO_BUTTON");
-
-				Click(locator1 = "Button#CONTINUE");
-			}
-
-			if ("${shippingMethod}" == "Standard") {
-				var total = ${subtotal} + 15;
-			}
-			else if ("${shippingMethod}" == "Expedited") {
-				var total = ${subtotal} + 25;
-			}
-			else if (isSet(customDeliveryValue)) {
-				var total = ${subtotal} + ${customDeliveryValue};
-			}
-			else {
-				var total = "${subtotal}";
-			}
-		}
-		else {
-			var total = "${subtotal}";
-		}
+		Click(locator1 = "Button#CONTINUE");
 
 		if (isSet(paymentMethod) && (IsElementPresent(key_radioOption = "", locator1 = "CommerceEntry#RADIO_BUTTON"))) {
 			Click(
@@ -91,6 +23,226 @@ definition {
 				locator1 = "CommerceEntry#RADIO_BUTTON");
 
 			Click(locator1 = "Button#CONTINUE");
+		}
+
+		Click(locator1 = "Button#CONTINUE");
+	}
+
+	macro getDeliveryCost {
+		var deliveryExpeditedCost = "25";
+		var deliveryStandardCost = "15";
+
+		if ("${shippingMethod}" == "Expedited") {
+			var deliveryCost = "${deliveryExpeditedCost}";
+		}
+		else if ("${shippingMethod}" == "Standard") {
+			var deliveryCost = "${deliveryStandardCost}";
+		}
+		else if (isSet(customDeliveryValue)) {
+			var deliveryCost = "${customDeliveryValue}";
+		}
+
+		if (isSet(deliveryDiscountPercentage)) {
+			var deliverydiscountAmount = MathUtil.percent("${deliveryDiscountPercentage}", "${deliveryCost}");
+
+			var deliveryCost = ${deliveryCost} - ${deliverydiscountAmount};
+		}
+
+		return "${deliveryCost}";
+	}
+
+	macro gotoCheckout {
+		CommerceNavigator.gotoMiniCart();
+
+		Button.click(button = "View Details");
+
+		Button.click(button = "Checkout");
+
+		WaitForPageLoad();
+	}
+
+	macro gotoCheckoutViaMiniCart {
+		ScrollBy(value1 = "0, 1000");
+
+		CommerceNavigator.gotoMiniCart();
+
+		Button.click(button = "Submit");
+
+		WaitForPageLoad();
+	}
+
+	macro initializersCheckout {
+		CommerceCheckout.setAddress(
+			guestEmail = "${guestEmail}",
+			newAddressAddress = "${newAddressAddress}",
+			newAddressCity = "${newAddressCity}",
+			newAddressCountry = "${newAddressCountry}",
+			newAddressName = "${newAddressName}",
+			newAddressZipCode = "${newAddressZipCode}");
+
+		if ("${viewBillingAddressPermission}" != "false") {
+			if (isSet(billingAddressName)) {
+				Uncheck.uncheckToggleSwitch(
+					checkboxName = "Use shipping address as billing address",
+					locator1 = "Checkbox#ANY_CHECKBOX");
+
+				var setBillingAddress = "true";
+			}
+			else {
+				var billingAddressAddress = "${newAddressAddress}";
+				var billingAddressCity = "${newAddressCity}";
+				var billingAddressCountry = "${newAddressCountry}";
+				var billingAddressName = "${newAddressName}";
+				var billingAddressZipCode = "${newAddressZipCode}";
+			}
+		}
+		else {
+			AssertElementNotPresent(
+				key_label = "Billing Address",
+				locator1 = "CommerceAccelerators#CHECKOUT_MULTI_STEP_INDICATOR_LABEL");
+
+			AssertElementNotPresent(
+				checkboxName = "Use shipping address as billing address",
+				locator1 = "Checkbox#ANY_CHECKBOX");
+		}
+
+		Click(locator1 = "Button#CONTINUE");
+
+		if (isSet(productUnitPrice) && isSet(productQuantity)) {
+			var subtotal = ${productUnitPrice} * ${productQuantity};
+		}
+
+		if (isSet(singleShippingOption)) {
+			if (isSet(shippingMethod)) {
+				var deliveryCost = CommerceCheckout.getDeliveryCost(
+					customDeliveryValue = "${customDeliveryValue}",
+					deliveryDiscountPercentage = "${deliveryDiscountPercentage}",
+					shippingMethod = "${shippingMethod}");
+
+				var total = ${subtotal} + ${deliveryCost};
+			}
+		}
+		else if (isSet(shippingMethod)) {
+			if ("${manageShippingOptionsPermission}" != "false") {
+				if (isSet(defaultShippingMethod)) {
+					AssertChecked(
+						key_radioOption = "${defaultShippingMethod}",
+						locator1 = "CommerceEntry#RADIO_BUTTON");
+				}
+
+				if (isSet(eligibleShippingMethods)) {
+					for (var eligibleShippingMethod : list "${eligibleShippingMethods}") {
+						AssertElementPresent(
+							key_radioOption = "${eligibleShippingMethod}",
+							locator1 = "CommerceEntry#RADIO_BUTTON");
+					}
+				}
+
+				if (isSet(notEligibleShippingMethods)) {
+					for (var notEligibleShippingMethod : list "${notEligibleShippingMethods}") {
+						AssertElementNotPresent(
+							key_radioOption = "${notEligibleShippingMethod}",
+							locator1 = "CommerceEntry#RADIO_BUTTON");
+					}
+				}
+
+				if (IsElementPresent(key_label = "Shipping Method", locator1 = "CommerceAccelerators#CHECKOUT_MULTI_STEP_INDICATOR_LABEL")) {
+					Click(
+						key_radioOption = "${shippingMethod}",
+						locator1 = "CommerceEntry#RADIO_BUTTON");
+
+					Click(locator1 = "Button#CONTINUE");
+				}
+			}
+			else {
+				AssertElementNotPresent(
+					key_label = "Shipping Method",
+					locator1 = "CommerceAccelerators#CHECKOUT_MULTI_STEP_INDICATOR_LABEL");
+			}
+
+			var deliveryCost = CommerceCheckout.getDeliveryCost(
+				customDeliveryValue = "${customDeliveryValue}",
+				deliveryDiscountPercentage = "${deliveryDiscountPercentage}",
+				shippingMethod = "${shippingMethod}");
+
+			var total = ${subtotal} + ${deliveryCost};
+		}
+		else {
+			var total = "${subtotal}";
+		}
+
+		if (isSet(setBillingAddress)) {
+			CommerceCheckout.setAddress(
+				guestEmail = "${guestEmail}",
+				newAddressAddress = "${billingAddressAddress}",
+				newAddressCity = "${billingAddressCity}",
+				newAddressCountry = "${billingAddressCountry}",
+				newAddressName = "${billingAddressName}",
+				newAddressZipCode = "${billingAddressZipCode}");
+
+			Click(locator1 = "Button#CONTINUE");
+		}
+
+		if (isSet(deliveryTerm)) {
+			if (IsElementPresent(key_label = "Delivery Terms", locator1 = "CommerceAccelerators#CHECKOUT_MULTI_STEP_INDICATOR_LABEL")) {
+				Click(
+					key_radioOption = "${deliveryTerm}",
+					locator1 = "CommerceEntry#RADIO_BUTTON");
+
+				Click(locator1 = "Button#CONTINUE");
+			}
+			else if (("${manageDeliveryTerms}" == "false") && isSet(manageDeliveryTerms)) {
+				AssertElementNotPresent(
+					key_label = "Delivery Terms",
+					locator1 = "CommerceAccelerators#CHECKOUT_MULTI_STEP_INDICATOR_LABEL");
+			}
+		}
+
+		if (isSet(paymentMethod)) {
+			if (IsElementPresent(key_label = "Payment Method", locator1 = "CommerceAccelerators#CHECKOUT_MULTI_STEP_INDICATOR_LABEL")) {
+				if (isSet(defaultPaymentMethod)) {
+					AssertChecked(
+						key_radioOption = "${defaultPaymentMethod}",
+						locator1 = "CommerceEntry#RADIO_BUTTON");
+				}
+
+				if (isSet(eligiblePaymentMethods)) {
+					for (var eligiblePaymentMethod : list "${eligiblePaymentMethods}") {
+						AssertElementPresent(
+							key_radioOption = "${eligiblePaymentMethod}",
+							locator1 = "CommerceEntry#RADIO_BUTTON");
+					}
+				}
+
+				if (isSet(notEligiblePaymentMethods)) {
+					for (var notEligiblePaymentMethod : list "${notEligiblePaymentMethods}") {
+						AssertElementNotPresent(
+							key_radioOption = "${notEligiblePaymentMethod}",
+							locator1 = "CommerceEntry#RADIO_BUTTON");
+					}
+				}
+
+				Click(
+					key_radioOption = "${paymentMethod}",
+					locator1 = "CommerceEntry#RADIO_BUTTON");
+
+				Click(locator1 = "Button#CONTINUE");
+			}
+		}
+
+		if (isSet(paymentTerm)) {
+			if (IsElementPresent(key_label = "Payment Terms", locator1 = "CommerceAccelerators#CHECKOUT_MULTI_STEP_INDICATOR_LABEL")) {
+				Click(
+					key_radioOption = "${paymentTerm}",
+					locator1 = "CommerceEntry#RADIO_BUTTON");
+
+				Click(locator1 = "Button#CONTINUE");
+			}
+			else if (("${managePaymentTerms}" == "false") && isSet(managePaymentTerms)) {
+				AssertElementNotPresent(
+					key_label = "Payment Terms",
+					locator1 = "CommerceAccelerators#CHECKOUT_MULTI_STEP_INDICATOR_LABEL");
+			}
 		}
 
 		if (isSet(paymentMethod)) {
@@ -134,10 +286,94 @@ definition {
         	Click(locator1 = "Button#CONTINUE");
 		}
 
+		CommerceCheckout.viewCheckoutOrderSummary(
+			addressAddress = "${newAddressAddress}",
+			addressCity = "${newAddressCity}",
+			addressCountry = "${newAddressCountry}",
+			addressName = "${newAddressName}",
+			billingAddressAddress = "${billingAddressAddress}",
+			billingAddressCity = "${billingAddressCity}",
+			billingAddressCountry = "${billingAddressCountry}",
+			billingAddressName = "${billingAddressName}",
+			deliveryDiscountPercentage = "${deliveryDiscountPercentage}",
+			deliveryDiscountValue = "${deliveryDiscountValue}",
+			deliveryTerm = "${deliveryTerm}",
+			deliveryValue = "${deliveryValue}",
+			paymentMethod = "${paymentMethod}",
+			paymentTerm = "${paymentTerm}",
+			productName = "${productName}",
+			productPrice = "${productUnitPrice}",
+			productQuantity = "${productQuantity}",
+			subtotalValue = "${subtotal}",
+			totalValue = "${total}",
+			viewBillingAddressPermission = "${viewBillingAddressPermission}");
+
+		if (IsElementPresent(key_productName = "", locator1 = "CommerceAccelerators#CHECKOUT_SUMMARY_PRODUCT_TABLE_PRODUCT")) {
+			Click(locator1 = "Button#CONTINUE");
+		}
+	}
+
+	macro setAddress {
+		WaitForElementPresent(locator1 = "CommerceAccelerators#CHECKOUT_PORTLET_BODY");
+
+		if (isSet(newAddressName)) {
+			Type(
+				key_fieldName = "Name",
+				locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+				value1 = "${newAddressName}");
+
+			Type(
+				key_fieldName = "Address",
+				locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+				value1 = "${newAddressAddress}");
+
+			Select(
+				key_fieldName = "Country",
+				locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_SELECT",
+				value1 = "${newAddressCountry}");
+
+			Type(
+				key_fieldName = "Zip",
+				locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+				value1 = "${newAddressZipCode}");
+
+			Type(
+				key_fieldName = "City",
+				locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+				value1 = "${newAddressCity}");
+
+			if (isSet(guestEmail)) {
+				Type(
+					locator1 = "CommerceAccelerators#GUEST_CHECKOUT_EMAIL",
+					value1 = "${guestEmail}");
+			}
+		}
+	}
+
+	macro setDeliveryDate {
+		var displayDate = "${displayDateMonth}/${displayDateDay}/${displayDateYear}";
+
+		Type(
+			key_fieldName = "mm/dd/yyyy",
+			locator1 = "CommerceAccelerators#CHECKOUT_GENERIC_TEXT_INPUT",
+			value1 = "${displayDate}");
+
+		Click(locator1 = "Button#CONTINUE");
+	}
+
+	macro setStandardShippingOption {
+		Click(
+			key_radioOption = "Standard",
+			locator1 = "CommerceEntry#RADIO_BUTTON");
+
 	}
 
 	macro viewCheckoutOrderSummary {
-		if (IsElementPresent(key_label = "Shipping Address", locator1 = "CommerceAccelerators#CHECKOUT_MULTI_STEP_INDICATOR_LABEL")) {
+		if (!(isSet(currency))) {
+			var currency = "$";
+		}
+
+		if (IsElementPresent(key_addressInfo = "", locator1 = "CommerceAccelerators#CHECKOUT_SUMMARY_SHIPPING_ADDRESS")) {
 			AssertTextEquals.assertPartialText(
 				key_addressInfo = "${addressName}",
 				locator1 = "CommerceAccelerators#CHECKOUT_SUMMARY_SHIPPING_ADDRESS",
@@ -159,6 +395,42 @@ definition {
 				value1 = "${addressCountry}");
 		}
 
+		if (IsElementPresent(key_addressInfo = "", locator1 = "CommerceAccelerators#CHECKOUT_SUMMARY_BILLING_ADDRESS")) {
+			if (isSet(billingAddressName)) {
+				AssertTextEquals.assertPartialText(
+					key_addressInfo = "${billingAddressName}",
+					locator1 = "CommerceAccelerators#CHECKOUT_SUMMARY_BILLING_ADDRESS",
+					value1 = "${billingAddressName}");
+			}
+
+			if (isSet(billingAddress)) {
+				AssertTextEquals.assertPartialText(
+					key_addressInfo = "${billingAddressAddress}",
+					locator1 = "CommerceAccelerators#CHECKOUT_SUMMARY_BILLING_ADDRESS",
+					value1 = "${billingAddressAddress}");
+			}
+
+			if (isSet(billingAddressCity)) {
+				AssertTextEquals.assertPartialText(
+					key_addressInfo = "${billingAddressCity}",
+					locator1 = "CommerceAccelerators#CHECKOUT_SUMMARY_BILLING_ADDRESS",
+					value1 = "${billingAddressCity}");
+			}
+
+			if (isSet(billingAddressCountry)) {
+				AssertTextEquals.assertPartialText(
+					key_addressInfo = "${billingAddressCountry}",
+					locator1 = "CommerceAccelerators#CHECKOUT_SUMMARY_BILLING_ADDRESS",
+					value1 = "${billingAddressCountry}");
+			}
+		}
+
+		if ("${viewBillingAddressPermission}" == "false") {
+			AssertElementNotPresent(
+				key_addressInfo = "",
+				locator1 = "CommerceAccelerators#CHECKOUT_SUMMARY_BILLING_ADDRESS");
+		}
+
 		if (isSet(paymentMethod)) {
 			AssertTextEquals(
 				key_paymentMethod = "${paymentMethod}",
@@ -166,31 +438,82 @@ definition {
 				value1 = "${paymentMethod}");
 		}
 
-		AssertTextEquals.assertPartialText(
-			key_productName = "${productName}",
-			locator1 = "CommerceAccelerators#CHECKOUT_SUMMARY_PRODUCT_TABLE_PRODUCT",
-			value1 = "${productName}");
+		if (isSet(paymentTerm)) {
+			if ("${paymentTerm}" == "") {
+				AssertElementNotPresent(
+					key_paymentTerm = "",
+					locator1 = "CommerceAccelerators#CHECKOUT_SUMMARY_PAYMENT_TERM");
+			}
+			else {
+				AssertTextEquals(
+					key_paymentTerm = "${paymentTerm}",
+					locator1 = "CommerceAccelerators#CHECKOUT_SUMMARY_PAYMENT_TERM",
+					value1 = "${paymentTerm}");
+			}
+		}
 
-		AssertTextEquals(
-			key_productQuantity = "${productQuantity}",
-			locator1 = "CommerceAccelerators#CHECKOUT_SUMMARY_PRODUCT_TABLE_QUANTITY",
-			value1 = "${productQuantity}");
+		if (isSet(deliveryTerm)) {
+			if ("${deliveryTerm}" == "") {
+				AssertElementNotPresent(
+					key_deliveryTerm = "",
+					locator1 = "CommerceAccelerators#CHECKOUT_SUMMARY_DELIVERY_TERM");
+			}
+			else {
+				AssertTextEquals(
+					key_paymentMethod = "${deliveryTerm}",
+					locator1 = "CommerceAccelerators#CHECKOUT_SUMMARY_PAYMENT_METHOD",
+					value1 = "${deliveryTerm}");
+			}
+		}
 
-		AssertTextEquals.assertPartialText(
-			key_productPrice = "${productPrice}",
-			locator1 = "CommerceAccelerators#CHECKOUT_SUMMARY_PRODUCT_TABLE_PRICE",
-			value1 = "${productPrice}");
+		if (isSet(productName)) {
+			AssertTextEquals.assertPartialText(
+				key_productName = "${productName}",
+				locator1 = "CommerceAccelerators#CHECKOUT_SUMMARY_PRODUCT_TABLE_PRODUCT",
+				value1 = "${productName}");
+		}
 
-		AssertTextEquals.assertPartialText(
-			key_subtotalValue = "${subtotalValue}",
-			locator1 = "CommerceAccelerators#CHECKOUT_SUMMARY_SUBTOTAL",
-			value1 = "${subtotalValue}");
+		if (isSet(productQuantity)) {
+			AssertTextEquals(
+				key_productQuantity = "${productQuantity}",
+				locator1 = "CommerceAccelerators#CHECKOUT_SUMMARY_PRODUCT_TABLE_QUANTITY",
+				value1 = "${productQuantity}");
+		}
+
+		if (isSet(productPrice)) {
+			AssertTextEquals.assertPartialText(
+				key_productPrice = "${productPrice}",
+				locator1 = "CommerceAccelerators#CHECKOUT_SUMMARY_PRODUCT_TABLE_PRICE",
+				value1 = "${productPrice}");
+		}
+
+		if (isSet(subtotalValue)) {
+			AssertTextEquals.assertPartialText(
+				key_subtotalValue = "${subtotalValue}",
+				locator1 = "CommerceAccelerators#CHECKOUT_SUMMARY_SUBTOTAL",
+				value1 = "${subtotalValue}");
+		}
 
 		if (isSet(deliveryValue)) {
 			AssertTextEquals.assertPartialText(
 				key_deliveryValue = "${deliveryValue}",
 				locator1 = "CommerceAccelerators#CHECKOUT_SUMMARY_DELIVERY",
 				value1 = "${deliveryValue}");
+		}
+
+		if (isSet(deliveryDiscountValue)) {
+			AssertElementPresent(
+				key_currency = "${currency}",
+				key_discountValue = "${deliveryDiscountValue}",
+				locator1 = "CommerceAccelerators#CHECKOUT_SUMMARY_DELIVERY_DISCOUNT_VALUE");
+		}
+
+		if (isSet(deliveryDiscountPercentage)) {
+			var deliveryDiscountPercentage = CommerceUtilities.convertWholeNumberToDecimal(number = "${deliveryDiscountPercentage}");
+
+			AssertElementPresent(
+				key_discountPercentage = "${deliveryDiscountPercentage}",
+				locator1 = "CommerceAccelerators#CHECKOUT_SUMMARY_DELIVERY_DISCOUNT_PERCENTAGE");
 		}
 
 		if (isSet(taxValue)) {
@@ -200,10 +523,12 @@ definition {
 				value1 = "${taxValue}");
 		}
 
-		AssertTextEquals.assertPartialText(
-			key_totalValue = "${totalValue}",
-			locator1 = "CommerceAccelerators#CHECKOUT_SUMMARY_TOTAL",
-			value1 = "${totalValue}");
+		if (isSet(totalValue)) {
+			AssertTextEquals.assertPartialText(
+				key_totalValue = "${totalValue}",
+				locator1 = "CommerceAccelerators#CHECKOUT_SUMMARY_TOTAL",
+				value1 = "${totalValue}");
+		}
 	}
 
 }

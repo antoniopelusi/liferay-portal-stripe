@@ -1,5 +1,6 @@
 package ${configYAML.apiPackagePath}.internal.resource.${escapedVersion}.factory;
 
+import ${configYAML.apiPackagePath}.internal.security.permission.LiberalPermissionChecker;
 import ${configYAML.apiPackagePath}.resource.${escapedVersion}.${schemaName}Resource;
 
 import com.liferay.portal.kernel.model.Company;
@@ -151,7 +152,7 @@ public class ${schemaName}ResourceFactoryImpl implements ${schemaName}Resource.F
 			PermissionThreadLocal.setPermissionChecker(_defaultPermissionCheckerFactory.create(user));
 		}
 		else {
-			PermissionThreadLocal.setPermissionChecker(_liberalPermissionCheckerFactory.create(user));
+			PermissionThreadLocal.setPermissionChecker(new LiberalPermissionChecker(user));
 		}
 
 		${schemaName}Resource ${schemaVarName}Resource = _componentServiceObjects.getService();
@@ -208,9 +209,6 @@ public class ${schemaName}ResourceFactoryImpl implements ${schemaName}Resource.F
 
 	@Reference
 	private GroupLocalService _groupLocalService;
-
-	@Reference(target = "(permission.checker.type=liberal)")
-	private PermissionCheckerFactory _liberalPermissionCheckerFactory;
 
 	@Reference
 	private ResourceActionLocalService _resourceActionLocalService;

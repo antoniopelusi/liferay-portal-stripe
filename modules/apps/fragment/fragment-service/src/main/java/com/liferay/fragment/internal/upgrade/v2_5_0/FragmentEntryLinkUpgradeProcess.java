@@ -44,9 +44,9 @@ public class FragmentEntryLinkUpgradeProcess extends UpgradeProcess {
 			ResultSet resultSet = preparedStatement1.executeQuery();
 			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.autoBatch(
-					connection.prepareStatement(
-						"update FragmentEntryLink set rendererKey = ? where " +
-							"fragmentEntryLinkId = ?"))) {
+					connection,
+					"update FragmentEntryLink set rendererKey = ? where " +
+						"fragmentEntryLinkId = ?")) {
 
 			while (resultSet.next()) {
 				long fragmentEntryLinkId = resultSet.getLong(
@@ -69,9 +69,7 @@ public class FragmentEntryLinkUpgradeProcess extends UpgradeProcess {
 	}
 
 	private void _upgratePlid() throws Exception {
-		if (!hasColumn("FragmentEntryLink", "plid")) {
-			alterTableAddColumn("FragmentEntryLink", "plid", "LONG");
-		}
+		alterTableAddColumn("FragmentEntryLink", "plid", "LONG");
 
 		runSQL(
 			"update FragmentEntryLink set plid = classPK where classNameId = " +

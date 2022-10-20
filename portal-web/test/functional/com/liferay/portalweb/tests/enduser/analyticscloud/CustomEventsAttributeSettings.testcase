@@ -1,6 +1,8 @@
 @component-name = "portal-analytics-cloud"
 definition {
 
+	property analytics.cloud.release = "true";
+	property analytics.cloud.upstream = "true";
 	property custom.properties = "jsonws.web.service.paths.excludes=";
 	property portal.release = "false";
 	property portal.upstream = "true";
@@ -61,6 +63,8 @@ definition {
 	tearDown {
 		var testPortalInstance = PropsUtil.get("test.portal.instance");
 
+		ACUtils.tearDownAC();
+
 		ACUtils.tearDownDXP();
 
 		if ("${testPortalInstance}" == "true") {
@@ -69,10 +73,80 @@ definition {
 		else {
 			JSONGroup.deleteGroupByName(groupName = "Site Name");
 		}
+	}
 
-		JSONUser.tearDownNonAdminUsers();
+	@description = "Bug: LRAC-11366 | Automation ID: LRAC-11433 | Test Summary: Delete attribute description"
+	@priority = "3"
+	test CanDeleteAttributeDescription {
+		var attributeName = "birthdate";
 
-		ACUtils.tearDownAC();
+		task ("Fill fields and create custom event") {
+			var customEventName = ACCustomEvents.generateCustomEventName();
+
+			ACCustomEvents.createCustomEvent(
+				customEventName = "${customEventName}",
+				timeToSendCustomEvent = "1");
+		}
+
+		task ("Close sessions") {
+			ACUtils.closeAllSessionsAndWait();
+		}
+
+		task ("Switch the property in AC") {
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
+		}
+
+		task ("Navigation to attributes tab") {
+			ACNavigation.goToSettings();
+
+			ACSettings.goToDefinitions();
+
+			ACSettings.goToEventAttributes();
+
+			ACNavigation.openItem(itemName = "Attributes");
+		}
+
+		task ("Edit the new attribute") {
+			ACNavigation.openItem(itemName = "${attributeName}");
+
+			ACUtils.clickAnyButton(button = "Edit");
+		}
+
+		task ("Change the description of the attribute") {
+			ACCustomEvents.changeCustomEventDisplayNameOrDescription(newDescription = "${attributeName} Description");
+		}
+
+		task ("Back to Event Attributes and Navigation to attributes tab") {
+			ACNavigation.backNavigation(pageName = "Event Attributes");
+
+			ACNavigation.openItem(itemName = "Attributes");
+		}
+
+		task ("Check if the description has been changed") {
+			ACCustomEvents.viewDisplayNameOrDescriptionList(nameValue = "${attributeName} Description");
+		}
+
+		task ("Edit the attribute") {
+			ACNavigation.openItem(itemName = "${attributeName}");
+
+			ACUtils.clickAnyButton(button = "Edit");
+		}
+
+		task ("Delete the description of the attribute") {
+			ACCustomEvents.changeCustomEventDisplayNameOrDescription(newDescription = "");
+		}
+
+		task ("Back to Event Attributes and Navigation to attributes tab") {
+			ACNavigation.backNavigation(pageName = "Event Attributes");
+
+			ACNavigation.openItem(itemName = "Attributes");
+		}
+
+		task ("Check if the description is deleted") {
+			AssertTextNotPresent(value1 = "${attributeName} Description");
+		}
 	}
 
 	@description = "Feature ID: LRAC-4265 | Automation ID: LRAC-10012 | Test Summary: Attributes name character limit (255 chars)"
@@ -299,6 +373,7 @@ definition {
 		var attributeName1 = "color1";
 		var attributeName2 = "color2";
 		var attributeName3 = "color3";
+
 		var attributeNameList = "${attributeName1},${attributeName2},${attributeName3}";
 		var attributeValueList = "blue,red,black";
 
@@ -372,19 +447,14 @@ definition {
 	}
 
 	@description = "Feature ID: LRAC-4265 | Automation ID: LRAC-10017 | Test Summary: Search for Attributes"
-	@ignore = "true"
 	@priority = "3"
 	test SearchForAttribute {
-
-		// AC Story ticket: LRAC-9248
-
-		var attributesNameList = "category,price,temp,birthdate,like";
+		var attributesNameList = "category,price,temp,birthdate,like,duration";
 
 		task ("Fill fields and create custom event") {
 			var customEventName = ACCustomEvents.generateCustomEventName();
 
 			ACCustomEvents.createCustomEvent(
-				attributesName = "${attributesNameList}",
 				customEventName = "${customEventName}",
 				timeToSendCustomEvent = "1");
 		}
@@ -420,9 +490,7 @@ definition {
 		task ("Search for the name of attribute that doesn't exist and verify that it didn't find anything") {
 			ACUtils.searchBar(searchItem = "acqa");
 
-			// This test is being ignored due to a history that makes changes to empty state messages.
-
-			ACUtils.viewNoResultsMessage(noResultMessage = "There are no attributes found.");
+			ACUtils.viewNoResultsMessage(noResultMessage = "There are no results found.");
 		}
 	}
 

@@ -36,14 +36,15 @@ public class KBCommentUpgradeProcess extends UpgradeProcess {
 
 		runSQL(
 			"update KBComment set userRating = " +
-				KBCommentConstants.USER_RATING_LIKE + " where helpful = TRUE");
+				KBCommentConstants.USER_RATING_LIKE +
+					" where helpful = [$TRUE$]");
 
 		runSQL(
 			"update KBComment set userRating = " +
 				KBCommentConstants.USER_RATING_DISLIKE +
-					" where helpful = FALSE");
+					" where helpful = [$FALSE$]");
 
-		runSQL("alter table KBComment drop column helpful");
+		alterTableDropColumn("KBComment", "helpful");
 	}
 
 	private void _upgradeSchema() throws Exception {

@@ -17,6 +17,7 @@ package com.liferay.portal.verify.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
+import com.liferay.portal.kernel.test.SwappableSecurityManager;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.util.SystemProperties;
 import com.liferay.portal.test.log.LogCapture;
@@ -24,7 +25,6 @@ import com.liferay.portal.test.log.LogEntry;
 import com.liferay.portal.test.log.LoggerTestUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.verify.VerifyProperties;
-import com.liferay.portal.verify.test.util.BaseVerifyProcessTestCase;
 
 import java.util.Iterator;
 import java.util.List;
@@ -41,7 +41,7 @@ import org.junit.runner.RunWith;
  * @author Manuel de la Peña
  */
 @RunWith(Arquillian.class)
-public class VerifyPropertiesTest extends BaseVerifyProcessTestCase {
+public class VerifyPropertiesTest {
 
 	@ClassRule
 	@Rule
@@ -59,11 +59,30 @@ public class VerifyPropertiesTest extends BaseVerifyProcessTestCase {
 		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
 				VerifyProperties.class.getName(), LoggerTestUtil.ERROR)) {
 
-			doVerify();
+			SecurityException securityException1 = new SecurityException();
+
+			SwappableSecurityManager swappableSecurityManager =
+				new SwappableSecurityManager() {
+
+					@Override
+					public void checkExit(int status) {
+						throw securityException1;
+					}
+
+				};
+
+			swappableSecurityManager.install();
+
+			try {
+				VerifyProperties.verify();
+			}
+			catch (SecurityException securityException2) {
+				Assert.assertSame(securityException1, securityException2);
+			}
 
 			List<LogEntry> logEntries = logCapture.getLogEntries();
 
-			Assert.assertEquals(logEntries.toString(), 1, logEntries.size());
+			Assert.assertEquals(logEntries.toString(), 2, logEntries.size());
 
 			LogEntry logEntry = logEntries.get(0);
 
@@ -72,6 +91,14 @@ public class VerifyPropertiesTest extends BaseVerifyProcessTestCase {
 					"Portal property \"", migratedPortalKey,
 					"\" was migrated to the system property \"",
 					migratedPortalKey, "\""),
+				logEntry.getMessage());
+
+			logEntry = logEntries.get(1);
+
+			Assert.assertEquals(
+				StringBundler.concat(
+					"Stopping the server due to incorrect use of migrated ",
+					"portal properties [", migratedPortalKey, "]"),
 				logEntry.getMessage());
 		}
 		finally {
@@ -91,7 +118,7 @@ public class VerifyPropertiesTest extends BaseVerifyProcessTestCase {
 		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
 				VerifyProperties.class.getName(), LoggerTestUtil.ERROR)) {
 
-			doVerify();
+			VerifyProperties.verify();
 
 			List<LogEntry> logEntries = logCapture.getLogEntries();
 
@@ -128,7 +155,7 @@ public class VerifyPropertiesTest extends BaseVerifyProcessTestCase {
 		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
 				VerifyProperties.class.getName(), LoggerTestUtil.ERROR)) {
 
-			doVerify();
+			VerifyProperties.verify();
 
 			List<LogEntry> logEntries = logCapture.getLogEntries();
 
@@ -159,7 +186,7 @@ public class VerifyPropertiesTest extends BaseVerifyProcessTestCase {
 		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
 				VerifyProperties.class.getName(), LoggerTestUtil.ERROR)) {
 
-			doVerify();
+			VerifyProperties.verify();
 
 			List<LogEntry> logEntries = logCapture.getLogEntries();
 
@@ -187,7 +214,7 @@ public class VerifyPropertiesTest extends BaseVerifyProcessTestCase {
 		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
 				VerifyProperties.class.getName(), LoggerTestUtil.ERROR)) {
 
-			doVerify();
+			VerifyProperties.verify();
 
 			List<LogEntry> logEntries = logCapture.getLogEntries();
 
@@ -216,7 +243,7 @@ public class VerifyPropertiesTest extends BaseVerifyProcessTestCase {
 		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
 				VerifyProperties.class.getName(), LoggerTestUtil.ERROR)) {
 
-			doVerify();
+			VerifyProperties.verify();
 
 			List<LogEntry> logEntries = logCapture.getLogEntries();
 
@@ -246,7 +273,7 @@ public class VerifyPropertiesTest extends BaseVerifyProcessTestCase {
 		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
 				VerifyProperties.class.getName(), LoggerTestUtil.ERROR)) {
 
-			doVerify();
+			VerifyProperties.verify();
 
 			List<LogEntry> logEntries = logCapture.getLogEntries();
 
@@ -265,13 +292,12 @@ public class VerifyPropertiesTest extends BaseVerifyProcessTestCase {
 		}
 	}
 
-	@Override
 	@Test
 	public void testVerify() throws Exception {
 		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
 				VerifyProperties.class.getName(), LoggerTestUtil.ERROR)) {
 
-			doVerify();
+			VerifyProperties.verify();
 
 			List<LogEntry> logEntries = logCapture.getLogEntries();
 
@@ -280,10 +306,8 @@ public class VerifyPropertiesTest extends BaseVerifyProcessTestCase {
 	}
 
 	protected String getFirstPortalPropertyKey() {
-		VerifyProperties verifyProperties = getVerifyProcess();
-
 		Properties portalProperties = ReflectionTestUtil.invoke(
-			verifyProperties, "loadPortalProperties", new Class<?>[0]);
+			VerifyProperties.class, "loadPortalProperties", new Class<?>[0]);
 
 		Set<String> propertyNames = portalProperties.stringPropertyNames();
 
@@ -304,11 +328,6 @@ public class VerifyPropertiesTest extends BaseVerifyProcessTestCase {
 		Iterator<String> iterator = propertyNames.iterator();
 
 		return iterator.next();
-	}
-
-	@Override
-	protected VerifyProperties getVerifyProcess() {
-		return new VerifyProperties();
 	}
 
 	private <T> T _setPropertyKeys(String fieldName, T value) {

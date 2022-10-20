@@ -34,13 +34,13 @@ export default function ConditionNode({
 	return (
 		<BaseNode
 			actions={actions}
-			className="condition-node"
 			description={description}
 			descriptionSidebar={descriptionSidebar}
 			icon="diamond"
 			id={id}
 			label={label}
 			newNode={newNode}
+			nodeTypeClassName="condition-node"
 			notifications={notifications}
 			script={script}
 			type="condition"

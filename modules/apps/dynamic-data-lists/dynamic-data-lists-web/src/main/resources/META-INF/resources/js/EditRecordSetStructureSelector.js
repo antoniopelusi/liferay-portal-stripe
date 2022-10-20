@@ -12,6 +12,8 @@
  * details.
  */
 
+import {getOpener} from 'frontend-js-web';
+
 export default function ({itemSelectorURL, portletNamespace, selectEventName}) {
 	const openRecordSetModalButton = document.querySelector(
 		'.open-record-set-modal'
@@ -19,9 +21,10 @@ export default function ({itemSelectorURL, portletNamespace, selectEventName}) {
 
 	if (openRecordSetModalButton) {
 		openRecordSetModalButton.addEventListener('click', () => {
-			const openerWindow = Liferay.Util.getOpener();
+			const openerWindow = getOpener();
 
 			openerWindow.Liferay.Util.openSelectionModal({
+				iframeBodyCssClass: '',
 				onSelect: (selectedItem) => {
 					const form = document.getElementById(
 						`${portletNamespace}fm`

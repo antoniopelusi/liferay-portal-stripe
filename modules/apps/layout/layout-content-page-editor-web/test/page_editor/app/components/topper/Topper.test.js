@@ -13,7 +13,7 @@
  */
 
 import '@testing-library/jest-dom/extend-expect';
-import {cleanup, render} from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
 import React from 'react';
 import {DndProvider} from 'react-dnd';
 import {HTML5Backend} from 'react-dnd-html5-backend';
@@ -25,34 +25,14 @@ import {VIEWPORT_SIZES} from '../../../../../src/main/resources/META-INF/resourc
 import {ControlsProvider} from '../../../../../src/main/resources/META-INF/resources/page_editor/app/contexts/ControlsContext';
 import {StoreAPIContextProvider} from '../../../../../src/main/resources/META-INF/resources/page_editor/app/contexts/StoreContext';
 
-jest.mock(
-	'../../../../../src/main/resources/META-INF/resources/page_editor/app/config',
-	() => ({
-		config: {
-			commonStyles: [
-				{
-					styles: [
-						{
-							defaultValue: 'left',
-							name: 'textAlign',
-						},
-					],
-				},
-			],
-			frontendTokens: {},
-		},
-	})
-);
-
 const renderTopper = ({
 	hasUpdatePermissions = true,
 	lockedExperience = false,
+	rowConfig = {styles: {}},
 } = {}) => {
 	const row = {
 		children: [],
-		config: {
-			styles: {},
-		},
+		config: rowConfig,
 		itemId: 'row',
 		parentId: null,
 		type: LAYOUT_DATA_ITEM_TYPES.row,
@@ -67,6 +47,7 @@ const renderTopper = ({
 			<ControlsProvider>
 				<StoreAPIContextProvider
 					getState={() => ({
+						fragmentEntryLinks: {},
 						layoutData,
 						permissions: {
 							LOCKED_SEGMENTS_EXPERIMENT: lockedExperience,
@@ -85,8 +66,6 @@ const renderTopper = ({
 };
 
 describe('Topper', () => {
-	afterEach(cleanup);
-
 	it('does not render Topper if user has no permissions', () => {
 		const {baseElement} = renderTopper({hasUpdatePermissions: false});
 
@@ -94,10 +73,22 @@ describe('Topper', () => {
 	});
 
 	it('renders Topper if user has permissions', () => {
-		const {baseElement} = renderTopper({});
+		const {baseElement} = renderTopper();
 
 		expect(
 			baseElement.querySelector('.page-editor__topper')
 		).toBeInTheDocument();
+	});
+
+	it('renders name of the fragment', () => {
+		renderTopper();
+
+		expect(screen.queryByLabelText('grid')).toBeInTheDocument();
+	});
+
+	it('renders custom name of the fragment', () => {
+		renderTopper({rowConfig: {name: 'customName'}});
+
+		expect(screen.queryByLabelText('customName')).toBeInTheDocument();
 	});
 });

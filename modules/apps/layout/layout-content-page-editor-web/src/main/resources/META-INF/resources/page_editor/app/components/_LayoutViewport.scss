@@ -1,122 +1,146 @@
-html#{$cadmin-selector} {
-	.page-editor__layout-viewport {
-		align-items: stretch;
-		background-color: $cadmin-gray-400;
-		display: flex;
-		justify-content: center;
-		position: relative;
+$selector: '.page-editor__layout-viewport';
 
-		&__resizer {
-			background-color: var(--body-bg);
-		}
+html#{$cadmin-selector} #{$selector} {
+	align-items: stretch;
+	background-color: $cadmin-gray-400;
+	display: flex;
+	justify-content: center;
+	position: relative;
 
-		&--size {
-			&-tablet,
-			&-landscapeMobile,
-			&-portraitMobile {
-				height: 100%;
-				left: 0;
-				position: absolute;
-				top: 0;
-				transition: padding-left ease $defaultTransitionDuration,
-					padding-right ease $defaultTransitionDuration;
-				width: 100%;
-				will-change: padding-left, padding-right;
-				z-index: 1;
+	#{$selector}__resizer {
+		background-color: var(--body-bg);
+	}
 
-				&.page-editor__layout-viewport--with-sidebar {
-					padding-right: $sidebarButtonWidth;
+	&--size {
+		&-tablet,
+		&-landscapeMobile,
+		&-portraitMobile {
+			height: 100%;
+			left: 0;
+			position: absolute;
+			top: 0;
+			transition: margin-left ease $defaultTransitionDuration,
+				margin-right ease $defaultTransitionDuration;
+			width: 100%;
+			will-change: margin-left, margin-right;
+			z-index: 1;
+
+			&#{$selector}-old {
+				#{$selector}__label-width {
+					right: $sidebarButtonWidth;
 				}
 
-				&.page-editor__layout-viewport--with-sidebar-open {
-					.page-editor__layout-viewport__label-width {
+				&#{$selector}--with-sidebar {
+					margin-left: 0;
+					margin-right: $sidebarButtonWidth;
+				}
+
+				&#{$selector}--with-sidebar-open {
+					#{$selector}__label-width {
+						left: unset;
 						right: $sidebarButtonWidth + $sidebarContentWidth;
 					}
 
 					@include media-breakpoint-up(sm) {
-						padding-right: $sidebarButtonWidth +
-							$sidebarContentWidth;
+						margin-left: 0;
+						margin-right: $sidebarButtonWidth + $sidebarContentWidth;
 					}
 				}
 			}
 
-			&-desktop .page-editor__layout-viewport__resizer {
-				flex-grow: 1;
+			&#{$selector}--with-sidebar-open {
+				#{$selector}__label-width {
+					right: $sidebarContentWidth;
+				}
 			}
 
-			&-tablet .page-editor__layout-viewport__resizer {
-				max-width: 991px;
-				min-width: 768px;
-				width: 768px;
-			}
+			&#{$selector}--with-item-configuration-open {
+				#{$selector}__label-width {
+					right: $sidebarContentWidth;
+				}
 
-			&-landscapeMobile .page-editor__layout-viewport__resizer {
-				max-width: 767px;
-				min-width: 576px;
-				width: 576px;
-			}
-
-			&-portraitMobile .page-editor__layout-viewport__resizer {
-				max-width: 575px;
-				min-width: 240px;
-				width: 360px;
+				@include media-breakpoint-up(sm) {
+					margin-right: $sidebarContentWidth;
+				}
 			}
 		}
 
-		&__label-width {
-			margin-top: 12px;
+		&-desktop #{$selector}__resizer {
+			flex-grow: 1;
+		}
+
+		&-tablet #{$selector}__resizer {
+			max-width: minmax(991px, 100%);
+			min-width: minmax(768px, 100%);
+			width: 768px;
+		}
+
+		&-landscapeMobile #{$selector}__resizer {
+			max-width: minmax(767px, 100%);
+			min-width: minmax(576px, 100%);
+			width: 576px;
+		}
+
+		&-portraitMobile #{$selector}__resizer {
+			max-width: minmax(575px, 100%);
+			min-width: minmax(240px, 100%);
+			width: 360px;
+		}
+	}
+
+	#{$selector}__label-width {
+		margin-top: 12px;
+		position: absolute;
+		right: 0;
+		z-index: 1;
+
+		span {
+			background-color: $cadmin-gray-800;
+			border-radius: 4px;
+			color: $cadmin-light-l2;
+			font-size: 14px;
+			font-weight: 600;
+			margin-right: 16px;
+			padding: 6px 12px;
+		}
+	}
+
+	#{$selector}__handle {
+		background-color: $cadmin-gray-400;
+		cursor: col-resize;
+		position: relative;
+		width: 16px;
+
+		&:active,
+		&:hover {
+			background-color: $cadmin-gray-500;
+		}
+
+		&:before,
+		&:after {
+			border: 1px solid $cadmin-secondary;
+			border-radius: 2px;
+			content: '';
+			height: 20px;
 			position: absolute;
-			right: $sidebarButtonWidth;
-			z-index: 1;
-
-			span {
-				background-color: $cadmin-gray-800;
-				border-radius: 4px;
-				color: $cadmin-light-l2;
-				font-size: 14px;
-				font-weight: 600;
-				margin-right: 16px;
-				padding: 6px 12px;
-			}
+			top: 50%;
+			transform: translateY(-50%);
 		}
 
-		&__handle {
-			background-color: $cadmin-gray-400;
-			cursor: col-resize;
-			position: relative;
-			width: 16px;
-
-			&:active,
-			&:hover {
-				background-color: $cadmin-gray-500;
-			}
-
-			&:before,
-			&:after {
-				border: 1px solid $cadmin-secondary;
-				border-radius: 2px;
-				content: '';
-				height: 20px;
-				position: absolute;
-				top: 50%;
-				transform: translateY(-50%);
-			}
-
-			&:before {
-				left: calc(50% - 3px);
-			}
-
-			&:after {
-				left: calc(50% + 1px);
-			}
+		&:before {
+			left: calc(50% - 3px);
 		}
 
-		&__resizing {
-			cursor: col-resize;
+		&:after {
+			left: calc(50% + 1px);
+		}
+	}
 
-			.page-editor__layout-viewport__resizer {
-				pointer-events: none;
-			}
+	&__resizing {
+		cursor: col-resize;
+
+		#{$selector}__resizer {
+			pointer-events: none;
 		}
 	}
 }

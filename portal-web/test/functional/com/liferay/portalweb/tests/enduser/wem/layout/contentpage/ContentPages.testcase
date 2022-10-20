@@ -35,66 +35,82 @@ definition {
 		}
 	}
 
-	@description = "This is a test for LPS-134599. The fragmentElementId variable will have the same value with the id of wrapping div in a fragment on page."
-	@priority = "5"
-	test AddFragmentWithFreemarkerVariableToContentPage {
-		property portal.acceptance = "true";
+	@description = "This is a test for LPS-154530. The page designer can add negative values on spacing from style books."
+	@priority = "4"
+	test AddNegativeValueOnSpacing {
+		task ("Given a page designer has a content page with selected custom style books") {
+			task ("Add a style book") {
+				StyleBooksAdmin.openStyleBooksAdmin(siteURLKey = "test-site-name");
 
-		task ("Add a fragment collection") {
-			JSONFragment.addFragmentCollection(
-				groupName = "Test Site Name",
-				name = "Collection Name");
+				StyleBooksAdmin.addStyleBooks(styleBookName = "Test Style Book Name");
+			}
+
+			task ("Add negative value on Spacing") {
+				StyleBooks.selectForm(formName = "Spacing");
+
+				StyleBooks.expandSection(sectionName = "Spacing");
+
+				Type(
+					key_fieldLabel = "Spacer 1",
+					locator1 = "TextInput#GENERIC_TEXT_INPUT",
+					value1 = "-32px");
+
+				StyleBooks.clickManagementBar();
+
+				StyleBooks.waitForAutoSave();
+
+				StyleBooks.clickPublish();
+			}
+
+			task ("Add a Button fragment to content page") {
+				ContentPagesNavigator.openEditContentPage(
+					pageName = "Test Content Page Name",
+					siteName = "Test Site Name");
+
+				PageEditor.addFragment(
+					collectionName = "Basic Components",
+					fragmentName = "Button");
+			}
+
+			task ("Apply the new style book to content page") {
+				PageEditor.gotoTab(tabName = "Page Design Options");
+
+				Navigator.gotoNavTab(navTab = "Style Book");
+
+				StyleBooks.selectStyleBookViaPageDesignOptions(styleBookName = "Test Style Book Name");
+			}
 		}
 
-		task ("Add a fragment with fragmentElementId and fragmentEntryLinkNamespace freemarker variables") {
-			var newLine = '''
-''';
+		task ("When the page designer selects a negative value on spacing") {
+			PageEditor.gotoStyle(fragmentName = "Button");
 
-			var htmlSnippet = '''
-<div class="gf-1">
-	<h1>${fragmentElementId}</h1>
-	<h1>${fragmentEntryLinkNamespace}</h1>
-</div>
-			''';
-			var htmlSnippet = StringUtil.regexReplaceAll("${htmlSnippet}", "${newLine}", "");
-
-			var fragmentEntryId = JSONFragment.addSection(
-				collectionName = "Collection Name",
-				fragmentStatus = "Approved",
-				groupName = "Test Site Name",
-				html = "${htmlSnippet}",
-				name = "Fragment Name");
+			PageEditor.configureFragment(marginTop = "1");
 		}
 
-		task ("Add a new fragment to page") {
-			ContentPagesNavigator.openEditContentPage(
+		task ("Then the page designer can see negative style on button fragment at edit mode") {
+			AssertCssValue(
+				index = "1",
+				key_fragmentName = "Button",
+				locator1 = "Fragment#FRAGMENT_LABEL",
+				locator2 = "margin-top",
+				value1 = "-32px");
+		}
+
+		task ("When the page designer accesses published content page at view mode") {
+			PageEditor.publish();
+
+			ContentPagesNavigator.openViewContentPage(
 				pageName = "Test Content Page Name",
 				siteName = "Test Site Name");
-
-			PageEditor.addFragment(
-				collectionName = "Collection Name",
-				fragmentName = "Fragment Name");
 		}
 
-		task ("Get the fragmentEntryLinkNamespace") {
-			var fragmentEntryLinkNamespace = selenium.getText("xpath=(//div[@class='gf-1']/h1)[2]");
-
-			TestUtils.assertNotEquals(
-				actual = "${fragmentEntryLinkNamespace}",
-				expected = "");
-		}
-
-		task ("View the id of wrapping div equals fragment-fragmentEntryId-fragmentEntryLinkNamespace equals the fragmentElementId") {
-			AssertAttributeValue(
-				attribute1 = "id",
-				locator1 = "//div[@class='gf-1']/parent::div",
-				value1 = "fragment-${fragmentEntryId}-${fragmentEntryLinkNamespace}");
-
-			var fragmentElementId = selenium.getText("xpath=(//div[@class='gf-1']/h1)[1]");
-
-			TestUtils.assertEquals(
-				actual = "${fragmentElementId}",
-				expected = "fragment-${fragmentEntryId}-${fragmentEntryLinkNamespace}");
+		task ("Then the page designer can see negative style on button fragment at view mode") {
+			AssertCssValue(
+				fragmentName = "layout-content",
+				index = "1",
+				locator1 = "PageEditor#COMMON_STYLES_CLASS",
+				locator2 = "margin-top",
+				value1 = "-32px");
 		}
 	}
 
@@ -273,7 +289,7 @@ definition {
 		}
 
 		task ("Publish the content page") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Assert the ellipsis button of Asset Publisher is unavailable in view mode") {
@@ -284,6 +300,68 @@ definition {
 			AssertElementNotPresent(
 				key_portletName = "Asset Publisher",
 				locator1 = "Portlet#SPECIFIC_BORDERLESS_ELLIPSIS_ICON");
+		}
+	}
+
+	@description = "This is a test for LPS-137155. The page creator can configure content page via header ellipsis icon at edit mode."
+	@priority = "3"
+	test ConfigureViaHeaderEllipsisIcon {
+		task ("Given a page designer has content page in pages admin") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			PagesAdmin.viewPageItemPresent(pageName = "Test Content Page Name");
+		}
+
+		task ("When the page designer renames page via header ellipsis icon at edit mode") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name");
+
+			LexiconEntry.gotoHeaderMenuItem(menuItem = "Configure");
+
+			PortletEntry.inputName(name = "Test Page Name Edited");
+
+			PortletEntry.save();
+		}
+
+		task ("Then the page designer can see new page name in pages admin") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			PagesAdmin.viewPageItemPresent(pageName = "Test Page Name Edited");
+		}
+	}
+
+	@description = "This is a test for LPS-137155. The page creator can delete content page via header ellipsis icon at edit mode."
+	@priority = "3"
+	test DeleteViaHeaderEllipsisIcon {
+		task ("Given a page designer has content page in pages admin") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			PagesAdmin.viewPageItemPresent(pageName = "Test Content Page Name");
+		}
+
+		task ("When the page designer deletes the page via header ellipsis icon at edit mode") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name");
+
+			LexiconEntry.gotoHeaderMenuItem(menuItem = "Delete");
+
+			AssertTextEquals(
+				locator1 = "Modal#BODY",
+				value1 = "Are you sure you want to delete the page &quot;Test Content Page Name&quot;? It will be removed immediately.");
+
+			Click(
+				key_text = "Delete",
+				locator1 = "Modal#MODAL_FOOTER_BUTTON");
+		}
+
+		task ("Then the page designer should not see the page in pages admin") {
+			ControlMenu.viewHeaderTitle(headerTitle = "Pages");
+
+			AssertTextEquals(
+				locator1 = "Message#EMPTY_INFO_TAGLIB_TITLE",
+				value1 = "No Pages yet.");
 		}
 	}
 
@@ -323,7 +401,7 @@ definition {
 		task ("Discard the draft") {
 			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
 
-			PageEditor.clickDiscardDraft(pageName = "Test Content Page Name");
+			PagesAdmin.discardDraft(pageName = "Test Content Page Name");
 		}
 
 		task ("Assert the Title fragment is no longer present") {
@@ -377,7 +455,7 @@ definition {
 				pageName = "Test Content Page Name",
 				siteName = "Test Site Name");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Navigate to the content page in Edit mode") {
@@ -428,7 +506,7 @@ definition {
 		task ("Discard the draft") {
 			MenuItem.clickNoError(menuItem = "Discard Draft");
 
-			AssertConfirm(value1 = "Are you sure you want to discard current draft and apply latest published changes?");
+			AssertConfirm(value1 = "Are you sure you want to discard the current draft and apply the latest published changes?");
 
 			Alert.viewSuccessMessage();
 		}
@@ -486,7 +564,7 @@ definition {
 		task ("Discard the draft") {
 			MenuItem.clickNoError(menuItem = "Discard Draft");
 
-			AssertConfirm(value1 = "Are you sure you want to discard current draft and apply latest published changes?");
+			AssertConfirm(value1 = "Are you sure you want to discard the current draft and apply the latest published changes?");
 
 			Alert.viewSuccessMessage();
 		}
@@ -591,7 +669,7 @@ definition {
 				pageName = "Test Content Page Name",
 				siteName = "Test Site Name");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Test Content Page Name",
@@ -644,7 +722,7 @@ definition {
 				pageName = "Test Content Page Name",
 				siteName = "Test Site Name");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Test Content Page Name",
@@ -677,7 +755,7 @@ definition {
 	@priority = "4"
 	@uitest
 	test GroupsOfFragmentsCanBeHiddenAndShown {
-		task ("Add a container and 4 headings inside") {
+		task ("Add a Container and 4 elements inside") {
 			ContentPagesNavigator.openEditContentPage(
 				pageName = "Test Content Page Name",
 				siteName = "Test Site Name");
@@ -690,72 +768,81 @@ definition {
 				navTab = "Widgets",
 				portletName = "Blogs");
 
-			PageEditor.addElementToContainer(
-				collectionName = "Basic Components",
-				fragmentName = "HTML",
-				navTab = "Fragments",
-				targetElementName = "Blogs");
-
-			PageEditor.addElementToContainer(
-				collectionName = "Basic Components",
-				fragmentName = "Button",
-				navTab = "Fragments",
-				targetElementName = "HTML");
-
-			PageEditor.addElementToContainer(
-				collectionName = "Basic Components",
-				fragmentName = "Heading",
-				navTab = "Fragments",
-				targetElementName = "Button");
+			for (var fragmentName : list "HTML,Button,Heading") {
+				PageEditor.addElementToContainer(
+					collectionName = "Basic Components",
+					fragmentName = "${fragmentName}",
+					height = "Tall",
+					navTab = "Fragments",
+					ratio = "9 / 8",
+					targetElementName = "Blogs");
+			}
 		}
 
 		task ("Hide Blogs and HTML") {
-			PageEditor.hideFragmentViaPageStructure(fragmentName = "Blogs");
+			for (var elementName : list "Blogs,HTML") {
+				PageEditor.hideFragmentViaPageStructure(fragmentName = "${elementName}");
+			}
+		}
 
-			PageEditor.hideFragmentViaPageStructure(fragmentName = "HTML");
+		task ("View Blogs widget and HTML fragment are not shown") {
+			for (var elementName : list "Blogs,HTML") {
+				PageEditor.viewFragmentNotVisible(fragmentName = "${elementName}");
+			}
+		}
+
+		task ("View Button and Heading are shown") {
+			for (var fragmentName : list "Button,Heading") {
+				PageEditor.viewFragment(fragmentName = "${fragmentName}");
+			}
 		}
 
 		task ("Hide the container") {
 			PageEditor.hideFragmentViaHeader(fragmentName = "Container");
 		}
 
-		task ("Assert no fragment or widget is shown") {
-			for (var fragmentName : list "Container,Blogs,HTML,Button,Heading") {
-				PageEditor.viewFragmentNotPresent(fragmentName = "${fragmentName}");
+		task ("View elements are not shown") {
+			AssertVisible(locator1 = "PageEditor#NO_FRAGMENTS_MESSAGE");
+		}
+
+		task ("Unhide the Container and HTML ") {
+			for (var fragmentName : list "Container,HTML") {
+				PageEditor.unhideFragmentViaPageStructure(fragmentName = "${fragmentName}");
 			}
 		}
 
-		task ("From the sidebar fragment tree, show HTML and Button") {
-			PageEditor.unhideFragmentViaPageStructure(fragmentName = "HTML");
-
-			PageEditor.hideFragmentViaPageStructure(fragmentName = "Button");
+		task ("Hide the Button and Heading fragment") {
+			for (var fragmentName : list "Button,Heading") {
+				PageEditor.hideFragmentViaPageStructure(fragmentName = "${fragmentName}");
+			}
 		}
 
-		task ("Assert no fragment or widget is shown") {
-			for (var fragmentName : list "Container,Blogs,HTML,Button,Heading") {
-				PageEditor.viewFragmentNotPresent(fragmentName = "${fragmentName}");
+		task ("View Blogs, Button and Heading are not shown") {
+			for (var elementName : list "Blogs,Button,Heading") {
+				PageEditor.viewFragmentNotVisible(fragmentName = "${elementName}");
 			}
+		}
+
+		task ("View HTML fragment is shown") {
+			PageEditor.viewFragment(fragmentName = "HTML");
+		}
+
+		task ("Hide the container") {
+			PageEditor.hideFragmentViaHeader(fragmentName = "Container");
+		}
+
+		task ("View elements are not shown") {
+			AssertVisible(locator1 = "PageEditor#NO_FRAGMENTS_MESSAGE");
 		}
 
 		task ("Unhide the container") {
 			PageEditor.unhideFragmentViaPageStructure(fragmentName = "Container");
 		}
 
-		task ("Assert only Heading and HTML fragments are shown") {
-			AssertTextNotPresent(
-				locator1 = "Message#EMPTY_INFO",
-				value1 = "No entries were found.");
-
-			AssertNotVisible(
-				fragmentName = "button",
-				id = "link",
-				index = "1",
-				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT");
-
-			PageEditor.viewFragmentEditableText(
-				editableText = "Heading Example",
-				fragmentName = "Heading",
-				id = "element-text");
+		task ("Assert only HTML fragments is shown") {
+			for (var elementName : list "Blogs,Button,Heading") {
+				PageEditor.viewFragmentNotVisible(fragmentName = "${elementName}");
+			}
 
 			PageEditor.viewFragmentEditableText(
 				editableText = "HTML Example A paragraph is a self-contained unit of a discourse in writing dealing with a particular point or idea. Paragraphs are usually an expected part of formal writing, used to organize longer prose.",
@@ -769,7 +856,7 @@ definition {
 				dropTarget = "Up",
 				fragmentName = "Paragraph",
 				navTab = "Fragments",
-				targetElementName = "Blogs");
+				targetElementName = "HTML");
 
 			PageEditor.viewFragmentEditableText(
 				editableText = "A paragraph is a self-contained unit of a discourse in writing dealing with a particular point or idea. Paragraphs are usually an expected part of formal writing, used to organize longer prose.",
@@ -884,7 +971,7 @@ definition {
 		}
 
 		task ("Publish page template") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a page based on content page template") {
@@ -957,7 +1044,7 @@ definition {
 		}
 
 		task ("Publish the content page") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Navigate to the content page in Edit mode") {
@@ -1038,7 +1125,7 @@ definition {
 				rowNumber = "1",
 				value1 = "Web Content Title");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View web content displayed at Title List in Asset Publisher at view mode") {
@@ -1081,6 +1168,53 @@ definition {
 				locator1 = "Relatedassets#ASSET_ROW_ENTRY_TITLE",
 				rowNumber = "1",
 				value1 = "Web Content Title");
+		}
+	}
+
+	@description = "This is a test for LPS-145292. The user could view new icons on dropdown menu of page editor."
+	@priority = "4"
+	test ViewDropdownIconsInPageEditor {
+		task ("Given a Page designer has a content page with a Collection Display fragment") {
+			JSONAssetlist.addDynamicAssetListEntryWithItemType(
+				groupName = "Test Site Name",
+				itemSubtype = "All Subtypes",
+				itemType = "Web Content Article",
+				title = "Dynamic Collection");
+
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display");
+		}
+
+		task ("When the Page designer opens the dropdown menu of Collection Display topper") {
+			PageEditor.clickConfigurableField(fragmentName = "Collection Display");
+
+			Click.waitForMenuToggleJSClick(
+				key_fragmentName = "Collection Display",
+				locator1 = "Fragment#FRAGMENT_HEADER_ELLIPSIS");
+		}
+
+		task ("Then the Page designer can see the new icons on the dropdown menu") {
+			DropdownMenuItem.viewIcon(iconList = "hidden,copy,trash");
+		}
+
+		task ("When the Page designer opens the dropdown menu of Collection after selecting a dynamic collection") {
+			PageEditor.editCollectionDisplay(
+				assetListName = "Dynamic Collection",
+				fragmentName = "Collection Display");
+
+			Click.clickNoWaitForVisible(
+				key_fieldLabel = "Collection",
+				key_text = "ellipsis-v",
+				locator1 = "Icon#ANY_ITEM_SELECTOR");
+		}
+
+		task ("Then the Page designer can see the new icons on the dropdown menu") {
+			DropdownMenuItem.viewIcon(iconList = "pencil,list-ul,plus,password-policies,trash");
 		}
 	}
 
@@ -1385,7 +1519,7 @@ definition {
 
 			Click(locator1 = "Icon#CLOSE");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a page based on content page template") {
@@ -1480,9 +1614,7 @@ definition {
 
 			Click(locator1 = "Icon#CLOSE");
 
-			Button.click(button = "Publish Master");
-
-			Alert.viewSuccessMessage();
+			MastersPageTemplates.publishMaster();
 		}
 
 		task ("Apply the master page template to page") {
@@ -1500,7 +1632,7 @@ definition {
 				key_assetTitle = "WC WebContent Title",
 				locator1 = "AP#ASSET_ABSTRACT_TITLE");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Assert the Asset Publisher is invisible to Guest") {
@@ -1515,6 +1647,145 @@ definition {
 				locator1 = "AP#ASSET_ABSTRACT_TITLE");
 
 			Alert.viewErrorMessage(errorMessage = "You do not have the roles required to access this portlet.");
+		}
+	}
+
+	@description = "This is a test for LPS-154530. View custom values matches in spacing on page editor."
+	@priority = "4"
+	test ViewValuesMatchesInSpacingOnPageEditor {
+		task ("Given a page designer has a content page with default and custom style books") {
+			task ("Add a style book") {
+				StyleBooksAdmin.openStyleBooksAdmin(siteURLKey = "test-site-name");
+
+				StyleBooksAdmin.addStyleBooks(styleBookName = "Test Style Book Name");
+			}
+
+			task ("Add unit values on Spacing") {
+				StyleBooks.selectForm(formName = "Spacing");
+
+				StyleBooks.expandSection(sectionName = "Spacing");
+
+				var i = "0";
+
+				for (var tokenValue : list "1em,2em,3em,Auto") {
+					Type(
+						key_fieldLabel = "Spacer ${i}",
+						locator1 = "TextInput#GENERIC_TEXT_INPUT",
+						value1 = "${tokenValue}");
+
+					StyleBooks.clickManagementBar();
+
+					StyleBooks.waitForAutoSave();
+
+					var i = ${i} + 1;
+				}
+
+				StyleBooks.clickPublish();
+			}
+
+			task ("Add a Heading fragment to content page") {
+				ContentPagesNavigator.openEditContentPage(
+					pageName = "Test Content Page Name",
+					siteName = "Test Site Name");
+
+				PageEditor.addFragment(
+					collectionName = "Basic Components",
+					fragmentName = "Heading");
+			}
+		}
+
+		task ("When the page designer selects dropdown menu of spacing on styles") {
+			PageEditor.gotoStyle(fragmentName = "Heading");
+
+			Click(
+				ariaLabel = "Margin Top",
+				locator1 = "Button#ANY_WITH_ARIA_LABEL");
+		}
+
+		task ("Then the page designer can see default values on dropdown menu") {
+			var i = "0";
+
+			for (var tokenValue : list "0,0.25rem,0.5rem,1rem") {
+				AssertTextEquals(
+					key_tokenName = "Spacer ${i}",
+					locator1 = "MenuItem#SPACING_VALUE",
+					value1 = "${tokenValue}");
+
+				var i = ${i} + 1;
+			}
+		}
+
+		task ("When the page designer applies the new style book to content page") {
+			PageEditor.gotoTab(tabName = "Page Design Options");
+
+			Navigator.gotoNavTab(navTab = "Style Book");
+
+			StyleBooks.selectStyleBookViaPageDesignOptions(styleBookName = "Test Style Book Name");
+		}
+
+		task ("Then the page designer can see custom values on dropdown menu of spacing") {
+			PageEditor.gotoStyle(fragmentName = "Heading");
+
+			Click(
+				ariaLabel = "Margin Top",
+				locator1 = "Button#ANY_WITH_ARIA_LABEL");
+
+			var i = "0";
+
+			for (var tokenValue : list "1em,2em,3em,Auto") {
+				AssertTextEquals(
+					key_tokenName = "Spacer ${i}",
+					locator1 = "MenuItem#SPACING_VALUE",
+					value1 = "${tokenValue}");
+
+				var i = ${i} + 1;
+			}
+		}
+
+		task ("When the page designer selects Auto in spacing") {
+			DropdownMenuItem.click(menuItem = "Spacer 3");
+
+			PageEditor.waitForAutoSave();
+		}
+
+		task ("Then the page designer can see auto style on heading fragment at edit mode") {
+			AssertCssValue(
+				index = "1",
+				key_fragmentName = "Heading",
+				locator1 = "Fragment#FRAGMENT_LABEL",
+				locator2 = "margin-top",
+				value1 = "0px");
+		}
+
+		task ("When the page designer opens the dropdown menu of marging top on spacing") {
+			Click(
+				ariaLabel = "Margin Top",
+				locator1 = "Button#ANY_WITH_ARIA_LABEL");
+		}
+
+		task ("Then te page designer can see Spacer 3 is shown as selected") {
+			AssertCssValue(
+				ariaLabel = "Set Margin Top to 3",
+				locator1 = "Button#ANY_WITH_ARIA_LABEL",
+				locator2 = "background-color",
+				value1 = "rgba(240, 245, 255, 1)");
+		}
+
+		task ("When the page designer accesses published content page at view mode") {
+			PageEditor.publish();
+
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name");
+		}
+
+		task ("Then the page designer can see auto style on heading fragment at view mode") {
+			AssertCssValue(
+				fragmentName = "layout-content",
+				index = "1",
+				locator1 = "PageEditor#COMMON_STYLES_CLASS",
+				locator2 = "margin-top",
+				value1 = "0px");
 		}
 	}
 

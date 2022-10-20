@@ -12,13 +12,71 @@
  * details.
  */
 
+import {useNavigate} from 'react-router-dom';
+
 import Container from '../../../components/Layout/Container';
-import ListView from '../../../components/ListView/ListView';
-import {getLiferayUserAccounts} from '../../../graphql/queries/liferayUserAccount';
+import ListView, {ListViewProps} from '../../../components/ListView';
+import {TableProps} from '../../../components/Table';
+import {FormModal} from '../../../hooks/useFormModal';
 import useHeader from '../../../hooks/useHeader';
 import i18n from '../../../i18n';
-import UserFormModal from './UserFormModal';
+import {Action} from '../../../types';
 import useUserActions from './useUserActions';
+
+type UserListViewProps = {
+	actions?: Action[];
+	formModal?: FormModal;
+	variables?: any;
+} & {listViewProps?: Partial<ListViewProps>; tableProps?: Partial<TableProps>};
+
+const UserListView: React.FC<UserListViewProps> = ({
+	actions,
+	formModal,
+	listViewProps,
+	tableProps,
+	variables,
+}) => {
+	const navigate = useNavigate();
+
+	return (
+		<ListView
+			forceRefetch={formModal?.forceRefetch}
+			managementToolbarProps={{
+				addButton: () => navigate('create'),
+				title: i18n.translate('users'),
+			}}
+			resource="/user-accounts"
+			tableProps={{
+				actions,
+				columns: [
+					{
+						clickable: true,
+						key: 'givenName',
+						render: (givenName, {familyName}) =>
+							`${givenName} ${familyName}`,
+						sorteable: true,
+						value: i18n.translate('name'),
+					},
+					{
+						clickable: true,
+						key: 'alternateName',
+						sorteable: true,
+						value: i18n.translate('screen-name'),
+					},
+					{
+						clickable: true,
+						key: 'emailAddress',
+						sorteable: true,
+						value: i18n.translate('email-address'),
+					},
+				],
+				...tableProps,
+			}}
+			variables={variables}
+			{...listViewProps}
+		/>
+	);
+};
 
 const Users: React.FC = () => {
 	const {actions, formModal} = useUserActions();
@@ -33,43 +91,12 @@ const Users: React.FC = () => {
 	});
 
 	return (
-		<>
-			<Container title={i18n.translate('users')}>
-				<ListView
-					forceRefetch={formModal.forceRefetch}
-					managementToolbarProps={{
-						addButton: formModal.modal.open,
-					}}
-					query={getLiferayUserAccounts}
-					tableProps={{
-						actions,
-						columns: [
-							{
-								key: 'givenName',
-								render: (givenName, {familyName}) => {
-									return `${givenName} ${familyName}`;
-								},
-								sorteable: true,
-								value: i18n.translate('name'),
-							},
-							{
-								key: 'alternateName',
-								sorteable: true,
-								value: i18n.translate('screen-name'),
-							},
-							{
-								key: 'emailAddress',
-								sorteable: true,
-								value: i18n.translate('email-address'),
-							},
-						],
-					}}
-					transformData={(data) => data?.userAccounts}
-				/>
-			</Container>
-
-			<UserFormModal modal={formModal.modal} />
-		</>
+		<Container>
+			<UserListView actions={actions} formModal={formModal} />
+		</Container>
 	);
 };
+
+export {UserListView};
+
 export default Users;

@@ -137,7 +137,7 @@ definition {
 
 		Navigator.gotoNavTab(navTab = "Widgets");
 
-		Pause(locator1 = "5000");
+		WaitForElementPresent(locator1 = "NavBar#APPLICATION_SEARCH_FIELD");
 
 		Type(
 			locator1 = "NavBar#APPLICATION_SEARCH_FIELD",
@@ -160,6 +160,8 @@ definition {
 		Click(
 			key_menuItem = "${sortingType}",
 			locator1 = "CommerceEntry#ANY_MENU_ITEM");
+
+		WaitForPageLoad();
 	}
 
 	macro createNewAccountViaFront {
@@ -176,6 +178,24 @@ definition {
 		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Pending Orders");
 
 		Button.click(button = "Add Order");
+
+		if (isSet(orderType)) {
+			SelectFrame.selectFrameNoLoading(
+				key_src = "mode",
+				locator1 = "IFrame#IFRAME_SRC");
+
+			Select(
+				locator1 = "Select#TYPE",
+				value1 = "${orderType}");
+
+			Button.click(button = "Add Order");
+
+			SelectFrame.selectFrameTop();
+
+			WaitForElementPresent(
+				key_orderType = "${orderType}",
+				locator1 = "CommerceOrders#PENDING_ORDERS_ORDER_TYPE");
+		}
 	}
 
 	macro deactivateCommerceAccountViaFront {
@@ -202,35 +222,61 @@ definition {
 	}
 
 	macro reviewOrder {
-		Click(
-			key_orderAuthor = "${orderAuthor}",
-			locator1 = "CommerceAccelerators#ORDERS_ENTRY_VIEW_BUTTON");
+		if (IsElementPresent(key_orderAuthor = "${orderAuthor}", locator1 = "CommerceAccelerators#ORDERS_ENTRY_VIEW_BUTTON")) {
+			Click(
+				key_orderAuthor = "${orderAuthor}",
+				locator1 = "CommerceAccelerators#ORDERS_ENTRY_VIEW_BUTTON");
+		}
+
+		WaitForElementPresent(
+			key_productName = "${productName}",
+			locator1 = "CommerceAccelerators#ORDER_DETAILS_SKU");
 
 		AssertTextEquals(
+			key_productName = "${productName}",
 			locator1 = "CommerceAccelerators#ORDER_DETAILS_SKU",
 			value1 = "${productSku}");
 
 		AssertTextEquals(
+			key_productName = "${productName}",
 			locator1 = "CommerceAccelerators#ORDER_DETAILS_NAME",
 			value1 = "${productName}");
 
 		AssertTextEquals(
+			key_productName = "${productName}",
 			locator1 = "CommerceAccelerators#ORDER_DETAILS_UNIT_PRICE",
 			value1 = "$ ${productUnitPrice}");
 
 		if (isSet(productDiscount)) {
 			AssertTextEquals(
+				key_productName = "${productName}",
 				locator1 = "CommerceAccelerators#ORDER_DETAILS_DISCOUNT",
 				value1 = "$ ${productDiscount}");
 		}
 
 		AssertTextEquals(
+			key_productName = "${productName}",
 			locator1 = "CommerceAccelerators#ORDER_DETAILS_QUANTITY",
 			value1 = "${productQuantity}");
 
 		AssertTextEquals(
+			key_productName = "${productName}",
 			locator1 = "CommerceAccelerators#ORDER_DETAILS_PRICE",
 			value1 = "$ ${productPrice}");
+
+		if (isSet(deliveryTerm)) {
+			AssertElementPresent(
+				key_term = "${deliveryTerm}",
+				key_termType = "Delivery Terms",
+				locator1 = "CommerceAccelerators#ORDER_DETAILS_TERMS_AND_CONDITIONS");
+		}
+
+		if (isSet(paymentTerm)) {
+			AssertElementPresent(
+				key_term = "${paymentTerm}",
+				key_termType = "Payment Terms",
+				locator1 = "CommerceAccelerators#ORDER_DETAILS_TERMS_AND_CONDITIONS");
+		}
 	}
 
 	macro selectAccountFromAccountSelector {

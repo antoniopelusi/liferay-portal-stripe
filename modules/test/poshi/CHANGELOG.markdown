@@ -1,5 +1,143 @@
 # Poshi Runner Change Log
 
+## 1.0.368
+
+### IDE
+
+* [POSHI-235](https://issues.liferay.com/browse/POSHI-235) - Research and prototype creating a basic VSCode plugin config file for Poshi syntax
+* [POSHI-337](https://issues.liferay.com/browse/POSHI-337) - Create a Github Action to build the Poshi VSCode Extension
+
+### Logger
+
+* [POSHI-16](https://issues.liferay.com/browse/POSHI-16) - Take screenshots for external methods
+* [POSHI-34](https://issues.liferay.com/browse/POSHI-34) - Poshi Runner Logger JS updates/bug fix
+* [POSHI-370](https://issues.liferay.com/browse/POSHI-370) - Update summary logger frontend urls
+
+### Other
+
+* [LPS-157934](https://issues.liferay.com/browse/LPS-157934) - Update commons-io to version 2.11.0 as a preparation for ticket  LPS-149258
+* [LPS-51081](https://issues.liferay.com/browse/LPS-51081) - As a developer, I would like to have a SDK based on gradle
+
+### Script
+
+* [POSHI-76](https://issues.liferay.com/browse/POSHI-76) - Fix poshi script parsing for parenthesis in while/if condition
+
+### Utils
+
+* [POSHI-336](https://issues.liferay.com/browse/POSHI-336) - Poshi support for API Post requests
+* [POSHI-374](https://issues.liferay.com/browse/POSHI-374) - Refactor MathUtil to accept larger than 32bit Integers
+* [POSHI-375](https://issues.liferay.com/browse/POSHI-375) - Add getTimeinMilisecondsFromDate method into DateUtil
+* [POSHI-376](https://issues.liferay.com/browse/POSHI-376) - Add PATCH to JSONCurlUtil
+* [POSHI-383](https://issues.liferay.com/browse/POSHI-383) - MathUtil not checking for instanceof Integer
+
+### WebDriver
+
+* [POSHI-378](https://issues.liferay.com/browse/POSHI-378) - Investigate Java heap space sometimes happens on JSONSmoke#RunAllJSONMacros
+* [POSHI-379](https://issues.liferay.com/browse/POSHI-379) - QA websites dependencies folder not being set and recognized automatically during CI runs
+* [POSHI-385](https://issues.liferay.com/browse/POSHI-385) - Fix typo from getElementWidth
+
+## 1.0.359
+
+### Logger
+
+* [POSHI-34](https://issues.liferay.com/browse/POSHI-34) - Poshi Runner Logger JS updates/bug fix
+
+### Maintenance
+
+* [POSHI-365](https://issues.liferay.com/browse/POSHI-365) - Chrome failed to start: exited abnormally in HttpRequestUtilTest
+
+### Other
+
+* [LPS-150378](https://issues.liferay.com/browse/LPS-150378) - [SF] Inline what can be inlined
+* [LPS-152875](https://issues.liferay.com/browse/LPS-152875) - Upgrade org.json:json to 20220320 to resolve DoS vulerability
+
+### Runner
+
+* [POSHI-350](https://issues.liferay.com/browse/POSHI-350) - For poshi tests that don't use any webdriver methods, don't open the browser
+
+### Utils
+
+* [POSHI-369](https://issues.liferay.com/browse/POSHI-369) - Fix bug in ExecUtil#executeCommand
+
+### WebDriver
+
+* [POSHI-341](https://issues.liferay.com/browse/POSHI-341) - Optimize Poshi test execution logic
+* [POSHI-348](https://issues.liferay.com/browse/POSHI-348) - Update jsoup dependency to avoid security vulnerability
+
+## 1.0.356
+
+### Gradle
+
+* [POSHI-344](https://issues.liferay.com/browse/POSHI-344) - Add geckodriver download support into poshi gradle plugin
+
+### Logger
+
+* [POSHI-316](https://issues.liferay.com/browse/POSHI-316) - As a Test Engineer, when the test fails on an ocular assertion, I want to view the baseline and checkpoint screenshots in Testray
+
+### Other
+
+* [LPS-154238](https://issues.liferay.com/browse/LPS-154238) - SF rule: Simply collection type judgment logic
+* [LRQA-75318](https://issues.liferay.com/browse/LRQA-75318) - Fix CentOS name references
+
+### Runner
+
+* [POSHI-350](https://issues.liferay.com/browse/POSHI-350) - For poshi tests that don't use any webdriver methods, don't open the browser
+
+### Utils
+
+* [POSHI-290](https://issues.liferay.com/browse/POSHI-290) - Library to handle system files
+* [POSHI-328](https://issues.liferay.com/browse/POSHI-328) - Add support for terminal commands in POSHI
+* [POSHI-329](https://issues.liferay.com/browse/POSHI-329) - Edit JSON Files in POSHI
+
+### WebDriver
+
+* [POSHI-341](https://issues.liferay.com/browse/POSHI-341) - Optimize Poshi test execution logic
+
+## 1.0.349
+
+### Functions
+
+* [POSHI-326](https://issues.liferay.com/browse/POSHI-326) - Missing functions in Poshi standalone
+
+### Other
+
+* [LPS-150378](https://issues.liferay.com/browse/LPS-150378) - [SF] Inline what can be inlined
+
+### Script
+
+* [POSHI-244](https://issues.liferay.com/browse/POSHI-244) - Poshi parsing should fail for unescaped quotes in 'contains' elements
+* [POSHI-314](https://issues.liferay.com/browse/POSHI-314) - Investigate failure in com.liferay.poshi.runner.util.HttpRequestUtilTest
+* [POSHI-340](https://issues.liferay.com/browse/POSHI-340) - Add/remove the empty lines between vars in PoshiScript
+* [POSHI-343](https://issues.liferay.com/browse/POSHI-343) - Static vars that use arithmetic notation don't parse correctly
+
+### Utils
+
+* [POSHI-285](https://issues.liferay.com/browse/POSHI-285) - Expansion of StringUtil and other utilties to include additional helpful commands
+
+### Validation
+
+* [POSHI-147](https://issues.liferay.com/browse/POSHI-147) - Give proper error messages instead of NPE's
+* [POSHI-338](https://issues.liferay.com/browse/POSHI-338) - Throw validation exception when referenced selenium method does not exist in LiferaySelenium interface
+
+## 1.0.346
+
+### Core
+
+* [POSHI-325](https://issues.liferay.com/browse/POSHI-325) - Expose a way to get poshi directories for a given poshi project
+
+### Functions
+
+* [POSHI-326](https://issues.liferay.com/browse/POSHI-326) - Missing functions in Poshi standalone
+
+### Other
+
+* [LPS-148445](https://issues.liferay.com/browse/LPS-148445) - Explore the options to avoid processing JS dependencies in DXP apps
+* [LPS-149663](https://issues.liferay.com/browse/LPS-149663) - StringUtil.upperCaseFirstLetter can cause ArrayIndexOutOfBoundsException
+
+### WebDriver
+
+* [POSHI-332](https://issues.liferay.com/browse/POSHI-332) - Provide improved and alternative usage of old WebDriver.get behavior
+
 ## 1.0.344
 
 ### Other

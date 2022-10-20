@@ -27,8 +27,6 @@ import com.liferay.document.library.preview.exception.DLFileEntryPreviewGenerati
 import com.liferay.document.library.preview.exception.DLPreviewGenerationInProcessException;
 import com.liferay.document.library.preview.exception.DLPreviewSizeException;
 import com.liferay.document.library.util.DLURLHelper;
-import com.liferay.document.library.util.DLURLHelperUtil;
-import com.liferay.document.library.web.internal.configuration.FFFriendlyURLEntryFileEntryConfigurationUtil;
 import com.liferay.document.library.web.internal.constants.DLWebKeys;
 import com.liferay.document.library.web.internal.display.context.helper.DLPortletInstanceSettingsHelper;
 import com.liferay.document.library.web.internal.display.context.helper.DLRequestHelper;
@@ -41,27 +39,17 @@ import com.liferay.dynamic.data.mapping.exception.StorageException;
 import com.liferay.dynamic.data.mapping.kernel.DDMStructure;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.dynamic.data.mapping.storage.StorageEngine;
-import com.liferay.friendly.url.model.FriendlyURLEntry;
-import com.liferay.friendly.url.service.FriendlyURLEntryLocalServiceUtil;
-import com.liferay.petra.string.StringBundler;
-import com.liferay.petra.string.StringPool;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemListBuilder;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Group;
-import com.liferay.portal.kernel.portlet.constants.FriendlyURLResolverConstants;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileShortcut;
 import com.liferay.portal.kernel.repository.model.FileVersion;
-import com.liferay.portal.kernel.servlet.taglib.ui.Menu;
-import com.liferay.portal.kernel.servlet.taglib.ui.MenuItem;
 import com.liferay.portal.kernel.servlet.taglib.ui.ToolbarItem;
-import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.HttpComponentsUtil;
-import com.liferay.portal.kernel.util.PortalUtil;
-import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 
 import java.io.IOException;
@@ -113,6 +101,65 @@ public class DefaultDLViewFileVersionDisplayContext
 			httpServletRequest, fileVersion, null, dlMimeTypeDisplayContext,
 			resourceBundle, storageEngine, dlTrashHelper,
 			dlPreviewRendererProvider, versioningStrategy, dlURLHelper);
+	}
+
+	@Override
+	public List<DropdownItem> getActionDropdownItems() throws PortalException {
+		if (!isActionsVisible()) {
+			return null;
+		}
+
+		return DropdownItemListBuilder.addGroup(
+			dropdownGroupItem -> {
+				dropdownGroupItem.setDropdownItems(
+					DropdownItemListBuilder.add(
+						_uiItemsBuilder::isDownloadActionAvailable,
+						_uiItemsBuilder.createDownloadDropdownItem()
+					).add(
+						_uiItemsBuilder::isViewOriginalFileActionAvailable,
+						_uiItemsBuilder.createViewOriginalFileDropdownItem()
+					).add(
+						_uiItemsBuilder::isEditActionAvailable,
+						_uiItemsBuilder.createEditDropdownItem()
+					).add(
+						_uiItemsBuilder::isEditImageActionAvailable,
+						_uiItemsBuilder.createEditImageDropdownItem()
+					).add(
+						_uiItemsBuilder::isCheckoutActionAvailable,
+						_uiItemsBuilder.createCheckoutDropdownItem()
+					).add(
+						_uiItemsBuilder::isCancelCheckoutActionAvailable,
+						_uiItemsBuilder.createCancelCheckoutDropdownItem()
+					).add(
+						_uiItemsBuilder::isCheckinActionAvailable,
+						_uiItemsBuilder.createCheckinDropdownItem()
+					).add(
+						_uiItemsBuilder::
+							isCollectDigitalSignatureActionAvailable,
+						_uiItemsBuilder.
+							createCollectDigitalSignatureDropdownItem()
+					).add(
+						_uiItemsBuilder::isMoveActionAvailable,
+						_uiItemsBuilder.createMoveDropdownItem()
+					).build());
+				dropdownGroupItem.setSeparator(true);
+			}
+		).addGroup(
+			dropdownGroupItem -> {
+				dropdownGroupItem.setDropdownItems(
+					DropdownItemListBuilder.add(
+						_uiItemsBuilder::isPermissionsActionAvailable,
+						_uiItemsBuilder.createPermissionsDropdownItem()
+					).add(
+						_uiItemsBuilder::isPublishActionAvailable,
+						_uiItemsBuilder.createPublishDropdownItem()
+					).add(
+						_uiItemsBuilder::isDeleteActionAvailable,
+						_uiItemsBuilder.createDeleteDropdownItem()
+					).build());
+				dropdownGroupItem.setSeparator(true);
+			}
+		).build();
 	}
 
 	@Override
@@ -186,30 +233,6 @@ public class DefaultDLViewFileVersionDisplayContext
 	}
 
 	@Override
-	public String getDownloadURL(
-			FileEntry fileEntry, FileVersion fileVersion, boolean useVersion)
-		throws PortalException {
-
-		String friendlyURL = _getFriendlyURL(fileEntry.getFileEntryId());
-
-		if (!useVersion &&
-			FFFriendlyURLEntryFileEntryConfigurationUtil.enabled() &&
-			!Validator.isBlank(friendlyURL)) {
-
-			return HttpComponentsUtil.addParameter(
-				friendlyURL, "download", true);
-		}
-
-		ThemeDisplay themeDisplay =
-			(ThemeDisplay)_httpServletRequest.getAttribute(
-				WebKeys.THEME_DISPLAY);
-
-		return DLURLHelperUtil.getDownloadURL(
-			fileEntry, fileVersion, themeDisplay, StringPool.BLANK, false,
-			true);
-	}
-
-	@Override
 	public String getIconFileMimeType() {
 		if (_dlMimeTypeDisplayContext == null) {
 			return "document-default";
@@ -217,20 +240,6 @@ public class DefaultDLViewFileVersionDisplayContext
 
 		return _dlMimeTypeDisplayContext.getIconFileMimeType(
 			_fileVersion.getMimeType());
-	}
-
-	@Override
-	public Menu getMenu() throws PortalException {
-		Menu menu = new Menu();
-
-		menu.setDirection("left-side");
-		menu.setMarkupView("lexicon");
-		menu.setMenuItems(_getMenuItems());
-		menu.setMessage(LanguageUtil.get(_resourceBundle, "actions"));
-		menu.setScroll(false);
-		menu.setShowWhenSingleIcon(true);
-
-		return menu;
 	}
 
 	@Override
@@ -413,85 +422,6 @@ public class DefaultDLViewFileVersionDisplayContext
 		}
 
 		return null;
-	}
-
-	private String _getFriendlyURL(long fileEntryId) throws PortalException {
-		if (!FFFriendlyURLEntryFileEntryConfigurationUtil.enabled() ||
-			(fileEntryId == 0)) {
-
-			return null;
-		}
-
-		FriendlyURLEntry friendlyURLEntry =
-			FriendlyURLEntryLocalServiceUtil.fetchMainFriendlyURLEntry(
-				PortalUtil.getClassNameId(FileEntry.class), fileEntryId);
-
-		if (friendlyURLEntry == null) {
-			return null;
-		}
-
-		ThemeDisplay themeDisplay =
-			(ThemeDisplay)_httpServletRequest.getAttribute(
-				WebKeys.THEME_DISPLAY);
-
-		StringBundler sb = new StringBundler(6);
-
-		sb.append(themeDisplay.getPortalURL());
-		sb.append("/documents");
-		sb.append(FriendlyURLResolverConstants.URL_SEPARATOR_X_FILE_ENTRY);
-
-		Group group = themeDisplay.getScopeGroup();
-
-		sb.append(group.getFriendlyURL());
-
-		sb.append(StringPool.SLASH);
-		sb.append(friendlyURLEntry.getUrlTitle());
-
-		return sb.toString();
-	}
-
-	private List<MenuItem> _getMenuItems() throws PortalException {
-		List<MenuItem> menuItems = new ArrayList<>();
-
-		if (isActionsVisible()) {
-			_uiItemsBuilder.addDownloadMenuItem(menuItems);
-
-			_uiItemsBuilder.addViewOriginalFileMenuItem(menuItems);
-
-			_uiItemsBuilder.addEditMenuItem(menuItems);
-
-			_uiItemsBuilder.addEditImageItem(menuItems);
-
-			_uiItemsBuilder.addCheckoutMenuItem(menuItems);
-
-			_uiItemsBuilder.addCancelCheckoutMenuItem(menuItems);
-
-			_uiItemsBuilder.addCheckinMenuItem(menuItems);
-
-			_uiItemsBuilder.addCollectDigitalSignatureMenuItem(menuItems);
-
-			_uiItemsBuilder.addMoveMenuItem(menuItems);
-
-			MenuItem menuItem = null;
-
-			if (!menuItems.isEmpty()) {
-				menuItem = menuItems.get(menuItems.size() - 1);
-			}
-
-			_uiItemsBuilder.addPermissionsMenuItem(menuItems);
-
-			_uiItemsBuilder.addDeleteMenuItem(menuItems);
-
-			_uiItemsBuilder.addPublishMenuItem(menuItems, true);
-
-			if ((menuItem != null) &&
-				(menuItem != menuItems.get(menuItems.size() - 1))) {
-
-				menuItem.setSeparator(true);
-			}
-		}
-
-		return menuItems;
 	}
 
 	private void _handleError(

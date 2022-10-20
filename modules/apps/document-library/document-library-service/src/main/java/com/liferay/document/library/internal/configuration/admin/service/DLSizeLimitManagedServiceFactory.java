@@ -28,7 +28,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.util.Dictionary;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -67,6 +67,11 @@ public class DLSizeLimitManagedServiceFactory implements ManagedServiceFactory {
 		return dlSizeLimitConfiguration.fileMaxSize();
 	}
 
+	public Map<String, Long> getCompanyMimeTypeSizeLimit(long companyId) {
+		return _companyMimeTypeSizeLimitsMap.computeIfAbsent(
+			companyId, this::_computeCompanyMimeTypeSizeLimit);
+	}
+
 	public long getCompanyMimeTypeSizeLimit(long companyId, String mimeType) {
 		if (Validator.isNull(mimeType)) {
 			return 0;
@@ -93,6 +98,11 @@ public class DLSizeLimitManagedServiceFactory implements ManagedServiceFactory {
 		return dlSizeLimitConfiguration.fileMaxSize();
 	}
 
+	public Map<String, Long> getGroupMimeTypeSizeLimit(long groupId) {
+		return _groupMimeTypeSizeLimitsMap.computeIfAbsent(
+			groupId, this::_computeGroupMimeTypeSizeLimit);
+	}
+
 	public long getGroupMimeTypeSizeLimit(long groupId, String mimeType) {
 		if (Validator.isNull(mimeType)) {
 			return 0;
@@ -116,6 +126,14 @@ public class DLSizeLimitManagedServiceFactory implements ManagedServiceFactory {
 	public String getName() {
 		return "com.liferay.document.library.internal.configuration." +
 			"DLSizeLimitConfiguration.scoped";
+	}
+
+	public long getSystemFileMaxSize() {
+		return _systemDLSizeLimitConfiguration.fileMaxSize();
+	}
+
+	public Map<String, Long> getSystemMimeTypeSizeLimit() {
+		return _computeMimeTypeSizeLimit(_systemDLSizeLimitConfiguration);
 	}
 
 	@Override
@@ -161,7 +179,7 @@ public class DLSizeLimitManagedServiceFactory implements ManagedServiceFactory {
 	private Map<String, Long> _computeMimeTypeSizeLimit(
 		DLSizeLimitConfiguration dlSizeLimitConfiguration) {
 
-		Map<String, Long> mimeTypeSizeLimits = new HashMap<>();
+		Map<String, Long> mimeTypeSizeLimits = new LinkedHashMap<>();
 
 		for (String mimeTypeSizeLimit :
 				dlSizeLimitConfiguration.mimeTypeSizeLimit()) {
@@ -216,9 +234,12 @@ public class DLSizeLimitManagedServiceFactory implements ManagedServiceFactory {
 
 			_companyConfigurationBeans.remove(companyId);
 			_companyMimeTypeSizeLimitsMap.remove(companyId);
-		}
 
-		if (_groupIds.containsKey(pid)) {
+			_groupConfigurationBeans.clear();
+			_groupIds.clear();
+			_groupMimeTypeSizeLimitsMap.clear();
+		}
+		else if (_groupIds.containsKey(pid)) {
 			long groupId = _groupIds.remove(pid);
 
 			_groupConfigurationBeans.remove(groupId);

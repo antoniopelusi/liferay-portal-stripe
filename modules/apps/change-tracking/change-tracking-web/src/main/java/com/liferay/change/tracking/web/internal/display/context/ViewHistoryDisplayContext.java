@@ -34,6 +34,7 @@ import com.liferay.portal.kernel.backgroundtask.constants.BackgroundTaskConstant
 import com.liferay.portal.kernel.dao.search.DisplayTerms;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.frontend.icons.FrontendIconsUtil;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONUtil;
@@ -172,7 +173,6 @@ public class ViewHistoryDisplayContext extends BasePublicationsDisplayContext {
 			ResourceURL statusURL = _renderResponse.createResourceURL();
 
 			statusURL.setResourceID("/change_tracking/get_publication_status");
-
 			statusURL.setParameter(
 				"ctProcessId", String.valueOf(ctProcess.getCtProcessId()));
 
@@ -246,7 +246,7 @@ public class ViewHistoryDisplayContext extends BasePublicationsDisplayContext {
 		).put(
 			"entries", entriesJSONArray
 		).put(
-			"spritemap", _themeDisplay.getPathThemeImages() + "/clay/icons.svg"
+			"spritemap", FrontendIconsUtil.getSpritemap(_themeDisplay)
 		).put(
 			"userInfo",
 			() -> {

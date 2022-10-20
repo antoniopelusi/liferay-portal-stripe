@@ -17,6 +17,8 @@ import PropTypes from 'prop-types';
 import React, {forwardRef, useCallback, useEffect, useRef} from 'react';
 
 const BASEPATH = '/o/frontend-editor-ckeditor-web/ckeditor/';
+const CONTEXT_URL = Liferay.ThemeDisplay.getPathContext();
+const CURRENT_PATH = CONTEXT_URL ? CONTEXT_URL + BASEPATH : BASEPATH;
 
 /**
  * This component contains shared code between
@@ -30,7 +32,7 @@ const BaseEditor = forwardRef(
 			Liferay.once('beforeScreenFlip', () => {
 				if (
 					window.CKEDITOR &&
-					Object.keys(window.CKEDITOR.instances).length === 0
+					!Object.keys(window.CKEDITOR.instances).length
 				) {
 					delete window.CKEDITOR;
 				}
@@ -63,17 +65,11 @@ const BaseEditor = forwardRef(
 				return;
 			}
 
-			const editor = editorRef.current.editor;
-
-			if (editor.checkDirty()) {
-				if (onChangeMethodName) {
-					window[onChangeMethodName](getHTML());
-				}
-				else {
-					onChange(getHTML());
-				}
-
-				editor.resetDirty();
+			if (onChangeMethodName) {
+				window[onChangeMethodName](getHTML());
+			}
+			else {
+				onChange(getHTML());
 			}
 		};
 
@@ -108,8 +104,8 @@ const BaseEditor = forwardRef(
 	}
 );
 
-CKEditor.editorUrl = `${BASEPATH}ckeditor.js`;
-window.CKEDITOR_BASEPATH = BASEPATH;
+CKEditor.editorUrl = `${CURRENT_PATH}ckeditor.js`;
+window.CKEDITOR_BASEPATH = CURRENT_PATH;
 
 BaseEditor.displayName = 'BaseEditor';
 

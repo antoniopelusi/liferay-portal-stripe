@@ -15,18 +15,18 @@
 package com.liferay.layout.content.page.editor.web.internal.sidebar.panel;
 
 import com.liferay.layout.content.page.editor.sidebar.panel.ContentPageEditorSidebarPanel;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
-import com.liferay.portal.kernel.service.permission.LayoutPermissionUtil;
+import com.liferay.portal.kernel.service.permission.LayoutPermission;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 
 import java.util.Locale;
 import java.util.ResourceBundle;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Eudaldo Alonso
@@ -53,7 +53,7 @@ public class CommentsContentPageEditorSidebarPanel
 		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
 			"content.Language", locale, getClass());
 
-		return LanguageUtil.get(resourceBundle, "comments");
+		return _language.get(resourceBundle, "comments");
 	}
 
 	@Override
@@ -61,9 +61,8 @@ public class CommentsContentPageEditorSidebarPanel
 		PermissionChecker permissionChecker, long plid, int layoutType) {
 
 		try {
-			if (LayoutPermissionUtil.contains(
-					permissionChecker, plid,
-					ActionKeys.UPDATE_LAYOUT_CONTENT)) {
+			if (_layoutPermission.containsLayoutUpdatePermission(
+					permissionChecker, plid)) {
 
 				return true;
 			}
@@ -79,5 +78,11 @@ public class CommentsContentPageEditorSidebarPanel
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		CommentsContentPageEditorSidebarPanel.class);
+
+	@Reference
+	private Language _language;
+
+	@Reference
+	private LayoutPermission _layoutPermission;
 
 }

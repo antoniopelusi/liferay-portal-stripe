@@ -82,7 +82,7 @@ definition {
 
 			Permissions.definePermissionViaJSONAPI(
 				resourceAction = "VIEW",
-				resourceName = "com.liferay.layout.seocom.liferay.layout.seo",
+				resourceName = "com.liferay.layout.seo",
 				roleTitle = "Roles Siterole Name",
 				roleType = "site");
 
@@ -125,7 +125,7 @@ definition {
 				collectionName = "Basic Components",
 				fragmentName = "Button");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a Heading fragment below the Button") {
@@ -288,7 +288,7 @@ definition {
 				portletName = "Asset Publisher",
 				targetFragmentName = "Heading");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Create a content page template from the content page under page template collection") {
@@ -351,7 +351,7 @@ definition {
 		}
 
 		task ("Publish the content page") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Publish the site to live") {
@@ -600,9 +600,9 @@ definition {
 		}
 
 		task ("Assert the mapped image is shown in background image field") {
-			PageEditor.viewContainerStyle(backgroundImage = "Document_2.jpeg");
+			PageEditor.viewContainerStyle(backgroundImage = "Document_2\.jpeg");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Assert the mapped image is shown in view mode in staging site") {
@@ -738,7 +738,7 @@ definition {
 				collectionName = "Basic Components",
 				fragmentName = "Button");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a Heading fragment below the Button") {
@@ -848,7 +848,7 @@ definition {
 
 			MenuItem.clickNoError(menuItem = "Discard Draft");
 
-			AssertConfirm(value1 = "Are you sure you want to discard current draft and apply latest published changes?");
+			AssertConfirm(value1 = "Are you sure you want to discard the current draft and apply the latest published changes?");
 
 			Alert.viewSuccessMessage();
 		}
@@ -899,7 +899,7 @@ definition {
 		}
 
 		task ("Publish the content page") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Navigate to the content page in the staging site") {
@@ -1057,7 +1057,7 @@ definition {
 		}
 
 		task ("Publish the content page") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Publish the site to live") {
@@ -1087,7 +1087,7 @@ definition {
 		}
 
 		task ("Publish the content page") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View the Heading fragment in view mode") {
@@ -1205,12 +1205,12 @@ definition {
 			PageEditor.viewFragmentEditableImage(
 				id = "image-square",
 				imageDescription = "",
-				imageFileName = "analytics-cloud-hero-image.png");
+				imageFileName = "analytics-cloud-hero-image-png");
 		}
 
 		task ("Take down the naturalWidth and naturalHeight of image") {
-			var naturalWidth = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image.png')]@naturalWidth");
-			var naturalHeight = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image.png')]@naturalHeight");
+			var naturalWidth = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image-png')]@naturalWidth");
+			var naturalHeight = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image-png')]@naturalHeight");
 		}
 
 		task ("Edit the image via the image editor on Page Content panel") {
@@ -1247,7 +1247,7 @@ definition {
 				actual = "${naturalHeight}",
 				expected = "${editedNaturalHeight}");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Take down the new naturalWidth and naturalHeight of image at view mode") {
@@ -1258,10 +1258,10 @@ definition {
 			PageEditor.viewFragmentEditableImage(
 				id = "image-square",
 				imageDescription = "",
-				imageFileName = "analytics-cloud-hero-image.png");
+				imageFileName = "analytics-cloud-hero-image-png");
 
-			var editedNaturalWidth = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image.png')]@naturalWidth");
-			var editedNaturalHeight = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image.png')]@naturalHeight");
+			var editedNaturalWidth = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image-png')]@naturalWidth");
+			var editedNaturalHeight = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image-png')]@naturalHeight");
 		}
 
 		task ("View the naturalWidth doesn't change") {
@@ -1290,10 +1290,10 @@ definition {
 			PageEditor.viewFragmentEditableImage(
 				id = "image-square",
 				imageDescription = "",
-				imageFileName = "analytics-cloud-hero-image.png");
+				imageFileName = "analytics-cloud-hero-image-png");
 
-			var editedNaturalWidth = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image.png')]@naturalWidth");
-			var editedNaturalHeight = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image.png')]@naturalHeight");
+			var editedNaturalWidth = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image-png')]@naturalWidth");
+			var editedNaturalHeight = selenium.getAttribute("//img[contains(@data-lfr-editable-id,'image-square') and contains(@src,'analytics-cloud-hero-image-png')]@naturalHeight");
 		}
 
 		task ("View the naturalWidth doesn't change") {
@@ -1342,12 +1342,12 @@ definition {
 		}
 
 		task ("View the mapped image is shown in Banner Center fragment") {
-			PageEditor.viewContainerStyle(backgroundImage = "analytics-cloud-hero-image.png");
+			PageEditor.viewContainerStyle(backgroundImage = "analytics-cloud-hero-image\.png");
 		}
 
 		task ("View the version of mapped image") {
 			AssertVisible(
-				backgroundImageStyle = "version=1.0",
+				backgroundImageStyle = "version\=1\.0",
 				locator1 = "Fragment#BACKGROUND_IMAGE_STYLE",
 				position = "1");
 		}
@@ -1372,11 +1372,11 @@ definition {
 				locator1 = "PageEditor#IMAGE_RESOLUTION_LABEL");
 
 			AssertVisible(
-				backgroundImageStyle = "version=2.0",
+				backgroundImageStyle = "version\=2\.0",
 				locator1 = "Fragment#BACKGROUND_IMAGE_STYLE",
 				position = "1");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View the version of mapped image at view mode") {
@@ -1447,7 +1447,7 @@ definition {
 		}
 
 		task ("Publish the content page") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Navigate to the content page at edit mode in the staging site") {
@@ -1523,7 +1523,7 @@ definition {
 				collectionName = "Basic Components",
 				fragmentName = "Paragraph");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Navigate to the content page at view mode in staging site") {
@@ -1573,7 +1573,7 @@ definition {
 
 			PageEditor.assertFragmentSidebarLoaded();
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Navigate to the content page at view mode in staging site") {
@@ -1636,7 +1636,7 @@ definition {
 				fragmentName = "Heading",
 				targetFragmentName = "Button");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Change to new experience at view mode") {
@@ -1715,7 +1715,7 @@ definition {
 				fragmentName = "Heading",
 				targetFragmentName = "Button");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Edit the inline text of Button in Default experience") {

@@ -12,10 +12,13 @@
  * details.
  */
 
+import {openModal} from 'frontend-js-web';
+
 import SampleCustomDataRenderer from './SampleCustomDataRenderer';
 
 export default function propsTransformer({
 	additionalProps: {greeting},
+	selectedItemsKey,
 	...otherProps
 }) {
 	return {
@@ -26,6 +29,35 @@ export default function propsTransformer({
 		onActionDropdownItemClick({action, itemData}) {
 			if (action.data.id === 'sampleMessage') {
 				alert(`${greeting} ${itemData.title}!`);
+			}
+		},
+		onBulkActionItemClick({action, selectedData: {items, keyValues}}) {
+			if (action.data.id === 'sampleBulkAction') {
+				openModal({
+					bodyHTML: `
+						<ol>
+							${items.map((item) => `<li>${item.title}</li>`).join('')}
+						</ol>
+
+						<p>
+							Key field: <code>${selectedItemsKey}</code> <br>
+							Values of key fields of selected items:
+							<ol>
+								${keyValues.map((keyValue) => `<li>${keyValue}</li>`).join('')}
+							</ol>
+						</p>
+					`,
+					buttons: [
+						{
+							label: 'OK',
+							onClick: ({processClose}) => {
+								processClose();
+							},
+						},
+					],
+					size: 'md',
+					title: 'You selected:',
+				});
 			}
 		},
 	};

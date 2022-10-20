@@ -14,6 +14,7 @@
 
 package com.liferay.headless.commerce.machine.learning.internal.resource.v1_0.factory;
 
+import com.liferay.headless.commerce.machine.learning.internal.security.permission.LiberalPermissionChecker;
 import com.liferay.headless.commerce.machine.learning.resource.v1_0.AccountForecastResource;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.User;
@@ -196,7 +197,7 @@ public class AccountForecastResourceFactoryImpl
 		}
 		else {
 			PermissionThreadLocal.setPermissionChecker(
-				_liberalPermissionCheckerFactory.create(user));
+				new LiberalPermissionChecker(user));
 		}
 
 		AccountForecastResource accountForecastResource =
@@ -262,9 +263,6 @@ public class AccountForecastResourceFactoryImpl
 
 	@Reference
 	private GroupLocalService _groupLocalService;
-
-	@Reference(target = "(permission.checker.type=liberal)")
-	private PermissionCheckerFactory _liberalPermissionCheckerFactory;
 
 	@Reference
 	private ResourceActionLocalService _resourceActionLocalService;

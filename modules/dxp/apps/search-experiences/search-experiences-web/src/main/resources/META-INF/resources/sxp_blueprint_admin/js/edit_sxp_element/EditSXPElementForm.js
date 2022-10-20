@@ -179,7 +179,11 @@ function EditSXPElementForm({
 			predefinedVariables.map((variable) => {
 				const category = variable.templateVariable.match(/\w+/g)[0];
 
-				if (variable.description.toLowerCase().includes(value)) {
+				if (
+					variable.description
+						.toLowerCase()
+						.includes(value.toLowerCase())
+				) {
 					filteredCategories[category] = [
 						...(filteredCategories[category] || []),
 						variable,
@@ -503,6 +507,42 @@ function EditSXPElementForm({
 
 					<LearnMessage resourceKey="element-source" />
 				</div>
+
+				{!readOnly && (
+					<>
+						<div className="sidebar-header">
+							<h4 className="component-title">
+								<span className="text-truncate-inline">
+									<span className="text-truncate">
+										{Liferay.Language.get(
+											'json-autocomplete'
+										)}
+									</span>
+								</span>
+							</h4>
+						</div>
+
+						<div className="container-fluid">
+							<div className="help-text text-secondary">
+								{Liferay.Language.get(
+									'begin-typing-inside-double-quotes-to-see-the-autocomplete-options'
+								)}
+							</div>
+
+							<div className="help-text text-secondary">
+								{Liferay.Language.get(
+									'use-the-arrow-keys-or-the-mouse-to-navigate-the-menu'
+								)}
+							</div>
+
+							<div className="help-text text-secondary">
+								{Liferay.Language.get(
+									'use-the-enter-key-to-select-a-menu-item'
+								)}
+							</div>
+						</div>
+					</>
+				)}
 			</Sidebar>
 
 			<div

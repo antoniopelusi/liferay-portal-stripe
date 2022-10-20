@@ -64,6 +64,7 @@ definition {
 				-u test@liferay.com:test \
 				-d groupId=${groupId}
 		''';
+
 		var folderId = JSONCurlUtil.post("${curl}", "$.[?(@['name'] == '${folderName}')]['folderId']");
 
 		if ("${folderId}" == "") {

@@ -70,9 +70,10 @@ public interface SXPElementLocalService
 	 */
 	@Indexable(type = IndexableType.REINDEX)
 	public SXPElement addSXPElement(
-			long userId, Map<Locale, String> descriptionMap,
-			String elementDefinitionJSON, boolean readOnly,
-			String schemaVersion, Map<Locale, String> titleMap, int type,
+			String externalReferenceCode, long userId,
+			Map<Locale, String> descriptionMap, String elementDefinitionJSON,
+			boolean readOnly, String schemaVersion,
+			Map<Locale, String> titleMap, int type,
 			ServiceContext serviceContext)
 		throws PortalException;
 
@@ -220,6 +221,25 @@ public interface SXPElementLocalService
 	public SXPElement fetchSXPElement(long sxpElementId);
 
 	/**
+	 * Returns the sxp element with the matching external reference code and company.
+	 *
+	 * @param companyId the primary key of the company
+	 * @param externalReferenceCode the sxp element's external reference code
+	 * @return the matching sxp element, or <code>null</code> if a matching sxp element could not be found
+	 */
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public SXPElement fetchSXPElementByExternalReferenceCode(
+		long companyId, String externalReferenceCode);
+
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #fetchSXPElementByExternalReferenceCode(long, String)}
+	 */
+	@Deprecated
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public SXPElement fetchSXPElementByReferenceCode(
+		long companyId, String externalReferenceCode);
+
+	/**
 	 * Returns the sxp element with the matching UUID and company.
 	 *
 	 * @param uuid the sxp element's UUID
@@ -264,6 +284,19 @@ public interface SXPElementLocalService
 	 */
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public SXPElement getSXPElement(long sxpElementId) throws PortalException;
+
+	/**
+	 * Returns the sxp element with the matching external reference code and company.
+	 *
+	 * @param companyId the primary key of the company
+	 * @param externalReferenceCode the sxp element's external reference code
+	 * @return the matching sxp element
+	 * @throws PortalException if a matching sxp element could not be found
+	 */
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public SXPElement getSXPElementByExternalReferenceCode(
+			long companyId, String externalReferenceCode)
+		throws PortalException;
 
 	/**
 	 * Returns the sxp element with the matching UUID and company.

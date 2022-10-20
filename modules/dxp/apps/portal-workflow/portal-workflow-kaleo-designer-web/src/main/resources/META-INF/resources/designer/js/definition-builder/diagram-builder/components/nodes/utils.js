@@ -9,6 +9,8 @@
  * distribution rights of the Software.
  */
 
+import uuidv4 from 'uuid/v4';
+
 import {defaultLanguageId} from '../../../constants';
 import ConditionNode from './ConditionNode';
 import ForkNode from './ForkNode';
@@ -25,7 +27,7 @@ const defaultNodes = [
 			description: Liferay.Language.get('begin-a-workflow'),
 			label: {[defaultLanguageId]: Liferay.Language.get('start')},
 		},
-		id: 'item_0',
+		id: uuidv4(),
 		position: {x: 300, y: 100},
 		type: 'start',
 	},
@@ -34,7 +36,7 @@ const defaultNodes = [
 			description: Liferay.Language.get('conclude-the-workflow'),
 			label: {[defaultLanguageId]: Liferay.Language.get('end')},
 		},
-		id: 'item_1',
+		id: uuidv4(),
 		position: {x: 300, y: 400},
 		type: 'end',
 	},

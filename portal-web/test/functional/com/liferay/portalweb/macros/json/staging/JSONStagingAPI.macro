@@ -4,7 +4,6 @@ definition {
 		Variables.assertDefined(parameterList = "${groupId},${branchingPublic},${branchingPrivate}");
 
 		var portalURL = JSONCompany.getPortalURL();
-
 		var attributes = JSONStagingSetter.setAttributes(unCheckedContent = "${unCheckedContent}");
 
 		var serviceContext = JSONServiceContextUtil.setServiceContext(attributes = "${attributes}");
@@ -25,7 +24,6 @@ definition {
 		Variables.assertDefined(parameterList = "${groupId},${remoteGroupId}");
 
 		var portalURL = JSONCompany.getPortalURL();
-
 		var attributes = JSONStagingSetter.setAttributes();
 
 		var serviceContext = JSONServiceContextUtil.setServiceContext(attributes = "${attributes}");

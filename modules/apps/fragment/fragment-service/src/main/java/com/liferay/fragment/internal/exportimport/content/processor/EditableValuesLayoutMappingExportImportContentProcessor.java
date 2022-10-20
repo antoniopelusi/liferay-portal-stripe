@@ -14,19 +14,15 @@
 
 package com.liferay.fragment.internal.exportimport.content.processor;
 
-import com.liferay.asset.kernel.service.AssetEntryLocalService;
-import com.liferay.dynamic.data.mapping.service.DDMTemplateLocalService;
 import com.liferay.exportimport.content.processor.ExportImportContentProcessor;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
-import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
-import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.fragment.entry.processor.constants.FragmentEntryProcessorConstants;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.StagedModel;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.xml.Element;
 
 import java.util.Iterator;
@@ -54,10 +50,11 @@ public class EditableValuesLayoutMappingExportImportContentProcessor
 
 		JSONObject editableProcessorJSONObject =
 			editableValuesJSONObject.getJSONObject(
-				_KEY_EDITABLE_FRAGMENT_ENTRY_PROCESSOR);
+				FragmentEntryProcessorConstants.
+					KEY_EDITABLE_FRAGMENT_ENTRY_PROCESSOR);
 
 		if (editableProcessorJSONObject == null) {
-			return JSONFactoryUtil.createJSONObject();
+			return editableValuesJSONObject;
 		}
 
 		Iterator<String> editableKeysIterator =
@@ -90,7 +87,12 @@ public class EditableValuesLayoutMappingExportImportContentProcessor
 
 		JSONObject editableProcessorJSONObject =
 			editableValuesJSONObject.getJSONObject(
-				_KEY_EDITABLE_FRAGMENT_ENTRY_PROCESSOR);
+				FragmentEntryProcessorConstants.
+					KEY_EDITABLE_FRAGMENT_ENTRY_PROCESSOR);
+
+		if (editableProcessorJSONObject == null) {
+			return editableValuesJSONObject;
+		}
 
 		Iterator<String> editableKeysIterator =
 			editableProcessorJSONObject.keys();
@@ -185,23 +187,7 @@ public class EditableValuesLayoutMappingExportImportContentProcessor
 		);
 	}
 
-	private static final String _KEY_EDITABLE_FRAGMENT_ENTRY_PROCESSOR =
-		"com.liferay.fragment.entry.processor.editable." +
-			"EditableFragmentEntryProcessor";
-
-	@Reference
-	private AssetEntryLocalService _assetEntryLocalService;
-
-	@Reference
-	private DDMTemplateLocalService _ddmTemplateLocalService;
-
-	@Reference
-	private FragmentEntryConfigurationParser _fragmentEntryConfigurationParser;
-
 	@Reference
 	private LayoutLocalService _layoutLocalService;
-
-	@Reference
-	private Portal _portal;
 
 }

@@ -3,7 +3,12 @@ definition {
 	macro _addCommerceProduct {
 		Variables.assertDefined(parameterList = "${catalogName},${productName},${productType}");
 
+		var productType = StringUtil.lowerCase("${productType}");
 		var baseURL = "${baseURL}";
+
+		if (!(isSet(allowBackOrder))) {
+			var allowBackOrder = "true";
+		}
 
 		if (!(isSet(baseURL))) {
 			var baseURL = PropsUtil.get("portal.url");
@@ -21,6 +26,32 @@ definition {
 			var discontinued = "false";
 		}
 
+		if (!(isSet(displayAvailability))) {
+			var displayAvailability = "false";
+		}
+
+		if (!(isSet(displayDate))) {
+			var displayDateYear = DateUtil.getCurrentYear();
+
+			var displayDate = "${displayDateYear}-01-01T01:01:00Z";
+		}
+
+		if (!(isSet(displayStockQuantity))) {
+			var displayStockQuantity = "false";
+		}
+
+		if (!(isSet(expirationDate))) {
+			echo("Expiration Date in");
+
+			var displayDateYear = DateUtil.getCurrentYear();
+
+			var displayDateYear = ${displayDateYear} + 1;
+
+			var expirationDate = "${displayDateYear}-01-01T01:01:00Z";
+
+			echo("Expiration Date: ${expirationDate}");
+		}
+
 		if (!(isSet(gtin))) {
 			var gtin = "";
 		}
@@ -29,8 +60,20 @@ definition {
 			var height = "0";
 		}
 
+		if (!(isSet(inventoryEngine))) {
+			var inventoryEngine = "default";
+		}
+
+		if (!(isSet(lowStockAction))) {
+			var lowStockAction = "";
+		}
+
 		if (!(isSet(manufacturerPartNumber))) {
 			var manufacturerPartNumber = "";
+		}
+
+		if (!(isSet(maxOrderQuantity))) {
+			var maxOrderQuantity = "10000";
 		}
 
 		if (!(isSet(metaDescription))) {
@@ -43,6 +86,26 @@ definition {
 
 		if (!(isSet(metaTitle))) {
 			var metaTitle = "";
+		}
+
+		if (!(isSet(minOrderQuantity))) {
+			var minOrderQuantity = "1";
+		}
+
+		if (!(isSet(minStockQuantity))) {
+			var minStockQuantity = "0";
+		}
+
+		if (!(isSet(multipleOrderQuantity))) {
+			var multipleOrderQuantity = "1";
+		}
+
+		if (!(isSet(neverExpire))) {
+			var neverExpire = "true";
+		}
+
+		if (isSet(neverExpire)) {
+			var neverExpire = "${neverExpire}";
 		}
 
 		if (!(isSet(price))) {
@@ -72,8 +135,43 @@ definition {
 			var shortDescription = "";
 		}
 
+		if (!(isSet(productStatus))) {
+			var productStatus = "0";
+		}
+
 		if (!(isSet(sku))) {
 			var sku = "default";
+		}
+
+		var productSpecifications = "";
+
+		if (isSet(specifications)) {
+			var specificationPriority = "0";
+
+			for (var specificationKeyValue : list "${specifications}") {
+				var specificationKey = StringUtil.extractFirst("${specificationKeyValue}", ":");
+				var specificationValue = StringUtil.extractLast("${specificationKeyValue}", ":");
+				var specificationKey = CommerceUtilities.convertStringToKey(string = "${specificationKey}");
+
+				if ("${productSpecifications}" != "") {
+					var comma = ",";
+				}
+				else {
+					var comma = "";
+				}
+
+				var productSpecifications = '''
+						${productSpecifications}${comma}
+						{
+							"priority": ${specificationPriority},
+							"specificationKey": "${specificationKey}",
+							"value": {
+								"en_US": "${specificationValue}"
+							}
+						}
+				''';
+				var specificationPriority = ${specificationPriority} + 1;
+			}
 		}
 
 		if (!(isSet(unspc))) {
@@ -103,7 +201,9 @@ definition {
 					"description": {
 					  "en_US": "${productDescription}"
 					},
+					"displayDate": "${displayDate}",
 					"expando": {},
+					"expirationDate": "${expirationDate}",
 					"externalReferenceCode": "",
 					"metaDescription": {
 					  "en_US": "${metaDescription}"
@@ -117,13 +217,27 @@ definition {
 					"name": {
 					  "en_US": "${productName}"
 					},
+					"neverExpire": "${neverExpire}",
 					"productAccountGroupFilter": false,
 					"productChannelFilter": false,
-					"productStatus": 0,
+					"productStatus": "${productStatus}",
 					"productType": "${productType}",
 					"shortDescription": {
 					  "en_US": "${shortDescription}"
 					},
+					"productConfiguration": {
+    					"allowBackOrder": ${allowBackOrder},
+						"allowedOrderQuantities": [],
+						"displayAvailability": ${displayAvailability},
+						"displayStockQuantity": ${displayStockQuantity},
+						"inventoryEngine": "${inventoryEngine}",
+						"lowStockAction": "${lowStockAction}",
+						"maxOrderQuantity": ${maxOrderQuantity},
+						"minOrderQuantity": ${minOrderQuantity},
+						"minStockQuantity": ${minStockQuantity},
+						"multipleOrderQuantity": ${multipleOrderQuantity}
+					},
+					"productSpecifications": [${productSpecifications}],
 					"skus": [
 				    {
 				      "cost": "${cost}",
@@ -133,6 +247,8 @@ definition {
 				      "height": "${height}",
 				      "manufacturerPartNumber": "${manufacturerPartNumber}",
 				      "neverExpire": true,
+					  "price": ${price},
+					  "promoPrice": ${promoPrice},
 				      "published": true,
 				      "purchasable": "${purchasable}",
 				      "replacementSkuId": "${replacementSkuId}",
@@ -148,6 +264,67 @@ definition {
 					  "label": "approved",
 					  "label_i18n": "Approved"
 					}
+				}'
+			''';
+
+		com.liferay.poshi.runner.util.JSONCurlUtil.post("${curl}");
+	}
+
+	macro _addDiagramPin {
+		Variables.assertDefined(parameterList = "${pinType},${position},${positionX},${positionY},${quantity},${diagram}");
+
+		var baseURL = "${baseURL}";
+		var diagramProductId = CommerceJSONProductsAPI._getProductId(productName = "${diagram}");
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		if ("${pinType}" == "Linked to a SKU") {
+			Variables.assertDefined(parameterList = "${linkedSKU}");
+
+			var pinType = "sku";
+			var productId = CommerceJSONProductsAPI._getProductId(productSKU = "${linkedSKU}");
+			var sku = "${linkedSKU}";
+			var skuId = CommerceJSONProductsAPI._getSKUId(productSKU = "${linkedSKU}");
+		}
+
+		if ("${pinType}" == "Not Linked to a Catalog") {
+			Variables.assertDefined(parameterList = "${label}");
+
+			var pinType = "external";
+			var productId = "0";
+			var sku = "${label}";
+			var skuId = "0";
+		}
+
+		if ("${pinType}" == "Linked to a Diagram") {
+			Variables.assertDefined(parameterList = "${linkedDiagram}");
+
+			var pinType = "diagram";
+			var productId = CommerceJSONProductsAPI._getProductId(productName = "${linkedDiagram}");
+			var sku = "";
+			var skuId = "0";
+		}
+
+		var curl = '''
+			${baseURL}/o/headless-commerce-admin-catalog/v1.0/products/${diagramProductId}/pins \
+			-u test@liferay.com:test \
+			-H 'accept: application/json' \
+  			-H 'Content-Type: application/json' \
+  			-d '{
+  				  "mappedProduct": {
+					"customFields": [],
+					"productId": ${productId},
+					"quantity": ${quantity},
+					"sequence": "${position}",
+					"sku": "${sku}",
+					"skuId": ${skuId},
+					"type": "${pinType}"
+				  },
+				  "positionX": ${positionX},
+				  "positionY": ${positionY},
+				  "sequence": "${position}"
 				}'
 			''';
 
@@ -202,9 +379,100 @@ definition {
 			-u test@liferay.com:test \
 			-H 'accept: application/json' \
 		''';
+
 		var productIds = JSONCurlUtil.get("${curl}", "$..['productId']");
 
 		return "${productIds}";
+	}
+
+	macro _getCommerceProductImageIds {
+		Variables.assertDefined(parameterList = "${productName}");
+
+		var baseURL = "${baseURL}";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		var productId = CommerceJSONProductsAPI._getProductId(productName = "${productName}");
+
+		var curl = '''
+			${baseURL}/o/headless-commerce-admin-catalog/v1.0/products/${productId}/images \
+			-u test@liferay.com:test \
+			-H 'accept: application/json' \
+		''';
+
+		var productImageIds = JSONCurlUtil.get("${curl}", "$..['id']");
+
+		if ("${productImageIds}" == "") {
+			var productImageIds = "default";
+		}
+
+		return "${productImageIds}";
+	}
+
+	macro _getCommerceProductOptionId {
+		Variables.assertDefined(parameterList = "${productName},${productOptionName}");
+
+		var baseURL = "${baseURL}";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		var productId = CommerceJSONProductsAPI._getProductId(productName = "${productName}");
+
+		var curl = '''
+			${baseURL}/o/headless-commerce-admin-catalog/v1.0/products/${productId}/productOptions \
+			-u test@liferay.com:test \
+			-H 'accept: application/json' \
+		''';
+
+		var productOptionId = JSONCurlUtil.get("${curl}", "$.items[?(@['name'].['en_US'] == '${productOptionName}')].['id']");
+
+		return "${productOptionId}";
+	}
+
+	macro _getCommerceProductOptions {
+		Variables.assertDefined(parameterList = "${productName}");
+
+		var baseURL = "${baseURL}";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		var productId = CommerceJSONProductsAPI._getProductId(productName = "${productName}");
+
+		var curl = '''
+			${baseURL}/o/headless-commerce-admin-catalog/v1.0/products/${productId}/productOptions \
+			-u test@liferay.com:test \
+			-H 'accept: application/json' \
+		''';
+
+		var productOptions = JSONCurlUtil.get("${curl}", "$..['name'].['en_US']");
+
+		return "${productOptions}";
+	}
+
+	macro _getCommerceProductOptionValues {
+		Variables.assertDefined(parameterList = "${productOptionId}");
+
+		var baseURL = "${baseURL}";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		var curl = '''
+			${baseURL}/o/headless-commerce-admin-catalog/v1.0/productOptions/${productOptionId}/productOptionValues \
+			-u test@liferay.com:test \
+			-H 'accept: application/json' \
+		''';
+
+		var productOptionValues = JSONCurlUtil.get("${curl}", "$..['key']");
+
+		return "${productOptionValues}";
 	}
 
 	macro _getCommerceProductsCount {
@@ -219,11 +487,139 @@ definition {
 			-u test@liferay.com:test \
 			-H 'accept: application/json' \
 		''';
+
 		var productsCount = JSONCurlUtil.get("${curl}", "$['totalCount']");
 
 		echo("The Commerce product count is: ${productsCount}");
 
 		return "${productsCount}";
+	}
+
+	macro _getCommerceProductSpecifications {
+		Variables.assertDefined(parameterList = "${productName}");
+
+		var baseURL = "${baseURL}";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		var productId = CommerceJSONProductsAPI._getProductId(productName = "${productName}");
+
+		var curl = '''
+			${baseURL}/o/headless-commerce-admin-catalog/v1.0/products/${productId}/productSpecifications \
+			-u test@liferay.com:test \
+			-H 'accept: application/json' \
+		''';
+
+		var productSpecifications = JSONCurlUtil.get("${curl}", "$..['value'].['en_US']");
+		var productSpecificationLabels = JSONCurlUtil.get("${curl}", "$..['specificationKey']");
+		var count = StringUtil.count("${productSpecifications}", ",");
+		var specificationLabelsCount = StringUtil.count("${productSpecificationLabels}", ",");
+
+		var commaInSpecification = MathUtil.isGreaterThan("${count}", "${specificationLabelsCount}");
+
+		while (("${commaInSpecification}" == "true")) {
+			var productSpecifications = StringUtil.replaceFirst("${productSpecifications}", ",", "&comma;");
+			var count = ${count} - 1;
+
+			var commaInSpecification = MathUtil.isGreaterThan("${count}", "${specificationLabelsCount}");
+		}
+
+		for (var productSpecification : list "${productSpecifications}") {
+			if ("${count}" != "0") {
+				var productSpecificationLabel = StringUtil.extractFirst("${productSpecificationLabels}", ",");
+
+				var productSpecificationLabels = StringUtil.replaceFirst("${productSpecificationLabels}", "${productSpecificationLabel},", "");
+				var productSpecificationLabel = StringUtil.upperCaseFirstLetter("${productSpecificationLabel}");
+
+				var productSpecifications = StringUtil.replaceFirst("${productSpecifications}", "${productSpecification}", "${productSpecificationLabel}:${productSpecification}");
+				var count = ${count} - 1;
+			}
+			else {
+				var productSpecificationLabels = StringUtil.upperCaseFirstLetter("${productSpecificationLabels}");
+
+				var productSpecifications = StringUtil.replaceFirst("${productSpecifications}", "${productSpecification}", "${productSpecificationLabels}:${productSpecification}");
+			}
+		}
+
+		return "${productSpecifications}";
+
+		echo("${productName} Specifications:${productSpecifications}");
+	}
+
+	macro _getCPDefinitionId {
+		Variables.assertDefined(parameterList = "${productName}");
+
+		var baseURL = "${baseURL}";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		var productId = CommerceJSONProductsAPI._getProductId(productName = "${productName}");
+
+		var curl = '''
+			${baseURL}/api/jsonws/commerce.cpdefinition/fetch-cp-definition-by-c-product-id \
+			-u test@liferay.com:test \
+			-d cProductId=${productId}
+		''';
+
+		var cpDefinitionId = JSONCurlUtil.post("${curl}", "$..['CPDefinitionId']");
+
+		return "${cpDefinitionId}";
+	}
+
+	macro _getProductCreateDate {
+		var baseURL = "${baseURL}";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		var productCreateDate = CommerceJSONProductsAPI._getProductId(productName = "${productName}");
+		var curl = '''
+			${baseURL}/o/headless-commerce-admin-catalog/v1.0/products?search=%22${search}%22 \
+			-u test@liferay.com:test \
+			-H 'accept: application/json' \
+		''';
+
+		var productCreateDate = JSONCurlUtil.get("${curl}", "$.items[?(@['name'].['en_US'] == '${productName}')].['productCreateDate']");
+
+		return "${productCreateDate}";
+	}
+
+	macro _getProductId {
+		if (isSet(productSKU)) {
+			var search = "${productSKU}";
+		}
+
+		if (isSet(productName)) {
+			var search = "${productName}";
+		}
+
+		var search = StringUtil.replace("${search}", " ", "%20");
+		var baseURL = "${baseURL}";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		var curl = '''
+			${baseURL}/o/headless-commerce-admin-catalog/v1.0/products?search=%22${search}%22 \
+			-u test@liferay.com:test \
+			-H 'accept: application/json' \
+		''';
+
+		if (isSet(productSKU)) {
+			var productId = JSONCurlUtil.get("${curl}", "$..['productId']");
+		}
+
+		if (isSet(productName)) {
+			var productId = JSONCurlUtil.get("${curl}", "$.items[?(@['name'].['en_US'] == '${productName}')].['productId']");
+		}
+
+		return "${productId}";
 	}
 
 	macro _getSKUId {
@@ -248,6 +644,97 @@ definition {
 		echo("The SKU ID is: ${skuId}");
 
 		return "${skuId}";
+	}
+
+	macro _updateCommerceProduct {
+		Variables.assertDefined(parameterList = "${productName}");
+
+		var baseURL = "${baseURL}";
+		var cpDefinitionId = CommerceJSONProductsAPI._getCPDefinitionId(productName = "${productName}");
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		if (!(isSet(neverExpire))) {
+			var neverExpire = "true";
+		}
+
+		if (!(isSet(newFriendlyURL))) {
+			var newFriendlyURL = "";
+		}
+
+		if (!(isSet(newFullDescription))) {
+			var newFullDescription = "";
+		}
+
+		if (!(isSet(newMetaDescription))) {
+			var newMetaDescription = "";
+		}
+
+		if (!(isSet(newMetaKeyword))) {
+			var newMetaKeyword = "";
+		}
+
+		if (!(isSet(newMetaTitle))) {
+			var newMetaTitle = "";
+		}
+
+		if (!(isSet(newProductName))) {
+			var newProductName = "${productName}";
+		}
+
+		if (!(isSet(newShortDescription))) {
+			var newShortDescription = "";
+		}
+
+		if (!(isSet(published))) {
+			var published = "true";
+		}
+
+		var displayDateMinute = DateUtil.getFormattedCurrentDate("m");
+		var displayDateHour = DateUtil.getFormattedCurrentDate("H");
+		var displayDateDay = DateUtil.getCurrentDate();
+		var displayDateYear = DateUtil.getCurrentYear();
+		var displayDateMonth = DateUtil.getCurrentMonth();
+		var expirationDateMinute = DateUtil.getFormattedCurrentDate("m");
+		var expirationDateHour = DateUtil.getFormattedCurrentDate("H");
+		var expirationDateDay = DateUtil.getCurrentDate();
+		var expirationDateYear = DateUtil.getCurrentYear();
+		var expirationDateMonth = DateUtil.getCurrentMonth();
+
+		if (isSet(increaseMinutes)) {
+			var expirationDateMinute = ${expirationDateMinute} + ${increaseMinutes};
+		}
+
+		var curl = '''
+			${baseURL}/api/jsonws/commerce.cpdefinition/update-cp-definition \
+				-u test@liferay.com:test \
+				-d cpDefinitionId=${cpDefinitionId} \
+				-d nameMap={"en_US":"${newProductName}"} \
+				-d shortDescriptionMap={"en_US":"${newShortDescription}"} \
+				-d descriptionMap={"en_US":"${newFullDescription}"} \
+				-d urlTitleMap={"en_US":"${newFriendlyURL}"} \
+				-d metaTitleMap={"en_US":"${newMetaTitle}"} \
+				-d metaDescriptionMap={"en_US":"${newMetaDescription}"} \
+				-d metaKeywordsMap={"en_US":"${newMetaKeyword}"} \
+				-d ignoreSKUCombinations=true \
+				-d ddmStructureKey='' \
+				-d published=${published} \
+				-d displayDateMonth=${displayDateMonth} \
+				-d displayDateDay=${displayDateDay} \
+				-d displayDateYear=${displayDateYear} \
+				-d displayDateHour=${displayDateHour} \
+				-d displayDateMinute=${displayDateMinute} \
+				-d expirationDateMonth=${expirationDateMonth} \
+				-d expirationDateDay=${expirationDateDay} \
+				-d expirationDateYear=${expirationDateYear} \
+				-d expirationDateHour=${expirationDateHour} \
+				-d expirationDateMinute=${expirationDateMinute} \
+				-d neverExpire=${neverExpire}
+			''';
+
+		com.liferay.poshi.runner.util.JSONCurlUtil.post("${curl}");
 	}
 
 }

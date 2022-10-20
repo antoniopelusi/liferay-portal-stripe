@@ -12,6 +12,8 @@
  * details.
  */
 
+import {getCheckedCheckboxes} from 'frontend-js-web';
+
 export default function propsTransformer({
 	additionalProps: {deleteExpandosURL},
 	portletNamespace,
@@ -27,12 +29,12 @@ export default function propsTransformer({
 					return;
 				}
 
-				var columnIds = form.querySelector(
+				const columnIds = form.querySelector(
 					`#${portletNamespace}columnIds`
 				);
 
 				if (columnIds) {
-					var checkedIds = Liferay.Util.listCheckedExcept(
+					const checkedIds = getCheckedCheckboxes(
 						form,
 						`${portletNamespace}allRowIds`
 					);

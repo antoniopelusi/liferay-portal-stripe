@@ -107,6 +107,19 @@ public class VelocityTemplateContextHelper extends TemplateContextHelper {
 			// Init
 
 			contextObjects.put("init", fullTemplatesPath + "/init.vm");
+
+			// Navigation items
+
+			if (_velocityEngineConfiguration.includeNavItemsInTheContext() &&
+				(themeDisplay.getLayout() != null)) {
+
+				try {
+					contextObjects.put("navItems", themeDisplay.getNavItems());
+				}
+				catch (Exception exception) {
+					_log.error(exception);
+				}
+			}
 		}
 
 		// Insert custom vm variables

@@ -97,6 +97,14 @@ public class KBSearchDisplayContext {
 			return _searchContainer;
 		}
 
+		_searchContainer = new SearchContainer<>(
+			_portletRequest, _iteratorURL, null,
+			LanguageUtil.format(
+				_httpServletRequest,
+				"no-articles-were-found-that-matched-the-keywords-x",
+				"<strong>" + HtmlUtil.escape(getKeywords()) + "</strong>",
+				false));
+
 		SearchContext searchContext = SearchContextFactory.getInstance(
 			_httpServletRequest);
 
@@ -122,24 +130,14 @@ public class KBSearchDisplayContext {
 
 			tuples.add(
 				new Tuple(
-					new Object[] {
-						document.get(Field.ENTRY_CLASS_PK),
-						document.get(Field.TITLE),
-						PortalUtil.getUserName(
-							GetterUtil.getLong(document.get(Field.USER_ID)),
-							document.get(Field.USER_NAME)),
-						document.getDate(Field.CREATE_DATE),
-						document.getDate(Field.MODIFIED_DATE)
-					}));
+					document.get(Field.ENTRY_CLASS_PK),
+					document.get(Field.TITLE),
+					PortalUtil.getUserName(
+						GetterUtil.getLong(document.get(Field.USER_ID)),
+						document.get(Field.USER_NAME)),
+					document.getDate(Field.CREATE_DATE),
+					document.getDate(Field.MODIFIED_DATE)));
 		}
-
-		_searchContainer = new SearchContainer<>(
-			_portletRequest, _iteratorURL, null,
-			LanguageUtil.format(
-				_httpServletRequest,
-				"no-articles-were-found-that-matched-the-keywords-x",
-				"<strong>" + HtmlUtil.escape(getKeywords()) + "</strong>",
-				false));
 
 		_searchContainer.setResultsAndTotal(() -> tuples, hits.getLength());
 

@@ -16,6 +16,8 @@ package com.liferay.portal.upgrade.v7_4_x;
 
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
+import com.liferay.portal.kernel.upgrade.UpgradeProcessFactory;
+import com.liferay.portal.kernel.upgrade.UpgradeStep;
 
 /**
  * @author Vendel Toreki
@@ -25,24 +27,23 @@ public class UpgradeAssetCategory extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		if (!hasColumnType("AssetCategory", "title", "TEXT null")) {
-			alterColumnType("AssetCategory", "title", "TEXT null");
-		}
-
-		if (!hasColumnType("AssetCategory", "description", "TEXT null")) {
-			alterColumnType("AssetCategory", "description", "TEXT null");
-		}
-
-		if (!hasColumn("AssetCategory", "externalReferenceCode")) {
-			alterTableAddColumn(
-				"AssetCategory", "externalReferenceCode", "VARCHAR(75)");
-		}
-
 		runSQL(
 			StringBundler.concat(
 				"update AssetCategory set externalReferenceCode = ",
 				"CAST_TEXT(categoryId) where externalReferenceCode is null or ",
 				"externalReferenceCode =''"));
+	}
+
+	@Override
+	protected UpgradeStep[] getPreUpgradeSteps() {
+		return new UpgradeStep[] {
+			UpgradeProcessFactory.alterColumnType(
+				"AssetCategory", "description", "TEXT null"),
+			UpgradeProcessFactory.alterColumnType(
+				"AssetCategory", "title", "TEXT null"),
+			UpgradeProcessFactory.addColumns(
+				"AssetCategory", "externalReferenceCode VARCHAR(75)")
+		};
 	}
 
 }

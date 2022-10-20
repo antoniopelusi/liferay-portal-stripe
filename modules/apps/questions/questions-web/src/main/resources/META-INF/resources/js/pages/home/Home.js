@@ -17,6 +17,7 @@ import ClayCard from '@clayui/card';
 import ClayEmptyState from '@clayui/empty-state';
 import ClayIcon from '@clayui/icon';
 import ClayLoadingIndicator from '@clayui/loading-indicator';
+import classNames from 'classnames';
 import {useManualQuery} from 'graphql-hooks';
 import React, {useContext, useEffect, useState} from 'react';
 import {Helmet} from 'react-helmet';
@@ -36,7 +37,7 @@ import {
 	historyPushWithSlug,
 } from '../../utils/utils.es';
 
-export default withRouter(({history}) => {
+export default withRouter(({history, isHomePath}) => {
 	const context = useContext(AppContext);
 	const historyPushParser = historyPushWithSlug(history.push);
 	const [topicModalVisibility, setTopicModalVisibility] = useState(false);
@@ -105,6 +106,20 @@ export default withRouter(({history}) => {
 				<Redirect to={'/questions/' + context.rootTopicId} />
 			)}
 
+			<div className="d-flex justify-content-end pb-3">
+				<ClayButton
+					className={classNames('font-weight-bold', {
+						'text-white': isHomePath,
+					})}
+					displayType="unstyled"
+					onClick={() => history.push('/questions/all')}
+				>
+					{Liferay.Language.get('all-questions')}
+
+					<ClayIcon symbol="caret-right" />
+				</ClayButton>
+			</div>
+
 			<div className="questions-container row">
 				{!loading && (
 					<>
@@ -112,7 +127,7 @@ export default withRouter(({history}) => {
 							sections.actions &&
 							!!sections.actions.create &&
 							sections.items &&
-							sections.items.length > 0 && (
+							!!sections.items.length && (
 								<div className="c-mb-4 col-lg-4 col-md-6 col-xl-3">
 									<div className="questions-card text-decoration-none text-secondary">
 										<ClayCard
@@ -145,7 +160,7 @@ export default withRouter(({history}) => {
 							)}
 
 						{(sections.items &&
-							sections.items.length > 0 &&
+							!!sections.items.length &&
 							sections.items.map((section) => (
 								<div
 									className="c-mb-4 col-lg-4 col-md-6 col-xl-3"

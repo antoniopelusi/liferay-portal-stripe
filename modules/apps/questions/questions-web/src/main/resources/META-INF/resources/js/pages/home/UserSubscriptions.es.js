@@ -24,15 +24,30 @@ import Alert from '../../components/Alert.es';
 import DeleteQuestion from '../../components/DeleteQuestion.es';
 import Link from '../../components/Link.es';
 import QuestionRow from '../../components/QuestionRow.es';
+import TagsLayout from '../../components/TagsLayout.es';
+import useTags from '../../hooks/useTags.es';
 import {
 	getSubscriptionsQuery,
 	unsubscribeMyUserAccountQuery,
 } from '../../utils/client.es';
 import {historyPushWithSlug} from '../../utils/utils.es';
 
-export default withRouter(({history}) => {
+export default withRouter(({history, location}) => {
 	const [info, setInfo] = useState({});
 	const [questionToDelete, setQuestionToDelete] = useState({});
+
+	const {
+		error,
+		orderBy,
+		page,
+		pageSize,
+		search,
+		tagsItemsSelected,
+	} = useTags({history, location});
+
+	const tagsFiltredSelected = tagsItemsSelected();
+
+	const linkSubscriptionPage = location.pathname.split('/')[2];
 
 	const context = useContext(AppContext);
 
@@ -44,6 +59,12 @@ export default withRouter(({history}) => {
 			},
 		}
 	);
+
+	if (threads && threads.myUserAccountSubscriptions.items) {
+		threads.myUserAccountSubscriptions.items = threads.myUserAccountSubscriptions.items.filter(
+			(thread) => thread.graphQLNode.showAsQuestion
+		);
+	}
 
 	const {data: topics, refetch: refetchTopics} = useQuery(
 		getSubscriptionsQuery,
@@ -129,8 +150,38 @@ export default withRouter(({history}) => {
 	return (
 		<section className="questions-section questions-section-list">
 			<div className="c-p-5 questions-container row">
-				<div className="col-xl-8 offset-xl-2">
-					<h2 className="sheet-subtitle">Topics</h2>
+				<div className="c-mt-3 c-mx-auto c-px-0 w-100">
+					<h2 className="sheet-subtitle">
+						{Liferay.Language.get('tags')}
+					</h2>
+
+					{tagsFiltredSelected?.items?.length ? (
+						<div className="c-mt-3 row">
+							{tagsFiltredSelected.items.map((tag) => (
+								<div className="col-md-4" key={tag.id}>
+									<TagsLayout
+										context={context.siteKey}
+										linkPage={linkSubscriptionPage}
+										orderBy={orderBy}
+										page={page}
+										pageSize={pageSize}
+										search={search}
+										tag={tag}
+									/>
+								</div>
+							))}
+
+							<Alert info={error} />
+						</div>
+					) : (
+						<ClayEmptyState
+							title={Liferay.Language.get('there-are-no-results')}
+						/>
+					)}
+
+					<h2 className="mt-5 sheet-subtitle">
+						{Liferay.Language.get('topics')}
+					</h2>
 
 					{topics &&
 						topics.myUserAccountSubscriptions.items &&
@@ -206,7 +257,9 @@ export default withRouter(({history}) => {
 							)}
 					</div>
 
-					<h2 className="mt-5 sheet-subtitle">Questions</h2>
+					<h2 className="mt-5 sheet-subtitle">
+						{Liferay.Language.get('questions')}
+					</h2>
 
 					<div>
 						{threads &&
@@ -226,6 +279,7 @@ export default withRouter(({history}) => {
 								(data) => (
 									<div key={data.id}>
 										<QuestionRow
+											context={context}
 											currentSection={
 												context.useTopicNamesInURL
 													? data.graphQLNode

@@ -15,7 +15,6 @@
 package com.liferay.taglib.ui;
 
 import com.liferay.portal.kernel.dao.search.DisplayTerms;
-import com.liferay.portal.kernel.util.Validator;
 import com.liferay.taglib.util.IncludeTag;
 
 import javax.servlet.http.HttpServletRequest;
@@ -38,7 +37,7 @@ public class SearchToggleTag extends IncludeTag {
 	}
 
 	public String getMarkupView() {
-		return _markupView;
+		return null;
 	}
 
 	public boolean isAutoFocus() {
@@ -62,7 +61,6 @@ public class SearchToggleTag extends IncludeTag {
 	}
 
 	public void setMarkupView(String markupView) {
-		_markupView = markupView;
 	}
 
 	@Override
@@ -73,25 +71,15 @@ public class SearchToggleTag extends IncludeTag {
 		_buttonLabel = null;
 		_displayTerms = null;
 		_id = null;
-		_markupView = null;
 	}
 
 	@Override
 	protected String getEndPage() {
-		if (Validator.isNotNull(_markupView)) {
-			return "/html/taglib/ui/search_toggle/" + _markupView + "/end.jsp";
-		}
-
 		return "/html/taglib/ui/search_toggle/end.jsp";
 	}
 
 	@Override
 	protected String getStartPage() {
-		if (Validator.isNotNull(_markupView)) {
-			return "/html/taglib/ui/search_toggle/" + _markupView +
-				"/start.jsp";
-		}
-
 		return "/html/taglib/ui/search_toggle/start.jsp";
 	}
 
@@ -110,6 +98,5 @@ public class SearchToggleTag extends IncludeTag {
 	private String _buttonLabel;
 	private DisplayTerms _displayTerms;
 	private String _id;
-	private String _markupView;
 
 }

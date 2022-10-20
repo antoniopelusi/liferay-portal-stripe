@@ -17,10 +17,13 @@ package com.liferay.object.web.internal.object.definitions.frontend.taglib.servl
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationCategory;
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationEntry;
 import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.service.ObjectDefinitionService;
+import com.liferay.object.system.SystemObjectDefinitionMetadataTracker;
 import com.liferay.object.web.internal.configuration.activator.FFOneToOneRelationshipConfigurationActivator;
 import com.liferay.object.web.internal.object.definitions.constants.ObjectDefinitionsScreenNavigationEntryConstants;
 import com.liferay.object.web.internal.object.definitions.display.context.ObjectDefinitionsRelationshipsDisplayContext;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.util.WebKeys;
 
@@ -67,7 +70,12 @@ public class ObjectDefinitionsRelationshipsScreenNavigationCategory
 
 	@Override
 	public String getLabel(Locale locale) {
-		return LanguageUtil.get(locale, "relationships");
+		return _language.get(locale, "relationships");
+	}
+
+	@Override
+	public boolean isVisible(User user, ObjectDefinition objectDefinition) {
+		return objectDefinition.isDefaultStorageType();
 	}
 
 	@Override
@@ -80,7 +88,9 @@ public class ObjectDefinitionsRelationshipsScreenNavigationCategory
 			WebKeys.PORTLET_DISPLAY_CONTEXT,
 			new ObjectDefinitionsRelationshipsDisplayContext(
 				_ffOneToOneRelationshipConfigurationActivator,
-				httpServletRequest, _objectDefinitionModelResourcePermission));
+				httpServletRequest, _objectDefinitionModelResourcePermission,
+				_objectDefinitionService,
+				_systemObjectDefinitionMetadataTracker));
 
 		super.render(httpServletRequest, httpServletResponse);
 	}
@@ -89,10 +99,20 @@ public class ObjectDefinitionsRelationshipsScreenNavigationCategory
 	private FFOneToOneRelationshipConfigurationActivator
 		_ffOneToOneRelationshipConfigurationActivator;
 
+	@Reference
+	private Language _language;
+
 	@Reference(
 		target = "(model.class.name=com.liferay.object.model.ObjectDefinition)"
 	)
 	private ModelResourcePermission<ObjectDefinition>
 		_objectDefinitionModelResourcePermission;
+
+	@Reference
+	private ObjectDefinitionService _objectDefinitionService;
+
+	@Reference
+	private SystemObjectDefinitionMetadataTracker
+		_systemObjectDefinitionMetadataTracker;
 
 }

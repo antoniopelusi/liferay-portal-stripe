@@ -79,8 +79,7 @@ public class SearchBarPortletSharedSearchContributor
 			searchRequestBuilder, searchBarPortletPreferences,
 			portletSharedSearchSettings);
 
-		_setScopeParameterName(
-			searchBarPortletPreferences, portletSharedSearchSettings);
+		_setScope(searchBarPortletPreferences, portletSharedSearchSettings);
 
 		_filterByThisSite(
 			searchRequestBuilder, searchBarPortletPreferences,
@@ -231,9 +230,15 @@ public class SearchBarPortletSharedSearchContributor
 				Boolean.TRUE));
 	}
 
-	private void _setScopeParameterName(
+	private void _setScope(
 		SearchBarPortletPreferences searchBarPortletPreferences,
 		PortletSharedSearchSettings portletSharedSearchSettings) {
+
+		SearchScopePreference searchScopePreference =
+			searchBarPortletPreferences.getSearchScopePreference();
+
+		portletSharedSearchSettings.setScope(
+			searchScopePreference.getPreferenceString());
 
 		portletSharedSearchSettings.setScopeParameterName(
 			searchBarPortletPreferences.getScopeParameterName());

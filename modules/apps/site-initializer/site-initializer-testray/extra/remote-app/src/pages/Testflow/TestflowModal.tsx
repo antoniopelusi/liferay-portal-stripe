@@ -17,11 +17,16 @@ import ClayButton from '@clayui/button';
 import ClayForm, {ClayCheckbox} from '@clayui/form';
 import React, {useState} from 'react';
 
-import Input, {AutoComplete} from '../../components/Input';
+import Form from '../../components/Form';
 import Modal from '../../components/Modal';
-import {getBuilds, getProjects, getRoutines} from '../../graphql/queries';
 import {FormModalOptions} from '../../hooks/useFormModal';
 import i18n from '../../i18n';
+import {
+	buildsResource,
+	getBuildsTransformData,
+	testrayProjectRest,
+	testrayRoutineRest,
+} from '../../services/rest';
 
 type TestflowModalProps = {
 	modal: FormModalOptions;
@@ -53,29 +58,31 @@ const TestflowForm = () => {
 
 	return (
 		<>
-			<AutoComplete
-				gqlQuery={getProjects}
+			<Form.AutoComplete
 				label="Project"
-				objectName="projects"
 				onSearch={(keyword) => `contains(name, '${keyword}')`}
+				resource="/projects"
+				transformData={(...params) =>
+					testrayProjectRest.transformDataFromList(...params)
+				}
 			/>
 
-			<AutoComplete
-				gqlQuery={getRoutines}
+			<Form.AutoComplete
 				label="Routine"
-				objectName="routines"
 				onSearch={(keyword) => `contains(name, '${keyword}')`}
+				resource="/routines"
+				transformData={(...params) =>
+					testrayRoutineRest.transformDataFromList(...params)
+				}
 			/>
 
-			<AutoComplete
-				gqlQuery={getBuilds}
+			<Form.AutoComplete
 				label="Build"
-				objectName="builds"
 				onSearch={(keyword) => `contains(name, '${keyword}')`}
-				transformData={(data) => data?.Builds?.items || []}
+				resource={buildsResource}
+				transformData={getBuildsTransformData}
 			/>
-
-			<Input label="Name" name="name" required />
+			<Form.Input label="Name" name="name" required />
 
 			<div className="my-4">
 				<ClayForm.Group>
@@ -130,15 +137,12 @@ const TestflowModal: React.FC<TestflowModalProps> = ({
 	return (
 		<Modal
 			last={
-				<ClayButton.Group spaced>
-					<ClayButton displayType="secondary" onClick={onClose}>
-						{i18n.translate('close')}
-					</ClayButton>
-
-					<ClayButton displayType="primary" onClick={onSubmit}>
-						{i18n.translate('analyse')}
-					</ClayButton>
-				</ClayButton.Group>
+				<Form.Footer
+					isModal
+					onClose={onClose}
+					onSubmit={onSubmit}
+					primaryButtonTitle="analyse"
+				/>
 			}
 			observer={observer}
 			size="lg"

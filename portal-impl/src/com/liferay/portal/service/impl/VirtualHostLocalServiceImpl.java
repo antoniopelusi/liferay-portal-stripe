@@ -124,10 +124,21 @@ public class VirtualHostLocalServiceImpl
 	}
 
 	@Override
-	public List<VirtualHost> getVirtualHosts(long companyId, long layoutSetId)
-		throws PortalException {
+	public List<VirtualHost> getVirtualHosts(long companyId) {
+		return virtualHostPersistence.findByCompanyId(companyId);
+	}
 
+	@Override
+	public List<VirtualHost> getVirtualHosts(long companyId, long layoutSetId) {
 		return virtualHostPersistence.findByC_L(companyId, layoutSetId);
+	}
+
+	@Override
+	public long getVirtualHostsCount(
+		long excludedLayoutSetId, String[] virtualHostNames) {
+
+		return virtualHostPersistence.countByNotL_H(
+			excludedLayoutSetId, virtualHostNames);
 	}
 
 	/**

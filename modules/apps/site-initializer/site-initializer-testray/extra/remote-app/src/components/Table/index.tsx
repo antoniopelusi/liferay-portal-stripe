@@ -13,14 +13,19 @@
  */
 
 import {ClayCheckbox} from '@clayui/form';
+import ClayIcon from '@clayui/icon';
 import ClayTable from '@clayui/table';
 import classNames from 'classnames';
-import {useState} from 'react';
+import React, {useState} from 'react';
 import {useNavigate} from 'react-router-dom';
+import {KeyedMutator} from 'swr';
 
+import {Sort} from '../../context/ListViewContext';
+import useContextMenu from '../../hooks/useContextMenu';
+import {Action, SortDirection, SortOption} from '../../types';
+import {Permission} from '../../util/permission';
+import ContextMenu from '../ContextMenu';
 import DropDown from '../DropDown/DropDown';
-
-const {Body, Cell, Head, Row} = ClayTable;
 
 type Column<T = any> = {
 	clickable?: boolean;
@@ -32,117 +37,229 @@ type Column<T = any> = {
 };
 
 export type TableProps<T = any> = {
-	actions?: any[];
+	actions?: Action[];
 	columns: Column[];
 	items: T[];
+	mutate: KeyedMutator<T>;
 	navigateTo?: (item: T) => string;
+	onClickRow?: (item: T) => void;
+	onSelectAllRows: () => void;
 	onSelectRow?: (row: any) => void;
+	onSort: (columnTable: string, direction: SortDirection) => void;
 	rowSelectable?: boolean;
 	selectedRows?: number[];
+	sort?: Sort;
 };
 
 const Table: React.FC<TableProps> = ({
 	actions,
 	columns,
 	items,
+	mutate,
 	navigateTo,
+	onClickRow,
+	onSelectAllRows,
 	onSelectRow,
-	selectedRows = [],
+	onSort,
 	rowSelectable = false,
+	selectedRows = [],
+	sort,
 }) => {
+	const [firstRowAction] = items;
+
+	const filteredActions = actions
+		? Permission.filterActions(actions, firstRowAction?.actions)
+		: [];
+
+	const displayActionColumn = !!filteredActions.length;
+
+	const {
+		contextMenuState,
+		handleContext,
+		setContextMenuState,
+	} = useContextMenu(displayActionColumn);
+
 	const [activeRow, setActiveRow] = useState<number | undefined>();
+	const [checked, setChecked] = useState(false);
+	const [sorted, setSorted] = useState<SortDirection>(SortOption.ASC);
 
 	const navigate = useNavigate();
 
 	const onMouseLeaveRow = () => {
-		if (actions) {
+		if (displayActionColumn) {
 			setActiveRow(undefined);
 		}
 	};
 
 	const onMouseOverRow = (rowIndex: number) => {
-		if (actions) {
+		if (displayActionColumn) {
 			setActiveRow(rowIndex);
 		}
 	};
 
+	const changeSort = (key: string) => {
+		onSort(key, sorted);
+		setSorted(
+			sorted === SortOption.DESC ? SortOption.ASC : SortOption.DESC
+		);
+	};
+
+	const getSortSymbol = (key: string) => {
+		if (!sort) {
+			return '';
+		}
+
+		if (sort.key === key) {
+			return sort.direction === SortOption.ASC
+				? 'caret-top-l'
+				: 'caret-bottom-l';
+		}
+
+		return 'caret-double-l';
+	};
+
 	return (
-		<ClayTable borderless className="testray-table" hover>
-			<Head className="testray-table">
-				<Row>
-					{rowSelectable && <Cell />}
-
-					{columns.map((column, index) => (
-						<Cell headingTitle key={index}>
-							{column.value}
-						</Cell>
-					))}
-
-					{actions && <Cell headingCell />}
-				</Row>
-			</Head>
-
-			<Body>
-				{items.map((item, rowIndex) => (
-					<Row
-						className="table-row"
-						key={rowIndex}
-						onMouseLeave={onMouseLeaveRow}
-						onMouseOver={() => onMouseOverRow(rowIndex)}
-					>
-						{rowSelectable && onSelectRow && (
-							<Cell>
+		<>
+			<ClayTable borderless className="testray-table" hover>
+				<ClayTable.Head>
+					<ClayTable.Row>
+						{rowSelectable && (
+							<ClayTable.Cell>
 								<ClayCheckbox
-									checked={selectedRows.includes(item.id)}
-									onChange={() => onSelectRow(item)}
+									checked={checked}
+									onChange={() => {
+										onSelectAllRows();
+										setChecked(!checked);
+									}}
 								/>
-							</Cell>
+							</ClayTable.Cell>
 						)}
 
-						{columns.map((column, columnIndex) => (
-							<Cell
-								className={classNames('text-dark', {
-									'cursor-pointer': column.clickable,
-									'table-cell-expand': column.size === 'sm',
-									'table-cell-expand-small':
-										column.size === 'xl',
-									'table-cell-expand-smaller':
-										column.size === 'lg',
-									'table-cell-expand-smallest':
-										column.size === 'md',
-								})}
-								key={columnIndex}
-								onClick={() => {
-									if (navigateTo && column.clickable) {
-										navigate(navigateTo(item));
-									}
-								}}
+						{columns.map((column, index) => (
+							<ClayTable.Cell
+								className="align-items-center text-nowrap"
+								headingTitle
+								key={index}
 							>
-								{column.render
-									? column.render(item[column.key], {
-											...item,
-											rowIndex,
-									  })
-									: item[column.key]}
-							</Cell>
+								<>
+									{column.value}
+
+									{column.sorteable && (
+										<ClayIcon
+											className="cursor-pointer ml-1"
+											onClick={() =>
+												changeSort(column.key)
+											}
+											symbol={getSortSymbol(column.key)}
+										/>
+									)}
+								</>
+							</ClayTable.Cell>
 						))}
 
-						{actions && (
-							<Cell
-								align="right"
-								className="p-0 table-action-column table-cell-expand"
+						{displayActionColumn && <ClayTable.Cell />}
+					</ClayTable.Row>
+				</ClayTable.Head>
+
+				<ClayTable.Body>
+					{items.map((item, rowIndex) => {
+						return (
+							<ClayTable.Row
+								active={
+									rowIndex === contextMenuState.rowIndex &&
+									contextMenuState.visible
+								}
+								className="table-row text-nowrap"
+								key={rowIndex}
+								onContextMenu={(event) => {
+									if (displayActionColumn) {
+										handleContext({
+											actions: filteredActions,
+											event,
+											item,
+											rowIndex,
+										});
+									}
+								}}
+								onMouseLeave={() => onMouseLeaveRow()}
+								onMouseOver={() => onMouseOverRow(rowIndex)}
 							>
-								{activeRow === rowIndex ? (
-									<DropDown actions={actions} item={item} />
-								) : (
-									<div></div>
+								{rowSelectable && onSelectRow && (
+									<ClayTable.Cell>
+										<ClayCheckbox
+											checked={selectedRows.includes(
+												item.id
+											)}
+											onChange={() => onSelectRow(item)}
+										/>
+									</ClayTable.Cell>
 								)}
-							</Cell>
-						)}
-					</Row>
-				))}
-			</Body>
-		</ClayTable>
+
+								{columns.map((column, columnIndex) => (
+									<ClayTable.Cell
+										className={classNames('text-dark', {
+											'cursor-pointer': column.clickable,
+											'table-cell-expand':
+												column.size === 'sm',
+											'table-cell-expand-small':
+												column.size === 'xl',
+											'table-cell-expand-smaller':
+												column.size === 'lg',
+											'table-cell-expand-smallest':
+												column.size === 'md',
+										})}
+										key={columnIndex}
+										onClick={() => {
+											if (column.clickable) {
+												if (onClickRow) {
+													onClickRow(item);
+												}
+
+												if (navigateTo) {
+													navigate(navigateTo(item));
+												}
+											}
+										}}
+									>
+										{column.render
+											? column.render(item[column.key], {
+													...item,
+													rowIndex,
+											  })
+											: item[column.key]}
+									</ClayTable.Cell>
+								))}
+
+								{displayActionColumn && (
+									<ClayTable.Cell
+										align="right"
+										className="py-0 table-action-column table-cell-expand"
+									>
+										{activeRow === rowIndex ? (
+											<DropDown
+												actions={filteredActions as any}
+												item={item}
+												mutate={mutate}
+											/>
+										) : (
+											<div />
+										)}
+									</ClayTable.Cell>
+								)}
+							</ClayTable.Row>
+						);
+					})}
+				</ClayTable.Body>
+			</ClayTable>
+
+			{displayActionColumn && contextMenuState.visible && (
+				<ContextMenu
+					contextMenuState={contextMenuState}
+					mutate={mutate}
+					setContextMenuState={setContextMenuState}
+				/>
+			)}
+		</>
 	);
 };
 

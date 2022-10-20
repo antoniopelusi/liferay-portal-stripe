@@ -31,7 +31,6 @@ definition {
 	macro setGroupDescriptionMap {
 		if (isSet(groupDescription)) {
 			var groupDescription = URLUtil.encodeUTF8("${groupDescription}");
-
 			var groupDescriptionMap = '''{"en_US":"${groupDescriptionEncoded}"}''';
 		}
 		else {
@@ -61,7 +60,6 @@ definition {
 		Variables.assertDefined(parameterList = "${groupName}");
 
 		var groupNameMap = URLUtil.encodeUTF8("${groupName}");
-
 		var groupNameMap = '''{"en_US":"${groupName}"}''';
 
 		return "${groupNameMap}";

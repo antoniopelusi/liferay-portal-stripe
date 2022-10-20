@@ -16,53 +16,40 @@
 (function (A) {
 	A.use('aui-base-lang');
 
-	var Lang = A.Lang;
+	const Lang = A.Lang;
 
-	var EVENT_CLICK = 'click';
+	const EVENT_CLICK = 'click';
 
-	var MAP_TOGGLE_STATE = {
-		false: {
-			cssClass: 'controls-hidden',
-			iconCssClass: 'hidden',
-			state: 'hidden',
-		},
-		true: {
-			cssClass: 'controls-visible',
-			iconCssClass: 'view',
-			state: 'visible',
-		},
-	};
-
-	var SRC_HIDE_LINK = {
+	const SRC_HIDE_LINK = {
 		src: 'hideLink',
 	};
 
-	var STR_RIGHT_SQUARE_BRACKET = ']';
+	const STR_RIGHT_SQUARE_BRACKET = ']';
 
-	var Window = {
+	const Window = {
 		_map: {},
 
 		getById(id) {
-			var instance = this;
+			const instance = this;
 
 			return instance._map[id];
 		},
 	};
 
-	var Util = {
+	const Util = {
 		_getEditableInstance(title) {
-			var editable = Util._EDITABLE;
+			let editable = Util._EDITABLE;
 
 			if (!editable) {
 				editable = new A.Editable({
 					after: {
 						contentTextChange(event) {
-							var instance = this;
+							const instance = this;
 
 							if (!event.initial) {
-								var title = instance.get('node');
+								const title = instance.get('node');
 
-								var portletTitleEditOptions = title.getData(
+								const portletTitleEditOptions = title.getData(
 									'portletTitleEditOptions'
 								);
 
@@ -77,9 +64,9 @@
 							}
 						},
 						startEditing() {
-							var instance = this;
+							const instance = this;
 
-							var Layout = Liferay.Layout;
+							const Layout = Liferay.Layout;
 
 							if (Layout) {
 								instance._dragListener = Layout.getLayoutHandler().on(
@@ -90,12 +77,12 @@
 								);
 							}
 
-							var title = instance.get('node');
+							const title = instance.get('node');
 
 							instance._titleListener = title.on(
 								'mouseupoutside',
 								(event) => {
-									var editable = Util._getEditableInstance(
+									const editable = Util._getEditableInstance(
 										title
 									);
 
@@ -110,7 +97,7 @@
 							);
 						},
 						stopEditing() {
-							var instance = this;
+							const instance = this;
 
 							if (instance._dragListener) {
 								instance._dragListener.detach();
@@ -134,6 +121,9 @@
 			return editable;
 		},
 
+		/**
+		 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
+		 */
 		addInputCancel() {
 			A.use('aui-button-search-cancel', (A) => {
 				new A.ButtonSearchCancel({
@@ -257,18 +247,21 @@
 			}
 		},
 
+		/**
+		 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
+		 */
 		disableElements(element) {
 			const currentElement = Util.getElement(element);
 
 			if (currentElement) {
-				var children = currentElement.getElementsByTagName('*');
+				const children = currentElement.getElementsByTagName('*');
 
-				var emptyFnFalse = function () {
+				const emptyFnFalse = function () {
 					return false;
 				};
 
-				for (var i = children.length - 1; i >= 0; i--) {
-					var item = children[i];
+				for (let i = children.length - 1; i >= 0; i--) {
+					const item = children[i];
 
 					item.style.cursor = 'default';
 
@@ -280,12 +273,15 @@
 
 					item.action = '';
 					item.disabled = true;
-					item.href = 'javascript:;';
+					item.href = 'javascript:void(0);';
 					item.onsubmit = emptyFnFalse;
 				}
 			}
 		},
 
+		/**
+		 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
+		 */
 		disableFormButtons(inputs, form) {
 			inputs.attr('disabled', true);
 			inputs.setStyle('opacity', 0.5);
@@ -304,6 +300,9 @@
 			}
 		},
 
+		/**
+		 * @deprecated As of Cavanaugh (7.4.x), replaced by `toggleDisabled`
+		 */
 		disableToggleBoxes(checkBoxId, toggleBoxId, checkDisabled) {
 			const checkBox = document.getElementById(checkBoxId);
 			const toggleBox = document.getElementById(toggleBoxId);
@@ -317,6 +316,9 @@
 			}
 		},
 
+		/**
+		 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
+		 */
 		enableFormButtons(inputs) {
 			Util._submitLocked = null;
 
@@ -328,7 +330,7 @@
 		 */
 		escapeCDATA(str) {
 			return str.replace(/<!\[CDATA\[|\]\]>/gi, (match) => {
-				var str = '';
+				let str = '';
 
 				if (match === ']]>') {
 					str = ']]&gt;';
@@ -341,6 +343,9 @@
 			});
 		},
 
+		/**
+		 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
+		 */
 		forcePost(link) {
 			const currentElement = Util.getElement(link);
 
@@ -349,7 +354,7 @@
 
 				// LPS-127302
 
-				if (url === 'javascript:;') {
+				if (url === 'javascript:void(0);') {
 					return;
 				}
 
@@ -372,7 +377,7 @@
 		 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
 		 */
 		getAttributes(element, attributeGetter) {
-			var result = null;
+			let result = null;
 
 			if (element) {
 				element = Util.getDOM(element);
@@ -383,16 +388,16 @@
 
 				result = {};
 
-				var getterFn = typeof attributeGetter === 'function';
-				var getterString = typeof attributeGetter === 'string';
+				const getterFn = typeof attributeGetter === 'function';
+				const getterString = typeof attributeGetter === 'string';
 
-				var attrs = element.attributes;
-				var length = attrs.length;
+				const attrs = element.attributes;
+				let length = attrs.length;
 
 				while (length--) {
-					var attr = attrs[length];
-					var name = attr.nodeName.toLowerCase();
-					var value = attr.nodeValue;
+					const attr = attrs[length];
+					let name = attr.nodeName.toLowerCase();
+					let value = attr.nodeValue;
 
 					if (getterString) {
 						if (name.indexOf(attributeGetter) === 0) {
@@ -421,20 +426,9 @@
 		 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
 		 */
 		getColumnId(str) {
-			var columnId = str.replace(/layout-column_/, '');
+			const columnId = str.replace(/layout-column_/, '');
 
 			return columnId;
-		},
-
-		/**
-		 * @deprecated As of Cavanaugh (7.4.x), replaced by `openModal`
-		 */
-		getWindow(id) {
-			if (!id) {
-				id = Util.getWindowName();
-			}
-
-			return Util.getTop().Liferay.Util.Window.getById(id);
 		},
 
 		/**
@@ -458,6 +452,9 @@
 			return typeof val === 'function';
 		},
 
+		/**
+		 * @deprecated As of Cavanaugh (7.4.x), replaced by `get_checkboxes.js`
+		 */
 		listCheckboxesExcept(form, except, name, checked) {
 			form = Util.getDOM(form);
 
@@ -491,10 +488,16 @@
 				.join();
 		},
 
+		/**
+		 * @deprecated As of Cavanaugh (7.4.x), replaced by `import {getCheckedCheckboxes} from 'frontend-js-web';`
+		 */
 		listCheckedExcept(form, except, name) {
 			return Util.listCheckboxesExcept(form, except, name, true);
 		},
 
+		/**
+		 * @deprecated As of Cavanaugh (7.4.x), replaced by `import {getSelectedOptionValues} from 'frontend-js-web';`
+		 */
 		listSelect(select, delimeter) {
 			select = Util.getElement(select);
 
@@ -511,14 +514,20 @@
 				.join(delimeter || ',');
 		},
 
+		/**
+		 * @deprecated As of Cavanaugh (7.4.x), replaced by `import {getUncheckedCheckboxes} from 'frontend-js-web';`
+		 */
 		listUncheckedExcept(form, except, name) {
 			return Util.listCheckboxesExcept(form, except, name, false);
 		},
 
+		/**
+		 * @deprecated As of Cavanaugh (7.4.x), replaced by `Liferay.Util.openWindow()`
+		 */
 		openInDialog(event, config) {
 			event.preventDefault();
 
-			var currentTarget = Util.getElement(event.currentTarget);
+			const currentTarget = Util.getElement(event.currentTarget);
 
 			// eslint-disable-next-line prefer-object-spread
 			config = Object.assign(
@@ -541,16 +550,6 @@
 			Liferay.Util.openWindow(config);
 		},
 
-		openWindow(config, callback) {
-			config.openingWindow = window;
-
-			var top = Util.getTop();
-
-			var topUtil = top.Liferay.Util;
-
-			topUtil._openWindowProvider(config, callback);
-		},
-
 		/**
 		 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
 		 */
@@ -566,6 +565,9 @@
 			return Math.ceil(Math.random() * new Date().getTime());
 		},
 
+		/**
+		 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
+		 */
 		reorder(box, down) {
 			box = Util.getElement(box);
 
@@ -616,6 +618,9 @@
 			}
 		},
 
+		/**
+		 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
+		 */
 		rowCheckerCheckAllBox(
 			ancestorTable,
 			ancestorRow,
@@ -630,6 +635,9 @@
 			}
 		},
 
+		/**
+		 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
+		 */
 		savePortletTitle(params) {
 			params = {
 				doAsUserId: 0,
@@ -641,7 +649,7 @@
 				...params,
 			};
 
-			var data = {
+			const data = {
 				doAsUserId: params.doAsUserId,
 				p_auth: Liferay.authToken,
 				p_l_id: params.plid,
@@ -659,7 +667,7 @@
 		 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement/setSelectionRange}
 		 */
 		setCursorPosition(element, position) {
-			var instance = this;
+			const instance = this;
 
 			instance.setSelectionRange(element, position, position);
 		},
@@ -680,7 +688,7 @@
 				element.setSelectionRange(selectionStart, selectionEnd);
 			}
 			else if (element.createTextRange) {
-				var textRange = element.createTextRange();
+				const textRange = element.createTextRange();
 
 				textRange.collapse(true);
 
@@ -711,6 +719,9 @@
 
 		submitCountdown: 0,
 
+		/**
+		 * @deprecated As of Cavanaugh (7.4.x), replaced by `form.submit()`
+		 */
 		submitForm(form) {
 			form.submit();
 		},
@@ -722,93 +733,7 @@
 			return parseInt(value, 10) || 0;
 		},
 
-		toggleBoxes(
-			checkBoxId,
-			toggleBoxId,
-			displayWhenUnchecked,
-			toggleChildCheckboxes
-		) {
-			const checkBox = document.getElementById(checkBoxId);
-			const toggleBox = document.getElementById(toggleBoxId);
-
-			if (checkBox && toggleBox) {
-				let checked = checkBox.checked;
-
-				if (displayWhenUnchecked) {
-					checked = !checked;
-				}
-
-				if (checked) {
-					toggleBox.classList.remove('hide');
-				}
-				else {
-					toggleBox.classList.add('hide');
-				}
-
-				checkBox.addEventListener(EVENT_CLICK, () => {
-					toggleBox.classList.toggle('hide');
-
-					if (toggleChildCheckboxes) {
-						const childCheckboxes = toggleBox.querySelectorAll(
-							'input[type=checkbox]'
-						);
-
-						childCheckboxes.forEach((childCheckbox) => {
-							childCheckbox.checked = checkBox.checked;
-						});
-					}
-				});
-			}
-		},
-
-		toggleRadio(radioId, showBoxIds, hideBoxIds) {
-			const radioButton = document.getElementById(radioId);
-
-			if (radioButton) {
-				let showBoxes;
-
-				if (showBoxIds) {
-					if (Array.isArray(showBoxIds)) {
-						showBoxIds = showBoxIds.join(',#');
-					}
-
-					showBoxes = document.querySelectorAll('#' + showBoxIds);
-
-					showBoxes.forEach((showBox) => {
-						if (radioButton.checked) {
-							showBox.classList.remove('hide');
-						}
-						else {
-							showBox.classList.add('hide');
-						}
-					});
-				}
-
-				radioButton.addEventListener('change', () => {
-					if (showBoxes) {
-						showBoxes.forEach((showBox) => {
-							showBox.classList.remove('hide');
-						});
-					}
-
-					if (hideBoxIds) {
-						if (Array.isArray(hideBoxIds)) {
-							hideBoxIds = hideBoxIds.join(',#');
-						}
-
-						const hideBoxes = document.querySelectorAll(
-							'#' + hideBoxIds
-						);
-
-						hideBoxes.forEach((hideBox) => {
-							hideBox.classList.add('hide');
-						});
-					}
-				});
-			}
-		},
-
-		/*
+		/**
 		 * @deprecated As of Athanasius (7.3.x), with no direct replacement
 		 */
 		toggleSearchContainerButton(
@@ -822,41 +747,11 @@
 				() => {
 					Util.toggleDisabled(
 						buttonId,
-						!Util.listCheckedExcept(form, ignoreFieldName)
+						!Util.getCheckedCheckboxes(form, ignoreFieldName)
 					);
 				},
 				'input[type=checkbox]'
 			);
-		},
-
-		toggleSelectBox(selectBoxId, value, toggleBoxId) {
-			var selectBox = document.getElementById(selectBoxId);
-			var toggleBox = document.getElementById(toggleBoxId);
-
-			if (selectBox && toggleBox) {
-				var dynamicValue = typeof value === 'function';
-
-				var toggle = function () {
-					var currentValue = selectBox.value;
-
-					var visible = value === currentValue;
-
-					if (dynamicValue) {
-						visible = value(currentValue, value);
-					}
-
-					if (visible) {
-						toggleBox.classList.remove('hide');
-					}
-					else {
-						toggleBox.classList.add('hide');
-					}
-				};
-
-				toggle();
-
-				selectBox.addEventListener('change', toggle);
-			}
 		},
 	};
 
@@ -865,23 +760,23 @@
 		'afterIframeLoaded',
 		(event) => {
 			// eslint-disable-next-line @liferay/aui/no-node
-			var nodeInstances = A.Node._instances;
+			const nodeInstances = A.Node._instances;
 
-			var docEl = event.doc;
+			const docEl = event.doc;
 
-			var docUID = docEl._yuid;
+			const docUID = docEl._yuid;
 
 			if (docUID in nodeInstances) {
 				delete nodeInstances[docUID];
 			}
 
-			var iframeDocument = A.one(docEl);
+			const iframeDocument = A.one(docEl);
 
-			var iframeBody = iframeDocument.one('body');
+			const iframeBody = iframeDocument.one('body');
 
-			var dialog = event.dialog;
+			const dialog = event.dialog;
 
-			var lfrFormContent = iframeBody.one('.lfr-form-content');
+			const lfrFormContent = iframeBody.one('.lfr-form-content');
 
 			iframeBody.addClass('dialog-iframe-popup');
 
@@ -891,7 +786,7 @@
 			) {
 				iframeBody.addClass('dialog-with-footer');
 
-				var stagingAlert = iframeBody.one(
+				const stagingAlert = iframeBody.one(
 					'.portlet-body > .lfr-portlet-message-staging-alert'
 				);
 
@@ -906,10 +801,10 @@
 
 			event.win.focus();
 
-			var iframeWindow = event.win;
+			const iframeWindow = event.win;
 
 			if (iframeWindow.Liferay.SPA) {
-				var beforeScreenFlipHandler = iframeWindow.Liferay.on(
+				const beforeScreenFlipHandler = iframeWindow.Liferay.on(
 					'beforeScreenFlip',
 					() => {
 						iframeWindow.document.body.classList.add(
@@ -925,7 +820,7 @@
 				};
 			}
 
-			var cancelEventHandler = iframeBody.delegate(
+			const cancelEventHandler = iframeBody.delegate(
 				EVENT_CLICK,
 				(event) => {
 					dialog.set(
@@ -957,13 +852,13 @@
 		Util,
 		'openDDMPortlet',
 		(config, callback) => {
-			var defaultValues = {
+			const defaultValues = {
 				eventName: 'selectStructure',
 			};
 			// eslint-disable-next-line @liferay/aui/no-merge
 			config = A.merge(defaultValues, config);
 
-			var params = {
+			const params = {
 				classNameId: config.classNameId,
 				classPK: config.classPK,
 				doAsGroupId:
@@ -1027,14 +922,14 @@
 				params.showManageTemplates = config.showManageTemplates;
 			}
 
-			var url = Liferay.Util.PortletURL.createRenderURL(
+			const url = Liferay.Util.PortletURL.createRenderURL(
 				config.basePortletURL,
 				params
 			);
 
 			config.uri = url.toString();
 
-			var dialogConfig = config.dialog;
+			let dialogConfig = config.dialog;
 
 			if (!dialogConfig) {
 				dialogConfig = {};
@@ -1042,13 +937,13 @@
 				config.dialog = dialogConfig;
 			}
 
-			var eventHandles = [];
+			const eventHandles = [];
 
 			if (callback) {
 				eventHandles.push(Liferay.once(config.eventName, callback));
 			}
 
-			var detachSelectionOnHideFn = function (event) {
+			const detachSelectionOnHideFn = function (event) {
 				Liferay.fire(config.eventName);
 
 				if (!event.newVal) {
@@ -1074,7 +969,7 @@
 		(webDavUrl, onSuccess, onError) => {
 			if (A.UA.ie) {
 				try {
-					var executor = new A.config.win.ActiveXObject(
+					const executor = new A.config.win.ActiveXObject(
 						'SharePoint.OpenDocuments'
 					);
 
@@ -1125,15 +1020,7 @@
 						return;
 					}
 
-					const confirmSelection =
-						currentTarget.dataset['confirmSelection'] === 'true';
-
-					if (
-						!confirmSelection ||
-						confirm(
-							currentTarget.dataset['confirmSelectionMessage']
-						)
-					) {
+					const doSelect = () => {
 						if (disableButton) {
 							selectorButtons.forEach((selectorButton) => {
 								selectorButton.disabled = false;
@@ -1154,6 +1041,50 @@
 						if (window) {
 							window.hide();
 						}
+					};
+
+					const confirmSelection =
+						currentTarget.dataset['confirmSelection'] === 'true';
+
+					if (!confirmSelection) {
+						doSelect();
+					}
+					else {
+						Liferay.Util.openConfirmModal({
+							message:
+								currentTarget.dataset[
+									'confirmSelectionMessage'
+								],
+							onConfirm: (isConfirmed) => {
+								if (isConfirmed) {
+									if (disableButton) {
+										selectorButtons.forEach(
+											(selectorButton) => {
+												selectorButton.disabled = false;
+											}
+										);
+
+										currentTarget.disabled = true;
+									}
+
+									const result = Util.getAttributes(
+										currentTarget,
+										'data-'
+									);
+
+									openingLiferay.fire(
+										selectEventName,
+										result
+									);
+
+									const window = Util.getWindow();
+
+									if (window) {
+										window.hide();
+									}
+								}
+							},
+						});
 					}
 				},
 				'.selector-button'
@@ -1172,20 +1103,20 @@
 		Util,
 		'portletTitleEdit',
 		(options) => {
-			var object = options.obj;
+			const object = options.obj;
 
 			A.Event.defineOutside('mouseup');
 
 			if (object) {
-				var title = object.one('.portlet-title-text');
+				const title = object.one('.portlet-title-text');
 
 				if (title && !title.hasClass('not-editable')) {
 					title.addClass('portlet-title-editable');
 
 					title.on(EVENT_CLICK, (event) => {
-						var editable = Util._getEditableInstance(title);
+						const editable = Util._getEditableInstance(title);
 
-						var rendered = editable.get('rendered');
+						const rendered = editable.get('rendered');
 
 						if (rendered) {
 							editable.fire('stopEditing');
@@ -1200,7 +1131,7 @@
 						editable._startEditing(event);
 
 						if (!rendered) {
-							var defaultIconsTpl =
+							const defaultIconsTpl =
 								A.ToolbarRenderer.prototype.TEMPLATES.icon;
 
 							A.ToolbarRenderer.prototype.TEMPLATES.icon = Liferay.Util.getLexiconIconTpl(
@@ -1225,13 +1156,13 @@
 		Util,
 		'editEntity',
 		(config, callback) => {
-			var dialog = Util.getWindow(config.id);
+			const dialog = Util.getWindow(config.id);
 
-			var eventName = config.eventName || config.id;
+			const eventName = config.eventName || config.id;
 
-			var eventHandles = [Liferay.on(eventName, callback)];
+			const eventHandles = [Liferay.on(eventName, callback)];
 
-			var detachSelectionOnHideFn = function (event) {
+			const detachSelectionOnHideFn = function (event) {
 				if (!event.newVal) {
 					new A.EventHandle(eventHandles).detach();
 				}
@@ -1248,10 +1179,10 @@
 				dialog.show();
 			}
 			else {
-				var destroyDialog = function (event) {
-					var dialogId = config.id;
+				const destroyDialog = function (event) {
+					const dialogId = config.id;
 
-					var dialogWindow = Util.getWindow(dialogId);
+					const dialogWindow = Util.getWindow(dialogId);
 
 					if (
 						dialogWindow &&
@@ -1263,7 +1194,7 @@
 					}
 				};
 
-				var editURL = new Liferay.Util.PortletURL.createPortletURL(
+				const editURL = new Liferay.Util.PortletURL.createPortletURL(
 					config.uri,
 					// eslint-disable-next-line @liferay/aui/no-merge
 					A.merge(
@@ -1306,47 +1237,47 @@
 		Util,
 		'selectEntity',
 		(config, callback) => {
-			var dialog = Util.getWindow(config.id);
+			const dialog = Util.getWindow(config.id);
 
-			var eventName = config.eventName || config.id;
+			const eventName = config.eventName || config.id;
 
-			var eventHandles = [Liferay.on(eventName, callback)];
+			const eventHandles = [Liferay.on(eventName, callback)];
 
-			var selectedData = config.selectedData;
+			const selectedData = config.selectedData;
 
 			if (selectedData) {
 				config.dialog.destroyOnHide = true;
 			}
 
-			var detachSelectionOnHideFn = function (event) {
+			const detachSelectionOnHideFn = function (event) {
 				if (!event.newVal) {
 					new A.EventHandle(eventHandles).detach();
 				}
 			};
 
-			var syncAssets = function (event) {
-				var currentWindow = event.currentTarget.node.get(
+			const syncAssets = function (event) {
+				const currentWindow = event.currentTarget.node.get(
 					'contentWindow.document'
 				);
 
-				var selectorButtons = currentWindow.all(
+				const selectorButtons = currentWindow.all(
 					'.lfr-search-container-wrapper .selector-button'
 				);
 
 				if (selectedData) {
 					// eslint-disable-next-line @liferay/aui/no-each
 					A.each(selectorButtons, (item) => {
-						var assetEntryId =
+						let assetEntryId =
 							item.attr('data-entityid') ||
 							item.attr('data-entityname');
 
-						var assetGroupId = item.attr('data-groupid');
+						const assetGroupId = item.attr('data-groupid');
 
 						if (assetGroupId) {
 							assetEntryId = assetGroupId + '-' + assetEntryId;
 						}
 
-						var disabled = selectedData.includes(assetEntryId);
+						const disabled = selectedData.includes(assetEntryId);
 
 						if (disabled) {
 							item.attr('data-prevent-selection', true);
@@ -1371,10 +1302,10 @@
 				dialog.show();
 			}
 			else {
-				var destroyDialog = function (event) {
-					var dialogId = config.id;
+				const destroyDialog = function (event) {
+					const dialogId = config.id;
 
-					var dialogWindow = Util.getWindow(dialogId);
+					const dialogWindow = Util.getWindow(dialogId);
 
 					if (
 						dialogWindow &&
@@ -1402,73 +1333,15 @@
 		['aui-base', 'liferay-util-window']
 	);
 
-	Liferay.provide(Util, 'toggleControls', (node) => {
-		const docBody = document.body;
-
-		node = node._node || docBody;
-
-		const trigger = node.querySelector('.toggle-controls');
-
-		if (!trigger) {
-			return;
-		}
-
-		let controlsVisible = Liferay._editControlsState === 'visible';
-
-		let currentState = MAP_TOGGLE_STATE[controlsVisible];
-
-		let icon = trigger.querySelector('.lexicon-icon');
-
-		if (icon) {
-			currentState.icon = icon;
-		}
-
-		docBody.classList.add(currentState.cssClass);
-
-		Liferay.fire('toggleControls', {
-			enabled: controlsVisible,
-		});
-
-		trigger.addEventListener('click', () => {
-			controlsVisible = !controlsVisible;
-
-			const previousState = currentState;
-
-			currentState = MAP_TOGGLE_STATE[controlsVisible];
-
-			docBody.classList.toggle(previousState.cssClass);
-			docBody.classList.toggle(currentState.cssClass);
-
-			const editControlsIconClass = currentState.iconCssClass;
-			const editControlsState = currentState.state;
-
-			const newIcon = Util.getLexiconIcon(editControlsIconClass);
-
-			currentState.icon = newIcon;
-
-			icon.replaceWith(newIcon);
-
-			icon = newIcon;
-
-			Liferay._editControlsState = editControlsState;
-
-			Liferay.Util.Session.set(
-				'com.liferay.frontend.js.web_toggleControls',
-				editControlsState
-			);
-
-			Liferay.fire('toggleControls', {
-				enabled: controlsVisible,
-				src: 'ui',
-			});
-		});
-	});
-
+	/**
+	 * Used in `modules/apps/frontend-js/frontend-js-web/src/main/resources/META-INF/resources/liferay/util/open_window.js`
+	 * which will need to be migrated over to `openModal`.
+	 */
 	Liferay.provide(
 		Util,
 		'_openWindowProvider',
 		(config, callback) => {
-			var dialog = Window.getWindow(config);
+			const dialog = Window.getWindow(config);
 
 			if (Lang.isFunction(callback)) {
 				callback(dialog);

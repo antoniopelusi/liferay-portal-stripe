@@ -15,7 +15,7 @@
 package com.liferay.gradle.plugins.jsdoc;
 
 import com.liferay.gradle.plugins.node.NodePlugin;
-import com.liferay.gradle.plugins.node.tasks.DownloadNodeModuleTask;
+import com.liferay.gradle.plugins.node.task.DownloadNodeModuleTask;
 import com.liferay.gradle.util.GradleUtil;
 
 import java.io.File;

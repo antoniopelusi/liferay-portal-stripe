@@ -6,7 +6,6 @@ definition {
 		var groupId = JSONAssetlistSetter.setGroupId(
 			groupName = "${groupName}",
 			site = "${site}");
-
 		var type = JSONAssetlistSetter.setType(selectionType = "dynamic");
 
 		JSONAssetlistAPI._addAssetListEntry(
@@ -35,7 +34,6 @@ definition {
 		var groupId = JSONAssetlistSetter.setGroupId(
 			groupName = "${groupName}",
 			site = "${site}");
-
 		var type = JSONAssetlistSetter.setType(selectionType = "manual");
 
 		JSONAssetlistAPI._addAssetListEntry(

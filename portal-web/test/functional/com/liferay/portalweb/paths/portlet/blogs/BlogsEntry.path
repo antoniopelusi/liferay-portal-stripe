@@ -16,6 +16,26 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ENTRY_COVER_IMAGE_CAPTION_LINK</td>
+	<td>//div[contains(@class,'cover-image-caption')]//a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ENTRY_COVER_IMAGE_CAPTION_LINK_CHECK_ICON</td>
+	<td>//span[contains(@class,'check_icon')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ENTRY_COVER_IMAGE_CAPTION_LINK_ICON</td>
+	<td>//div[contains(@class,'coverImageCaptionEditor')]//*[contains(@class,'cke_button_icon')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ENTRY_COVER_IMAGE_CAPTION_LINK_INPUT</td>
+	<td>//input[contains(@class,'textinput')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ENTRY_COVER_IMAGE</td>
 	<td>//div[contains(@class,'cover-image') and contains(@style,'${key_uploadFileName}')] | //div[contains(@class,'cover-image')]//img</td>
 	<td></td>
@@ -96,6 +116,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>CONTENT_INLINE_IMAGE_SPECIFIC</td>
+	<td>//div[contains(@class,'content')]//p[contains(normalize-space(),'${key_entryContent}')]//img[contains(@src,'${key_uploadFileName}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>CONTENT_INLINE_IMAGE_PREVIEW</td>
 	<td>so/screenshots/blogs/content_inline_image_preview.png</td>
 	<td></td>
@@ -103,6 +128,11 @@
 <tr>
 	<td>CONTENT_HTML_BOLD</td>
 	<td>//div[contains(@class,'widget-mode-detail-text')]/p/b</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONTENT_HTML_CITE</td>
+	<td>//div[contains(@class,'widget-mode-detail-text')]/cite</td>
 	<td></td>
 </tr>
 <tr>
@@ -117,7 +147,7 @@
 </tr>
 <tr>
 	<td>CONTENT_LINK</td>
-	<td>//div[contains(@class,'content')]//p[contains(.,'${key_entryContent}')]//a</td>
+	<td>//div[contains(@class,'content')]//p[contains(normalize-space(),'${key_entryContent}')]//a</td>
 	<td></td>
 </tr>
 <tr>
@@ -138,6 +168,11 @@
 <tr>
 	<td>TAG</td>
 	<td>//div[contains(.,'${key_entryTitle}')]//span/a[contains(.,'${key_tagName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TAG_2</td>
+	<td>xpath=(//div[contains(.,'${key_entryTitle}')]//span/a[contains(.,'${key_tagName}')])[2]</td>
 	<td></td>
 </tr>
 <tr>
@@ -167,7 +202,7 @@
 </tr>
 <tr>
 	<td>SMALL_IMAGE</td>
-	<td>//div[@class='current-image' and contains(@src,'${key_smallImage}')]</td>
+	<td>//div/img[@class='current-image' and contains(@src,'${key_smallImage}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -180,7 +215,9 @@
 	<td>//div[@class='embed-help-message']//span</td>
 	<td></td>
 </tr>
+
 <!--FRIENDLY_URL-->
+
 <tr>
 	<td>FRIENDLY_URL_ACTIVE_URL</td>
 	<td>//div[contains(@class,'modal-dialog')]//div[contains(@class,'active-url')]//p[normalize-space(text())='${key_activeURL}']</td>

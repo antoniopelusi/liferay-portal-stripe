@@ -30,6 +30,13 @@ definition {
 				value1 = "${dmServerVersion}");
 		}
 
+		if (isSet(dmRepositoryLibraryPath)) {
+			Type(
+				key_fieldLabel = "Library Path",
+				locator1 = "TextInput#GENERIC_TEXT_INPUT",
+				value1 = "${dmRepositoryLibraryPath}");
+		}
+
 		if (isSet(dmRepositorySiteAbsoluteURL)) {
 			Type(
 				key_fieldLabel = "Site Absolute URL",
@@ -98,7 +105,9 @@ definition {
 	macro gotoCP {
 		var key_dmRepositoryName = "${dmRepositoryName}";
 
-		AssertClick.assertTextClickAtAndPause(
+		AssertElementPresent.assertVisible(locator1 = "DocumentsAndMedia#REPOSITORY_FOLDER_NAME_DESCRIPTIVE_VIEW");
+
+		AssertClick.assertTextClickAt(
 			locator1 = "DocumentsAndMedia#REPOSITORY_FOLDER_NAME_DESCRIPTIVE_VIEW",
 			value1 = "${dmRepositoryName}");
 
@@ -121,12 +130,10 @@ definition {
 		while (IsElementPresent(locator1 = "DocumentsAndMedia#FILTER_REPOSITORY_GENERIC")) {
 			Click(locator1 = "DocumentsAndMedia#FILTER_REPOSITORY_GENERIC");
 
-			Pause(locator1 = "1000");
-
 			if (IsElementPresent(locator1 = "DocumentsAndMedia#ICON_DOCUMENT_GENERIC")) {
 				Click.clickNoMouseOverNoWaitForVisible(locator1 = "DocumentsAndMedia#TOOLBAR_SELECT_ALL_CHECKBOX");
 
-				Pause(locator1 = "1000");
+				AssertElementPresent.assertVisible(locator1 = "DocumentsAndMedia#TOOLBAR_ACTIONS");
 
 				Click(locator1 = "DocumentsAndMedia#TOOLBAR_ACTIONS");
 
@@ -153,6 +160,14 @@ definition {
 		AssertTextEquals(
 			locator1 = "DocumentsAndMedia#BREADCRUMB_FOLDER_NAME",
 			value1 = "${dmRepositoryName}");
+	}
+
+	macro viewNoDownloadItem {
+		Click(
+			key_dmFolderName = "${dmRepositoryName}",
+			locator1 = "DocumentsAndMedia#DESCRIPTIVE_LIST_VERTICAL_ELLIPSIS");
+
+		AssertElementNotPresent(locator1 = "MenuItem#DOWNLOAD");
 	}
 
 }

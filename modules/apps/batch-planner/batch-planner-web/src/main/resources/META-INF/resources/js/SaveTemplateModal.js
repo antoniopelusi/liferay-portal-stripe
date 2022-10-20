@@ -46,7 +46,7 @@ const SaveTemplateModal = ({
 	namespace,
 	observer,
 }) => {
-	const inputNameId = namespace + 'name';
+	const inputNameId = namespace + 'templateName';
 	const isMounted = useIsMounted();
 	const [errorMessage, setErrorMessage] = useState();
 	const [loadingResponse, setLoadingResponse] = useState(false);
@@ -145,9 +145,7 @@ const SaveTemplateModal = ({
 							</ClayButton>
 
 							<ClayButton
-								disabled={
-									loadingResponse || inputValue.length === 0
-								}
+								disabled={loadingResponse || !inputValue.length}
 								displayType="primary"
 								type="submit"
 							>

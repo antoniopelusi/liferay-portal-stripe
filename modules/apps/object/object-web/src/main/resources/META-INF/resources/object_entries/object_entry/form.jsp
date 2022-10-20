@@ -36,7 +36,7 @@ portletDisplay.setURLBack(backURL);
 >
 	<liferay-frontend:edit-form-body>
 		<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= (objectEntry == null) ? Constants.ADD : Constants.UPDATE %>" />
-		<aui:input name="objectEntryId" type="hidden" value="<%= (objectEntry == null) ? 0 : objectEntry.getObjectEntryId() %>" />
+		<aui:input name="externalReferenceCode" type="hidden" value='<%= (objectEntry == null) ? "" : objectEntry.getExternalReferenceCode() %>' />
 		<aui:input name="objectDefinitionId" type="hidden" value="<%= objectDefinition.getObjectDefinitionId() %>" />
 		<aui:input name="ddmFormValues" type="hidden" value="" />
 
@@ -51,6 +51,8 @@ portletDisplay.setURLBack(backURL);
 				</clay:row>
 			</clay:sheet-section>
 		</liferay-frontend:fieldset-group>
+
+		<%@ include file="/object_entries/object_entry/categorization.jspf" %>
 	</liferay-frontend:edit-form-body>
 
 	<c:if test="<%= !objectEntryDisplayContext.isReadOnly() %>">
@@ -64,13 +66,19 @@ portletDisplay.setURLBack(backURL);
 
 <c:if test="<%= !objectEntryDisplayContext.isReadOnly() %>">
 	<aui:script>
-		function <portlet:namespace />getObjectEntryId() {
-			return Number(
-				'<%= (objectEntry == null) ? 0 : objectEntry.getObjectEntryId() %>'
+		function <portlet:namespace />getExternalReferenceCode() {
+			return String(
+				'<%= (objectEntry == null) ? "" : objectEntry.getExternalReferenceCode() %>'
 			);
 		}
 
-		function <portlet:namespace />getPath(objectEntryId) {
+		function <portlet:namespace />getInputValues(element, selector) {
+			return Array.from(element.querySelectorAll(selector)).map(
+				(item) => item.value
+			);
+		}
+
+		function <portlet:namespace />getPath(externalReferenceCode) {
 			const scope = '<%= objectDefinition.getScope() %>';
 			const contextPath = '/o<%= objectDefinition.getRESTContextPath() %>';
 			const pathScopedBySite = contextPath.concat(
@@ -78,16 +86,22 @@ portletDisplay.setURLBack(backURL);
 			);
 
 			const postPath = scope === 'site' ? pathScopedBySite : contextPath;
-			const putPath = contextPath.concat('/', `\${objectEntryId}`);
 
-			return objectEntryId ? putPath : postPath;
+			let putPath = scope === 'site' ? pathScopedBySite : contextPath;
+
+			putPath = putPath.concat(
+				'/by-external-reference-code/',
+				`\${externalReferenceCode}`
+			);
+
+			return externalReferenceCode ? putPath : postPath;
 		}
 
 		function <portlet:namespace />getValues(fields) {
 			return fields.reduce((obj, field) => {
 				let value = field.value;
 				if (field.type === 'select' && !field.multiple) {
-					value = {key: field.value[0]};
+					value = {key: value.length ? field.value[0] : ''};
 				}
 
 				return Object.assign(obj, {[field.fieldName]: value});
@@ -118,9 +132,12 @@ portletDisplay.setURLBack(backURL);
 								shouldSubmitForm = false;
 
 								Liferay.Util.openToast({
-									message:
-										'<liferay-ui:message key="the-maximum-length-is-280-characters-for-text-fields" />',
-									type: 'warning',
+									message: Liferay.Util.sub(
+										'<liferay-ui:message key="the-entry-value-exceeds-the-maximum-length-of-x-characters-for-object-field-x" />',
+										'280',
+										'"' + field.fieldName + '"'
+									),
+									type: 'danger',
 								});
 
 								return false;
@@ -128,9 +145,32 @@ portletDisplay.setURLBack(backURL);
 						});
 
 						if (shouldSubmitForm) {
-							const values = <portlet:namespace />getValues(fields);
-							const objectEntryId = <portlet:namespace />getObjectEntryId();
-							const path = <portlet:namespace />getPath(objectEntryId);
+							let values = <portlet:namespace />getValues(fields);
+							const categoriesContent = document.getElementById(
+								'<portlet:namespace />categorization'
+							);
+							const externalReferenceCode = <portlet:namespace />getExternalReferenceCode();
+							const path = <portlet:namespace />getPath(
+								externalReferenceCode
+							);
+
+							if (categoriesContent) {
+								values = Object.assign(
+									values,
+									{
+										['categoryIds']: <portlet:namespace />getInputValues(
+											categoriesContent,
+											'input[name^="<portlet:namespace />assetCategoryIds"]'
+										),
+									},
+									{
+										['tagNames']: <portlet:namespace />getInputValues(
+											categoriesContent,
+											'input[name^="<portlet:namespace />assetTagNames"]'
+										),
+									}
+								);
+							}
 
 							Liferay.Util.fetch(path, {
 								body: JSON.stringify(values),
@@ -138,7 +178,7 @@ portletDisplay.setURLBack(backURL);
 									'Accept': 'application/json',
 									'Content-Type': 'application/json',
 								}),
-								method: objectEntryId ? 'PUT' : 'POST',
+								method: externalReferenceCode ? 'PUT' : 'POST',
 							})
 								.then((response) => {
 									if (response.status === 401) {
@@ -157,8 +197,8 @@ portletDisplay.setURLBack(backURL);
 											);
 
 											portletURL.setParameter(
-												'objectEntryId',
-												payload.id
+												'externalReferenceCode',
+												payload.externalReferenceCode
 											);
 
 											Liferay.Util.navigate(

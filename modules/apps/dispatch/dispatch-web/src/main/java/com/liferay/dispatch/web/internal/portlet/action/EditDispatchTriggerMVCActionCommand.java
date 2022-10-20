@@ -17,7 +17,9 @@ package com.liferay.dispatch.web.internal.portlet.action;
 import com.liferay.dispatch.constants.DispatchConstants;
 import com.liferay.dispatch.constants.DispatchPortletKeys;
 import com.liferay.dispatch.executor.DispatchTaskClusterMode;
+import com.liferay.dispatch.executor.DispatchTaskExecutorRegistry;
 import com.liferay.dispatch.model.DispatchTrigger;
+import com.liferay.dispatch.service.DispatchTriggerLocalService;
 import com.liferay.dispatch.service.DispatchTriggerService;
 import com.liferay.dispatch.web.internal.security.permisison.resource.DispatchTriggerPermission;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -130,14 +132,30 @@ public class EditDispatchTriggerMVCActionCommand extends BaseMVCActionCommand {
 		}
 		else {
 			deleteDispatchTriggerIds = StringUtil.split(
-				ParamUtil.getString(actionRequest, "deleteDispatchTriggerIds"),
-				0L);
+				ParamUtil.getString(actionRequest, "rowIds"), 0L);
 		}
 
 		for (long deleteDispatchTriggerId : deleteDispatchTriggerIds) {
 			_dispatchTriggerService.deleteDispatchTrigger(
 				deleteDispatchTriggerId);
 		}
+	}
+
+	private DispatchTaskClusterMode _getDispatchTaskClusterMode(
+			long dispatchTaskId,
+			DispatchTaskClusterMode dispatchTaskClusterMode)
+		throws PortalException {
+
+		DispatchTrigger dispatchTrigger =
+			_dispatchTriggerLocalService.getDispatchTrigger(dispatchTaskId);
+
+		if (_dispatchTaskExecutorRegistry.isClusterModeSingle(
+				dispatchTrigger.getDispatchTaskExecutorType())) {
+
+			return DispatchTaskClusterMode.SINGLE_NODE;
+		}
+
+		return dispatchTaskClusterMode;
 	}
 
 	private JSONObject _runProcess(ActionRequest actionRequest)
@@ -180,8 +198,11 @@ public class EditDispatchTriggerMVCActionCommand extends BaseMVCActionCommand {
 		String cronExpression = ParamUtil.getString(
 			actionRequest, "cronExpression");
 		DispatchTaskClusterMode dispatchTaskClusterMode =
-			DispatchTaskClusterMode.valueOf(
-				ParamUtil.getInteger(actionRequest, "dispatchTaskClusterMode"));
+			_getDispatchTaskClusterMode(
+				dispatchTriggerId,
+				DispatchTaskClusterMode.valueOf(
+					ParamUtil.getInteger(
+						actionRequest, "dispatchTaskClusterMode")));
 		int endDateMonth = ParamUtil.getInteger(actionRequest, "endDateMonth");
 		int endDateDay = ParamUtil.getInteger(actionRequest, "endDateDay");
 		int endDateYear = ParamUtil.getInteger(actionRequest, "endDateYear");
@@ -216,11 +237,13 @@ public class EditDispatchTriggerMVCActionCommand extends BaseMVCActionCommand {
 			startDateHour += 12;
 		}
 
+		String timeZoneId = ParamUtil.getString(actionRequest, "timeZoneId");
+
 		_dispatchTriggerService.updateDispatchTrigger(
 			dispatchTriggerId, active, cronExpression, dispatchTaskClusterMode,
 			endDateMonth, endDateDay, endDateYear, endDateHour, endDateMinute,
 			neverEnd, overlapAllowed, startDateMonth, startDateDay,
-			startDateYear, startDateHour, startDateMinute);
+			startDateYear, startDateHour, startDateMinute, timeZoneId);
 	}
 
 	private void _sendMessage(long dispatchTriggerId) {
@@ -288,6 +311,12 @@ public class EditDispatchTriggerMVCActionCommand extends BaseMVCActionCommand {
 		target = "(destination.name=" + DispatchConstants.EXECUTOR_DESTINATION_NAME + ")"
 	)
 	private Destination _destination;
+
+	@Reference
+	private DispatchTaskExecutorRegistry _dispatchTaskExecutorRegistry;
+
+	@Reference
+	private DispatchTriggerLocalService _dispatchTriggerLocalService;
 
 	@Reference
 	private DispatchTriggerService _dispatchTriggerService;

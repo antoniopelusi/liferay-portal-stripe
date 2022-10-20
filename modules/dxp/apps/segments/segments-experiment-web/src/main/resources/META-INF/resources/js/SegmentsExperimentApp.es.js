@@ -9,13 +9,15 @@
  * distribution rights of the Software.
  */
 
-import React from 'react';
+import React, {useEffect} from 'react';
 
+import ConnectToAC from './components/ConnectToAC.es';
 import SegmentsExperimentsSidebar from './components/SegmentsExperimentsSidebar.es';
 import SegmentsExperimentsContext from './context.es';
 import APIService from './util/APIService.es';
 
-export default function ({context, props}) {
+export default function ({context, portletNamespace, props}) {
+	const isAnalyticsSync = props.analyticsData?.isSynced;
 	const {endpoints, imagesPath, page} = context;
 	const {
 		calculateSegmentsExperimentEstimatedDurationURL,
@@ -29,8 +31,37 @@ export default function ({context, props}) {
 		editSegmentsVariantURL,
 		runSegmentsExperimentURL,
 	} = endpoints;
+	const segmentsExperimentPanelToggle = document.getElementById(
+		`${portletNamespace}segmentsExperimentPanelToggleId`
+	);
 
-	return (
+	useEffect(() => {
+		if (segmentsExperimentPanelToggle) {
+			const sidenavInstance = Liferay.SideNavigation.initialize(
+				segmentsExperimentPanelToggle
+			);
+
+			sidenavInstance.on('open.lexicon.sidenav', () => {
+				Liferay.Util.Session.set(
+					'com.liferay.segments.experiment.web_panelState',
+					'open'
+				);
+			});
+
+			sidenavInstance.on('closed.lexicon.sidenav', () => {
+				Liferay.Util.Session.set(
+					'com.liferay.segments.experiment.web_panelState',
+					'closed'
+				);
+			});
+
+			Liferay.once('screenLoad', () => {
+				Liferay.SideNavigation.destroy(segmentsExperimentPanelToggle);
+			});
+		}
+	}, [segmentsExperimentPanelToggle, portletNamespace]);
+
+	return isAnalyticsSync ? (
 		<SegmentsExperimentsContext.Provider
 			value={{
 				APIService: APIService({
@@ -54,16 +85,26 @@ export default function ({context, props}) {
 				page,
 			}}
 		>
-			<SegmentsExperimentsSidebar
-				initialExperimentHistory={props.historySegmentsExperiments}
-				initialGoals={props.segmentsExperimentGoals}
-				initialSegmentsExperiment={props.segmentsExperiment}
-				initialSegmentsVariants={props.initialSegmentsVariants}
-				initialSelectedSegmentsExperienceId={
-					props.selectedSegmentsExperienceId
-				}
-				winnerSegmentsVariantId={props.winnerSegmentsVariantId}
-			/>
+			<div id={`${portletNamespace}-segments-experiment-root`}>
+				<SegmentsExperimentsSidebar
+					initialExperimentHistory={props.historySegmentsExperiments}
+					initialGoals={props.segmentsExperimentGoals}
+					initialSegmentsExperiment={props.segmentsExperiment}
+					initialSegmentsVariants={props.initialSegmentsVariants}
+					initialSelectedSegmentsExperienceId={
+						props.selectedSegmentsExperienceId
+					}
+					winnerSegmentsVariantId={props.winnerSegmentsVariantId}
+				/>
+			</div>
 		</SegmentsExperimentsContext.Provider>
+	) : (
+		<ConnectToAC
+			analyticsCloudTrialURL={props.analyticsData?.cloudTrialURL}
+			analyticsURL={props.analyticsData?.url}
+			hideAnalyticsReportsPanelURL={props.hideSegmentsExperimentPanelURL}
+			isAnalyticsConnected={props.analyticsData?.isConnected}
+			pathToAssets={props.pathToAssets}
+		/>
 	);
 }

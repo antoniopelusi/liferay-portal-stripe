@@ -35,6 +35,10 @@ components:
                     type: string
                 documentsRepository:
                     $ref: "#/components/schemas/Folder"
+                externalField:
+                    items:
+                        $ref: "src/test/resources/com/liferay/portal/tools/rest/builder/external-dependencies/rest-openapi.yaml#ExternalReferenceElement1"
+                    type: array
                 id:
                     format: int64
                     type: integer
@@ -58,6 +62,17 @@ components:
                         name: xmlProperty
                 property-with-hyphens:
                     type: string
+        UnreferencedSchemaComponent:
+            properties:
+                description:
+                    type: string
+                external-reference-field:
+                    items:
+                        $ref: "src/test/resources/com/liferay/portal/tools/rest/builder/external-dependencies/rest-openapi.yaml#ExternalReferenceElement2"
+                    type: array
+                id:
+                    format: int64
+                    type: integer
 info:
     title: ""
     version: "1.0.0"

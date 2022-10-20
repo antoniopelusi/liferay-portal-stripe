@@ -18,18 +18,29 @@ import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.object.admin.rest.client.dto.v1_0.ObjectDefinition;
 import com.liferay.object.admin.rest.client.dto.v1_0.ObjectField;
 import com.liferay.object.admin.rest.client.pagination.Page;
+import com.liferay.object.admin.rest.client.problem.Problem;
+import com.liferay.object.admin.rest.client.serdes.v1_0.ObjectDefinitionSerDes;
+import com.liferay.object.admin.rest.resource.v1_0.test.BaseObjectDefinitionResourceTestCase.GraphQLField;
 import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.exception.NoSuchObjectDefinitionException;
 import com.liferay.object.service.ObjectDefinitionLocalService;
+import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.test.rule.Inject;
+import com.liferay.portal.util.PropsUtil;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -87,7 +98,7 @@ public class ObjectDefinitionResourceTest
 
 		assertEquals(
 			Arrays.asList(objectDefinition1, objectDefinition2),
-			objectDefinitions.subList(0, 2));
+			objectDefinitions.subList(2, 4));
 
 		Page<ObjectDefinition> descPage =
 			objectDefinitionResource.getObjectDefinitionsPage(
@@ -98,13 +109,94 @@ public class ObjectDefinitionResourceTest
 		assertEquals(
 			Arrays.asList(objectDefinition2, objectDefinition1),
 			objectDefinitions.subList(
-				objectDefinitions.size() - 2, objectDefinitions.size()));
+				objectDefinitions.size() - 4, objectDefinitions.size() - 2));
+
+		_objectDefinitionLocalService.deleteObjectDefinition(
+			objectDefinition1.getId());
+		_objectDefinitionLocalService.deleteObjectDefinition(
+			objectDefinition2.getId());
 	}
 
 	@Ignore
 	@Override
 	@Test
 	public void testGraphQLGetObjectDefinitionNotFound() {
+	}
+
+	@Override
+	@Test
+	public void testGraphQLGetObjectDefinitionsPage() throws Exception {
+		GraphQLField graphQLField = new GraphQLField(
+			"objectDefinitions",
+			HashMapBuilder.<String, Object>put(
+				"page", 1
+			).put(
+				"pageSize",
+				() -> {
+					int objectDefinitionsCount =
+						_objectDefinitionLocalService.getObjectDefinitionsCount(
+							TestPropsValues.getCompanyId());
+
+					return objectDefinitionsCount + 10;
+				}
+			).build(),
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
+
+		JSONObject objectDefinitionsJSONObject = JSONUtil.getValueAsJSONObject(
+			invokeGraphQLQuery(graphQLField), "JSONObject/data",
+			"JSONObject/objectDefinitions");
+
+		long totalCount = objectDefinitionsJSONObject.getLong("totalCount");
+
+		ObjectDefinition objectDefinition1 =
+			testGraphQLGetObjectDefinitionsPage_addObjectDefinition();
+		ObjectDefinition objectDefinition2 =
+			testGraphQLGetObjectDefinitionsPage_addObjectDefinition();
+
+		objectDefinitionsJSONObject = JSONUtil.getValueAsJSONObject(
+			invokeGraphQLQuery(graphQLField), "JSONObject/data",
+			"JSONObject/objectDefinitions");
+
+		Assert.assertEquals(
+			totalCount + 2, objectDefinitionsJSONObject.getLong("totalCount"));
+
+		assertContains(
+			objectDefinition1,
+			Arrays.asList(
+				ObjectDefinitionSerDes.toDTOs(
+					objectDefinitionsJSONObject.getString("items"))));
+		assertContains(
+			objectDefinition2,
+			Arrays.asList(
+				ObjectDefinitionSerDes.toDTOs(
+					objectDefinitionsJSONObject.getString("items"))));
+	}
+
+	@Test
+	public void testPutObjectDefinitionWithStorageType() throws Exception {
+		ObjectDefinition postObjectDefinition =
+			testPutObjectDefinition_addObjectDefinition();
+
+		ObjectDefinition randomObjectDefinition = randomObjectDefinition();
+
+		randomObjectDefinition.setStorageType(
+			ObjectDefinitionConstants.STORAGE_TYPE_DEFAULT);
+
+		try {
+			objectDefinitionResource.putObjectDefinition(
+				postObjectDefinition.getId(), randomObjectDefinition);
+
+			Assert.fail();
+		}
+		catch (Problem.ProblemException problemException) {
+			Problem problem = problemException.getProblem();
+
+			Assert.assertEquals("BAD_REQUEST", problem.getStatus());
+		}
+
+		_objectDefinitionLocalService.deleteObjectDefinition(
+			postObjectDefinition.getId());
 	}
 
 	@Override
@@ -121,6 +213,9 @@ public class ObjectDefinitionResourceTest
 	protected ObjectDefinition randomObjectDefinition() throws Exception {
 		ObjectDefinition objectDefinition = super.randomObjectDefinition();
 
+		objectDefinition.setAccountEntryRestricted(false);
+		objectDefinition.setAccountEntryRestrictedObjectFieldId(
+			Long.valueOf(0));
 		objectDefinition.setActive(false);
 		objectDefinition.setLabel(
 			Collections.singletonMap(
@@ -141,6 +236,11 @@ public class ObjectDefinitionResourceTest
 				}
 			});
 		objectDefinition.setScope(ObjectDefinitionConstants.SCOPE_COMPANY);
+
+		if (!GetterUtil.getBoolean(PropsUtil.get("feature.flag.LPS-135430"))) {
+			objectDefinition.setStorageType(StringPool.BLANK);
+		}
+
 		objectDefinition.setTitleObjectFieldId(Long.valueOf(0));
 
 		return objectDefinition;

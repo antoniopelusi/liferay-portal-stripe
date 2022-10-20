@@ -95,42 +95,49 @@ public class PortalReleasePortalTopLevelBuild
 				URL portalReleaseTomcatURL = new URL(tomcatURLString);
 
 				_portalRelease = new PortalRelease(portalReleaseTomcatURL);
+
+				_portalRelease.setPortalBundleTomcatURL(portalReleaseTomcatURL);
 			}
 
-			String dependenciesURLString = getParameterValue(
+			String portalDependenciesZipURLString = getParameterValue(
 				"TEST_PORTAL_RELEASE_DEPENDENCIES_URL");
 
-			if (_isURL(dependenciesURLString)) {
-				_portalRelease.setDependenciesURL(
-					new URL(dependenciesURLString));
+			if (JenkinsResultsParserUtil.isURL(
+					portalDependenciesZipURLString)) {
+
+				_portalRelease.setPortalDependenciesZipURL(
+					new URL(portalDependenciesZipURLString));
 			}
 
-			String osgiURLString = getParameterValue(
+			String portalOSGiZipURLString = getParameterValue(
 				"TEST_PORTAL_RELEASE_OSGI_URL");
 
-			if (_isURL(osgiURLString)) {
-				_portalRelease.setOSGiURL(new URL(osgiURLString));
+			if (JenkinsResultsParserUtil.isURL(portalOSGiZipURLString)) {
+				_portalRelease.setPortalOSGiZipURL(
+					new URL(portalOSGiZipURLString));
+			}
+
+			String portalSQLZipURLString = getParameterValue(
+				"TEST_PORTAL_RELEASE_SQL_URL");
+
+			if (JenkinsResultsParserUtil.isURL(portalSQLZipURLString)) {
+				_portalRelease.setPortalSQLZipURL(
+					new URL(portalSQLZipURLString));
+			}
+
+			String portalToolsZipURLString = getParameterValue(
+				"TEST_PORTAL_RELEASE_TOOLS_URL");
+
+			if (JenkinsResultsParserUtil.isURL(portalToolsZipURLString)) {
+				_portalRelease.setPortalToolsZipURL(
+					new URL(portalToolsZipURLString));
 			}
 
 			String portalWarURLString = getParameterValue(
 				"TEST_PORTAL_RELEASE_WAR_URL");
 
-			if (_isURL(portalWarURLString)) {
+			if (JenkinsResultsParserUtil.isURL(portalWarURLString)) {
 				_portalRelease.setPortalWarURL(new URL(portalWarURLString));
-			}
-
-			String sqlURLString = getParameterValue(
-				"TEST_PORTAL_RELEASE_SQL_URL");
-
-			if (_isURL(sqlURLString)) {
-				_portalRelease.setSQLURL(new URL(sqlURLString));
-			}
-
-			String toolsURLString = getParameterValue(
-				"TEST_PORTAL_RELEASE_TOOLS_URL");
-
-			if (_isURL(toolsURLString)) {
-				_portalRelease.setToolsURL(new URL(toolsURLString));
 			}
 		}
 		catch (MalformedURLException malformedURLException) {
@@ -212,16 +219,6 @@ public class PortalReleasePortalTopLevelBuild
 		sb.append(portalBranchName);
 
 		return sb.toString();
-	}
-
-	private boolean _isURL(String urlString) {
-		if (JenkinsResultsParserUtil.isNullOrEmpty(urlString) ||
-			!urlString.matches("https?://.+")) {
-
-			return false;
-		}
-
-		return true;
 	}
 
 	private static final Pattern _pattern = Pattern.compile(

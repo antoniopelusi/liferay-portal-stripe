@@ -90,8 +90,8 @@ public interface CPMeasurementUnitLocalService
 		CPMeasurementUnit cpMeasurementUnit);
 
 	public CPMeasurementUnit addCPMeasurementUnit(
-			Map<Locale, String> nameMap, String key, double rate,
-			boolean primary, double priority, int type,
+			String externalReferenceCode, Map<Locale, String> nameMap,
+			String key, double rate, boolean primary, double priority, int type,
 			ServiceContext serviceContext)
 		throws PortalException;
 
@@ -224,9 +224,29 @@ public interface CPMeasurementUnitLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public CPMeasurementUnit fetchCPMeasurementUnit(long CPMeasurementUnitId);
 
+	/**
+	 * Returns the cp measurement unit with the matching external reference code and company.
+	 *
+	 * @param companyId the primary key of the company
+	 * @param externalReferenceCode the cp measurement unit's external reference code
+	 * @return the matching cp measurement unit, or <code>null</code> if a matching cp measurement unit could not be found
+	 */
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public CPMeasurementUnit fetchCPMeasurementUnit(long companyId, String key)
+	public CPMeasurementUnit fetchCPMeasurementUnitByExternalReferenceCode(
+		long companyId, String externalReferenceCode);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public CPMeasurementUnit fetchCPMeasurementUnitByKey(
+			long companyId, String key)
 		throws PortalException;
+
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #fetchCPMeasurementUnitByExternalReferenceCode(long, String)}
+	 */
+	@Deprecated
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public CPMeasurementUnit fetchCPMeasurementUnitByReferenceCode(
+		long companyId, String externalReferenceCode);
 
 	/**
 	 * Returns the cp measurement unit matching the UUID and group.
@@ -244,6 +264,10 @@ public interface CPMeasurementUnitLocalService
 		long companyId, int type);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public CPMeasurementUnit fetchPrimaryCPMeasurementUnitByType(
+		long companyId, int type);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public ActionableDynamicQuery getActionableDynamicQuery();
 
 	/**
@@ -257,8 +281,22 @@ public interface CPMeasurementUnitLocalService
 	public CPMeasurementUnit getCPMeasurementUnit(long CPMeasurementUnitId)
 		throws PortalException;
 
+	/**
+	 * Returns the cp measurement unit with the matching external reference code and company.
+	 *
+	 * @param companyId the primary key of the company
+	 * @param externalReferenceCode the cp measurement unit's external reference code
+	 * @return the matching cp measurement unit
+	 * @throws PortalException if a matching cp measurement unit could not be found
+	 */
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public CPMeasurementUnit getCPMeasurementUnit(long companyId, String key)
+	public CPMeasurementUnit getCPMeasurementUnitByExternalReferenceCode(
+			long companyId, String externalReferenceCode)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public CPMeasurementUnit getCPMeasurementUnitByKey(
+			long companyId, String key)
 		throws PortalException;
 
 	/**
@@ -304,6 +342,17 @@ public interface CPMeasurementUnitLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<CPMeasurementUnit> getCPMeasurementUnits(
 		long companyId, String[] keys);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<CPMeasurementUnit> getCPMeasurementUnitsByType(
+			long companyId, int type)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<CPMeasurementUnit> getCPMeasurementUnitsByType(
+			long companyId, int type, int start, int end,
+			OrderByComparator<CPMeasurementUnit> orderByComparator)
+		throws PortalException;
 
 	/**
 	 * Returns all the cp measurement units matching the UUID and company.
@@ -389,8 +438,9 @@ public interface CPMeasurementUnitLocalService
 		CPMeasurementUnit cpMeasurementUnit);
 
 	public CPMeasurementUnit updateCPMeasurementUnit(
-			long cpMeasurementUnitId, Map<Locale, String> nameMap, String key,
-			double rate, boolean primary, double priority, int type,
+			String externalReferenceCode, long cpMeasurementUnitId,
+			Map<Locale, String> nameMap, String key, double rate,
+			boolean primary, double priority, int type,
 			ServiceContext serviceContext)
 		throws PortalException;
 

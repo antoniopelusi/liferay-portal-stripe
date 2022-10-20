@@ -117,6 +117,12 @@ public interface ObjectViewResource {
 			return new ObjectViewResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -162,6 +168,7 @@ public interface ObjectViewResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -260,7 +267,7 @@ public interface ObjectViewResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/object-admin/v1.0/object-definitions/{objectDefinitionId}/object-views");
 
 			httpInvoker.path("objectDefinitionId", objectDefinitionId);
@@ -346,7 +353,7 @@ public interface ObjectViewResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/object-admin/v1.0/object-definitions/{objectDefinitionId}/object-views");
 
 			httpInvoker.path("objectDefinitionId", objectDefinitionId);
@@ -426,7 +433,7 @@ public interface ObjectViewResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/object-admin/v1.0/object-definitions/{objectDefinitionId}/object-views/batch");
 
 			httpInvoker.path("objectDefinitionId", objectDefinitionId);
@@ -505,7 +512,7 @@ public interface ObjectViewResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/object-admin/v1.0/object-views/{objectViewId}");
 
 			httpInvoker.path("objectViewId", objectViewId);
@@ -582,7 +589,8 @@ public interface ObjectViewResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port + "/o/object-admin/v1.0/object-views/batch");
+					_builder._port + _builder._contextPath +
+						"/o/object-admin/v1.0/object-views/batch");
 
 			httpInvoker.userNameAndPassword(
 				_builder._login + ":" + _builder._password);
@@ -658,7 +666,7 @@ public interface ObjectViewResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/object-admin/v1.0/object-views/{objectViewId}");
 
 			httpInvoker.path("objectViewId", objectViewId);
@@ -742,7 +750,7 @@ public interface ObjectViewResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/object-admin/v1.0/object-views/{objectViewId}");
 
 			httpInvoker.path("objectViewId", objectViewId);
@@ -819,7 +827,8 @@ public interface ObjectViewResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port + "/o/object-admin/v1.0/object-views/batch");
+					_builder._port + _builder._contextPath +
+						"/o/object-admin/v1.0/object-views/batch");
 
 			httpInvoker.userNameAndPassword(
 				_builder._login + ":" + _builder._password);
@@ -897,7 +906,7 @@ public interface ObjectViewResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/object-admin/v1.0/object-views/{objectViewId}/copy");
 
 			httpInvoker.path("objectViewId", objectViewId);

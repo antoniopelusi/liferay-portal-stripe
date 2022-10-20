@@ -12,64 +12,60 @@
  * details.
  */
 
-import {useQuery} from '@apollo/client';
 import ClayIcon from '@clayui/icon';
+import ClayManagementToolbar from '@clayui/management-toolbar';
 import {useEffect} from 'react';
-import {useParams} from 'react-router-dom';
+import {useOutletContext, useParams} from 'react-router-dom';
 
+import Button from '../../../components/Button';
 import Container from '../../../components/Layout/Container';
-import ListView from '../../../components/ListView/ListView';
-import Loading from '../../../components/Loading';
+import ListView from '../../../components/ListView';
 import MarkdownPreview from '../../../components/Markdown';
 import QATable from '../../../components/Table/QATable';
-import {
-	TestrayRequirement,
-	getCases,
-	getRequirement,
-} from '../../../graphql/queries';
 import useHeader from '../../../hooks/useHeader';
 import i18n from '../../../i18n';
+import {filters} from '../../../schema/filter';
+import {
+	TestrayRequirement,
+	TestrayRequirementCase,
+	requirementsCasesResource,
+} from '../../../services/rest';
 import {DescriptionType} from '../../../types';
+import {searchUtil} from '../../../util/search';
+import RequirementCaseLinkModal from './RequirementCaseLinkModal';
+import useRequirementCaseActions from './useRequirementCaseActions';
 
 const Requirement = () => {
-	const {requirementId} = useParams();
+	const {projectId} = useParams();
+	const {
+		testrayRequirement,
+	}: {testrayRequirement: TestrayRequirement} = useOutletContext();
+	const {actions, formModal} = useRequirementCaseActions();
 
-	const {setHeading, setTabs} = useHeader({shouldUpdate: false});
+	const {context, setHeading, setTabs} = useHeader({shouldUpdate: false});
 
-	const {data, loading} = useQuery<{requirement: TestrayRequirement}>(
-		getRequirement,
-		{
-			variables: {
-				requirementId,
-			},
-		}
-	);
-
-	const testrayRequirement = data?.requirement;
+	const maxHeads = context.heading.length === 2;
 
 	useEffect(() => {
-		if (testrayRequirement) {
+		if (testrayRequirement && !maxHeads) {
 			setTimeout(() => {
 				setHeading([{title: testrayRequirement.key}], true);
 			}, 0);
 		}
-	}, [setHeading, testrayRequirement]);
+	}, [setHeading, testrayRequirement, maxHeads]);
 
 	useEffect(() => {
 		setTabs([]);
 	}, [setTabs]);
 
-	if (loading) {
-		return <Loading />;
-	}
-
-	if (!testrayRequirement) {
-		return null;
-	}
-
 	return (
 		<>
-			<Container title={i18n.translate('details')}>
+			<RequirementCaseLinkModal
+				modal={formModal.modal}
+				projectId={projectId as string}
+			/>
+
+			<Container collapsable title={i18n.translate('details')}>
 				<QATable
 					items={[
 						{
@@ -130,25 +126,65 @@ const Requirement = () => {
 				/>
 			</Container>
 
-			<Container className="mt-3" title={i18n.translate('cases')}>
+			<Container className="mt-3">
 				<ListView
-					managementToolbarProps={{visible: false}}
-					query={getCases}
+					forceRefetch={formModal.forceRefetch}
+					managementToolbarProps={{
+						buttons: (
+							<ClayManagementToolbar.Item>
+								<Button
+									displayType="secondary"
+									onClick={() => formModal.modal.open()}
+									symbol="list-ul"
+								>
+									{i18n.translate('link-cases')}
+								</Button>
+							</ClayManagementToolbar.Item>
+						),
+						filterFields: filters.requirementCase as any,
+						title: i18n.translate('cases'),
+					}}
+					resource={requirementsCasesResource}
 					tableProps={{
+						actions,
 						columns: [
 							{
+								clickable: true,
 								key: 'priority',
+								render: (
+									_,
+									requirementCase: TestrayRequirementCase
+								) => requirementCase.case.priority,
 								value: i18n.translate('priority'),
 							},
-							{key: 'name', value: i18n.translate('case-name')},
 							{
+								clickable: true,
+								key: 'name',
+								render: (
+									_,
+									requirementCase: TestrayRequirementCase
+								) => requirementCase.case.name,
+								value: i18n.translate('case-name'),
+							},
+							{
+								clickable: true,
 								key: 'component',
-								render: (component) => component?.name,
+								render: (
+									_,
+									requirementCase: TestrayRequirementCase
+								) => requirementCase.case.component?.name,
 								value: i18n.translate('component'),
 							},
 						],
+						navigateTo: ({case: Case}: TestrayRequirementCase) =>
+							`/project/${projectId}/cases/${Case.id}`,
 					}}
-					transformData={(data) => data?.cases}
+					variables={{
+						filter: searchUtil.eq(
+							'requirementId',
+							testrayRequirement.id
+						),
+					}}
 				/>
 			</Container>
 		</>

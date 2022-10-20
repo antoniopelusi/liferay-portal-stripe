@@ -14,6 +14,7 @@
 
 package com.liferay.headless.delivery.client.serdes.v1_0;
 
+import com.liferay.headless.delivery.client.dto.v1_0.CustomCSSViewport;
 import com.liferay.headless.delivery.client.dto.v1_0.FragmentViewport;
 import com.liferay.headless.delivery.client.dto.v1_0.PageSectionDefinition;
 import com.liferay.headless.delivery.client.json.BaseJSONParser;
@@ -94,6 +95,87 @@ public class PageSectionDefinitionSerDes {
 				String.valueOf(pageSectionDefinition.getBackgroundImage()));
 		}
 
+		if (pageSectionDefinition.getContentVisibility() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"contentVisibility\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(pageSectionDefinition.getContentVisibility()));
+
+			sb.append("\"");
+		}
+
+		if (pageSectionDefinition.getCssClasses() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"cssClasses\": ");
+
+			sb.append("[");
+
+			for (int i = 0; i < pageSectionDefinition.getCssClasses().length;
+				 i++) {
+
+				sb.append("\"");
+
+				sb.append(_escape(pageSectionDefinition.getCssClasses()[i]));
+
+				sb.append("\"");
+
+				if ((i + 1) < pageSectionDefinition.getCssClasses().length) {
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
+		}
+
+		if (pageSectionDefinition.getCustomCSS() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"customCSS\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(pageSectionDefinition.getCustomCSS()));
+
+			sb.append("\"");
+		}
+
+		if (pageSectionDefinition.getCustomCSSViewports() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"customCSSViewports\": ");
+
+			sb.append("[");
+
+			for (int i = 0;
+				 i < pageSectionDefinition.getCustomCSSViewports().length;
+				 i++) {
+
+				sb.append(
+					String.valueOf(
+						pageSectionDefinition.getCustomCSSViewports()[i]));
+
+				if ((i + 1) <
+						pageSectionDefinition.getCustomCSSViewports().length) {
+
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
+		}
+
 		if (pageSectionDefinition.getFragmentLink() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -171,6 +253,20 @@ public class PageSectionDefinitionSerDes {
 			sb.append(String.valueOf(pageSectionDefinition.getLayout()));
 		}
 
+		if (pageSectionDefinition.getName() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"name\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(pageSectionDefinition.getName()));
+
+			sb.append("\"");
+		}
+
 		sb.append("}");
 
 		return sb.toString();
@@ -218,6 +314,42 @@ public class PageSectionDefinitionSerDes {
 			map.put(
 				"backgroundImage",
 				String.valueOf(pageSectionDefinition.getBackgroundImage()));
+		}
+
+		if (pageSectionDefinition.getContentVisibility() == null) {
+			map.put("contentVisibility", null);
+		}
+		else {
+			map.put(
+				"contentVisibility",
+				String.valueOf(pageSectionDefinition.getContentVisibility()));
+		}
+
+		if (pageSectionDefinition.getCssClasses() == null) {
+			map.put("cssClasses", null);
+		}
+		else {
+			map.put(
+				"cssClasses",
+				String.valueOf(pageSectionDefinition.getCssClasses()));
+		}
+
+		if (pageSectionDefinition.getCustomCSS() == null) {
+			map.put("customCSS", null);
+		}
+		else {
+			map.put(
+				"customCSS",
+				String.valueOf(pageSectionDefinition.getCustomCSS()));
+		}
+
+		if (pageSectionDefinition.getCustomCSSViewports() == null) {
+			map.put("customCSSViewports", null);
+		}
+		else {
+			map.put(
+				"customCSSViewports",
+				String.valueOf(pageSectionDefinition.getCustomCSSViewports()));
 		}
 
 		if (pageSectionDefinition.getFragmentLink() == null) {
@@ -272,6 +404,13 @@ public class PageSectionDefinitionSerDes {
 				"layout", String.valueOf(pageSectionDefinition.getLayout()));
 		}
 
+		if (pageSectionDefinition.getName() == null) {
+			map.put("name", null);
+		}
+		else {
+			map.put("name", String.valueOf(pageSectionDefinition.getName()));
+		}
+
 		return map;
 	}
 
@@ -313,6 +452,39 @@ public class PageSectionDefinitionSerDes {
 					pageSectionDefinition.setBackgroundImage(
 						BackgroundImageSerDes.toDTO(
 							(String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "contentVisibility")) {
+				if (jsonParserFieldValue != null) {
+					pageSectionDefinition.setContentVisibility(
+						(String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "cssClasses")) {
+				if (jsonParserFieldValue != null) {
+					pageSectionDefinition.setCssClasses(
+						toStrings((Object[])jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "customCSS")) {
+				if (jsonParserFieldValue != null) {
+					pageSectionDefinition.setCustomCSS(
+						(String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(
+						jsonParserFieldName, "customCSSViewports")) {
+
+				if (jsonParserFieldValue != null) {
+					pageSectionDefinition.setCustomCSSViewports(
+						Stream.of(
+							toStrings((Object[])jsonParserFieldValue)
+						).map(
+							object -> CustomCSSViewportSerDes.toDTO(
+								(String)object)
+						).toArray(
+							size -> new CustomCSSViewport[size]
+						));
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "fragmentLink")) {
@@ -358,6 +530,11 @@ public class PageSectionDefinitionSerDes {
 				if (jsonParserFieldValue != null) {
 					pageSectionDefinition.setLayout(
 						LayoutSerDes.toDTO((String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "name")) {
+				if (jsonParserFieldValue != null) {
+					pageSectionDefinition.setName((String)jsonParserFieldValue);
 				}
 			}
 		}

@@ -20,6 +20,11 @@ export function parseActions(node) {
 		actions.executionType = parseProperty(actions, item, 'execution-type');
 		actions.priority = parseProperty(actions, item, 'priority');
 		actions.script = parseProperty(actions, item, 'script');
+		actions.scriptLanguage = parseProperty(
+			actions,
+			item,
+			'script-language'
+		);
 	});
 
 	return actions;
@@ -141,6 +146,11 @@ export function parseNotifications(node) {
 			'execution-type'
 		);
 		notifications.name = parseProperty(notifications, item, 'name');
+		notifications.receptionType = parseProperty(
+			notifications,
+			item,
+			'receptionType'
+		);
 
 		let notificationTypes = parseProperty(
 			notifications,
@@ -149,7 +159,7 @@ export function parseNotifications(node) {
 		);
 
 		if (Array.isArray(notificationTypes[0])) {
-			var typeArray = [];
+			const typeArray = [];
 			notificationTypes[0].forEach((type) => {
 				typeArray.push({notificationType: type});
 			});
@@ -204,12 +214,15 @@ export function parseNotifications(node) {
 			};
 		}
 		else if (item['scripted-recipient']) {
-			const script = item['scripted-recipient'][0].script;
+			const scriptedRecipient = item['scripted-recipient'][0];
+
+			const script = scriptedRecipient.script;
+			const scriptLanguage = scriptedRecipient['script-language'];
 
 			notifications.recipients[index] = {
 				assignmentType: ['scriptedRecipient'],
 				script: [script],
-				scriptLanguage: [DEFAULT_LANGUAGE],
+				scriptLanguage: scriptLanguage || [DEFAULT_LANGUAGE],
 			};
 		}
 		else {

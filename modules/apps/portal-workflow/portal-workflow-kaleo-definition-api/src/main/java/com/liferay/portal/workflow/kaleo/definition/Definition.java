@@ -40,7 +40,7 @@ public class Definition {
 	public void addNode(Node node) throws KaleoDefinitionValidationException {
 		if (_nodesMap.containsKey(node.getName())) {
 			throw new KaleoDefinitionValidationException.DuplicateNode(
-				node.getName());
+				node.getDefaultLabel());
 		}
 
 		_nodesMap.put(node.getName(), node);

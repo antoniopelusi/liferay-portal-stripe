@@ -116,6 +116,12 @@ public interface PriceListOrderTypeResource {
 			return new PriceListOrderTypeResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -161,6 +167,7 @@ public interface PriceListOrderTypeResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -245,7 +252,7 @@ public interface PriceListOrderTypeResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-pricing/v2.0/price-list-order-types/{priceListOrderTypeId}");
 
 			httpInvoker.path("priceListOrderTypeId", priceListOrderTypeId);
@@ -324,7 +331,7 @@ public interface PriceListOrderTypeResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-pricing/v2.0/price-list-order-types/batch");
 
 			httpInvoker.userNameAndPassword(
@@ -414,7 +421,7 @@ public interface PriceListOrderTypeResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-pricing/v2.0/price-lists/by-externalReferenceCode/{externalReferenceCode}/price-list-order-types");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -503,7 +510,7 @@ public interface PriceListOrderTypeResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-pricing/v2.0/price-lists/by-externalReferenceCode/{externalReferenceCode}/price-list-order-types");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -598,7 +605,7 @@ public interface PriceListOrderTypeResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-pricing/v2.0/price-lists/{id}/price-list-order-types");
 
 			httpInvoker.path("id", id);
@@ -684,7 +691,7 @@ public interface PriceListOrderTypeResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-pricing/v2.0/price-lists/{id}/price-list-order-types");
 
 			httpInvoker.path("id", id);
@@ -764,7 +771,7 @@ public interface PriceListOrderTypeResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-pricing/v2.0/price-lists/price-list-order-types/batch");
 
 			httpInvoker.path("id", id);

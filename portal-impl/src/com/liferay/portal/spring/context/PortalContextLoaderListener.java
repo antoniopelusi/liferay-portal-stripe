@@ -51,9 +51,11 @@ import com.liferay.portal.module.framework.ModuleFrameworkUtil;
 import com.liferay.portal.spring.aop.DynamicProxyCreator;
 import com.liferay.portal.spring.compat.CompatBeanDefinitionRegistryPostProcessor;
 import com.liferay.portal.spring.configurator.ConfigurableApplicationContextConfigurator;
+import com.liferay.portal.spring.override.OverrideBeanDefinitionRegistryPostProcessor;
 import com.liferay.portal.tools.DBUpgrader;
 import com.liferay.portal.util.InitUtil;
 import com.liferay.portal.util.PortalClassPathUtil;
+import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
 
 import java.beans.PropertyDescriptor;
@@ -78,6 +80,7 @@ import java.sql.SQLException;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.FutureTask;
 
 import javax.servlet.ServletContext;
@@ -326,19 +329,18 @@ public class PortalContextLoaderListener extends ContextLoaderListener {
 
 		dynamicProxyCreator.clear();
 
-		try {
-			if (PropsValues.UPGRADE_DATABASE_AUTO_RUN) {
-				DBUpgrader.upgrade(applicationContext);
+		if (PropsValues.UPGRADE_DATABASE_AUTO_RUN) {
+			StartupHelperUtil.setUpgrading(true);
 
-				StartupHelperUtil.setUpgrading(false);
+			try {
+				DBUpgrader.upgradePortal();
 			}
-			else {
-				ModuleFrameworkUtil.registerContext(applicationContext);
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
 			}
 		}
-		catch (Exception exception) {
-			throw new RuntimeException(exception);
-		}
+
+		ModuleFrameworkUtil.registerContext(applicationContext);
 
 		CustomJspBagRegistryUtil.getCustomJspBags();
 	}
@@ -398,6 +400,13 @@ public class PortalContextLoaderListener extends ContextLoaderListener {
 
 		configurableWebApplicationContext.addBeanFactoryPostProcessor(
 			new CompatBeanDefinitionRegistryPostProcessor());
+
+		Properties properties = PropsUtil.getProperties("spring.bean.", true);
+
+		if (!properties.isEmpty()) {
+			configurableWebApplicationContext.addBeanFactoryPostProcessor(
+				new OverrideBeanDefinitionRegistryPostProcessor(properties));
+		}
 	}
 
 	private void _cleanUpJDBCDrivers() {

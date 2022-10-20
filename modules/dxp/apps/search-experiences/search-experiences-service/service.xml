@@ -3,7 +3,7 @@
 
 <service-builder auto-import-default-references="false" auto-namespace-tables="false" dependency-injector="ds" mvcc-enabled="true" package-path="com.liferay.search.experiences" short-no-such-exception-enabled="false">
 	<namespace>SXP</namespace>
-	<entity local-service="true" name="SXPBlueprint" remote-service="true" uuid="true">
+	<entity external-reference-code="true" local-service="true" name="SXPBlueprint" remote-service="true" uuid="true">
 
 		<!-- PK fields -->
 
@@ -24,6 +24,7 @@
 		<column name="elementInstancesJSON" type="String" />
 		<column name="schemaVersion" type="String" />
 		<column localized="true" name="title" type="String" />
+		<column name="version" type="String" />
 		<column name="status" type="int" />
 		<column name="statusByUserId" type="long" />
 		<column name="statusByUserName" type="String" />
@@ -35,7 +36,7 @@
 			<finder-column name="companyId" />
 		</finder>
 	</entity>
-	<entity local-service="true" name="SXPElement" remote-service="true" uuid="true">
+	<entity external-reference-code="true" local-service="true" name="SXPElement" remote-service="true" uuid="true">
 
 		<!-- PK fields -->
 
@@ -58,6 +59,7 @@
 		<column name="schemaVersion" type="String" />
 		<column localized="true" name="title" type="String" />
 		<column name="type" type="int" />
+		<column name="version" type="String" />
 		<column name="status" type="int" />
 
 		<!-- Finder methods -->

@@ -111,6 +111,60 @@ public class OAuth2ApplicationLocalServiceWrapper
 			oAuth2Application);
 	}
 
+	@Override
+	public com.liferay.oauth2.provider.model.OAuth2Application
+			addOrUpdateOAuth2Application(
+				String externalReferenceCode, long userId, String userName,
+				java.util.List<com.liferay.oauth2.provider.constants.GrantType>
+					allowedGrantTypesList,
+				String clientAuthenticationMethod, long clientCredentialUserId,
+				String clientId, int clientProfile, String clientSecret,
+				String description, java.util.List<String> featuresList,
+				String homePageURL, long iconFileEntryId, String jwks,
+				String name, String privacyPolicyURL,
+				java.util.List<String> redirectURIsList, boolean rememberDevice,
+				boolean trustedApplication,
+				java.util.function.Consumer
+					<com.liferay.oauth2.provider.util.builder.
+						OAuth2ScopeBuilder> builderConsumer,
+				com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _oAuth2ApplicationLocalService.addOrUpdateOAuth2Application(
+			externalReferenceCode, userId, userName, allowedGrantTypesList,
+			clientAuthenticationMethod, clientCredentialUserId, clientId,
+			clientProfile, clientSecret, description, featuresList, homePageURL,
+			iconFileEntryId, jwks, name, privacyPolicyURL, redirectURIsList,
+			rememberDevice, trustedApplication, builderConsumer,
+			serviceContext);
+	}
+
+	@Override
+	public com.liferay.oauth2.provider.model.OAuth2Application
+			addOrUpdateOAuth2Application(
+				String externalReferenceCode, long userId, String userName,
+				java.util.List<com.liferay.oauth2.provider.constants.GrantType>
+					allowedGrantTypesList,
+				String clientAuthenticationMethod, long clientCredentialUserId,
+				String clientId, int clientProfile, String clientSecret,
+				String description, java.util.List<String> featuresList,
+				String homePageURL, long iconFileEntryId, String jwks,
+				String name, String privacyPolicyURL,
+				java.util.List<String> redirectURIsList, boolean rememberDevice,
+				java.util.List<String> scopeAliasesList,
+				boolean trustedApplication,
+				com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _oAuth2ApplicationLocalService.addOrUpdateOAuth2Application(
+			externalReferenceCode, userId, userName, allowedGrantTypesList,
+			clientAuthenticationMethod, clientCredentialUserId, clientId,
+			clientProfile, clientSecret, description, featuresList, homePageURL,
+			iconFileEntryId, jwks, name, privacyPolicyURL, redirectURIsList,
+			rememberDevice, scopeAliasesList, trustedApplication,
+			serviceContext);
+	}
+
 	/**
 	 * Creates a new o auth2 application with the primary key. Does not add the o auth2 application to the database.
 	 *
@@ -315,11 +369,67 @@ public class OAuth2ApplicationLocalServiceWrapper
 			companyId, clientId);
 	}
 
+	/**
+	 * Returns the o auth2 application with the matching external reference code and company.
+	 *
+	 * @param companyId the primary key of the company
+	 * @param externalReferenceCode the o auth2 application's external reference code
+	 * @return the matching o auth2 application, or <code>null</code> if a matching o auth2 application could not be found
+	 */
+	@Override
+	public com.liferay.oauth2.provider.model.OAuth2Application
+		fetchOAuth2ApplicationByExternalReferenceCode(
+			long companyId, String externalReferenceCode) {
+
+		return _oAuth2ApplicationLocalService.
+			fetchOAuth2ApplicationByExternalReferenceCode(
+				companyId, externalReferenceCode);
+	}
+
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #fetchOAuth2ApplicationByExternalReferenceCode(long, String)}
+	 */
+	@Deprecated
+	@Override
+	public com.liferay.oauth2.provider.model.OAuth2Application
+		fetchOAuth2ApplicationByReferenceCode(
+			long companyId, String externalReferenceCode) {
+
+		return _oAuth2ApplicationLocalService.
+			fetchOAuth2ApplicationByReferenceCode(
+				companyId, externalReferenceCode);
+	}
+
+	/**
+	 * Returns the o auth2 application with the matching UUID and company.
+	 *
+	 * @param uuid the o auth2 application's UUID
+	 * @param companyId the primary key of the company
+	 * @return the matching o auth2 application, or <code>null</code> if a matching o auth2 application could not be found
+	 */
+	@Override
+	public com.liferay.oauth2.provider.model.OAuth2Application
+		fetchOAuth2ApplicationByUuidAndCompanyId(String uuid, long companyId) {
+
+		return _oAuth2ApplicationLocalService.
+			fetchOAuth2ApplicationByUuidAndCompanyId(uuid, companyId);
+	}
+
 	@Override
 	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery
 		getActionableDynamicQuery() {
 
 		return _oAuth2ApplicationLocalService.getActionableDynamicQuery();
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery
+		getExportActionableDynamicQuery(
+			com.liferay.exportimport.kernel.lar.PortletDataContext
+				portletDataContext) {
+
+		return _oAuth2ApplicationLocalService.getExportActionableDynamicQuery(
+			portletDataContext);
 	}
 
 	@Override
@@ -354,6 +464,42 @@ public class OAuth2ApplicationLocalServiceWrapper
 
 		return _oAuth2ApplicationLocalService.getOAuth2Application(
 			companyId, clientId);
+	}
+
+	/**
+	 * Returns the o auth2 application with the matching external reference code and company.
+	 *
+	 * @param companyId the primary key of the company
+	 * @param externalReferenceCode the o auth2 application's external reference code
+	 * @return the matching o auth2 application
+	 * @throws PortalException if a matching o auth2 application could not be found
+	 */
+	@Override
+	public com.liferay.oauth2.provider.model.OAuth2Application
+			getOAuth2ApplicationByExternalReferenceCode(
+				long companyId, String externalReferenceCode)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _oAuth2ApplicationLocalService.
+			getOAuth2ApplicationByExternalReferenceCode(
+				companyId, externalReferenceCode);
+	}
+
+	/**
+	 * Returns the o auth2 application with the matching UUID and company.
+	 *
+	 * @param uuid the o auth2 application's UUID
+	 * @param companyId the primary key of the company
+	 * @return the matching o auth2 application
+	 * @throws PortalException if a matching o auth2 application could not be found
+	 */
+	@Override
+	public com.liferay.oauth2.provider.model.OAuth2Application
+			getOAuth2ApplicationByUuidAndCompanyId(String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _oAuth2ApplicationLocalService.
+			getOAuth2ApplicationByUuidAndCompanyId(uuid, companyId);
 	}
 
 	/**
@@ -410,6 +556,28 @@ public class OAuth2ApplicationLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _oAuth2ApplicationLocalService.getPersistedModel(primaryKeyObj);
+	}
+
+	@Override
+	public com.liferay.oauth2.provider.model.OAuth2Application
+			updateExternalReferenceCode(
+				long oAuth2ApplicationId, String externalReferenceCode)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _oAuth2ApplicationLocalService.updateExternalReferenceCode(
+			oAuth2ApplicationId, externalReferenceCode);
+	}
+
+	@Override
+	public com.liferay.oauth2.provider.model.OAuth2Application
+			updateExternalReferenceCode(
+				com.liferay.oauth2.provider.model.OAuth2Application
+					oAuth2Application,
+				String externalReferenceCode)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _oAuth2ApplicationLocalService.updateExternalReferenceCode(
+			oAuth2Application, externalReferenceCode);
 	}
 
 	@Override

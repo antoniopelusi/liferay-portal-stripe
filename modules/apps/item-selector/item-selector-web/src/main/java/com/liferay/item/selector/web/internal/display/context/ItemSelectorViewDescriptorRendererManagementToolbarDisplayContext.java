@@ -21,6 +21,7 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
+import com.liferay.portal.kernel.util.Validator;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -70,8 +71,23 @@ public class ItemSelectorViewDescriptorRendererManagementToolbarDisplayContext
 	}
 
 	@Override
+	public String getSearchContainerId() {
+		return "entries";
+	}
+
+	@Override
+	public String getSortingURL() {
+		if (Validator.isNull(_itemSelectorViewDescriptor.getOrderByKeys())) {
+			return null;
+		}
+
+		return super.getSortingURL();
+	}
+
+	@Override
 	public Boolean isSelectable() {
-		return false;
+		return _itemSelectorViewDescriptorRendererDisplayContext.
+			isMultipleSelection();
 	}
 
 	@Override
@@ -92,7 +108,7 @@ public class ItemSelectorViewDescriptorRendererManagementToolbarDisplayContext
 
 	@Override
 	protected String[] getDisplayViews() {
-		return new String[] {"descriptive", "icon", "list"};
+		return _itemSelectorViewDescriptor.getDisplayViews();
 	}
 
 	private final ItemSelectorViewDescriptor<Object>

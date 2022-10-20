@@ -29,7 +29,7 @@ import {EVENT_TYPES} from '../eventTypes.es';
 import {RuleEditor} from './RuleEditor.es';
 import {RuleList} from './RuleList.es';
 
-export function RuleBuilder({history, location}) {
+export default function RuleBuilder({history, location}) {
 	const {
 		cache,
 		dataProviderInstanceParameterSettingsURL,

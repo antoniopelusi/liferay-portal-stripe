@@ -13,13 +13,14 @@ import {
 	getActivationDownloadKey,
 	getAggregatedActivationDownloadKey,
 	getExportedLicenseKeys,
+	getMultipleActivationDownloadKey,
 } from '../../../../../common/services/liferay/rest/raysource/LicenseKeys';
 import downloadFromBlob from '../../../../../common/utils/downloadFromBlob';
 import {EXTENSION_FILE_TYPES, STATUS_CODE} from '../../../utils/constants';
 
 export async function downloadActivationLicenseKey(
 	licenseKey,
-	licenseKeyDownloadURL,
+	provisioningServerAPI,
 	sessionId,
 	activationKeyName,
 	activationKeyVersion,
@@ -27,7 +28,7 @@ export async function downloadActivationLicenseKey(
 ) {
 	const license = await getActivationDownloadKey(
 		licenseKey,
-		licenseKeyDownloadURL,
+		provisioningServerAPI,
 		sessionId
 	);
 
@@ -50,14 +51,14 @@ export async function downloadActivationLicenseKey(
 
 export async function downloadAggregatedActivationKey(
 	selectedKeysIDs,
-	licenseKeyDownloadURL,
+	provisioningServerAPI,
 	sessionId,
 	selectedKeysObjects,
 	projectName
 ) {
 	const license = await getAggregatedActivationDownloadKey(
 		selectedKeysIDs,
-		licenseKeyDownloadURL,
+		provisioningServerAPI,
 		sessionId
 	);
 
@@ -107,15 +108,41 @@ export async function downloadAggregatedActivationKey(
 	}
 }
 
+export async function downloadMultipleActivationKey(
+	selectedKeysIDs,
+	provisioningServerAPI,
+	sessionId,
+	projectName
+) {
+	const license = await getMultipleActivationDownloadKey(
+		selectedKeysIDs,
+		provisioningServerAPI,
+		sessionId
+	);
+
+	const projectFileName = projectName.replaceAll(' ', '').toLowerCase();
+
+	if (license.status === STATUS_CODE.success) {
+		const contentType = license.headers.get('content-type');
+		const extensionFile = EXTENSION_FILE_TYPES[contentType] || '.zip';
+		const licenseBlob = await license.blob();
+
+		return downloadFromBlob(
+			licenseBlob,
+			`activation-key-${projectFileName}${extensionFile}`
+		);
+	}
+}
+
 export async function downloadAllKeysDetails(
 	accountKey,
-	licenseKeyDownloadURL,
+	provisioningServerAPI,
 	sessionId,
 	productName
 ) {
 	const license = await getExportedLicenseKeys(
 		accountKey,
-		licenseKeyDownloadURL,
+		provisioningServerAPI,
 		sessionId,
 		productName
 	);

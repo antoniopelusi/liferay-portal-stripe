@@ -13,6 +13,7 @@ import ClayIcon from '@clayui/icon';
 import classNames from 'classnames';
 import DOMPurify from 'dompurify';
 import {useCallback, useEffect, useState} from 'react';
+import i18n from '../../../../common/I18n';
 import {fetchHeadless} from '../../../../common/services/liferay/api';
 import {storage} from '../../../../common/services/liferay/storage';
 import {STORAGE_KEYS} from '../../../../common/utils/constants';
@@ -27,9 +28,9 @@ DOMPurify.addHook('afterSanitizeAttributes', (node) => {
 	}
 });
 
-const QuickLinksPanel = ({accountKey}) => {
+const QuickLinksPanel = () => {
 	const [
-		{isQuickLinksExpanded, quickLinks, structuredContents},
+		{isQuickLinksExpanded, project, quickLinks, structuredContents},
 		dispatch,
 	] = useCustomerPortal();
 	const [quickLinksContents, setQuickLinksContents] = useState([]);
@@ -45,8 +46,7 @@ const QuickLinksPanel = ({accountKey}) => {
 				type: actionTypes.UPDATE_QUICK_LINKS_EXPANDED_PANEL,
 			});
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+	}, [dispatch]);
 
 	const fetchQuickLinksPanelContent = useCallback(async () => {
 		const renderedQuickLinksContents = await quickLinks.reduce(
@@ -68,7 +68,7 @@ const QuickLinksPanel = ({accountKey}) => {
 					const htmlBody = await structuredComponent.text();
 
 					accumulator.push(
-						htmlBody.replace('{{accountKey}}', accountKey)
+						htmlBody.replace('{{accountKey}}', project?.accountKey)
 					);
 				}
 
@@ -78,13 +78,17 @@ const QuickLinksPanel = ({accountKey}) => {
 		);
 
 		setQuickLinksContents(renderedQuickLinksContents);
-	}, [accountKey, quickLinks, structuredContents]);
+	}, [project?.accountKey, quickLinks, structuredContents]);
 
 	useEffect(() => {
 		if (quickLinks) {
 			fetchQuickLinksPanelContent();
 		}
 	}, [quickLinks, fetchQuickLinksPanelContent]);
+
+	if (!project) {
+		return <QuickLinksSkeleton />;
+	}
 
 	return (
 		<>
@@ -99,7 +103,9 @@ const QuickLinksPanel = ({accountKey}) => {
 					)}
 				>
 					<div className="align-items-center d-flex justify-content-between">
-						<h5 className="m-0 text-neutral-10">Quick Links</h5>
+						<h5 className="m-0 text-neutral-10">
+							{i18n.translate('quick-links')}
+						</h5>
 
 						<a
 							className={classNames(
@@ -125,7 +131,7 @@ const QuickLinksPanel = ({accountKey}) => {
 								symbol={isQuickLinksExpanded ? 'hr' : 'plus'}
 							/>
 
-							{isQuickLinksExpanded ? 'Hide' : ''}
+							{isQuickLinksExpanded ? i18n.translate('hide') : ''}
 						</a>
 					</div>
 

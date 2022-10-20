@@ -39,7 +39,9 @@ import com.liferay.portal.kernel.search.generic.WildcardQueryImpl;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.search.expando.ExpandoBridgeIndexer;
 
+import java.util.LinkedHashMap;
 import java.util.Locale;
 
 import javax.portlet.PortletRequest;
@@ -82,11 +84,13 @@ public class CommerceOrderItemIndexer extends BaseIndexer<CommerceOrderItem> {
 			BooleanFilter contextBooleanFilter, SearchContext searchContext)
 		throws Exception {
 
-		long commerceOrderId = GetterUtil.getLong(
-			searchContext.getAttribute(FIELD_COMMERCE_ORDER_ID));
+		Long commerceOrderId = (Long)searchContext.getAttribute(
+			FIELD_COMMERCE_ORDER_ID);
 
-		contextBooleanFilter.addRequiredTerm(
-			FIELD_COMMERCE_ORDER_ID, commerceOrderId);
+		if (commerceOrderId != null) {
+			contextBooleanFilter.addRequiredTerm(
+				FIELD_COMMERCE_ORDER_ID, commerceOrderId);
+		}
 
 		Long parentCommerceOrderItemId = (Long)searchContext.getAttribute(
 			FIELD_PARENT_COMMERCE_ORDER_ITEM_ID);
@@ -105,6 +109,17 @@ public class CommerceOrderItemIndexer extends BaseIndexer<CommerceOrderItem> {
 
 		addSearchTerm(searchQuery, searchContext, FIELD_SKU, false);
 		addSearchLocalizedTerm(searchQuery, searchContext, Field.NAME, true);
+
+		LinkedHashMap<String, Object> params =
+			(LinkedHashMap<String, Object>)searchContext.getAttribute("params");
+
+		if (params != null) {
+			String expandoAttributes = (String)params.get("expandoAttributes");
+
+			if (Validator.isNotNull(expandoAttributes)) {
+				addSearchExpando(searchQuery, searchContext, expandoAttributes);
+			}
+		}
 
 		String keywords = searchContext.getKeywords();
 
@@ -155,6 +170,9 @@ public class CommerceOrderItemIndexer extends BaseIndexer<CommerceOrderItem> {
 			commerceOrderItem.getParentCommerceOrderItemId());
 		document.addNumber(FIELD_QUANTITY, commerceOrderItem.getQuantity());
 		document.addNumber(FIELD_UNIT_PRICE, commerceOrderItem.getUnitPrice());
+
+		_expandoBridgeIndexer.addAttributes(
+			document, commerceOrderItem.getExpandoBridge());
 
 		if (_log.isDebugEnabled()) {
 			_log.debug(
@@ -230,6 +248,9 @@ public class CommerceOrderItemIndexer extends BaseIndexer<CommerceOrderItem> {
 
 	@Reference
 	private CommerceOrderItemLocalService _commerceOrderItemLocalService;
+
+	@Reference
+	private ExpandoBridgeIndexer _expandoBridgeIndexer;
 
 	@Reference
 	private IndexWriterHelper _indexWriterHelper;

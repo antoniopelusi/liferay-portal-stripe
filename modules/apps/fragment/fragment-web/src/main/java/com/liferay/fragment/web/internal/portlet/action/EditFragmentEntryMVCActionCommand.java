@@ -20,6 +20,7 @@ import com.liferay.fragment.model.FragmentEntry;
 import com.liferay.fragment.service.FragmentEntryService;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.portlet.JSONPortletResponseUtil;
@@ -86,7 +87,6 @@ public class EditFragmentEntryMVCActionCommand
 		String css = ParamUtil.getString(actionRequest, "cssContent");
 		String html = ParamUtil.getString(actionRequest, "htmlContent");
 		String js = ParamUtil.getString(actionRequest, "jsContent");
-		boolean cacheable = ParamUtil.getBoolean(actionRequest, "cacheable");
 		String configuration = ParamUtil.getString(
 			actionRequest, "configurationContent");
 		int status = ParamUtil.getInteger(actionRequest, "status");
@@ -97,8 +97,27 @@ public class EditFragmentEntryMVCActionCommand
 		draftFragmentEntry.setCss(css);
 		draftFragmentEntry.setHtml(html);
 		draftFragmentEntry.setJs(js);
-		draftFragmentEntry.setCacheable(cacheable);
 		draftFragmentEntry.setConfiguration(configuration);
+
+		if (draftFragmentEntry.isTypeInput()) {
+			String[] fieldTypes = ParamUtil.getStringValues(
+				actionRequest, "fieldTypes");
+
+			JSONArray fieldTypesJSONArray = JSONFactoryUtil.createJSONArray(
+				fieldTypes);
+
+			JSONObject typeOptionsJSONObject = JSONFactoryUtil.createJSONObject(
+				draftFragmentEntry.getTypeOptions());
+
+			typeOptionsJSONObject.put("fieldTypes", fieldTypesJSONArray);
+
+			draftFragmentEntry.setTypeOptions(typeOptionsJSONObject.toString());
+		}
+		else {
+			draftFragmentEntry.setCacheable(
+				ParamUtil.getBoolean(actionRequest, "cacheable"));
+		}
+
 		draftFragmentEntry.setStatus(status);
 
 		try {

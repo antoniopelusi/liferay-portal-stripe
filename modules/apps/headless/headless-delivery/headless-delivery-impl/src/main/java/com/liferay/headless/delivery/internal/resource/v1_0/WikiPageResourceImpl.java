@@ -17,11 +17,11 @@ package com.liferay.headless.delivery.internal.resource.v1_0;
 import com.liferay.dynamic.data.mapping.util.DDMIndexer;
 import com.liferay.expando.kernel.service.ExpandoColumnLocalService;
 import com.liferay.expando.kernel.service.ExpandoTableLocalService;
+import com.liferay.headless.common.spi.odata.entity.EntityFieldsUtil;
 import com.liferay.headless.common.spi.service.context.ServiceContextRequestUtil;
 import com.liferay.headless.delivery.dto.v1_0.WikiPage;
 import com.liferay.headless.delivery.dto.v1_0.util.CustomFieldsUtil;
 import com.liferay.headless.delivery.internal.dto.v1_0.converter.WikiPageDTOConverter;
-import com.liferay.headless.delivery.internal.dto.v1_0.util.EntityFieldsUtil;
 import com.liferay.headless.delivery.internal.odata.entity.v1_0.WikiPageEntityModel;
 import com.liferay.headless.delivery.resource.v1_0.WikiPageResource;
 import com.liferay.headless.delivery.search.aggregation.AggregationUtil;
@@ -34,7 +34,6 @@ import com.liferay.portal.kernel.search.filter.BooleanFilter;
 import com.liferay.portal.kernel.search.filter.Filter;
 import com.liferay.portal.kernel.search.filter.TermFilter;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
-import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.Constants;
@@ -53,7 +52,6 @@ import com.liferay.portal.vulcan.dto.converter.DTOConverterRegistry;
 import com.liferay.portal.vulcan.dto.converter.DefaultDTOConverterContext;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
-import com.liferay.portal.vulcan.resource.EntityModelResource;
 import com.liferay.portal.vulcan.util.SearchUtil;
 import com.liferay.wiki.constants.WikiConstants;
 import com.liferay.wiki.constants.WikiPageConstants;
@@ -80,8 +78,7 @@ import org.osgi.service.component.annotations.ServiceScope;
 	properties = "OSGI-INF/liferay/rest/v1_0/wiki-page.properties",
 	scope = ServiceScope.PROTOTYPE, service = WikiPageResource.class
 )
-public class WikiPageResourceImpl
-	extends BaseWikiPageResourceImpl implements EntityModelResource {
+public class WikiPageResourceImpl extends BaseWikiPageResourceImpl {
 
 	@Override
 	public void deleteSiteWikiPageByExternalReferenceCode(
@@ -174,26 +171,15 @@ public class WikiPageResourceImpl
 
 	@Override
 	public WikiPage getWikiPage(Long wikiPageId) throws Exception {
-		com.liferay.wiki.model.WikiPage wikiPage =
-			_wikiPageLocalService.getPage(wikiPageId);
-
-		_wikiPageModelResourcePermission.check(
-			PermissionThreadLocal.getPermissionChecker(), wikiPage,
-			ActionKeys.VIEW);
-
-		return _toWikiPage(wikiPage);
+		return _toWikiPage(_wikiPageService.getPage(wikiPageId));
 	}
 
 	@Override
 	public Page<WikiPage> getWikiPageWikiPagesPage(Long parentWikiPageId)
 		throws Exception {
 
-		com.liferay.wiki.model.WikiPage wikiPage =
-			_wikiPageLocalService.getPage(parentWikiPageId);
-
-		_wikiPageModelResourcePermission.check(
-			PermissionThreadLocal.getPermissionChecker(), wikiPage,
-			ActionKeys.VIEW);
+		com.liferay.wiki.model.WikiPage wikiPage = _wikiPageService.getPage(
+			parentWikiPageId);
 
 		return Page.of(
 			HashMapBuilder.put(
@@ -240,21 +226,16 @@ public class WikiPageResourceImpl
 		throws Exception {
 
 		com.liferay.wiki.model.WikiPage parentWikiPage =
-			_wikiPageLocalService.getPage(parentWikiPageId);
-
-		_wikiNodeModelResourcePermission.check(
-			PermissionThreadLocal.getPermissionChecker(),
-			parentWikiPage.getNodeId(), ActionKeys.ADD_PAGE);
+			_wikiPageService.getPage(parentWikiPageId);
 
 		ServiceContext serviceContext = _createServiceContext(
 			Constants.ADD, parentWikiPage.getGroupId(), wikiPage);
 
 		return _toWikiPage(
-			_wikiPageLocalService.addPage(
-				wikiPage.getExternalReferenceCode(), contextUser.getUserId(),
-				parentWikiPage.getNodeId(), wikiPage.getHeadline(),
-				WikiPageConstants.VERSION_DEFAULT, wikiPage.getContent(),
-				wikiPage.getHeadline(), false,
+			_wikiPageService.addPage(
+				wikiPage.getExternalReferenceCode(), parentWikiPage.getNodeId(),
+				wikiPage.getHeadline(), WikiPageConstants.VERSION_DEFAULT,
+				wikiPage.getContent(), wikiPage.getHeadline(), false,
 				_toFormat(wikiPage.getEncodingFormat()), false,
 				parentWikiPage.getTitle(), null, serviceContext));
 	}
@@ -290,11 +271,7 @@ public class WikiPageResourceImpl
 		throws Exception {
 
 		com.liferay.wiki.model.WikiPage serviceBuilderWikiPage =
-			_wikiPageLocalService.getPage(wikiPageId);
-
-		_wikiPageModelResourcePermission.check(
-			PermissionThreadLocal.getPermissionChecker(),
-			serviceBuilderWikiPage, ActionKeys.UPDATE);
+			_wikiPageService.getPage(wikiPageId);
 
 		return _updateWikiPage(serviceBuilderWikiPage, wikiPage);
 	}
@@ -487,10 +464,6 @@ public class WikiPageResourceImpl
 
 	@Reference
 	private WikiPageLocalService _wikiPageLocalService;
-
-	@Reference(target = "(model.class.name=com.liferay.wiki.model.WikiPage)")
-	private ModelResourcePermission<com.liferay.wiki.model.WikiPage>
-		_wikiPageModelResourcePermission;
 
 	@Reference
 	private WikiPageService _wikiPageService;

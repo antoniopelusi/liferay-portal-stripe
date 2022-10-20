@@ -147,6 +147,11 @@ public class DefaultDTOConverterContext implements DTOConverterContext {
 	}
 
 	@Override
+	public UriInfo getUriInfo() {
+		return _uriInfo;
+	}
+
+	@Override
 	public Optional<UriInfo> getUriInfoOptional() {
 		return Optional.ofNullable(_uriInfo);
 	}

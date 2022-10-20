@@ -16,11 +16,12 @@ package com.liferay.layout.admin.web.internal.portlet;
 
 import com.liferay.application.list.GroupProvider;
 import com.liferay.asset.kernel.exception.AssetCategoryException;
+import com.liferay.client.extension.type.manager.CETManager;
 import com.liferay.dynamic.data.mapping.validator.DDMFormValuesValidationException;
 import com.liferay.friendly.url.exception.DuplicateFriendlyURLEntryException;
 import com.liferay.info.item.InfoItemServiceTracker;
+import com.liferay.item.selector.ItemSelector;
 import com.liferay.layout.admin.constants.LayoutAdminPortletKeys;
-import com.liferay.layout.admin.web.internal.configuration.FFBulkTranslationConfiguration;
 import com.liferay.layout.admin.web.internal.constants.LayoutAdminWebKeys;
 import com.liferay.layout.admin.web.internal.display.context.LayoutsAdminDisplayContext;
 import com.liferay.layout.admin.web.internal.display.context.MillerColumnsDisplayContext;
@@ -33,7 +34,6 @@ import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalServ
 import com.liferay.layout.util.LayoutCopyHelper;
 import com.liferay.layout.util.template.LayoutConverterRegistry;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.GroupInheritContentException;
 import com.liferay.portal.kernel.exception.ImageTypeException;
@@ -71,7 +71,6 @@ import com.liferay.translation.url.provider.TranslationURLProvider;
 import java.io.IOException;
 
 import java.util.List;
-import java.util.Map;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -81,16 +80,13 @@ import javax.portlet.PortletException;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 
-import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Jorge Ferrer
  */
 @Component(
-	configurationPid = "com.liferay.layout.admin.web.internal.configuration.FFBulkTranslationConfiguration",
 	immediate = true,
 	property = {
 		"com.liferay.portlet.add-default-resource=true",
@@ -130,13 +126,6 @@ public class GroupPagesPortlet extends MVCPortlet {
 
 			renderParameters.setValue("checkboxNames", StringPool.BLANK);
 		}
-	}
-
-	@Activate
-	@Modified
-	protected void activate(Map<String, Object> properties) {
-		_ffBulkTranslationConfiguration = ConfigurableUtil.createConfigurable(
-			FFBulkTranslationConfiguration.class, properties);
 	}
 
 	@Override
@@ -189,13 +178,11 @@ public class GroupPagesPortlet extends MVCPortlet {
 				}
 			}
 
-			renderRequest.setAttribute(
-				FFBulkTranslationConfiguration.class.getName(),
-				_ffBulkTranslationConfiguration);
+			renderRequest.setAttribute(CETManager.class.getName(), _cetManager);
 
 			LayoutsAdminDisplayContext layoutsAdminDisplayContext =
 				new LayoutsAdminDisplayContext(
-					_layoutConverterRegistry, _layoutCopyHelper,
+					_itemSelector, _layoutConverterRegistry, _layoutCopyHelper,
 					_portal.getLiferayPortletRequest(renderRequest),
 					_portal.getLiferayPortletResponse(renderResponse),
 					_stagingGroupHelper);
@@ -275,14 +262,17 @@ public class GroupPagesPortlet extends MVCPortlet {
 	private static final Log _log = LogFactoryUtil.getLog(
 		GroupPagesPortlet.class);
 
-	private volatile FFBulkTranslationConfiguration
-		_ffBulkTranslationConfiguration;
+	@Reference
+	private CETManager _cetManager;
 
 	@Reference
 	private GroupProvider _groupProvider;
 
 	@Reference
 	private InfoItemServiceTracker _infoItemServiceTracker;
+
+	@Reference
+	private ItemSelector _itemSelector;
 
 	@Reference
 	private LayoutConverterRegistry _layoutConverterRegistry;

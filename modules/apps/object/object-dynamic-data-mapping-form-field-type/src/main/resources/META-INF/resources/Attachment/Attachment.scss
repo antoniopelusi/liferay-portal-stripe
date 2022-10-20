@@ -1,6 +1,15 @@
-.lfr-objects__attachment {
-	display: flex;
-	gap: 1rem;
+@mixin attachment(
+	$displayType,
+	$gapRowValue,
+	$gapColumnValue,
+	$paddingTopTitle,
+	$gapTitleValue,
+	$marginLeft,
+	$marginBottom,
+	$marginRight
+) {
+	display: #{$displayType};
+	gap: #{$gapRowValue}, #{$gapColumnValue};
 
 	&-download {
 		display: none;
@@ -17,14 +26,37 @@
 	&-title {
 		align-items: center;
 		display: flex;
+		gap: #{$gapTitleValue};
+		padding-top: #{$paddingTopTitle};
 
 		&:focus-within,
 		&:hover {
 			.lfr-objects__attachment-download {
 				color: black;
 				display: unset;
-				margin-left: 1rem;
+				margin-bottom: #{$marginBottom};
+				margin-left: #{$marginLeft};
+				margin-right: #{$marginRight};
 			}
 		}
+	}
+}
+
+.lfr-objects__attachment {
+	@include attachment(flex, 1rem, 0, 0, 0, 1rem, 0, 0);
+}
+
+.col-ddm .col-md-4 {
+	.lfr-objects__attachment {
+		@include attachment(
+			block,
+			1rem,
+			0.2rem,
+			1rem,
+			5px,
+			0.5rem,
+			0.3rem,
+			0.5rem
+		);
 	}
 }

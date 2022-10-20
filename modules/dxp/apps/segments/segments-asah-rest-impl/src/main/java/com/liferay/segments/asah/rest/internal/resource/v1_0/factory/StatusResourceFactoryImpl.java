@@ -33,6 +33,7 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.odata.filter.ExpressionConvert;
 import com.liferay.portal.odata.filter.FilterParserProvider;
 import com.liferay.portal.vulcan.accept.language.AcceptLanguage;
+import com.liferay.segments.asah.rest.internal.security.permission.LiberalPermissionChecker;
 import com.liferay.segments.asah.rest.resource.v1_0.StatusResource;
 
 import java.lang.reflect.Constructor;
@@ -191,7 +192,7 @@ public class StatusResourceFactoryImpl implements StatusResource.Factory {
 		}
 		else {
 			PermissionThreadLocal.setPermissionChecker(
-				_liberalPermissionCheckerFactory.create(user));
+				new LiberalPermissionChecker(user));
 		}
 
 		StatusResource statusResource = _componentServiceObjects.getService();
@@ -252,9 +253,6 @@ public class StatusResourceFactoryImpl implements StatusResource.Factory {
 
 	@Reference
 	private GroupLocalService _groupLocalService;
-
-	@Reference(target = "(permission.checker.type=liberal)")
-	private PermissionCheckerFactory _liberalPermissionCheckerFactory;
 
 	@Reference
 	private ResourceActionLocalService _resourceActionLocalService;

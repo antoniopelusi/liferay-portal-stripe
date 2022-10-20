@@ -18,6 +18,8 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.dao.orm.common.SQLTransformer;
 import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
+import com.liferay.portal.kernel.upgrade.UpgradeProcessFactory;
+import com.liferay.portal.kernel.upgrade.UpgradeStep;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -29,12 +31,6 @@ public class UpgradeAssetCategory extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		if (!hasColumn("AssetCategory", "treePath")) {
-			alterTableDropColumn("AssetCategory", "leftCategoryId");
-			alterTableDropColumn("AssetCategory", "rightCategoryId");
-			alterTableAddColumn("AssetCategory", "treePath", "STRING null");
-		}
-
 		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				SQLTransformer.transform(
 					StringBundler.concat(
@@ -59,12 +55,12 @@ public class UpgradeAssetCategory extends UpgradeProcess {
 						"TEMP_TABLE.treePath is null"));
 			PreparedStatement updatePreparedStatement =
 				AutoBatchPreparedStatementUtil.autoBatch(
-					connection.prepareStatement(
-						SQLTransformer.transform(
-							StringBundler.concat(
-								"update AssetCategory set treePath = ",
-								"CONCAT(?, CAST_TEXT(categoryId), '/') where ",
-								"parentCategoryId = ?"))))) {
+					connection,
+					SQLTransformer.transform(
+						StringBundler.concat(
+							"update AssetCategory set treePath = CONCAT(?, ",
+							"CAST_TEXT(categoryId), '/') where ",
+							"parentCategoryId = ?")))) {
 
 			while (true) {
 				try (ResultSet resultSet =
@@ -88,6 +84,16 @@ public class UpgradeAssetCategory extends UpgradeProcess {
 				}
 			}
 		}
+	}
+
+	@Override
+	protected UpgradeStep[] getPreUpgradeSteps() {
+		return new UpgradeStep[] {
+			UpgradeProcessFactory.dropColumns(
+				"AssetCategory", "leftCategoryId", "rightCategoryId"),
+			UpgradeProcessFactory.addColumns(
+				"AssetCategory", "treePath STRING null")
+		};
 	}
 
 }

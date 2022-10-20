@@ -48,19 +48,19 @@ public class TaskNodeValidator extends BaseNodeValidator<Task> {
 
 		if (task.getIncomingTransitionsCount() == 0) {
 			throw new KaleoDefinitionValidationException.
-				MustSetIncomingTransition(task.getName());
+				MustSetIncomingTransition(task.getDefaultLabel());
 		}
 
 		if (task.getOutgoingTransitionsCount() == 0) {
 			throw new KaleoDefinitionValidationException.
-				MustSetOutgoingTransition(task.getName());
+				MustSetOutgoingTransition(task.getDefaultLabel());
 		}
 
 		Set<Assignment> assignments = task.getAssignments();
 
 		if ((assignments == null) || assignments.isEmpty()) {
 			throw new KaleoDefinitionValidationException.MustSetAssignments(
-				task.getName());
+				task.getDefaultLabel());
 		}
 
 		Set<TaskForm> taskForms = task.getTaskForms();
@@ -76,7 +76,7 @@ public class TaskNodeValidator extends BaseNodeValidator<Task> {
 
 				throw new KaleoDefinitionValidationException.
 					MustSetTaskFormDefinitionOrReference(
-						task.getName(), taskForm.getName());
+						task.getDefaultLabel(), taskForm.getName());
 			}
 		}
 
@@ -96,7 +96,8 @@ public class TaskNodeValidator extends BaseNodeValidator<Task> {
 
 			if (defaultTransitions.size() > 1) {
 				throw new KaleoDefinitionValidationException.
-					MustNotSetMoreThanOneDefaultTransition(task.getName());
+					MustNotSetMoreThanOneDefaultTransition(
+						task.getDefaultLabel());
 			}
 		}
 	}

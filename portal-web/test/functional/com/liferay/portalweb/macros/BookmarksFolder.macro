@@ -137,7 +137,7 @@ definition {
 
 		Click.waitForMenuToggleJSClick(locator1 = "Icon#VERTICAL_ELLIPSIS");
 
-		MenuItem.click(menuItem = "Move to Recycle Bin");
+		MenuItem.click(menuItem = "Delete");
 
 		VerifyElementPresent(locator1 = "Message#SUCCESS");
 
@@ -215,7 +215,7 @@ definition {
 			pageName = "${pageName}",
 			siteName = "${siteName}");
 
-		while (IsElementPresent.pauseIsElementPresent(locator1 = "Icon#BACK")) {
+		while (IsElementPresent(locator1 = "Icon#BACK")) {
 			Click(locator1 = "Icon#BACK");
 		}
 
@@ -264,7 +264,7 @@ definition {
 
 	macro moveSubfolderToRecycleBinPG {
 		LexiconEntry.gotoEntryMenuItem(
-			menuItem = "Move to Recycle Bin",
+			menuItem = "Delete",
 			rowEntry = "${subfolderName}");
 
 		VerifyElementPresent(locator1 = "Message#SUCCESS");
@@ -273,9 +273,7 @@ definition {
 	macro moveToRecycleBinCP {
 		Navigator.openURL();
 
-		ProductMenu.gotoPortlet(
-			category = "Content & Data",
-			portlet = "Bookmarks");
+		Bookmark.openBookmarksAdmin(siteURLKey = "guest");
 
 		AssertTextEquals(
 			key_assetName = "${folderName}",
@@ -283,33 +281,14 @@ definition {
 			value1 = "${folderName}");
 
 		LexiconEntry.gotoEntryMenuItem(
-			menuItem = "Move to Recycle Bin",
+			menuItem = "Delete",
 			rowEntry = "${folderName}");
 
 		VerifyElementPresent(locator1 = "Message#SUCCESS");
 	}
 
-	macro subscribePG {
-		AssertTextEquals.assertPartialText(
-			key_assetDescription = "${folderDescription}",
-			locator1 = "Bookmarks#DESCRIPTIVE_ENTRY_DESCRIPTION",
-			value1 = "${folderDescription}");
-
-		Click.clickAt(locator1 = "Icon#INFO");
-
-		Pause(locator1 = "1000");
-
-		Click(locator1 = "Icon#SUBSCRIBE");
-
-		Alert.viewSuccessMessage();
-	}
-
 	macro tearDownCP {
-		Navigator.openURL();
-
-		ProductMenu.gotoPortlet(
-			category = "Content & Data",
-			portlet = "Bookmarks");
+		Bookmark.openBookmarksAdmin(siteURLKey = "guest");
 
 		if (IsElementNotPresent(locator1 = "Message#EMPTY_INFO")) {
 			PortletEntry.selectAll();

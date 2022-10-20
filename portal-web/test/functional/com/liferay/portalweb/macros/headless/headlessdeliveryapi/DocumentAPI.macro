@@ -1,0 +1,243 @@
+definition {
+
+	macro _addDocument {
+		Variables.assertDefined(parameterList = "${filePath}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		if (isSet(assetLibraryId)) {
+			var api = "asset-libraries/${assetLibraryId}/documents";
+		}
+		else {
+			var api = "sites/${siteId}/documents";
+		}
+
+		if (!(isSet(externalReferenceCode))) {
+			var externalReferenceCode = "";
+		}
+
+		var curl = '''
+			${portalURL}/o/headless-delivery/v1.0/${api} \
+			-u test@liferay.com:test \
+			-H Content-Type: multipart/form-data \
+            -F document={"externalReferenceCode": "${externalReferenceCode}"} \
+			-F file=@${filePath} 
+		''';
+
+		var curl = JSONCurlUtil.post("${curl}");
+
+		return "${curl}";
+	}
+
+	macro _deleteDocumentsByErcInAssetLibrary {
+		Variables.assertDefined(parameterList = "${externalReferenceCode}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		if (isSet(assetLibraryId)) {
+			var api = "asset-libraries/${assetLibraryId}/documents/by-external-reference-code/${externalReferenceCode}";
+		}
+		else {
+			var api = "sites/${siteId}/documents/by-external-reference-code/${externalReferenceCode}";
+		}
+
+		var curl = '''
+			${portalURL}/o/headless-delivery/v1.0/${api} \
+			-u test@liferay.com:test \
+			-H accept: application/json
+		''';
+
+		var curl = JSONCurlUtil.delete("${curl}");
+
+		return "${curl}";
+	}
+
+	macro _filterDocumentInAssetLibrary {
+		Variables.assertDefined(parameterList = "${assetLibraryId},${filtervalue}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		var curl = '''
+			${portalURL}/o/headless-delivery/v1.0/asset-libraries/${assetLibraryId}/documents?filter=${filtervalue} \
+			-u test@liferay.com:test \
+			-H accept: application/json
+		''';
+
+		var curl = JSONCurlUtil.get("${curl}");
+
+		return "${curl}";
+	}
+
+	macro _getDocumentsByErcInAssetLibrary {
+		Variables.assertDefined(parameterList = "${assetLibraryId},${externalReferenceCode}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		var curl = '''
+			${portalURL}/o/headless-delivery/v1.0/asset-libraries/${assetLibraryId}/documents/by-external-reference-code/${externalReferenceCode} \
+			-u test@liferay.com:test \
+			-H Content-Type: application/json
+		''';
+
+		var curl = JSONCurlUtil.get("${curl}");
+
+		return "${curl}";
+	}
+
+	macro _updateDocumentByErc {
+		Variables.assertDefined(parameterList = "${externalReferenceCode}");
+
+		if (!(isSet(filePath) || isSet(title) || isSet(updateExternalReferenceCode))) {
+			TestUtils.fail(message = "Please set at least one property to update the document.");
+		}
+
+		if (isSet(assetLibraryId)) {
+			var api = "asset-libraries/${assetLibraryId}/documents/by-external-reference-code/${externalReferenceCode}";
+		}
+		else {
+			var api = "asset-libraries/${siteId}/documents/by-external-reference-code/${externalReferenceCode}";
+		}
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		var curl = '''
+			${portalURL}/o/headless-delivery/v1.0/${api} \
+			-u test@liferay.com:test \
+		''';
+		var delimiter = " ";
+
+		if (isSet(filePath)) {
+			var fileBody = "-F file=@&quot;${filePath}&quot;";
+
+			var curl = StringUtil.add("${curl}", "${fileBody}", "${delimiter}");
+		}
+
+		if (isSet(title) && isSet(updateExternalReferenceCode)) {
+			var documentBody = '''
+				-F document={"externalReferenceCode": "${updateExternalReferenceCode}", "title": "${title}"}
+			''';
+
+			var curl = StringUtil.add("${curl}", "${documentBody}", "${delimiter}");
+		}
+		else {
+			if (isSet(title)) {
+				var documentBody = '''
+					-F document={"title": "${title}"}
+				 ''';
+			}
+			else if (isSet(updateExternalReferenceCode)) {
+				var documentBody = '''
+					-F document={"externalReferenceCode": "${updateExternalReferenceCode}"}
+				''';
+			}
+
+			var curl = StringUtil.add("${curl}", "${documentBody}", "${delimiter}");
+		}
+
+		var curl = JSONCurlUtil.put("${curl}");
+
+		return "${curl}";
+	}
+
+	macro addDocumentInAssetLibraryByUploadFile {
+		Variables.assertDefined(parameterList = "${assetLibraryId},${filePath}");
+
+		var response = DocumentAPI._addDocument(
+			assetLibraryId = "${assetLibraryId}",
+			externalReferenceCode = "${externalReferenceCode}",
+			filePath = "${filePath}");
+
+		return "${response}";
+	}
+
+	macro assertExternalReferenceCodeWithCorrectValue {
+		if (!(isSet(expectedExternalReferenceCodeValue))) {
+			var expectedExternalReferenceCodeValue = DocumentAPI.getUuidOfCreatedDocument(responseToParse = "${responseToParse}");
+		}
+
+		var actualExternalReferenceCodeValue = JSONUtil.getWithJSONPath("${responseToParse}", "$..externalReferenceCode");
+
+		TestUtils.assertEquals(
+			actual = "${actualExternalReferenceCodeValue}",
+			expected = "${expectedExternalReferenceCodeValue}");
+	}
+
+	macro assertProperDocumentTotalCount {
+		Variables.assertDefined(parameterList = "${expectedDocumentTotalCount}");
+
+		var response = DocumentAPI._filterDocumentInAssetLibrary(
+			assetLibraryId = "${assetLibraryId}",
+			filtervalue = "${filtervalue}");
+
+		var actualDocumentTotalCount = JSONUtil.getWithJSONPath("${response}", "$..['totalCount']");
+
+		TestUtils.assertEquals(
+			actual = "${actualDocumentTotalCount}",
+			expected = "${expectedDocumentTotalCount}");
+	}
+
+	macro deleteDocumentInAssetLibrary {
+		Variables.assertDefined(parameterList = "${assetLibraryId}");
+
+		if (!(isSet(externalReferenceCode))) {
+			Variables.assertDefined(parameterList = "${responseToParse}");
+
+			var externalReferenceCode = DocumentAPI.getUuidOfCreatedDocument(responseToParse = "${responseToParse}");
+		}
+
+		DocumentAPI._deleteDocumentsByErcInAssetLibrary(
+			assetLibraryId = "${assetLibraryId}",
+			externalReferenceCode = "${externalReferenceCode}");
+	}
+
+	macro getDocumentsByErcInAssetLibrary {
+		var response = DocumentAPI._getDocumentsByErcInAssetLibrary(
+			assetLibraryId = "${assetLibraryId}",
+			externalReferenceCode = "${externalReferenceCode}");
+
+		return "${response}";
+	}
+
+	macro getIdOfCreatedDocument {
+		var response = DocumentAPI.addDocumentInAssetLibraryByUploadFile(
+			assetLibraryId = "${assetLibraryId}",
+			externalReferenceCode = "${externalReferenceCode}",
+			filePath = "${filePath}");
+
+		var documentId = JSONUtil.getWithJSONPath("${response}", "$.['id']");
+
+		return "${documentId}";
+	}
+
+	macro getTitleOfDocument {
+		var documentTitle = JSONUtil.getWithJSONPath("${responseToParse}", "$.['title']");
+
+		return "${documentTitle}";
+	}
+
+	macro getUuidOfCreatedDocument {
+		Variables.assertDefined(parameterList = "${responseToParse}");
+
+		var contentURL = JSONUtil.getWithJSONPath("${responseToParse}", "$.['contentUrl']");
+
+		var contentURLSubString = StringUtil.extractFirst("${contentURL}", "?");
+
+		var documentUuid = StringUtil.extractLast("${contentURLSubString}", "/");
+
+		return "${documentUuid}";
+	}
+
+	macro updateDocumentByErcInAssetLibrary {
+		Variables.assertDefined(parameterList = "${assetLibraryId}");
+
+		var response = DocumentAPI._updateDocumentByErc(
+			assetLibraryId = "${assetLibraryId}",
+			externalReferenceCode = "${externalReferenceCode}",
+			filePath = "${filePath}",
+			title = "${title}",
+			updateExternalReferenceCode = "${updateExternalReferenceCode}");
+
+		return "${response}";
+	}
+
+}

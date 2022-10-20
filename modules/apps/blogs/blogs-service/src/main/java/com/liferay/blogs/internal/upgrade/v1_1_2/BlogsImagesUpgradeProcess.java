@@ -55,9 +55,7 @@ public class BlogsImagesUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		if (!hasColumnType("BlogsEntry", "smallImageId", "LONG null")) {
-			alterColumnType("BlogsEntry", "smallImageId", "LONG null");
-		}
+		alterColumnType("BlogsEntry", "smallImageId", "LONG null");
 
 		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
 				SQLTransformer.transform(
@@ -66,9 +64,9 @@ public class BlogsImagesUpgradeProcess extends UpgradeProcess {
 							"[$TRUE$] and smallImageId != 0"));
 			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.autoBatch(
-					connection.prepareStatement(
-						"update BlogsEntry set smallImageFileEntryId = ?, " +
-							"smallImageId = 0 where entryId = ?"));
+					connection,
+					"update BlogsEntry set smallImageFileEntryId = ?, " +
+						"smallImageId = 0 where entryId = ?");
 			ResultSet resultSet = preparedStatement1.executeQuery()) {
 
 			while (resultSet.next()) {

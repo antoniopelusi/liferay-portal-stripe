@@ -37,7 +37,6 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -124,7 +123,7 @@ public class FolderTitleLookupTest {
 		FolderSearcher folderSearcher = Mockito.mock(FolderSearcher.class);
 
 		Mockito.when(
-			folderSearcher.search(Matchers.any())
+			folderSearcher.search(Mockito.any())
 		).thenReturn(
 			hits
 		);
@@ -133,7 +132,8 @@ public class FolderTitleLookupTest {
 	}
 
 	private MockHttpServletRequest _mockHttpServletRequest(Locale locale) {
-		MockHttpServletRequest request = new MockHttpServletRequest();
+		MockHttpServletRequest mockHttpServletRequest =
+			new MockHttpServletRequest();
 
 		ThemeDisplay themeDisplay = Mockito.mock(ThemeDisplay.class);
 
@@ -143,9 +143,10 @@ public class FolderTitleLookupTest {
 			locale
 		);
 
-		request.setAttribute(WebKeys.THEME_DISPLAY, themeDisplay);
+		mockHttpServletRequest.setAttribute(
+			WebKeys.THEME_DISPLAY, themeDisplay);
 
-		return request;
+		return mockHttpServletRequest;
 	}
 
 }

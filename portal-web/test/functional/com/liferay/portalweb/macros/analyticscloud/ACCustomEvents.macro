@@ -34,7 +34,7 @@ definition {
 
 		WaitForPageLoad();
 
-		while (IsElementNotPresent(locator1 = "ACUtils#NAME_LIST") && (maxIterations = "50")) {
+		while ((IsElementNotPresent(locator1 = "ACUtils#NAME_LIST")) && (maxIterations = "50")) {
 			ACUtils.searchBar(searchItem = "${customEventName}");
 		}
 
@@ -101,6 +101,7 @@ definition {
 		}
 
 		var sampleJavascript = StringUtil.replace("${sampleJavascript}", "'", "\"");
+
 		var sampleJavascript = StringUtil.replace("${sampleJavascript}", " ", "");
 
 		// Change the custom event name to the new name
@@ -119,8 +120,10 @@ definition {
 			while ("${i}" != "${size}") {
 				var oldAttribute = ListUtil.get("${list1}", "${i}");
 				var newAttribute = ListUtil.get("${list2}", "${i}");
+
 				var sampleJavascript = StringUtil.replace("${sampleJavascript}", "${oldAttribute}", "${newAttribute}");
 				var i = ${i} + 1;
+
 				var i = StringUtil.valueOf("${i}");
 			}
 
@@ -134,8 +137,10 @@ definition {
 			while ("${i}" != "${size}") {
 				var oldValue = ListUtil.get("${list3}", "${i}");
 				var newValue = ListUtil.get("${list4}", "${i}");
+
 				var sampleJavascript = StringUtil.replace("${sampleJavascript}", "${oldValue}", "${newValue}");
 				var i = ${i} + 1;
+
 				var i = StringUtil.valueOf("${i}");
 			}
 		}
@@ -216,6 +221,7 @@ definition {
 		var displayDateDay = DateUtil.getCurrentDate();
 		var displayDateMonth = DateUtil.getCurrentMonth();
 		var displayDateYear = DateUtil.getCurrentYear();
+
 		var customEventName = "AC-${displayDateHour}-${displayDateDay}-${displayDateMonth}-${displayDateYear}";
 
 		return "${customEventName}";
@@ -246,7 +252,7 @@ definition {
 
 		WaitForPageLoad();
 
-		while (IsElementNotPresent(locator1 = "ACUtils#NAME_LIST") && (maxIterations = "50")) {
+		while ((IsElementNotPresent(locator1 = "ACUtils#NAME_LIST")) && (maxIterations = "50")) {
 			ACUtils.searchBar(searchItem = "${customEventName}");
 		}
 
@@ -277,7 +283,7 @@ definition {
 
 		WaitForPageLoad();
 
-		while (IsElementNotPresent(locator1 = "ACUtils#NAME_LIST") && (maxIterations = "50")) {
+		while ((IsElementNotPresent(locator1 = "ACUtils#NAME_LIST")) && (maxIterations = "50")) {
 			ACUtils.searchBar(searchItem = "${customEventName}");
 		}
 
@@ -287,7 +293,7 @@ definition {
 	}
 
 	macro viewAlertLimitReached {
-		while (IsElementNotPresent(locator1 = "ACCustomEvents#ALERT_LIMIT_REACHED") && (maxIterations = "50")) {
+		while ((IsElementNotPresent(locator1 = "ACCustomEvents#ALERT_LIMIT_REACHED")) && (maxIterations = "50")) {
 			TestUtils.hardRefresh();
 		}
 

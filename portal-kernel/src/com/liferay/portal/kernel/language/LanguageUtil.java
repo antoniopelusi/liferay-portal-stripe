@@ -14,10 +14,8 @@
 
 package com.liferay.portal.kernel.language;
 
-import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
-import com.liferay.portal.kernel.util.Validator;
 
 import java.util.List;
 import java.util.Locale;
@@ -341,12 +339,6 @@ public class LanguageUtil {
 
 	public static boolean isSameLanguage(Locale locale1, Locale locale2) {
 		return _language.isSameLanguage(locale1, locale2);
-	}
-
-	public static boolean isValidLanguageKey(Locale locale, String key) {
-		String value = _language.get(locale, key, StringPool.BLANK);
-
-		return Validator.isNotNull(value);
 	}
 
 	public static String process(

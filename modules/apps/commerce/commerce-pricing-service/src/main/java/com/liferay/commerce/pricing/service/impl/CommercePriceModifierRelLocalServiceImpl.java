@@ -16,19 +16,30 @@ package com.liferay.commerce.pricing.service.impl;
 
 import com.liferay.commerce.pricing.model.CommercePriceModifierRel;
 import com.liferay.commerce.pricing.service.base.CommercePriceModifierRelLocalServiceBaseImpl;
+import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 
 import java.util.List;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * @author Riccardo Alberti
  */
+@Component(
+	enabled = false,
+	property = "model.class.name=com.liferay.commerce.pricing.model.CommercePriceModifierRel",
+	service = AopService.class
+)
 public class CommercePriceModifierRelLocalServiceImpl
 	extends CommercePriceModifierRelLocalServiceBaseImpl {
 
@@ -40,7 +51,7 @@ public class CommercePriceModifierRelLocalServiceImpl
 
 		// Commerce price modifier rel
 
-		User user = userLocalService.getUser(serviceContext.getUserId());
+		User user = _userLocalService.getUser(serviceContext.getUserId());
 
 		long commercePriceModifierRelId = counterLocalService.increment();
 
@@ -108,7 +119,7 @@ public class CommercePriceModifierRelLocalServiceImpl
 
 		List<CommercePriceModifierRel> commercePriceModifierRels =
 			commercePriceModifierRelPersistence.findByCN_CPK(
-				classNameLocalService.getClassNameId(className), classPK);
+				_classNameLocalService.getClassNameId(className), classPK);
 
 		for (CommercePriceModifierRel commercePriceModifierRel :
 				commercePriceModifierRels) {
@@ -124,7 +135,7 @@ public class CommercePriceModifierRelLocalServiceImpl
 
 		return commercePriceModifierRelPersistence.fetchByCPM_CN_CPK(
 			commercePriceModifierId,
-			classNameLocalService.getClassNameId(className), classPK);
+			_classNameLocalService.getClassNameId(className), classPK);
 	}
 
 	@Override
@@ -151,7 +162,7 @@ public class CommercePriceModifierRelLocalServiceImpl
 		return ListUtil.toLongArray(
 			commercePriceModifierRelPersistence.findByCPM_CN(
 				commercePriceModifierId,
-				classNameLocalService.getClassNameId(className)),
+				_classNameLocalService.getClassNameId(className)),
 			CommercePriceModifierRel::getClassPK);
 	}
 
@@ -161,7 +172,7 @@ public class CommercePriceModifierRelLocalServiceImpl
 
 		return commercePriceModifierRelPersistence.findByCPM_CN(
 			commercePriceModifierId,
-			classNameLocalService.getClassNameId(className));
+			_classNameLocalService.getClassNameId(className));
 	}
 
 	@Override
@@ -171,7 +182,7 @@ public class CommercePriceModifierRelLocalServiceImpl
 
 		return commercePriceModifierRelPersistence.findByCPM_CN(
 			commercePriceModifierId,
-			classNameLocalService.getClassNameId(className), start, end,
+			_classNameLocalService.getClassNameId(className), start, end,
 			orderByComparator);
 	}
 
@@ -181,7 +192,7 @@ public class CommercePriceModifierRelLocalServiceImpl
 
 		return commercePriceModifierRelPersistence.countByCPM_CN(
 			commercePriceModifierId,
-			classNameLocalService.getClassNameId(className));
+			_classNameLocalService.getClassNameId(className));
 	}
 
 	@Override
@@ -189,7 +200,7 @@ public class CommercePriceModifierRelLocalServiceImpl
 		String className, long classPK) {
 
 		return commercePriceModifierRelPersistence.findByCN_CPK(
-			classNameLocalService.getClassNameId(className), classPK);
+			_classNameLocalService.getClassNameId(className), classPK);
 	}
 
 	@Override
@@ -230,5 +241,11 @@ public class CommercePriceModifierRelLocalServiceImpl
 			countCPDefinitionsByCommercePriceModifierId(
 				commercePriceModifierId, languageId, name);
 	}
+
+	@Reference
+	private ClassNameLocalService _classNameLocalService;
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

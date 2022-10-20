@@ -44,6 +44,7 @@ import statusCode from './status_code';
 import addParams from './util/add_params';
 import getCountries from './util/address/get_countries.es';
 import getRegions from './util/address/get_regions.es';
+import Cookie from './util/cookie';
 import fetch from './util/fetch.es';
 import focusFormField from './util/focus_form_field';
 import getFormElement from './util/form/get_form_element.es';
@@ -52,6 +53,10 @@ import postForm from './util/form/post_form.es';
 import setFormValues from './util/form/set_form_values.es';
 import formatStorage from './util/format_storage.es';
 import formatXML from './util/format_xml.es';
+import {
+	getCheckedCheckboxes,
+	getUncheckedCheckboxes,
+} from './util/get_checkboxes';
 import getCropRegion from './util/get_crop_region.es';
 import getDOM from './util/get_dom';
 import getElement from './util/get_element';
@@ -61,8 +66,10 @@ import getLexiconIconTpl from './util/get_lexicon_icon_template';
 import getOpener from './util/get_opener';
 import getPortletId from './util/get_portlet_id';
 import getPortletNamespace from './util/get_portlet_namespace.es';
+import getSelectedOptionValues from './util/get_selected_option_values';
 import getTop from './util/get_top';
 import getURLWithSessionId from './util/get_url_with_session_id';
+import getWindow from './util/get_window';
 import {
 	MAP_HTML_CHARS_ESCAPED,
 	escapeHTML,
@@ -75,6 +82,7 @@ import navigate from './util/navigate.es';
 import normalizeFriendlyURL from './util/normalize_friendly_url';
 import ns from './util/ns.es';
 import objectToURLSearchParams from './util/object_to_url_search_params.es';
+import openWindow from './util/open_window';
 import createActionURL from './util/portlet_url/create_action_url.es';
 import createPortletURL from './util/portlet_url/create_portlet_url.es';
 import createRenderURL from './util/portlet_url/create_render_url.es';
@@ -85,7 +93,11 @@ import {getSessionValue, setSessionValue} from './util/session.es';
 import showCapsLock from './util/show_caps_lock';
 import sub from './util/sub';
 import toCharCode from './util/to_char_code.es';
+import toggleBoxes from './util/toggle_boxes';
+import toggleControls from './util/toggle_controls';
 import toggleDisabled from './util/toggle_disabled';
+import toggleRadio from './util/toggle_radio';
+import toggleSelectBox from './util/toggle_select_box';
 import zIndex from './zIndex';
 
 Liferay = window.Liferay || {};
@@ -203,6 +215,8 @@ Liferay.Util.focusFormField = focusFormField;
 
 Liferay.Util.formatStorage = formatStorage;
 Liferay.Util.formatXML = formatXML;
+Liferay.Util.getCheckedCheckboxes = getCheckedCheckboxes;
+Liferay.Util.getUncheckedCheckboxes = getUncheckedCheckboxes;
 Liferay.Util.getCropRegion = getCropRegion;
 
 /**
@@ -229,6 +243,7 @@ Liferay.Util.getPortletId = getPortletId;
 Liferay.Util.getPortletNamespace = getPortletNamespace;
 Liferay.Util.getTop = getTop;
 Liferay.Util.getURLWithSessionId = getURLWithSessionId;
+Liferay.Util.getWindow = getWindow;
 Liferay.Util.groupBy = groupBy;
 
 /**
@@ -247,6 +262,8 @@ Liferay.Util.isPhone = isPhone;
  * @deprecated As of Athanasius (7.3.x), replaced by `import {isTablet} from 'frontend-js-web'`
  */
 Liferay.Util.isTablet = isTablet;
+
+Liferay.Util.getSelectedOptionValues = getSelectedOptionValues;
 
 Liferay.Util.navigate = navigate;
 Liferay.Util.ns = ns;
@@ -310,6 +327,7 @@ Liferay.Util.openToast = (...args) => {
 	);
 };
 
+Liferay.Util.openWindow = openWindow;
 Liferay.Util.removeEntitySelection = removeEntitySelection;
 Liferay.Util.selectFolder = selectFolder;
 Liferay.Util.showCapsLock = showCapsLock;
@@ -320,7 +338,13 @@ Liferay.Util.Session = {
 	set: setSessionValue,
 };
 
+Liferay.Util.toggleBoxes = toggleBoxes;
+Liferay.Util.toggleControls = toggleControls;
+Liferay.Util.toggleRadio = toggleRadio;
+Liferay.Util.toggleSelectBox = toggleSelectBox;
 Liferay.Util.unescape = unescape;
 Liferay.Util.unescapeHTML = unescapeHTML;
+
+Liferay.Util.Cookie = Cookie;
 
 export {portlet};

@@ -21,16 +21,19 @@ import com.liferay.change.tracking.model.CTEntry;
 import com.liferay.change.tracking.service.CTEntryLocalService;
 import com.liferay.change.tracking.web.internal.display.CTDisplayRendererRegistry;
 import com.liferay.change.tracking.web.internal.util.PublicationsPortletURLUtil;
+import com.liferay.layout.page.template.model.LayoutPageTemplateStructureRel;
 import com.liferay.learn.LearnMessage;
 import com.liferay.learn.LearnMessageUtil;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.change.tracking.sql.CTSQLModeThreadLocal;
+import com.liferay.portal.kernel.frontend.icons.FrontendIconsUtil;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.model.BaseModel;
+import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -147,7 +150,47 @@ public class ViewConflictsDisplayContext {
 				"ctCollectionId", _ctCollection.getCtCollectionId()
 			).buildString()
 		).put(
-			"spritemap", _themeDisplay.getPathThemeImages() + "/clay/icons.svg"
+			"showPageOverwriteWarning",
+			() -> {
+				List<ConflictInfo> layoutConflictInfos = _conflictInfoMap.get(
+					_portal.getClassNameId(Layout.class));
+				List<ConflictInfo> layoutPageTemplateStructureRelConflictInfos =
+					_conflictInfoMap.get(
+						_portal.getClassNameId(
+							LayoutPageTemplateStructureRel.class));
+
+				if ((layoutConflictInfos == null) ||
+					(layoutPageTemplateStructureRelConflictInfos == null)) {
+
+					return false;
+				}
+
+				boolean hasResolvedLayoutConflict = false;
+
+				for (ConflictInfo conflictInfo : layoutConflictInfos) {
+					if (conflictInfo.isResolved()) {
+						hasResolvedLayoutConflict = true;
+
+						break;
+					}
+				}
+
+				if (!hasResolvedLayoutConflict) {
+					return false;
+				}
+
+				for (ConflictInfo conflictInfo :
+						layoutPageTemplateStructureRelConflictInfos) {
+
+					if (conflictInfo.isResolved()) {
+						return true;
+					}
+				}
+
+				return false;
+			}
+		).put(
+			"spritemap", FrontendIconsUtil.getSpritemap(_themeDisplay)
 		).put(
 			"timeZone",
 			() -> {

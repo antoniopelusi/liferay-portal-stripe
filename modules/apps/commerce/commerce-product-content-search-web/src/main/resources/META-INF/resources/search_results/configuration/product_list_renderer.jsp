@@ -23,7 +23,7 @@ List<CPContentListRenderer> cpContentListRenderers = cpSearchResultsDisplayConte
 %>
 
 <aui:fieldset markupView="lexicon">
-	<aui:select label="product-list-renderer" name="preferences--cpContentListRendererKey--" onChange='<%= liferayPortletResponse.getNamespace() + "chooseCPContentListRendererKey();" %>'>
+	<aui:select id="cpContentListRendererKeySelect" label="product-list-renderer" name="preferences--cpContentListRendererKey--">
 
 		<%
 		for (CPContentListRenderer cpContentListRenderer : cpContentListRenderers) {
@@ -39,8 +39,6 @@ List<CPContentListRenderer> cpContentListRenderers = cpSearchResultsDisplayConte
 	</aui:select>
 </aui:fieldset>
 
-<aui:script>
-	function <portlet:namespace />chooseCPContentListRendererKey() {
-		submitForm(document.<portlet:namespace />fm);
-	}
-</aui:script>
+<liferay-frontend:component
+	module="js/configuration/product_list_renderer"
+/>

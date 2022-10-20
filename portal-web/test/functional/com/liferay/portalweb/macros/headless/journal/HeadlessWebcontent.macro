@@ -17,7 +17,6 @@ definition {
 		var globalGroupId = JSONWebcontentSetter.setGroupId(
 			groupName = "Global",
 			site = "true");
-
 		var classNameId = JSONClassname._getClassNameId(value = "com.liferay.journal.model.JournalArticle");
 
 		var structureId = JSONDDMstructure._getStructureId(

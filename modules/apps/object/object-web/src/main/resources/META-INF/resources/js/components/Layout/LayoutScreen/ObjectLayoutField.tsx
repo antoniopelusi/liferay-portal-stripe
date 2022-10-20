@@ -12,15 +12,12 @@
  * details.
  */
 
-import React, {useContext} from 'react';
+import React from 'react';
 
 import Panel from '../../Panel/Panel';
-import LayoutContext, {TYPES} from '../context';
-import {TObjectField} from '../types';
-import DropdownWithDeleteButton from './DropdownWithDeleteButton';
+import {TYPES, useLayoutContext} from '../objectLayoutContext';
+import HeaderDropdown from './HeaderDropdown';
 import RequiredLabel from './RequiredLabel';
-
-const defaultLanguageId = Liferay.ThemeDisplay.getDefaultLanguageId();
 
 interface IObjectLayoutFieldProps extends React.HTMLAttributes<HTMLElement> {
 	boxIndex: number;
@@ -30,6 +27,8 @@ interface IObjectLayoutFieldProps extends React.HTMLAttributes<HTMLElement> {
 	tabIndex: number;
 }
 
+const defaultLanguageId = Liferay.ThemeDisplay.getDefaultLanguageId();
+
 const ObjectLayoutField: React.FC<IObjectLayoutFieldProps> = ({
 	boxIndex,
 	columnIndex,
@@ -37,26 +36,21 @@ const ObjectLayoutField: React.FC<IObjectLayoutFieldProps> = ({
 	rowIndex,
 	tabIndex,
 }) => {
-	const [{objectFieldTypes, objectFields}, dispatch] = useContext(
-		LayoutContext
-	);
+	const [{objectFieldTypes, objectFields}, dispatch] = useLayoutContext();
 
-	const objectField = objectFields.find(
-		({id}) => id === objectFieldId
-	) as TObjectField;
+	const objectField = objectFields.find(({id}) => id === objectFieldId)!;
 
 	const objectFieldType = objectFieldTypes.find(
-		(objectFieldType) =>
-			objectFieldType.businessType === objectField.businessType
-	) as ObjectFieldType;
+		({businessType}) => businessType === objectField.businessType
+	);
 
 	return (
 		<>
 			<Panel key={`field_${objectFieldId}`}>
 				<Panel.SimpleBody
 					contentRight={
-						<DropdownWithDeleteButton
-							onClick={() => {
+						<HeaderDropdown
+							deleteElement={() => {
 								dispatch({
 									payload: {
 										boxIndex,
@@ -70,7 +64,7 @@ const ObjectLayoutField: React.FC<IObjectLayoutFieldProps> = ({
 							}}
 						/>
 					}
-					title={objectField?.label[defaultLanguageId]}
+					title={objectField?.label[defaultLanguageId]!}
 				>
 					<small className="text-secondary">
 						{objectFieldType?.label} |{' '}

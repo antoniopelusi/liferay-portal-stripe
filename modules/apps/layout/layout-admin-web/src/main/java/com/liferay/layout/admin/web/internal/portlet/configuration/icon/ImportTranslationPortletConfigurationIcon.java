@@ -18,12 +18,10 @@ package com.liferay.layout.admin.web.internal.portlet.configuration.icon;
  * @author Adolfo Pérez
  */
 import com.liferay.layout.admin.constants.LayoutAdminPortletKeys;
-import com.liferay.layout.admin.web.internal.configuration.FFBulkTranslationConfiguration;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.petra.reflect.ReflectionUtil;
-import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactoryUtil;
 import com.liferay.portal.kernel.portlet.configuration.icon.BasePortletConfigurationIcon;
@@ -34,21 +32,16 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.translation.url.provider.TranslationURLProvider;
 
-import java.util.Map;
-
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletResponse;
 
-import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Adolfo Pérez
  */
 @Component(
-	configurationPid = "com.liferay.layout.admin.web.internal.configuration.FFBulkTranslationConfiguration",
 	immediate = true,
 	property = "javax.portlet.name=" + LayoutAdminPortletKeys.GROUP_PAGES,
 	service = PortletConfigurationIcon.class
@@ -58,7 +51,7 @@ public class ImportTranslationPortletConfigurationIcon
 
 	@Override
 	public String getMessage(PortletRequest portletRequest) {
-		return LanguageUtil.get(
+		return _language.get(
 			getResourceBundle(getLocale(portletRequest)),
 			"import-translations");
 	}
@@ -95,14 +88,7 @@ public class ImportTranslationPortletConfigurationIcon
 
 	@Override
 	public boolean isShow(PortletRequest portletRequest) {
-		return _ffBulkTranslationConfiguration.bulkTranslationEnabled();
-	}
-
-	@Activate
-	@Modified
-	protected void activate(Map<String, Object> properties) {
-		_ffBulkTranslationConfiguration = ConfigurableUtil.createConfigurable(
-			FFBulkTranslationConfiguration.class, properties);
+		return true;
 	}
 
 	private long _getGroupId(PortletRequest portletRequest) {
@@ -112,8 +98,8 @@ public class ImportTranslationPortletConfigurationIcon
 		return themeDisplay.getScopeGroupId();
 	}
 
-	private volatile FFBulkTranslationConfiguration
-		_ffBulkTranslationConfiguration;
+	@Reference
+	private Language _language;
 
 	@Reference
 	private Portal _portal;

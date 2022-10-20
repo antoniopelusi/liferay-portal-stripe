@@ -16,7 +16,7 @@ package com.liferay.gradle.plugins.internal;
 
 import com.liferay.gradle.plugins.BaseDefaultsPlugin;
 import com.liferay.gradle.plugins.db.support.DBSupportPlugin;
-import com.liferay.gradle.plugins.db.support.tasks.BaseDBSupportTask;
+import com.liferay.gradle.plugins.db.support.task.BaseDBSupportTask;
 import com.liferay.gradle.plugins.extensions.LiferayExtension;
 import com.liferay.gradle.plugins.internal.util.FileUtil;
 import com.liferay.gradle.plugins.internal.util.GradleUtil;

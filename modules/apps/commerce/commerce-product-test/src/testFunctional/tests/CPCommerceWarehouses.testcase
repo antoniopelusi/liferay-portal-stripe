@@ -1,10 +1,10 @@
 @component-name = "portal-commerce"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
+	property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
 	property portal.release = "true";
 	property portal.upstream = "true";
+	property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 	property testray.main.component.name = "Order Management";
 
 	setUp {
@@ -65,7 +65,7 @@ definition {
 
 		Click(locator1 = "Button#PLUS");
 
-		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
 
 		Type(
 			key_fieldLabel = "SKU",
@@ -83,6 +83,8 @@ definition {
 			value1 = "50");
 
 		Button.click(button = "Submit");
+
+		SelectFrameTop();
 
 		AppBuilderAdmin.searchByItem(itemName = "TestSKU");
 
@@ -236,6 +238,147 @@ definition {
 			locator1 = "CommerceNavigation#ENTRY_NAME");
 	}
 
+	@description = "COMMERCE-5979. As a user of the storefront, I should be able to see the stock quantity value of the Warehouses based on the View permission of my role"
+	@priority = "4"
+	test CanSFUsersSeeStockQuantityBasedOnViewPermissionForWarehouse {
+		property portal.acceptance = "false";
+
+		task ("Given a Minium site with a buyer user") {
+			CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
+		}
+
+		task ("And Power User role is given to the buyer user") {
+			JSONRole.assignRoleToUser(
+				roleTitle = "Power User",
+				userEmailAddress = "buyer@liferay.com");
+		}
+
+		task ("And on Italy Warehouse, View permission is removed for User and Guest, given to Power User") {
+			CommerceNavigator.gotoPortlet(
+				category = "Inventory Management",
+				portlet = "Warehouses");
+
+			Click(
+				key_language = "Italy",
+				locator1 = "Icon#DEPOT_LANGUAGES_ELLIPSIS");
+
+			DropdownMenuItem.click(menuItem = "Permissions");
+
+			CommercePermissions.removePermissionsPG(
+				permissionDefinitionKey = "INLINE_PERMISSIONS_VIEW_CHECKBOX",
+				roleTitles = "Guest,User");
+
+			CommercePermissions.definePermissionsPG(
+				permissionDefinitionKey = "INLINE_PERMISSIONS_VIEW_CHECKBOX",
+				roleTitles = "Power User");
+
+			IFrame.closeFrame();
+		}
+
+		task ("When the buyer clicks U-Joint product on the catalog") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			Click(
+				key_productName = "u-joint",
+				locator1 = "CommerceFrontStore#PRODUCT_CARD_IMAGE");
+		}
+
+		task ("Then sees the exact number of the stock quantity value (120)") {
+			AssertElementPresent(
+				locator1 = "CommerceFrontStore#FS_PRODUCT_STOCK_QUANTITY",
+				value1 = "120");
+		}
+	}
+
+	@description = "COMMERCE-5979. As a user of the storefront, I should be able to see a decreased stock quantity value of the Warehouses when my role does not have permission to View Warehouses"
+	@priority = "4"
+	test CanSFUsersWithoutWarehouseViewPermissionSeeDecreasedStockQuantity {
+		property portal.acceptance = "false";
+
+		task ("Given a Minium site with a buyer user") {
+			CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
+		}
+
+		task ("And Power User role is given to the buyer user") {
+			JSONRole.assignRoleToUser(
+				roleTitle = "Power User",
+				userEmailAddress = "buyer@liferay.com");
+		}
+
+		task ("And on Italy Warehouse, View permission is removed for User and Guest, and verify Power User does not have it") {
+			CommerceNavigator.gotoPortlet(
+				category = "Inventory Management",
+				portlet = "Warehouses");
+
+			Click(
+				key_language = "Italy",
+				locator1 = "Icon#DEPOT_LANGUAGES_ELLIPSIS");
+
+			DropdownMenuItem.click(menuItem = "Permissions");
+
+			CommercePermissions.removePermissionsPG(
+				permissionDefinitionKey = "INLINE_PERMISSIONS_VIEW_CHECKBOX",
+				roleTitles = "Guest,User");
+
+			Role.viewPermissionPG(
+				permissionDefinitionKey = "INLINE_PERMISSIONS_VIEW_CHECKBOX",
+				permissionFlagged = "false",
+				roleTitle = "Power User");
+
+			IFrame.closeFrame();
+		}
+
+		task ("When the buyer clicks U-Joint product on the catalog") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			Click(
+				key_productName = "u-joint",
+				locator1 = "CommerceFrontStore#PRODUCT_CARD_IMAGE");
+		}
+
+		task ("Then sees a decreased number of the stock quantity value (80)") {
+			AssertElementPresent(
+				locator1 = "CommerceFrontStore#FS_PRODUCT_STOCK_QUANTITY",
+				value1 = "80");
+		}
+	}
+
 	@description = "This is a test for COMMERCE-6200. Consume booked quantities of one item in multiple warehouses"
 	@priority = "3"
 	test ConsumeBookedQuantitiesFromMultipleWarehouses {
@@ -276,6 +419,7 @@ definition {
 			WaitForElementPresent(locator1 = "CommerceEntry#WAREHOUSE_INVENTORY_ITEM_QUANTITY");
 
 			var aux = selenium.getElementValue("CommerceEntry#WAREHOUSE_INVENTORY_ITEM_QUANTITY");
+
 			var previousTotal = ${previousTotal} + ${aux};
 		}
 
@@ -321,11 +465,7 @@ definition {
 			productName = "ABS Sensor",
 			productQuantity = "1");
 
-		CommerceNavigator.gotoMiniCart();
-
-		Button.click(button = "View Details");
-
-		Button.click(button = "Checkout");
+		CommerceCheckout.gotoCheckout();
 
 		CommerceCheckout.initializersCheckout(
 			newAddressAddress = "Test Address",
@@ -402,6 +542,7 @@ definition {
 			WaitForElementPresent(locator1 = "CommerceEntry#WAREHOUSE_INVENTORY_ITEM_QUANTITY");
 
 			var aux = selenium.getElementValue("CommerceEntry#WAREHOUSE_INVENTORY_ITEM_QUANTITY");
+
 			var newTotal = ${newTotal} + ${aux};
 		}
 
@@ -477,11 +618,7 @@ definition {
 			productName = "U-Joint",
 			productQuantity = "2");
 
-		CommerceNavigator.gotoMiniCart();
-
-		Button.click(button = "View Details");
-
-		Button.click(button = "Checkout");
+		CommerceCheckout.gotoCheckout();
 
 		CommerceCheckout.initializersCheckout(
 			newAddressAddress = "Test Address",
@@ -773,6 +910,7 @@ definition {
 		for (var warehouse : list "Italy,United States - Northeast,United States - Southwest") {
 			var key_inventoryName = "${warehouse}";
 			var inventoryValue = selenium.getElementValue("CommerceEntry#INVENTORY_INPUT");
+
 			var quantity = ${quantity} + ${inventoryValue};
 		}
 
@@ -863,10 +1001,12 @@ definition {
 		}
 
 		Uncheck.uncheckToggleSwitch(
-			key_toggleSwitchLabel = "${channel2}",
+			key_toggleSwitchLabel = "${commerceChannel2}",
 			locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
 
-		Button.clickSave();
+		Button.click(button = "Save");
+
+		CommerceUtilities.checkSuccessAlertAppearsAndDisappears();
 
 		Click(
 			key_metadataSetName = "United States - Northeast",
@@ -879,10 +1019,12 @@ definition {
 		}
 
 		Uncheck.uncheckToggleSwitch(
-			key_toggleSwitchLabel = "${channel1}",
+			key_toggleSwitchLabel = "${commerceChannel1}",
 			locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
 
-		Button.clickSave();
+		Button.click(button = "Save");
+
+		CommerceUtilities.checkSuccessAlertAppearsAndDisappears();
 
 		ApplicationsMenu.gotoSite(site = "Minium");
 
@@ -943,6 +1085,7 @@ definition {
 
 		while (IsElementPresent(key_value1 = "${count1}", locator1 = "CommerceEntry#WAREHOUSE_INVENTORY_ITEM_QUANTITY")) {
 			var temp1 = selenium.getAttribute("//input[contains(@id,'_com_liferay_commerce_product_definitions_web_internal_portlet_CPDefinitionsPortlet_commerceInventoryWarehouseItemQuantity${count1}')]@value");
+
 			var amount = ${temp1} + ${amount};
 			var count1 = ${count1} + 1;
 		}
@@ -1083,10 +1226,6 @@ definition {
 
 		Open.openInTheNewTab(locator1 = "${portalURL}");
 
-		var siteName = TestCase.getSiteName(siteName = "${siteName}");
-
-		SelectWindow(locator1 = "title=Home - ${siteName}");
-
 		CommerceNavigator.gotoPortlet(
 			category = "Inventory Management",
 			portlet = "Warehouses");
@@ -1154,20 +1293,6 @@ definition {
 
 		Button.clickSave();
 
-		CommerceNavigator.gotoPortlet(
-			category = "Product Management",
-			panel = "Commerce",
-			portlet = "Catalogs");
-
-		Click(locator1 = "Button#PLUS");
-
-		CommerceEntry.addNewCatalogsEntry(
-			catalogCurrency = "US Dollar",
-			catalogLanguage = "English (United States)",
-			catalogName = "Master");
-
-		Button.click(button = "Submit");
-
 		ApplicationsMenu.gotoPortlet(
 			category = "Product Management",
 			panel = "Commerce",
@@ -1205,9 +1330,15 @@ definition {
 
 		Search.searchCP(searchTerm = "default");
 
-		AssertVisible(
-			key_productQuantity = "50",
-			locator1 = "CommerceOrders#ORDER_DETAILS_PRODUCT_QUANTITY");
+		AssertElementPresent(
+			key_quantity = "50",
+			key_sku = "default",
+			locator1 = "CommerceInventory#INVENTORY_SKU_ON_HAND_QUANTITY");
+
+		AssertElementPresent(
+			key_quantity = "50",
+			key_sku = "default",
+			locator1 = "CommerceInventory#INVENTORY_SKU_AVAILABLE_QUANTITY");
 	}
 
 }

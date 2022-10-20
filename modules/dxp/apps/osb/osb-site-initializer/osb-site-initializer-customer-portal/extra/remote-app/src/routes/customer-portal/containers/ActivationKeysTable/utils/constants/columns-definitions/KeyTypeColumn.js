@@ -10,12 +10,13 @@
  */
 
 import {useCallback} from 'react';
-import {useCustomerPortal} from '../../../../../context';
+import i18n from '../../../../../../../common/I18n';
+import {useAppPropertiesContext} from '../../../../../../../common/contexts/AppPropertiesContext';
 import {hasCluster} from '../../hasCluster';
 import {hasVirtualCluster} from '../../index';
 
 const KeyTypeColumn = ({activationKey}) => {
-	const [{assetsPath}] = useCustomerPortal();
+	const {liferayWebDAV} = useAppPropertiesContext();
 
 	const hasVirtualClusterForActivationKeys = hasVirtualCluster(
 		activationKey?.licenseEntryType
@@ -27,14 +28,14 @@ const KeyTypeColumn = ({activationKey}) => {
 
 	const getColumnTitle = useCallback(() => {
 		if (hasVirtualClusterForActivationKeys) {
-			return 'Virtual Cluster';
+			return i18n.translate('virtual-cluster');
 		}
 
 		if (hasClusterForActivationKeys) {
-			return 'Cluster';
+			return i18n.translate('cluster');
 		}
 
-		return 'On-Premise';
+		return i18n.translate('on-premise');
 	}, [hasClusterForActivationKeys, hasVirtualClusterForActivationKeys]);
 
 	return (
@@ -42,7 +43,7 @@ const KeyTypeColumn = ({activationKey}) => {
 			{hasVirtualClusterForActivationKeys && (
 				<img
 					className="ml-n4 mr-1"
-					src={`${assetsPath}/assets/virtual_cluster.svg`}
+					src={`${liferayWebDAV}/assets/virtual_cluster.svg`}
 				/>
 			)}
 
@@ -54,7 +55,9 @@ const KeyTypeColumn = ({activationKey}) => {
 				<p className="font-weight-normal m-0 text-neutral-7 text-paragraph-sm text-truncate">
 					{hasVirtualClusterForActivationKeys ||
 					hasClusterForActivationKeys
-						? `${activationKey.maxClusterNodes} Cluster Nodes (Keys)`
+						? i18n.sub('x-cluster-nodes-keys', [
+								activationKey.maxClusterNodes,
+						  ])
 						: activationKey.hostName || '-'}
 				</p>
 			</div>

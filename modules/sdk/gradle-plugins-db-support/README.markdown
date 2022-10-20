@@ -16,7 +16,7 @@ To use the plugin, include it in your build script:
 ```gradle
 buildscript {
 	dependencies {
-		classpath group: "com.liferay", name: "com.liferay.gradle.plugins.db.support", version: "1.0.8"
+		classpath group: "com.liferay", name: "com.liferay.gradle.plugins.db.support", version: "1.1.0"
 	}
 
 	repositories {
@@ -112,6 +112,6 @@ manually adding a dependency to the `dbSupportTool` configuration:
 
 ```gradle
 dependencies {
-	dbSupportTool group: "com.liferay", name: "com.liferay.portal.tools.db.support", version: "1.0.8"
+	dbSupportTool group: "com.liferay", name: "com.liferay.portal.tools.db.support", version: "1.0.9"
 }
 ```

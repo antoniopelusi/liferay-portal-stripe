@@ -14,32 +14,42 @@
 
 /// <reference types="react" />
 
-import {TObjectViewSortColumn} from '../types';
+import {TObjectColumn} from '../types';
 import './BuilderScreen.scss';
 interface IProps {
-	aliasColumnHeader: string;
+	defaultSort?: boolean;
+	disableEdit?: (businessType: string) => boolean;
 	emptyState: {
 		buttonText: string;
 		description: string;
 		title: string;
 	};
-	isDefaultSort?: boolean;
-	objectColumns: TObjectViewSortColumn[];
+	filter?: boolean;
+	firstColumnHeader: string;
+	hasDragAndDrop?: boolean;
+	objectColumns: TObjectColumn[];
 	onEditing?: (boolean: boolean) => void;
 	onEditingObjectFieldName?: (objectFieldName: string) => void;
 	onVisibleEditModal: (boolean: boolean) => void;
-	onVisibleModal: (boolean: boolean) => void;
+	openModal: () => void;
+	secondColumnHeader: string;
+	thirdColumnHeader?: string;
 	title: string;
 }
 export declare function BuilderScreen({
-	aliasColumnHeader,
+	defaultSort,
+	disableEdit,
 	emptyState,
-	isDefaultSort,
+	filter,
+	firstColumnHeader,
+	hasDragAndDrop,
 	objectColumns,
 	onEditing,
 	onEditingObjectFieldName,
 	onVisibleEditModal,
-	onVisibleModal,
+	openModal,
+	secondColumnHeader,
+	thirdColumnHeader,
 	title,
 }: IProps): JSX.Element;
 export {};

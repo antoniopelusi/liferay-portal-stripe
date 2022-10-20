@@ -20,6 +20,7 @@ import com.liferay.commerce.discount.model.CommerceDiscount;
 import com.liferay.commerce.discount.model.CommerceDiscountRel;
 import com.liferay.commerce.discount.model.CommerceDiscountRelTable;
 import com.liferay.commerce.discount.service.base.CommerceDiscountRelLocalServiceBaseImpl;
+import com.liferay.commerce.discount.service.persistence.CommerceDiscountPersistence;
 import com.liferay.commerce.discount.util.comparator.CommerceDiscountRelCreateDateComparator;
 import com.liferay.commerce.pricing.model.CommercePricingClass;
 import com.liferay.commerce.pricing.model.CommercePricingClassTable;
@@ -34,25 +35,35 @@ import com.liferay.petra.sql.dsl.expression.Expression;
 import com.liferay.petra.sql.dsl.expression.Predicate;
 import com.liferay.petra.sql.dsl.query.GroupByStep;
 import com.liferay.petra.sql.dsl.query.JoinStep;
+import com.liferay.portal.aop.AopService;
 import com.liferay.portal.dao.orm.custom.sql.CustomSQL;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.spring.extender.service.ServiceReference;
 
 import java.util.List;
+
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Marco Leo
  * @author Alessio Antonio Rendina
  */
+@Component(
+	enabled = false,
+	property = "model.class.name=com.liferay.commerce.discount.model.CommerceDiscountRel",
+	service = AopService.class
+)
 public class CommerceDiscountRelLocalServiceImpl
 	extends CommerceDiscountRelLocalServiceBaseImpl {
 
@@ -64,7 +75,7 @@ public class CommerceDiscountRelLocalServiceImpl
 
 		// Commerce discount rel
 
-		User user = userLocalService.getUser(serviceContext.getUserId());
+		User user = _userLocalService.getUser(serviceContext.getUserId());
 
 		long commerceDiscountRelId = counterLocalService.increment();
 
@@ -138,7 +149,7 @@ public class CommerceDiscountRelLocalServiceImpl
 
 		List<CommerceDiscountRel> commerceDiscountRels =
 			commerceDiscountRelPersistence.findByCN_CPK(
-				classNameLocalService.getClassNameId(className), classPK);
+				_classNameLocalService.getClassNameId(className), classPK);
 
 		for (CommerceDiscountRel commerceDiscountRel : commerceDiscountRels) {
 			commerceDiscountRelLocalService.deleteCommerceDiscountRel(
@@ -151,7 +162,7 @@ public class CommerceDiscountRelLocalServiceImpl
 		String className, long classPK) {
 
 		return commerceDiscountRelPersistence.fetchByCN_CPK_First(
-			classNameLocalService.getClassNameId(className), classPK,
+			_classNameLocalService.getClassNameId(className), classPK,
 			new CommerceDiscountRelCreateDateComparator());
 	}
 
@@ -201,7 +212,7 @@ public class CommerceDiscountRelLocalServiceImpl
 		return ListUtil.toLongArray(
 			commerceDiscountRelPersistence.findByCD_CN(
 				commerceDiscountId,
-				classNameLocalService.getClassNameId(className)),
+				_classNameLocalService.getClassNameId(className)),
 			CommerceDiscountRel::getClassPK);
 	}
 
@@ -211,7 +222,7 @@ public class CommerceDiscountRelLocalServiceImpl
 
 		return commerceDiscountRelPersistence.findByCD_CN(
 			commerceDiscountId,
-			classNameLocalService.getClassNameId(className));
+			_classNameLocalService.getClassNameId(className));
 	}
 
 	@Override
@@ -220,8 +231,9 @@ public class CommerceDiscountRelLocalServiceImpl
 		OrderByComparator<CommerceDiscountRel> orderByComparator) {
 
 		return commerceDiscountRelPersistence.findByCD_CN(
-			commerceDiscountId, classNameLocalService.getClassNameId(className),
-			start, end, orderByComparator);
+			commerceDiscountId,
+			_classNameLocalService.getClassNameId(className), start, end,
+			orderByComparator);
 	}
 
 	@Override
@@ -230,7 +242,7 @@ public class CommerceDiscountRelLocalServiceImpl
 
 		return commerceDiscountRelPersistence.countByCD_CN(
 			commerceDiscountId,
-			classNameLocalService.getClassNameId(className));
+			_classNameLocalService.getClassNameId(className));
 	}
 
 	@Override
@@ -378,8 +390,7 @@ public class CommerceDiscountRelLocalServiceImpl
 		throws PortalException {
 
 		CommerceDiscount commerceDiscount =
-			commerceDiscountLocalService.getCommerceDiscount(
-				commerceDiscountId);
+			_commerceDiscountPersistence.findByPrimaryKey(commerceDiscountId);
 
 		Indexer<CommerceDiscount> indexer =
 			IndexerRegistryUtil.nullSafeGetIndexer(CommerceDiscount.class);
@@ -398,7 +409,7 @@ public class CommerceDiscountRelLocalServiceImpl
 						commerceDiscountId
 					).and(
 						CommerceDiscountRelTable.INSTANCE.classNameId.eq(
-							classNameLocalService.getClassNameId(className))
+							_classNameLocalService.getClassNameId(className))
 					);
 
 				if (Validator.isNotNull(keywords)) {
@@ -414,7 +425,16 @@ public class CommerceDiscountRelLocalServiceImpl
 			});
 	}
 
-	@ServiceReference(type = CustomSQL.class)
+	@Reference
+	private ClassNameLocalService _classNameLocalService;
+
+	@Reference
+	private CommerceDiscountPersistence _commerceDiscountPersistence;
+
+	@Reference
 	private CustomSQL _customSQL;
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

@@ -1,0 +1,34 @@
+[
+	{
+		"dataType": 15,
+		"modelResource": "com.liferay.commerce.model.CommerceOrderItem",
+		"name": "accountSubscriptionERC",
+		"properties": {
+			"indexType": 2
+		}
+	},
+	{
+		"dataType": 15,
+		"modelResource": "com.liferay.commerce.model.CommerceOrderItem",
+		"name": "accountSubscriptionGroupERC",
+		"properties": {
+			"indexType": 2
+		}
+	},
+	{
+		"dataType": 9,
+		"modelResource": "com.liferay.commerce.model.CommerceOrderItem",
+		"name": "provisionedCount",
+		"properties": {
+			"indexType": 2
+		}
+	},
+	{
+		"dataType": 15,
+		"modelResource": "com.liferay.commerce.model.CommerceOrderItem",
+		"name": "status",
+		"properties": {
+			"indexType": 2
+		}
+	}
+]

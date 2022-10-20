@@ -110,7 +110,18 @@ export default function NodeInformation({errors, setErrors}) {
 				<ClayInput
 					id="nodeId"
 					onChange={({target}) => {
-						setErrors(checkIdErrors(elements, errors, target));
+						const filteredElements = elements.slice();
+
+						filteredElements.splice(
+							elements.findIndex(
+								(element) => element.id === selectedItem.id
+							),
+							1
+						);
+
+						setErrors(
+							checkIdErrors(filteredElements, errors, target)
+						);
 						setSelectedItemNewId(target.value);
 					}}
 					type="text"

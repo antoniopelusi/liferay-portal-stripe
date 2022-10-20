@@ -17,6 +17,7 @@
 <%@ include file="/document_library/init.jsp" %>
 
 <%
+DLPortletInstanceSettingsHelper dlPortletInstanceSettingsHelper = new DLPortletInstanceSettingsHelper(dlRequestHelper);
 DLViewEntriesDisplayContext dlViewEntriesDisplayContext = new DLViewEntriesDisplayContext(liferayPortletRequest, liferayPortletResponse);
 %>
 
@@ -88,11 +89,18 @@ DLViewEntriesDisplayContext dlViewEntriesDisplayContext = new DLViewEntriesDispl
 								path="/document_library/view_file_entry_descriptive.jsp"
 							/>
 
-							<liferay-ui:search-container-column-jsp
-								path="/document_library/file_entry_action.jsp"
-							/>
+							<c:if test="<%= dlPortletInstanceSettingsHelper.isShowActions() %>">
+								<liferay-ui:search-container-column-jsp
+									path="/document_library/file_entry_action.jsp"
+								/>
+							</c:if>
 						</c:when>
 						<c:when test="<%= dlViewEntriesDisplayContext.isIconDisplayStyle() %>">
+
+							<%
+							String fileEntryActionJsp = dlPortletInstanceSettingsHelper.isShowActions() ? "/document_library/file_entry_action.jsp" : null;
+							%>
+
 							<liferay-ui:search-container-column-text>
 								<c:choose>
 									<c:when test="<%= dlViewFileVersionDisplayContext.hasCustomThumbnail() %>">
@@ -107,7 +115,7 @@ DLViewEntriesDisplayContext dlViewEntriesDisplayContext = new DLViewEntriesDispl
 										</liferay-util:buffer>
 
 										<liferay-frontend:html-vertical-card
-											actionJsp="/document_library/file_entry_action.jsp"
+											actionJsp="<%= fileEntryActionJsp %>"
 											actionJspServletContext="<%= application %>"
 											cssClass="entry-display-style file-card"
 											html="<%= customThumbnailHTML %>"
@@ -121,7 +129,7 @@ DLViewEntriesDisplayContext dlViewEntriesDisplayContext = new DLViewEntriesDispl
 									</c:when>
 									<c:when test="<%= Validator.isNull(thumbnailSrc) %>">
 										<liferay-frontend:icon-vertical-card
-											actionJsp="/document_library/file_entry_action.jsp"
+											actionJsp="<%= fileEntryActionJsp %>"
 											actionJspServletContext="<%= application %>"
 											cssClass="entry-display-style file-card"
 											icon="documents-and-media"
@@ -135,7 +143,7 @@ DLViewEntriesDisplayContext dlViewEntriesDisplayContext = new DLViewEntriesDispl
 									</c:when>
 									<c:otherwise>
 										<liferay-frontend:vertical-card
-											actionJsp="/document_library/file_entry_action.jsp"
+											actionJsp="<%= fileEntryActionJsp %>"
 											actionJspServletContext="<%= application %>"
 											cssClass="entry-display-style file-card"
 											imageUrl="<%= thumbnailSrc %>"
@@ -266,9 +274,11 @@ DLViewEntriesDisplayContext dlViewEntriesDisplayContext = new DLViewEntriesDispl
 										/>
 									</c:when>
 									<c:when test='<%= curEntryColumn.equals("action") %>'>
-										<liferay-ui:search-container-column-jsp
-											path="/document_library/file_entry_action.jsp"
-										/>
+										<c:if test="<%= dlPortletInstanceSettingsHelper.isShowActions() %>">
+											<liferay-ui:search-container-column-jsp
+												path="/document_library/file_entry_action.jsp"
+											/>
+										</c:if>
 									</c:when>
 								</c:choose>
 
@@ -310,9 +320,11 @@ DLViewEntriesDisplayContext dlViewEntriesDisplayContext = new DLViewEntriesDispl
 								path="/document_library/view_folder_descriptive.jsp"
 							/>
 
-							<liferay-ui:search-container-column-jsp
-								path="/document_library/folder_action.jsp"
-							/>
+							<c:if test="<%= dlPortletInstanceSettingsHelper.isShowActions() %>">
+								<liferay-ui:search-container-column-jsp
+									path="/document_library/folder_action.jsp"
+								/>
+							</c:if>
 						</c:when>
 						<c:when test="<%= dlViewEntriesDisplayContext.isIconDisplayStyle() %>">
 
@@ -324,7 +336,7 @@ DLViewEntriesDisplayContext dlViewEntriesDisplayContext = new DLViewEntriesDispl
 								colspan="<%= 2 %>"
 							>
 								<liferay-frontend:horizontal-card
-									actionJsp="/document_library/folder_action.jsp"
+									actionJsp='<%= dlPortletInstanceSettingsHelper.isShowActions() ? "/document_library/folder_action.jsp" : null %>'
 									actionJspServletContext="<%= application %>"
 									resultRow="<%= row %>"
 									rowChecker="<%= searchContainer.getRowChecker() %>"
@@ -442,9 +454,11 @@ DLViewEntriesDisplayContext dlViewEntriesDisplayContext = new DLViewEntriesDispl
 										/>
 									</c:when>
 									<c:when test='<%= curEntryColumn.equals("action") %>'>
-										<liferay-ui:search-container-column-jsp
-											path="/document_library/folder_action.jsp"
-										/>
+										<c:if test="<%= dlPortletInstanceSettingsHelper.isShowActions() %>">
+											<liferay-ui:search-container-column-jsp
+												path="/document_library/folder_action.jsp"
+											/>
+										</c:if>
 									</c:when>
 								</c:choose>
 

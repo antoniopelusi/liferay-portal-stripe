@@ -37,6 +37,10 @@ public interface ContentTypes {
 
 	public static final String APPLICATION_TEXT = "application/text";
 
+	public static final String
+		APPLICATION_VND_LIFERAY_VIDEO_EXTERNAL_SHORTCUT_HTML =
+			"application/vnd+liferay.video.external.shortcut+html";
+
 	public static final String APPLICATION_VND_MS_EXCEL =
 		"application/vnd.ms-excel";
 

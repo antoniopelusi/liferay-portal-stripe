@@ -457,16 +457,22 @@ public class KBArticleLocalServiceTest {
 	public void testAddKBArticleWithoutExternalReferenceCode()
 		throws Exception {
 
-		KBArticle kbArticle = KBArticleLocalServiceUtil.addKBArticle(
+		KBArticle kbArticle1 = KBArticleLocalServiceUtil.addKBArticle(
 			null, _user.getUserId(), _kbFolderClassNameId,
 			KBFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			StringUtil.randomString(), StringUtil.randomString(),
 			StringUtil.randomString(), StringUtil.randomString(),
 			StringPool.BLANK, null, null, _serviceContext);
 
-		Assert.assertEquals(
-			kbArticle.getExternalReferenceCode(),
-			String.valueOf(kbArticle.getKbArticleId()));
+		String externalReferenceCode = kbArticle1.getExternalReferenceCode();
+
+		Assert.assertEquals(externalReferenceCode, kbArticle1.getUuid());
+
+		KBArticle kbArticle2 =
+			KBArticleLocalServiceUtil.getLatestKBArticleByExternalReferenceCode(
+				_group.getGroupId(), externalReferenceCode);
+
+		Assert.assertEquals(kbArticle1, kbArticle2);
 	}
 
 	@Test

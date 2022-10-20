@@ -13,7 +13,12 @@
  */
 
 import {ClayButtonWithIcon} from '@clayui/button';
-import {useConfig, useForm} from 'data-engine-js-components-web';
+import {
+	FieldType,
+	FieldTypeName,
+	useConfig,
+	useForm,
+} from 'data-engine-js-components-web';
 import React from 'react';
 
 // @ts-ignore
@@ -68,6 +73,10 @@ const SidebarFieldSettings: React.FC<IProps> = ({field}) => {
 
 export default SidebarFieldSettings;
 
+interface Field {
+	name: string;
+	type: FieldTypeName;
+}
 interface IProps {
 	field: Field;
 }

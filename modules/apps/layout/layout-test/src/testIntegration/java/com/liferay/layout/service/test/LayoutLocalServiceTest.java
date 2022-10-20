@@ -140,8 +140,9 @@ public class LayoutLocalServiceTest {
 			HashMapBuilder.put(
 				LocaleUtil.US, "/friendly-url-2"
 			).build(),
-			false, null, layout1.getMasterLayoutPlid(),
-			layout1.getStyleBookEntryId(), new ServiceContext());
+			false, null, layout1.getStyleBookEntryId(),
+			layout1.getFaviconFileEntryId(), layout1.getMasterLayoutPlid(),
+			new ServiceContext());
 
 		Layout layout2 = _layoutLocalService.addLayout(
 			TestPropsValues.getUserId(), _group.getGroupId(), false,
@@ -371,8 +372,9 @@ public class LayoutLocalServiceTest {
 			HashMapBuilder.put(
 				LocaleUtil.US, "/friendly-url-2"
 			).build(),
-			false, null, layout.getMasterLayoutPlid(),
-			layout.getStyleBookEntryId(), new ServiceContext());
+			false, null, layout.getStyleBookEntryId(),
+			layout.getFaviconFileEntryId(), layout.getMasterLayoutPlid(),
+			new ServiceContext());
 
 		Layout draftLayout = layout.fetchDraftLayout();
 
@@ -383,8 +385,9 @@ public class LayoutLocalServiceTest {
 			draftLayout.getDescriptionMap(), draftLayout.getKeywordsMap(),
 			draftLayout.getRobotsMap(), draftLayout.getType(),
 			draftLayout.isHidden(), draftLayout.getFriendlyURLMap(), false,
-			null, draftLayout.getMasterLayoutPlid(),
-			draftLayout.getStyleBookEntryId(), new ServiceContext());
+			null, draftLayout.getStyleBookEntryId(),
+			draftLayout.getFaviconFileEntryId(),
+			draftLayout.getMasterLayoutPlid(), new ServiceContext());
 	}
 
 	@Test
@@ -408,8 +411,9 @@ public class LayoutLocalServiceTest {
 			).put(
 				LocaleUtil.US, ""
 			).build(),
-			false, null, layout.getMasterLayoutPlid(),
-			layout.getStyleBookEntryId(), serviceContext);
+			false, null, layout.getStyleBookEntryId(),
+			layout.getFaviconFileEntryId(), layout.getMasterLayoutPlid(),
+			serviceContext);
 
 		Assert.assertEquals("/home", layout.getFriendlyURL(LocaleUtil.US));
 	}
@@ -433,8 +437,9 @@ public class LayoutLocalServiceTest {
 			layout.getTitleMap(), layout.getDescriptionMap(),
 			layout.getKeywordsMap(), layout.getRobotsMap(), layout.getType(),
 			layout.isHidden(), layout.getFriendlyURLMap(),
-			layout.getIconImage(), null, layout.getPlid(),
-			layout.getStyleBookEntryId(), new ServiceContext());
+			layout.getIconImage(), null, layout.getStyleBookEntryId(),
+			layout.getFaviconFileEntryId(), layout.getPlid(),
+			new ServiceContext());
 	}
 
 	private void _testDeleteLayouts(boolean system) throws Exception {

@@ -14,8 +14,9 @@
 
 package com.liferay.jenkins.results.parser.testray;
 
-import com.liferay.jenkins.results.parser.AxisBuild;
 import com.liferay.jenkins.results.parser.Build;
+import com.liferay.jenkins.results.parser.Dom4JUtil;
+import com.liferay.jenkins.results.parser.DownstreamBuild;
 import com.liferay.jenkins.results.parser.JenkinsMaster;
 import com.liferay.jenkins.results.parser.JenkinsResultsParserUtil;
 import com.liferay.jenkins.results.parser.Job;
@@ -42,6 +43,10 @@ import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.lang.WordUtils;
 
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.Element;
+
 /**
  * @author Michael Hashimoto
  */
@@ -66,13 +71,6 @@ public class BatchTestrayCaseResult extends TestrayCaseResult {
 			"testray/" + JenkinsResultsParserUtil.getDistinctTimeStamp());
 	}
 
-	public AxisBuild getAxisBuild() {
-		TopLevelBuild topLevelBuild = getTopLevelBuild();
-
-		return topLevelBuild.getDownstreamAxisBuild(
-			_axisTestClassGroup.getAxisName());
-	}
-
 	public String getAxisName() {
 		return _axisTestClassGroup.getAxisName();
 	}
@@ -82,7 +80,16 @@ public class BatchTestrayCaseResult extends TestrayCaseResult {
 	}
 
 	public Build getBuild() {
-		return getAxisBuild();
+		TopLevelBuild topLevelBuild = getTopLevelBuild();
+
+		DownstreamBuild downstreamBuild = topLevelBuild.getDownstreamBuild(
+			getAxisName());
+
+		if (downstreamBuild != null) {
+			return downstreamBuild;
+		}
+
+		return topLevelBuild.getDownstreamAxisBuild(getAxisName());
 	}
 
 	@Override
@@ -233,11 +240,12 @@ public class BatchTestrayCaseResult extends TestrayCaseResult {
 	public List<TestrayAttachment> getTestrayAttachments() {
 		List<TestrayAttachment> testrayAttachments = new ArrayList<>();
 
-		testrayAttachments.add(_getBuildResultTopLevelTestrayAttachment());
+		testrayAttachments.add(_getBuildReportTopLevelTestrayAttachment());
 		testrayAttachments.add(_getJobSummaryTestrayAttachment());
 		testrayAttachments.add(_getJenkinsConsoleTestrayAttachment());
 		testrayAttachments.add(_getJenkinsConsoleTopLevelTestrayAttachment());
 		testrayAttachments.add(_getJenkinsReportTestrayAttachment());
+		testrayAttachments.add(_getWarningsTestrayAttachment());
 
 		testrayAttachments.removeAll(Collections.singleton(null));
 
@@ -258,23 +266,51 @@ public class BatchTestrayCaseResult extends TestrayCaseResult {
 
 	@Override
 	public String[] getWarnings() {
+		TestrayAttachment testrayAttachment = _getWarningsTestrayAttachment();
+
+		if (testrayAttachment == null) {
+			return null;
+		}
+
+		String testrayAttachmentValue = testrayAttachment.getValue();
+
+		if (JenkinsResultsParserUtil.isNullOrEmpty(testrayAttachmentValue)) {
+			return null;
+		}
+
+		try {
+			Document document = Dom4JUtil.parse(testrayAttachmentValue);
+
+			Element rootElement = document.getRootElement();
+
+			List<String> warnings = new ArrayList<>();
+
+			for (Element valueElement : rootElement.elements()) {
+				String warning = valueElement.getText();
+
+				warning = warning.trim();
+
+				if (JenkinsResultsParserUtil.isNullOrEmpty(warning)) {
+					continue;
+				}
+
+				warnings.add(warning);
+			}
+
+			if (!warnings.isEmpty()) {
+				return warnings.toArray(new String[0]);
+			}
+		}
+		catch (DocumentException documentException) {
+			return null;
+		}
+
 		return null;
 	}
 
 	protected String getAxisBuildURLPath() {
-		AxisBuild axisBuild = getAxisBuild();
-
-		if (axisBuild == null) {
-			return null;
-		}
-
-		StringBuilder sb = new StringBuilder();
-
-		sb.append(_getTopLevelBuildURLPath());
-		sb.append("/");
-		sb.append(axisBuild.getAxisName());
-
-		return sb.toString();
+		return JenkinsResultsParserUtil.combine(
+			_getTopLevelBuildURLPath(), "/", getAxisName());
 	}
 
 	protected AxisTestClassGroup getAxisTestClassGroup() {
@@ -320,10 +356,10 @@ public class BatchTestrayCaseResult extends TestrayCaseResult {
 		return null;
 	}
 
-	private TestrayAttachment _getBuildResultTopLevelTestrayAttachment() {
+	private TestrayAttachment _getBuildReportTopLevelTestrayAttachment() {
 		return getTestrayAttachment(
-			getTopLevelBuild(), "Build Result (Top Level)",
-			_getTopLevelBuildURLPath() + "/build-result.json.gz");
+			getTopLevelBuild(), "Build Report (Top Level)",
+			_getTopLevelBuildURLPath() + "/build-report.json.gz");
 	}
 
 	private TestrayAttachment _getJenkinsConsoleTestrayAttachment() {
@@ -331,15 +367,15 @@ public class BatchTestrayCaseResult extends TestrayCaseResult {
 		String key = getAxisBuildURLPath() + "/jenkins-console.txt.gz";
 
 		TestrayAttachment testrayAttachment = getTestrayAttachment(
-			getAxisBuild(), name, key);
+			getBuild(), name, key);
 
 		if (testrayAttachment != null) {
 			return testrayAttachment;
 		}
 
-		AxisBuild axisBuild = getAxisBuild();
+		Build build = getBuild();
 
-		if (axisBuild == null) {
+		if (build == null) {
 			return null;
 		}
 
@@ -350,7 +386,7 @@ public class BatchTestrayCaseResult extends TestrayCaseResult {
 
 		try {
 			JenkinsResultsParserUtil.write(
-				jenkinsConsoleFile, axisBuild.getConsoleText());
+				jenkinsConsoleFile, build.getConsoleText());
 
 			JenkinsResultsParserUtil.gzip(
 				jenkinsConsoleFile, jenkinsConsoleGzFile);
@@ -466,6 +502,12 @@ public class BatchTestrayCaseResult extends TestrayCaseResult {
 		sb.append(topLevelBuild.getBuildNumber());
 
 		return sb.toString();
+	}
+
+	private TestrayAttachment _getWarningsTestrayAttachment() {
+		return getTestrayAttachment(
+			getBuild(), "Warnings",
+			getAxisBuildURLPath() + "/warnings.html.gz");
 	}
 
 	private TestrayAttachment _uploadDefaultTestrayAttachment(

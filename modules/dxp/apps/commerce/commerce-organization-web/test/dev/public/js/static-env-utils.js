@@ -28,6 +28,7 @@ const Liferay = {
 		getCanonicalURL: () => '/',
 		getDefaultLanguageId: () => 'en_US',
 		getLanguageId: () => 'it_IT',
+		getPathContext: () => '',
 		getPathThemeImages: () => '/assets',
 		getPortalURL: () => window.location.origin,
 		getScopeGroupId: () => '123',
@@ -45,7 +46,7 @@ const Liferay = {
 		window.removeEventListener(name, fn);
 	},
 	fire: (name, payload) => {
-		var event = document.createEvent('CustomEvent');
+		const event = document.createEvent('CustomEvent');
 		event.initCustomEvent(name);
 
 		if (payload) {

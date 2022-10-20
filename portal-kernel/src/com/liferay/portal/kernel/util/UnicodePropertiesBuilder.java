@@ -60,6 +60,26 @@ public class UnicodePropertiesBuilder extends BaseMapBuilder {
 		return unicodePropertiesWrapper;
 	}
 
+	public static UnicodePropertiesWrapper put(String key, boolean value) {
+		return put(key, String.valueOf(value));
+	}
+
+	public static UnicodePropertiesWrapper put(String key, double value) {
+		return put(key, String.valueOf(value));
+	}
+
+	public static UnicodePropertiesWrapper put(String key, int value) {
+		return put(key, String.valueOf(value));
+	}
+
+	public static UnicodePropertiesWrapper put(String key, long value) {
+		return put(key, String.valueOf(value));
+	}
+
+	public static UnicodePropertiesWrapper put(String key, short value) {
+		return put(key, String.valueOf(value));
+	}
+
 	public static UnicodePropertiesWrapper put(String key, String value) {
 		UnicodePropertiesWrapper unicodePropertiesWrapper =
 			new UnicodePropertiesWrapper();
@@ -156,6 +176,26 @@ public class UnicodePropertiesBuilder extends BaseMapBuilder {
 			_unicodeProperties.put(line);
 
 			return this;
+		}
+
+		public UnicodePropertiesWrapper put(String key, boolean value) {
+			return put(key, String.valueOf(value));
+		}
+
+		public UnicodePropertiesWrapper put(String key, double value) {
+			return put(key, String.valueOf(value));
+		}
+
+		public UnicodePropertiesWrapper put(String key, int value) {
+			return put(key, String.valueOf(value));
+		}
+
+		public UnicodePropertiesWrapper put(String key, long value) {
+			return put(key, String.valueOf(value));
+		}
+
+		public UnicodePropertiesWrapper put(String key, short value) {
+			return put(key, String.valueOf(value));
 		}
 
 		public UnicodePropertiesWrapper put(String key, String value) {

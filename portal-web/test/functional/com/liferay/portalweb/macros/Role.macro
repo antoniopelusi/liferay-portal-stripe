@@ -107,6 +107,7 @@ definition {
 
 	macro definePermissionPG {
 		var key_roleTitle = StringUtil.replace("${roleTitle}", " ", "-");
+
 		var key_roleTitle = StringUtil.lowerCase("${key_roleTitle}");
 
 		SelectFrameTop(value1 = "relative=top");
@@ -133,10 +134,14 @@ definition {
 
 	macro definePermissionsCP {
 		Role.definePermissionCmdCP(
+			permissionDefinitionKey = "${permissionDefinitionKey}",
 			permissionDefinitionKeys = "${permissionDefinitionKeys}",
+			permissionNavigationValue = "${permissionNavigationValue}",
+			removeSiteScope = "${removeSiteScope}",
 			roleTitle = "${roleTitle}",
 			roleType = "${roleType}",
-			roleUser = "${roleUser}");
+			roleUser = "${roleUser}",
+			siteNameScope = "${siteNameScope}");
 	}
 
 	macro deleteCP {
@@ -441,6 +446,7 @@ definition {
 
 	macro removePermissionPG {
 		var key_roleTitle = StringUtil.replace("${roleTitle}", " ", "-");
+
 		var key_roleTitle = StringUtil.lowerCase("${key_roleTitle}");
 
 		SelectFrameTop(value1 = "relative=top");
@@ -690,6 +696,7 @@ definition {
 
 	macro viewPermissionPG {
 		var key_roleTitle = StringUtil.replace("${roleTitle}", " ", "-");
+
 		var key_roleTitle = StringUtil.lowerCase("${key_roleTitle}");
 
 		if ("${permissionFlagged}" == "true") {

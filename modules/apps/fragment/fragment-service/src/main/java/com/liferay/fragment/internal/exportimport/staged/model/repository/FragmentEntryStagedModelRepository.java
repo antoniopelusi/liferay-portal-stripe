@@ -16,7 +16,6 @@ package com.liferay.fragment.internal.exportimport.staged.model.repository;
 
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.StagedModelModifiedDateComparator;
-import com.liferay.exportimport.kernel.staging.Staging;
 import com.liferay.exportimport.staged.model.repository.StagedModelRepository;
 import com.liferay.exportimport.staged.model.repository.StagedModelRepositoryHelper;
 import com.liferay.fragment.exception.RequiredFragmentEntryException;
@@ -76,7 +75,8 @@ public class FragmentEntryStagedModelRepository
 			fragmentEntry.getJs(), fragmentEntry.isCacheable(),
 			fragmentEntry.getConfiguration(), fragmentEntry.getIcon(),
 			fragmentEntry.getPreviewFileEntryId(), fragmentEntry.getType(),
-			fragmentEntry.getStatus(), serviceContext);
+			fragmentEntry.getTypeOptions(), fragmentEntry.getStatus(),
+			serviceContext);
 	}
 
 	@Override
@@ -162,7 +162,8 @@ public class FragmentEntryStagedModelRepository
 			fragmentEntry.getCss(), fragmentEntry.getHtml(),
 			fragmentEntry.getJs(), fragmentEntry.isCacheable(),
 			fragmentEntry.getConfiguration(), fragmentEntry.getIcon(),
-			fragmentEntry.getPreviewFileEntryId(), fragmentEntry.getStatus());
+			fragmentEntry.getPreviewFileEntryId(),
+			fragmentEntry.getTypeOptions(), fragmentEntry.getStatus());
 	}
 
 	private void _deleteFragmentEntryLinks(
@@ -235,8 +236,5 @@ public class FragmentEntryStagedModelRepository
 
 	@Reference
 	private StagedModelRepositoryHelper _stagedModelRepositoryHelper;
-
-	@Reference
-	private Staging _staging;
 
 }

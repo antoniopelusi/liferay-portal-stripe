@@ -128,10 +128,14 @@ definition {
 			samlEnabled = "true",
 			specificURL = "${baseURL}/${urlAppend}",
 			userEmailAddress = "${userEmailAddress}");
+
+		WaitForPageLoad();
 	}
 
 	macro miniumLogoutPG {
-		ClickNoError(locator1 = "CommerceAccelerators#MINIUM_SIDEBAR_USER_AVATAR");
+		ScrollBy(value1 = "0, -1000");
+
+		Click(locator1 = "CommerceAccelerators#MINIUM_SIDEBAR_USER_AVATAR");
 
 		Click(
 			key_menuItem = "Sign Out",

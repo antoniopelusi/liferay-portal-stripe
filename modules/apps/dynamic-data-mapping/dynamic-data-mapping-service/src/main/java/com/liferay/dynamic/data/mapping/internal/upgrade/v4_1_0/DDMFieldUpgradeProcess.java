@@ -115,28 +115,27 @@ public class DDMFieldUpgradeProcess extends UpgradeProcess {
 						"DDMStructure.ctCollectionId = 0"));
 			PreparedStatement insertDDMFieldPreparedStatement =
 				AutoBatchPreparedStatementUtil.autoBatch(
-					connection.prepareStatement(
-						StringBundler.concat(
-							"insert into DDMField (mvccVersion, ",
-							"ctCollectionId, fieldId, companyId, ",
-							"parentFieldId, storageId, structureVersionId, ",
-							"fieldName, fieldType, instanceId, localizable, ",
-							"priority) values (0, 0, ?, ?, ?, ?, ?, ?, ?, ?, ",
-							"?, ?)")));
+					connection,
+					StringBundler.concat(
+						"insert into DDMField (mvccVersion, ctCollectionId, ",
+						"fieldId, companyId, parentFieldId, storageId, ",
+						"structureVersionId, fieldName, fieldType, ",
+						"instanceId, localizable, priority) values (0, 0, ?, ",
+						"?, ?, ?, ?, ?, ?, ?, ?, ?)"));
 			PreparedStatement insertDDMFieldAttributePreparedStatement =
 				AutoBatchPreparedStatementUtil.autoBatch(
-					connection.prepareStatement(
-						StringBundler.concat(
-							"insert into DDMFieldAttribute (mvccVersion, ",
-							"ctCollectionId, fieldAttributeId, companyId, ",
-							"fieldId, storageId, attributeName, languageId, ",
-							"largeAttributeValue, smallAttributeValue) values ",
-							"(0, 0, ?, ?, ?, ?, ?, ?, ?, ?)")));
+					connection,
+					StringBundler.concat(
+						"insert into DDMFieldAttribute (mvccVersion, ",
+						"ctCollectionId, fieldAttributeId, companyId, ",
+						"fieldId, storageId, attributeName, languageId, ",
+						"largeAttributeValue, smallAttributeValue) values (0, ",
+						"0, ?, ?, ?, ?, ?, ?, ?, ?)"));
 			PreparedStatement deleteDDMContentPreparedStatement =
 				AutoBatchPreparedStatementUtil.autoBatch(
-					connection.prepareStatement(
-						"delete from DDMContent where contentId = ? and " +
-							"ctCollectionId = 0"));
+					connection,
+					"delete from DDMContent where contentId = ? and " +
+						"ctCollectionId = 0");
 			ResultSet resultSet = selectPreparedStatement.executeQuery()) {
 
 			while (resultSet.next()) {
@@ -177,9 +176,9 @@ public class DDMFieldUpgradeProcess extends UpgradeProcess {
 			ResultSet resultSet = selectPreparedStatement.executeQuery();
 			PreparedStatement updatePreparedStatement =
 				AutoBatchPreparedStatementUtil.autoBatch(
-					connection.prepareStatement(
-						"update DDMFormInstance set settings_ = ? where " +
-							"formInstanceId = ? and ctCollectionId = 0"))) {
+					connection,
+					"update DDMFormInstance set settings_ = ? where " +
+						"formInstanceId = ? and ctCollectionId = 0")) {
 
 			while (resultSet.next()) {
 				String settings = resultSet.getString("settings_");
@@ -220,8 +219,7 @@ public class DDMFieldUpgradeProcess extends UpgradeProcess {
 					}
 
 					updatePreparedStatement.setString(
-						1, settingsJSONObject.toJSONString());
-
+						1, settingsJSONObject.toString());
 					updatePreparedStatement.setLong(
 						2, resultSet.getLong("formInstanceId"));
 
@@ -534,10 +532,22 @@ public class DDMFieldUpgradeProcess extends UpgradeProcess {
 		List<DDMFormFieldValue> newDDMFormFieldValues = new ArrayList<>();
 
 		for (DDMFormFieldValue ddmFormFieldValue : ddmFormFieldValues) {
+			String type = null;
+
+			try {
+				type = ddmFormFieldValue.getType();
+			}
+			catch (Exception exception) {
+				if (_log.isWarnEnabled()) {
+					_log.warn(exception);
+				}
+			}
+
 			if (!ListUtil.isEmpty(
 					ddmFormFieldValue.getNestedDDMFormFieldValues()) &&
+				(type != null) &&
 				!com.liferay.portal.kernel.util.StringUtil.equals(
-					ddmFormFieldValue.getType(), "fieldset")) {
+					type, "fieldset")) {
 
 				DDMFormFieldValue newDDMFormFieldValue =
 					new DDMFormFieldValue() {

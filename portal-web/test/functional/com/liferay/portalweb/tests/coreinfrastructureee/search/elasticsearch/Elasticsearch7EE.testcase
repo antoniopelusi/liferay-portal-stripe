@@ -30,10 +30,12 @@ definition {
 
 	@priority = "5"
 	test LearningToRankSmoke {
-		property elastic.override.version = "7.13.4";
 		property elasticsearch.ltr.enabled = "true";
-		property environment.acceptance = "false";
+		property minimum.slave.ram = "24";
+		property osgi.module.configuration.file.names = "com.liferay.portal.search.rest.configuration.SearchSuggestionsCompanyConfiguration.config";
+		property osgi.module.configurations = "enableSuggestionsEndpoint=B&quot;false&quot;";
 		property remote.elasticsearch.enabled = "true";
+		property search.environment.suite.exclude = "true";
 		property test.name.skip.portal.instance = "Elasticsearch7EE#LearningToRankSmoke";
 
 		AntCommand(
@@ -58,8 +60,9 @@ definition {
 		var assetEntryTitleListNoLtr = "";
 		var iterator = "1";
 
-		while ("${iterator}" != "21" && (maxIterations = "20")) {
+		while (("${iterator}" != "21") && (maxIterations = "20")) {
 			var assetEntryTitle = selenium.getText("//div[contains(@id,'SearchResultsPortlet')]//li[${iterator}]/div//a");
+
 			var assetEntryTitleListNoLtr = StringUtil.add("${assetEntryTitleListNoLtr}", "${assetEntryTitle}");
 			var iterator = ${iterator} + 1;
 		}
@@ -89,8 +92,9 @@ definition {
 		var assetEntryTitleListLtr = "";
 		var iterator = "1";
 
-		while ("${iterator}" != "21" && (maxIterations = "20")) {
+		while (("${iterator}" != "21") && (maxIterations = "20")) {
 			var assetEntryTitle = selenium.getText("//div[contains(@id,'SearchResultsPortlet')]//li[${iterator}]/div//a");
+
 			var assetEntryTitleListLtr = StringUtil.add("${assetEntryTitleListLtr}", "${assetEntryTitle}");
 			var iterator = ${iterator} + 1;
 		}
@@ -111,9 +115,9 @@ definition {
 	test PortalClusterSmokeTest {
 		property app.server.bundles.size = "1";
 		property cluster.enabled = "true";
-		property environment.acceptance = "false";
 		property minimum.slave.ram = "24";
 		property remote.elasticsearch.enabled = "true";
+		property search.environment.suite.exclude = "true";
 		property test.name.skip.portal.instance = "Elasticsearch7EE#PortalClusterSmokeTest";
 
 		Elasticsearch.viewClusterStatusViaClusterHealthAPI(
@@ -203,8 +207,8 @@ definition {
 	test XPackPkiAuthenticationSmokeTest {
 		property elastic.pki.authentication.enabled = "true";
 		property elastic.xpack.enabled = "true";
-		property environment.acceptance = "false";
 		property remote.elasticsearch.enabled = "true";
+		property search.environment.suite.exclude = "true";
 		property test.name.skip.portal.instance = "Elasticsearch7EE#XPackPkiAuthenticationSmokeTest";
 
 		JSONLayout.addPublicLayout(
@@ -228,10 +232,12 @@ definition {
 		property elastic.pki.authentication.enabled = "true";
 		property elastic.xpack.enabled = "true";
 		property elasticsearch.jdk11.enabled = "true";
-		property environment.acceptance = "false";
-		property portal.suite.search.engine = "";
-		property portal.upstream = "jdk11";
+		property environment.acceptance = "openjdk11";
+		property portal.release = "openjdk11";
+		property portal.suite.search.engine = "openjdk11";
+		property portal.upstream = "openjdk11";
 		property remote.elasticsearch.enabled = "true";
+		property search.environment.suite.exclude = "true";
 		property test.name.skip.portal.instance = "Elasticsearch7EE#XPackPkiAuthenticationWithJDK11";
 
 		JSONLayout.addPublicLayout(
@@ -253,8 +259,8 @@ definition {
 	@priority = "5"
 	test XPackSmokeTest {
 		property elastic.xpack.enabled = "true";
-		property environment.acceptance = "false";
 		property remote.elasticsearch.enabled = "true";
+		property search.environment.suite.exclude = "true";
 		property test.name.skip.portal.instance = "Elasticsearch7EE#XPackSmokeTest";
 
 		JSONWebcontent.addWebContent(
@@ -298,10 +304,12 @@ definition {
 	test XPackWithJDK11 {
 		property elastic.xpack.enabled = "true";
 		property elasticsearch.jdk11.enabled = "true";
-		property environment.acceptance = "false";
-		property portal.suite.search.engine = "";
-		property portal.upstream = "jdk11";
+		property environment.acceptance = "openjdk11";
+		property portal.release = "openjdk11";
+		property portal.suite.search.engine = "openjdk11";
+		property portal.upstream = "openjdk11";
 		property remote.elasticsearch.enabled = "true";
+		property search.environment.suite.exclude = "true";
 		property test.assert.warning.exceptions = "true";
 		property test.name.skip.portal.instance = "Elasticsearch7EE#XPackWithJDK11";
 
@@ -340,6 +348,31 @@ definition {
 		Navigator.gotoPage(pageName = "Elasticsearch Monitoring Page");
 
 		ElasticsearchMonitoring.viewAsGuestPG();
+	}
+
+	@description = "This is a use case for LPS-151205."
+	@priority = "5"
+	test XPackWithRestrictedCipherSuitesAndTLSVersions {
+		property elastic.xpack.configure.tls.cipher.suites = "true";
+		property elastic.xpack.enabled = "true";
+		property remote.elasticsearch.enabled = "true";
+		property search.environment.suite.exclude = "true";
+		property test.name.skip.portal.instance = "Elasticsearch7EE#XPackWithRestrictedCipherSuitesAndTLSVersions";
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Elasticsearch Monitoring Page");
+
+		JSONLayout.updateLayoutTemplateOfPublicLayout(
+			groupName = "Guest",
+			layoutName = "Elasticsearch Monitoring Page",
+			layoutTemplate = "1 Column");
+
+		Navigator.gotoPage(pageName = "Elasticsearch Monitoring Page");
+
+		Portlet.addPG(portletName = "Elasticsearch Monitoring");
+
+		ElasticsearchMonitoring.viewPG();
 	}
 
 }

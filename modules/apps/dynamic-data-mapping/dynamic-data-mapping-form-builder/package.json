@@ -8,9 +8,6 @@
 		},
 		"modulePathIgnorePatterns": [
 			"/__mock__/"
-		],
-		"setupFiles": [
-			"<rootDir>/jest-setup.config.js"
 		]
 	},
 	"main": "js/index.es.js",
@@ -21,5 +18,5 @@
 		"format": "liferay-npm-scripts fix",
 		"test": "liferay-npm-scripts test"
 	},
-	"version": "4.0.32"
+	"version": "4.0.39"
 }

@@ -185,7 +185,7 @@ definition {
 				selectedAsset = "All Types",
 				tabName = "Collections");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a dynamic collection when adding a collection page") {
@@ -196,7 +196,7 @@ definition {
 				selectedAsset = "All Types",
 				tabName = "Collections");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View collection pages are shown in pages admin") {
@@ -355,7 +355,7 @@ definition {
 
 			IFrame.closeFrame();
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View alert message when delete a page with scoped content") {
@@ -400,7 +400,7 @@ definition {
 
 			IFrame.closeFrame();
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View alert message when delete a page with scoped content and child page") {
@@ -849,6 +849,122 @@ definition {
 		}
 	}
 
+	@description = "This is a test for LPS-152446. When a user with edit permissions clicks a content page in page administration, the page editor is opened with the selected page ready to be edited."
+	@priority = "5"
+	test NavigateToPageEditorWhenClickOnContentPageItem {
+		task ("Given a page creator has a content page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Page Name",
+				type = "content");
+
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+
+			PageEditor.publish();
+		}
+
+		task ("When the page creator clicks on the content page item in Pages admin") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			Click(
+				key_pageName = "Test Page Name",
+				locator1 = "PagesAdmin#LIST_GROUP_ITEM_ENTRY_TITLE_LINK");
+		}
+
+		task ("Then the page creator accesses to the page editor") {
+			ControlMenu.viewHeaderTitle(headerTitle = "Test Page Name");
+
+			PageEditor.viewFragmentEditableText(
+				editableText = "Heading Example",
+				fragmentName = "Heading",
+				id = "element-text");
+		}
+	}
+
+	@description = "This is a test for LPS-152446. When a user with edit permissions searches for a content page in pages administration, and then clicks on it in the results, the page editor is opened with the selected page ready to be edited."
+	@priority = "5"
+	test NavigateToPageEditorWhenClickOnContentPageTitleFromSearchResults {
+		task ("Given a page creator has a content page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Page Name",
+				type = "content");
+
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+
+			PageEditor.publish();
+		}
+
+		task ("When the page creator clicks on the content page title in search results of Pages admin") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			Search.searchCP(searchTerm = "Test Page Name");
+
+			LexiconTable.clickTableEntryColumnLink(
+				columnName = "title",
+				tableEntry = "Test Page Name");
+		}
+
+		task ("Then the page creator accesses to the page editor") {
+			ControlMenu.viewHeaderTitle(headerTitle = "Test Page Name");
+
+			PageEditor.viewFragmentEditableText(
+				editableText = "Heading Example",
+				fragmentName = "Heading",
+				id = "element-text");
+		}
+	}
+
+	@description = "This is a test for LPS-154130. Given I'm in Page Administration When I search for a page Then relative path is clickable."
+	@priority = "3"
+	test NavigateToPageItemViaRelativePathFromSearchResults {
+		task ("Given a page creator has a page hierary") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Home");
+
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Product Details",
+				parentLayoutName = "Home");
+
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Release Information",
+				parentLayoutName = "Product Details");
+		}
+
+		task ("When the page creator searchs pages in Page admin") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			Search.searchCP(searchTerm = "Release");
+		}
+
+		task ("Then the page creator could navigate to the page item via relative path") {
+			Click(
+				key_breadcrumbName = "Product Details",
+				locator1 = "Breadcrumb#BREADCRUMB_ENTRY_LINK");
+
+			AssertVisible(
+				key_itemName = "Product Details",
+				locator1 = "PagesAdmin#LIST_GROUP_ITEM");
+
+			Breadcrumb.viewActiveEntry(breadcrumbName = "Product Details");
+		}
+	}
+
 	@description = "This is a test for LPS-139064. Users can preview draft for a collection page from Pages admin when they exist."
 	@priority = "3"
 	test PreviewDraftCollectionPage {
@@ -884,9 +1000,8 @@ definition {
 	@description = "This is a test for LPS-139064. Users can preview draft for a content page from Pages admin when they exist."
 	@priority = "5"
 	test PreviewDraftContentPage {
-		property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-		property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 		property portal.acceptance = "true";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		task ("Add a public content page") {
 			JSONLayout.addPublicLayout(
@@ -1048,6 +1163,150 @@ definition {
 			for (var pageName : list "Page One,Page Two") {
 				PagesAdmin.viewPageItemPresent(pageName = "${pageName}");
 			}
+		}
+	}
+
+	@description = "This is a test for LPS-152949. View widget type pages' name and navigate to the page in search widget."
+	@priority = "5"
+	test SearchWidgetTypePages {
+		task ("Given a page creator has a widget page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Widget Page Name");
+		}
+
+		task ("When the page creator searches it in Pages admin") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			Search.searchCP(searchTerm = "Widget");
+		}
+
+		task ("Then the page creator could see the wiget page in the results and be able to navigate to it") {
+			LexiconTable.clickTableEntryTitle(tableEntry = "Test Widget Page Name");
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Test Widget Page Name");
+		}
+
+		task ("Given a page creator has a Full Page Application type page") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			PagesAdmin.addPage(
+				pageName = "Test Full Page Application Page Name",
+				pageTypeURL = "https://www.google.com",
+				sitePageType = "Full Page Application");
+		}
+
+		task ("When the page creator searches it in Pages admin") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			Search.searchCP(searchTerm = "Full");
+		}
+
+		task ("Then the page creator could see the Full Page Application type page in the results and be able to navigate to it") {
+			LexiconTable.clickTableEntryTitle(tableEntry = "Test Full Page Application Page Name");
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Test Full Page Application Page Name");
+		}
+
+		task ("Given a page creator has a Link to URL type page") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			PagesAdmin.addPage(
+				pageName = "Test Link to URL Page Name",
+				pageTypeURL = "https://www.google.com",
+				sitePageType = "Link to URL");
+		}
+
+		task ("When the page creator searches it in Pages admin") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			Search.searchCP(searchTerm = "Link");
+		}
+
+		task ("Then the page creator could see the Link to URL type page in the results and be able to navigate to it") {
+			LexiconTable.clickTableEntryTitle(tableEntry = "Test Link to URL Page Name");
+
+			AssertLocation.assertPartialLocation(value1 = "https://www.google.com");
+		}
+
+		task ("Given a page creator has a Panel type page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Panel Page Name",
+				type = "panel");
+		}
+
+		task ("When the page creator searches it in Pages admin") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			Search.searchCP(searchTerm = "Panel");
+		}
+
+		task ("Then the page creator could see the Panel type page in the results and be able to navigate to it") {
+			LexiconTable.clickTableEntryTitle(tableEntry = "Test Panel Page Name");
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Test Panel Page Name");
+		}
+
+		task ("Given a page creator has an embedded type page") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			PagesAdmin.addPage(
+				pageName = "Test Embedded Page Name",
+				pageTypeURL = "http://www.liferay.com",
+				sitePageType = "Embedded");
+		}
+
+		task ("When the page creator searches it in Pages admin") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			Search.searchCP(searchTerm = "Embedded");
+		}
+
+		task ("Then the page creator could see the embedded type page in the results and be able to navigate to it") {
+			LexiconTable.clickTableEntryTitle(tableEntry = "Test Embedded Page Name");
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Test Embedded Page Name");
+		}
+	}
+
+	@description = "This is a test for LPS-144559. The breadcrumb should be unavailable to Link to a Page of This Site."
+	@priority = "4"
+	test ViewBreadcrumbUnavailableToLinkToAPageOfThisSite {
+		task ("Given a page creator has a site with a page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Page Name");
+		}
+
+		task ("When the page creator adds a page based on the Link to a Page of This Site") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			LexiconEntry.gotoAddMenuItem(menuItem = "Page");
+
+			PagesAdmin._selectPageType(sitePageType = "Link to a Page of This Site");
+
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			PortletEntry.inputName(name = "Link to a Page of This Site");
+
+			Button.clickAdd();
+
+			SelectFrame.selectFrameTop();
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("Then the page creator shouldn't see the breadcrumb on Select Page modal") {
+			Click(
+				buttonId = "selectLayoutButton",
+				locator1 = "Button#BUTTON_ID");
+
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			AssertElementNotPresent(
+				key_breadcrumbName = "Sites and Libraries",
+				locator1 = "Breadcrumb#BREADCRUMB_ENTRY");
 		}
 	}
 
@@ -1224,7 +1483,7 @@ definition {
 				pageName = "Test Collection Page Name",
 				tabName = "Collection Providers");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View all web contents are shown in collection items") {
@@ -1286,7 +1545,7 @@ definition {
 				collectionName = "Content Display",
 				fragmentName = "Display Page Content");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add three web contents") {
@@ -1337,7 +1596,7 @@ definition {
 				pageName = "Manual Collection Page Name",
 				tabName = "Collections");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View display page of all web contents via collection items in pages admin") {
@@ -1394,6 +1653,83 @@ definition {
 
 				ControlMenu.viewHeaderTitle(headerTitle = "Manual Collection Page Name");
 			}
+		}
+	}
+
+	@description = "This is a test for LPS-145292. The user could view new icons on dropdown menu of page in pages admin."
+	@priority = "4"
+	test ViewDropdownMenuIconsInPagesAdmin {
+		task ("Given a Page designer has a widget page with a custom portlet") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Widget Page Name");
+
+			JSONLayout.addWidgetToPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Widget Page Name",
+				widgetName = "Web Content Display");
+
+			Navigator.gotoSitePage(
+				pageName = "Widget Page Name",
+				siteName = "Test Site name");
+
+			Portlet.viewSpecificPG(portletName = "Web Content Display");
+		}
+
+		task ("When the Page designer opens the dropdown menu of widget page") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			PagesAdmin.openPageEllipsisMenu(pageName = "Widget Page Name");
+		}
+
+		task ("Then the Page designer can see the new icons on the dropdown menu") {
+			DropdownMenuItem.viewIcon(iconList = "view,page,copy,cog,password-policies,trash");
+		}
+
+		task ("When the Page designer opens the dropdown menu of management toolbar after selecting the new widget page") {
+			PagesAdmin.selectPageItem(pageName = "Widget Page Name");
+
+			Click(locator1 = "ManagementBar#MORE_ACTIONS_ELLIPSIS");
+		}
+
+		task ("Then the Page designer can see the new icons on the dropdown menu") {
+			DropdownMenuItem.viewIcon(iconList = "page,trash");
+		}
+
+		task ("When the Page designer access the Orphan Widgets page of widget page") {
+			PagesAdmin.gotoPageEllipsisMenuItem(
+				menuItem = "Orphan Widgets",
+				pageName = "Widget Page Name");
+		}
+
+		task ("Then the Page designer can see the new icon icon on orphan widget entries") {
+			for (var entryName : list "Menu Display,Search Bar,User Personal Bar") {
+				AssertVisible(
+					key_listEntry = "${entryName}",
+					key_text = "trash",
+					locator1 = "LexiconList#ANY_ICON");
+			}
+		}
+
+		task ("Given a Page designer has a published content page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Content Page Name",
+				type = "content");
+
+			JSONLayout.publishLayout(
+				groupName = "Test Site Name",
+				layoutName = "Content Page Name");
+		}
+
+		task ("When the Page designer opens the dropdown menu of content page") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			PagesAdmin.openPageEllipsisMenu(pageName = "Content Page Name");
+		}
+
+		task ("Then the Page designer can see the new icons on the dropdown menu") {
+			DropdownMenuItem.viewIcon(iconList = "pencil,automatic-translate,view,copy,upload,download,cog,password-policies,trash");
 		}
 	}
 

@@ -14,142 +14,161 @@
 
 package com.liferay.portal.crypto.hash.internal;
 
-import com.liferay.osgi.service.tracker.collections.ServiceReferenceServiceTuple;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.portal.crypto.hash.CryptoHashGenerator;
-import com.liferay.portal.crypto.hash.CryptoHashVerifier;
+import com.liferay.portal.crypto.hash.exception.CryptoHashException;
 import com.liferay.portal.crypto.hash.spi.CryptoHashProviderFactory;
-import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HashMapDictionary;
-import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.MapUtil;
 
+import java.util.Dictionary;
 import java.util.Map;
-
-import org.apache.aries.component.dsl.CachingServiceReference;
-import org.apache.aries.component.dsl.OSGi;
-import org.apache.aries.component.dsl.OSGiResult;
-import org.apache.aries.component.dsl.Utils;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.cm.ConfigurationException;
+import org.osgi.service.cm.ManagedServiceFactory;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 /**
  * @author Carlos Sierra Andrés
  */
-@Component(immediate = true, service = {})
+@Component(service = {})
 public class CryptoHashTrackerRegistrator {
 
 	@Activate
 	protected void activate(BundleContext bundleContext) {
-		CryptoHashProviderFactoryRegistry cryptoHashProviderFactoryRegistry =
-			new CryptoHashProviderFactoryRegistry();
+		_serviceTrackerMap = ServiceTrackerMapFactory.openSingleValueMap(
+			bundleContext, CryptoHashProviderFactory.class, "configuration.pid",
+			new ServiceTrackerCustomizer
+				<CryptoHashProviderFactory, ServiceRegistration<?>>() {
 
-		OSGi<?> osgi = OSGi.serviceReferences(
-			CryptoHashProviderFactory.class
-		).map(
-			CachingServiceReference::getServiceReference
-		).flatMap(
-			serviceReference -> OSGi.combine(
-				ServiceReferenceServiceTuple::new, OSGi.just(serviceReference),
-				OSGi.service(serviceReference))
-		).splitBy(
-			serviceReferenceServiceTuple -> {
-				CryptoHashProviderFactory cryptoHashProviderFactory =
-					serviceReferenceServiceTuple.getService();
+				@Override
+				public ServiceRegistration<?> addingService(
+					ServiceReference<CryptoHashProviderFactory>
+						serviceReference) {
 
-				return OSGi.just(
-					cryptoHashProviderFactory.
-						getCryptoHashProviderFactoryName());
-			},
-			(key, serviceReferenceTupleOsgi) -> Utils.highest(
-				serviceReferenceTupleOsgi)
-		).effects(
-			serviceReferenceServiceTuple -> {
-				CryptoHashProviderFactory cryptoHashProviderFactory =
-					serviceReferenceServiceTuple.getService();
+					return bundleContext.registerService(
+						ManagedServiceFactory.class,
+						new CryptoHashGeneratorManagedServiceFactory(
+							bundleContext,
+							bundleContext.getService(serviceReference)),
+						MapUtil.singletonDictionary(
+							Constants.SERVICE_PID,
+							serviceReference.getProperty("configuration.pid")));
+				}
 
-				cryptoHashProviderFactoryRegistry.register(
-					cryptoHashProviderFactory);
-			},
-			serviceReferenceServiceTuple -> {
-				CryptoHashProviderFactory cryptoHashProviderFactory =
-					serviceReferenceServiceTuple.getService();
+				@Override
+				public void modifiedService(
+					ServiceReference<CryptoHashProviderFactory>
+						serviceReference,
+					ServiceRegistration<?> serviceRegistration) {
 
-				cryptoHashProviderFactoryRegistry.unregister(
-					cryptoHashProviderFactory.
-						getCryptoHashProviderFactoryName());
-			}
-		).filter(
-			serviceReferenceServiceTuple -> {
-				ServiceReference<CryptoHashProviderFactory> serviceReference =
-					serviceReferenceServiceTuple.getServiceReference();
+					Object pid = serviceReference.getProperty(
+						"configuration.pid");
 
-				return Validator.isNotNull(
-					GetterUtil.getString(
-						serviceReference.getProperty("configuration.pid")));
-			}
-		).flatMap(
-			serviceReferenceServiceTuple -> {
-				ServiceReference<CryptoHashProviderFactory> serviceReference =
-					serviceReferenceServiceTuple.getServiceReference();
-
-				return OSGi.configurations(
-					GetterUtil.getString(
-						serviceReference.getProperty("configuration.pid"))
-				).flatMap(
-					properties -> {
-						CryptoHashProviderFactory cryptoHashProviderFactory =
-							serviceReferenceServiceTuple.getService();
-
-						try {
-							Map<String, ?> cryptoHashProviderProperties =
-								HashMapBuilder.putAll(
-									properties
-								).put(
-									"crypto.hash.provider.factory.name",
-									cryptoHashProviderFactory.
-										getCryptoHashProviderFactoryName()
-								).build();
-
-							CryptoHashGenerator cryptoHashGenerator =
-								new CryptoHashGeneratorImpl(
-									cryptoHashProviderFactory.create(
-										cryptoHashProviderProperties));
-
-							return OSGi.register(
-								CryptoHashGenerator.class,
-								() -> cryptoHashGenerator,
-								() -> cryptoHashProviderProperties);
-						}
-						catch (Exception exception) {
-							return OSGi.nothing();
-						}
+					if (pid == null) {
+						serviceRegistration.setProperties(null);
 					}
-				);
-			}
-		);
+					else {
+						serviceRegistration.setProperties(
+							MapUtil.singletonDictionary(
+								Constants.SERVICE_PID,
+								serviceReference.getProperty(
+									"configuration.pid")));
+					}
+				}
 
-		_osgiResult = osgi.run(bundleContext);
+				@Override
+				public void removedService(
+					ServiceReference<CryptoHashProviderFactory>
+						serviceReference,
+					ServiceRegistration<?> serviceRegistration) {
 
-		_cryptoHashVerifierServiceRegistration = bundleContext.registerService(
-			CryptoHashVerifier.class,
-			new CryptoHashVerifierImpl(cryptoHashProviderFactoryRegistry),
-			new HashMapDictionary<>());
+					serviceRegistration.unregister();
+				}
+
+			});
 	}
 
 	@Deactivate
 	protected void deactivate() {
-		_cryptoHashVerifierServiceRegistration.unregister();
-
-		_osgiResult.close();
+		_serviceTrackerMap.close();
 	}
 
-	private ServiceRegistration<CryptoHashVerifier>
-		_cryptoHashVerifierServiceRegistration;
-	private OSGiResult _osgiResult;
+	private ServiceTrackerMap<String, ServiceRegistration<?>>
+		_serviceTrackerMap;
+
+	private static class CryptoHashGeneratorManagedServiceFactory
+		implements ManagedServiceFactory {
+
+		@Override
+		public void deleted(String pid) {
+			ServiceRegistration<?> serviceRegistration =
+				_serviceRegistrations.remove(pid);
+
+			if (serviceRegistration != null) {
+				serviceRegistration.unregister();
+			}
+		}
+
+		@Override
+		public String getName() {
+			return _cryptoHashProviderFactory.
+				getCryptoHashProviderFactoryName();
+		}
+
+		@Override
+		public void updated(String pid, Dictionary<String, ?> properties)
+			throws ConfigurationException {
+
+			Map<String, Object> cryptoHashProviderProperties =
+				HashMapBuilder.<String, Object>putAll(
+					properties
+				).put(
+					"crypto.hash.provider.factory.name",
+					_cryptoHashProviderFactory.
+						getCryptoHashProviderFactoryName()
+				).build();
+
+			try {
+				_serviceRegistrations.put(
+					pid,
+					_bundleContext.registerService(
+						CryptoHashGenerator.class,
+						new CryptoHashGeneratorImpl(
+							_cryptoHashProviderFactory.create(
+								cryptoHashProviderProperties)),
+						new HashMapDictionary<>(cryptoHashProviderProperties)));
+			}
+			catch (CryptoHashException cryptoHashException) {
+				throw new ConfigurationException(
+					(String)properties.get("configurationName"),
+					cryptoHashException.getMessage(), cryptoHashException);
+			}
+		}
+
+		private CryptoHashGeneratorManagedServiceFactory(
+			BundleContext bundleContext,
+			CryptoHashProviderFactory cryptoHashProviderFactory) {
+
+			_bundleContext = bundleContext;
+			_cryptoHashProviderFactory = cryptoHashProviderFactory;
+		}
+
+		private final BundleContext _bundleContext;
+		private final CryptoHashProviderFactory _cryptoHashProviderFactory;
+		private final Map<String, ServiceRegistration<?>>
+			_serviceRegistrations = new ConcurrentHashMap<>();
+
+	}
 
 }

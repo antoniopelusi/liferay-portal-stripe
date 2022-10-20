@@ -279,6 +279,7 @@ definition {
 
 			ProcessBuilderListView.validateIfSearchItem(
 				numberResults = "1",
+				singleResult = "true",
 				workflowName = "&quot;workflow content&quot;");
 
 			AssertElementPresent(
@@ -311,6 +312,7 @@ definition {
 
 		ProcessBuilderListView.validateIfSearchItem(
 			numberResults = "1",
+			singleResult = "true",
 			workflowName = "&quot;Approver&quot;");
 
 		Workflow.viewDefinitionPublished(workflowDefinitionTitle = "Single Approver");

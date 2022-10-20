@@ -15,42 +15,35 @@
 import ClayLoadingIndicator from '@clayui/loading-indicator';
 import React, {useContext, useEffect, useState} from 'react';
 
-import DataSetContext from '../../../DataSetContext';
+import FrontendDataSetContext from '../../../FrontendDataSetContext';
 import {getComponentByModuleURL} from '../../../utils/modules';
 import AutocompleteFilter, {
 	getOdataString as getAutocompleteFilterOdataString,
 	getSelectedItemsLabel as getAutocompleteFilterSelectedItemsLabel,
 } from './AutocompleteFilter';
-import CheckboxesFilter, {
-	getOdataString as getCheckboxesFilterOdataString,
-	getSelectedItemsLabel as getCheckboxesFilterSelectedItemsLabel,
-} from './CheckboxesFilter';
 import DateRangeFilter, {
 	getOdataString as getDateRangeFilterOdataString,
 	getSelectedItemsLabel as getDateRangeFilterSelectedItemsLabel,
 } from './DateRangeFilter';
-import RadioFilter, {
-	getOdataString as getRadioFilterOdataString,
-	getSelectedItemsLabel as getRadioFilterSelectedItemsLabel,
-} from './RadioFilter';
+import SelectionFilter, {
+	getOdataString as getSelectionFilterOdataString,
+	getSelectedItemsLabel as getSelectionFilterSelectedItemsLabel,
+} from './SelectionFilter';
 
 const FILTER_TYPE_COMPONENT = {
 	autocomplete: AutocompleteFilter,
-	checkbox: CheckboxesFilter,
 	dateRange: DateRangeFilter,
-	radio: RadioFilter,
+	selection: SelectionFilter,
 };
 
 const getFilterSelectedItemsLabel = (filter) => {
 	switch (filter.type) {
 		case 'autocomplete':
 			return getAutocompleteFilterSelectedItemsLabel(filter);
-		case 'checkbox':
-			return getCheckboxesFilterSelectedItemsLabel(filter);
 		case 'dateRange':
 			return getDateRangeFilterSelectedItemsLabel(filter);
-		case 'radio':
-			return getRadioFilterSelectedItemsLabel(filter);
+		case 'selection':
+			return getSelectionFilterSelectedItemsLabel(filter);
 		default:
 			return '';
 	}
@@ -60,19 +53,17 @@ const getOdataFilterString = (filter) => {
 	switch (filter.type) {
 		case 'autocomplete':
 			return getAutocompleteFilterOdataString(filter);
-		case 'checkbox':
-			return getCheckboxesFilterOdataString(filter);
 		case 'dateRange':
 			return getDateRangeFilterOdataString(filter);
-		case 'radio':
-			return getRadioFilterOdataString(filter);
+		case 'selection':
+			return getSelectionFilterOdataString(filter);
 		default:
 			return '';
 	}
 };
 
 const Filter = ({moduleURL, type, ...otherProps}) => {
-	const {setFilters} = useContext(DataSetContext);
+	const {setFilters} = useContext(FrontendDataSetContext);
 
 	const [Component, setComponent] = useState(() => {
 		if (!moduleURL) {

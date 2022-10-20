@@ -95,13 +95,79 @@ definition {
 		DMDocument.viewCP(dmDocumentTitle = "Document_4.jpg");
 	}
 
+	@description = "This test covers LPS-155147. It ensures that a user downloading a shortcut will download the related document."
+	@priority = "4"
+	test CanDownloadFileThroughShortcut {
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentTitle = "Document_1.txt",
+			groupName = "Guest",
+			mimeType = "text/plain",
+			sourceFileName = "Document_1.txt");
+
+		JSONDocument.addShortcut(
+			dmDocumentTitle = "Document_1.txt",
+			sourceGroupName = "Guest",
+			targetGroupName = "Site Name");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "site-name");
+
+		DMDocument.downloadCP(
+			dmDocumentSize = "259 B",
+			dmDocumentTitle = "Document_1.txt");
+
+		DMDocument.assertDownloadedFileContent(
+			downloadedContent = "This is a *.txt document.",
+			fileName = "Document_1.txt");
+	}
+
 	@description = "This validates LPS-68795. It ensures that a shortcut can be moved into a folder."
-	@ignore = "Test Stub"
 	@priority = "4"
 	test CanMoveShortcutIntoFolder {
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentTitle = "DM Document Title",
+			groupName = "Guest",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_1.jpg");
 
-		// TODO LPS-150915
+		JSONLayout.addPublicLayout(
+			groupName = "Site Name",
+			layoutName = "Documents and Media Page");
 
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Site Name",
+			layoutName = "Documents and Media Page",
+			widgetName = "Documents and Media");
+
+		Navigator.gotoSitePage(
+			pageName = "Documents and Media Page",
+			siteName = "Site Name");
+
+		DMDocument.enableActionsMenuOnPortlet();
+
+		JSONDocument.addShortcut(
+			dmDocumentTitle = "DM Document Title",
+			sourceGroupName = "Guest",
+			targetGroupName = "Site Name");
+
+		JSONFolder.addFolder(
+			dmFolderDescription = "DM Folder Description",
+			dmFolderName = "DM Folder Name",
+			groupName = "Site Name");
+
+		Navigator.gotoSitePage(
+			pageName = "Documents and Media Page",
+			siteName = "Site Name");
+
+		DMDocument.moveToFolderPG(
+			dmDocumentTitle = "DM Document Title",
+			dmFolderName = "DM Folder Name");
+
+		DMNavigator.gotoFolder(dmFolderName = "DM Folder Name");
+
+		DMDocument.viewPG(dmDocumentTitle = "DM Document Title");
 	}
 
 	@description = "This ensures that the user can edit the shortcut."
@@ -158,7 +224,9 @@ definition {
 			mimeType = "image/jpeg",
 			sourceFileName = "Document_1.jpg");
 
-		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+		JSONGroup.addGroup(groupName = "Test Site Name");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "test-site-name");
 
 		DMDocument.addDMShortcutCP(
 			dmDocumentTitle = "Document_1.jpg",
@@ -178,7 +246,7 @@ definition {
 
 		DMDocument.viewDefault();
 
-		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "test-site-name");
 
 		DMDocument.viewDefault();
 	}
@@ -194,7 +262,9 @@ definition {
 			mimeType = "image/jpeg",
 			sourceFileName = "Document_1.jpg");
 
-		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+		JSONGroup.addGroup(groupName = "Test Site Name");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "test-site-name");
 
 		DMDocument.addDMShortcutCP(
 			dmDocumentTitle = "Document_1.jpg",
@@ -208,7 +278,7 @@ definition {
 
 		DMDocument.viewCP(dmDocumentTitle = "Document_1.jpg");
 
-		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "test-site-name");
 
 		DMDocument.deleteCP(dmDocumentTitle = "Document_1.jpg");
 

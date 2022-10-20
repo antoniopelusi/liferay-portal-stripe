@@ -21,6 +21,14 @@
 
 			<DirectWriteRolloverStrategy />
 		</Appender>
+
+		<Appender filePattern="@liferay.home@/logs/companies/@company.id@/liferay-@company.id@.%d{yyyy-MM-dd}.log" ignoreExceptions="false" name="COMPANY_LOG_ROUTING_TEXT_FILE" type="CompanyLogRouting">
+			<Layout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5p [%t][%c{1}:%L] %m%n" type="PatternLayout" />
+
+			<TimeBasedTriggeringPolicy />
+
+			<DirectWriteRolloverStrategy />
+		</Appender>
 	</Appenders>
 
 	<Loggers>
@@ -41,6 +49,7 @@
 		<Logger level="WARN" name="com.liferay.portal.action.LayoutAction" />
 		<Logger level="WARN" name="com.liferay.portal.bean.BeanLocatorImpl" />
 		<Logger level="INFO" name="com.liferay.portal.bootstrap.ModuleFrameworkImpl" />
+		<Logger level="INFO" name="com.liferay.portal.bootstrap.log" />
 		<Logger level="INFO" name="com.liferay.portal.captcha.CaptchaImpl" />
 		<Logger level="INFO" name="com.liferay.portal.cluster" />
 		<Logger level="WARN" name="com.liferay.portal.configuration.ConfigurationImpl" />
@@ -60,7 +69,6 @@
 		<Logger level="ERROR" name="com.liferay.portal.deploy.hot.ThemeLoaderHotDeployListener" />
 		<Logger level="ERROR" name="com.liferay.portal.deploy.hot.messaging.HotDeployMessageListener" />
 		<Logger level="ERROR" name="com.liferay.portal.editor" />
-		<Logger level="INFO" name="com.liferay.portal.equinox.log.bridge.internal" />
 		<Logger level="INFO" name="com.liferay.portal.events.ChannelHubAppShutdownAction" />
 		<Logger level="INFO" name="com.liferay.portal.events.ChannelHubAppStartupAction" />
 		<Logger level="INFO" name="com.liferay.portal.events.ChannelLoginPostAction" />
@@ -84,14 +92,13 @@
 		<Logger level="ERROR" name="com.liferay.portal.image.ImageToolImpl" />
 		<Logger level="INFO" name="com.liferay.portal.internal.servlet.MainServlet" />
 		<Logger level="WARN" name="com.liferay.portal.json.jabsorb.serializer.LiferayJSONDeserializationWhitelist" />
-		<Logger level="WARN" name="com.liferay.portal.jsonwebservice.JSONWebServiceActionsManagerImpl" />
 		<Logger level="ERROR" name="com.liferay.portal.kernel.bean.PortalBeanLocatorUtil" />
 		<Logger level="WARN" name="com.liferay.portal.kernel.cache.cluster.BasePortalCacheClusterChannel" />
 		<Logger level="WARN" name="com.liferay.portal.kernel.cluster" />
 		<Logger level="WARN" name="com.liferay.portal.kernel.dao.orm.QueryUtil" />
 		<Logger level="INFO" name="com.liferay.portal.kernel.deploy" />
 		<Logger level="ERROR" name="com.liferay.portal.kernel.lar" />
-		<Logger level="INFO" name="com.liferay.portal.kernel.messaging.config.BaseMessagingConfigurator" />
+		<Logger level="INFO" name="com.liferay.portal.kernel.messaging.config.DefaultMessagingConfigurator" />
 		<Logger level="WARN" name="com.liferay.portal.kernel.messaging.proxy.ProxyMessageListener" />
 		<Logger level="ERROR" name="com.liferay.portal.kernel.model.Image" />
 		<Logger level="ERROR" name="com.liferay.portal.kernel.portlet.InvokerPortlet" />
@@ -201,12 +208,13 @@
 		<Logger level="INFO" name="com.liferay.portal.tools.sql" />
 		<Logger level="INFO" name="com.liferay.portal.upgrade" />
 		<Logger level="INFO" name="com.liferay.portal.upgrade.UpgradeProcessUtil" />
+		<Logger level="INFO" name="com.liferay.portal.upgrade.v6_2_0.BaseUpgradePortletPreferences" />
+		<Logger level="INFO" name="com.liferay.portal.upgrade.v6_2_0.UpgradePortletPreferences" />
 		<Logger level="INFO" name="com.liferay.portal.upgrade.v7_0_0.UpgradePortletSettings" />
 		<Logger level="WARN" name="com.liferay.portal.upload.UploadServletRequestImpl" />
 		<Logger level="ERROR" name="com.liferay.portal.util" />
 		<Logger level="ERROR" name="com.liferay.portal.util.EntityResolver" />
 		<Logger level="WARN" name="com.liferay.portal.util.FileImpl" />
-		<Logger level="INFO" name="com.liferay.portal.util.HttpImpl" />
 		<Logger level="INFO" name="com.liferay.portal.util.JarUtil" />
 		<Logger level="DEBUG" name="com.liferay.portal.util.MaintenanceUtil" />
 		<Logger level="ERROR" name="com.liferay.portal.util.MimeTypesUtil" />
@@ -254,6 +262,7 @@
 		<Logger level="ERROR" name="de.hunsicker" />
 		<Logger level="ERROR" name="de.nava.informa" />
 		<Logger level="ERROR" name="freemarker.beans" />
+		<Logger level="ERROR" name="hsqldb.db" />
 		<Logger level="ERROR" name="httpclient.wire" />
 		<Logger level="ERROR" name="net.htmlparser.jericho" />
 		<Logger level="ERROR" name="net.sf.ehcache" />
@@ -262,8 +271,6 @@
 		<Logger level="ERROR" name="net.sf.hibernate" />
 		<Logger level="WARN" name="org.apache.aries.jax.rs.whiteboard.activator.CxfJaxrsBundleActivator" />
 		<Logger level="ERROR" name="org.apache.chemistry.opencmis.client.bindings.spi.atompub.HttpUtils" />
-		<Logger level="ERROR" name="org.apache.commons.beanutils" />
-		<Logger level="ERROR" name="org.apache.commons.fileupload" />
 		<Logger level="ERROR" name="org.apache.pdfbox" />
 		<Logger level="ERROR" name="org.apache.velocity" />
 		<Logger level="ERROR" name="org.apache.xbean" />
@@ -284,6 +291,7 @@
 		<Logger level="WARN" name="portal-web.docroot.errors.404.jsp" />
 
 		<Root level="INFO">
+			<AppenderRef ref="COMPANY_LOG_ROUTING_TEXT_FILE" />
 			<AppenderRef ref="CONSOLE" />
 			<AppenderRef ref="TEXT_FILE" />
 			<AppenderRef ref="XML_FILE" />

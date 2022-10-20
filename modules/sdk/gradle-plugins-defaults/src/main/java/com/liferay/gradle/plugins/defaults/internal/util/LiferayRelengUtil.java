@@ -18,7 +18,7 @@ import aQute.bnd.osgi.Constants;
 
 import com.liferay.gradle.plugins.cache.WriteDigestTask;
 import com.liferay.gradle.plugins.defaults.LiferayThemeDefaultsPlugin;
-import com.liferay.gradle.plugins.defaults.tasks.WriteArtifactPublishCommandsTask;
+import com.liferay.gradle.plugins.defaults.task.WriteArtifactPublishCommandsTask;
 import com.liferay.gradle.util.Validator;
 
 import java.io.File;
@@ -99,6 +99,24 @@ public class LiferayRelengUtil {
 
 	public static File getRelengDir(Project project) {
 		return getRelengDir(project.getProjectDir());
+	}
+
+	public static String getUnpublishedDependencyName(Project project) {
+		List<File> artifactPropertiesFiles = _getArtifactPropertiesFiles(
+			project, false);
+
+		for (File artifactPropertiesFile : artifactPropertiesFiles) {
+			File artifactProjectDir = _getArtifactProjectDir(
+				artifactPropertiesFile);
+
+			if (hasUnpublishedCommits(
+					project, artifactProjectDir, artifactPropertiesFile)) {
+
+				return artifactProjectDir.getName();
+			}
+		}
+
+		return null;
 	}
 
 	public static boolean hasStaleParentTheme(Project project) {
@@ -289,32 +307,6 @@ public class LiferayRelengUtil {
 		}
 
 		_createNewFile(new File(gitResultsDir, sb.toString() + "false"));
-
-		return false;
-	}
-
-	public static boolean hasUnpublishedDependencies(Project project) {
-		List<File> artifactPropertiesFiles = _getArtifactPropertiesFiles(
-			project, false);
-
-		for (File artifactPropertiesFile : artifactPropertiesFiles) {
-			File artifactProjectDir = _getArtifactProjectDir(
-				artifactPropertiesFile);
-
-			if (hasUnpublishedCommits(
-					project, artifactProjectDir, artifactPropertiesFile)) {
-
-				Logger logger = project.getLogger();
-
-				if (logger.isQuietEnabled()) {
-					logger.quiet(
-						"The project dependency '{}' has new commits.",
-						artifactProjectDir.getName());
-				}
-
-				return true;
-			}
-		}
 
 		return false;
 	}

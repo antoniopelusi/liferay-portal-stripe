@@ -56,7 +56,6 @@ definition {
 
 	macro _getCommereTaxCategoriesCount {
 		var taxCategoriesCount = "0";
-
 		var commerceTaxCategoriesIds = CommerceJSONTaxCategoriesAPI._getCommerceTaxCategories();
 
 		for (var commerceTaxCategoriesId : list "${commerceTaxCategoriesIds}") {

@@ -16,6 +16,7 @@ import ClayDropDown from '@clayui/drop-down';
 import ClayForm, {ClayInput} from '@clayui/form';
 import React, {useEffect, useState} from 'react';
 
+import {contextUrl} from '../../../../../constants';
 import {headers, userBaseURL} from '../../../../../util/fetchUtil';
 
 const BaseUser = ({
@@ -48,7 +49,7 @@ const BaseUser = ({
 				'x-csrf-token': Liferay.authToken,
 			},
 		},
-		link: `${window.location.origin}${userBaseURL}/user-accounts`,
+		link: `${window.location.origin}${contextUrl}${userBaseURL}/user-accounts`,
 		onNetworkStatusChange: setNetworkStatus,
 		variables: {search},
 	});
@@ -105,7 +106,6 @@ const BaseUser = ({
 		});
 	};
 
-	const initialLoading = networkStatus === 1;
 	const loading = networkStatus < 4;
 	const error = networkStatus === 5;
 
@@ -128,9 +128,7 @@ const BaseUser = ({
 						value={search}
 					/>
 
-					<ClayAutocomplete.DropDown
-						active={(!!resource && !!search) || initialLoading}
-					>
+					<ClayAutocomplete.DropDown active={!!resource && !!search}>
 						<ClayDropDown.ItemList>
 							{(error || !resource?.items?.length) && (
 								<ClayDropDown.Item className="disabled">

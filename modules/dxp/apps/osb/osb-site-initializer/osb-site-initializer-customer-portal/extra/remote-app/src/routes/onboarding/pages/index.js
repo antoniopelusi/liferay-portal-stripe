@@ -9,9 +9,11 @@
  * distribution rights of the Software.
  */
 
+import i18n from '../../../common/I18n';
 import InviteTeamMembersForm from '../../../common/containers/setup-forms/InviteTeamMembersForm';
-import SetupAnalyticsCloud from '../../../common/containers/setup-forms/SetupAnalyticsCloudForm';
-import SetupDXPCloud from '../../../common/containers/setup-forms/SetupDXPCloudForm';
+import SetupAnalyticsCloudForm from '../../../common/containers/setup-forms/SetupAnalyticsCloudForm';
+import SetupDXPCloudForm from '../../../common/containers/setup-forms/SetupDXPCloudForm';
+import {useAppPropertiesContext} from '../../../common/contexts/AppPropertiesContext';
 import {PAGE_ROUTER_TYPES} from '../../../common/utils/constants';
 import {PRODUCT_TYPES} from '../../customer-portal/utils/constants';
 import {useOnboarding} from '../context';
@@ -33,6 +35,7 @@ const Pages = () => {
 		},
 		dispatch,
 	] = useOnboarding();
+	const {client} = useAppPropertiesContext();
 
 	const subscriptionDXPCloud = subscriptionGroups?.find(
 		(subscriptionGroup) => subscriptionGroup.name === PRODUCT_TYPES.dxpCloud
@@ -88,7 +91,7 @@ const Pages = () => {
 				<InviteTeamMembersForm
 					availableAdministratorAssets={availableAdministratorAssets}
 					handlePage={invitesPageHandle}
-					leftButton="Skip for now"
+					leftButton={i18n.translate('skip-for-now')}
 					project={project}
 					sessionId={sessionId}
 				/>
@@ -96,7 +99,8 @@ const Pages = () => {
 		},
 		[ONBOARDING_STEP_TYPES.dxpCloud]: {
 			Component: (
-				<SetupDXPCloud
+				<SetupDXPCloudForm
+					client={client}
 					handlePage={(isSuccess) => {
 						if (isSuccess) {
 							return dispatch({
@@ -106,7 +110,7 @@ const Pages = () => {
 						}
 						dxpCloudPageHandle();
 					}}
-					leftButton="Skip for now"
+					leftButton={i18n.translate('skip-for-now')}
 					project={project}
 					subscriptionGroupId={
 						subscriptionDXPCloud?.accountSubscriptionGroupId
@@ -128,7 +132,8 @@ const Pages = () => {
 		},
 		[ONBOARDING_STEP_TYPES.analyticsCloud]: {
 			Component: (
-				<SetupAnalyticsCloud
+				<SetupAnalyticsCloudForm
+					client={client}
 					handlePage={(isSuccess) => {
 						if (isSuccess) {
 							return dispatch({
@@ -139,7 +144,7 @@ const Pages = () => {
 						}
 						analyticsCloudPageHandle();
 					}}
-					leftButton="Skip for now"
+					leftButton={i18n.translate('skip-for-now')}
 					project={project}
 					subscriptionGroupId={
 						subscriptionAnalyticsCloud?.accountSubscriptionGroupId

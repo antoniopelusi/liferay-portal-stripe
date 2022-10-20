@@ -14,6 +14,7 @@
 
 package com.liferay.bulk.rest.internal.resource.v1_0.factory;
 
+import com.liferay.bulk.rest.internal.security.permission.LiberalPermissionChecker;
 import com.liferay.bulk.rest.resource.v1_0.StatusResource;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.User;
@@ -191,7 +192,7 @@ public class StatusResourceFactoryImpl implements StatusResource.Factory {
 		}
 		else {
 			PermissionThreadLocal.setPermissionChecker(
-				_liberalPermissionCheckerFactory.create(user));
+				new LiberalPermissionChecker(user));
 		}
 
 		StatusResource statusResource = _componentServiceObjects.getService();
@@ -252,9 +253,6 @@ public class StatusResourceFactoryImpl implements StatusResource.Factory {
 
 	@Reference
 	private GroupLocalService _groupLocalService;
-
-	@Reference(target = "(permission.checker.type=liberal)")
-	private PermissionCheckerFactory _liberalPermissionCheckerFactory;
 
 	@Reference
 	private ResourceActionLocalService _resourceActionLocalService;

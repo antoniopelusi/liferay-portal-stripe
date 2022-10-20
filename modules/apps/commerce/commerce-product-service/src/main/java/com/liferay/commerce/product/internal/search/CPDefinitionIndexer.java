@@ -49,7 +49,7 @@ import com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.search.BaseIndexer;
@@ -78,6 +78,7 @@ import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.search.expando.ExpandoBridgeIndexer;
 
 import java.io.Serializable;
 
@@ -538,11 +539,11 @@ public class CPDefinitionIndexer extends BaseIndexer<CPDefinition> {
 
 			List<String> optionValueIds = new ArrayList<>();
 
-			Set<Locale> availableLocales = LanguageUtil.getAvailableLocales(
+			Set<Locale> availableLocales = _language.getAvailableLocales(
 				cpDefinitionOptionRel.getGroupId());
 
 			for (Locale locale : availableLocales) {
-				String languageId = LanguageUtil.getLanguageId(locale);
+				String languageId = _language.getLanguageId(locale);
 
 				List<String> localizedOptionValues = new ArrayList<>();
 
@@ -639,11 +640,11 @@ public class CPDefinitionIndexer extends BaseIndexer<CPDefinition> {
 
 			specificationOptionValuesNames.add(specificationOptionValue);
 
-			Set<Locale> availableLocales = LanguageUtil.getAvailableLocales(
+			Set<Locale> availableLocales = _language.getAvailableLocales(
 				cpDefinitionSpecificationOptionValue.getGroupId());
 
 			for (Locale locale : availableLocales) {
-				String languageId = LanguageUtil.getLanguageId(locale);
+				String languageId = _language.getLanguageId(locale);
 
 				String localizedSpecificationOptionValue =
 					cpDefinitionSpecificationOptionValue.getValue(languageId);
@@ -783,8 +784,7 @@ public class CPDefinitionIndexer extends BaseIndexer<CPDefinition> {
 					cpAttachmentFileEntryId, false, false, false));
 		}
 
-		if ((cpDefinition.getStatus() != WorkflowConstants.STATUS_APPROVED) &&
-			(cpDefinition.getCPDefinitionId() !=
+		if ((cpDefinition.getCPDefinitionId() !=
 				cProduct.getPublishedCPDefinitionId()) &&
 			_cpDefinitionLocalService.isVersionable(
 				cpDefinition.getCPDefinitionId())) {
@@ -856,6 +856,9 @@ public class CPDefinitionIndexer extends BaseIndexer<CPDefinition> {
 
 			document.addNumber(CPField.BASE_PRICE, lowestPrice);
 		}
+
+		_expandoBridgeIndexer.addAttributes(
+			document, cpDefinition.getExpandoBridge());
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("Document " + cpDefinition + " indexed successfully");
@@ -1000,9 +1003,15 @@ public class CPDefinitionIndexer extends BaseIndexer<CPDefinition> {
 	private CPInstanceLocalService _cpInstanceLocalService;
 
 	@Reference
+	private ExpandoBridgeIndexer _expandoBridgeIndexer;
+
+	@Reference
 	private FriendlyURLEntryLocalService _friendlyURLEntryLocalService;
 
 	@Reference
 	private IndexWriterHelper _indexWriterHelper;
+
+	@Reference
+	private Language _language;
 
 }

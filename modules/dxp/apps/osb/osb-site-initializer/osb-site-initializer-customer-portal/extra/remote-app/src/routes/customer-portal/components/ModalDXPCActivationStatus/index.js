@@ -13,8 +13,8 @@ import ClayForm, {ClayInput} from '@clayui/form';
 import ClayModal from '@clayui/modal';
 import classNames from 'classnames';
 import {useState} from 'react';
-import client from '../../../../apolloClient';
 import {Badge, Button} from '../../../../common/components';
+import {useAppPropertiesContext} from '../../../../common/contexts/AppPropertiesContext';
 import {
 	getDXPCloudEnvironment,
 	updateAccountSubscriptionGroups,
@@ -39,7 +39,8 @@ const ModalDXPCActivationStatus = ({
 }) => {
 	const [hasError, setHasError] = useState();
 
-	const [{subscriptionGroups}, dispatch] = useCustomerPortal();
+	const [{project, subscriptionGroups}, dispatch] = useCustomerPortal();
+	const {client} = useAppPropertiesContext();
 
 	const handleOnConfirm = () => {
 		const errorMessageProductId = isLowercaseAndNumbers(projectIdValue);
@@ -63,6 +64,7 @@ const ModalDXPCActivationStatus = ({
 			mutation: updateAccountSubscriptionGroups,
 			variables: {
 				accountSubscriptionGroup: {
+					accountKey: project.accountKey,
 					activationStatus: STATUS_TAG_TYPE_NAMES.active,
 				},
 				id: dxpCloudSubscriptionGroup?.accountSubscriptionGroupId,
@@ -124,7 +126,7 @@ const ModalDXPCActivationStatus = ({
 				<div className="bg-neutral-1 cp-analytics-cloud-status-modal">
 					<div className="d-flex justify-content-between">
 						<h4 className="ml-4 mt-4 text-brand-primary text-paragraph">
-							DXP CLOUD SETUP
+							LXC-SM SETUP
 						</h4>
 
 						<div className="mr-4 mt-3">
@@ -143,7 +145,7 @@ const ModalDXPCActivationStatus = ({
 
 					<p className="mb-2 ml-4 mt-4">
 						Confirm the final Project ID used to create the
-						customer&apos;s DXP Cloud environments.
+						customer&apos;s LXC-SM environments.
 					</p>
 
 					<div className="mx-2">

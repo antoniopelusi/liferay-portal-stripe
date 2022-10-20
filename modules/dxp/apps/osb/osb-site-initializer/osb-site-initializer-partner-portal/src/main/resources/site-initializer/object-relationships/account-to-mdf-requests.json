@@ -1,0 +1,11 @@
+{
+	"deletionType": "cascade",
+	"label": {
+		"en-US": "Company"
+	},
+	"name": "accountToMDFRequests",
+	"objectDefinitionId1": "[$OBJECT_DEFINITION_ID:AccountEntry$]",
+	"objectDefinitionId2": "[$OBJECT_DEFINITION_ID:MDFRequest$]",
+	"objectDefinitionName2": "MDFRequest",
+	"type": "oneToMany"
+}

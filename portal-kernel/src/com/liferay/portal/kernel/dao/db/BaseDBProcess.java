@@ -19,6 +19,9 @@ import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.reflect.ReflectionUtil;
+import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.module.framework.ThrowableCollector;
@@ -28,10 +31,14 @@ import com.liferay.portal.kernel.util.LoggingTimer;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtil;
+import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -39,14 +46,25 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.naming.NamingException;
+
+import javax.sql.DataSource;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.ServiceReference;
 
 /**
  * @author Hugo Huijser
@@ -162,19 +180,6 @@ public abstract class BaseDBProcess implements DBProcess {
 		}
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #runSQLTemplateString(String, boolean)}
-	 */
-	@Deprecated
-	@Override
-	public void runSQLTemplateString(
-			String template, boolean evaluate, boolean failOnError)
-		throws IOException, NamingException, SQLException {
-
-		runSQLTemplateString(template, failOnError);
-	}
-
 	protected void addIndexes(
 			Connection connection, List<IndexMetadata> indexMetadatas)
 		throws IOException, SQLException {
@@ -188,24 +193,81 @@ public abstract class BaseDBProcess implements DBProcess {
 			String tableName, String oldColumnName, String newColumnDefinition)
 		throws Exception {
 
-		DB db = DBManagerUtil.getDB();
+		String newColumnName = StringUtil.extractFirst(
+			newColumnDefinition, StringPool.SPACE);
 
-		db.alterColumnName(
-			connection, tableName, oldColumnName, newColumnDefinition);
+		String newColumnType = newColumnDefinition.substring(
+			newColumnName.length() + 1);
+
+		if (!hasColumn(tableName, oldColumnName)) {
+			if (hasColumnType(tableName, newColumnName, newColumnType)) {
+				return;
+			}
+
+			throw new SQLException(
+				StringBundler.concat(
+					"Column ", tableName, StringPool.PERIOD, oldColumnName,
+					" does not exist"));
+		}
+
+		if (hasColumnType(tableName, oldColumnName, newColumnType)) {
+			DBInspector dbInspector = new DBInspector(connection);
+
+			if (StringUtil.equals(
+					dbInspector.normalizeName(oldColumnName),
+					dbInspector.normalizeName(newColumnName))) {
+
+				return;
+			}
+
+			DB db = DBManagerUtil.getDB();
+
+			db.alterColumnName(
+				connection, tableName, oldColumnName, newColumnDefinition);
+		}
+		else {
+			throw new SQLException(
+				StringBundler.concat(
+					"Type change is not allowed when altering column name. ",
+					"Column ", tableName, StringPool.PERIOD, oldColumnName,
+					" has different type than ", newColumnType));
+		}
 	}
 
 	protected void alterColumnType(
 			String tableName, String columnName, String newColumnType)
 		throws Exception {
 
-		DB db = DBManagerUtil.getDB();
+		if (!hasColumn(tableName, columnName)) {
+			throw new SQLException(
+				StringBundler.concat(
+					"Column ", tableName, StringPool.PERIOD, columnName,
+					" does not exist"));
+		}
 
-		db.alterColumnType(connection, tableName, columnName, newColumnType);
+		if (!hasColumnType(tableName, columnName, newColumnType)) {
+			DB db = DBManagerUtil.getDB();
+
+			db.alterColumnType(
+				connection, tableName, columnName, newColumnType);
+		}
 	}
 
 	protected void alterTableAddColumn(
 			String tableName, String columnName, String columnType)
 		throws Exception {
+
+		if (hasColumn(tableName, columnName)) {
+			if (!hasColumnType(tableName, columnName, columnType)) {
+				throw new SQLException(
+					StringBundler.concat(
+						"Column ", tableName, StringPool.PERIOD, columnName,
+						" already exists with different type than ",
+						columnType));
+			}
+
+			return;
+		}
 
 		DB db = DBManagerUtil.getDB();
 
@@ -215,11 +277,26 @@ public abstract class BaseDBProcess implements DBProcess {
 	protected void alterTableDropColumn(String tableName, String columnName)
 		throws Exception {
 
-		DB db = DBManagerUtil.getDB();
+		if (hasColumn(tableName, columnName)) {
+			DB db = DBManagerUtil.getDB();
 
-		db.alterTableDropColumn(connection, tableName, columnName);
+			db.alterTableDropColumn(connection, tableName, columnName);
+		}
 	}
 
+	protected void alterTableName(String tableName, String newTableName)
+		throws Exception {
+
+		runSQL(
+			StringBundler.concat(
+				"alter_table_name ", tableName, StringPool.SPACE,
+				newTableName));
+	}
+
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #hasTable(String)}
+	 */
+	@Deprecated
 	protected boolean doHasTable(String tableName) throws Exception {
 		DBInspector dbInspector = new DBInspector(connection);
 
@@ -233,6 +310,26 @@ public abstract class BaseDBProcess implements DBProcess {
 		DB db = DBManagerUtil.getDB();
 
 		return db.dropIndexes(connection, tableName, columnName);
+	}
+
+	protected void dropTable(String tableName) throws Exception {
+		runSQL("DROP_TABLE_IF_EXISTS(" + tableName + ")");
+	}
+
+	protected Connection getConnection() throws Exception {
+		if (GetterUtil.getBoolean(
+				PropsUtil.get("database.partition.enabled")) &&
+			GetterUtil.getBoolean(
+				PropsUtil.get("database.partition.thread.pool.enabled"),
+				true)) {
+
+			return (Connection)ProxyUtil.newProxyInstance(
+				ClassLoader.getSystemClassLoader(),
+				new Class<?>[] {Connection.class},
+				new ConnectionThreadProxyInvocationHandler());
+		}
+
+		return _getConnection();
 	}
 
 	protected String[] getPrimaryKeyColumnNames(
@@ -348,6 +445,48 @@ public abstract class BaseDBProcess implements DBProcess {
 
 	protected Connection connection;
 
+	private Connection _getConnection() {
+		try {
+			Bundle bundle = FrameworkUtil.getBundle(getClass());
+
+			if (bundle != null) {
+				BundleContext bundleContext = bundle.getBundleContext();
+
+				Collection<ServiceReference<DataSource>> serviceReferences =
+					bundleContext.getServiceReferences(
+						DataSource.class,
+						StringBundler.concat(
+							"(origin.bundle.symbolic.name=",
+							bundle.getSymbolicName(), ")"));
+
+				Iterator<ServiceReference<DataSource>> iterator =
+					serviceReferences.iterator();
+
+				if (iterator.hasNext()) {
+					ServiceReference<DataSource> serviceReference =
+						iterator.next();
+
+					DataSource dataSource = bundleContext.getService(
+						serviceReference);
+
+					try {
+						if (dataSource != null) {
+							return dataSource.getConnection();
+						}
+					}
+					finally {
+						bundleContext.ungetService(serviceReference);
+					}
+				}
+			}
+
+			return DataAccess.getConnection();
+		}
+		catch (Exception exception) {
+			return ReflectionUtil.throwException(exception);
+		}
+	}
+
 	private <T> void _processConcurrently(
 			UnsafeSupplier<T, Exception> unsafeSupplier,
 			UnsafeConsumer<T, Exception> unsafeConsumer,
@@ -421,5 +560,41 @@ public abstract class BaseDBProcess implements DBProcess {
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(BaseDBProcess.class);
+
+	private class ConnectionThreadProxyInvocationHandler
+		implements InvocationHandler {
+
+		@Override
+		public Object invoke(Object proxy, Method method, Object[] args)
+			throws Throwable {
+
+			String methodName = method.getName();
+
+			if (methodName.equals("close")) {
+				Collection<Connection> connections = _connectionMap.values();
+
+				Iterator<Connection> iterator = connections.iterator();
+
+				while (iterator.hasNext()) {
+					Connection connection = iterator.next();
+
+					iterator.remove();
+
+					method.invoke(connection, args);
+				}
+
+				return null;
+			}
+
+			return method.invoke(
+				_connectionMap.computeIfAbsent(
+					Thread.currentThread(), thread -> _getConnection()),
+				args);
+		}
+
+		private final Map<Thread, Connection> _connectionMap =
+			new ConcurrentHashMap<>();
+
+	}
 
 }

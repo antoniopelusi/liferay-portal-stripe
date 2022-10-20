@@ -21,12 +21,17 @@ import com.liferay.exportimport.kernel.lar.PortletDataHandlerKeys;
 import com.liferay.exportimport.kernel.service.StagingLocalServiceUtil;
 import com.liferay.exportimport.kernel.staging.StagingUtil;
 import com.liferay.exportimport.kernel.staging.constants.StagingConstants;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.persistence.GroupUtil;
+import com.liferay.portal.kernel.test.util.PropsValuesTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.test.util.UserTestUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
 
 import java.util.Map;
 
@@ -56,6 +61,51 @@ public class DepotStagingTestUtil {
 			TestPropsValues.getUserId(), group, false, false, serviceContext);
 
 		return group.getStagingGroup();
+	}
+
+	public static DepotEntry enableRemoteStaging(
+			DepotEntry remoteLiveDepotEntry, DepotEntry remoteStagingDepotEntry)
+		throws Exception {
+
+		try (SafeCloseable safeCloseable1 =
+				PropsValuesTestUtil.swapWithSafeCloseable(
+					"TUNNELING_SERVLET_SHARED_SECRET",
+					"F0E1D2C3B4A5968778695A4B3C2D1E0F");
+			SafeCloseable safeCloseable2 =
+				PropsValuesTestUtil.swapWithSafeCloseable(
+					"TUNNELING_SERVLET_SHARED_SECRET_HEX", true)) {
+
+			ServiceContext serviceContext =
+				ServiceContextTestUtil.getServiceContext();
+
+			serviceContext.setAddGroupPermissions(true);
+			serviceContext.setAddGuestPermissions(true);
+			serviceContext.setScopeGroupId(
+				remoteStagingDepotEntry.getGroupId());
+
+			_addStagingAttribute(
+				serviceContext,
+				StagingUtil.getStagedPortletId(_DEPOT_ADMIN_PORTLET_ID), true);
+			_addStagingAttribute(
+				serviceContext, PortletDataHandlerKeys.PORTLET_DATA_ALL, false);
+			_addStagingAttribute(
+				serviceContext, PortletDataHandlerKeys.PORTLET_SETUP_ALL,
+				false);
+
+			UserTestUtil.setUser(TestPropsValues.getUser());
+
+			StagingLocalServiceUtil.enableRemoteStaging(
+				TestPropsValues.getUserId(), remoteStagingDepotEntry.getGroup(),
+				false, false, "localhost",
+				PortalUtil.getPortalServerPort(false),
+				PortalUtil.getPathContext(), false,
+				remoteLiveDepotEntry.getGroupId(), serviceContext);
+
+			GroupUtil.clearCache();
+
+			return DepotEntryLocalServiceUtil.fetchGroupDepotEntry(
+				remoteLiveDepotEntry.getGroupId());
+		}
 	}
 
 	public static void publishLayouts(Group stagingGroup, Group liveGroup)
@@ -89,5 +139,8 @@ public class DepotStagingTestUtil {
 		_addStagingAttribute(
 			serviceContext, PortletDataHandlerKeys.PORTLET_SETUP_ALL, true);
 	}
+
+	private static final String _DEPOT_ADMIN_PORTLET_ID =
+		"com_liferay_depot_web_portlet_DepotAdminPortlet";
 
 }

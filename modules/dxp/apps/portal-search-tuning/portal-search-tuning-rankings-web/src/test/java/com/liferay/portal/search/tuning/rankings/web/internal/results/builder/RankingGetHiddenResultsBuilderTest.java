@@ -42,10 +42,7 @@ public class RankingGetHiddenResultsBuilderTest
 		LiferayUnitTestRule.INSTANCE;
 
 	@Before
-	@Override
 	public void setUp() throws Exception {
-		super.setUp();
-
 		_rankingGetHiddenResultsBuilder = new RankingGetHiddenResultsBuilder(
 			dlAppLocalService, fastDateFormatFactory, queries, rankingIndexName,
 			rankingIndexReader, resourceActions, resourceRequest,
@@ -152,7 +149,7 @@ public class RankingGetHiddenResultsBuilderTest
 				))
 		).put(
 			"total", 2
-		).toJSONString();
+		).toString();
 	}
 
 	private RankingGetHiddenResultsBuilder _rankingGetHiddenResultsBuilder;

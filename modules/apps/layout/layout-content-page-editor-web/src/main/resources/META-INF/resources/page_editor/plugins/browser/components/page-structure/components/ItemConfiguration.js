@@ -40,17 +40,22 @@ export default function ItemConfiguration() {
 		selectCanViewItemConfiguration
 	);
 
+	const [activePanel, setActivePanel] = useState({});
+
 	return canViewItemConfiguration ? (
 		<CollectionItemContext.Provider value={collectionContext}>
-			<ItemConfigurationContent />
+			<ItemConfigurationContent
+				activePanel={activePanel}
+				setActivePanel={setActivePanel}
+			/>
 		</CollectionItemContext.Provider>
 	) : null;
 }
 
-function ItemConfigurationContent() {
+function ItemConfigurationContent({activePanel, setActivePanel}) {
 	const activeItemId = useActiveItemId();
 	const activeItemType = useActiveItemType();
-	const [activePanelId, setActivePanelId] = useState(null);
+
 	const tabIdPrefix = useId();
 	const panelIdPrefix = useId();
 
@@ -70,14 +75,30 @@ function ItemConfigurationContent() {
 	);
 
 	useEffect(() => {
-		setActivePanelId((panelId) => {
-			if (panels.find((panel) => panel.panelId === panelId)) {
-				return panelId;
-			}
+		if (
+			!panels.length ||
+			panels.some((panel) => panel.panelId === activePanel.id)
+		) {
+			return;
+		}
 
-			return panels[0]?.panelId ?? '';
-		});
-	}, [panels]);
+		let nextActivePanelId = activePanel.id;
+		let nextActivePanelType = activePanel.type;
+
+		const sameTypePanel = panels.find(
+			(panel) => panel.type === activePanel.type
+		);
+
+		if (sameTypePanel) {
+			nextActivePanelId = sameTypePanel.panelId;
+		}
+		else {
+			nextActivePanelId = panels[0]?.panelId;
+			nextActivePanelType = panels[0]?.type;
+		}
+
+		setActivePanel({id: nextActivePanelId, type: nextActivePanelType});
+	}, [panels, activePanel, setActivePanel]);
 
 	if (!activeItem || !panels.length) {
 		return (
@@ -93,17 +114,22 @@ function ItemConfigurationContent() {
 
 	return (
 		<PageStructureSidebarSection resizable size={1.5}>
-			<div className="page-editor__page-structure__item-configuration">
+			<div className="page-editor__page-structure__item-configuration w-100">
 				<ClayTabs className="flex-nowrap pt-2 px-3">
 					{panels.map((panel) => (
 						<ClayTabs.Item
-							active={panel.panelId === activePanelId}
+							active={panel.panelId === activePanel.id}
 							innerProps={{
 								'aria-controls': `${panelIdPrefix}-${panel.panelId}`,
 								'id': `${tabIdPrefix}-${panel.panelId}`,
 							}}
 							key={panel.panelId}
-							onClick={() => setActivePanelId(panel.panelId)}
+							onClick={() => {
+								setActivePanel({
+									id: panel.panelId,
+									type: panel.type || null,
+								});
+							}}
 						>
 							<span
 								className="c-inner page-editor__page-structure__item-configuration-tab text-truncate"
@@ -119,7 +145,7 @@ function ItemConfigurationContent() {
 
 				<ClayTabs.Content
 					activeIndex={panels.findIndex(
-						(panel) => panel.panelId === activePanelId
+						(panel) => panel.panelId === activePanel.id
 					)}
 				>
 					{panels.map((panel) => (
@@ -129,7 +155,7 @@ function ItemConfigurationContent() {
 							id={`${panelIdPrefix}-${panel.panelId}`}
 							key={panel.panelId}
 						>
-							{panel.panelId === activePanelId && (
+							{panel.panelId === activePanel.id && (
 								<ItemConfigurationComponent
 									Component={panel.component}
 									item={activeItem}

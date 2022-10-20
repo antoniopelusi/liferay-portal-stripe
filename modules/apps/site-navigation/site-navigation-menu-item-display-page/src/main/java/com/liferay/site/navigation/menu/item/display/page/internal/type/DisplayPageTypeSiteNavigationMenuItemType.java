@@ -247,25 +247,12 @@ public class DisplayPageTypeSiteNavigationMenuItemType
 			return friendlyURL;
 		}
 
-		return themeDisplay.getURLCurrent() + StringPool.POUND;
+		return StringPool.BLANK;
 	}
 
 	@Override
 	public String getStatusIcon(SiteNavigationMenuItem siteNavigationMenuItem) {
-		UnicodeProperties typeSettingsUnicodeProperties =
-			UnicodePropertiesBuilder.fastLoad(
-				siteNavigationMenuItem.getTypeSettings()
-			).build();
-
-		if (!AssetDisplayPageUtil.hasAssetDisplayPage(
-				siteNavigationMenuItem.getGroupId(),
-				GetterUtil.getLong(
-					typeSettingsUnicodeProperties.get("classNameId")),
-				GetterUtil.getLong(
-					typeSettingsUnicodeProperties.get("classPK")),
-				GetterUtil.getLong(
-					typeSettingsUnicodeProperties.get("classTypeId")))) {
-
+		if (!_hasAssetDisplayPage(siteNavigationMenuItem)) {
 			return "warning-full";
 		}
 
@@ -402,7 +389,11 @@ public class DisplayPageTypeSiteNavigationMenuItemType
 
 	@Override
 	public boolean isBrowsable(SiteNavigationMenuItem siteNavigationMenuItem) {
-		return true;
+		if (_hasAssetDisplayPage(siteNavigationMenuItem)) {
+			return true;
+		}
+
+		return false;
 	}
 
 	@Override
@@ -425,13 +416,6 @@ public class DisplayPageTypeSiteNavigationMenuItemType
 	}
 
 	@Override
-	public void renderAddPage(
-			HttpServletRequest httpServletRequest,
-			HttpServletResponse httpServletResponse)
-		throws IOException {
-	}
-
-	@Override
 	public void renderEditPage(
 			HttpServletRequest httpServletRequest,
 			HttpServletResponse httpServletResponse,
@@ -447,6 +431,23 @@ public class DisplayPageTypeSiteNavigationMenuItemType
 		_jspRenderer.renderJSP(
 			_servletContext, httpServletRequest, httpServletResponse,
 			"/edit_display_page_type.jsp");
+	}
+
+	private boolean _hasAssetDisplayPage(
+		SiteNavigationMenuItem siteNavigationMenuItem) {
+
+		UnicodeProperties typeSettingsUnicodeProperties =
+			UnicodePropertiesBuilder.fastLoad(
+				siteNavigationMenuItem.getTypeSettings()
+			).build();
+
+		return AssetDisplayPageUtil.hasAssetDisplayPage(
+			siteNavigationMenuItem.getGroupId(),
+			GetterUtil.getLong(
+				typeSettingsUnicodeProperties.get("classNameId")),
+			GetterUtil.getLong(typeSettingsUnicodeProperties.get("classPK")),
+			GetterUtil.getLong(
+				typeSettingsUnicodeProperties.get("classTypeId")));
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

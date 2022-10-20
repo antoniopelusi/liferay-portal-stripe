@@ -14,8 +14,11 @@
 
 package com.liferay.site.initializer.extender.internal.util;
 
+import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.vulcan.util.ObjectMapperUtil;
@@ -28,6 +31,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletContext;
 
@@ -46,21 +51,30 @@ public class SiteInitializerUtil {
 		URL entryURL = bundle.getEntry(
 			urlPath.substring(0, urlPath.lastIndexOf("/") + 1) + fileName);
 
-		return StringUtil.read(entryURL.openStream());
+		try (InputStream inputStream = entryURL.openStream()) {
+			return StringUtil.read(entryURL.openStream());
+		}
 	}
 
 	public static String read(
 			String resourcePath, ServletContext servletContext)
 		throws Exception {
 
-		InputStream inputStream = servletContext.getResourceAsStream(
-			resourcePath);
+		try (InputStream inputStream = servletContext.getResourceAsStream(
+				resourcePath)) {
 
-		if (inputStream == null) {
-			return null;
+			if (inputStream == null) {
+				return null;
+			}
+
+			String content = StringUtil.read(inputStream);
+
+			Map<String, String> portalPropertiesStringUtilReplaceValues =
+				_getPortalPropertiesStringUtilReplaceValues(content);
+
+			return StringUtil.replace(
+				content, "[$", "$]", portalPropertiesStringUtilReplaceValues);
 		}
-
-		return StringUtil.read(inputStream);
 	}
 
 	public static Map<Locale, String> toMap(String values) {
@@ -85,5 +99,53 @@ public class SiteInitializerUtil {
 
 		return map;
 	}
+
+	private static Map<String, String>
+		_getPortalPropertiesStringUtilReplaceValues(String content) {
+
+		Map<String, String> portalPropertiesStringUtilReplaceValues =
+			new HashMap<>();
+
+		if (Validator.isNull(content)) {
+			return portalPropertiesStringUtilReplaceValues;
+		}
+
+		Matcher matcher = _portalPropertyPattern.matcher(content);
+
+		while (matcher.find()) {
+			String portalProperty = matcher.group();
+
+			portalProperty = portalProperty.substring(
+				2, portalProperty.length() - 2);
+
+			String[] portalPropertyParts = StringUtil.split(
+				portalProperty, CharPool.COLON);
+
+			String value = PropsUtil.get(portalPropertyParts[1]);
+
+			if ((value == null) ||
+				!ArrayUtil.contains(
+					_PORTAL_PROPERTIES_KEYS_WHITELIST,
+					portalPropertyParts[1])) {
+
+				value = StringPool.BLANK;
+			}
+
+			portalPropertiesStringUtilReplaceValues.put(portalProperty, value);
+		}
+
+		return portalPropertiesStringUtilReplaceValues;
+	}
+
+	private static final String[] _PORTAL_PROPERTIES_KEYS_WHITELIST = {
+		"default.guest.public.layout.friendly.url",
+		"default.guest.public.layout.name",
+		"default.guest.public.layout.regular.color.scheme.id",
+		"default.guest.public.layout.regular.theme.id",
+		"default.guest.public.layout.template.id"
+	};
+
+	private static final Pattern _portalPropertyPattern = Pattern.compile(
+		"\\[\\$PORTAL_PROPERTY:((?!\\.)(?!.*\\.\\.)[a-zA-Z0-9_.]+)\\$\\]");
 
 }

@@ -36,7 +36,7 @@ const ImportMappingItem = ({
 	return (
 		<ClayTable.Row>
 			<ClayTable.Cell>
-				<label htmlFor={inputId}>{dbField.label}</label>
+				<label htmlFor={inputId}>{dbField.name}</label>
 
 				{dbField.description && (
 					<p className="mb-0">{dbField.description}</p>
@@ -98,7 +98,9 @@ const ImportMappingItem = ({
 				</ClayForm.Group>
 			</ClayTable.Cell>
 
-			<ClayTable.Cell>{previewValue}</ClayTable.Cell>
+			<ClayTable.Cell truncate="true">
+				{JSON.stringify(previewValue)}
+			</ClayTable.Cell>
 		</ClayTable.Row>
 	);
 };
@@ -106,7 +108,6 @@ const ImportMappingItem = ({
 ImportMappingItem.propTypes = {
 	dbField: PropTypes.shape({
 		description: PropTypes.string,
-		label: PropTypes.string.isRequired,
 		name: PropTypes.string.isRequired,
 	}),
 	fileFields: PropTypes.arrayOf(
@@ -114,7 +115,7 @@ ImportMappingItem.propTypes = {
 	),
 	formEvaluated: PropTypes.bool.isRequired,
 	portletNamespace: PropTypes.string.isRequired,
-	previewValue: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+	previewValue: PropTypes.any,
 	required: PropTypes.bool.isRequired,
 	selectedFileField: PropTypes.string.isRequired,
 	updateFieldMapping: PropTypes.func.isRequired,

@@ -52,7 +52,6 @@ definition {
 			FragmentsAdmin.addFragment(fragmentName = "Fragment Name");
 
 			var fragmentHtml = '''<lfr-widget-web-content>''';
-
 			var htmlSnippet = '''<lfr-''';
 
 			FragmentsEditor.autocompleteFragmentHTML(
@@ -90,7 +89,7 @@ definition {
 
 			IFrame.closeFrame();
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View the created Web Content displayed in the Web Content Display") {
@@ -105,7 +104,6 @@ definition {
 			LAR.exportSiteCP(siteScopeName = "Test Site Name");
 
 			var key_larFileName = "${larFileName}";
-
 			var larFileName = LAR.getLarFileName();
 
 			LAR.downloadLar();
@@ -161,14 +159,13 @@ definition {
 		task ("Add a fragment in global fragment collection") {
 			var newLine = '''
 ''';
-
 			var htmlSnippet = '''
 <${configuration.headingLevel} class="component-global-fragment-name mb-0 text-break" data-lfr-editable-id="element-text" data-lfr-editable-type="text">
 	Heading Example
 </${configuration.headingLevel}>
 			''';
-			var htmlSnippet = StringUtil.regexReplaceAll("${htmlSnippet}", "${newLine}", "");
 
+			var htmlSnippet = StringUtil.regexReplaceAll("${htmlSnippet}", "${newLine}", "");
 			var jsonSnippet = '''
 {
 	"fieldSets": [
@@ -208,6 +205,7 @@ definition {
 	]
 }
 			''';
+
 			var jsonSnippet = StringUtil.regexReplaceAll("${jsonSnippet}", "${newLine}", "");
 
 			JSONFragment.addSection(
@@ -240,14 +238,13 @@ definition {
 				fragmentName = "Global Fragment Name",
 				id = "element-text");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Export the site") {
 			LAR.exportSiteCP(siteScopeName = "Test Site Name");
 
 			var key_larFileName = "${larFileName}";
-
 			var larFileName = LAR.getLarFileName();
 
 			LAR.downloadLar();
@@ -317,7 +314,7 @@ definition {
 				key_imageDescription = "",
 				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_EDITABLE_FIELD_IMAGE_PROPERTIES");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Export the site") {
@@ -368,7 +365,7 @@ definition {
 				pageName = "Test Content Page Name",
 				siteName = "Test Site Name");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add the second content page") {
@@ -417,7 +414,6 @@ definition {
 			LAR.exportSiteCP(siteScopeName = "Test Site Name");
 
 			var key_larFileName = "${larFileName}";
-
 			var larFileName = LAR.getLarFileName();
 
 			LAR.downloadLar();

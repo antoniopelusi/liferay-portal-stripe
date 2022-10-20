@@ -1,16 +1,16 @@
 definition {
 
 	macro _addItemPage {
-		if (!(isSet(privacy))) {
-			var privacy = "Pages";
+		if (isSet(privacy)) {
+			Navigator.gotoNavItem(navItem = "${privacy}");
 		}
-
-		Navigator.gotoNavItem(navItem = "${privacy}");
 
 		Portlet.expandTree();
 
-		for (var pageName : list "${pageNames}") {
-			Portlet.selectTreeNode(nodeName = "${pageName}");
+		for (var pageName : list "${pageNameList}") {
+			Check.checkNotVisible(
+				key_nodeName = "${pageName}",
+				locator1 = "Treeview#NODE_CHECKBOX");
 		}
 	}
 
@@ -26,22 +26,14 @@ definition {
 			value1 = "${url}");
 
 		if ("${target}" == "Blank") {
-			while (IsNotChecked.isNotCheckedNotVisible(checkboxName = "Open in a new tab.", locator1 = "Checkbox#ANY_CHECKBOX")) {
-				Click.clickAtNotVisible(
-					checkboxName = "Open in a new tab.",
-					locator1 = "Checkbox#ANY_CHECKBOX");
-			}
-
-			Pause(locator1 = "3000");
+			Check.checkToggleSwitch(
+				checkboxName = "Open in a new tab.",
+				locator1 = "Checkbox#ANY_CHECKBOX");
 		}
 		else if ("${target}" == "Self") {
-			while (IsChecked.isNotCheckedNotVisible(checkboxName = "Open in a new tab.", locator1 = "Checkbox#ANY_CHECKBOX")) {
-				Click.clickAtNotVisible(
-					checkboxName = "Open in a new tab.",
-					locator1 = "Checkbox#ANY_CHECKBOX");
-			}
-
-			Pause(locator1 = "3000");
+			Uncheck.uncheckToggleSwitch(
+				checkboxName = "Open in a new tab.",
+				locator1 = "Checkbox#ANY_CHECKBOX");
 		}
 	}
 
@@ -83,14 +75,14 @@ definition {
 
 		MenuItem.click(menuItem = "${item}");
 
-		Pause(locator1 = "1000");
-
-		IFrame.selectConfigurationFrame();
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
 
 		if ("${item}" == "Page") {
 			NavigationMenusAdmin._addItemPage(
-				pageNames = "${pageNames}",
+				pageNameList = "${pageNameList}",
 				privacy = "${privacy}");
+
+			SelectFrameTop();
 
 			Button.click(button = "Select");
 		}
@@ -157,6 +149,20 @@ definition {
 			Button.clickAdd();
 		}
 
+		if ("${item}" == "Vocabulary") {
+			var i = "1";
+
+			for (var assetTitle : list "${assetTitleList}") {
+				LexiconTable.checkTableCheckbox(tableEntry = "${assetTitle}");
+
+				var i = ${i} + 1;
+			}
+
+			SelectFrame.selectFrameTop();
+
+			Button.clickSelect();
+		}
+
 		Alert.viewSuccessMessage();
 
 		IFrame.selectTopFrame();
@@ -170,34 +176,8 @@ definition {
 		Modal.save();
 	}
 
-	macro addPage {
-		WaitForLiferayEvent.initializeLiferayEventLog();
-
-		Click(locator1 = "Button#PLUS");
-
-		MenuItem.click(menuItem = "Page");
-
-		Pause(locator1 = "1000");
-
-		IFrame.selectConfigurationFrame();
-
-		Portlet.expandTree();
-
-		for (var pageName : list "${pageNames}") {
-			Portlet.selectTreeNode(nodeName = "${pageName}");
-		}
-
-		Button.click(button = "Select");
-
-		Alert.viewSuccessMessage();
-
-		IFrame.selectTopFrame();
-	}
-
 	macro addTranslation {
 		NavigationMenusAdmin.openItemSidebar(itemName = "${itemName}");
-
-		Pause(locator1 = "3000");
 
 		if (IsElementPresent(locator1 = "SiteNavigationMenu#USE_CUSTOM_NAME_CHECKBOX")) {
 			Check.checkToggleSwitch(locator1 = "SiteNavigationMenu#USE_CUSTOM_NAME_CHECKBOX");
@@ -210,6 +190,13 @@ definition {
 		PortletEntry.inputName(name = "${translation}");
 
 		Button.clickSave();
+	}
+
+	macro changeDisplayTemplate {
+		Select(
+			key_fieldLabel = "Display Template",
+			locator1 = "Select#GENERIC_SELECT_FIELD",
+			value1 = "${displayTemplate}");
 	}
 
 	macro configureMenuType {
@@ -232,6 +219,40 @@ definition {
 			key_rowEntry = "${navigationMenu}",
 			key_rowText = "${menuType}",
 			locator1 = "ContentRow#ENTRY_CONTENT_ENTRY_TEXT");
+	}
+
+	macro deleteAllCP {
+		PortletEntry.selectAll();
+
+		Click(
+			key_text = "trash",
+			locator1 = "ManagementBar#ANY_ICON");
+
+		AssertTextEquals(
+			locator1 = "Modal#BODY",
+			value1 = "Are you sure you want to delete this? It will be deleted immediately.");
+
+		Click(
+			key_text = "Delete",
+			locator1 = "Modal#MODAL_FOOTER_BUTTON");
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro deleteCP {
+		LexiconEntry.gotoEntryMenuItem(
+			menuItem = "Delete",
+			rowEntry = "${navigationMenuName}");
+
+		AssertTextEquals(
+			locator1 = "Modal#BODY",
+			value1 = "Are you sure you want to delete this? It will be deleted immediately.");
+
+		Click(
+			key_text = "Delete",
+			locator1 = "Modal#MODAL_FOOTER_BUTTON");
+
+		Alert.viewSuccessMessage();
 	}
 
 	macro deleteItem {
@@ -260,27 +281,24 @@ definition {
 		NavigationMenusAdmin.openItemSidebar(itemName = "${itemName}");
 
 		if ("${item}" == "Page") {
-			if (isSet(pageNames)) {
+			if (isSet(customName)) {
+				NavigationMenusAdmin._editItemPage(name = "${customName}");
+			}
+
+			if (isSet(pageName)) {
 				Click(locator1 = "Button#CHOOSE");
 
-				Pause(locator1 = "1000");
-
-				IFrame.selectConfigurationFrame();
+				SelectFrame(locator1 = "IFrame#MODAL_BODY");
 
 				Portlet.expandTree();
 
-				for (var pageName : list "${pageNames}") {
-					Portlet.selectTreeNode(nodeName = "${pageName}");
-				}
+				Click(
+					key_nodeName = "${pageName}",
+					locator1 = "Treeview#NODE_UNSELECTED");
 
 				SelectFrameTop();
 
 				Button.click(button = "Select");
-
-				IFrame.selectTopFrame();
-			}
-			else {
-				NavigationMenusAdmin._editItemPage(name = "${name}");
 			}
 		}
 		else if ("${item}" == "Submenu") {
@@ -333,7 +351,7 @@ definition {
 		}
 
 		if ("${showWarningMessage}" == "true") {
-			NavigationMenusAdmin.viewItemWarningMessage();
+			NavigationMenusAdmin.viewItemWarningMessage(warningMessage = "${warningMessage}");
 		}
 		else if ("${showWarningMessage}" == "false") {
 			NavigationMenusAdmin.viewItemWarningMessageNotPresent();
@@ -363,16 +381,24 @@ definition {
 			key_itemName = "${itemName}",
 			locator1 = "SiteNavigationMenu#ITEM_ENTRY");
 
+		WaitForElementPresent(locator1 = "SiteNavigationMenu#SIDEBAR_OPEN");
+
 		AssertTextEquals(
 			key_itemName = "${itemName}",
 			locator1 = "SiteNavigationMenu#SIDEBAR_ITEM_NAME",
 			value1 = "${itemName}");
-
-		AssertElementPresent(locator1 = "SiteNavigationMenu#SIDEBAR");
 	}
 
 	macro openNavigationMenusAdmin {
 		Navigator.openWithAppendToBaseURL(urlAppend = "group/${siteURLKey}/~/control_panel/manage?p_p_id=com_liferay_site_navigation_admin_web_portlet_SiteNavigationAdminPortlet");
+	}
+
+	macro openPreviewMenu {
+		WaitForLiferayEvent.initializeLiferayEventLog();
+
+		Click(
+			key_text = "view",
+			locator1 = "Icon#ANY");
 	}
 
 	macro toggleAutomaticallyAddNewPagesToMenu {
@@ -393,6 +419,13 @@ definition {
 		}
 
 		Button.clickSave();
+	}
+
+	macro viewDisplayTemplate {
+		AssertSelectedLabel(
+			key_fieldLabel = "Display Template",
+			locator1 = "Select#GENERIC_SELECT_FIELD",
+			value1 = "${displayTemplate}");
 	}
 
 	macro viewItem {
@@ -423,6 +456,7 @@ definition {
 				locator1 = "SiteNavigationMenu#ITEM_ENTRY_NESTED");
 
 			var i = ${i} + 1;
+
 			var i = StringUtil.valueOf("${i}");
 		}
 	}
@@ -452,7 +486,12 @@ definition {
 	}
 
 	macro viewItemStatus {
+		if (!(isSet(index))) {
+			var index = "1";
+		}
+
 		AssertTextEquals(
+			index = "${index}",
 			key_itemName = "${itemName}",
 			locator1 = "SiteNavigationMenu#ITEM_ENTRY_STATUS",
 			value1 = "${itemStatus}");
@@ -477,13 +516,24 @@ definition {
 			NavigationMenusAdmin.openItemSidebar(itemName = "${itemName}");
 		}
 
-		AssertElementPresent(
-			key_warningMessage = "No Display Page",
-			locator1 = "Message#WARNING_SPECIFIC");
+		if ("${warningMessage}" == "No Display Page") {
+			AssertElementPresent(
+				key_warningMessage = "No Display Page",
+				locator1 = "Message#WARNING_SPECIFIC");
 
-		AssertTextEquals(
-			locator1 = "Message#SUBTITLE",
-			value1 = "This item does not have a display page. Items without display page do not have links and are hidden from menus.");
+			AssertTextEquals(
+				locator1 = "Message#SUBTITLE",
+				value1 = "This item does not have a display page. Items without a display page do not have links and are hidden from menus.");
+		}
+		else if ("${warningMessage}" == "No categories inside") {
+			AssertElementPresent(
+				key_warningMessage = "No categories inside",
+				locator1 = "Message#WARNING_SPECIFIC");
+
+			AssertTextEquals(
+				locator1 = "Message#SUBTITLE",
+				value1 = "Vocabularies without categories are hidden from Navigation Menus.");
+		}
 	}
 
 	macro viewItemWarningMessageNotPresent {

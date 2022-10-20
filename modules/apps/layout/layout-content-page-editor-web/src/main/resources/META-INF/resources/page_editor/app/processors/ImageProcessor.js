@@ -64,7 +64,9 @@ function render(element, value, editableConfig = {}, languageId) {
 	}
 
 	if (image) {
-		image.alt = getEditableLocalizedValue(editableConfig.alt, languageId);
+		image.alt =
+			getEditableLocalizedValue(editableConfig.alt, languageId) ||
+			value?.alt;
 
 		const link = getEditableLinkValue(editableConfig, languageId);
 
@@ -89,6 +91,10 @@ function render(element, value, editableConfig = {}, languageId) {
 
 		if (imageValue) {
 			image.src = imageValue;
+		}
+
+		if (editableConfig.lazyLoading) {
+			image.loading = 'lazy';
 		}
 	}
 }

@@ -10,7 +10,7 @@
  */
 
 import {memo} from 'react';
-import StatusTag from '../../../../../components/StatusTag';
+import {StatusTag} from '../../../../../../../common/components';
 import {STATUS_TAG_TYPES} from '../../../../../utils/constants';
 
 const StatusColumnType = memo(({hasLoggedBefore}) => {

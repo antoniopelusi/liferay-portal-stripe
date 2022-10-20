@@ -83,8 +83,8 @@ public class DDMExpressionEvaluatorVisitor
 	public Object visitAdditionExpression(
 		@NotNull AdditionExpressionContext context) {
 
-		BigDecimal bigDecimal1 = visitChild(context, 0);
-		BigDecimal bigDecimal2 = visitChild(context, 2);
+		BigDecimal bigDecimal1 = _getBigDecimal(visitChild(context, 0));
+		BigDecimal bigDecimal2 = _getBigDecimal(visitChild(context, 2));
 
 		return bigDecimal1.add(bigDecimal2);
 	}
@@ -115,13 +115,13 @@ public class DDMExpressionEvaluatorVisitor
 	public Object visitDivisionExpression(
 		@NotNull DivisionExpressionContext context) {
 
-		BigDecimal bigDecimal1 = visitChild(context, 0);
-
-		BigDecimal bigDecimal2 = visitChild(context, 2);
+		BigDecimal bigDecimal2 = _getBigDecimal(visitChild(context, 2));
 
 		if (bigDecimal2.compareTo(BigDecimal.ZERO) == 0) {
 			return "NaN";
 		}
+
+		BigDecimal bigDecimal1 = _getBigDecimal(visitChild(context, 0));
 
 		return bigDecimal1.divide(bigDecimal2, 2, RoundingMode.FLOOR);
 	}
@@ -134,8 +134,8 @@ public class DDMExpressionEvaluatorVisitor
 		Object object2 = visitChild(context, 2);
 
 		if ((object1 instanceof Number) && (object2 instanceof Number)) {
-			BigDecimal bigDecimal1 = (BigDecimal)object1;
-			BigDecimal bigDecimal2 = (BigDecimal)object2;
+			BigDecimal bigDecimal1 = new BigDecimal(object1.toString());
+			BigDecimal bigDecimal2 = new BigDecimal(object2.toString());
 
 			return bigDecimal1.compareTo(bigDecimal2) == 0;
 		}
@@ -376,8 +376,8 @@ public class DDMExpressionEvaluatorVisitor
 		Object object2 = visitChild(context, 2);
 
 		if ((object1 instanceof Number) && (object2 instanceof Number)) {
-			BigDecimal bigDecimal1 = (BigDecimal)object1;
-			BigDecimal bigDecimal2 = (BigDecimal)object2;
+			BigDecimal bigDecimal1 = new BigDecimal(object1.toString());
+			BigDecimal bigDecimal2 = new BigDecimal(object2.toString());
 
 			return bigDecimal1.compareTo(bigDecimal2) != 0;
 		}

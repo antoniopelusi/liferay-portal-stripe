@@ -20,6 +20,7 @@ definition {
 				-d friendlyURL=${friendlyURL} \
 				-d serviceContext=${serviceContext}
 		''';
+
 		var plid = JSONCurlUtil.post("${curl}", "$['plid']");
 
 		return "${plid}";
@@ -55,7 +56,9 @@ definition {
 				-d groupId=${groupId} \
 				-d privateLayout=${privateLayout}
 		''';
+
 		var defaultPlid = JSONCurlUtil.post("${curl}");
+
 		var defaultPlid = StringUtil.extractDigits("${defaultPlid}");
 
 		if ("${defaultPlid}" == "") {
@@ -77,6 +80,7 @@ definition {
 				-d groupId=${groupId} \
 				-d privateLayout=${privateLayout}
 		''';
+
 		var layoutId = JSONCurlUtil.post("${curl}", "$.[?(@['nameCurrentValue'] == '${layoutName}')]['layoutId']");
 
 		if ("${layoutId}" == "") {
@@ -100,6 +104,7 @@ definition {
 				-d groupId=${groupId} \
 				-d privateLayout=${privateLayout}
 		''';
+
 		var plid = JSONCurlUtil.post("${curl}", "$.[?(@['nameCurrentValue'] == '${layoutName}')]['plid']");
 
 		if ("${plid}" == "") {
@@ -121,6 +126,7 @@ definition {
 				-d groupId=${groupId} \
 				-d privateLayout=${privateLayout}
 		''';
+
 		var typeSettings = JSONCurlUtil.post("${curl}", "$.[?(@['nameCurrentValue'] == '${layoutName}')]['typeSettings']");
 
 		if ("${typeSettings}" == "") {
@@ -142,6 +148,7 @@ definition {
 				-d groupId=${groupId} \
 				-d privateLayout=${privateLayout}
 		''';
+
 		var uuid = JSONCurlUtil.post("${curl}", "$.[?(@['nameCurrentValue'] == '${layoutName}')]['uuid']");
 
 		if ("${uuid}" == "") {

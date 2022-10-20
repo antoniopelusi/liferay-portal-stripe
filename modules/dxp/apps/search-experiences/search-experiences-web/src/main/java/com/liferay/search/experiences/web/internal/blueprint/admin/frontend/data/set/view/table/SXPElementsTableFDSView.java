@@ -19,7 +19,6 @@ import com.liferay.frontend.data.set.view.table.BaseTableFDSView;
 import com.liferay.frontend.data.set.view.table.FDSTableSchema;
 import com.liferay.frontend.data.set.view.table.FDSTableSchemaBuilder;
 import com.liferay.frontend.data.set.view.table.FDSTableSchemaBuilderFactory;
-import com.liferay.frontend.data.set.view.table.FDSTableSchemaField;
 import com.liferay.search.experiences.web.internal.blueprint.admin.constants.SXPBlueprintAdminFDSNames;
 
 import java.util.Locale;
@@ -42,34 +41,34 @@ public class SXPElementsTableFDSView extends BaseTableFDSView {
 		FDSTableSchemaBuilder fdsTableSchemaBuilder =
 			_fdsTableSchemaBuilderFactory.create();
 
-		FDSTableSchemaField titleFDSTableSchemaField =
-			fdsTableSchemaBuilder.addFDSTableSchemaField("title", "title");
-
-		titleFDSTableSchemaField.setContentRenderer("actionLink");
-		titleFDSTableSchemaField.setSortable(true);
-
-		fdsTableSchemaBuilder.addFDSTableSchemaField(
-			"description", "description");
-
-		fdsTableSchemaBuilder.addFDSTableSchemaField("id", "id");
-
-		fdsTableSchemaBuilder.addFDSTableSchemaField("userName", "author");
-
-		FDSTableSchemaField createDateFDSTableSchemaField =
-			fdsTableSchemaBuilder.addFDSTableSchemaField(
-				"createDate", "created");
-
-		createDateFDSTableSchemaField.setContentRenderer("dateTime");
-		createDateFDSTableSchemaField.setSortable(true);
-
-		FDSTableSchemaField modifiedDateFDSTableSchemaField =
-			fdsTableSchemaBuilder.addFDSTableSchemaField(
-				"modifiedDate", "modified");
-
-		modifiedDateFDSTableSchemaField.setContentRenderer("dateTime");
-		modifiedDateFDSTableSchemaField.setSortable(true);
-
-		return fdsTableSchemaBuilder.build();
+		return fdsTableSchemaBuilder.add(
+			"title", "title",
+			fdsTableSchemaField -> fdsTableSchemaField.setContentRenderer(
+				"actionLink"
+			).setSortable(
+				true
+			)
+		).add(
+			"description", "description"
+		).add(
+			"id", "id"
+		).add(
+			"userName", "author"
+		).add(
+			"createDate", "created",
+			fdsTableSchemaField -> fdsTableSchemaField.setContentRenderer(
+				"dateTime"
+			).setSortable(
+				true
+			)
+		).add(
+			"modifiedDate", "modified",
+			fdsTableSchemaField -> fdsTableSchemaField.setContentRenderer(
+				"dateTime"
+			).setSortable(
+				true
+			)
+		).build();
 	}
 
 	@Reference

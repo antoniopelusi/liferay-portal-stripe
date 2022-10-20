@@ -1,18 +1,20 @@
 @component-name = "portal-solutions"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "false";
 	property portal.upstream = "true";
-	property testray.main.component.name = "Raylife";
+	property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+	property testray.main.component.name = "Site Initializer Raylife D2C";
+
+	var testSiteName = "Raylife D2C";
+	var testSiteURL = "raylife-d2c";
 
 	setUp {
 		TestCase.setUpPortalInstance();
 
 		User.firstLoginPG();
 
-		Raylife.createRaylifeSite(siteName = "Raylife");
+		Raylife.createRaylifeSite(site = "${testSiteName}");
 	}
 
 	tearDown {
@@ -28,12 +30,14 @@ definition {
 		}
 	}
 
-	@description = "LPS-144591 - Verify that the Policy Declaration Page is reached by the get a quote form"
+	@description = "LPS-144591 - Verify that I was redirected to the 'Congrats' page after PayPal payment"
 	@priority = "5"
 	test CanReachPolicyDeclarationPageByTheForm {
-		RaylifePaymentMethod.enablePayPalPayment();
+		RaylifePaymentMethod.configurationPaypal();
 
-		ApplicationsMenu.gotoSite(key_site = "Raylife");
+		RaylifePaymentMethod.enablePricingPaypal();
+
+		ApplicationsMenu.gotoSite(site = "${testSiteName}");
 
 		RaylifeHomePage.startFlow();
 
@@ -53,6 +57,8 @@ definition {
 
 		RaylifePaymentMethod.payPalFlow();
 
+		RaylifePaymentMethod.paypalPaymentFlow();
+
 		AssertElementPresent(locator1 = "RaylifePolicyDeclaration#CONGRATS_PAGE_POLICY_DECLARATION");
 	}
 
@@ -61,7 +67,7 @@ definition {
 	test IsPolicyNumberGenerated {
 		RaylifePaymentMethod.enablePayPalPayment();
 
-		ApplicationsMenu.gotoSite(key_site = "Raylife");
+		ApplicationsMenu.gotoSite(site = "${testSiteName}");
 
 		RaylifeHomePage.startFlow();
 
@@ -91,7 +97,7 @@ definition {
 	test IsProductTheSameAsTheForm {
 		RaylifePaymentMethod.enablePayPalPayment();
 
-		ApplicationsMenu.gotoSite(key_site = "Raylife");
+		ApplicationsMenu.gotoSite(site = "${testSiteName}");
 
 		RaylifeHomePage.startFlow();
 

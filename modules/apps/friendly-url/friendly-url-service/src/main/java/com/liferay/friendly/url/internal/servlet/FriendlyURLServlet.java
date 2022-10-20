@@ -14,12 +14,15 @@
 
 package com.liferay.friendly.url.internal.servlet;
 
-import com.liferay.petra.encryptor.Encryptor;
-import com.liferay.petra.encryptor.EncryptorException;
+import com.liferay.friendly.url.internal.configuration.FriendlyURLRedirectionConfiguration;
+import com.liferay.friendly.url.internal.configuration.admin.service.FriendlyURLRedirectionManagedServiceFactory;
 import com.liferay.petra.lang.HashUtil;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.encryptor.Encryptor;
+import com.liferay.portal.kernel.encryptor.EncryptorException;
+import com.liferay.portal.kernel.exception.LayoutPermissionException;
 import com.liferay.portal.kernel.exception.NoSuchGroupException;
 import com.liferay.portal.kernel.exception.NoSuchLayoutException;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -64,8 +67,7 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.util.PortalInstances;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.AsyncPortletServletRequest;
-import com.liferay.redirect.model.RedirectEntry;
-import com.liferay.redirect.service.RedirectEntryLocalService;
+import com.liferay.redirect.provider.RedirectProvider;
 import com.liferay.redirect.tracker.RedirectNotFoundTracker;
 import com.liferay.site.model.SiteFriendlyURL;
 import com.liferay.site.service.SiteFriendlyURLLocalService;
@@ -88,6 +90,7 @@ import javax.servlet.http.HttpSession;
 
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.component.annotations.ReferencePolicyOption;
 
 /**
@@ -135,16 +138,23 @@ public class FriendlyURLServlet extends HttpServlet {
 					0, layoutFriendlyURL.length() - 1);
 			}
 
-			if (redirectEntryLocalService != null) {
-				RedirectEntry redirectEntry =
-					redirectEntryLocalService.fetchRedirectEntry(
-						group.getGroupId(),
-						_normalizeFriendlyURL(layoutFriendlyURL), true);
+			RedirectProvider currentRedirectProvider = redirectProvider;
 
-				if (redirectEntry != null) {
+			if (currentRedirectProvider != null) {
+				HttpServletRequest originalHttpServletRequest =
+					portal.getOriginalServletRequest(httpServletRequest);
+
+				RedirectProvider.Redirect redirectProviderRedirect =
+					redirectProvider.getRedirect(
+						group.getGroupId(),
+						_normalizeFriendlyURL(layoutFriendlyURL),
+						_normalizeFriendlyURL(
+							originalHttpServletRequest.getRequestURI()));
+
+				if (redirectProviderRedirect != null) {
 					return new Redirect(
-						redirectEntry.getDestinationURL(), true,
-						redirectEntry.isPermanent());
+						redirectProviderRedirect.getDestinationURL(), true,
+						redirectProviderRedirect.isPermanent());
 				}
 			}
 		}
@@ -157,15 +167,8 @@ public class FriendlyURLServlet extends HttpServlet {
 			"request", httpServletRequest
 		).build();
 
-		ServiceContext serviceContext =
-			ServiceContextThreadLocal.getServiceContext();
-
-		if (serviceContext == null) {
-			serviceContext = ServiceContextFactory.getInstance(
-				httpServletRequest);
-
-			ServiceContextThreadLocal.pushServiceContext(serviceContext);
-		}
+		ServiceContextThreadLocal.pushServiceContext(
+			_getServiceContext(group, httpServletRequest));
 
 		Layout defaultLayout = null;
 
@@ -178,6 +181,45 @@ public class FriendlyURLServlet extends HttpServlet {
 						group.getGroupId(), _private, layoutFriendlyURL, params,
 						requestContext);
 
+			if (layoutFriendlyURLSeparatorComposite.isRedirect()) {
+				pos = path.indexOf(
+					layoutFriendlyURLSeparatorComposite.getURLSeparator());
+
+				if (pos != 1) {
+					HttpServletRequest originalHttpServletRequest =
+						portal.getOriginalServletRequest(httpServletRequest);
+
+					String requestURL = HttpComponentsUtil.getRequestURL(
+						originalHttpServletRequest);
+
+					int friendlyURLPos = requestURL.indexOf(layoutFriendlyURL);
+
+					String friendlyURL =
+						layoutFriendlyURLSeparatorComposite.getFriendlyURL();
+
+					String redirectURL =
+						PropsValues.LAYOUT_FRIENDLY_URL_PUBLIC_SERVLET_MAPPING +
+							path.substring(0, pos) + friendlyURL;
+
+					if (friendlyURLPos > 0) {
+						redirectURL =
+							requestURL.substring(0, friendlyURLPos) +
+								friendlyURL;
+					}
+
+					String queryString = HttpComponentsUtil.getQueryString(
+						originalHttpServletRequest);
+
+					if (Validator.isNotNull(queryString)) {
+						redirectURL += StringPool.QUESTION + queryString;
+					}
+
+					return new Redirect(
+						redirectURL, true,
+						_isPermanentRedirect(group.getCompanyId()));
+				}
+			}
+
 			Layout layout = layoutFriendlyURLSeparatorComposite.getLayout();
 
 			if (layout != null) {
@@ -188,7 +230,7 @@ public class FriendlyURLServlet extends HttpServlet {
 				if (!LayoutPermissionUtil.contains(
 						permissionChecker, layout, ActionKeys.VIEW)) {
 
-					throw new NoSuchLayoutException();
+					throw new LayoutPermissionException();
 				}
 			}
 
@@ -231,7 +273,9 @@ public class FriendlyURLServlet extends HttpServlet {
 
 				if (Validator.isNotNull(i18nLanguageId) &&
 					!LanguageUtil.isAvailableLocale(
-						group.getGroupId(), i18nLanguageId)) {
+						group.getGroupId(), i18nLanguageId) &&
+					(!portal.isGroupControlPanelPath(path) ||
+					 !LanguageUtil.isAvailableLocale(i18nLanguageId))) {
 
 					localeUnavailable = true;
 				}
@@ -268,14 +312,15 @@ public class FriendlyURLServlet extends HttpServlet {
 					boolean forcePermanentRedirect = true;
 
 					if (Validator.isNull(i18nLanguageId)) {
-						forcePermanentRedirect = false;
+						forcePermanentRedirect = _isPermanentRedirect(
+							group.getCompanyId());
 					}
 
 					return new Redirect(redirect, true, forcePermanentRedirect);
 				}
 			}
 		}
-		catch (NoSuchLayoutException noSuchLayoutException) {
+		catch (LayoutPermissionException | NoSuchLayoutException exception) {
 			Layout redirectLayout = null;
 
 			if (layoutFriendlyURL == null) {
@@ -302,23 +347,31 @@ public class FriendlyURLServlet extends HttpServlet {
 				return new Redirect(redirect);
 			}
 
-			if (redirectNotFoundTracker != null) {
-				redirectNotFoundTracker.trackURL(
+			RedirectNotFoundTracker currentRedirectNotFoundTracker =
+				redirectNotFoundTracker;
+
+			if (currentRedirectNotFoundTracker != null) {
+				currentRedirectNotFoundTracker.trackURL(
 					group, _normalizeFriendlyURL(layoutFriendlyURL));
 			}
 
-			if (Validator.isNotNull(
-					PropsValues.LAYOUT_FRIENDLY_URL_PAGE_NOT_FOUND)) {
+			if (exception instanceof NoSuchLayoutException) {
+				if (Validator.isNotNull(
+						PropsValues.LAYOUT_FRIENDLY_URL_PAGE_NOT_FOUND)) {
 
-				throw noSuchLayoutException;
+					throw exception;
+				}
+
+				httpServletResponse.setStatus(HttpServletResponse.SC_NOT_FOUND);
+
+				httpServletRequest.setAttribute(
+					NoSuchLayoutException.class.getName(), Boolean.TRUE);
 			}
 
-			httpServletResponse.setStatus(HttpServletResponse.SC_NOT_FOUND);
-
-			httpServletRequest.setAttribute(
-				NoSuchLayoutException.class.getName(), Boolean.TRUE);
-
 			layoutFriendlyURL = null;
+		}
+		finally {
+			ServiceContextThreadLocal.popServiceContext();
 		}
 
 		String actualURL = portal.getActualURL(
@@ -332,11 +385,13 @@ public class FriendlyURLServlet extends HttpServlet {
 
 		long userId = portal.getUserId(httpServletRequest);
 
-		if ((userId > 0) && _isImpersonated(httpServletRequest, userId)) {
+		boolean impersonated = _isImpersonated(httpServletRequest, userId);
+
+		if ((userId > 0) && impersonated) {
 			try {
 				Company company = portal.getCompany(httpServletRequest);
 
-				String encDoAsUserId = Encryptor.encrypt(
+				String encDoAsUserId = encryptor.encrypt(
 					company.getKeyObj(), String.valueOf(userId));
 
 				actualURL = HttpComponentsUtil.setParameter(
@@ -347,7 +402,7 @@ public class FriendlyURLServlet extends HttpServlet {
 					_log.debug(encryptorException);
 				}
 
-				return new Redirect(actualURL);
+				return new Redirect(actualURL, false, false);
 			}
 		}
 
@@ -361,7 +416,9 @@ public class FriendlyURLServlet extends HttpServlet {
 					params, !actualURL.contains(StringPool.QUESTION)));
 		}
 
-		return new Redirect(actualURL);
+		return new Redirect(
+			actualURL, false,
+			!impersonated && _isPermanentRedirect(group.getCompanyId()));
 	}
 
 	@Override
@@ -584,7 +641,14 @@ public class FriendlyURLServlet extends HttpServlet {
 	}
 
 	@Reference
+	protected Encryptor encryptor;
+
+	@Reference
 	protected FriendlyURLNormalizer friendlyURLNormalizer;
+
+	@Reference
+	protected FriendlyURLRedirectionManagedServiceFactory
+		friendlyURLRedirectionManagedServiceFactory;
 
 	@Reference
 	protected GroupLocalService groupLocalService;
@@ -603,15 +667,17 @@ public class FriendlyURLServlet extends HttpServlet {
 
 	@Reference(
 		cardinality = ReferenceCardinality.OPTIONAL,
+		policy = ReferencePolicy.DYNAMIC,
 		policyOption = ReferencePolicyOption.GREEDY
 	)
-	protected RedirectEntryLocalService redirectEntryLocalService;
+	protected volatile RedirectNotFoundTracker redirectNotFoundTracker;
 
 	@Reference(
 		cardinality = ReferenceCardinality.OPTIONAL,
+		policy = ReferencePolicy.DYNAMIC,
 		policyOption = ReferencePolicyOption.GREEDY
 	)
-	protected RedirectNotFoundTracker redirectNotFoundTracker;
+	protected volatile RedirectProvider redirectProvider;
 
 	@Reference
 	protected SiteFriendlyURLLocalService siteFriendlyURLLocalService;
@@ -731,6 +797,28 @@ public class FriendlyURLServlet extends HttpServlet {
 		return requestURI.substring(_pathInfoOffset, pos);
 	}
 
+	private ServiceContext _getServiceContext(
+			Group group, HttpServletRequest httpServletRequest)
+		throws PortalException {
+
+		ServiceContext serviceContext =
+			ServiceContextThreadLocal.getServiceContext();
+
+		if (serviceContext == null) {
+			serviceContext = ServiceContextFactory.getInstance(
+				httpServletRequest);
+
+			ServiceContextThreadLocal.pushServiceContext(serviceContext);
+		}
+
+		serviceContext = (ServiceContext)serviceContext.clone();
+
+		serviceContext.setCompanyId(group.getCompanyId());
+		serviceContext.setScopeGroupId(group.getGroupId());
+
+		return serviceContext;
+	}
+
 	private User _getUser(HttpServletRequest httpServletRequest)
 		throws PortalException {
 
@@ -756,6 +844,22 @@ public class FriendlyURLServlet extends HttpServlet {
 		}
 
 		return true;
+	}
+
+	private boolean _isPermanentRedirect(long companyId) {
+		FriendlyURLRedirectionConfiguration
+			friendlyURLRedirectionConfiguration =
+				friendlyURLRedirectionManagedServiceFactory.
+					getCompanyFriendlyURLConfiguration(companyId);
+
+		if (Objects.equals(
+				friendlyURLRedirectionConfiguration.redirectionType(),
+				"permanent")) {
+
+			return true;
+		}
+
+		return false;
 	}
 
 	private String _normalizeFriendlyURL(String friendlyURL) {

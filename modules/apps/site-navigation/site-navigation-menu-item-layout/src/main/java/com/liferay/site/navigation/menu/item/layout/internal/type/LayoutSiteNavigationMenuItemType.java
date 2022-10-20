@@ -19,12 +19,14 @@ import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.staging.LayoutStaging;
 import com.liferay.frontend.taglib.servlet.taglib.util.JSPRenderer;
 import com.liferay.item.selector.ItemSelector;
+import com.liferay.item.selector.criteria.UUIDItemSelectorReturnType;
+import com.liferay.layout.item.selector.criterion.LayoutItemSelectorCriterion;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.NoSuchLayoutException;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
@@ -32,6 +34,7 @@ import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutFriendlyURL;
 import com.liferay.portal.kernel.model.LayoutRevision;
 import com.liferay.portal.kernel.model.LayoutType;
+import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactoryUtil;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
@@ -43,6 +46,7 @@ import com.liferay.portal.kernel.service.permission.LayoutPermissionUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.UnicodeProperties;
@@ -150,7 +154,7 @@ public class LayoutSiteNavigationMenuItemType
 
 	@Override
 	public String getAddTitle(Locale locale) {
-		return LanguageUtil.format(locale, "select-x", "pages");
+		return _language.format(locale, "select-x", "pages");
 	}
 
 	@Override
@@ -161,6 +165,8 @@ public class LayoutSiteNavigationMenuItemType
 			renderResponse
 		).setActionName(
 			"/navigation_menu/add_layout_site_navigation_menu_item"
+		).setParameter(
+			"siteNavigationMenuItemType", getType()
 		).buildPortletURL();
 	}
 
@@ -170,8 +176,33 @@ public class LayoutSiteNavigationMenuItemType
 	}
 
 	@Override
+	public String getItemSelectorURL(HttpServletRequest httpServletRequest) {
+		RenderResponse renderResponse =
+			(RenderResponse)httpServletRequest.getAttribute(
+				JavaConstants.JAVAX_PORTLET_RESPONSE);
+
+		LayoutItemSelectorCriterion layoutItemSelectorCriterion =
+			new LayoutItemSelectorCriterion();
+
+		layoutItemSelectorCriterion.setDesiredItemSelectorReturnTypes(
+			new UUIDItemSelectorReturnType());
+		layoutItemSelectorCriterion.setShowBreadcrumb(false);
+		layoutItemSelectorCriterion.setShowHiddenPages(true);
+		layoutItemSelectorCriterion.setMultiSelection(true);
+
+		return PortletURLBuilder.create(
+			_itemSelector.getItemSelectorURL(
+				RequestBackedPortletURLFactoryUtil.create(httpServletRequest),
+				renderResponse.getNamespace() + "selectItem",
+				layoutItemSelectorCriterion)
+		).setParameter(
+			"multipleSelection", isMultiSelection()
+		).buildString();
+	}
+
+	@Override
 	public String getLabel(Locale locale) {
-		return LanguageUtil.get(locale, "page");
+		return _language.get(locale, "page");
 	}
 
 	@Override
@@ -221,14 +252,14 @@ public class LayoutSiteNavigationMenuItemType
 		Group group = layout.getGroup();
 
 		if (!group.isPrivateLayoutsEnabled()) {
-			return LanguageUtil.get(locale, "page");
+			return _language.get(locale, "page");
 		}
 
 		if (layout.isPublicLayout()) {
-			return LanguageUtil.get(locale, "public-page");
+			return _language.get(locale, "public-page");
 		}
 
-		return LanguageUtil.get(locale, "private-page");
+		return _language.get(locale, "private-page");
 	}
 
 	@Override
@@ -430,6 +461,16 @@ public class LayoutSiteNavigationMenuItemType
 	}
 
 	@Override
+	public boolean isItemSelector() {
+		return true;
+	}
+
+	@Override
+	public boolean isMultiSelection() {
+		return true;
+	}
+
+	@Override
 	public boolean isSelected(
 			boolean selectable, SiteNavigationMenuItem siteNavigationMenuItem,
 			Layout curLayout)
@@ -446,21 +487,6 @@ public class LayoutSiteNavigationMenuItemType
 		}
 
 		return false;
-	}
-
-	@Override
-	public void renderAddPage(
-			HttpServletRequest httpServletRequest,
-			HttpServletResponse httpServletResponse)
-		throws IOException {
-
-		httpServletRequest.setAttribute(
-			SiteNavigationMenuItemTypeLayoutWebKeys.ITEM_SELECTOR,
-			_itemSelector);
-
-		_jspRenderer.renderJSP(
-			_servletContext, httpServletRequest, httpServletResponse,
-			"/add_layout.jsp");
 	}
 
 	@Override
@@ -609,6 +635,9 @@ public class LayoutSiteNavigationMenuItemType
 
 	@Reference
 	private JSPRenderer _jspRenderer;
+
+	@Reference
+	private Language _language;
 
 	@Reference
 	private LayoutFriendlyURLLocalService _layoutFriendlyURLLocalService;

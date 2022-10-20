@@ -15,15 +15,128 @@
 export declare function normalizeFieldSettings(
 	objectFieldSettings: ObjectFieldSetting[] | undefined
 ): {
-	acceptedFileExtensions?: string | number | boolean | undefined;
-	fileSource?: string | number | boolean | undefined;
-	maximumFileSize?: string | number | boolean | undefined;
-	maxLength?: string | number | boolean | undefined;
-	showCounter?: string | number | boolean | undefined;
-	showFilesInDocumentsAndMedia?: string | number | boolean | undefined;
-	storageDLFolderPath?: string | number | boolean | undefined;
+	function?:
+		| string
+		| number
+		| boolean
+		| ObjectFieldFilterSetting[]
+		| {
+				id: number;
+				objectStates: ObjectState[];
+		  }
+		| undefined;
+	maxLength?:
+		| string
+		| number
+		| boolean
+		| ObjectFieldFilterSetting[]
+		| {
+				id: number;
+				objectStates: ObjectState[];
+		  }
+		| undefined;
+	acceptedFileExtensions?:
+		| string
+		| number
+		| boolean
+		| ObjectFieldFilterSetting[]
+		| {
+				id: number;
+				objectStates: ObjectState[];
+		  }
+		| undefined;
+	fileSource?:
+		| string
+		| number
+		| boolean
+		| ObjectFieldFilterSetting[]
+		| {
+				id: number;
+				objectStates: ObjectState[];
+		  }
+		| undefined;
+	filters?:
+		| string
+		| number
+		| boolean
+		| ObjectFieldFilterSetting[]
+		| {
+				id: number;
+				objectStates: ObjectState[];
+		  }
+		| undefined;
+	maximumFileSize?:
+		| string
+		| number
+		| boolean
+		| ObjectFieldFilterSetting[]
+		| {
+				id: number;
+				objectStates: ObjectState[];
+		  }
+		| undefined;
+	objectFieldName?:
+		| string
+		| number
+		| boolean
+		| ObjectFieldFilterSetting[]
+		| {
+				id: number;
+				objectStates: ObjectState[];
+		  }
+		| undefined;
+	objectRelationshipName?:
+		| string
+		| number
+		| boolean
+		| ObjectFieldFilterSetting[]
+		| {
+				id: number;
+				objectStates: ObjectState[];
+		  }
+		| undefined;
+	showCounter?:
+		| string
+		| number
+		| boolean
+		| ObjectFieldFilterSetting[]
+		| {
+				id: number;
+				objectStates: ObjectState[];
+		  }
+		| undefined;
+	showFilesInDocumentsAndMedia?:
+		| string
+		| number
+		| boolean
+		| ObjectFieldFilterSetting[]
+		| {
+				id: number;
+				objectStates: ObjectState[];
+		  }
+		| undefined;
+	stateFlow?:
+		| string
+		| number
+		| boolean
+		| ObjectFieldFilterSetting[]
+		| {
+				id: number;
+				objectStates: ObjectState[];
+		  }
+		| undefined;
+	storageDLFolderPath?:
+		| string
+		| number
+		| boolean
+		| ObjectFieldFilterSetting[]
+		| {
+				id: number;
+				objectStates: ObjectState[];
+		  }
+		| undefined;
 };
 export declare function updateFieldSettings(
 	objectFieldSettings: ObjectFieldSetting[] | undefined,
 	{name, value}: ObjectFieldSetting
-): ObjectFieldSetting[] | undefined;
+): ObjectFieldSetting[];

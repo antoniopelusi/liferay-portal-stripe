@@ -125,12 +125,14 @@ public class AssetVocabularyIndexerIndexedFieldsTest {
 				searchRequestBuilderFactory.builder(
 				).companyId(
 					_group.getCompanyId()
+				).fetchSourceIncludes(
+					new String[] {"*_sortable"}
+				).fields(
+					StringPool.STAR
 				).groupIds(
 					_group.getGroupId()
 				).locale(
 					locale
-				).fields(
-					StringPool.STAR
 				).modelIndexerClasses(
 					AssetVocabulary.class
 				).queryString(
@@ -198,11 +200,17 @@ public class AssetVocabularyIndexerIndexedFieldsTest {
 		).put(
 			Field.USER_NAME, StringUtil.lowerCase(assetVocabulary.getUserName())
 		).put(
+			Field.VISIBILITY_TYPE,
+			String.valueOf(assetVocabulary.getVisibilityType())
+		).put(
 			"name_sortable", StringUtil.lowerCase(assetVocabulary.getName())
 		).put(
 			"title_ja_JP", assetVocabulary.getName()
 		).put(
 			"title_sortable", StringUtil.lowerCase(assetVocabulary.getName())
+		).put(
+			"visibilityType_sortable",
+			String.valueOf(assetVocabulary.getVisibilityType())
 		).build();
 
 		_indexedFieldsFixture.populateUID(assetVocabulary, map);

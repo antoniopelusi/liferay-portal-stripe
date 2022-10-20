@@ -1,11 +1,13 @@
 @component-name = "portal-solutions"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "false";
 	property portal.upstream = "true";
-	property testray.main.component.name = "Raylife";
+	property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+	property testray.main.component.name = "Site Initializer Raylife D2C";
+
+	var testSiteName = "Raylife D2C";
+	var testSiteURL = "raylife-d2c";
 
 	setUp {
 		TestCase.setUpPortalInstance();
@@ -26,7 +28,7 @@ definition {
 
 		DigitalSignature.enableDigitalSignature(siteStrategy = "Always Inherit");
 
-		Raylife.createRaylifeSite(siteName = "Raylife");
+		Raylife.createRaylifeSite(site = "${testSiteName}");
 	}
 
 	tearDown {
@@ -47,7 +49,7 @@ definition {
 	test CanViewSentEmail {
 		RaylifePaymentMethod.enablePayPalPayment();
 
-		ApplicationsMenu.gotoSite(key_site = "Raylife");
+		ApplicationsMenu.gotoSite(site = "${testSiteName}");
 
 		RaylifeHomePage.startFlow();
 
@@ -85,7 +87,7 @@ definition {
 	test EmailOnTheEnvelopeEqualOnTheForm {
 		RaylifePaymentMethod.enablePayPalPayment();
 
-		ApplicationsMenu.gotoSite(key_site = "Raylife");
+		ApplicationsMenu.gotoSite(site = "${testSiteName}");
 
 		RaylifeHomePage.startFlow();
 
@@ -125,7 +127,7 @@ definition {
 	test FirstNameOnEnvelopeSameAsForm {
 		RaylifePaymentMethod.enablePayPalPayment();
 
-		ApplicationsMenu.gotoSite(key_site = "Raylife");
+		ApplicationsMenu.gotoSite(site = "${testSiteName}");
 
 		RaylifeHomePage.startFlow();
 
@@ -161,7 +163,7 @@ definition {
 	test LastNameOnEnvelopeSameAsForm {
 		RaylifePaymentMethod.enablePayPalPayment();
 
-		ApplicationsMenu.gotoSite(key_site = "Raylife");
+		ApplicationsMenu.gotoSite(site = "${testSiteName}");
 
 		RaylifeHomePage.startFlow();
 

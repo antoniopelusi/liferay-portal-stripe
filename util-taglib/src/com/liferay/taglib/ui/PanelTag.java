@@ -97,7 +97,7 @@ public class PanelTag extends IncludeTag {
 	}
 
 	public String getMarkupView() {
-		return _markupView;
+		return null;
 	}
 
 	public String getParentId() {
@@ -157,7 +157,6 @@ public class PanelTag extends IncludeTag {
 	}
 
 	public void setMarkupView(String markupView) {
-		_markupView = markupView;
 	}
 
 	public void setParentId(String parentId) {
@@ -193,7 +192,6 @@ public class PanelTag extends IncludeTag {
 		_helpMessage = null;
 		_iconCssClass = null;
 		_id = null;
-		_markupView = null;
 		_parentId = StringPool.BLANK;
 		_persistState = true;
 		_startPage = null;
@@ -204,10 +202,6 @@ public class PanelTag extends IncludeTag {
 	@Override
 	protected String getEndPage() {
 		if (Validator.isNull(_endPage)) {
-			if (Validator.isNotNull(_markupView)) {
-				return "/html/taglib/ui/panel/" + _markupView + "/end.jsp";
-			}
-
 			return "/html/taglib/ui/panel/end.jsp";
 		}
 
@@ -217,10 +211,6 @@ public class PanelTag extends IncludeTag {
 	@Override
 	protected String getStartPage() {
 		if (Validator.isNull(_startPage)) {
-			if (Validator.isNotNull(_markupView)) {
-				return "/html/taglib/ui/panel/" + _markupView + "/start.jsp";
-			}
-
 			return "/html/taglib/ui/panel/start.jsp";
 		}
 
@@ -236,7 +226,6 @@ public class PanelTag extends IncludeTag {
 	private String _helpMessage;
 	private String _iconCssClass;
 	private String _id;
-	private String _markupView;
 	private String _parentId = StringPool.BLANK;
 	private boolean _persistState = true;
 	private String _startPage;

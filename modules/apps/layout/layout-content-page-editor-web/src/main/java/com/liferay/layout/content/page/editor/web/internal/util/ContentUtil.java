@@ -49,6 +49,7 @@ import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.LiferayPortletURL;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
@@ -132,7 +133,8 @@ public class ContentUtil {
 			_getLayoutClassedModelPageContentsJSONArray(
 				httpServletRequest, plid, segmentsExperienceId),
 			AssetListEntryUsagesUtil.getPageContentsJSONArray(
-				httpServletRequest, httpServletResponse, plid));
+				httpServletRequest, httpServletResponse, plid,
+				segmentsExperienceId));
 	}
 
 	private static String _generateUniqueLayoutClassedModelUsageKey(
@@ -418,7 +420,16 @@ public class ContentUtil {
 
 		long fragmentEntryLinkClassNameId = PortalUtil.getClassNameId(
 			FragmentEntryLink.class);
-		LayoutStructure layoutStructure = null;
+		long portletClassNameId = PortalUtil.getClassNameId(Portlet.class);
+
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		LayoutStructure layoutStructure =
+			LayoutStructureUtil.getLayoutStructure(
+				themeDisplay.getScopeGroupId(), plid, segmentsExperienceId);
+
 		Set<String> uniqueLayoutClassedModelUsageKeys = new HashSet<>();
 
 		List<LayoutClassedModelUsage> layoutClassedModelUsages =
@@ -468,7 +479,8 @@ public class ContentUtil {
 					layoutStructure.getLayoutStructureItemByFragmentEntryLinkId(
 						fragmentEntryLink.getFragmentEntryLinkId());
 
-				if (ListUtil.exists(
+				if ((layoutStructureItem == null) ||
+					ListUtil.exists(
 						layoutStructure.getDeletedLayoutStructureItems(),
 						deletedLayoutStructureItem -> Objects.equals(
 							deletedLayoutStructureItem.getItemId(),
@@ -476,6 +488,14 @@ public class ContentUtil {
 
 					continue;
 				}
+			}
+
+			if ((layoutClassedModelUsage.getContainerType() ==
+					portletClassNameId) &&
+				layoutStructure.isPortletMarkedForDeletion(
+					layoutClassedModelUsage.getContainerKey())) {
+
+				continue;
 			}
 
 			try {

@@ -11,6 +11,7 @@ http://www.w3.org/TR/html401/struct/global.html
 		xsi:noNamespaceSchemaLocation="antisamy.xsd">
 
 	<directives>
+		<directive name="noopenerAndNoreferrerAnchors" value="true" />
 		<directive name="omitXmlDeclaration" value="true"/>
 		<directive name="omitDoctypeDeclaration" value="true"/>
 		<directive name="maxInputSize" value="200000"/>
@@ -2630,8 +2631,8 @@ http://www.w3.org/TR/html401/struct/global.html
 		<allowed-empty-tags>
 			<literal-list>
 				<literal value="br"/>
-					<literal value="hr"/>
-	<literal value="iframe"/>
+				<literal value="hr"/>
+				<literal value="iframe"/>
 				<literal value="a"/>
 				<literal value="img"/>
 				<literal value="param"/>

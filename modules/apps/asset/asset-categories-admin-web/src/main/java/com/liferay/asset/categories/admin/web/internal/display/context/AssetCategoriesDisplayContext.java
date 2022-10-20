@@ -114,7 +114,7 @@ public class AssetCategoriesDisplayContext {
 		return PortletURLBuilder.createRenderURL(
 			_renderResponse
 		).setMVCPath(
-			"/edit_category.jsp"
+			"/edit_asset_category.jsp"
 		).setParameter(
 			"itemSelectorEventName",
 			() -> {
@@ -382,7 +382,6 @@ public class AssetCategoriesDisplayContext {
 				"selectedCategories", "{selectedCategories}");
 			portletURL.setParameter("singleSelect", "{singleSelect}");
 			portletURL.setParameter("vocabularyIds", "{vocabularyIds}");
-
 			portletURL.setWindowState(LiferayWindowState.POP_UP);
 
 			return portletURL.toString();
@@ -453,7 +452,7 @@ public class AssetCategoriesDisplayContext {
 		return PortletURLBuilder.createRenderURL(
 			_renderResponse
 		).setMVCPath(
-			"/edit_vocabulary.jsp"
+			"/edit_asset_vocabulary.jsp"
 		).buildPortletURL();
 	}
 

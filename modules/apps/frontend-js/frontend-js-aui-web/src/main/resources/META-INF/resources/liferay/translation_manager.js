@@ -15,70 +15,70 @@
 AUI.add(
 	'liferay-translation-manager',
 	(A) => {
-		var AArray = A.Array;
-		var Lang = A.Lang;
-		var Node = A.Node;
+		const AArray = A.Array;
+		const Lang = A.Lang;
+		const Node = A.Node;
 
-		var CSS_ACTIONS = 'lfr-actions';
+		const CSS_ACTIONS = 'lfr-actions';
 
-		var CSS_AVAILABLE_TRANSLATIONS =
+		const CSS_AVAILABLE_TRANSLATIONS =
 			'lfr-translation-manager-available-translations';
 
-		var CSS_AVAILABLE_TRANSLATIONS_LINKS =
+		const CSS_AVAILABLE_TRANSLATIONS_LINKS =
 			'lfr-translation-manager-available-translations-links';
 
-		var CSS_CHANGE_DEFAULT_LOCALE =
+		const CSS_CHANGE_DEFAULT_LOCALE =
 			'lfr-translation-manager-change-default-locale';
 
-		var CSS_COMPONENT = 'list-unstyled';
+		const CSS_COMPONENT = 'list-unstyled';
 
-		var CSS_DEFAULT_LOCALE = 'lfr-translation-manager-default-locale';
+		const CSS_DEFAULT_LOCALE = 'lfr-translation-manager-default-locale';
 
-		var CSS_DEFAULT_LOCALE_LABEL =
+		const CSS_DEFAULT_LOCALE_LABEL =
 			'lfr-translation-manager-default-locale-label';
 
-		var CSS_DEFAULT_LOCALE_TEXT =
+		const CSS_DEFAULT_LOCALE_TEXT =
 			'lfr-translation-manager-default-locale-text';
 
-		var CSS_DELETE_TRANSLATION =
+		const CSS_DELETE_TRANSLATION =
 			'lfr-translation-manager-delete-translation';
 
-		var CSS_DIRECTION_DOWN = 'direction-down';
+		const CSS_DIRECTION_DOWN = 'direction-down';
 
-		var CSS_EXTENDED = 'lfr-extended';
+		const CSS_EXTENDED = 'lfr-extended';
 
-		var CSS_HELPER_HIDDEN = 'hide';
+		const CSS_HELPER_HIDDEN = 'hide';
 
-		var CSS_ICON_MENU = 'lfr-translation-manager-icon-menu';
+		const CSS_ICON_MENU = 'lfr-translation-manager-icon-menu';
 
-		var CSS_SHOW_ARROW = 'show-arrow';
+		const CSS_SHOW_ARROW = 'show-arrow';
 
-		var CSS_TRANSLATION = 'lfr-translation-manager-translation';
+		const CSS_TRANSLATION = 'lfr-translation-manager-translation';
 
-		var CSS_TRANSLATION_EDITING =
+		const CSS_TRANSLATION_EDITING =
 			'lfr-translation-manager-translation-editing';
 
-		var CSS_TRANSLATION_ITEM = 'lfr-translation-manager-translation-item';
+		const CSS_TRANSLATION_ITEM = 'lfr-translation-manager-translation-item';
 
-		var MSG_DEACTIVATE_LANGUAGE = Liferay.Language.get(
+		const MSG_DEACTIVATE_LANGUAGE = Liferay.Language.get(
 			'are-you-sure-you-want-to-deactivate-this-language'
 		);
 
-		var STR_BLANK = '';
+		const STR_BLANK = '';
 
-		var STR_DOT = '.';
+		const STR_DOT = '.';
 
-		var STR_SPACE = ' ';
+		const STR_SPACE = ' ';
 
-		var TPL_LOCALE_IMAGE =
+		const TPL_LOCALE_IMAGE =
 			'<img src="' +
 			themeDisplay.getPathThemeImages() +
 			'/language/{locale}.png" />';
 
-		var TPL_AVAILABLE_TRANSLATIONS_LINKS_NODE =
+		const TPL_AVAILABLE_TRANSLATIONS_LINKS_NODE =
 			'<span class="' + CSS_AVAILABLE_TRANSLATIONS_LINKS + '"></span>';
 
-		var TPL_AVAILABLE_TRANSLATIONS_NODE =
+		const TPL_AVAILABLE_TRANSLATIONS_NODE =
 			'<div class="' +
 			CSS_AVAILABLE_TRANSLATIONS +
 			'">' +
@@ -87,7 +87,7 @@ AUI.add(
 			'</label>' +
 			'</div>';
 
-		var TPL_AVAILABLE_TRANSLATION_LINK =
+		const TPL_AVAILABLE_TRANSLATION_LINK =
 			'<span class="label label-default label-lg ' +
 			CSS_TRANSLATION +
 			' {cssClass}" locale="{locale}">' +
@@ -100,25 +100,27 @@ AUI.add(
 			'</span>' +
 			'</span>';
 
-		var TPL_CHANGE_DEFAULT_LOCALE =
-			'<a href="javascript:;">' + Liferay.Language.get('change') + '</a>';
+		const TPL_CHANGE_DEFAULT_LOCALE =
+			'<a href="javascript:void(0);">' +
+			Liferay.Language.get('change') +
+			'</a>';
 
-		var TPL_DEFAULT_LOCALE_LABEL_NODE =
+		const TPL_DEFAULT_LOCALE_LABEL_NODE =
 			'<label>' + Liferay.Language.get('default-language') + ':</label>';
 
-		var TPL_DEFAULT_LOCALE_NODE =
+		const TPL_DEFAULT_LOCALE_NODE =
 			'<select class="' +
 			[CSS_HELPER_HIDDEN, 'field-input-menu'].join(STR_SPACE) +
 			'"></select>';
 
-		var TPL_DEFAULT_LOCALE_TEXT_NODE =
+		const TPL_DEFAULT_LOCALE_TEXT_NODE =
 			'<span class="' +
 			CSS_TRANSLATION +
 			'">' +
 			TPL_LOCALE_IMAGE +
 			'{displayName}</span>';
 
-		var TPL_ICON_MENU_NODE =
+		const TPL_ICON_MENU_NODE =
 			'<ul class="' +
 			[
 				CSS_ICON_MENU,
@@ -132,7 +134,7 @@ AUI.add(
 			'">' +
 			'<li class="lfr-trigger">' +
 			'<strong>' +
-			'<a class="text-nowrap" href="javascript:;">' +
+			'<a class="text-nowrap" href="javascript:void(0);">' +
 			'<img src="' +
 			themeDisplay.getPathThemeImages() +
 			'/common/add.png" />' +
@@ -145,20 +147,20 @@ AUI.add(
 			'</li>' +
 			'</ul>';
 
-		var TPL_ICON_NODE =
+		const TPL_ICON_NODE =
 			'<li class="' +
 			CSS_TRANSLATION_ITEM +
 			'">' +
-			'<a class="taglib-icon" href="javascript:;" lang="{0}">' +
+			'<a class="taglib-icon" href="javascript:void(0);" lang="{0}">' +
 			'<img class="icon" src="' +
 			themeDisplay.getPathThemeImages() +
 			'/language/{0}.png">{1}' +
 			'</a>' +
 			'</li>';
 
-		var TPL_OPTION = '<option value="{0}">{1}</option>';
+		const TPL_OPTION = '<option value="{0}">{1}</option>';
 
-		var TranslationManager = A.Component.create({
+		const TranslationManager = A.Component.create({
 			ATTRS: {
 				availableLocales: {
 					validator: Array.isArray,
@@ -250,20 +252,20 @@ AUI.add(
 
 			prototype: {
 				_afterDefaultLocaleChange(event) {
-					var instance = this;
+					const instance = this;
 
 					instance.set('editingLocale', event.newVal);
 				},
 
 				_getFormattedBuffer(tpl) {
-					var instance = this;
+					const instance = this;
 
-					var localesMap = instance.get('localesMap');
+					const localesMap = instance.get('localesMap');
 
-					var buffer = [];
-					var tplBuffer = [];
+					const buffer = [];
+					const tplBuffer = [];
 
-					var html;
+					let html;
 
 					instance._locales.forEach((item) => {
 						tplBuffer[0] = item;
@@ -278,30 +280,37 @@ AUI.add(
 				},
 
 				_getMenuOverlay() {
-					var instance = this;
+					const instance = this;
 
 					return A.Widget.getByNode(instance._menuOverlayNode);
 				},
 
 				_onClickDefaultLocaleTextNode() {
-					var instance = this;
+					const instance = this;
 
 					instance._resetEditingLocale();
 				},
 
 				_onClickTranslation(event) {
-					var instance = this;
+					const instance = this;
 
-					var locale = event.currentTarget.attr('locale');
+					const locale = event.currentTarget.attr('locale');
 
 					if (event.target.hasClass(CSS_DELETE_TRANSLATION)) {
-						if (confirm(MSG_DEACTIVATE_LANGUAGE)) {
-							instance.deleteAvailableLocale(locale);
+						Liferay.Util.openConfirmModal({
+							message: MSG_DEACTIVATE_LANGUAGE,
+							onConfirm: (isConfirmed) => {
+								if (isConfirmed) {
+									instance.deleteAvailableLocale(locale);
 
-							if (locale === instance.get('editingLocale')) {
-								instance._resetEditingLocale();
-							}
-						}
+									if (
+										locale === instance.get('editingLocale')
+									) {
+										instance._resetEditingLocale();
+									}
+								}
+							},
+						});
 					}
 					else {
 						instance.set('editingLocale', locale);
@@ -309,11 +318,11 @@ AUI.add(
 				},
 
 				_onClickTranslationItem(event) {
-					var instance = this;
+					const instance = this;
 
-					var link = event.currentTarget.one('a');
+					const link = event.currentTarget.one('a');
 
-					var locale = link.attr('lang');
+					const locale = link.attr('lang');
 
 					instance.addAvailableLocale(locale);
 
@@ -323,7 +332,7 @@ AUI.add(
 				},
 
 				_onDefaultLocaleNodeChange(event) {
-					var instance = this;
+					const instance = this;
 
 					instance.set('defaultLocale', event.target.val());
 
@@ -331,7 +340,7 @@ AUI.add(
 				},
 
 				_resetEditingLocale() {
-					var instance = this;
+					const instance = this;
 
 					instance.set(
 						'editingLocale',
@@ -340,9 +349,9 @@ AUI.add(
 				},
 
 				_setEditingLocale(val) {
-					var instance = this;
+					const instance = this;
 
-					var localesMap = instance.get('localesMap');
+					const localesMap = instance.get('localesMap');
 
 					// eslint-disable-next-line @liferay/aui/no-object
 					return A.Object.hasKey(localesMap, val)
@@ -351,9 +360,9 @@ AUI.add(
 				},
 
 				_setLocalesMap(val) {
-					var instance = this;
+					const instance = this;
 
-					var locales = Object.keys(val);
+					const locales = Object.keys(val);
 
 					if (locales.length !== 0) {
 						this.syncAvailableLocales(locales);
@@ -367,16 +376,16 @@ AUI.add(
 				},
 
 				_uiSetAvailableLocales(val) {
-					var instance = this;
+					const instance = this;
 
-					var defaultLocale = instance.get('defaultLocale');
-					var editingLocale = instance.get('editingLocale');
-					var localesMap = instance.get('localesMap');
-					var readOnly = instance.get('readOnly');
+					const defaultLocale = instance.get('defaultLocale');
+					const editingLocale = instance.get('editingLocale');
+					const localesMap = instance.get('localesMap');
+					const readOnly = instance.get('readOnly');
 
-					var buffer = [];
+					const buffer = [];
 
-					var tplBuffer = {
+					const tplBuffer = {
 						cssClass: STR_BLANK,
 						displayName: STR_BLANK,
 						locale: STR_BLANK,
@@ -392,7 +401,7 @@ AUI.add(
 							tplBuffer.displayName = localesMap[item];
 							tplBuffer.locale = item;
 
-							var html = Lang.sub(
+							const html = Lang.sub(
 								TPL_AVAILABLE_TRANSLATION_LINK,
 								tplBuffer
 							);
@@ -411,14 +420,14 @@ AUI.add(
 				},
 
 				_uiSetDefaultLocale(val) {
-					var instance = this;
+					const instance = this;
 
-					var optionNode = instance._defaultLocaleNode.one(
+					const optionNode = instance._defaultLocaleNode.one(
 						'option[value=' + val + ']'
 					);
 
 					if (optionNode) {
-						var content = Lang.sub(TPL_LOCALE_IMAGE, {
+						let content = Lang.sub(TPL_LOCALE_IMAGE, {
 							locale: val,
 						});
 
@@ -433,23 +442,24 @@ AUI.add(
 				},
 
 				_uiSetEditingLocale(val) {
-					var instance = this;
+					const instance = this;
 
-					var availableTranslationsLinksNode =
+					const availableTranslationsLinksNode =
 						instance._availableTranslationsLinksNode;
 
-					var availableTranslationsLinksItems = availableTranslationsLinksNode.all(
+					const availableTranslationsLinksItems = availableTranslationsLinksNode.all(
 						STR_DOT + CSS_TRANSLATION
 					);
 
-					var defaultLocaleTextNode = instance._defaultLocaleTextNode;
+					const defaultLocaleTextNode =
+						instance._defaultLocaleTextNode;
 
 					availableTranslationsLinksItems.removeClass(
 						CSS_TRANSLATION_EDITING
 					);
 					defaultLocaleTextNode.removeClass(CSS_TRANSLATION_EDITING);
 
-					var localeNode;
+					let localeNode;
 
 					if (val === instance.get('defaultLocale')) {
 						localeNode = defaultLocaleTextNode;
@@ -466,13 +476,13 @@ AUI.add(
 				},
 
 				_uiSetReadOnly(val) {
-					var instance = this;
+					const instance = this;
 
 					instance._iconMenuNode.toggle(!val);
 				},
 
 				_valueAvailableLocales() {
-					var instance = this;
+					const instance = this;
 
 					return [instance.get('defaultLocale')];
 				},
@@ -494,11 +504,11 @@ AUI.add(
 				},
 
 				_valueDefaultLocaleNode() {
-					var instance = this;
+					const instance = this;
 
-					var node = Node.create(TPL_DEFAULT_LOCALE_NODE);
+					const node = Node.create(TPL_DEFAULT_LOCALE_NODE);
 
-					var buffer = instance._getFormattedBuffer(TPL_OPTION);
+					const buffer = instance._getFormattedBuffer(TPL_OPTION);
 
 					node.append(buffer.join(''));
 
@@ -506,12 +516,12 @@ AUI.add(
 				},
 
 				_valueDefaultLocaleTextNode() {
-					var instance = this;
+					const instance = this;
 
-					var defaultLocale = instance.get('defaultLocale');
-					var localesMap = instance.get('localesMap');
+					const defaultLocale = instance.get('defaultLocale');
+					const localesMap = instance.get('localesMap');
 
-					var html = Lang.sub(TPL_DEFAULT_LOCALE_TEXT_NODE, {
+					const html = Lang.sub(TPL_DEFAULT_LOCALE_TEXT_NODE, {
 						displayName: localesMap[defaultLocale],
 						locale: defaultLocale,
 					});
@@ -520,17 +530,17 @@ AUI.add(
 				},
 
 				_valueEditingLocale() {
-					var instance = this;
+					const instance = this;
 
 					return instance.get('defaultLocale');
 				},
 
 				_valueIconMenuNode() {
-					var instance = this;
+					const instance = this;
 
-					var buffer = instance._getFormattedBuffer(TPL_ICON_NODE);
+					const buffer = instance._getFormattedBuffer(TPL_ICON_NODE);
 
-					var html = Lang.sub(TPL_ICON_MENU_NODE, {
+					const html = Lang.sub(TPL_ICON_MENU_NODE, {
 						menuItems: buffer.join(STR_BLANK),
 					});
 
@@ -538,9 +548,9 @@ AUI.add(
 				},
 
 				addAvailableLocale(locale) {
-					var instance = this;
+					const instance = this;
 
-					var availableLocales = instance.get('availableLocales');
+					const availableLocales = instance.get('availableLocales');
 
 					if (availableLocales.indexOf(locale) === -1) {
 						availableLocales.push(locale);
@@ -554,7 +564,7 @@ AUI.add(
 				},
 
 				bindUI() {
-					var instance = this;
+					const instance = this;
 
 					instance.on(
 						'defaultLocaleChange',
@@ -604,9 +614,9 @@ AUI.add(
 				},
 
 				deleteAvailableLocale(locale) {
-					var instance = this;
+					const instance = this;
 
-					var availableLocales = instance.get('availableLocales');
+					const availableLocales = instance.get('availableLocales');
 
 					AArray.removeItem(availableLocales, locale);
 
@@ -618,40 +628,40 @@ AUI.add(
 				},
 
 				renderUI() {
-					var instance = this;
+					const instance = this;
 
-					var availableTranslationsLinksNode = instance.get(
+					const availableTranslationsLinksNode = instance.get(
 						'availableTranslationsLinksNode'
 					);
-					var availableTranslationsNode = instance.get(
+					const availableTranslationsNode = instance.get(
 						'availableTranslationsNode'
 					);
-					var changeableDefaultLanguage = instance.get(
+					const changeableDefaultLanguage = instance.get(
 						'changeableDefaultLanguage'
 					);
-					var defaultLocaleLabelNode = instance.get(
+					const defaultLocaleLabelNode = instance.get(
 						'defaultLocaleLabelNode'
 					);
-					var defaultLocaleNode = instance.get('defaultLocaleNode');
-					var defaultLocaleTextNode = instance.get(
+					const defaultLocaleNode = instance.get('defaultLocaleNode');
+					const defaultLocaleTextNode = instance.get(
 						'defaultLocaleTextNode'
 					);
-					var iconMenuNode = instance.get('iconMenuNode');
+					const iconMenuNode = instance.get('iconMenuNode');
 
-					var contentBox = instance.get('contentBox');
+					const contentBox = instance.get('contentBox');
 
 					availableTranslationsNode.append(
 						availableTranslationsLinksNode
 					);
 
-					var nodes = [
+					let nodes = [
 						defaultLocaleLabelNode,
 						defaultLocaleTextNode,
 						defaultLocaleNode,
 					];
 
 					if (changeableDefaultLanguage) {
-						var changeDefaultLocaleNode = instance.get(
+						const changeDefaultLocaleNode = instance.get(
 							'changeDefaultLocaleNode'
 						);
 
@@ -665,7 +675,7 @@ AUI.add(
 						availableTranslationsNode,
 					]);
 
-					var nodeList = new A.NodeList(nodes);
+					const nodeList = new A.NodeList(nodes);
 
 					contentBox.append(nodeList);
 
@@ -680,9 +690,9 @@ AUI.add(
 				},
 
 				syncAvailableLocales(locales) {
-					var instance = this;
+					const instance = this;
 
-					var availableLocales = instance.get('availableLocales');
+					const availableLocales = instance.get('availableLocales');
 
 					instance.set(
 						'availableLocales',
@@ -693,15 +703,16 @@ AUI.add(
 				},
 
 				toggleDefaultLocales() {
-					var instance = this;
+					const instance = this;
 
-					var defaultLocaleNode = instance._defaultLocaleNode;
-					var defaultLocaleTextNode = instance._defaultLocaleTextNode;
+					const defaultLocaleNode = instance._defaultLocaleNode;
+					const defaultLocaleTextNode =
+						instance._defaultLocaleTextNode;
 
 					defaultLocaleNode.toggle();
 					defaultLocaleTextNode.toggle();
 
-					var text;
+					let text;
 
 					if (defaultLocaleNode.test(':hidden')) {
 						text = Liferay.Language.get('change');

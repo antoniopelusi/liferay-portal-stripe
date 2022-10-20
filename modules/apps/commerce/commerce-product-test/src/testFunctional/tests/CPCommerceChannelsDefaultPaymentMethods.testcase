@@ -1,98 +1,557 @@
 @component-name = "portal-commerce"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
+	property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
 	property portal.release = "true";
 	property portal.upstream = "true";
+	property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 	property testray.main.component.name = "Product Info Management";
 
 	setUp {
-		CommerceConfiguration.commerceSetUp();
+		CommerceConfiguration.commerceSetUp(minium = "true");
+
+		CommerceEntry.addAccountEntryUser(
+			accountName = "Commerce Account",
+			accountType = "Business",
+			agreeToTermsAndAnswerReminderQuery = "true",
+			createNewAccount = "true",
+			requireReset = "false",
+			userEmailAddress = "buyer@liferay.com",
+			userFirstName = "Buyer",
+			userLastName = "User",
+			userRole = "Buyer",
+			userScreenName = "buyeruser",
+			userSiteMembership = "Minium");
 	}
 
 	tearDown {
 		CommerceConfiguration.commerceTearDown();
 	}
 
-	@description = "[Please Update]"
-	@ignore = "Test Stub"
-	@priority = "4"
-	test AddANewDefaultPaymentMethod {
+	@description = "Verify users can add and remove a new default payment method linked to an account"
+	@priority = "3"
+	test AddAndRemoveANewDefaultPaymentMethod {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-8534 AddANewDefaultPaymentMethod pending implementation
+		task ("When the user goes into the Order Defaults tab for an account in Minium account Management") {
+			CommerceNavigator.gotoMiniumAccountOrderDefaults(accountName = "Commerce Account");
+		}
 
+		task ("And clicks on the Set Default Account Payment Methods button") {
+			Click(
+				key_text = "Set Default Commerce Payment Method",
+				locator1 = "Button#ANY");
+		}
+
+		task ("Then a dropdown appears with all the payment methods entries created by default using Minium") {
+			SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
+
+			for (var paymentMethod : list "Money Order,Mercanet,Authorize.Net,PayPal") {
+				AssertElementPresent(
+					key_radioOption = "${paymentMethod}",
+					locator1 = "CommerceEntry#RADIO_BUTTON");
+			}
+		}
+
+		task ("When the user selects a payment method and clicks save") {
+			Click.clickAtNotVisible(
+				key_radioOption = "Money Order",
+				locator1 = "CommerceEntry#RADIO_BUTTON");
+
+			IFrame.selectTopFrame();
+
+			Button.clickSave();
+		}
+
+		task ("Then the Default Account Commerce Payment Method should be saved") {
+			AssertTextEquals(
+				key_defaultOption = "Default Account Commerce Payment Methods",
+				locator1 = "CommerceEntry#ACCOUNT_ORDER_DEFAULTS_ENTRY",
+				value1 = "Money Order");
+		}
+
+		task ("When the user clicks on the Remove button next to the Payment Method") {
+			Click(
+				key_text = "Remove",
+				locator1 = "Button#ANY_SECONDARY");
+		}
+
+		task ("Then the Default Account Commerce Payment Method should be 'Use Priority Settings'") {
+			AssertTextEquals(
+				key_defaultOption = "Default Account Commerce Payment Methods",
+				locator1 = "CommerceEntry#ACCOUNT_ORDER_DEFAULTS_ENTRY",
+				value1 = "Use Priority Settings");
+		}
 	}
 
-	@description = "[Please Update]"
-	@ignore = "Test Stub"
-	@priority = "4"
+	@description = "Verify the active payment method with the highest priority is applied to an order if the default payment method is not enabled in the channel"
+	@priority = "3"
 	test CompleteCheckoutWhereDefaultPaymentMethodIsDisabledIntoChannel {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-8539 CompleteCheckoutWhereDefaultPaymentMethodIsDisabledIntoChannel pending implementation
+		task ("Given PayPal is set as the default payment method for the Commerce Account") {
+			CommerceOrders.setAccountOrderDefaults(
+				accountName = "Commerce Account",
+				paymentMethod = "PayPal");
+		}
 
+		task ("And given Paypal and Money Order payment methods are active with priorities 1 and 2") {
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			for (var paymentMethodConfiguration : list "PayPal:1,Money Order:2") {
+				var paymentMethod = StringUtil.extractFirst("${paymentMethodConfiguration}", ":");
+				var priority = StringUtil.extractLast("${paymentMethodConfiguration}", ":");
+
+				CommerceChannels.editPaymentMethod(
+					active = "true",
+					paymentMethod = "${paymentMethod}",
+					priority = "${priority}");
+			}
+		}
+
+		task ("And given the PayPal payment method is disabled") {
+			CommerceChannels.editPaymentMethod(
+				active = "false",
+				paymentMethod = "PayPal");
+		}
+
+		task ("When the buyer creates an order from pending orders") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			CommerceAcceleratorsInitializer.createNewOrderFromPendingOrders();
+		}
+
+		task ("And the buyer adds a product to the cart and starts the checkout process") {
+			CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "U-Joint",
+				productQuantity = "1");
+
+			CommerceCheckout.gotoCheckout();
+		}
+
+		task ("Then at the Order Summary and Payment Method steps, the payment method should be the active payment method with the highest priority(Money Order) and not the default payment method(PayPal)") {
+			CommerceCheckout.initializersCheckout(
+				defaultPaymentMethod = "Money Order",
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code",
+				notEligiblePaymentMethods = "PayPal",
+				paymentMethod = "Money Order",
+				productName = "U-Joint",
+				productQuantity = "1",
+				productUnitPrice = "24",
+				shippingMethod = "Standard");
+		}
 	}
 
-	@description = "[Please Update]"
-	@ignore = "Test Stub"
-	@priority = "4"
+	@description = "Verify the payment method with the highest priority is applied to an order if the default payment method is not linked to the order type of the Order"
+	@priority = "3"
 	test CompleteCheckoutWhereDefaultPaymentMethodIsNotPresentIntoOrderType {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-8536 CompleteCheckoutWhereDefaultPaymentMethodIsNotPresentIntoOrderType pending implementation
+		task ("Given 2 active order types") {
+			CommerceJSONOrdersAPI._addOrderType(
+				active = "true",
+				orderTypeDescription = "Order Type 1 Description",
+				orderTypeName = "Order Type 1");
 
+			CommerceJSONOrdersAPI._addOrderType(
+				active = "true",
+				orderTypeDescription = "Order Type 2 Description",
+				orderTypeName = "Order Type 2");
+		}
+
+		task ("And given PayPal is set as the default payment method for the Commerce Account") {
+			CommerceOrders.setAccountOrderDefaults(
+				accountName = "Commerce Account",
+				paymentMethod = "PayPal");
+		}
+
+		task ("And given Paypal, Money Order and Mercanet payment methods are active with priorities 0,1, and 2") {
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			for (var paymentMethodConfiguration : list "PayPal:0,Money Order:1,Mercanet:2") {
+				var paymentMethod = StringUtil.extractFirst("${paymentMethodConfiguration}", ":");
+				var priority = StringUtil.extractLast("${paymentMethodConfiguration}", ":");
+
+				CommerceChannels.editPaymentMethod(
+					active = "true",
+					paymentMethod = "${paymentMethod}",
+					priority = "${priority}");
+			}
+		}
+
+		task ("And given Money Order and Mercanet are linked to Order Type 1 and PayPal is linked to Order Type 2") {
+			CommerceEntry.setEntryEligibility(
+				orderTypesEligibility = "Order Type 1",
+				paymentMethod = "Money Order");
+
+			Refresh();
+
+			CommerceEntry.setEntryEligibility(
+				orderTypesEligibility = "Order Type 1",
+				paymentMethod = "Mercanet");
+
+			Refresh();
+
+			CommerceEntry.setEntryEligibility(
+				orderTypesEligibility = "Order Type 2",
+				paymentMethod = "PayPal");
+
+			Refresh();
+		}
+
+		task ("When the buyer creates an order from pending orders with Order Type 1") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			CommerceAcceleratorsInitializer.createNewOrderFromPendingOrders(orderType = "Order Type 1");
+		}
+
+		task ("And the buyer adds a product to the cart and starts the checkout process") {
+			CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "U-Joint",
+				productQuantity = "1");
+
+			CommerceCheckout.gotoCheckout();
+		}
+
+		task ("Then at the Order Summary and Payment Method steps, the payment method should be the one with the highest priority(Mercanet) and not the default payment method(PayPal)") {
+			CommerceCheckout.initializersCheckout(
+				defaultPaymentMethod = "Mercanet",
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code",
+				notEligiblePaymentMethods = "PayPal",
+				paymentMethod = "Mercanet",
+				productName = "U-Joint",
+				productQuantity = "1",
+				productUnitPrice = "24",
+				shippingMethod = "Standard");
+		}
 	}
 
-	@description = "[Please Update]"
-	@ignore = "Test Stub"
-	@priority = "4"
+	@description = "Verify the default payment method is applied to an order if the order type is linked to the default payment method"
+	@priority = "3"
 	test CompleteCheckoutWhereDefaultPaymentMethodIsPresentIntoOrderType {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-8537 CompleteCheckoutWhereDefaultPaymentMethodIsPresentIntoOrderType pending implementation
+		task ("Given an active order type") {
+			CommerceJSONOrdersAPI._addOrderType(
+				active = "true",
+				orderTypeDescription = "Order Type 1 Description",
+				orderTypeName = "Order Type 1");
+		}
 
+		task ("And given Money Order is set as the default payment method for the Commerce Account") {
+			CommerceOrders.setAccountOrderDefaults(
+				accountName = "Commerce Account",
+				paymentMethod = "Money Order");
+		}
+
+		task ("And given Money Order, Mercanet, and PayPal payment methods are active with priorities 1,2, and 3") {
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			for (var paymentMethodConfiguration : list "Money Order:1,Mercanet:2,PayPal:3") {
+				var paymentMethod = StringUtil.extractFirst("${paymentMethodConfiguration}", ":");
+				var priority = StringUtil.extractLast("${paymentMethodConfiguration}", ":");
+
+				CommerceChannels.editPaymentMethod(
+					active = "true",
+					paymentMethod = "${paymentMethod}",
+					priority = "${priority}");
+			}
+		}
+
+		task ("And given Money Order, Mercanet, and PayPal payment methods are linked to order type 1") {
+			CommerceEntry.setEntryEligibility(
+				orderTypesEligibility = "Order Type 1",
+				paymentMethod = "PayPal");
+
+			Refresh();
+
+			CommerceEntry.setEntryEligibility(
+				orderTypesEligibility = "Order Type 1",
+				paymentMethod = "Money Order");
+
+			Refresh();
+
+			CommerceEntry.setEntryEligibility(
+				orderTypesEligibility = "Order Type 1",
+				paymentMethod = "Mercanet");
+
+			Refresh();
+		}
+
+		task ("When the buyer creates an order from pending orders with Order Type 1") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			CommerceAcceleratorsInitializer.createNewOrderFromPendingOrders();
+		}
+
+		task ("And the buyer adds a product to the cart and starts the checkout process") {
+			CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "U-Joint",
+				productQuantity = "1");
+
+			CommerceCheckout.gotoCheckout();
+		}
+
+		task ("Then at the Order Summary and Payment Method steps, the payment method should be the default payment method set for Commerce Account(Money Order)") {
+			CommerceCheckout.initializersCheckout(
+				defaultPaymentMethod = "Money Order",
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code",
+				paymentMethod = "Money Order",
+				productName = "U-Joint",
+				productQuantity = "1",
+				productUnitPrice = "24",
+				shippingMethod = "Standard");
+		}
 	}
 
-	@description = "[Please Update]"
-	@ignore = "Test Stub"
-	@priority = "4"
+	@description = "Verify the active payment method with the highest priority is applied to an order if the default payment method is linked to the order type of the order but is not enabled in the channel"
+	@priority = "3"
 	test CompleteCheckoutWhereDefaultPaymentMethodIsPresentIntoOrderTypeButDisabledIntoChannel {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-8538 CompleteCheckoutWhereDefaultPaymentMethodIsPresentIntoOrderTypeButDisabledIntoChannel pending implementation
+		task ("Given an active order type") {
+			CommerceJSONOrdersAPI._addOrderType(
+				active = "true",
+				orderTypeDescription = "Order Type 1 Description",
+				orderTypeName = "Order Type 1");
+		}
 
+		task ("And given PayPal is set as the default payment method for the Commerce Account") {
+			CommerceOrders.setAccountOrderDefaults(
+				accountName = "Commerce Account",
+				paymentMethod = "PayPal");
+		}
+
+		task ("And given Money Order, Mercanet, and PayPal payment methods are active with priorities 1,2, and 3") {
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			for (var paymentMethodConfiguration : list "Money Order:1,Mercanet:2,PayPal:3") {
+				var paymentMethod = StringUtil.extractFirst("${paymentMethodConfiguration}", ":");
+				var priority = StringUtil.extractLast("${paymentMethodConfiguration}", ":");
+
+				CommerceChannels.editPaymentMethod(
+					active = "true",
+					paymentMethod = "${paymentMethod}",
+					priority = "${priority}");
+			}
+		}
+
+		task ("And given PayPal, Money Order, and Mercanet payment methods are linked to order type 1") {
+			CommerceEntry.setEntryEligibility(
+				orderTypesEligibility = "Order Type 1",
+				paymentMethod = "PayPal");
+
+			Refresh();
+
+			CommerceEntry.setEntryEligibility(
+				orderTypesEligibility = "Order Type 1",
+				paymentMethod = "Money Order");
+
+			Refresh();
+
+			CommerceEntry.setEntryEligibility(
+				orderTypesEligibility = "Order Type 1",
+				paymentMethod = "Mercanet");
+
+			Refresh();
+		}
+
+		task ("And given the PayPal payment method is disabled") {
+			CommerceChannels.editPaymentMethod(
+				active = "false",
+				paymentMethod = "PayPal");
+		}
+
+		task ("When the buyer creates an order from pending orders with Order Type 1") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			CommerceAcceleratorsInitializer.createNewOrderFromPendingOrders();
+		}
+
+		task ("And the buyer adds a product to the cart and starts the checkout process") {
+			CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "U-Joint",
+				productQuantity = "1");
+
+			CommerceCheckout.gotoCheckout();
+		}
+
+		task ("Then at the Order Summary and Payment Method steps, the payment method should be the active payment method with the highest priority(Mercanet) and not the default payment method(PayPal)") {
+			CommerceCheckout.initializersCheckout(
+				defaultPaymentMethod = "Mercanet",
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code",
+				notEligiblePaymentMethods = "PayPal",
+				paymentMethod = "Mercanet",
+				productName = "U-Joint",
+				productQuantity = "1",
+				productUnitPrice = "24",
+				shippingMethod = "Standard");
+		}
 	}
 
-	@description = "[Please Update]"
-	@ignore = "Test Stub"
-	@priority = "4"
+	@description = "Verify a default payment method linked to an account is applied when that account completes the checkout process"
+	@priority = "3"
 	test CompleteCheckoutWithDefaultPaymentMethod {
 		property portal.acceptance = "false";
 
-		// TODO COMMERCE-8535 CompleteCheckoutWithDefaultPaymentMethod pending implementation
+		task ("Given all payment methods are activated with varying priorities") {
+			CommerceChannels.openChannelsAdmin();
 
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			for (var paymentMethodConfiguration : list "PayPal:1,Authorize.Net:2,Mercanet:3,Money Order:4") {
+				var paymentMethod = StringUtil.extractFirst("${paymentMethodConfiguration}", ":");
+				var priority = StringUtil.extractLast("${paymentMethodConfiguration}", ":");
+
+				CommerceChannels.editPaymentMethod(
+					active = "true",
+					paymentMethod = "${paymentMethod}",
+					priority = "${priority}");
+			}
+		}
+
+		task ("And given Money Order is set as the default payment method for the Commerce Account") {
+			CommerceOrders.setAccountOrderDefaults(
+				accountName = "Commerce Account",
+				paymentMethod = "Money Order");
+		}
+
+		task ("When the buyer adds a product to the cart and starts the checkout process") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "U-Joint",
+				productQuantity = "1");
+
+			CommerceCheckout.gotoCheckout();
+		}
+
+		task ("Then at the Order Summary and Payment Method steps, the payment method should be set as Money Order") {
+			CommerceCheckout.initializersCheckout(
+				defaultPaymentMethod = "Money Order",
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code",
+				paymentMethod = "Money Order",
+				productName = "U-Joint",
+				productQuantity = "1",
+				productUnitPrice = "24",
+				shippingMethod = "Standard");
+		}
 	}
 
-	@description = "[Please Update]"
-	@ignore = "Test Stub"
-	@priority = "4"
-	test DeactivatePaymentMethodLinkedToAnAccount {
-		property portal.acceptance = "false";
-
-		// TODO COMMERCE-8545 DeactivatePaymentMethodLinkedToAnAccount pending implementation
-
-	}
-
-	@description = "[Please Update]"
-	@ignore = "Test Stub"
-	@priority = "4"
+	@description = "Verify an account reverts to priority settings after an offline payment method that is set as default payment method for the account is removed"
+	@priority = "3"
 	test RemoveOfflinePaymentLinkedAsDefaultPaymentMethod {
 		property portal.acceptance = "false";
+		property test.name.skip.portal.instance = "CPCommerceChannelsDefaultPaymentMethods#RemoveOfflinePaymentLinkedAsDefaultPaymentMethod";
 
-		// TODO COMMERCE-8542 RemoveOfflinePaymentLinkedAsDefaultPaymentMethod pending implementation
+		task ("Given a new offline payment method") {
+			CommercePaymentMethods.addOfflinePaymentMethod(key = "Test Offline Payment Method");
+		}
 
+		task ("And given all payment methods are activated") {
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			for (var paymentMethod : list "Money Order,Mercanet,Authorize.Net,PayPal,Test Offline Payment Method") {
+				CommerceChannels.editPaymentMethod(
+					active = "true",
+					paymentMethod = "${paymentMethod}");
+			}
+		}
+
+		task ("And given the offline payment method is set as default payment method for the Commerce Account") {
+			CommerceOrders.setAccountOrderDefaults(
+				accountName = "Commerce Account",
+				paymentMethod = "Test Offline Payment Method");
+		}
+
+		task ("When the user deletes the offline payment method") {
+			SystemSettings.openSystemSettingsAdmin();
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "Payment",
+				configurationName = "Offline Payment Method Keys",
+				configurationScope = "System Scope");
+
+			SystemSettings.deleteConfigurationEntry(configurationEntry = "Test Offline Payment Method");
+
+			AssertElementNotPresent(
+				key_configurationEntry = "Test Offline Payment Method",
+				locator1 = "SystemSettings#CONFIGURATION_ENTRY");
+		}
+
+		task ("And the user goes into the Order Defaults tab inside the Account") {
+			CommerceNavigator.gotoMiniumAccountOrderDefaults(accountName = "Commerce Account");
+		}
+
+		task ("Then the Default Account Commerce Payment Method should be 'Use Priority Settings'") {
+			AssertTextEquals(
+				key_defaultOption = "Default Account Commerce Payment Methods",
+				locator1 = "CommerceEntry#ACCOUNT_ORDER_DEFAULTS_ENTRY",
+				value1 = "Use Priority Settings");
+		}
 	}
 
 }

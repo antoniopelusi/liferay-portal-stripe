@@ -296,7 +296,7 @@ const Numeric: React.FC<IProps> = ({
 					Liferay.Language.direction[editingLanguageId] === 'rtl',
 			})}
 			disabled={readOnly}
-			id={id}
+			id={id ?? name}
 			name={`${name}${inputMask ? '_masked' : ''}`}
 			onBlur={onBlur}
 			onChange={handleChange}
@@ -376,7 +376,7 @@ interface IProps {
 	localizedValue?: LocalizedValue<string>;
 	name: string;
 	onBlur: FocusEventHandler<HTMLInputElement>;
-	onChange: FieldChangeEventHandler<String>;
+	onChange: FieldChangeEventHandler<string>;
 	onFocus: FocusEventHandler<HTMLInputElement>;
 	placeholder?: string;
 	predefinedValue?: string;

@@ -23,7 +23,8 @@ ObjectDefinitionsDetailsDisplayContext objectDefinitionsDetailsDisplayContext = 
 
 ObjectDefinition objectDefinition = objectDefinitionsDetailsDisplayContext.getObjectDefinition();
 
-List<ObjectField> objectFields = (List<ObjectField>)request.getAttribute(ObjectWebKeys.OBJECT_FIELDS);
+List<ObjectField> accountEntryRelationshipObjectFields = objectDefinitionsDetailsDisplayContext.getAccountEntryRelationshipObjectFields();
+List<ObjectField> nonrelationshipObjectFields = objectDefinitionsDetailsDisplayContext.getNonrelationshipObjectFields();
 
 portletDisplay.setShowBackIcon(true);
 portletDisplay.setURLBack(backURL);
@@ -41,6 +42,7 @@ renderResponse.setTitle(LanguageUtil.format(request, "edit-x", objectDefinition.
 	<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
 
 	<liferay-frontend:edit-form-body>
+		<liferay-ui:error exception="<%= ObjectDefinitionAccountEntryRestrictedObjectFieldIdException.class %>" message="if-activated-the-account-restriction-field-must-be-selected" />
 		<liferay-ui:error exception="<%= ObjectDefinitionActiveException.class %>" />
 		<liferay-ui:error exception="<%= ObjectDefinitionLabelException.class %>" />
 		<liferay-ui:error exception="<%= ObjectDefinitionNameException.class %>" />
@@ -51,7 +53,7 @@ renderResponse.setTitle(LanguageUtil.format(request, "edit-x", objectDefinition.
 		<liferay-ui:error exception="<%= ObjectDefinitionPluralLabelException.class %>" />
 		<liferay-ui:error exception="<%= ObjectDefinitionScopeException.class %>" />
 		<liferay-ui:error exception="<%= ObjectDefinitionStatusException.class %>" />
-		<liferay-ui:error exception="<%= RequiredObjectFieldException.class %>" message="at-least-one-field-must-be-added" />
+		<liferay-ui:error exception="<%= RequiredObjectFieldException.class %>" message="at-least-one-custom-field-must-be-added" />
 
 		<aui:model-context bean="<%= objectDefinition %>" model="<%= ObjectDefinition.class %>" />
 
@@ -99,10 +101,10 @@ renderResponse.setTitle(LanguageUtil.format(request, "edit-x", objectDefinition.
 							<aui:option label='<%= LanguageUtil.get(request, "id") %>' selected="<%= true %>" value="" />
 
 							<%
-							for (ObjectField objectField : objectFields) {
+							for (ObjectField objectField : nonrelationshipObjectFields) {
 							%>
 
-								<aui:option label="<%= objectField.getLabel(locale) %>" selected="<%= Objects.equals(objectField.getObjectFieldId(), objectDefinition.getTitleObjectFieldId()) %>" value="<%= objectField.getObjectFieldId() %>" />
+								<aui:option label="<%= HtmlUtil.escape(objectField.getLabel(locale)) %>" selected="<%= Objects.equals(objectField.getObjectFieldId(), objectDefinition.getTitleObjectFieldId()) %>" value="<%= objectField.getObjectFieldId() %>" />
 
 							<%
 							}
@@ -121,10 +123,10 @@ renderResponse.setTitle(LanguageUtil.format(request, "edit-x", objectDefinition.
 						<aui:select disabled="<%= objectDefinition.isSystem() || !objectDefinitionsDetailsDisplayContext.hasUpdateObjectDefinitionPermission() %>" name="descriptionObjectFieldId" showEmptyOption="<%= true %>">
 
 							<%
-							for (ObjectField objectField : objectFields) {
+							for (ObjectField objectField : nonrelationshipObjectFields) {
 							%>
 
-								<aui:option label="<%= objectField.getLabel(locale) %>" selected="<%= Objects.equals(objectField.getObjectFieldId(), objectDefinition.getDescriptionObjectFieldId()) %>" value="<%= objectField.getObjectFieldId() %>" />
+								<aui:option label="<%= HtmlUtil.escape(objectField.getLabel(locale)) %>" selected="<%= Objects.equals(objectField.getObjectFieldId(), objectDefinition.getDescriptionObjectFieldId()) %>" value="<%= objectField.getObjectFieldId() %>" />
 
 							<%
 							}
@@ -182,15 +184,66 @@ renderResponse.setTitle(LanguageUtil.format(request, "edit-x", objectDefinition.
 				</clay:row>
 			</clay:sheet-section>
 
+			<clay:sheet-section
+				cssClass='<%= objectDefinition.isSystem() ? "hide" : "" %>'
+			>
+				<h3 class="sheet-subtitle">
+					<%= LanguageUtil.get(request, "account-restriction") %>
+				</h3>
+
+				<aui:field-wrapper cssClass="form-group lfr-input-text-container">
+					<aui:input disabled="<%= ListUtil.isEmpty(accountEntryRelationshipObjectFields) || objectDefinition.isApproved() %>" label="" labelOff='<%= LanguageUtil.get(request, "inactive") %>' labelOn='<%= LanguageUtil.get(request, "active") %>' name="accountEntryRestricted" onChange='<%= "event.preventDefault(); " + liferayPortletResponse.getNamespace() + "handleAccountEntryRestrictionToggleChange();" %>' type="toggle-switch" value="<%= objectDefinition.isAccountEntryRestricted() %>" />
+				</aui:field-wrapper>
+
+				<clay:row>
+					<clay:col
+						md="11"
+					>
+						<aui:select disabled="<%= ListUtil.isEmpty(accountEntryRelationshipObjectFields) || !objectDefinition.isAccountEntryRestricted() || objectDefinition.isApproved() %>" name="accountEntryRestrictedObjectFieldId" showEmptyOption="<%= false %>">
+							<aui:option label='<%= LanguageUtil.get(request, "choose-an-option") %>' selected="<%= true %>" value="0" />
+
+							<%
+							for (ObjectField accountEntryRelationshipObjectField : accountEntryRelationshipObjectFields) {
+							%>
+
+								<aui:option label="<%= accountEntryRelationshipObjectField.getLabel(locale) %>" selected="<%= Objects.equals(accountEntryRelationshipObjectField.getObjectFieldId(), objectDefinition.getTitleObjectFieldId()) %>" value="<%= accountEntryRelationshipObjectField.getObjectFieldId() %>" />
+
+							<%
+							}
+							%>
+
+						</aui:select>
+					</clay:col>
+				</clay:row>
+			</clay:sheet-section>
+
 			<clay:sheet-section>
 				<h3 class="sheet-subtitle">
 					<%= LanguageUtil.get(request, "display") %>
 				</h3>
 
 				<aui:field-wrapper cssClass="form-group lfr-input-text-container">
-					<aui:input disabled="<%= !objectDefinitionsDetailsDisplayContext.hasUpdateObjectDefinitionPermission() %>" label="" labelOff='<%= LanguageUtil.get(request, "hide-widget") %>' labelOn='<%= LanguageUtil.get(request, "show-widget") %>' name="portlet" type="toggle-switch" value="<%= objectDefinition.isPortlet() %>" />
+					<aui:input disabled="<%= objectDefinition.isSystem() || !objectDefinitionsDetailsDisplayContext.hasUpdateObjectDefinitionPermission() %>" label="" labelOff='<%= LanguageUtil.get(request, "hide-widget") %>' labelOn='<%= LanguageUtil.get(request, "show-widget") %>' name="portlet" type="toggle-switch" value="<%= objectDefinition.isPortlet() %>" />
 				</aui:field-wrapper>
 			</clay:sheet-section>
+
+			<c:if test="<%= !objectDefinition.isDefaultStorageType() %>">
+				<clay:sheet-section>
+					<h3 class="sheet-subtitle">
+						<%= LanguageUtil.get(request, "external-data-source") %>
+					</h3>
+
+					<clay:row>
+						<clay:col
+							md="11"
+						>
+							<aui:select disabled="<%= true %>" name="storageType" showEmptyOption="<%= false %>">
+								<aui:option label="<%= LanguageUtil.get(request, objectDefinition.getStorageType()) %>" selected="<%= true %>" value="" />
+							</aui:select>
+						</clay:col>
+					</clay:row>
+				</clay:sheet-section>
+			</c:if>
 		</liferay-frontend:fieldset-group>
 	</liferay-frontend:edit-form-body>
 
@@ -206,6 +259,28 @@ renderResponse.setTitle(LanguageUtil.format(request, "edit-x", objectDefinition.
 </liferay-frontend:edit-form>
 
 <script>
+	var accountEntryRestrictionToggleState =
+		'<%= objectDefinition.isAccountEntryRestricted() %>' === 'true';
+
+	function <portlet:namespace />handleAccountEntryRestrictionToggleChange() {
+		const accountEntryRestrictionSelectElement = document.getElementById(
+			'<portlet:namespace />accountEntryRestrictedObjectFieldId'
+		);
+
+		accountEntryRestrictionToggleState = !accountEntryRestrictionToggleState;
+
+		if (accountEntryRestrictionToggleState) {
+			accountEntryRestrictionSelectElement.className = 'form-control';
+			accountEntryRestrictionSelectElement.removeAttribute('disabled');
+		}
+		else {
+			accountEntryRestrictionSelectElement.className =
+				'form-control disabled';
+			accountEntryRestrictionSelectElement.setAttribute('disabled', '');
+			accountEntryRestrictionSelectElement.value = '0';
+		}
+	}
+
 	function <portlet:namespace />selectScope() {
 		const scope = document.getElementById('<portlet:namespace />scope');
 

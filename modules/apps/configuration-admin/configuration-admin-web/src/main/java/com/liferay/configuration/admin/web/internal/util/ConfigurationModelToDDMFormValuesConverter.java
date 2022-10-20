@@ -87,8 +87,10 @@ public class ConfigurationModelToDDMFormValuesConverter {
 	protected DDMFormFieldValue createDDMFormFieldValue(String name) {
 		DDMFormFieldValue ddmFormFieldValue = new DDMFormFieldValue();
 
-		ddmFormFieldValue.setName(name);
+		ddmFormFieldValue.setFieldReference(name);
 		ddmFormFieldValue.setInstanceId(StringUtil.randomString());
+		ddmFormFieldValue.setName(
+			DDMFormFieldNameUtil.normalizeFieldName(name));
 
 		return ddmFormFieldValue;
 	}
@@ -175,8 +177,10 @@ public class ConfigurationModelToDDMFormValuesConverter {
 
 		try {
 			if ((_locationVariableResolver != null) &&
-				_locationVariableResolver.isLocationVariable(
-					value, LocationVariableProtocol.RESOURCE)) {
+				(_locationVariableResolver.isLocationVariable(
+					value, LocationVariableProtocol.LANGUAGE) ||
+				 _locationVariableResolver.isLocationVariable(
+					 value, LocationVariableProtocol.RESOURCE))) {
 
 				value = _locationVariableResolver.resolve(value);
 			}

@@ -14,12 +14,14 @@
 
 package com.liferay.document.library.web.internal.layout.display.page;
 
+import com.liferay.friendly.url.info.item.provider.InfoItemFriendlyURLProvider;
 import com.liferay.friendly.url.model.FriendlyURLEntry;
 import com.liferay.friendly.url.service.FriendlyURLEntryLocalService;
 import com.liferay.info.item.InfoItemReference;
 import com.liferay.layout.display.page.LayoutDisplayPageObjectProvider;
 import com.liferay.layout.display.page.LayoutDisplayPageProvider;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.portlet.constants.FriendlyURLResolverConstants;
 import com.liferay.portal.kernel.repository.LocalRepository;
 import com.liferay.portal.kernel.repository.RepositoryProvider;
@@ -63,7 +65,8 @@ public class FileEntryLayoutDisplayPageProvider
 				return null;
 			}
 
-			return new FileEntryLayoutDisplayPageObjectProvider(fileEntry);
+			return new FileEntryLayoutDisplayPageObjectProvider(
+				fileEntry, _infoItemFriendlyURLProvider, _language);
 		}
 		catch (PortalException portalException) {
 			throw new RuntimeException(portalException);
@@ -100,6 +103,14 @@ public class FileEntryLayoutDisplayPageProvider
 
 	@Reference
 	private FriendlyURLEntryLocalService _friendlyURLEntryLocalService;
+
+	@Reference(
+		target = "(item.class.name=com.liferay.portal.kernel.repository.model.FileEntry)"
+	)
+	private InfoItemFriendlyURLProvider<FileEntry> _infoItemFriendlyURLProvider;
+
+	@Reference
+	private Language _language;
 
 	@Reference
 	private RepositoryProvider _repositoryProvider;

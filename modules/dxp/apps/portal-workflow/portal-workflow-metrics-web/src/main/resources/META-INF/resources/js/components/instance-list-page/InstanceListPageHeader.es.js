@@ -10,8 +10,8 @@
  */
 
 import ClayLayout from '@clayui/layout';
-import ClayManagementToolbar from '@clayui/management-toolbar';
 import {usePrevious} from '@liferay/frontend-js-react-web';
+import {ManagementToolbar} from 'frontend-js-components-web';
 import React, {useCallback, useContext, useEffect, useMemo} from 'react';
 
 import filterConstants from '../../shared/components/filter/util/filterConstants.es';
@@ -105,12 +105,12 @@ export default function Header({
 	);
 
 	const allPageSelected =
-		items.length > 0 && items.length === selectedOnPage.length;
+		!!items.length && items.length === selectedOnPage.length;
 
 	const checkbox = {
 		checked: allPageSelected || selectAll,
 		indeterminate:
-			selectedOnPage.length > 0 && !allPageSelected && !selectAll,
+			!!selectedOnPage.length && !allPageSelected && !selectAll,
 	};
 
 	const isRemainingItem = (clear) => ({assignees = [], id, status}) => {
@@ -125,12 +125,12 @@ export default function Header({
 	};
 
 	const remainingItems = items.filter(isRemainingItem(true));
-	const toolbarActive = selectedItems.length > 0;
+	const toolbarActive = !!selectedItems.length;
 
 	useEffect(() => {
 		if (
 			selectAll &&
-			remainingItems.length > 0 &&
+			!!remainingItems.length &&
 			previousCount === totalCount
 		) {
 			setSelectedItems([
@@ -198,18 +198,18 @@ export default function Header({
 				totalCount={totalCount}
 			>
 				{toolbarActive ? (
-					<ClayManagementToolbar.Item className="navbar-nav-last">
+					<ManagementToolbar.Item className="navbar-nav-last">
 						<ClayLayout.ContentCol>
 							<QuickActionKebab items={kebabItems} />
 						</ClayLayout.ContentCol>
-					</ClayManagementToolbar.Item>
+					</ManagementToolbar.Item>
 				) : (
 					<>
-						<ClayManagementToolbar.Item>
+						<ManagementToolbar.Item>
 							<strong className="ml-0 mr-0 navbar-text">
 								{Liferay.Language.get('filter-by')}
 							</strong>
-						</ClayManagementToolbar.Item>
+						</ManagementToolbar.Item>
 
 						<SLAStatusFilter
 							options={{
@@ -233,7 +233,7 @@ export default function Header({
 				)}
 			</ToolbarWithSelection>
 
-			{selectedFilterItems.length > 0 && (
+			{!!selectedFilterItems.length && (
 				<ResultsBar>
 					<ResultsBar.TotalCount
 						search={routeParams.search}

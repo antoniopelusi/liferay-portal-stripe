@@ -14,6 +14,7 @@ import {fireEvent, render, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import TrafficSources from '../../../src/main/resources/META-INF/resources/js/components/TrafficSources';
+import {numberFormat} from '../../../src/main/resources/META-INF/resources/js/utils/numberFormat';
 
 const noop = () => {};
 
@@ -57,14 +58,18 @@ describe('TrafficSources', () => {
 		expect(button1).toBeInTheDocument();
 		expect(button1).not.toBeDisabled();
 		expect(button1).toHaveAttribute('type', 'button');
-		expect(getByText('32,178')).toBeInTheDocument();
+		expect(
+			getByText(numberFormat('en-US', 32178, {useCompact: true}))
+		).toBeInTheDocument();
 
 		const button2 = getByText('Second Testing');
 
 		expect(button2).toBeInTheDocument();
 		expect(button2).not.toBeDisabled();
 		expect(button2).toHaveAttribute('type', 'button');
-		expect(getByText('278,256')).toBeInTheDocument();
+		expect(
+			getByText(numberFormat('en-US', 278256, {useCompact: true}))
+		).toBeInTheDocument();
 	});
 
 	it('displays the traffic sources without buttons to view keywords when the value is 0', async () => {

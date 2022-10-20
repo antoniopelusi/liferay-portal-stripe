@@ -1,0 +1,31 @@
+{
+	"fieldSets": [
+		{
+			"fields": [
+				{
+					"dataType": "string",
+					"defaultValue": "normal",
+					"label": "fixed-style",
+					"name": "fixedStyle",
+					"type": "select",
+					"typeOptions": {
+						"validValues": [
+							{
+								"label": "none",
+								"value": ""
+							},
+							{
+								"label": "top",
+								"value": "banner-fixed-top"
+							},
+							{
+								"label": "bottom",
+								"value": "banner-fixed-bottom"
+							}
+						]
+					}
+				}
+			]
+		}
+	]
+}

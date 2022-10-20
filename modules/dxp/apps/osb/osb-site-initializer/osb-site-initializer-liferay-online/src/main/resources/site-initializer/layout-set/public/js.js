@@ -9,16 +9,18 @@
  * distribution rights of the Software.
  */
 
-var copySaved = '';
+import {openModal} from 'frontend-js-web';
 
-var starterkitList = document.getElementsByClassName('liferay-online-item');
+let copySaved = '';
+
+const starterkitList = document.getElementsByClassName('liferay-online-item');
 
 function addActiveClass(event) {
 	event.target.classList.add('active');
 }
 
 if (starterkitList) {
-	for (var i = 0, len = starterkitList.length; i < len; i++) {
+	for (let i = 0, len = starterkitList.length; i < len; i++) {
 		starterkitList[i].addEventListener('focus', addActiveClass);
 	}
 }
@@ -65,7 +67,7 @@ function openItem(
 	redirectURL,
 	siteInitializerKey
 ) {
-	Liferay.Util.openModal({
+	openModal({
 		bodyHTML: `<div class="form-group" id="snGroup">
 				 <label for="siteName">Site name
 					 <small> (more than 4 characters)</small>

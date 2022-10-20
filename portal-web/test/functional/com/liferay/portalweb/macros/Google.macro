@@ -1,7 +1,12 @@
 definition {
 
 	macro enableGoogleDrive {
-		DMNavigator.openToConfigInSystemSettings(portlet = "Google Drive");
+		if (isSet(instanceSettings)) {
+			DMNavigator.openToConfigInInstanceSettings(portlet = "Google Drive");
+		}
+		else {
+			DMNavigator.openToConfigInSystemSettings(portlet = "Google Drive");
+		}
 
 		var num = MathUtil.randomNumber(3);
 
@@ -52,8 +57,6 @@ definition {
 				value1 = "${userPassword}");
 
 			Click(locator1 = "GoogleLogin#LOGIN_NEXT_BUTTON");
-
-			Pause(locator1 = "5000");
 		}
 
 		var siteName = TestCase.getSiteName(siteName = "${siteName}");

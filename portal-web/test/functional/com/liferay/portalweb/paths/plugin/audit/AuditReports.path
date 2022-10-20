@@ -10,7 +10,9 @@
 </thead>
 
 <tbody>
+
 <!--REPORTS_TABLE -->
+
 <tr>
 	<td>REPORTS_TABLE_USER_ID_1</td>
 	<td>xpath=(//tr/td[1])[1]</td>
@@ -28,7 +30,7 @@
 </tr>
 <tr>
 	<td>REPORTS_TABLE_RESOURCE_NAME</td>
-	<td>//tbody[@class='table-data']/tr[contains(.,'${key_resourceAction}') and contains(.,'${key_resourceName}')]/td[4]</td>
+	<td>//table//tr/td[contains(@class,'lfr-resource-name')]/a[contains(.,'${key_resourceName}')]/../following-sibling::td[contains(@class,'lfr-resource-action-column')]//a[contains(.,'${key_resourceAction}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -38,7 +40,7 @@
 </tr>
 <tr>
 	<td>REPORTS_TABLE_RESOURCE_ACTION</td>
-	<td>//tbody[@class='table-data']//tr[contains(.,'${key_resourceAction}') and contains(.,'${key_resourceName}')]/td[5]//a[contains(text(),'${key_resourceAction}')]</td>
+	<td>//*[contains(.,'${key_resourceAction}') and contains(.,'${key_resourceName}')]/td[5]//a[contains(text(),'${key_resourceAction}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -47,11 +49,18 @@
 	<td></td>
 </tr>
 <tr>
+	<td>REPORTS_TABLE_ENTRIES</td>
+	<td>//tr[contains(.,'${key_id}') and contains(.,'${key_userName}') and contains(.,'${key_resourceID}') and contains(.,'${key_resourceName}') and contains(.,'${key_resourceAction}') and contains(.,'${key_clientIP}') and contains(.,'${key_createDate}')][${key_position}]</td>
+	<td></td>
+</tr>
+<tr>
 	<td></td>
 	<td></td>
 	<td></td>
 </tr>
+
 <!--REPORTS_DETAIL -->
+
 <tr>
 	<td>REPORTS_DETAIL_RESOURCE_NAME</td>
 	<td>//span[contains(@class,'control-label') and contains (.,'Resource Name')]/parent::div[contains(@class,'ddm-field-group')]</td>
@@ -78,11 +87,18 @@
 	<td></td>
 </tr>
 <tr>
+	<td>REPORTS_DETAIL_RESOURCE_NAME_BY_POSITION</td>
+	<td>//tbody/tr[${resourceNameByPosition}]/td[5]/a[1]</td>
+	<td></td>
+</tr>
+<tr>
 	<td></td>
 	<td></td>
 	<td></td>
 </tr>
+
 <!--ADVANCED_SEARCH -->
+
 <tr>
 	<td>ADVANCED_SEARCH_MATCH_SELECT</td>
 	<td>//select[contains(@id,'AuditPortlet_andOperator')]</td>

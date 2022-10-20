@@ -16,13 +16,11 @@ package com.liferay.portal.upload.internal.configuration.persistence.listener;
 
 import com.liferay.portal.configuration.persistence.listener.ConfigurationModelListener;
 import com.liferay.portal.configuration.persistence.listener.ConfigurationModelListenerException;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
-import com.liferay.portal.kernel.util.SystemProperties;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.upload.UploadServletRequestImpl;
 import com.liferay.portal.upload.internal.configuration.UploadServletRequestConfiguration;
 
 import java.io.File;
@@ -31,6 +29,7 @@ import java.util.Dictionary;
 import java.util.ResourceBundle;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Pei-Jung Lan
@@ -44,19 +43,6 @@ public class UploadServletRequestConfigurationModelListener
 	implements ConfigurationModelListener {
 
 	@Override
-	public void onAfterSave(String pid, Dictionary<String, Object> properties)
-		throws ConfigurationModelListenerException {
-
-		String tempDir = (String)properties.get("tempDir");
-
-		if (Validator.isNull(tempDir)) {
-			tempDir = SystemProperties.get(SystemProperties.TMP_DIR);
-		}
-
-		UploadServletRequestImpl.setTempDir(new File(tempDir));
-	}
-
-	@Override
 	public void onBeforeSave(String pid, Dictionary<String, Object> properties)
 		throws ConfigurationModelListenerException {
 
@@ -66,10 +52,10 @@ public class UploadServletRequestConfigurationModelListener
 			ResourceBundle resourceBundle = _getResourceBundle();
 
 			throw new ConfigurationModelListenerException(
-				LanguageUtil.format(
+				_language.format(
 					resourceBundle,
 					"the-maximum-upload-request-size-cannot-be-less-than-x",
-					LanguageUtil.formatStorageSize(
+					_language.formatStorageSize(
 						GetterUtil.getDouble(_MINIMUM_MAX_SIZE),
 						resourceBundle.getLocale())),
 				UploadServletRequestConfiguration.class, getClass(),
@@ -98,5 +84,8 @@ public class UploadServletRequestConfigurationModelListener
 	}
 
 	private static final long _MINIMUM_MAX_SIZE = 1024 * 100;
+
+	@Reference
+	private Language _language;
 
 }

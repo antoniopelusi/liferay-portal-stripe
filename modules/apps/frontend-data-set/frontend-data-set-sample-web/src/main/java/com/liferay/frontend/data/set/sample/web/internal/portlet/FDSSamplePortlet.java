@@ -36,13 +36,16 @@ import java.io.IOException;
 import java.io.Serializable;
 
 import java.util.Arrays;
-import java.util.Date;
+import java.util.Calendar;
 
 import javax.portlet.Portlet;
 import javax.portlet.PortletException;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 
+import javax.servlet.ServletContext;
+
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -65,7 +68,8 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/view.jsp",
 		"javax.portlet.name=" + FDSSamplePortletKeys.FDS_SAMPLE,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=power-user,user"
+		"javax.portlet.security-role-ref=power-user,user",
+		"javax.portlet.version=3.0"
 	},
 	service = Portlet.class
 )
@@ -76,19 +80,22 @@ public class FDSSamplePortlet extends MVCPortlet {
 			RenderRequest renderRequest, RenderResponse renderResponse)
 		throws IOException, PortletException {
 
-		try {
-			_generate(_portal.getCompanyId(renderRequest));
-		}
-		catch (Exception exception) {
-			_log.error(exception);
-		}
-
 		renderRequest.setAttribute(
 			FDSSampleWebKeys.FDS_SAMPLE_DISPLAY_CONTEXT,
 			new FDSSampleDisplayContext(
 				_portal.getHttpServletRequest(renderRequest)));
 
 		super.doDispatch(renderRequest, renderResponse);
+	}
+
+	@Activate
+	protected void activate() {
+		try {
+			_generate(_portal.getDefaultCompanyId());
+		}
+		catch (Exception exception) {
+			_log.error(exception);
+		}
 	}
 
 	private synchronized void _generate(long companyId) throws Exception {
@@ -114,6 +121,7 @@ public class FDSSamplePortlet extends MVCPortlet {
 				"FDSSample", "100", null,
 				LocalizedMapUtil.getLocalizedMap("Frontend Data Set Samples"),
 				ObjectDefinitionConstants.SCOPE_COMPANY,
+				ObjectDefinitionConstants.STORAGE_TYPE_DEFAULT,
 				Arrays.asList(
 					ObjectFieldUtil.createObjectField(
 						"Text", "String", true, false, null, "Title", "title",
@@ -123,23 +131,49 @@ public class FDSSamplePortlet extends MVCPortlet {
 						"description", false),
 					ObjectFieldUtil.createObjectField(
 						"Date", "Date", true, false, null, "Date", "date",
+						false),
+					ObjectFieldUtil.createObjectField(
+						"Text", "String", true, false, null, "Color", "color",
+						false),
+					ObjectFieldUtil.createObjectField(
+						"Text", "String", true, false, null, "Size", "size",
 						false)));
 
 		objectDefinition =
 			_objectDefinitionLocalService.publishCustomObjectDefinition(
 				user.getUserId(), objectDefinition.getObjectDefinitionId());
 
+		String[] colors = {"Blue", "Green", "Red", "Yellow"};
+		String[] sizes = {
+			"Tiny", "Small", "Medium", "Large", "Huge", "Gargantuan"
+		};
+
+		Calendar calendar = Calendar.getInstance();
+
+		calendar.set(2020, 0, 1, 1, 1, 1);
+		calendar.set(Calendar.MILLISECOND, 0);
+
 		for (int i = 1; i <= 100; i++) {
 			_objectEntryLocalService.addObjectEntry(
 				user.getUserId(), 0, objectDefinition.getObjectDefinitionId(),
 				HashMapBuilder.<String, Serializable>put(
-					"date", new Date()
+					"color", colors[i % 4]
+				).put(
+					"date", calendar.getTime()
 				).put(
 					"description", "This is a description for sample " + i + "."
+				).put(
+					"size", sizes[i % 6]
 				).put(
 					"title", "Sample" + i
 				).build(),
 				new ServiceContext());
+
+			calendar.add(Calendar.MONTH, 1);
+			calendar.add(Calendar.DATE, 1);
+			calendar.add(Calendar.HOUR, 1);
+			calendar.add(Calendar.MINUTE, 1);
+			calendar.add(Calendar.SECOND, 1);
 		}
 	}
 
@@ -154,6 +188,11 @@ public class FDSSamplePortlet extends MVCPortlet {
 
 	@Reference
 	private Portal _portal;
+
+	@Reference(
+		target = "(&(original.bean=true)(bean.id=javax.servlet.ServletContext))"
+	)
+	private ServletContext _servletContext;
 
 	@Reference
 	private UserLocalService _userLocalService;

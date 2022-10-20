@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 
+import java.util.Locale;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
@@ -75,6 +76,14 @@ public class BaseDLEditFileEntryDisplayContext
 	@Override
 	public DDMFormValues getDDMFormValues(long classPK) throws PortalException {
 		return parentDisplayContext.getDDMFormValues(classPK);
+	}
+
+	@Override
+	public String getDLFileEntryTypeLanguageId(
+		DDMStructure ddmStructure, Locale locale) {
+
+		return parentDisplayContext.getDLFileEntryTypeLanguageId(
+			ddmStructure, locale);
 	}
 
 	@Override

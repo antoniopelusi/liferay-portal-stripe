@@ -12,22 +12,23 @@
  * details.
  */
 
+import IconSVG from '@clayui/css/lib/images/icons/icons.svg';
 import {ClayIconSpriteContext} from '@clayui/icon';
+import {ReactNode} from 'react';
 
-import {Liferay} from '../services/liferay/liferay';
+import {Liferay} from '../services/liferay';
 
 const getIconSpriteMap = () => {
 	const pathThemeImages = Liferay.ThemeDisplay.getPathThemeImages();
 
 	const spritemap = pathThemeImages
 		? `${pathThemeImages}/clay/icons.svg`
-		: // eslint-disable-next-line no-undef
-		  require('@clayui/css/lib/images/icons/icons.svg').default;
+		: IconSVG;
 
 	return spritemap;
 };
 
-const ClayIconProvider: React.FC = ({children}) => (
+const ClayIconProvider: React.FC<{children: ReactNode}> = ({children}) => (
 	<ClayIconSpriteContext.Provider value={getIconSpriteMap()}>
 		{children}
 	</ClayIconSpriteContext.Provider>

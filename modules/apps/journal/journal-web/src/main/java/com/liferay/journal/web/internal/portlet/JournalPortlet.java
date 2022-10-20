@@ -58,7 +58,6 @@ import com.liferay.journal.exception.NoSuchFeedException;
 import com.liferay.journal.exception.NoSuchFolderException;
 import com.liferay.journal.util.JournalContent;
 import com.liferay.journal.util.JournalConverter;
-import com.liferay.journal.web.internal.configuration.FFBulkTranslationConfiguration;
 import com.liferay.journal.web.internal.configuration.FFJournalAutoSaveDraftConfiguration;
 import com.liferay.journal.web.internal.configuration.JournalWebConfiguration;
 import com.liferay.journal.web.internal.helper.JournalDDMTemplateHelper;
@@ -103,7 +102,6 @@ import org.osgi.service.component.annotations.Reference;
 	configurationPid = {
 		"com.liferay.dynamic.data.mapping.configuration.DDMWebConfiguration",
 		"com.liferay.journal.configuration.JournalFileUploadsConfiguration",
-		"com.liferay.journal.web.internal.configuration.FFBulkTranslationConfiguration",
 		"com.liferay.journal.web.internal.configuration.FFJournalAutoSaveDraftConfiguration",
 		"com.liferay.journal.web.internal.configuration.JournalWebConfiguration"
 	},
@@ -148,14 +146,10 @@ public class JournalPortlet extends MVCPortlet {
 
 		renderRequest.setAttribute(TrashWebKeys.TRASH_HELPER, _trashHelper);
 
-		String path = getPath(renderRequest, renderResponse);
+		if (Objects.equals(
+				getPath(renderRequest, renderResponse),
+				"/edit_ddm_template.jsp")) {
 
-		if (Objects.equals(path, "/edit_article.jsp")) {
-			renderRequest.setAttribute(
-				JournalWebKeys.ITEM_SELECTOR, _itemSelector);
-		}
-
-		if (Objects.equals(path, "/edit_ddm_template.jsp")) {
 			renderRequest.setAttribute(
 				DDMTemplateHelper.class.getName(), _ddmTemplateHelper);
 			renderRequest.setAttribute(
@@ -171,14 +165,12 @@ public class JournalPortlet extends MVCPortlet {
 		renderRequest.setAttribute(
 			DDMWebConfiguration.class.getName(), _ddmWebConfiguration);
 		renderRequest.setAttribute(
-			FFBulkTranslationConfiguration.class.getName(),
-			_ffBulkTranslationConfiguration);
-		renderRequest.setAttribute(
 			FFJournalAutoSaveDraftConfiguration.class.getName(),
 			_ffJournalAutoSaveDraftConfiguration);
 		renderRequest.setAttribute(
 			FieldsToDDMFormValuesConverter.class.getName(),
 			_fieldsToDDMFormValuesConverter);
+		renderRequest.setAttribute(ItemSelector.class.getName(), _itemSelector);
 		renderRequest.setAttribute(
 			JournalFileUploadsConfiguration.class.getName(),
 			_journalFileUploadsConfiguration);
@@ -210,6 +202,8 @@ public class JournalPortlet extends MVCPortlet {
 			FFJournalAutoSaveDraftConfiguration.class.getName(),
 			_ffJournalAutoSaveDraftConfiguration);
 		resourceRequest.setAttribute(
+			ItemSelector.class.getName(), _itemSelector);
+		resourceRequest.setAttribute(
 			JournalWebConfiguration.class.getName(), _journalWebConfiguration);
 		resourceRequest.setAttribute(
 			TranslationPermission.class.getName(), _translationPermission);
@@ -225,8 +219,6 @@ public class JournalPortlet extends MVCPortlet {
 	protected void activate(Map<String, Object> properties) {
 		_ddmWebConfiguration = ConfigurableUtil.createConfigurable(
 			DDMWebConfiguration.class, properties);
-		_ffBulkTranslationConfiguration = ConfigurableUtil.createConfigurable(
-			FFBulkTranslationConfiguration.class, properties);
 		_ffJournalAutoSaveDraftConfiguration =
 			ConfigurableUtil.createConfigurable(
 				FFJournalAutoSaveDraftConfiguration.class, properties);
@@ -352,8 +344,6 @@ public class JournalPortlet extends MVCPortlet {
 	private DDMTemplateHelper _ddmTemplateHelper;
 
 	private volatile DDMWebConfiguration _ddmWebConfiguration;
-	private volatile FFBulkTranslationConfiguration
-		_ffBulkTranslationConfiguration;
 	private volatile FFJournalAutoSaveDraftConfiguration
 		_ffJournalAutoSaveDraftConfiguration;
 

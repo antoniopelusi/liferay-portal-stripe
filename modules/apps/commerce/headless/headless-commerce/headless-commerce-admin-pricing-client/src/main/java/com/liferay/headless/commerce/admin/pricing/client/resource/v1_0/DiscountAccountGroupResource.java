@@ -116,6 +116,12 @@ public interface DiscountAccountGroupResource {
 			return new DiscountAccountGroupResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -161,6 +167,7 @@ public interface DiscountAccountGroupResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -232,7 +239,7 @@ public interface DiscountAccountGroupResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-pricing/v1.0/discountAccountGroups/{id}");
 
 			httpInvoker.path("id", id);
@@ -312,7 +319,7 @@ public interface DiscountAccountGroupResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-pricing/v1.0/discountAccountGroups/batch");
 
 			httpInvoker.path("id", id);
@@ -404,7 +411,7 @@ public interface DiscountAccountGroupResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-pricing/v1.0/discounts/by-externalReferenceCode/{externalReferenceCode}/discountAccountGroups");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -494,7 +501,7 @@ public interface DiscountAccountGroupResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-pricing/v1.0/discounts/by-externalReferenceCode/{externalReferenceCode}/discountAccountGroups");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -586,7 +593,7 @@ public interface DiscountAccountGroupResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-pricing/v1.0/discounts/{id}/discountAccountGroups");
 
 			httpInvoker.path("id", id);
@@ -673,7 +680,7 @@ public interface DiscountAccountGroupResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-pricing/v1.0/discounts/{id}/discountAccountGroups");
 
 			httpInvoker.path("id", id);
@@ -753,7 +760,7 @@ public interface DiscountAccountGroupResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-pricing/v1.0/discounts/discountAccountGroups/batch");
 
 			httpInvoker.path("id", id);

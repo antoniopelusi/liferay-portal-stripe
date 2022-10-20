@@ -24,6 +24,8 @@ import com.liferay.document.library.opener.onedrive.web.internal.DLOpenerOneDriv
 import com.liferay.document.library.opener.onedrive.web.internal.constants.DLOpenerOneDriveConstants;
 import com.liferay.document.library.opener.onedrive.web.internal.constants.DLOpenerOneDriveMimeTypes;
 import com.liferay.document.library.opener.service.DLOpenerFileEntryReferenceLocalService;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemBuilder;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
@@ -35,23 +37,18 @@ import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
-import com.liferay.portal.kernel.servlet.HttpMethods;
-import com.liferay.portal.kernel.servlet.taglib.ui.BaseUIItem;
 import com.liferay.portal.kernel.servlet.taglib.ui.JavaScriptUIItem;
-import com.liferay.portal.kernel.servlet.taglib.ui.Menu;
-import com.liferay.portal.kernel.servlet.taglib.ui.MenuItem;
 import com.liferay.portal.kernel.servlet.taglib.ui.ToolbarItem;
-import com.liferay.portal.kernel.servlet.taglib.ui.URLMenuItem;
 import com.liferay.portal.kernel.servlet.taglib.ui.URLToolbarItem;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
@@ -101,7 +98,7 @@ public class DLOpenerOneDriveDLViewFileVersionDisplayContext
 	}
 
 	@Override
-	public Menu getMenu() throws PortalException {
+	public List<DropdownItem> getActionDropdownItems() throws PortalException {
 		if (!isActionsVisible() ||
 			!DLOpenerOneDriveMimeTypes.isOffice365MimeTypeSupported(
 				fileVersion.getMimeType()) ||
@@ -111,31 +108,30 @@ public class DLOpenerOneDriveDLViewFileVersionDisplayContext
 				_permissionChecker, fileVersion.getFileEntry(),
 				ActionKeys.UPDATE)) {
 
-			return super.getMenu();
+			return super.getActionDropdownItems();
 		}
 
-		Menu menu = super.getMenu();
+		List<DropdownItem> dropdownItems = super.getActionDropdownItems();
 
 		if (_isCheckedOutInOneDrive()) {
 			FileEntry fileEntry = fileVersion.getFileEntry();
 
 			if (fileEntry.hasLock()) {
-				List<MenuItem> menuItems = menu.getMenuItems();
+				_updateCancelCheckoutAndCheckinDropdownItems(dropdownItems);
 
-				_updateCancelCheckoutAndCheckinMenuItems(menuItems);
-
-				_addEditInOffice365UIItem(
-					menuItems, _createEditInOffice365MenuItem(Constants.EDIT));
+				_addEditInOffice365DropdownItem(
+					dropdownItems,
+					_createEditInOffice365DropdownItem(Constants.EDIT));
 			}
 
-			return menu;
+			return dropdownItems;
 		}
 
-		_addEditInOffice365UIItem(
-			menu.getMenuItems(),
-			_createEditInOffice365MenuItem(Constants.CHECKOUT));
+		_addEditInOffice365DropdownItem(
+			dropdownItems,
+			_createEditInOffice365DropdownItem(Constants.CHECKOUT));
 
-		return menu;
+		return dropdownItems;
 	}
 
 	@Override
@@ -165,60 +161,78 @@ public class DLOpenerOneDriveDLViewFileVersionDisplayContext
 		return toolbarItems;
 	}
 
-	/**
-	 * @see com.liferay.sharing.document.library.internal.display.context.SharingDLViewFileVersionDisplayContext#_addSharingUIItem(List, BaseUIItem)
-	 */
-	private <T extends BaseUIItem> List<T> _addEditInOffice365UIItem(
-		List<T> uiItems, T editInOffice365UIItem) {
+	private List<DropdownItem> _addEditInOffice365DropdownItem(
+		List<DropdownItem> dropdownItems,
+		DropdownItem editInOffice365DropdownItem) {
+
+		if (_addEditInOffice365DropdownItemGroup(
+				dropdownItems, editInOffice365DropdownItem)) {
+
+			return dropdownItems;
+		}
+
+		dropdownItems.add(editInOffice365DropdownItem);
+
+		return dropdownItems;
+	}
+
+	private boolean _addEditInOffice365DropdownItemGroup(
+		List<DropdownItem> dropdownItems,
+		DropdownItem editInOffice365DropdownItem) {
 
 		int i = 1;
 
-		for (T uiItem : uiItems) {
-			if (DLUIItemKeys.EDIT.equals(uiItem.getKey())) {
+		for (DropdownItem dropdownItem : dropdownItems) {
+			if (Objects.equals(dropdownItem.get("type"), "group")) {
+				if (_addEditInOffice365DropdownItemGroup(
+						(List<DropdownItem>)dropdownItem.get("items"),
+						editInOffice365DropdownItem)) {
+
+					return true;
+				}
+			}
+			else if (Objects.equals(
+						DLUIItemKeys.EDIT, dropdownItem.get("key"))) {
+
 				break;
 			}
 
 			i++;
 		}
 
-		if (i >= uiItems.size()) {
-			uiItems.add(editInOffice365UIItem);
-		}
-		else {
-			uiItems.add(i, editInOffice365UIItem);
+		if (i < dropdownItems.size()) {
+			dropdownItems.add(i, editInOffice365DropdownItem);
+
+			return true;
 		}
 
-		return uiItems;
+		return false;
 	}
 
-	private MenuItem _createEditInOffice365MenuItem(String cmd)
+	private DropdownItem _createEditInOffice365DropdownItem(String cmd)
 		throws PortalException {
-
-		URLMenuItem urlMenuItem = new URLMenuItem();
-
-		urlMenuItem.setLabel(LanguageUtil.get(_resourceBundle, _getLabelKey()));
-		urlMenuItem.setMethod(HttpMethods.POST);
 
 		if (Objects.equals(
 				request.getParameter("mvcRenderCommandName"),
 				"/document_library/view_file_entry")) {
 
-			urlMenuItem.setData(Collections.singletonMap("senna-off", "true"));
-			urlMenuItem.setURL(
+			return DropdownItemBuilder.putData(
+				"senna-off", "true"
+			).setHref(
 				_getEditURL(
-					cmd, "/document_library/edit_in_one_drive_and_redirect"));
-		}
-		else {
-			urlMenuItem.setURL(
-				StringBundler.concat(
-					"javascript:",
-					_portal.getPortletNamespace(_portal.getPortletId(request)),
-					"editOfficeDocument(\"",
-					_getEditURL(cmd, "/document_library/edit_in_one_drive"),
-					"\");"));
+					cmd, "/document_library/edit_in_one_drive_and_redirect")
+			).setLabel(
+				LanguageUtil.get(_resourceBundle, _getLabelKey())
+			).build();
 		}
 
-		return urlMenuItem;
+		return DropdownItemBuilder.putData(
+			"action", "editOfficeDocument"
+		).putData(
+			"editURL", _getEditURL(cmd, "/document_library/edit_in_one_drive")
+		).setLabel(
+			LanguageUtil.get(_resourceBundle, _getLabelKey())
+		).build();
 	}
 
 	private String _getCancelCheckOutURL() throws PortalException {
@@ -333,39 +347,32 @@ public class DLOpenerOneDriveDLViewFileVersionDisplayContext
 		return false;
 	}
 
-	private void _updateCancelCheckoutAndCheckinMenuItems(
-			Collection<MenuItem> menuItems)
+	private void _updateCancelCheckoutAndCheckinDropdownItems(
+			List<DropdownItem> dropdownItems)
 		throws PortalException {
 
-		for (MenuItem menuItem : menuItems) {
-			if (DLUIItemKeys.CHECKIN.equals(menuItem.getKey())) {
-				if (menuItem instanceof JavaScriptUIItem) {
-					JavaScriptUIItem javaScriptUIItem =
-						(JavaScriptUIItem)menuItem;
-
-					if (_isCheckingInNewFile()) {
-						javaScriptUIItem.setOnClick(
-							StringBundler.concat(
-								"window.location.href = '",
-								HtmlUtil.escapeJS(_getCheckInURL()), "'"));
-					}
-					else {
-						javaScriptUIItem.setOnClick(
-							StringBundler.concat(
-								_getNamespace(), "showVersionDetailsDialog('",
-								HtmlUtil.escapeJS(_getCheckInURL()), "');"));
-					}
+		for (DropdownItem dropdownItem : dropdownItems) {
+			if (Objects.equals(dropdownItem.get("type"), "group")) {
+				_updateCancelCheckoutAndCheckinDropdownItems(
+					(List<DropdownItem>)dropdownItem.get("items"));
+			}
+			else if (DLUIItemKeys.CHECKIN.equals(dropdownItem.get("key"))) {
+				if (_isCheckingInNewFile()) {
+					dropdownItem.setHref(_getCheckInURL());
+				}
+				else {
+					dropdownItem.setData(
+						HashMapBuilder.<String, Object>put(
+							"action", "checkin"
+						).put(
+							"checkinURL", _getCheckInURL()
+						).build());
 				}
 			}
-			else if (DLUIItemKeys.CANCEL_CHECKOUT.equals(menuItem.getKey())) {
-				if (menuItem instanceof URLMenuItem) {
-					URLMenuItem urlMenuItem = (URLMenuItem)menuItem;
+			else if (DLUIItemKeys.CANCEL_CHECKOUT.equals(
+						dropdownItem.get("key"))) {
 
-					urlMenuItem.setData(
-						Collections.singletonMap("senna-off", "true"));
-					urlMenuItem.setMethod(HttpMethods.POST);
-					urlMenuItem.setURL(_getCancelCheckOutURL());
-				}
+				dropdownItem.setHref(_getCancelCheckOutURL());
 			}
 		}
 	}

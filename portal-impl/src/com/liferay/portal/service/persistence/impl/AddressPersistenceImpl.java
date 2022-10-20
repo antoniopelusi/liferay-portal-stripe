@@ -53,7 +53,6 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -4868,7 +4867,7 @@ public class AddressPersistenceImpl
 	 * @param companyId the company ID
 	 * @param classNameId the class name ID
 	 * @param classPK the class pk
-	 * @param typeId the type ID
+	 * @param typeIds the type IDs
 	 * @param start the lower bound of the range of addresses
 	 * @param end the upper bound of the range of addresses (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -6573,23 +6572,6 @@ public class AddressPersistenceImpl
 					}
 				}
 				else {
-					if (list.size() > 1) {
-						Collections.sort(list, Collections.reverseOrder());
-
-						if (_log.isWarnEnabled()) {
-							if (!useFinderCache) {
-								finderArgs = new Object[] {
-									companyId, externalReferenceCode
-								};
-							}
-
-							_log.warn(
-								"AddressPersistenceImpl.fetchByC_ERC(long, String, boolean) with parameters (" +
-									StringUtil.merge(finderArgs) +
-										") yields a result set with more than 1 result. This violates the logical unique restriction. There is no order guarantee on which result is returned by this finder.");
-						}
-					}
-
 					Address address = list.get(0);
 
 					result = address;
@@ -6949,6 +6931,10 @@ public class AddressPersistenceImpl
 			String uuid = PortalUUIDUtil.generate();
 
 			address.setUuid(uuid);
+		}
+
+		if (Validator.isNull(address.getExternalReferenceCode())) {
+			address.setExternalReferenceCode(address.getUuid());
 		}
 
 		ServiceContext serviceContext =

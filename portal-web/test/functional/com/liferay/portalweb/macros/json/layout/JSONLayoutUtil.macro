@@ -107,6 +107,9 @@ definition {
 		else if ("${widgetName}" == "JS Components Sample") {
 			var portletId = "com_liferay_frontend_js_components_sample_web_portlet_FrontendJSComponentsSampleWebPortlet";
 		}
+		else if ("${widgetName}" == "JS Walkthrough Sample") {
+			var portletId = "com_liferay_frontend_js_walkthrough_sample_web_internal_portlet_FrontendJSWalkthroughSampleWebPortlet";
+		}
 		else if ("${widgetName}" == "Knowledge Base Article") {
 			var portletId = "com_liferay_knowledge_base_web_portlet_ArticlePortlet";
 		}
@@ -148,6 +151,9 @@ definition {
 		}
 		else if ("${widgetName}" == "Nested Applications") {
 			var portletId = "com_liferay_nested_portlets_web_portlet_NestedPortletsPortlet";
+		}
+		else if ("${widgetName}" == "Organization Management") {
+			var portletId = "com_liferay_commerce_organization_web_internal_portlet_CommerceOrganizationPortlet";
 		}
 		else if ("${widgetName}" == "Profile") {
 			var portletId = "com_liferay_contacts_web_portlet_ProfilePortlet";
@@ -201,7 +207,7 @@ definition {
 			var portletId = "com_liferay_social_user_statistics_web_portlet_SocialUserStatisticsPortlet";
 		}
 		else if ("${widgetName}" == "Vanilla Counter") {
-			var portletId = "com_liferay_remote_app_web_internal_portlet_RemoteAppEntryPortlet_remoteAppEntryId";
+			var portletId = "com_liferay_client_extension_web_internal_portlet_ClientExtensionEntryPortlet_remoteAppEntryId";
 		}
 		else if ("${widgetName}" == "Web Content Display") {
 			var portletId = "com_liferay_journal_content_web_portlet_JournalContentPortlet";

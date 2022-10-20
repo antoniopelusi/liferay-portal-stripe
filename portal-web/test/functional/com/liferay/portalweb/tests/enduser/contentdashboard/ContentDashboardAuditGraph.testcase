@@ -73,7 +73,7 @@ definition {
 		}
 
 		task ("Assert both filters are applied") {
-			ContentDashboard.viewAppliedFilters(filterLabelList = "Category:Audience 1,Category:Stage 1");
+			ContentDashboard.viewAppliedFilters(filterLabelList = "Category: Audience 1,Category: Stage 1");
 		}
 
 		task ("Assert if only one asset is displayed") {
@@ -93,7 +93,6 @@ definition {
 				groupName = "Global",
 				title = "Audience 2",
 				vocabularyName = "Audience");
-
 			var stageId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Stage 2",
@@ -130,12 +129,12 @@ definition {
 			AssertTextPresent(
 				categoryName = "Audience 1",
 				locator1 = "ContentDashboard#FILTER_CATEGORY_NAME",
-				value1 = "Category:Audience 1");
+				value1 = "Category: Audience 1");
 
 			AssertTextPresent(
 				categoryName = "Stage 1",
 				locator1 = "ContentDashboard#FILTER_CATEGORY_NAME",
-				value1 = "Category:Stage 1");
+				value1 = "Category: Stage 1");
 		}
 
 		task ("Clear filters") {
@@ -163,7 +162,6 @@ definition {
 				groupName = "Global",
 				title = "Audience 2",
 				vocabularyName = "Audience");
-
 			var stageId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Stage 2",
@@ -200,12 +198,12 @@ definition {
 			AssertTextPresent(
 				categoryName = "Audience 1",
 				locator1 = "ContentDashboard#FILTER_CATEGORY_NAME",
-				value1 = "Category:Audience 1");
+				value1 = "Category: Audience 1");
 
 			AssertTextPresent(
 				categoryName = "Stage 1",
 				locator1 = "ContentDashboard#FILTER_CATEGORY_NAME",
-				value1 = "Category:Stage 1");
+				value1 = "Category: Stage 1");
 		}
 
 		task ("Let only one filter active and assert elements") {
@@ -214,7 +212,7 @@ definition {
 			AssertTextPresent(
 				categoryName = "Audience 1",
 				locator1 = "ContentDashboard#FILTER_CATEGORY_NAME",
-				value1 = "Category:Audience 1");
+				value1 = "Category: Audience 1");
 
 			AssertElementNotPresent(
 				categoryName = "Stage 1",
@@ -478,7 +476,7 @@ definition {
 		task ("Assert that filter is still aplied") {
 			AssertTextPresent(
 				locator1 = "ContentDashboard#FILTER_TEXT",
-				value1 = "Author:Test Test");
+				value1 = "Author: Test Test");
 		}
 	}
 
@@ -492,7 +490,6 @@ definition {
 				groupName = "Global",
 				title = "Audience 2",
 				vocabularyName = "Audience");
-
 			var stageId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Stage 2",

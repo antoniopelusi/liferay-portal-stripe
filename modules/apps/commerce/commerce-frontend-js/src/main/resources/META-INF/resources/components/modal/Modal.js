@@ -22,10 +22,11 @@ import {
 	IS_LOADING_MODAL,
 	OPEN_MODAL,
 } from '../../utilities/eventsDefinitions';
-import {isPageInIframe} from '../../utilities/iframes';
 import {liferayNavigate} from '../../utilities/index';
 import {INITIAL_MODAL_SIZE} from '../../utilities/modals/constants';
 import {resolveModalHeight} from '../../utilities/modals/index';
+
+const isPageInIframe = () => window.location !== window.parent.location;
 
 function Modal(props) {
 	const [visible, setVisible] = useState(false);

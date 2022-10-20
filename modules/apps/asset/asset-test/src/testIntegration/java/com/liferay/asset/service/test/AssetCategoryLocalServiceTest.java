@@ -124,22 +124,20 @@ public class AssetCategoryLocalServiceTest {
 		AssetVocabulary assetVocabulary = AssetTestUtil.addVocabulary(
 			_group.getGroupId());
 
-		AssetCategory assetCategory = AssetTestUtil.addCategory(
+		AssetCategory assetCategory1 = AssetTestUtil.addCategory(
 			_group.getGroupId(), assetVocabulary.getVocabularyId());
 
-		String externalReferenceCode = String.valueOf(
-			assetCategory.getCategoryId());
+		String externalReferenceCode =
+			assetCategory1.getExternalReferenceCode();
 
-		Assert.assertEquals(
-			externalReferenceCode, assetCategory.getExternalReferenceCode());
+		Assert.assertEquals(assetCategory1.getUuid(), externalReferenceCode);
 
-		assetCategory =
+		AssetCategory assetCategory2 =
 			AssetCategoryLocalServiceUtil.
 				getAssetCategoryByExternalReferenceCode(
 					_group.getGroupId(), externalReferenceCode);
 
-		Assert.assertEquals(
-			externalReferenceCode, assetCategory.getExternalReferenceCode());
+		Assert.assertEquals(assetCategory1, assetCategory2);
 	}
 
 	@Test(expected = DuplicateCategoryException.class)

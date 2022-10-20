@@ -38,12 +38,12 @@ import java.io.Serializable;
 import java.net.URL;
 
 import java.util.Map;
+import java.util.Set;
 
 import javax.management.MBeanServer;
 
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
-import net.sf.ehcache.Ehcache;
 import net.sf.ehcache.config.CacheConfiguration;
 import net.sf.ehcache.config.Configuration;
 import net.sf.ehcache.event.CacheManagerEventListenerRegistry;
@@ -92,26 +92,17 @@ public class EhcachePortalCacheManager<K extends Serializable, V>
 
 	@Override
 	protected PortalCache<K, V> createPortalCache(
-		PortalCacheConfiguration portalCacheConfiguration) {
-
-		String portalCacheName = portalCacheConfiguration.getPortalCacheName();
-
-		synchronized (_cacheManager) {
-			if (!_cacheManager.cacheExists(portalCacheName)) {
-				_cacheManager.addCache(portalCacheName);
-			}
-		}
-
-		Cache cache = _cacheManager.getCache(portalCacheName);
+		PortalCacheConfiguration portalCacheConfiguration, boolean sharded) {
 
 		EhcachePortalCacheConfiguration ehcachePortalCacheConfiguration =
 			(EhcachePortalCacheConfiguration)portalCacheConfiguration;
 
-		if (ehcachePortalCacheConfiguration.isRequireSerialization()) {
-			return new SerializableEhcachePortalCache<>(this, cache);
+		if (sharded) {
+			return new ShardedEhcachePortalCache<>(
+				this, ehcachePortalCacheConfiguration);
 		}
 
-		return new EhcachePortalCache<>(this, cache);
+		return new EhcachePortalCache<>(this, ehcachePortalCacheConfiguration);
 	}
 
 	@Override
@@ -141,8 +132,35 @@ public class EhcachePortalCacheManager<K extends Serializable, V>
 	}
 
 	@Override
-	protected void doRemovePortalCache(String portalCacheName) {
-		_cacheManager.removeCache(portalCacheName);
+	protected void doRemovePortalCache(PortalCache<K, V> portalCache) {
+		if (portalCache == null) {
+			return;
+		}
+
+		BaseEhcachePortalCache<K, V> baseEhcachePortalCache =
+			EhcacheUnwrapUtil.getWrappedPortalCache(portalCache);
+
+		if (baseEhcachePortalCache != null) {
+			baseEhcachePortalCache.dispose();
+		}
+		else {
+			_log.error(
+				"Unable to dispose cache with name " +
+					portalCache.getPortalCacheName());
+		}
+	}
+
+	@Override
+	protected void doRemoveShardedPortalCache(
+		long companyId, Set<PortalCache<K, V>> shardedPortalCaches) {
+
+		for (PortalCache<K, V> shardedPortalCache : shardedPortalCaches) {
+			ShardedEhcachePortalCache<K, V> shardedEhcachePortalCache =
+				(ShardedEhcachePortalCache<K, V>)
+					EhcacheUnwrapUtil.getWrappedPortalCache(shardedPortalCache);
+
+			shardedEhcachePortalCache.removeEhcache(companyId);
+		}
 	}
 
 	@Override
@@ -254,31 +272,28 @@ public class EhcachePortalCacheManager<K extends Serializable, V>
 							"Overriding existing cache " + portalCacheName);
 					}
 
-					_cacheManager.removeCache(portalCacheName);
-				}
+					PortalCache<K, V> portalCache = fetchPortalCache(
+						portalCacheName);
 
-				Ehcache ehcache = new Cache(cacheConfiguration);
-
-				_cacheManager.addCache(ehcache);
-
-				PortalCache<K, V> portalCache = portalCaches.get(
-					portalCacheName);
-
-				if (portalCache != null) {
-					EhcachePortalCache<K, V> ehcachePortalCache =
-						(EhcachePortalCache<K, V>)
+					if (portalCache != null) {
+						BaseEhcachePortalCache<K, V> baseEhcachePortalCache =
 							EhcacheUnwrapUtil.getWrappedPortalCache(
 								portalCache);
 
-					if (ehcachePortalCache != null) {
-						ehcachePortalCache.reconfigEhcache(ehcache);
+						if (baseEhcachePortalCache != null) {
+							baseEhcachePortalCache.resetEhcache();
+						}
+						else {
+							_log.error(
+								"Unable to reconfigure cache with name " +
+									portalCacheName);
+						}
 					}
-					else {
-						_log.error(
-							"Unable to reconfigure cache with name " +
-								portalCacheName);
-					}
+
+					_cacheManager.removeCache(portalCacheName);
 				}
+
+				_cacheManager.addCache(new Cache(cacheConfiguration));
 			}
 		}
 	}
@@ -287,12 +302,12 @@ public class EhcachePortalCacheManager<K extends Serializable, V>
 	protected void removeConfigurableEhcachePortalCacheListeners(
 		PortalCache<K, V> portalCache) {
 
-		EhcachePortalCache<K, V> ehcachePortalCache =
-			(EhcachePortalCache<K, V>)EhcacheUnwrapUtil.getWrappedPortalCache(
-				portalCache);
+		BaseEhcachePortalCache<K, V> baseEhcachePortalCache =
+			EhcacheUnwrapUtil.getWrappedPortalCache(portalCache);
 
 		Map<PortalCacheListener<K, V>, PortalCacheListenerScope>
-			portalCacheListeners = ehcachePortalCache.getPortalCacheListeners();
+			portalCacheListeners =
+				baseEhcachePortalCache.getPortalCacheListeners();
 
 		for (PortalCacheListener<K, V> portalCacheListener :
 				portalCacheListeners.keySet()) {

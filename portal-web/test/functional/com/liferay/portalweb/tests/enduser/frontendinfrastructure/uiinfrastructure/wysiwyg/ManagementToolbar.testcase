@@ -1,6 +1,7 @@
 @component-name = "portal-frontend-infrastructure"
 definition {
 
+	property custom.properties = "feature.flag.LPS-144527=true";
 	property osgi.module.configuration.file.names = "com.liferay.document.library.web.internal.configuration.FFManagementToolbarConfiguration.config:com.liferay.frontend.taglib.clay.internal.configuration.FFManagementToolbarConfiguration.config";
 	property osgi.module.configurations = "enableDesignImprovements=&quot;true&quot;:showDesignImprovements=&quot;true&quot;";
 	property osgi.modules.includes = "frontend-taglib-clay-sample-web";
@@ -177,6 +178,54 @@ definition {
 			AssertTextEquals(
 				locator1 = "Message#TOOLTIP",
 				value1 = "Reverse Order Direction");
+		}
+	}
+
+	@description = "LPS-147851. Assert the order button can display the correct icons"
+	@priority = "4"
+	test OrderButtonCanDisplayCorrectOrderIcons {
+		task ("And When order dropdown menu is opened") {
+			Click(
+				key_filter = "Order",
+				locator1 = "ClaySamplePortlet#DISPLAY_CONTEXT_FILTER_OR_ORDER",
+				value1 = "Order");
+		}
+
+		task ("And When descending order is selected") {
+			Click(
+				key_item = "Descending",
+				locator1 = "ManagementBar#ACTIVE_DROPDOWN_ITEM",
+				value1 = "Descending");
+		}
+
+		task ("Then the order list down icon will be displayed") {
+			Navigator.gotoNavTab(navTab = "Management Toolbars");
+
+			AssertElementPresent(
+				key_text = "order-list-down",
+				locator1 = "ClaySamplePortlet#DISPLAY_CONTEXT_ANY_ICON");
+		}
+
+		task ("When order dropdown menu is opened") {
+			Click(
+				key_filter = "Order",
+				locator1 = "ClaySamplePortlet#DISPLAY_CONTEXT_FILTER_OR_ORDER",
+				value1 = "Order");
+		}
+
+		task ("And When ascending order is selected") {
+			Click(
+				key_item = "Ascending",
+				locator1 = "ManagementBar#ACTIVE_DROPDOWN_ITEM",
+				value1 = "Ascending");
+		}
+
+		task ("Then the order list up icon will be displayed") {
+			Navigator.gotoNavTab(navTab = "Management Toolbars");
+
+			AssertElementPresent(
+				key_text = "order-list-up",
+				locator1 = "ClaySamplePortlet#DISPLAY_CONTEXT_ANY_ICON");
 		}
 	}
 
@@ -397,19 +446,13 @@ definition {
 
 	@description = "LPS-147866. Assert the tooltip message is displayed when hovered over the new button in responsive mode"
 	@priority = "3"
-	test ResponsiveModeNewButtonTooltip {
-		property portal.acceptance = "false";
-		property portal.release = "false";
-		property portal.upstream = "quarantine";
-
+	test ResponsiveModeNewButtonShouldDisplayTooltip {
 		task ("When window size to phone size") {
 			SetWindowSize(value1 = "360,720");
 		}
 
 		task ("And hovers over the new button") {
-			WaitForPageLoad();
-
-			MouseOver(locator1 = "ManagementBar#NEW_BUTTON_MOBILE");
+			MouseOver.javaScriptMouseOver(locator1 = "ManagementBar#NEW_BUTTON_MOBILE");
 		}
 
 		task ("Then tooltip message is displayed") {

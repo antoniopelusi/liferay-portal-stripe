@@ -61,18 +61,13 @@
 		<td></td>
 	</tr>
 	<tr>
-		<td>TOGGLE_ACTIVE</td>
-		<td>//input[@id = '_com_liferay_object_web_internal_object_definitions_portlet_ObjectDefinitionsPortlet_active']</td>
+		<td>ACTIVE_TOGGLE</td>
+		<td>//input[@type='checkbox']</td>
 		<td></td>
 	</tr>
 	<tr>
 		<td>TOGGLE_COLLAPSIBLE</td>
 		<td>//input[@aria-label = 'Collapsible']</td>
-		<td></td>
-	</tr>
-	<tr>
-		<td>TOGGLE_INACTIVE</td>
-		<td>//input[@id = '_com_liferay_object_web_internal_object_definitions_portlet_ObjectDefinitionsPortlet_active']</td>
 		<td></td>
 	</tr>
 	<tr>
@@ -163,6 +158,11 @@
 	<tr>
 		<td>ASSERT_SELECTED_VALUE</td>
 		<td>//label[contains(.,'${key_fieldLabel}')]/../select/option[@selected and contains(.,'${key_value}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>ASSERT_DELETION_TYPE_VALUE</td>
+		<td>//div[contains(@class, 'form-group')]//label[contains(.,'Deletion Type')]//..//input[contains(@value,'${key_value}')]</td>
 		<td></td>
 	</tr>
 	<tr>

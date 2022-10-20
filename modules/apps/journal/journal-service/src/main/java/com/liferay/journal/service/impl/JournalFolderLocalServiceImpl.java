@@ -25,6 +25,7 @@ import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.expando.kernel.service.ExpandoValueLocalService;
 import com.liferay.journal.constants.JournalArticleConstants;
 import com.liferay.journal.constants.JournalFolderConstants;
+import com.liferay.journal.exception.DuplicateFolderExternalReferenceCodeException;
 import com.liferay.journal.exception.NoSuchFolderException;
 import com.liferay.journal.internal.util.JournalTreePathUtil;
 import com.liferay.journal.internal.validation.JournalFolderModelValidator;
@@ -35,6 +36,7 @@ import com.liferay.journal.service.base.JournalFolderLocalServiceBaseImpl;
 import com.liferay.journal.service.persistence.JournalArticleFinder;
 import com.liferay.journal.service.persistence.JournalArticlePersistence;
 import com.liferay.journal.util.JournalValidator;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.orm.QueryDefinition;
@@ -102,8 +104,9 @@ public class JournalFolderLocalServiceImpl
 
 	@Override
 	public JournalFolder addFolder(
-			long userId, long groupId, long parentFolderId, String name,
-			String description, ServiceContext serviceContext)
+			String externalReferenceCode, long userId, long groupId,
+			long parentFolderId, String name, String description,
+			ServiceContext serviceContext)
 		throws PortalException {
 
 		// Folder
@@ -116,9 +119,12 @@ public class JournalFolderLocalServiceImpl
 
 		long folderId = counterLocalService.increment();
 
+		_validateExternalReferenceCode(externalReferenceCode, groupId);
+
 		JournalFolder folder = journalFolderPersistence.create(folderId);
 
 		folder.setUuid(serviceContext.getUuid());
+		folder.setExternalReferenceCode(externalReferenceCode);
 		folder.setGroupId(groupId);
 		folder.setCompanyId(user.getCompanyId());
 		folder.setUserId(user.getUserId());
@@ -1527,6 +1533,25 @@ public class JournalFolderLocalServiceImpl
 		}
 
 		return _getRestrictedAncestorFolder(folder.getParentFolder());
+	}
+
+	private void _validateExternalReferenceCode(
+			String externalReferenceCode, long groupId)
+		throws PortalException {
+
+		if (Validator.isNull(externalReferenceCode)) {
+			return;
+		}
+
+		JournalFolder journalFolder = journalFolderPersistence.fetchByG_ERC(
+			groupId, externalReferenceCode);
+
+		if (journalFolder != null) {
+			throw new DuplicateFolderExternalReferenceCodeException(
+				StringBundler.concat(
+					"Duplicate journal folder external reference code ",
+					externalReferenceCode, " in group ", groupId));
+		}
 	}
 
 	@Reference

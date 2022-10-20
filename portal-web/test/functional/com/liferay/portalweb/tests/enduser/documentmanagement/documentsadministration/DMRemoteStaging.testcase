@@ -20,11 +20,15 @@ definition {
 			groupName = "Site Name",
 			layoutName = "Staging DM Page");
 
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Site Name",
+			layoutName = "Staging DM Page",
+			widgetName = "Documents and Media");
+
 		Navigator.gotoSitePage(
 			pageName = "Staging DM Page",
 			siteName = "Site Name");
-
-		Portlet.addPG(portletName = "Documents and Media");
 
 		DMDocument.enableActionsMenuOnPortlet();
 
@@ -52,7 +56,7 @@ definition {
 	@priority = "5"
 	test AllActionsAreAvailableInRepository {
 		property portal.acceptance = "true";
-		property test.name.skip.portal.instance = "DMRemoteStagingDM#AllActionsAreAvailableInRepository";
+		property test.name.skip.portal.instance = "DMRemoteStaging#AllActionsAreAvailableInRepository";
 
 		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "site-name");
 
@@ -64,12 +68,773 @@ definition {
 		DMDocument.viewStagingDetailsManagementBar(dmDocumentTitle = "Document_3.txt");
 	}
 
+	@description = "This test covers LPS-72443. It validates that a user can navigate to the remote site using the staging toolbar."
+	@priority = "5"
+	test CanNavigateToRemoteLiveViaToolbar {
+		property test.name.skip.portal.instance = "DMRemoteStaging#CanNavigateToRemoteLiveViaToolbar";
+
+		Navigator.gotoSitePage(
+			pageName = "Staging DM Page",
+			siteName = "Site Name");
+
+		Navigator.gotoLiveView(remoteStaging = "true");
+
+		AssertLocation.assertPartialLocation(value1 = "http://localhost:9080/group/remote-site");
+	}
+
+	@description = "This test covers LPS-154433. It ensures that an external video displays properly in the Media Gallery widget after the friendlyURL has been edited and published on a site."
+	@priority = "4"
+	test CanViewExternalVideoInMGAfterFriendlyURLIsUpdated {
+		property test.name.skip.portal.instance = "DMRemoteStaging#CanViewExternalVideoInMGAfterFriendlyURLIsUpdated";
+
+		DMNavigator.openToAddEntry(
+			documentTypeName = "External Video Shortcut",
+			groupName = "Site Name",
+			siteURLKey = "site-name");
+
+		VideoShortcut.addCP(
+			skipNavigation = "true",
+			videoShortcutTitle = "Test YouTube Video",
+			videoURL = "https://www.youtube.com/watch?v=HOdbzGCI5ME");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Site Name",
+			layoutName = "Staging DM Page",
+			widgetName = "Media Gallery");
+
+		Navigator.gotoSitePage(
+			pageName = "Staging DM Page",
+			siteName = "Site Name");
+
+		Staging.gotoPublishToLive();
+
+		Staging.publishToLive(remoteStaging = "true");
+
+		DMNavigator.openToEditEntryInSite(
+			dmDocumentTitle = "Test YouTube Video",
+			groupName = "Site Name",
+			siteURLKey = "site-name");
+
+		DMDocument.editFriendlyURL(friendlyURLEdit = "custom-url");
+
+		Navigator.gotoSitePage(
+			pageName = "Staging DM Page",
+			siteName = "Site Name");
+
+		Staging.gotoPublishToLive();
+
+		Staging.publishToLive(remoteStaging = "true");
+
+		User.logoutPG();
+
+		User.firstLoginUI(
+			password = "test",
+			specificURL = "http://localhost:9080",
+			userEmailAddress = "test@liferay.com");
+
+		Navigator.gotoSitePage(
+			baseURL = "http://localhost:9080",
+			pageName = "Staging DM Page",
+			siteName = "Remote Site");
+
+		DMDocument.viewPGViaMG(
+			mgDocumentTitle = "hqdefault.jpg",
+			staging = "true");
+	}
+
+	@description = "This test covers LPS-154407. This ensures that a Media Gallery widget containing an external video with a custom friendlyURL can be published on a site."
+	@priority = "4"
+	test CanViewExternalVideoInMGAfterPublish {
+		property test.name.skip.portal.instance = "DMRemoteStaging#CanViewExternalVideoInMGAfterPublish";
+
+		DMNavigator.openToAddEntry(
+			documentTypeName = "External Video Shortcut",
+			groupName = "Site Name",
+			siteURLKey = "site-name");
+
+		VideoShortcut.addCP(
+			skipNavigation = "true",
+			videoShortcutTitle = "Test YouTube Video",
+			videoURL = "https://www.youtube.com/watch?v=HOdbzGCI5ME");
+
+		DMNavigator.openToEditEntryInSite(
+			dmDocumentTitle = "Test YouTube Video",
+			groupName = "Site Name",
+			siteURLKey = "site-name");
+
+		DMDocument.editFriendlyURL(
+			dmDocumentTitle = "Test YouTube Video",
+			friendlyURLEdit = "custom-url");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Site Name",
+			layoutName = "Staging DM Page",
+			widgetName = "Media Gallery");
+
+		Navigator.gotoSitePage(
+			pageName = "Staging DM Page",
+			siteName = "Site Name");
+
+		DMDocument.viewPGViaMG(
+			mgDocumentTitle = "hqdefault.jpg",
+			staging = "true");
+
+		Staging.gotoPublishToLive();
+
+		Staging.publishToLive(remoteStaging = "true");
+
+		User.logoutPG();
+
+		User.firstLoginUI(
+			password = "test",
+			specificURL = "http://localhost:9080",
+			userEmailAddress = "test@liferay.com");
+
+		Navigator.gotoSitePage(
+			baseURL = "http://localhost:9080",
+			pageName = "Staging DM Page",
+			siteName = "Remote Site");
+
+		DMDocument.viewPGViaMG(
+			mgDocumentTitle = "hqdefault.jpg",
+			staging = "true");
+	}
+
+	@description = "This test covers LPS-154408. It ensures that an external video with a custom friendlyURL added to the Web content field can be published on a site."
+	@priority = "4"
+	test CanViewExternalVideoInWCAfterPublish {
+		property test.name.skip.portal.instance = "DMRemoteStaging#CanViewExternalVideoInWCAfterPublish";
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "site-name");
+
+		VideoShortcut.addCP(
+			videoShortcutTitle = "Test YouTube Video",
+			videoURL = "https://www.youtube.com/watch?v=HOdbzGCI5ME");
+
+		DMNavigator.openToEditEntryInSite(
+			dmDocumentTitle = "Test YouTube Video",
+			groupName = "Site Name",
+			siteURLKey = "site-name");
+
+		DMDocument.editFriendlyURL(
+			dmDocumentTitle = "Test YouTube Video",
+			friendlyURLEdit = "custom-url");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
+
+		WebContentNavigator.gotoAddCP();
+
+		WebContent.addCP(
+			embedVideo = "true",
+			navTab = "Documents and Media",
+			videoShortcutTitle = "Test YouTube Video",
+			webContentContent = "WC WebContent Content",
+			webContentTitle = "WC WebContent Title");
+
+		PortletEntry.publish();
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "2",
+			groupName = "Site Name",
+			layoutName = "Staging DM Page",
+			widgetName = "Web Content Display");
+
+		Navigator.openSitePage(
+			pageName = "Staging DM Page",
+			siteName = "Site Name");
+
+		WebContentDisplayPortlet.selectWebContent(webContentTitle = "WC WebContent Title");
+
+		Navigator.openSitePage(
+			pageName = "Staging DM Page",
+			siteName = "Site Name");
+
+		Staging.gotoPublishToLive();
+
+		Staging.publishToLive(remoteStaging = "true");
+
+		User.logoutPG();
+
+		User.firstLoginUI(
+			password = "test",
+			specificURL = "http://localhost:9080",
+			userEmailAddress = "test@liferay.com");
+
+		Navigator.openSitePage(
+			baseURL = "http://localhost:9080",
+			pageName = "Staging DM Page",
+			siteName = "Remote Site");
+
+		WebContentDisplayPortlet.viewContent(
+			videoShortcutTitle = "YouTube",
+			webContentTitle = "WC WEBCONTENT TITLE");
+	}
+
+	@description = "This test covers LPS-154435. It ensures that an external video with a custom friendlyURL added to the Web content field displays properly after its friendlyURL is edited and published on a site."
+	@priority = "4"
+	test CanViewExternalVideotInWCAfterFriendlyURLIsUpdated {
+		property test.name.skip.portal.instance = "DMRemoteStaging#CanViewExternalVideotInWCAfterFriendlyURLIsUpdated";
+
+		DMNavigator.openToAddEntry(
+			documentTypeName = "External Video Shortcut",
+			groupName = "Site Name",
+			siteURLKey = "site-name");
+
+		VideoShortcut.addCP(
+			skipNavigation = "true",
+			videoShortcutTitle = "Test YouTube Video",
+			videoURL = "https://www.youtube.com/watch?v=HOdbzGCI5ME");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "2",
+			groupName = "Site Name",
+			layoutName = "Staging DM Page",
+			widgetName = "Web Content Display");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
+
+		WebContentNavigator.gotoAddCP();
+
+		WebContent.addCP(
+			embedVideo = "true",
+			navTab = "Documents and Media",
+			videoShortcutTitle = "Test YouTube Video",
+			webContentContent = "Web Content Content",
+			webContentTitle = "WC WebContent Title");
+
+		PortletEntry.publish();
+
+		Navigator.gotoSitePage(
+			pageName = "Staging DM Page",
+			siteName = "Site Name");
+
+		WebContentDisplayPortlet.selectWebContent(webContentTitle = "WC WebContent Title");
+
+		Staging.gotoPublishToLive();
+
+		Staging.publishToLive(remoteStaging = "true");
+
+		DMNavigator.openToEditEntryInSite(
+			dmDocumentTitle = "Test YouTube Video",
+			groupName = "Site Name",
+			siteURLKey = "site-name");
+
+		DMDocument.editFriendlyURL(friendlyURLEdit = "custom-url");
+
+		Navigator.gotoSitePage(
+			pageName = "Staging DM Page",
+			siteName = "Site Name");
+
+		Staging.gotoPublishToLive();
+
+		Staging.publishToLive(remoteStaging = "true");
+
+		User.logoutPG();
+
+		User.firstLoginUI(
+			password = "test",
+			specificURL = "http://localhost:9080",
+			userEmailAddress = "test@liferay.com");
+
+		Navigator.gotoSitePage(
+			baseURL = "http://localhost:9080",
+			pageName = "Staging DM Page",
+			siteName = "Remote Site");
+
+		WebContent.viewVideoPreview(service = "youtube");
+	}
+
+	@description = "This test covers LPS-154431. It ensures that an image with a custom friendlyURL added to a dynamic collection displayed in an Asset Publisher can be rendered properly on a site after its friendlyURL is edited and republished."
+	@priority = "4"
+	test CanViewImageInDynamicCollectionViaAPAfterFriendlyURLIsUpdated {
+		property test.name.skip.portal.instance = "DMRemoteStagingDM#CanViewImageInDynamicCollectionViaAPAfterFriendlyURLIsUpdated";
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Image Description",
+			dmDocumentTitle = "Document_1",
+			groupName = "Site Name",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_1.jpg");
+
+		JSONAssetlist.addDynamicAssetListEntryWithItemType(
+			groupName = "Site Name",
+			itemSubtype = "Basic Document",
+			itemType = "Document",
+			title = "Dynamic Collection");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "2",
+			groupName = "Site Name",
+			layoutName = "Staging DM Page",
+			widgetName = "Asset Publisher");
+
+		Navigator.gotoSitePage(
+			pageName = "Staging DM Page",
+			siteName = "Site Name");
+
+		AssetPublisherPortlet.selectAssetList(assetListName = "Dynamic Collection");
+
+		Navigator.openSitePage(
+			pageName = "Staging DM Page",
+			siteName = "Site Name");
+
+		Staging.gotoPublishToLive();
+
+		Staging.publishToLive(remoteStaging = "true");
+
+		DMNavigator.openToEditEntryInSite(
+			dmDocumentTitle = "Document_1",
+			groupName = "Site Name",
+			siteURLKey = "site-name");
+
+		DMDocument.editFriendlyURL(friendlyURLEdit = "custom-url");
+
+		Navigator.openSitePage(
+			pageName = "Staging DM Page",
+			siteName = "Site Name");
+
+		Staging.gotoPublishToLive();
+
+		Staging.publishToLive(remoteStaging = "true");
+
+		User.logoutPG();
+
+		User.firstLoginUI(
+			password = "test",
+			specificURL = "http://localhost:9080",
+			userEmailAddress = "test@liferay.com");
+
+		Navigator.openSitePage(
+			baseURL = "http://localhost:9080",
+			pageName = "Staging DM Page",
+			siteName = "Remote Site");
+
+		AssetPublisherPortlet.viewAssetPG(assetTitle = "Document_1");
+	}
+
+	@description = "This test covers LPS-154405. It ensures that an image with a custom friendlyURL added to a dynamic collection rendered in an Asset Publisher can be published on a site."
+	@priority = "4"
+	test CanViewImageInDynamicCollectionViaAPAfterPublish {
+		property test.name.skip.portal.instance = "DMRemoteStaging#CanViewImageInDynamicCollectionViaAPAfterPublish";
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Image Description",
+			dmDocumentTitle = "DM Document Title",
+			groupName = "Site Name",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_1.jpg");
+
+		DMNavigator.openToEditEntryInSite(
+			dmDocumentTitle = "DM Document Title",
+			groupName = "Site Name",
+			siteURLKey = "site-name");
+
+		DMDocument.editFriendlyURL(
+			dmDocumentTitle = "DM Document Title",
+			friendlyURLEdit = "custom-url");
+
+		JSONAssetlist.addDynamicAssetListEntryWithItemType(
+			groupName = "Site Name",
+			itemSubtype = "Basic Document",
+			itemType = "Document",
+			title = "Dynamic Collection");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "2",
+			groupName = "Site Name",
+			layoutName = "Staging DM Page",
+			widgetName = "Asset Publisher");
+
+		Navigator.openSitePage(
+			pageName = "Staging DM Page",
+			siteName = "Site Name");
+
+		AssetPublisherPortlet.selectAssetList(assetListName = "Dynamic Collection");
+
+		Navigator.openSitePage(
+			pageName = "Staging DM Page",
+			siteName = "Site Name");
+
+		Staging.gotoPublishToLive();
+
+		Staging.publishToLive(remoteStaging = "true");
+
+		User.logoutPG();
+
+		User.firstLoginUI(
+			password = "test",
+			specificURL = "http://localhost:9080",
+			userEmailAddress = "test@liferay.com");
+
+		Navigator.openSitePage(
+			baseURL = "http://localhost:9080",
+			pageName = "Staging DM Page",
+			siteName = "Remote Site");
+
+		AssetPublisherPortlet.viewAssetPG(assetTitle = "DM Document Title");
+	}
+
+	@description = "This test covers LPS-154430. It ensures that an image with a custom friendlyURL added to a manual collection displayed in an Asset Publisher can be rendered properly on a site after its friendlyURL is edited and republished."
+	@priority = "4"
+	test CanViewImageInManualCollectionViaAPAfterFriendlyURLIsUpdated {
+		property test.name.skip.portal.instance = "DMRemoteStaging#CanViewImageInManualCollectionViaAPAfterFriendlyURLIsUpdated";
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Image Description",
+			dmDocumentTitle = "Document_1",
+			groupName = "Site Name",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_1.jpg");
+
+		JSONAssetlist.addManualAssetListEntryWithItemType(
+			groupName = "Site Name",
+			itemSubtype = "Basic Document",
+			itemType = "Document",
+			title = "Manual Collection");
+
+		AssetListsAdmin.openAssetListsAdmin(siteURLKey = "site-name");
+
+		AssetListsAdmin.selectAsset(
+			assetListName = "Manual Collection",
+			assetName = "Document_1",
+			assetType = "Basic Document");
+
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Site Name",
+			layoutName = "Staging DM Page",
+			widgetName = "Asset Publisher");
+
+		Navigator.gotoSitePage(
+			pageName = "Staging DM Page",
+			siteName = "Site Name");
+
+		AssetPublisherPortlet.selectAssetList(assetListName = "Manual Collection");
+
+		Navigator.openSitePage(
+			pageName = "Staging DM Page",
+			siteName = "Site Name");
+
+		Staging.gotoPublishToLive();
+
+		Staging.publishToLive(remoteStaging = "true");
+
+		DMNavigator.openToEditEntryInSite(
+			dmDocumentTitle = "Document_1",
+			groupName = "Site Name",
+			siteURLKey = "site-name");
+
+		DMDocument.editFriendlyURL(friendlyURLEdit = "custom-url");
+
+		Navigator.openSitePage(
+			pageName = "Staging DM Page",
+			siteName = "Site Name");
+
+		Staging.gotoPublishToLive();
+
+		Staging.publishToLive(remoteStaging = "true");
+
+		User.logoutPG();
+
+		User.firstLoginUI(
+			password = "test",
+			specificURL = "http://localhost:9080",
+			userEmailAddress = "test@liferay.com");
+
+		Navigator.openSitePage(
+			baseURL = "http://localhost:9080",
+			pageName = "Staging DM Page",
+			siteName = "Remote Site");
+
+		AssetPublisherPortlet.viewAssetPG(assetTitle = "Document_1");
+	}
+
+	@description = "This test covers LPS-154404. It ensures that an image with a custom friendlyURL added to a manual collection rendered in an Asset Publisher can be published on a site."
+	@priority = "4"
+	test CanViewImageInManualCollectionViaAPAfterPublish {
+		property test.name.skip.portal.instance = "DMRemoteStaging#CanViewImageInManualCollectionViaAPAfterPublish";
+
+		JSONDepot.addDepot(
+			depotDescription = "This is the description of a depot",
+			depotName = "Test Depot Name");
+
+		Depot.remoteStagingSetUpViaJson(
+			groupName = "Test Depot Name",
+			remotePort = "9080",
+			site = "false");
+
+		JSONDepot.connectSite(
+			depotName = "Test Depot Name",
+			groupName = "Site Name");
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Image Description",
+			dmDocumentTitle = "DM Document Title",
+			groupName = "Test Depot Name",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_1.jpg");
+
+		DepotNavigator.openDepotDocumentsAndMediaAdmin(depotName = "Test Depot Name");
+
+		LexiconEntry.gotoEntryMenuItem(
+			menuItem = "Edit",
+			rowEntry = "DM Document Title");
+
+		DMDocument.editFriendlyURL(
+			dmDocumentTitle = "DM Document Title",
+			friendlyURLEdit = "custom-url");
+
+		JSONAssetlist.addManualAssetListEntryWithItemType(
+			groupName = "Test Depot Name",
+			itemSubtype = "Basic Document",
+			itemType = "Document",
+			site = "false",
+			title = "Depot Manual Asset List");
+
+		DepotNavigator.openDepotAssetListsAdmin(depotName = "Test Depot Name");
+
+		AssetListsAdmin.selectAsset(
+			assetListName = "Depot Manual Asset List",
+			assetName = "DM Document Title",
+			assetType = "Basic Document");
+
+		DepotNavigator.openDepotDocumentsAndMediaAdmin(depotName = "Test Depot Name");
+
+		DepotNavigator.switchStagingStatus(stagingItem = "Publish to Live");
+
+		Staging.publishToLive(remoteStaging = "true");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Site Name",
+			layoutName = "Staging DM Page",
+			widgetName = "Asset Publisher");
+
+		Navigator.openSitePage(
+			pageName = "Staging DM Page",
+			siteName = "Site Name");
+
+		AssetPublisherPortlet.selectAssetList(
+			assetListName = "Depot Manual Asset List",
+			depotName = "Test Depot Name");
+
+		Navigator.openSitePage(
+			pageName = "Staging DM Page",
+			siteName = "Site Name");
+
+		Staging.gotoPublishToLive();
+
+		Staging.publishToLive(remoteStaging = "true");
+
+		User.logoutPG();
+
+		User.firstLoginUI(
+			password = "test",
+			specificURL = "http://localhost:9080",
+			userEmailAddress = "test@liferay.com");
+
+		Navigator.openSitePage(
+			baseURL = "http://localhost:9080",
+			pageName = "Staging DM Page",
+			siteName = "Remote Site");
+
+		AssetPublisherPortlet.viewAssetPG(assetTitle = "DM Document Title");
+	}
+
+	@description = "This test covers LPS-154432. It ensures that an image displays properly in the Media Gallery widget after the friendlyURL has been edited and published on a site."
+	@priority = "4"
+	test CanViewImageInMGAfterFriendlyURLIsUpdated {
+		property test.name.skip.portal.instance = "DMRemoteStaging#CanViewImageInMGAfterFriendlyURLIsUpdated";
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentTitle = "Document_1",
+			groupName = "Site Name",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_1.jpg");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Site Name",
+			layoutName = "Staging DM Page",
+			widgetName = "Media Gallery");
+
+		Navigator.gotoSitePage(
+			pageName = "Staging DM Page",
+			siteName = "Site Name");
+
+		Staging.gotoPublishToLive();
+
+		Staging.publishToLive(remoteStaging = "true");
+
+		DMNavigator.openToEditEntryInSite(
+			dmDocumentTitle = "Document_1",
+			groupName = "Site Name",
+			siteURLKey = "site-name");
+
+		DMDocument.editFriendlyURL(friendlyURLEdit = "custom-url");
+
+		Navigator.gotoSitePage(
+			pageName = "Staging DM Page",
+			siteName = "Site Name");
+
+		Staging.gotoPublishToLive();
+
+		Staging.publishToLive(remoteStaging = "true");
+
+		User.logoutPG();
+
+		User.firstLoginUI(
+			password = "test",
+			specificURL = "http://localhost:9080",
+			userEmailAddress = "test@liferay.com");
+
+		Navigator.gotoSitePage(
+			baseURL = "http://localhost:9080",
+			pageName = "Staging DM Page",
+			siteName = "Remote Site");
+
+		DMDocument.viewPGViaMG(
+			mgDocumentTitle = "Document_1",
+			staging = "true");
+	}
+
+	@description = "This test covers LPS-154406. This ensures that a Media Gallery widget containing an image with a custom friendlyURL can be published on a site."
+	@priority = "4"
+	test CanViewImageInMGAfterPublish {
+		property test.name.skip.portal.instance = "DMRemoteStaging#CanViewImageInMGAfterPublish";
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentTitle = "Document_1",
+			groupName = "Site Name",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_1.jpg");
+
+		DMNavigator.openToEditEntryInSite(
+			dmDocumentTitle = "Document_1",
+			groupName = "Site Name",
+			siteURLKey = "site-name");
+
+		DMDocument.editFriendlyURL(
+			dmDocumentTitle = "Test YouTube Video",
+			friendlyURLEdit = "custom-url");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Site Name",
+			layoutName = "Staging DM Page",
+			widgetName = "Media Gallery");
+
+		Navigator.gotoSitePage(
+			pageName = "Staging DM Page",
+			siteName = "Site Name");
+
+		DMDocument.viewPGViaMG(
+			mgDocumentTitle = "Document_1",
+			staging = "true");
+
+		Staging.gotoPublishToLive();
+
+		Staging.publishToLive(remoteStaging = "true");
+
+		User.logoutPG();
+
+		User.firstLoginUI(
+			password = "test",
+			specificURL = "http://localhost:9080",
+			userEmailAddress = "test@liferay.com");
+
+		Navigator.gotoSitePage(
+			baseURL = "http://localhost:9080",
+			pageName = "Staging DM Page",
+			siteName = "Remote Site");
+
+		DMDocument.viewPGViaMG(
+			mgDocumentTitle = "Document_1",
+			staging = "true");
+	}
+
+	@description = "This test covers LPS-154434. It ensures that an image with a custom friendlyURL added to the Web content field displays properly after its friendlyURL is edited and published on a site."
+	@priority = "4"
+	test CanViewImagetInWCAfterFriendlyURLIsUpdated {
+		property test.name.skip.portal.instance = "DMRemoteStaging#CanViewImagetInWCAfterFriendlyURLIsUpdated";
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentTitle = "Document_1",
+			groupName = "Site Name",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_1.jpg");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "2",
+			groupName = "Site Name",
+			layoutName = "Staging DM Page",
+			widgetName = "Web Content Display");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
+
+		WebContentNavigator.gotoAddCP();
+
+		WebContent.addCP(
+			embedImage = "true",
+			imageFileName = "Document_1",
+			siteName = "Site Name",
+			webContentContent = "Web Content Content",
+			webContentTitle = "WC WebContent Title");
+
+		PortletEntry.publish();
+
+		Navigator.gotoSitePage(
+			pageName = "Staging DM Page",
+			siteName = "Site Name");
+
+		WebContentDisplayPortlet.selectWebContent(webContentTitle = "WC WebContent Title");
+
+		Staging.gotoPublishToLive();
+
+		Staging.publishToLive(remoteStaging = "true");
+
+		DMNavigator.openToEditEntryInSite(
+			dmDocumentTitle = "Document_1",
+			groupName = "Site Name",
+			siteURLKey = "site-name");
+
+		DMDocument.editFriendlyURL(friendlyURLEdit = "custom-url");
+
+		Navigator.gotoSitePage(
+			pageName = "Staging DM Page",
+			siteName = "Site Name");
+
+		Staging.gotoPublishToLive();
+
+		Staging.publishToLive(remoteStaging = "true");
+
+		User.logoutPG();
+
+		User.firstLoginUI(
+			password = "test",
+			specificURL = "http://localhost:9080",
+			userEmailAddress = "test@liferay.com");
+
+		Navigator.gotoSitePage(
+			baseURL = "http://localhost:9080",
+			pageName = "Staging DM Page",
+			siteName = "Remote Site");
+
+		WebContentDisplayPortlet.viewContent(
+			imageFileName = "document_1",
+			webContentTitle = "WC WebContent Title");
+	}
+
 	@description = "This ensures that the document using custom document type can be deleted and republished."
 	@priority = "5"
 	@refactorneeded
 	test DeleteDocumentWithCustomType {
 		property portal.acceptance = "true";
-		property test.name.skip.portal.instance = "RemoteStagingDM#DeleteDocumentWithCustomType";
+		property test.name.skip.portal.instance = "DMRemoteStaging#DeleteDocumentWithCustomType";
 
 		DMNavigator.openDocumentTypesAdmin(siteURLKey = "site-name");
 
@@ -147,7 +912,7 @@ definition {
 	test DocumentCanBeRepublishedAfterCheckout {
 		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}tunneling.servlet.shared.secret=1234567890123456${line.separator}auth.verifier.TunnelAuthVerifier.hosts.allowed=";
 		property portal.acceptance = "true";
-		property test.name.skip.portal.instance = "RemoteStagingDM#DocumentCanBeRepublishedAfterCheckout";
+		property test.name.skip.portal.instance = "DMRemoteStaging#DocumentCanBeRepublishedAfterCheckout";
 
 		Navigator.gotoSitePage(
 			pageName = "Staging DM Page",
@@ -263,7 +1028,7 @@ definition {
 	@refactorneeded
 	test EditDocumentWithCustomType {
 		property portal.acceptance = "true";
-		property test.name.skip.portal.instance = "RemoteStagingDM#EditDocumentWithCustomType";
+		property test.name.skip.portal.instance = "DMRemoteStaging#EditDocumentWithCustomType";
 
 		DMNavigator.openDocumentTypesAdmin(siteURLKey = "site-name");
 
@@ -350,11 +1115,78 @@ definition {
 			previewImage = "Image_2.jpg");
 	}
 
+	@description = "This test covers LPS-155795. It ensures that an image that was published on a site can still be accessed after remote staging is disabled."
+	@priority = "5"
+	test ImageIsStillAccessibleAfterDisablingStaging {
+		property test.name.skip.portal.instance = "DMRemoteStaging#ImageIsStillAccessibleAfterDisablingStaging";
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentTitle = "Document_2",
+			groupName = "Site Name",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_2.jpg");
+
+		DMNavigator.openToEditEntryInSite(
+			dmDocumentTitle = "Document_2",
+			groupName = "Site Name",
+			siteURLKey = "site-name");
+
+		DMDocument.editFriendlyURL(
+			dmDocumentTitle = "Document_2",
+			friendlyURLEdit = "document_2_edit");
+
+		Navigator.gotoSitePage(
+			pageName = "Staging DM Page",
+			siteName = "Site Name");
+
+		Staging.gotoPublishToLive();
+
+		Staging.publishToLive(remoteStaging = "true");
+
+		User.logoutPG();
+
+		User.firstLoginUI(
+			password = "test",
+			specificURL = "http://localhost:9080",
+			userEmailAddress = "test@liferay.com");
+
+		DMNavigator.openToEntryInAdmin(
+			baseURL = "http://localhost:9080",
+			dmDocumentTitle = "Document_2",
+			groupName = "Remote Site",
+			siteURLKey = "remote-site");
+
+		var latestVersionURL = DMDocument.getLatestVersionURL();
+
+		User.loginPG(
+			nodePort = "8080",
+			password = "test",
+			userEmailAddress = "test@liferay.com");
+
+		Staging.openStagingAdmin(siteURLKey = "site-name");
+
+		Staging.deactivateStagingCP(siteName = "Site Name");
+
+		User.logoutPG();
+
+		User.firstLoginUI(
+			password = "test",
+			specificURL = "http://localhost:9080",
+			userEmailAddress = "test@liferay.com");
+
+		Navigator.openSpecificURL(url = "${latestVersionURL}");
+
+		AssertVisible(
+			key_imageSourceURL = "document_2_edit",
+			locator1 = "DocumentsAndMediaDocument#DOCUMENT_VIEWPORT_PREVIEW");
+	}
+
 	@description = "This ensures that the custom document type being used by document can be edited and republished."
 	@priority = "5"
 	@refactorneeded
 	test PublishEditsToDocumentType {
-		property test.name.skip.portal.instance = "RemoteStagingDM#PublishEditsToDocumentType";
+		property test.name.skip.portal.instance = "DMRemoteStaging#PublishEditsToDocumentType";
 
 		DMNavigator.openDocumentTypesAdmin(siteURLKey = "site-name");
 
@@ -400,7 +1232,7 @@ definition {
 			dmDocumentType = "DM Document Type Name",
 			previewImage = "Image_1.jpg");
 
-		DMDocument.viewDocumentTypePG(imageName = "Document_1.jpg");
+		DMDocument.viewDocumentTypePG(imageName = "document_1");
 
 		User.loginPG(
 			nodePort = "8080",
@@ -452,7 +1284,7 @@ definition {
 
 		DMDocument.viewDocumentTypePG(
 			fieldFieldLabel = "Photo",
-			imageName = "Document_2.jpg");
+			imageName = "document_2");
 	}
 
 	@description = "This ensures that the document using custom document type and custom metadataset can be edited and republished."
@@ -460,7 +1292,7 @@ definition {
 	@refactorneeded
 	test PublishEditsToDocumentUsingCustomTypeAndSet {
 		property portal.acceptance = "true";
-		property test.name.skip.portal.instance = "RemoteStagingDM#PublishEditsToDocumentUsingCustomTypeAndSet";
+		property test.name.skip.portal.instance = "DMRemoteStaging#PublishEditsToDocumentUsingCustomTypeAndSet";
 
 		DMNavigator.openMetadataSetsAdmin(siteURLKey = "site-name");
 
@@ -572,7 +1404,7 @@ definition {
 	@priority = "5"
 	@refactorneeded
 	test PublishEditsToMetadataSet {
-		property test.name.skip.portal.instance = "RemoteStagingDM#PublishEditsToMetadataSet";
+		property test.name.skip.portal.instance = "DMRemoteStaging#PublishEditsToMetadataSet";
 
 		DMNavigator.openMetadataSetsAdmin(siteURLKey = "site-name");
 
@@ -697,7 +1529,7 @@ definition {
 	@refactorneeded
 	test ViewRepublishedDocumentInfo {
 		property portal.acceptance = "true";
-		property test.name.skip.portal.instance = "RemoteStagingDM#ViewRepublishedDocumentInfo";
+		property test.name.skip.portal.instance = "DMRemoteStaging#ViewRepublishedDocumentInfo";
 
 		Navigator.gotoSitePage(
 			pageName = "Staging DM Page",
@@ -712,10 +1544,6 @@ definition {
 		Navigator.gotoSitePage(
 			pageName = "Staging DM Page",
 			siteName = "Site Name");
-
-		Portlet.addPG(portletName = "Documents and Media");
-
-		DMDocument.enableActionsMenuOnPortlet();
 
 		DMDocument.addPG(
 			dmDocumentDescription = "DM Document Description",
@@ -744,13 +1572,6 @@ definition {
 			pageName = "Staging DM Page",
 			siteName = "Remote Site");
 
-		var siteId = Site.getSiteId();
-
-		Navigator.gotoSitePage(
-			baseURL = "http://localhost:9080",
-			pageName = "Staging DM Page",
-			siteName = "Remote Site");
-
 		DMDocument.viewPG(
 			averageRatingStarCount = "0.0",
 			dmDocumentDescription = "DM Document Description",
@@ -768,9 +1589,9 @@ definition {
 			tagNameList = "tag1");
 
 		DMDocument.viewLatestVersionURL(
-			dmDocumentFileName = "Document_1.jpg",
+			dmDocumentFileName = "document_1",
 			remoteStaging = "true",
-			siteId = "${siteId}");
+			siteName = "remote-site");
 
 		DMDocument.viewWebDAVURL(
 			dmDocumentFileName = "Document_1.jpg",
@@ -832,9 +1653,9 @@ definition {
 			tagNameList = "tag1");
 
 		DMDocument.viewLatestVersionURL(
-			dmDocumentFileName = "Document_3Edit.png",
+			dmDocumentFileName = "document_1",
 			remoteStaging = "true",
-			siteId = "${siteId}");
+			siteName = "remote-site");
 
 		DMDocument.viewWebDAVURL(
 			dmDocumentFileName = "Document_3Edit.png",
@@ -851,7 +1672,7 @@ definition {
 	@refactorneeded
 	test ViewWebContentWithDeletedImage {
 		property portal.acceptance = "true";
-		property test.name.skip.portal.instance = "RemoteStagingDM#ViewWebContentWithDeletedImage";
+		property test.name.skip.portal.instance = "DMRemoteStaging#ViewWebContentWithDeletedImage";
 
 		JSONLayout.addWidgetToPublicLayout(
 			groupName = "Site Name",
@@ -972,7 +1793,7 @@ definition {
 	@refactorneeded
 	test ViewWebContentWithRepublishedImage {
 		property portal.acceptance = "true";
-		property test.name.skip.portal.instance = "RemoteStagingDM#ViewWebContentWithRepublishedImage";
+		property test.name.skip.portal.instance = "DMRemoteStaging#ViewWebContentWithRepublishedImage";
 
 		JSONLayout.addWidgetToPublicLayout(
 			groupName = "Site Name",

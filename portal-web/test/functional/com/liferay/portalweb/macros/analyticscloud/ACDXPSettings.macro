@@ -25,6 +25,8 @@ definition {
 	}
 
 	macro connectAnalyticsCloud {
+		ACDXPSettings.disconnectDXPFromAnalyticsCloud();
+
 		Click(locator1 = "ACDXPSettings#TOKEN_INPUT_FIELD");
 
 		Paste(locator1 = "ACDXPSettings#TOKEN_INPUT_FIELD");
@@ -33,11 +35,9 @@ definition {
 	}
 
 	macro connectDXPtoAnalyticsCloud {
-		ACDXPSettings.goToInstanceSettingsAC();
-
 		ACDXPSettings.connectAnalyticsCloud();
 
-		ACDXPSettings.assertSuccessfulConnection();
+		Alert.viewSuccessMessage();
 
 		ACDXPSettings.navToSyncedSitesMenu();
 

@@ -58,7 +58,14 @@ public interface DDMFormFieldTypeReportProcessor {
 					DDMFormInstanceReportConstants.
 						EVENT_DELETE_RECORD_VERSION)) {
 
-			jsonObject.put(key, jsonObject.getInt(key, 0) - 1);
+			int value = jsonObject.getInt(key, 0) - 1;
+
+			if (value > 0) {
+				jsonObject.put(key, value);
+			}
+			else {
+				jsonObject.remove(key);
+			}
 		}
 	}
 

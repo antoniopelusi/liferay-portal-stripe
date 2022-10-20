@@ -28,7 +28,7 @@ public interface LayoutSEOCanonicalURLProvider {
 
 	public String getCanonicalURL(
 			Layout layout, Locale locale, String canonicalURL,
-			Map<Locale, String> alternateURLs)
+			ThemeDisplay themeDisplay)
 		throws PortalException;
 
 	public Map<Locale, String> getCanonicalURLMap(

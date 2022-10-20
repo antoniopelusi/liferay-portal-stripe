@@ -15,7 +15,7 @@
 package com.liferay.journal.content.web.internal.servlet.taglib.clay;
 
 import com.liferay.dynamic.data.mapping.model.DDMTemplate;
-import com.liferay.frontend.taglib.clay.servlet.taglib.soy.VerticalCard;
+import com.liferay.frontend.taglib.clay.servlet.taglib.VerticalCard;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HtmlUtil;
@@ -70,7 +70,7 @@ public class JournalDDMTemplateVerticalCard implements VerticalCard {
 			(ThemeDisplay)_httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-		return HtmlUtil.escape(_ddmTemplate.getName(themeDisplay.getLocale()));
+		return _ddmTemplate.getName(themeDisplay.getLocale());
 	}
 
 	@Override

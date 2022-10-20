@@ -1,0 +1,248 @@
+[
+	{
+		"description": "This is a description.",
+		"name": "customElement",
+		"properties": [
+			{
+				"name": "description",
+				"type": "string"
+			},
+			{
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"default": "https://www.liferay.com",
+				"name": "sourceCodeURL",
+				"type": "string"
+			},
+			{
+				"name": "type",
+				"type": "string"
+			},
+			{
+				"default": "",
+				"name": "cssURLs",
+				"type": "list"
+			},
+			{
+				"default": "",
+				"name": "friendlyURLMapping",
+				"type": "string"
+			},
+			{
+				"default": "",
+				"name": "htmlElementName",
+				"type": "string"
+			},
+			{
+				"default": "",
+				"name": "portletCategoryName",
+				"type": "string"
+			},
+			{
+				"default": "",
+				"name": "urls",
+				"type": "list"
+			},
+			{
+				"default": "false",
+				"name": "instanceable",
+				"type": "boolean"
+			},
+			{
+				"default": "false",
+				"name": "useESM",
+				"type": "boolean"
+			}
+		]
+	},
+	{
+		"description": "This is a description.",
+		"name": "globalCSS",
+		"properties": [
+			{
+				"name": "description",
+				"type": "string"
+			},
+			{
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"default": "https://www.liferay.com",
+				"name": "sourceCodeURL",
+				"type": "string"
+			},
+			{
+				"name": "type",
+				"type": "string"
+			},
+			{
+				"default": "",
+				"name": "url",
+				"type": "string"
+			}
+		]
+	},
+	{
+		"description": "This is a description.",
+		"name": "globalJS",
+		"properties": [
+			{
+				"name": "description",
+				"type": "string"
+			},
+			{
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"default": "https://www.liferay.com",
+				"name": "sourceCodeURL",
+				"type": "string"
+			},
+			{
+				"name": "type",
+				"type": "string"
+			},
+			{
+				"default": "",
+				"name": "url",
+				"type": "string"
+			}
+		]
+	},
+	{
+		"description": "This is a description.",
+		"name": "iframe",
+		"properties": [
+			{
+				"name": "description",
+				"type": "string"
+			},
+			{
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"default": "https://www.liferay.com",
+				"name": "sourceCodeURL",
+				"type": "string"
+			},
+			{
+				"name": "type",
+				"type": "string"
+			},
+			{
+				"default": "",
+				"name": "friendlyURLMapping",
+				"type": "string"
+			},
+			{
+				"default": "",
+				"name": "portletCategoryName",
+				"type": "string"
+			},
+			{
+				"default": "",
+				"name": "url",
+				"type": "string"
+			},
+			{
+				"default": "false",
+				"name": "instanceable",
+				"type": "boolean"
+			}
+		]
+	},
+	{
+		"description": "This is a description.",
+		"name": "themeCSS",
+		"properties": [
+			{
+				"name": "description",
+				"type": "string"
+			},
+			{
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"default": "https://www.liferay.com",
+				"name": "sourceCodeURL",
+				"type": "string"
+			},
+			{
+				"name": "type",
+				"type": "string"
+			},
+			{
+				"default": "",
+				"name": "clayURL",
+				"type": "string"
+			},
+			{
+				"default": "",
+				"name": "mainURL",
+				"type": "string"
+			}
+		]
+	},
+	{
+		"description": "This is a description.",
+		"name": "themeFavicon",
+		"properties": [
+			{
+				"name": "description",
+				"type": "string"
+			},
+			{
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"default": "https://www.liferay.com",
+				"name": "sourceCodeURL",
+				"type": "string"
+			},
+			{
+				"name": "type",
+				"type": "string"
+			},
+			{
+				"default": "",
+				"name": "url",
+				"type": "string"
+			}
+		]
+	},
+	{
+		"description": "This is a description.",
+		"name": "themeJS",
+		"properties": [
+			{
+				"name": "description",
+				"type": "string"
+			},
+			{
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"default": "https://www.liferay.com",
+				"name": "sourceCodeURL",
+				"type": "string"
+			},
+			{
+				"name": "type",
+				"type": "string"
+			},
+			{
+				"default": "",
+				"name": "url",
+				"type": "string"
+			}
+		]
+	}
+]

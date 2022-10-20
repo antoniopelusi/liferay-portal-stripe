@@ -26,11 +26,24 @@ definition {
 			portlet = "Pages",
 			site = "Site Name");
 
-		PagesAdmin.addPage(pageName = "Test Page1");
+		WaitForPageLoad();
 
-		PagesAdmin.addPage(pageName = "Test Page2");
+		Click.waitForMenuToggleJSClick(locator1 = "Icon#HEADER_VERTICAL_ELLIPSIS");
 
-		PagesAdmin.addPage(pageName = "Test Page3");
+		if (IsElementPresent(key_menuItem = "Configuration", locator1 = "MenuItem#DROPDOWN_MENU_ITEM")) {
+			PagesAdmin.addPage(pageName = "Test Page1");
+
+			PagesAdmin.addPage(pageName = "Test Page2");
+
+			PagesAdmin.addPage(pageName = "Test Page3");
+		}
+		else {
+			PagesAdmin.addPublicPage(pageName = "Test Page1");
+
+			PagesAdmin.addPublicPage(pageName = "Test Page2");
+
+			PagesAdmin.addPublicPage(pageName = "Test Page3");
+		}
 
 		var pageName = "Test Page1";
 		var portletBody = "Test Page1";
@@ -72,7 +85,16 @@ definition {
 			task ("Create a Content Page") {
 				PagesAdmin.openPagesAdmin(siteURLKey = "${siteName}");
 
-				ContentPages.addPage(pageName = "${contentPageName}");
+				WaitForPageLoad();
+
+				Click.waitForMenuToggleJSClick(locator1 = "Icon#HEADER_VERTICAL_ELLIPSIS");
+
+				if (IsElementPresent(key_menuItem = "Configuration", locator1 = "MenuItem#DROPDOWN_MENU_ITEM")) {
+					ContentPages.addPage(pageName = "${contentPageName}");
+				}
+				else {
+					ContentPages.addPublicPage(pageName = "${contentPageName}");
+				}
 			}
 
 			task ("Add a basic '${fragmentName}' component") {
@@ -82,7 +104,7 @@ definition {
 			}
 
 			task ("Publish Content Page") {
-				PageEditor.clickPublish();
+				PageEditor.publish();
 			}
 
 			task ("Navigate to the content page") {

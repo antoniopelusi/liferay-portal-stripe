@@ -25,7 +25,7 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.portlet.PortletResponseUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
@@ -43,9 +43,7 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.workflow.WorkflowException;
-import com.liferay.portal.kernel.workflow.WorkflowInstance;
 import com.liferay.portal.kernel.workflow.WorkflowInstanceManagerUtil;
-import com.liferay.portal.kernel.workflow.WorkflowTask;
 import com.liferay.portal.kernel.workflow.WorkflowTaskManagerUtil;
 import com.liferay.portal.workflow.kaleo.forms.constants.KaleoFormsPortletKeys;
 import com.liferay.portal.workflow.kaleo.forms.constants.KaleoFormsWebKeys;
@@ -122,13 +120,6 @@ public class KaleoFormsAdminPortlet extends MVCPortlet {
 			"historyKey", "kaleoProcessId", "kaleoTaskFormPairsData", "mvcPath",
 			"redirect", "tabs1", "translatedLanguagesDescription",
 			"translatedLanguagesName", "workflowDefinition");
-
-		for (Locale availableLocale : LanguageUtil.getAvailableLocales()) {
-			_parameterNames.add(
-				"description" + LocaleUtil.toLanguageId(availableLocale));
-			_parameterNames.add(
-				"name" + LocaleUtil.toLanguageId(availableLocale));
-		}
 	}
 
 	/**
@@ -212,6 +203,13 @@ public class KaleoFormsAdminPortlet extends MVCPortlet {
 	@Activate
 	@Modified
 	protected void activate(Map<String, Object> properties) {
+		for (Locale availableLocale : _language.getAvailableLocales()) {
+			_parameterNames.add(
+				"description" + LocaleUtil.toLanguageId(availableLocale));
+			_parameterNames.add(
+				"name" + LocaleUtil.toLanguageId(availableLocale));
+		}
+
 		_kaleoFormsWebConfiguration = ConfigurableUtil.createConfigurable(
 			KaleoFormsWebConfiguration.class, properties);
 	}
@@ -266,23 +264,20 @@ public class KaleoFormsAdminPortlet extends MVCPortlet {
 			renderRequest, "workflowInstanceId");
 
 		if (workflowInstanceId > 0) {
-			WorkflowInstance workflowInstance =
-				WorkflowInstanceManagerUtil.getWorkflowInstance(
-					themeDisplay.getCompanyId(), workflowInstanceId);
-
 			renderRequest.setAttribute(
-				KaleoFormsWebKeys.WORKFLOW_INSTANCE, workflowInstance);
+				KaleoFormsWebKeys.WORKFLOW_INSTANCE,
+				WorkflowInstanceManagerUtil.getWorkflowInstance(
+					themeDisplay.getCompanyId(), workflowInstanceId));
 		}
 
 		long workflowTaskId = ParamUtil.getLong(
 			renderRequest, "workflowTaskId");
 
 		if (workflowTaskId > 0) {
-			WorkflowTask workflowTask = WorkflowTaskManagerUtil.getWorkflowTask(
-				themeDisplay.getCompanyId(), workflowTaskId);
-
 			renderRequest.setAttribute(
-				KaleoFormsWebKeys.WORKFLOW_TASK, workflowTask);
+				KaleoFormsWebKeys.WORKFLOW_TASK,
+				WorkflowTaskManagerUtil.getWorkflowTask(
+					themeDisplay.getCompanyId(), workflowTaskId));
 		}
 	}
 
@@ -462,6 +457,9 @@ public class KaleoFormsAdminPortlet extends MVCPortlet {
 
 	@Reference
 	private KaleoProcessService _kaleoProcessService;
+
+	@Reference
+	private Language _language;
 
 	private final List<String> _parameterNames;
 

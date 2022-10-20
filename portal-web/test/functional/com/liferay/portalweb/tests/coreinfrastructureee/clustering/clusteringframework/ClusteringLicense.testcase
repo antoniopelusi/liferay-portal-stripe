@@ -25,14 +25,18 @@ definition {
 		property dxp.license.file = "dxp-license-virtual-cluster.xml";
 		property test.name.skip.portal.instance = "ClusteringLicense#ClusterCanRecoverByShuttingDownAnyNodeWithManualRecovery";
 
-		Pause(locator1 = "360000");
+		WaitForConsoleTextPresent(value1 = "Spring Extender Unavailable Component Checker check result");
 
 		User.loginPG(
 			nodePort = "9080",
 			password = "test",
 			userEmailAddress = "test@liferay.com");
 
-		Alert.viewErrorMessage(errorMessage = "Grace period which already ended");
+		Alert.viewErrorMessage(errorMessage = "The maximum number of 2 nodes licensed for this cluster has been exceeded. Please shut down excess nodes as soon as possible. An additional 2 nodes are temporarily permitted during the grace period");
+
+		Alert.viewErrorMessage(errorMessage = "This current node is within the licensed node count and will not be automatically deactivated nor shut down after the grace period expires.");
+
+		Clustering.waitForNodeShutdown(nodePort = "10080");
 
 		Navigator.openSpecificURL(url = "http://localhost:10080");
 
@@ -44,7 +48,7 @@ definition {
 
 		Clustering.shutdownSpecificServer(nodePort = "9080");
 
-		Pause(locator1 = "60000");
+		WaitForConsoleTextPresent(value1 = "Spring Extender Unavailable Component Checker check result");
 
 		for (var nodeNumber : list "8,10") {
 			User.firstLoginUI(
@@ -81,7 +85,7 @@ definition {
 		for (var nodeNumber : list "12,11,10") {
 			Clustering.waitForNodeShutdown(nodePort = "${nodeNumber}080");
 
-			Pause(locator1 = "60000");
+			WaitForConsoleTextPresent(value1 = "Spring Extender Unavailable Component Checker check result");
 		}
 
 		for (var nodeNumber : list "8,9") {
@@ -152,9 +156,7 @@ definition {
 
 		Clustering.waitForNodeShutdown(nodePort = "9080");
 
-		// Wait for cluster to notify all nodes that they are no longer overloaded
-
-		Pause(locator1 = "60000");
+		WaitForConsoleTextPresent(value1 = "Finished shutting down overloaded nodes");
 
 		Clustering.viewTextPresentOnSpecificNode(
 			expectedText = "Shutting down current node as it is the latest one",
@@ -343,7 +345,7 @@ definition {
 
 		Alert.viewErrorMessage(errorMessage = "will be automatically deactivated");
 
-		Pause(locator1 = "360000");
+		Clustering.waitForNodeShutdown(nodePort = "10080");
 
 		for (var nodeNumber : list "8,9") {
 			User.firstLoginUI(
@@ -364,7 +366,7 @@ definition {
 
 		Clustering.shutdownSpecificServer(nodePort = "10080");
 
-		Pause(locator1 = "60000");
+		Clustering.waitForNodeShutdown(nodePort = "10080");
 
 		for (var nodeNumber : list "8,9") {
 			User.firstLoginUI(

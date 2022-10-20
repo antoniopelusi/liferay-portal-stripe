@@ -103,6 +103,8 @@ public class SamlUtil {
 		Map<String, List<Serializable>> attributesMap = new HashMap<>();
 
 		for (Attribute attribute : attributes) {
+			boolean implicitMapping = false;
+
 			String key = attributeMappingsProperties.getProperty(
 				attribute.getName());
 
@@ -114,6 +116,13 @@ public class SamlUtil {
 			}
 
 			if (Validator.isNull(key)) {
+				if (attributeMappingsProperties.containsKey(
+						attribute.getName())) {
+
+					continue;
+				}
+
+				implicitMapping = true;
 				key = attribute.getName();
 			}
 
@@ -129,7 +138,12 @@ public class SamlUtil {
 				Serializable value = getXMLObjectValue(xmlObject);
 
 				if (value != null) {
-					values.add(value);
+					if (implicitMapping) {
+						values.add(value);
+					}
+					else {
+						values.add(0, value);
+					}
 				}
 			}
 

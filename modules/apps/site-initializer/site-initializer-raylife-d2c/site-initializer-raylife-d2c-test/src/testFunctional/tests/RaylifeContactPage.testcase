@@ -1,18 +1,20 @@
 @component-name = "portal-solutions"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "false";
 	property portal.upstream = "true";
-	property testray.main.component.name = "Raylife";
+	property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+	property testray.main.component.name = "Site Initializer Raylife D2C";
+
+	var testSiteName = "Raylife D2C";
+	var testSiteURL = "raylife-d2c";
 
 	setUp {
 		TestCase.setUpPortalInstance();
 
 		User.firstLoginPG();
 
-		Raylife.createRaylifeSite(siteName = "Raylife");
+		Raylife.createRaylifeSite(site = "${testSiteName}");
 	}
 
 	tearDown {
@@ -31,7 +33,7 @@ definition {
 	@description = "LPS-142596 - Verify clicking 'Dismiss' on the Information Panel closes it (Information Panel from 'Let's get in touch.' page)"
 	@priority = "3"
 	test CanDismissContactAgentPageInfoPanel {
-		ApplicationsMenu.gotoSite(key_site = "Raylife");
+		ApplicationsMenu.gotoSite(site = "${testSiteName}");
 
 		RaylifeHomePage.startFlow();
 
@@ -61,7 +63,7 @@ definition {
 	@description = "LPS-142608 - Verify if you can reach the contact page by 'Let’s get to know your business!' page"
 	@priority = "5"
 	test CanReachContactPageByBusinessPage {
-		ApplicationsMenu.gotoSite(key_site = "Raylife");
+		ApplicationsMenu.gotoSite(site = "${testSiteName}");
 
 		RaylifeHomePage.startFlow();
 
@@ -89,7 +91,7 @@ definition {
 	@description = "LPS-142609 - Verify if you can reach the contact page by 'Tell us about your employees!' page"
 	@priority = "5"
 	test CanReachContactPageByEmployeesPage {
-		ApplicationsMenu.gotoSite(key_site = "Raylife");
+		ApplicationsMenu.gotoSite(site = "${testSiteName}");
 
 		RaylifeHomePage.startFlow();
 
@@ -121,7 +123,7 @@ definition {
 	@description = "LPS-142610 - Verify if you can reach the contact page by 'More about... <Business Street Address>' page"	
 	@priority = "5"
 	test CanReachContactPageByPropertyPage {
-		ApplicationsMenu.gotoSite(key_site = "Raylife");
+		ApplicationsMenu.gotoSite(site = "${testSiteName}");
 
 		RaylifeHomePage.getAQuote();
 
@@ -167,7 +169,7 @@ definition {
 	@description = "LPS-142584 - Verify if Application ID was generated after the user saved their Contact Info"
 	@priority = "5"
 	test CanViewApplicationId {
-		ApplicationsMenu.gotoSite(key_site = "Raylife");
+		ApplicationsMenu.gotoSite(site = "${testSiteName}");
 
 		RaylifeHomePage.startFlow();
 
@@ -193,7 +195,7 @@ definition {
 	@description = "LPS-142589 - Verify if when the user click in the 'Back to edit info', the previous data persist"
 	@priority = "5"
 	test DataPersistsWhenTryToEditInfo {
-		ApplicationsMenu.gotoSite(key_site = "Raylife");
+		ApplicationsMenu.gotoSite(site = "${testSiteName}");
 
 		RaylifeHomePage.startFlow();
 

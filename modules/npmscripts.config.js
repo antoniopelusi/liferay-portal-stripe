@@ -29,13 +29,25 @@ module.exports = {
 		bundler: {
 			config: {
 				imports: {
+					'@liferay/address-web': {
+						'/': '*',
+					},
 					'@liferay/document-library-preview-css': {
+						'/': '*',
+					},
+					'@liferay/document-library-web': {
+						'/': '*',
+					},
+					'@liferay/flags-taglib': {
 						'/': '*',
 					},
 					'@liferay/fragment-renderer-collection-filter-impl': {
 						'/': '*',
 					},
 					'@liferay/frontend-data-set-web': {
+						'/': '*',
+					},
+					'@liferay/frontend-icons-web': {
 						'/': '*',
 					},
 					'@liferay/frontend-js-a11y-web': {
@@ -54,6 +66,9 @@ module.exports = {
 					'@liferay/frontend-js-state-web': {
 						'/': '*',
 					},
+					'@liferay/frontend-js-walkthrough-web': {
+						'/': '*',
+					},
 					'@liferay/frontend-taglib': {
 						'/': '*',
 					},
@@ -67,6 +82,9 @@ module.exports = {
 						'/': '*',
 					},
 					'@liferay/map-openstreetmap': {
+						'/': '*',
+					},
+					'@liferay/object-js-components-web': {
 						'/': '*',
 					},
 					'asset-taglib': {

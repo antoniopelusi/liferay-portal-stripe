@@ -15,6 +15,7 @@
 package com.liferay.object.web.internal.object.definitions.portlet.action;
 
 import com.liferay.object.constants.ObjectPortletKeys;
+import com.liferay.object.exception.ObjectDefinitionAccountEntryRestrictedObjectFieldIdException;
 import com.liferay.object.exception.ObjectDefinitionActiveException;
 import com.liferay.object.exception.ObjectDefinitionLabelException;
 import com.liferay.object.exception.ObjectDefinitionNameException;
@@ -61,10 +62,14 @@ public class EditObjectDefinitionMVCActionCommand extends BaseMVCActionCommand {
 		long objectDefinitionId = ParamUtil.getLong(
 			actionRequest, "objectDefinitionId");
 
+		long accountEntryRestrictedObjectFieldId = ParamUtil.getLong(
+			actionRequest, "accountEntryRestrictedObjectFieldId");
 		long descriptionObjectFieldId = ParamUtil.getLong(
 			actionRequest, "descriptionObjectFieldId");
 		long titleObjectFieldId = ParamUtil.getLong(
 			actionRequest, "titleObjectFieldId");
+		boolean accountEntryRestricted = ParamUtil.getBoolean(
+			actionRequest, "accountEntryRestricted");
 		boolean active = ParamUtil.getBoolean(actionRequest, "active");
 		Map<Locale, String> labelMap = LocalizationUtil.getLocalizationMap(
 			actionRequest, "label");
@@ -91,9 +96,11 @@ public class EditObjectDefinitionMVCActionCommand extends BaseMVCActionCommand {
 			}
 
 			_objectDefinitionService.updateCustomObjectDefinition(
-				objectDefinitionId, descriptionObjectFieldId,
-				titleObjectFieldId, active, labelMap, name, panelCategoryOrder,
-				panelCategoryKey, portlet, pluralLabelMap, scope);
+				objectDefinitionId, accountEntryRestrictedObjectFieldId,
+				descriptionObjectFieldId, titleObjectFieldId,
+				accountEntryRestricted, active, labelMap, name,
+				panelCategoryOrder, panelCategoryKey, portlet, pluralLabelMap,
+				scope);
 
 			if (StringUtil.equals(
 					ParamUtil.getString(actionRequest, Constants.CMD),
@@ -104,7 +111,9 @@ public class EditObjectDefinitionMVCActionCommand extends BaseMVCActionCommand {
 			}
 		}
 		catch (Exception exception) {
-			if (exception instanceof ObjectDefinitionActiveException ||
+			if (exception instanceof
+					ObjectDefinitionAccountEntryRestrictedObjectFieldIdException ||
+				exception instanceof ObjectDefinitionActiveException ||
 				exception instanceof ObjectDefinitionLabelException ||
 				exception instanceof ObjectDefinitionNameException ||
 				exception instanceof ObjectDefinitionPluralLabelException ||

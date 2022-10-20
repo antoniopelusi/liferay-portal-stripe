@@ -15,24 +15,24 @@
 package com.liferay.layout.content.page.editor.web.internal.sidebar.panel;
 
 import com.liferay.layout.content.page.editor.sidebar.panel.ContentPageEditorSidebarPanel;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
-import com.liferay.portal.kernel.service.permission.LayoutPermissionUtil;
+import com.liferay.portal.kernel.service.permission.LayoutPermission;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 
 import java.util.Locale;
 import java.util.ResourceBundle;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Víctor Galán
  */
 @Component(
-	immediate = true, property = "service.ranking:Integer=200",
+	immediate = true, property = "service.ranking:Integer=600",
 	service = ContentPageEditorSidebarPanel.class
 )
 public class PageDesignOptionsSidebarPanel
@@ -53,7 +53,7 @@ public class PageDesignOptionsSidebarPanel
 		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
 			"content.Language", locale, getClass());
 
-		return LanguageUtil.get(resourceBundle, "page-design-options");
+		return _language.get(resourceBundle, "page-design-options");
 	}
 
 	@Override
@@ -61,11 +61,13 @@ public class PageDesignOptionsSidebarPanel
 		PermissionChecker permissionChecker, long plid, int layoutType) {
 
 		try {
-			if (LayoutPermissionUtil.contains(
-					permissionChecker, plid, ActionKeys.UPDATE)) {
+			if (_layoutPermission.containsLayoutRestrictedUpdatePermission(
+					permissionChecker, plid)) {
 
 				return true;
 			}
+
+			return false;
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
@@ -78,5 +80,11 @@ public class PageDesignOptionsSidebarPanel
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		PageDesignOptionsSidebarPanel.class);
+
+	@Reference
+	private Language _language;
+
+	@Reference
+	private LayoutPermission _layoutPermission;
 
 }

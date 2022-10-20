@@ -10,7 +10,7 @@
  */
 
 export const SLA_CARD_NAMES = {
-	current: 'CURRENT',
-	expired: 'EXPIRED',
-	future: 'FUTURE',
+	current: 'current',
+	expired: 'expired',
+	future: 'future',
 };

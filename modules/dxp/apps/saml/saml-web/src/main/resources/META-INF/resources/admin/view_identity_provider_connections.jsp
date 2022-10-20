@@ -79,5 +79,7 @@
 		<aui:button href="<%= addIdentityProviderURL %>" label="add-identity-provider" value="add-identity-provider" />
 	</aui:button-row>
 
-	<liferay-ui:search-iterator />
+	<liferay-ui:search-iterator
+		markupView="lexicon"
+	/>
 </liferay-ui:search-container>

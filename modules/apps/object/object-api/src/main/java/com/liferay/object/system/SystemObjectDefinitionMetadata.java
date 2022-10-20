@@ -44,6 +44,8 @@ public interface SystemObjectDefinitionMetadata {
 
 	public String getRESTContextPath();
 
+	public String getRESTDTOIdPropertyName();
+
 	public String getScope();
 
 	public Table getTable();

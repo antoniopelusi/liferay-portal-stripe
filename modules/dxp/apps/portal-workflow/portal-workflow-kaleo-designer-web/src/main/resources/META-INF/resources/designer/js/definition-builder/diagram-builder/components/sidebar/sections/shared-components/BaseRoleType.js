@@ -14,8 +14,10 @@ import ClayButton, {ClayButtonWithIcon} from '@clayui/button';
 import {useResource} from '@clayui/data-provider';
 import ClayDropDown from '@clayui/drop-down';
 import ClayForm, {ClayCheckbox} from '@clayui/form';
-import React, {useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 
+import {DefinitionBuilderContext} from '../../../../../DefinitionBuilderContext';
+import {contextUrl} from '../../../../../constants';
 import {
 	headers,
 	retrieveAccountRoles,
@@ -63,17 +65,17 @@ const BaseRoleType = ({
 			},
 		},
 		fetchPolicy: 'cache-first',
-		link: `${window.location.origin}${userBaseURL}/roles`,
+		link: `${window.location.origin}${contextUrl}${userBaseURL}/roles`,
 		onNetworkStatusChange: setNetworkStatus,
 		variables: {
 			pageSize: -1,
 		},
 	});
 
-	const userId = Liferay.ThemeDisplay.getUserId();
+	const {accountEntryId} = useContext(DefinitionBuilderContext);
 
 	useEffect(() => {
-		retrieveAccountRoles(userId)
+		retrieveAccountRoles(accountEntryId)
 			.then((response) => response.json())
 			.then(({items}) => {
 				const roles = items.map((item) => {
@@ -205,13 +207,13 @@ const BaseRoleType = ({
 
 		setFilterRoleType(true);
 		setSelectedRoleType(event.target.value);
-		setSelectedRoleName(null);
+		setSelectedRoleName('');
 	};
 
 	const roleTypeItemClick = (item) => {
 		setSelectedRoleType(item);
 		setRoleTypeDropdownActive(false);
-		setSelectedRoleName(null);
+		setSelectedRoleName('');
 	};
 
 	const initialLoading = networkStatus === 1;

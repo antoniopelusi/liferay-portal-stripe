@@ -15,8 +15,8 @@
 package com.liferay.fragment.web.internal.servlet.taglib.clay;
 
 import com.liferay.fragment.model.FragmentEntry;
-import com.liferay.frontend.taglib.clay.servlet.taglib.soy.BaseBaseClayCard;
-import com.liferay.frontend.taglib.clay.servlet.taglib.soy.VerticalCard;
+import com.liferay.frontend.taglib.clay.servlet.taglib.BaseBaseClayCard;
+import com.liferay.frontend.taglib.clay.servlet.taglib.VerticalCard;
 import com.liferay.portal.kernel.dao.search.RowChecker;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HtmlUtil;
@@ -63,7 +63,11 @@ public abstract class BaseFragmentEntryVerticalCard
 
 	@Override
 	public String getStickerCssClass() {
-		return "fragment-entry-sticker";
+		if (fragmentEntry.isTypeInput()) {
+			return "fragment-entry-input-sticker";
+		}
+
+		return "fragment-entry-basic-sticker";
 	}
 
 	@Override

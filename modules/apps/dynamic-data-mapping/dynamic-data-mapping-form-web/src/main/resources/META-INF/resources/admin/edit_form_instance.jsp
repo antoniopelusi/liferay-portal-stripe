@@ -185,6 +185,8 @@ renderResponse.setTitle((formInstance == null) ? LanguageUtil.get(request, "new-
 					).put(
 						"localizedName", ddmFormAdminDisplayContext.getFormLocalizedNameJSONObject(formInstance)
 					).put(
+						"mainRequire", ddmFormAdminDisplayContext.getMainRequire()
+					).put(
 						"portletNamespace", liferayPortletResponse.getNamespace()
 					).put(
 						"published", ddmFormAdminDisplayContext.isFormPublished()
@@ -203,7 +205,7 @@ renderResponse.setTitle((formInstance == null) ? LanguageUtil.get(request, "new-
 					).put(
 						"showPublishAlert", ddmFormAdminDisplayContext.isShowPublishAlert()
 					).put(
-						"spritemap", themeDisplay.getPathThemeImages() + "/clay/icons.svg"
+						"spritemap", FrontendIconsUtil.getSpritemap(themeDisplay)
 					).put(
 						"view", "formBuilder"
 					).build()

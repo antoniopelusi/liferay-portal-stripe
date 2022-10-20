@@ -81,24 +81,6 @@ import java.util.Map;
 public class AssetCategoryLocalServiceImpl
 	extends AssetCategoryLocalServiceBaseImpl {
 
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
-	 * #addCategory(String, long, long, long, Map, Map, long, String[], ServiceContext)}
-	 */
-	@Deprecated
-	@Override
-	public AssetCategory addCategory(
-			long userId, long groupId, long parentCategoryId,
-			Map<Locale, String> titleMap, Map<Locale, String> descriptionMap,
-			long vocabularyId, String[] categoryProperties,
-			ServiceContext serviceContext)
-		throws PortalException {
-
-		return addCategory(
-			null, userId, groupId, parentCategoryId, titleMap, descriptionMap,
-			vocabularyId, categoryProperties, serviceContext);
-	}
-
 	@Override
 	public AssetCategory addCategory(
 			long userId, long groupId, String title, long vocabularyId,
@@ -155,10 +137,6 @@ public class AssetCategoryLocalServiceImpl
 		_assetVocabularyPersistence.findByPrimaryKey(vocabularyId);
 
 		long categoryId = counterLocalService.increment();
-
-		if (Validator.isNull(externalReferenceCode)) {
-			externalReferenceCode = String.valueOf(categoryId);
-		}
 
 		_validateExternalReferenceCode(externalReferenceCode, groupId);
 
@@ -826,6 +804,10 @@ public class AssetCategoryLocalServiceImpl
 	private void _validateExternalReferenceCode(
 			String externalReferenceCode, long groupId)
 		throws PortalException {
+
+		if (Validator.isNull(externalReferenceCode)) {
+			return;
+		}
 
 		AssetCategory assetCategory = assetCategoryPersistence.fetchByG_ERC(
 			groupId, externalReferenceCode);

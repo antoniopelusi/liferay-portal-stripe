@@ -135,7 +135,6 @@ definition {
 				site = "false",
 				title = "Category Name 1",
 				vocabularyName = "Vocabulary Name");
-
 			var secondCategoryId = JSONCategory.addCategory(
 				groupName = "Site Name (Staging)",
 				site = "false",
@@ -209,7 +208,7 @@ definition {
 				siteName = "Site Name");
 
 			AssetPublisherPortlet.editConfigureCategoriesFilterPG(
-				categoryNames = "Category Name 1,Category Name 2",
+				categoryNameList = "Category Name 1,Category Name 2",
 				queryContains = "Does Not Contain");
 		}
 

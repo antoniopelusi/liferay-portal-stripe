@@ -17,6 +17,7 @@ package com.liferay.batch.planner.internal.batch.engine.broker;
 import com.liferay.batch.engine.constants.BatchEngineImportTaskConstants;
 import com.liferay.batch.planner.batch.engine.broker.BatchEngineBroker;
 import com.liferay.batch.planner.constants.BatchPlannerPlanConstants;
+import com.liferay.batch.planner.constants.BatchPlannerPolicyConstants;
 import com.liferay.batch.planner.internal.jaxrs.uri.BatchPlannerUriInfo;
 import com.liferay.batch.planner.model.BatchPlannerMapping;
 import com.liferay.batch.planner.model.BatchPlannerMappingModel;
@@ -29,11 +30,10 @@ import com.liferay.headless.batch.engine.resource.v1_0.ImportTaskResource;
 import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.multipart.BinaryFile;
 import com.liferay.portal.vulcan.multipart.MultipartBody;
@@ -60,26 +60,29 @@ import org.osgi.service.component.annotations.Reference;
 public class BatchEngineBrokerImpl implements BatchEngineBroker {
 
 	@Override
-	public void submit(long batchPlannerPlanId) {
-		try {
-			BatchPlannerPlan batchPlannerPlan =
-				_batchPlannerPlanLocalService.getBatchPlannerPlan(
-					batchPlannerPlanId);
+	public void submit(long batchPlannerPlanId) throws Exception {
+		BatchPlannerPlan batchPlannerPlan =
+			_batchPlannerPlanLocalService.getBatchPlannerPlan(
+				batchPlannerPlanId);
 
+		_batchPlannerPlanLocalService.updateStatus(
+			batchPlannerPlan.getBatchPlannerPlanId(),
+			BatchPlannerPlanConstants.STATUS_QUEUED);
+
+		try {
 			if (batchPlannerPlan.isExport()) {
 				_submitExportTask(batchPlannerPlan);
 			}
 			else {
 				_submitImportTask(batchPlannerPlan);
 			}
-
-			_batchPlannerPlanLocalService.updateActive(
-				batchPlannerPlanId, true);
 		}
 		catch (Exception exception) {
-			_log.error(
-				"Unable to execute batch planner plan ID " + batchPlannerPlanId,
-				exception);
+			_batchPlannerPlanLocalService.updateStatus(
+				batchPlannerPlan.getBatchPlannerPlanId(),
+				BatchPlannerPlanConstants.STATUS_FAILED);
+
+			throw exception;
 		}
 	}
 
@@ -149,18 +152,14 @@ public class BatchEngineBrokerImpl implements BatchEngineBroker {
 	private UriInfo _getImportTaskUriInfo(BatchPlannerPlan batchPlannerPlan) {
 		BatchPlannerUriInfo.Builder builder = new BatchPlannerUriInfo.Builder();
 
-		return builder.delimiter(
-			_getValue(batchPlannerPlan.fetchBatchPlannerPolicy("csvSeparator"))
-		).enclosingCharacter(
-			_getValue(
-				batchPlannerPlan.fetchBatchPlannerPolicy(
-					"csvEnclosingCharacter"))
-		).taskItemDelegateName(
+		for (String name : BatchPlannerPolicyConstants.nameTypes.keySet()) {
+			builder.queryParameter(
+				name,
+				_getValue(batchPlannerPlan.fetchBatchPlannerPolicy(name)));
+		}
+
+		return builder.taskItemDelegateName(
 			batchPlannerPlan.getTaskItemDelegateName()
-		).queryParameter(
-			"containsHeaders",
-			_getValue(
-				batchPlannerPlan.fetchBatchPlannerPolicy("containsHeaders"))
 		).build();
 	}
 
@@ -182,24 +181,17 @@ public class BatchEngineBrokerImpl implements BatchEngineBroker {
 		_exportTaskResource.setContextUser(
 			_userLocalService.getUser(batchPlannerPlan.getUserId()));
 
-		List<BatchPlannerMapping> batchPlannerMappings =
-			_batchPlannerMappingLocalService.getBatchPlannerMappings(
-				batchPlannerPlan.getBatchPlannerPlanId());
-
-		String[] headerNames = _getHeaderNames(
-			batchPlannerMappings,
-			BatchPlannerMappingModel::getInternalFieldName);
-
 		_exportTaskResource.postExportTask(
 			batchPlannerPlan.getInternalClassName(),
 			batchPlannerPlan.getExternalType(), null,
 			String.valueOf(batchPlannerPlan.getBatchPlannerPlanId()),
-			StringUtil.merge(headerNames, StringPool.COMMA),
+			StringUtil.merge(
+				_getHeaderNames(
+					_batchPlannerMappingLocalService.getBatchPlannerMappings(
+						batchPlannerPlan.getBatchPlannerPlanId()),
+					BatchPlannerMappingModel::getInternalFieldName),
+				StringPool.COMMA),
 			batchPlannerPlan.getTaskItemDelegateName());
-
-		batchPlannerPlan.setStatus(BatchPlannerPlanConstants.STATUS_QUEUED);
-
-		_batchPlannerPlanLocalService.updateBatchPlannerPlan(batchPlannerPlan);
 	}
 
 	private void _submitImportTask(BatchPlannerPlan batchPlannerPlan)
@@ -207,24 +199,46 @@ public class BatchEngineBrokerImpl implements BatchEngineBroker {
 
 		_importTaskResource.setContextCompany(
 			_companyLocalService.getCompany(batchPlannerPlan.getCompanyId()));
-
 		_importTaskResource.setContextUriInfo(
 			_getImportTaskUriInfo(batchPlannerPlan));
-
 		_importTaskResource.setContextUser(
 			_userLocalService.getUser(batchPlannerPlan.getUserId()));
 
 		File file = _getFile(batchPlannerPlan.getBatchPlannerPlanId());
 
 		try {
-			_importTaskResource.postImportTask(
+			if (!GetterUtil.getBoolean(
+					_getValue(
+						batchPlannerPlan.fetchBatchPlannerPolicy(
+							"allowUpdate")))) {
+
+				_importTaskResource.postImportTask(
+					batchPlannerPlan.getInternalClassName(), null, null,
+					String.valueOf(batchPlannerPlan.getBatchPlannerPlanId()),
+					_getFieldNameMapping(
+						_batchPlannerMappingLocalService.
+							getBatchPlannerMappings(
+								batchPlannerPlan.getBatchPlannerPlanId())),
+					_getImportStrategy(batchPlannerPlan),
+					batchPlannerPlan.getTaskItemDelegateName(),
+					MultipartBody.of(
+						Collections.singletonMap(
+							"file",
+							new BinaryFile(
+								BatchPlannerPlanConstants.getContentType(
+									batchPlannerPlan.getExternalType()),
+								file.getName(), new FileInputStream(file),
+								file.length())),
+						null, Collections.emptyMap()));
+
+				return;
+			}
+
+			_importTaskResource.putImportTask(
 				batchPlannerPlan.getInternalClassName(), null,
 				String.valueOf(batchPlannerPlan.getBatchPlannerPlanId()),
-				_getFieldNameMapping(
-					_batchPlannerMappingLocalService.getBatchPlannerMappings(
-						batchPlannerPlan.getBatchPlannerPlanId())),
 				_getImportStrategy(batchPlannerPlan),
-				batchPlannerPlan.getTaskItemDelegateName(),
+				batchPlannerPlan.getTaskItemDelegateName(), null,
 				MultipartBody.of(
 					Collections.singletonMap(
 						"file",
@@ -234,20 +248,11 @@ public class BatchEngineBrokerImpl implements BatchEngineBroker {
 							file.getName(), new FileInputStream(file),
 							file.length())),
 					null, Collections.emptyMap()));
-
-			batchPlannerPlan.setSize((int)file.length());
-			batchPlannerPlan.setStatus(BatchPlannerPlanConstants.STATUS_QUEUED);
-
-			_batchPlannerPlanLocalService.updateBatchPlannerPlan(
-				batchPlannerPlan);
 		}
 		finally {
 			FileUtil.delete(file);
 		}
 	}
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		BatchEngineBrokerImpl.class);
 
 	@Reference
 	private BatchPlannerMappingLocalService _batchPlannerMappingLocalService;

@@ -148,6 +148,7 @@ public class JUnitBatchTestClassGroup extends BatchTestClassGroup {
 		jsonObject.put(
 			"include_unstaged_test_class_files",
 			_includeUnstagedTestClassFiles);
+		jsonObject.put("target_duration", getTargetAxisDuration());
 
 		return jsonObject;
 	}
@@ -458,36 +459,85 @@ public class JUnitBatchTestClassGroup extends BatchTestClassGroup {
 
 	@Override
 	protected void setAxisTestClassGroups() {
-		int axisCount = getAxisCount();
+		long targetAxisDuration = getTargetAxisDuration();
 
-		if (axisCount == 0) {
-			return;
-		}
+		if (targetAxisDuration > 0) {
+			List<TestClass> testClasses = getTestClasses();
 
-		int testClassCount = testClasses.size();
+			if (testClasses.isEmpty()) {
+				if (!_includeAutoBalanceTests) {
+					return;
+				}
 
-		if (testClassCount == 0) {
-			if (!_includeAutoBalanceTests) {
-				return;
+				axisTestClassGroups.add(
+					0, TestClassGroupFactory.newAxisTestClassGroup(this));
 			}
-
-			axisTestClassGroups.add(
-				0, TestClassGroupFactory.newAxisTestClassGroup(this));
-		}
-		else {
-			int axisSize = (int)Math.ceil((double)testClassCount / axisCount);
-
-			for (List<TestClass> axisTestClasses :
-					Lists.partition(testClasses, axisSize)) {
-
+			else {
 				AxisTestClassGroup axisTestClassGroup =
 					TestClassGroupFactory.newAxisTestClassGroup(this);
 
-				for (TestClass axisTestClass : axisTestClasses) {
-					axisTestClassGroup.addTestClass(axisTestClass);
+				axisTestClassGroups.add(axisTestClassGroup);
+
+				for (TestClass testClass : testClasses) {
+					if (!axisTestClassGroup.hasTestClasses()) {
+						axisTestClassGroup.addTestClass(testClass);
+
+						continue;
+					}
+
+					long estimatedAxisDuration =
+						axisTestClassGroup.getAverageDuration() +
+							testClass.getAverageDuration() +
+								testClass.getAverageOverheadDuration();
+
+					if (estimatedAxisDuration < targetAxisDuration) {
+						axisTestClassGroup.addTestClass(testClass);
+
+						continue;
+					}
+
+					axisTestClassGroup =
+						TestClassGroupFactory.newAxisTestClassGroup(this);
+
+					axisTestClassGroup.addTestClass(testClass);
+
+					axisTestClassGroups.add(axisTestClassGroup);
+				}
+			}
+		}
+		else {
+			int axisCount = getAxisCount();
+
+			if (axisCount == 0) {
+				return;
+			}
+
+			int testClassCount = testClasses.size();
+
+			if (testClassCount == 0) {
+				if (!_includeAutoBalanceTests) {
+					return;
 				}
 
-				axisTestClassGroups.add(axisTestClassGroup);
+				axisTestClassGroups.add(
+					0, TestClassGroupFactory.newAxisTestClassGroup(this));
+			}
+			else {
+				int axisSize = (int)Math.ceil(
+					(double)testClassCount / axisCount);
+
+				for (List<TestClass> axisTestClasses :
+						Lists.partition(testClasses, axisSize)) {
+
+					AxisTestClassGroup axisTestClassGroup =
+						TestClassGroupFactory.newAxisTestClassGroup(this);
+
+					for (TestClass axisTestClass : axisTestClasses) {
+						axisTestClassGroup.addTestClass(axisTestClass);
+					}
+
+					axisTestClassGroups.add(axisTestClassGroup);
+				}
 			}
 		}
 
@@ -495,9 +545,7 @@ public class JUnitBatchTestClassGroup extends BatchTestClassGroup {
 			return;
 		}
 
-		for (int i = 0; i < axisCount; i++) {
-			AxisTestClassGroup axisTestClassGroup = axisTestClassGroups.get(i);
-
+		for (AxisTestClassGroup axisTestClassGroup : axisTestClassGroups) {
 			for (File autoBalanceTestFile : _autoBalanceTestFiles) {
 				String filePath = autoBalanceTestFile.getPath();
 

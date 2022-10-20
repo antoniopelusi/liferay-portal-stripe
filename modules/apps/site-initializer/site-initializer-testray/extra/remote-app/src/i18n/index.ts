@@ -12,7 +12,7 @@
  * details.
  */
 
-import {Liferay} from '../services/liferay/liferay';
+import {Liferay} from '../services/liferay';
 import en_US from './en_US';
 
 export const languages = {
@@ -24,7 +24,8 @@ export function translate(
 	languageId = Liferay.ThemeDisplay.getLanguageId()
 ): string {
 	const languageProperties =
-		(languages as any)[languageId] || languages.en_US;
+		(languages as any)[languageId] ||
+		Liferay.ThemeDisplay.getDefaultLanguageId();
 
 	return languageProperties[word] || word;
 }

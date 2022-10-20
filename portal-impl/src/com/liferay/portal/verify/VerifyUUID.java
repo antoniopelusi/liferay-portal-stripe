@@ -15,7 +15,6 @@
 package com.liferay.portal.verify;
 
 import com.liferay.petra.string.StringBundler;
-import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
 import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
@@ -26,9 +25,6 @@ import com.liferay.portal.kernel.verify.model.VerifiableUUIDModel;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-
-import java.util.Collection;
-import java.util.Map;
 
 /**
  * @author Brian Wing Shun Chan
@@ -50,14 +46,6 @@ public class VerifyUUID extends VerifyProcess {
 		if (!ArrayUtil.isEmpty(_verifiableUUIDModels)) {
 			doVerify(_verifiableUUIDModels);
 		}
-
-		Map<String, VerifiableUUIDModel> verifiableUUIDModelsMap =
-			PortalBeanLocatorUtil.locate(VerifiableUUIDModel.class);
-
-		Collection<VerifiableUUIDModel> verifiableUUIDModels =
-			verifiableUUIDModelsMap.values();
-
-		doVerify(verifiableUUIDModels.toArray(new VerifiableUUIDModel[0]));
 	}
 
 	protected void doVerify(VerifiableUUIDModel... verifiableUUIDModels)
@@ -97,12 +85,12 @@ public class VerifyUUID extends VerifyProcess {
 			ResultSet resultSet = preparedStatement1.executeQuery();
 			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.autoBatch(
-					connection.prepareStatement(
-						StringBundler.concat(
-							"update ", verifiableUUIDModel.getTableName(),
-							" set uuid_ = ? where ",
-							verifiableUUIDModel.getPrimaryKeyColumnName(),
-							" = ?")))) {
+					connection,
+					StringBundler.concat(
+						"update ", verifiableUUIDModel.getTableName(),
+						" set uuid_ = ? where ",
+						verifiableUUIDModel.getPrimaryKeyColumnName(),
+						" = ?"))) {
 
 			while (resultSet.next()) {
 				long pk = resultSet.getLong(

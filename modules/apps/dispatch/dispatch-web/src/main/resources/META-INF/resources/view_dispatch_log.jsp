@@ -20,6 +20,10 @@
 DispatchLogDisplayContext dispatchLogDisplayContext = (DispatchLogDisplayContext)request.getAttribute(WebKeys.PORTLET_DISPLAY_CONTEXT);
 
 DispatchLog dispatchLog = dispatchLogDisplayContext.getDispatchLog();
+
+DispatchTrigger dispatchTrigger = dispatchLogDisplayContext.getDispatchTrigger();
+
+Format dateTimeFormat = FastDateFormatFactoryUtil.getDateTime(FastDateFormatConstants.SHORT, FastDateFormatConstants.LONG, locale, TimeZone.getTimeZone(dispatchTrigger.getTimeZoneId()));
 %>
 
 <portlet:actionURL name="/dispatch/edit_dispatch_log" var="editDispatchLogActionURL" />
@@ -41,7 +45,21 @@ DispatchLog dispatchLog = dispatchLogDisplayContext.getDispatchLog();
 						<clay:col
 							md="8"
 						>
-							<%= (dispatchLog.getStartDate() != null) ? fastDateFormat.format(dispatchLog.getStartDate()) : "" %>
+							<%= (dispatchLog.getStartDate() != null) ? fastDateTimeFormat.format(dispatchLog.getStartDate()) : "" %>
+						</clay:col>
+					</clay:row>
+
+					<clay:row>
+						<clay:col
+							md="2"
+						>
+							<%= LanguageUtil.get(request, "scheduled-start-date") %>
+						</clay:col>
+
+						<clay:col
+							md="8"
+						>
+							<%= (dispatchLog.getStartDate() != null) ? dateTimeFormat.format(dispatchLog.getStartDate()) : "" %>
 						</clay:col>
 					</clay:row>
 

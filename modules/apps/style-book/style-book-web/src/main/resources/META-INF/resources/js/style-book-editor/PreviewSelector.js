@@ -15,12 +15,19 @@
 import ClayButton from '@clayui/button';
 import ClayDropDown, {Align} from '@clayui/drop-down';
 import ClayIcon from '@clayui/icon';
+import {sub} from 'frontend-js-web';
 import PropTypes from 'prop-types';
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
-import {StyleBookContext} from './StyleBookContext';
 import {config} from './config';
 import {LAYOUT_TYPES} from './constants/layoutTypes';
+import {
+	usePreviewLayout,
+	usePreviewLayoutType,
+	useSetLoading,
+	useSetPreviewLayout,
+	useSetPreviewLayoutType,
+} from './contexts/LayoutContext';
 import {itemSelectorValueFromFragmentCollection} from './item_selector_value/itemSelectorValueFromFragmentCollection';
 import {itemSelectorValueFromLayout} from './item_selector_value/itemSelectorValueFromLayout';
 import openItemSelector from './openItemSelector';
@@ -49,24 +56,20 @@ const LAYOUT_TYPES_OPTIONS = [
 ];
 
 export default function PreviewSelector() {
-	const {previewLayoutType, setPreviewLayoutType} = useContext(
-		StyleBookContext
-	);
+	const previewLayoutType = usePreviewLayoutType();
 
 	return (
 		<>
-			<LayoutTypeSelector
-				layoutType={previewLayoutType}
-				setLayoutType={setPreviewLayoutType}
-			/>
+			<LayoutTypeSelector layoutType={previewLayoutType} />
 
 			<LayoutSelector layoutType={previewLayoutType} />
 		</>
 	);
 }
 
-export function LayoutTypeSelector({layoutType, setLayoutType}) {
+export function LayoutTypeSelector({layoutType}) {
 	const [active, setActive] = useState(false);
+	const setPreviewLayoutType = useSetPreviewLayoutType();
 
 	return (
 		<ClayDropDown
@@ -108,7 +111,7 @@ export function LayoutTypeSelector({layoutType, setLayoutType}) {
 							key={type}
 							onClick={() => {
 								setActive(false);
-								setLayoutType(type);
+								setPreviewLayoutType(type);
 							}}
 						>
 							{label}
@@ -122,14 +125,13 @@ export function LayoutTypeSelector({layoutType, setLayoutType}) {
 
 LayoutTypeSelector.propTypes = {
 	layoutType: PropTypes.string.isRequired,
-	setLayoutType: PropTypes.func.isRequired,
 };
 
 export function LayoutSelector({layoutType}) {
 	const [active, setActive] = useState(false);
-	const {previewLayout, setLoading, setPreviewLayout} = useContext(
-		StyleBookContext
-	);
+	const previewLayout = usePreviewLayout();
+	const setLoading = useSetLoading();
+	const setPreviewLayout = useSetPreviewLayout();
 
 	const previewData = config.previewOptions.find(
 		(option) => option.type === layoutType
@@ -145,7 +147,7 @@ export function LayoutSelector({layoutType}) {
 		setLoading(true);
 		setPreviewLayout(previewData.recentLayouts[0]);
 		setRecentLayouts(previewData.recentLayouts);
-	}, [setPreviewLayout, previewData, setLoading]);
+	}, [previewData, setLoading, setPreviewLayout]);
 
 	const selectPreviewLayout = (layout) => {
 		if (
@@ -225,7 +227,7 @@ export function LayoutSelector({layoutType}) {
 				{totalLayouts > recentLayouts.length && (
 					<>
 						<ClayDropDown.Caption>
-							{Liferay.Util.sub(
+							{sub(
 								Liferay.Language.get('showing-x-of-x-items'),
 								recentLayouts.length,
 								totalLayouts

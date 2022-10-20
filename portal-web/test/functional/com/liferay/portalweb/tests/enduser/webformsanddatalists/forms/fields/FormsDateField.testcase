@@ -39,7 +39,9 @@ definition {
 		property portal.acceptance = "true";
 
 		var displayDateYear = DateUtil.getCurrentYear();
+
 		var futureYear = ${displayDateYear} + 1;
+
 		var displayFutureDate = "01/01/${futureYear}";
 
 		FormsAdmin.addForm();
@@ -93,6 +95,7 @@ definition {
 		property portal.acceptance = "true";
 
 		var displayDateYear = DateUtil.getCurrentYear();
+
 		var futureYear = ${displayDateYear} + 1;
 		var pastYear = ${displayDateYear} - 1;
 		var displayFutureDate = "01/01/${futureYear}";
@@ -500,6 +503,7 @@ definition {
 		property portal.acceptance = "true";
 
 		var displayDateYear = DateUtil.getCurrentYear();
+
 		var futureYear = ${displayDateYear} + 1;
 
 		FormsAdmin.addForm();
@@ -613,7 +617,7 @@ definition {
 			fieldName = "Date",
 			fieldValue = "01-01-0010");
 
-		FormPortlet.submitLocalizedSuccessfully(buttonName = "Versturen");
+		FormPortlet.submitSuccessfully();
 
 		Navigator.openURL();
 
@@ -769,7 +773,7 @@ definition {
 			fieldName = "Date",
 			fieldValue = "01.01.0010");
 
-		FormPortlet.submitLocalizedSuccessfully(buttonName = "Lähetä");
+		FormPortlet.submitSuccessfully();
 
 		Navigator.openURL();
 
@@ -827,7 +831,7 @@ definition {
 			fieldName = "Date",
 			fieldValue = "01.01.0010");
 
-		FormPortlet.submitLocalizedSuccessfully(buttonName = "Senden");
+		FormPortlet.submitSuccessfully();
 
 		Navigator.openURL();
 
@@ -885,7 +889,7 @@ definition {
 			fieldName = "Date",
 			fieldValue = "0010.01.01.");
 
-		FormPortlet.submitLocalizedSuccessfully(buttonName = "Elküldés");
+		FormPortlet.submitSuccessfully();
 
 		Navigator.openURL();
 
@@ -943,7 +947,7 @@ definition {
 			fieldName = "Date",
 			fieldValue = "0010/01/01");
 
-		FormPortlet.submitLocalizedSuccessfully(buttonName = "送信");
+		FormPortlet.submitSuccessfully();
 
 		Navigator.openURL();
 
@@ -1001,7 +1005,7 @@ definition {
 			fieldName = "Date",
 			fieldValue = "01/01/0001");
 
-		FormPortlet.submitLocalizedSuccessfully(buttonName = "Submeter");
+		FormPortlet.submitSuccessfully();
 
 		Navigator.openURL();
 
@@ -1059,7 +1063,7 @@ definition {
 			fieldName = "Date",
 			fieldValue = "0010-01-01");
 
-		FormPortlet.submitLocalizedSuccessfully(buttonName = "Skicka");
+		FormPortlet.submitSuccessfully();
 
 		Navigator.openURL();
 
@@ -1122,7 +1126,7 @@ definition {
 			fieldName = "Date",
 			fieldValue = "01/01/0010");
 
-		FormPortlet.submitLocalizedSuccessfully(buttonName = "Submeter");
+		FormPortlet.submitSuccessfully();
 
 		Navigator.openURL();
 
@@ -1311,7 +1315,9 @@ definition {
 		property portal.acceptance = "true";
 
 		var displayDateYear = DateUtil.getCurrentYear();
+
 		var futureYear = ${displayDateYear} + 1;
+
 		var displayFutureDate = "01/01/${futureYear}";
 
 		FormsAdmin.addForm();
@@ -1369,6 +1375,7 @@ definition {
 		property portal.acceptance = "true";
 
 		var displayDateYear = DateUtil.getCurrentYear();
+
 		var futureYear = ${displayDateYear} + 1;
 		var pastYear = ${displayDateYear} - 1;
 
@@ -1446,7 +1453,7 @@ definition {
 			fieldName = "Date",
 			fieldValue = "01/01/${futureYear}");
 
-		FormPortlet.submitLocalizedSuccessfully(buttonName = "Submeter");
+		FormPortlet.submitSuccessfully();
 	}
 
 	@description = "Verify if that with date validation in the datefield the error message appears correctly on forms"
@@ -1495,8 +1502,10 @@ definition {
 		property portal.acceptance = "true";
 
 		var displayDateYear = DateUtil.getCurrentYear();
+
 		var futureYear = ${displayDateYear} + 1;
 		var pastYear = ${displayDateYear} - 1;
+
 		var displayPastDate = "01/01/${pastYear}";
 		var displayFutureDate = "01/01/${futureYear}";
 

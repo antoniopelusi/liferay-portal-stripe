@@ -14,11 +14,16 @@
 
 package com.liferay.on.demand.admin.web.internal.portlet;
 
-import com.liferay.on.demand.admin.web.internal.constants.OnDemandAdminPortletKeys;
+import com.liferay.on.demand.admin.constants.OnDemandAdminPortletKeys;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.Portlet;
+import com.liferay.portal.kernel.portlet.BaseControlPanelEntry;
 import com.liferay.portal.kernel.portlet.ControlPanelEntry;
-import com.liferay.portal.kernel.portlet.OmniadminControlPanelEntry;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.util.Portal;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Pei-Jung Lan
@@ -28,5 +33,22 @@ import org.osgi.service.component.annotations.Component;
 	property = "javax.portlet.name=" + OnDemandAdminPortletKeys.ON_DEMAND_ADMIN,
 	service = ControlPanelEntry.class
 )
-public class OnDemandAdminControlPanelEntry extends OmniadminControlPanelEntry {
+public class OnDemandAdminControlPanelEntry extends BaseControlPanelEntry {
+
+	@Override
+	protected boolean hasAccessPermissionDenied(
+			PermissionChecker permissionChecker, Group group, Portlet portlet)
+		throws Exception {
+
+		if (permissionChecker.getCompanyId() != _portal.getDefaultCompanyId()) {
+			return true;
+		}
+
+		return super.hasAccessPermissionDenied(
+			permissionChecker, group, portlet);
+	}
+
+	@Reference
+	private Portal _portal;
+
 }

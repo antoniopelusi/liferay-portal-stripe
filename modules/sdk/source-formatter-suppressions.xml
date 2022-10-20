@@ -37,7 +37,7 @@
 		<suppress checks="JavaPackagePathCheck" files=".*/foo-api/.*" />
 		<suppress checks="JavaPackagePathCheck" files=".*/gradleTest/.*" />
 		<suppress checks="JavaPackagePathCheck" files="project-templates/project-templates-api/src/test/java.*" />
-		<suppress checks="JavaStaticMethodCheck" files="gradle-plugins-node/src/main/java/com/liferay/gradle/plugins/node/tasks/NpmInstallTask\.java" />
+		<suppress checks="JavaStaticMethodCheck" files="gradle-plugins-node/src/main/java/com/liferay/gradle/plugins/node/task/NpmInstallTask\.java" />
 		<suppress checks="JavaTermOrderCheck" files="gradle-plugins-source-formatter/src/gradleTest/smoke/src/main/java/com/liferay/sample/GreetingBuilder\.java" />
 		<suppress checks="JavaTestMethodAnnotationsCheck" files="project-templates/project-templates/src/test/java/com/liferay/project/templates/BaseProjectTemplatesTestCase\.java" />
 		<suppress checks="JavaXMLSecurityCheck" files="ant-bnd/src/main/java/com/liferay/ant/bnd/jsp/JspAnalyzerPlugin\.java" />
@@ -45,7 +45,7 @@
 		<suppress checks="JavaXMLSecurityCheck" files="ant-bnd/src/main/java/com/liferay/ant/bnd/social/SocialAnalyzerPlugin\.java" />
 		<suppress checks="JavaXMLSecurityCheck" files="gradle-plugins-defaults/src/main/java/com/liferay/gradle/plugins/defaults/internal/util/XMLUtil\.java" />
 		<suppress checks="JavaXMLSecurityCheck" files="gradle-plugins-maven-plugin-builder/src/main/java/com/liferay/gradle/plugins/maven/plugin/builder/internal/util/XMLUtil\.java" />
-		<suppress checks="JavaXMLSecurityCheck" files="gradle-plugins-maven-plugin-builder/src/main/java/com/liferay/gradle/plugins/maven/plugin/builder/tasks/BuildPluginDescriptorTask\.java" />
+		<suppress checks="JavaXMLSecurityCheck" files="gradle-plugins-maven-plugin-builder/src/main/java/com/liferay/gradle/plugins/maven/plugin/builder/task/BuildPluginDescriptorTask\.java" />
 		<suppress checks="JavaXMLSecurityCheck" files="gradle-plugins-tlddoc-builder/src/main/java/com/liferay/gradle/plugins/tlddoc/builder/internal/util/TLDUtil\.java" />
 		<suppress checks="JSONPackageJSONRedundantDependenciesCheck" files="project-templates/.*" />
 		<suppress checks="JSONValidationCheck" files="project-templates/.*" />

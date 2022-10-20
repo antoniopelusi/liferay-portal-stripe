@@ -15,8 +15,10 @@
 import {
 	addParams,
 	navigate,
+	openConfirmModal,
 	openModal,
 	openSelectionModal,
+	sub,
 } from 'frontend-js-web';
 
 import {collectDigitalSignature} from './digital-signature/DigitalSignatureUtil';
@@ -28,6 +30,7 @@ export default function propsTransformer({
 		editEntryURL,
 		folderConfiguration,
 		openViewMoreFileEntryTypesURL,
+		permissionsURL,
 		selectFileEntryTypeURL,
 		selectFolderURL,
 		trashEnabled,
@@ -109,22 +112,21 @@ export default function propsTransformer({
 	};
 
 	const deleteEntries = () => {
-		let action;
-
 		if (trashEnabled) {
-			action = 'move_to_trash';
+			processAction('move_to_trash', editEntryURL);
 		}
-		else if (
-			confirm(
-				Liferay.Language.get(
+		else {
+			openConfirmModal({
+				message: Liferay.Language.get(
 					'are-you-sure-you-want-to-delete-the-selected-entries'
-				)
-			)
-		) {
-			action = 'delete';
+				),
+				onConfirm: (isConfirmed) => {
+					if (isConfirmed) {
+						processAction('delete', editEntryURL);
+					}
+				},
+			});
 		}
-
-		processAction(action, editEntryURL);
 	};
 
 	const editCategories = () => {
@@ -226,8 +228,26 @@ export default function propsTransformer({
 			},
 			selectEventName: `${portletNamespace}selectFolder`,
 			size: 'lg',
-			title: Liferay.Util.sub(dialogTitle, [selectedItems]),
+			title: sub(dialogTitle, [selectedItems]),
 			url: selectFolderURL,
+		});
+	};
+
+	const permissions = () => {
+		const keys = getAllSelectedElements().get('value');
+
+		const url = new URL(permissionsURL);
+
+		openSelectionModal({
+			title: Liferay.Language.get('permissions'),
+			url: addParams(
+				{
+					[`_${url.searchParams.get(
+						'p_p_id'
+					)}_resourcePrimKey`]: keys.join(','),
+				},
+				permissionsURL
+			),
 		});
 	};
 
@@ -262,6 +282,9 @@ export default function propsTransformer({
 			}
 			else if (action === 'move') {
 				move();
+			}
+			else if (action === 'permissions') {
+				permissions();
 			}
 		},
 		onFilterDropdownItemClick(event, {item}) {

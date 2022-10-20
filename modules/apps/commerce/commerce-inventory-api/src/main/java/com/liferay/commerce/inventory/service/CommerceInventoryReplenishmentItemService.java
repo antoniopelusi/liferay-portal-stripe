@@ -20,7 +20,6 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebService;
 import com.liferay.portal.kernel.security.access.control.AccessControlled;
 import com.liferay.portal.kernel.service.BaseService;
-import com.liferay.portal.kernel.spring.osgi.OSGiBeanProperties;
 import com.liferay.portal.kernel.transaction.Isolation;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
@@ -41,13 +40,6 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @AccessControlled
 @JSONWebService
-@OSGiBeanProperties(
-	property = {
-		"json.web.service.context.name=commerce",
-		"json.web.service.context.path=CommerceInventoryReplenishmentItem"
-	},
-	service = CommerceInventoryReplenishmentItemService.class
-)
 @ProviderType
 @Transactional(
 	isolation = Isolation.PORTAL,
@@ -62,8 +54,8 @@ public interface CommerceInventoryReplenishmentItemService extends BaseService {
 	 */
 	public CommerceInventoryReplenishmentItem
 			addCommerceInventoryReplenishmentItem(
-				long commerceInventoryWarehouseId, String sku,
-				Date availabilityDate, int quantity)
+				String externalReferenceCode, long commerceInventoryWarehouseId,
+				String sku, Date availabilityDate, int quantity)
 		throws PortalException;
 
 	public void deleteCommerceInventoryReplenishmentItem(
@@ -72,8 +64,20 @@ public interface CommerceInventoryReplenishmentItemService extends BaseService {
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public CommerceInventoryReplenishmentItem
+			fetchCommerceInventoryReplenishmentItemByExternalReferenceCode(
+				String externalReferenceCode, long companyId)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public CommerceInventoryReplenishmentItem
 			getCommerceInventoryReplenishmentItem(
 				long commerceInventoryReplenishmentItemId)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<CommerceInventoryReplenishmentItem>
+			getCommerceInventoryReplenishmentItemsByCommerceInventoryWarehouseId(
+				long commerceInventoryWarehouseId, int start, int end)
 		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -85,6 +89,12 @@ public interface CommerceInventoryReplenishmentItemService extends BaseService {
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public long getCommerceInventoryReplenishmentItemsCount(
 			long commerceInventoryWarehouseId, String sku)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int
+			getCommerceInventoryReplenishmentItemsCountByCommerceInventoryWarehouseId(
+				long commerceInventoryWarehouseId)
 		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -101,6 +111,7 @@ public interface CommerceInventoryReplenishmentItemService extends BaseService {
 
 	public CommerceInventoryReplenishmentItem
 			updateCommerceInventoryReplenishmentItem(
+				String externalReferenceCode,
 				long commerceInventoryReplenishmentItemId,
 				Date availabilityDate, int quantity, long mvccVersion)
 		throws PortalException;

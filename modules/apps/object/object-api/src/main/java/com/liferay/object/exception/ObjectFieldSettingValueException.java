@@ -68,6 +68,15 @@ public class ObjectFieldSettingValueException extends PortalException {
 
 	}
 
+	public static class MustBeLessThan256Characters
+		extends ObjectFieldSettingValueException {
+
+		public MustBeLessThan256Characters() {
+			super("Storage folder path must be less than 256 characters");
+		}
+
+	}
+
 	private ObjectFieldSettingValueException(String msg) {
 		super(msg);
 	}

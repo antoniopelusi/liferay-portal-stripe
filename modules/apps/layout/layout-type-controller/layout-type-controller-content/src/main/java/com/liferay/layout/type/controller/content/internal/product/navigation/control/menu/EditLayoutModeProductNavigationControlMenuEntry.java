@@ -21,7 +21,7 @@ import com.liferay.layout.security.permission.resource.LayoutContentModelResourc
 import com.liferay.layout.util.LayoutCopyHelper;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Layout;
@@ -44,7 +44,7 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.product.navigation.control.menu.BaseProductNavigationControlMenuEntry;
 import com.liferay.product.navigation.control.menu.ProductNavigationControlMenuEntry;
 import com.liferay.product.navigation.control.menu.constants.ProductNavigationControlMenuCategoryKeys;
-import com.liferay.sites.kernel.util.SitesUtil;
+import com.liferay.sites.kernel.util.Sites;
 import com.liferay.staging.StagingGroupHelper;
 
 import java.util.Collections;
@@ -83,7 +83,7 @@ public class EditLayoutModeProductNavigationControlMenuEntry
 
 	@Override
 	public String getLabel(Locale locale) {
-		return LanguageUtil.get(locale, "edit");
+		return _language.get(locale, "edit");
 	}
 
 	@Override
@@ -192,7 +192,7 @@ public class EditLayoutModeProductNavigationControlMenuEntry
 
 		if (Objects.equals(
 				className, LayoutPageTemplateEntry.class.getName()) ||
-			!layout.isTypeContent() || !SitesUtil.isLayoutUpdateable(layout)) {
+			!layout.isTypeContent() || !_sites.isLayoutUpdateable(layout)) {
 
 			return false;
 		}
@@ -201,12 +201,8 @@ public class EditLayoutModeProductNavigationControlMenuEntry
 			layout = _layoutLocalService.getLayout(layout.getClassPK());
 		}
 
-		if (_layoutPermission.contains(
-				themeDisplay.getPermissionChecker(), layout,
-				ActionKeys.UPDATE) ||
-			_layoutPermission.contains(
-				themeDisplay.getPermissionChecker(), layout,
-				ActionKeys.UPDATE_LAYOUT_CONTENT) ||
+		if (_layoutPermission.containsLayoutUpdatePermission(
+				themeDisplay.getPermissionChecker(), layout) ||
 			_modelResourcePermission.contains(
 				themeDisplay.getPermissionChecker(), layout.getPlid(),
 				ActionKeys.UPDATE)) {
@@ -244,6 +240,9 @@ public class EditLayoutModeProductNavigationControlMenuEntry
 		EditLayoutModeProductNavigationControlMenuEntry.class);
 
 	@Reference
+	private Language _language;
+
+	@Reference
 	private LayoutCopyHelper _layoutCopyHelper;
 
 	@Reference
@@ -260,6 +259,9 @@ public class EditLayoutModeProductNavigationControlMenuEntry
 
 	@Reference
 	private Portal _portal;
+
+	@Reference
+	private Sites _sites;
 
 	@Reference
 	private StagingGroupHelper _stagingGroupHelper;

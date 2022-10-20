@@ -59,6 +59,12 @@ public interface SelectionResource {
 			return new SelectionResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -104,6 +110,7 @@ public interface SelectionResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -192,7 +199,8 @@ public interface SelectionResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port + "/o/bulk/v1.0/bulk-selection");
+					_builder._port + _builder._contextPath +
+						"/o/bulk/v1.0/bulk-selection");
 
 			httpInvoker.userNameAndPassword(
 				_builder._login + ":" + _builder._password);

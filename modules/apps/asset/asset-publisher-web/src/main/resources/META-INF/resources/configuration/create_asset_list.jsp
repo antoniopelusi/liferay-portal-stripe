@@ -21,7 +21,7 @@ String portletResource = ParamUtil.getString(request, "portletResource");
 %>
 
 <div class="mb-2">
-	<aui:a cssClass="create-collection-link" href="javascript:;">
+	<aui:a cssClass="create-collection-link" href="javascript:void(0);">
 		<liferay-ui:message key="create-a-collection-from-this-configuration" />
 	</aui:a>
 </div>
@@ -39,7 +39,7 @@ String portletResource = ParamUtil.getString(request, "portletResource");
 			mainFieldPlaceholder: '<liferay-ui:message key="title" />',
 			namespace:
 				'<%= PortalUtil.getPortletNamespace(HtmlUtil.escape(portletResource)) %>',
-			spritemap: '<%= themeDisplay.getPathThemeImages() %>/clay/icons.svg',
+			spritemap: '<%= FrontendIconsUtil.getSpritemap(themeDisplay) %>',
 		});
 	}
 

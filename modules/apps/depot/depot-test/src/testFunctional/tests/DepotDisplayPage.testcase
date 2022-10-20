@@ -35,6 +35,8 @@ definition {
 	@description = "This test ensures that an asset library custom document entry can be displayed with the default display page template on a connected site."
 	@priority = "5"
 	test CanViewDepotDMUsingDepotType {
+		property portal.upstream = "true";
+
 		JSONLayout.addPublicLayout(
 			groupName = "Test Site Name",
 			layoutName = "Test Page Name");
@@ -94,7 +96,7 @@ definition {
 			locator1 = "Select#GENERIC_SELECT_FIELD",
 			value1 = "Text");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
 
@@ -111,7 +113,7 @@ definition {
 			pageName = "Test Page Name",
 			siteName = "Test Site Name");
 
-		AssetPublisherPortlet.configureAddSiteScopes(depotName = "Test Depot Name");
+		AssetPublisherPortlet.configureScope(depotName = "Test Depot Name");
 
 		Navigator.gotoSitePage(
 			pageName = "Test Page Name",
@@ -127,6 +129,8 @@ definition {
 	@description = "This test ensures that an asset library document entry created with a type stored in the global site can be displayed with the default display page template on the generic site."
 	@priority = "5"
 	test CanViewDepotDMUsingGlobalType {
+		property portal.upstream = "true";
+
 		JSONLayout.addPublicLayout(
 			groupName = "Test Site Name",
 			layoutName = "Test Page Name");
@@ -181,7 +185,7 @@ definition {
 			locator1 = "Select#GENERIC_SELECT_FIELD",
 			value1 = "Text");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
 
@@ -198,7 +202,7 @@ definition {
 			pageName = "Test Page Name",
 			siteName = "Test Site Name");
 
-		AssetPublisherPortlet.configureAddSiteScopes(depotName = "Test Depot Name");
+		AssetPublisherPortlet.configureScope(depotName = "Test Depot Name");
 
 		Navigator.gotoSitePage(
 			pageName = "Test Page Name",
@@ -278,7 +282,7 @@ definition {
 			locator1 = "Select#GENERIC_SELECT_FIELD",
 			value1 = "Text");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
 
@@ -296,7 +300,7 @@ definition {
 			pageName = "Test Page Name",
 			siteName = "Test Site Name");
 
-		AssetPublisherPortlet.configureAddSiteScopes(depotName = "Test Depot Name");
+		AssetPublisherPortlet.configureScope(depotName = "Test Depot Name");
 
 		Navigator.gotoSitePage(
 			pageName = "Test Page Name",
@@ -370,7 +374,7 @@ definition {
 			locator1 = "Select#GENERIC_SELECT_FIELD",
 			value1 = "Text");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
 
@@ -388,7 +392,7 @@ definition {
 			pageName = "Test Page Name",
 			siteName = "Test Site Name");
 
-		AssetPublisherPortlet.configureAddSiteScopes(depotName = "Test Depot Name");
+		AssetPublisherPortlet.configureScope(depotName = "Test Depot Name");
 
 		Navigator.gotoSitePage(
 			pageName = "Test Page Name",
@@ -462,7 +466,7 @@ definition {
 			locator1 = "Select#GENERIC_SELECT_FIELD",
 			value1 = "Text");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
 
@@ -479,7 +483,7 @@ definition {
 			pageName = "Test Page Name",
 			siteName = "Test Site Name");
 
-		AssetPublisherPortlet.configureAddSiteScopes(depotName = "Test Depot Name");
+		AssetPublisherPortlet.configureScope(depotName = "Test Depot Name");
 
 		Navigator.gotoSitePage(
 			pageName = "Test Page Name",
@@ -559,7 +563,7 @@ definition {
 			locator1 = "Select#GENERIC_SELECT_FIELD",
 			value1 = "Text");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
 
@@ -691,7 +695,6 @@ definition {
 		var dmFileEntryId = JSONDocument.getFileEntryId(
 			dmDocumentTitle = "Document_1.jpg",
 			groupName = "Test Site Name");
-
 		var siteId = JSONGroupAPI._getGroupIdByName(
 			groupName = "Test Site Name",
 			site = "true");
@@ -853,6 +856,7 @@ definition {
 		Button.clickSave();
 
 		var mappedFieldValue = StringUtil.add("Title is Text: ${", "${textNumber}:Text", "");
+
 		var mappedFieldValue = StringUtil.add("${mappedFieldValue}", "}", "");
 
 		OpenGraph.viewMappedField(
@@ -860,6 +864,7 @@ definition {
 			mappedFieldValue = "${mappedFieldValue}");
 
 		var mappedFieldValue = StringUtil.add("Description is Text: ${", "${textNumber}:Text", "");
+
 		var mappedFieldValue = StringUtil.add("${mappedFieldValue}", "}", "");
 
 		OpenGraph.viewMappedField(
@@ -871,6 +876,7 @@ definition {
 			mappedFieldValue = "WC Structure Name: Small Image");
 
 		var mappedFieldValue = StringUtil.add("Image Alt is Text: ${", "${textNumber}:Text", "");
+
 		var mappedFieldValue = StringUtil.add("${mappedFieldValue}", "}", "");
 
 		OpenGraph.viewMappedField(
@@ -976,6 +982,7 @@ definition {
 		Button.clickSave();
 
 		var mappedFieldValue = StringUtil.add("HTML Title is Text: ${", "${textNumber}:Text", "");
+
 		var mappedFieldValue = StringUtil.add("${mappedFieldValue}", "}", "");
 
 		OpenGraph.viewMappedField(
@@ -983,6 +990,7 @@ definition {
 			mappedFieldValue = "${mappedFieldValue}");
 
 		var mappedFieldValue = StringUtil.add("Description is Text: ${", "${textNumber}:Text", "");
+
 		var mappedFieldValue = StringUtil.add("${mappedFieldValue}", "}", "");
 
 		OpenGraph.viewMappedField(

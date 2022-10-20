@@ -10,6 +10,7 @@
 
 	<var static="true" name="userPassword" value="password"/>
 	<var name="userScreenName" value="joeblogs" />
+	<var static="true" name="integer" method="MathUtil#difference('${endYear}', '${numberOfYears}')"/>
 
 	<set-up>
 		<execute macro="TestCase#setUpPortalInstance" />
@@ -347,7 +348,9 @@
 		</while>
 
 		<while max-iterations="16">
-			<condition function="IsElementPresent" locator1="AssetCategorization#TAGS_REMOVE_ICON_GENERIC" />
+		    <and>
+			    <condition function="IsElementPresent" locator1="AssetCategorization#TAGS_REMOVE_ICON_GENERIC" />
+			</and>
 			<then>
 				<execute function="Click" locator1="AssetCategorization#TAGS_REMOVE_ICON_GENERIC" />
 			</then>

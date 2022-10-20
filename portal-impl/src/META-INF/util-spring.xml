@@ -85,10 +85,6 @@
 	<bean class="com.liferay.portal.kernel.json.JSONFactoryUtil" id="com.liferay.portal.kernel.json.JSONFactoryUtil">
 		<property name="JSONFactory" ref="com.liferay.portal.kernel.json.JSONFactory" />
 	</bean>
-	<bean class="com.liferay.portal.jsonwebservice.JSONWebServiceActionsManagerImpl" id="com.liferay.portal.kernel.jsonwebservice.JSONWebServiceActionsManager" />
-	<bean class="com.liferay.portal.kernel.jsonwebservice.JSONWebServiceActionsManagerUtil" id="com.liferay.portal.kernel.jsonwebservice.JSONWebServiceActionsManagerUtil">
-		<property name="JSONWebServiceActionsManager" ref="com.liferay.portal.kernel.jsonwebservice.JSONWebServiceActionsManager" />
-	</bean>
 	<bean class="com.liferay.portal.kernel.language.LanguageUtil" id="com.liferay.portal.kernel.language.LanguageUtil">
 		<property name="language" ref="com.liferay.portal.language.LanguageImpl" />
 	</bean>
@@ -240,17 +236,9 @@
 	<bean class="com.liferay.portal.kernel.util.HtmlUtil" id="com.liferay.portal.kernel.util.HtmlUtil">
 		<property name="html" ref="com.liferay.portal.util.HtmlImpl" />
 	</bean>
-	<bean class="com.liferay.portal.kernel.util.HttpUtil" id="com.liferay.portal.kernel.util.HttpUtil">
-		<property name="http" ref="com.liferay.portal.util.HttpImpl" />
-	</bean>
 	<bean class="com.liferay.portal.kernel.util.LocalizationUtil" id="com.liferay.portal.kernel.util.LocalizationUtil">
 		<property name="localization">
 			<bean class="com.liferay.portal.util.LocalizationImpl" />
-		</property>
-	</bean>
-	<bean class="com.liferay.portal.kernel.util.MethodParametersResolverUtil" id="com.liferay.portal.kernel.util.MethodParametersResolverUtil">
-		<property name="methodParametersResolver">
-			<bean class="com.liferay.portal.util.MethodParametersResolverImpl" />
 		</property>
 	</bean>
 	<bean class="com.liferay.portal.kernel.util.PortalUtil" id="com.liferay.portal.kernel.util.PortalUtil">
@@ -320,16 +308,22 @@
 	<bean class="com.liferay.portal.template.DDMTemplateResourceParser" id="com.liferay.portal.template.DDMTemplateResourceParser" />
 	<bean class="com.liferay.portal.template.ThemeResourceParser" id="com.liferay.portal.template.ThemeResourceParser" />
 	<bean class="com.liferay.portal.util.HtmlImpl" id="com.liferay.portal.util.HtmlImpl" />
-	<bean class="com.liferay.portal.util.HttpImpl" id="com.liferay.portal.util.HttpImpl" />
 	<bean class="com.liferay.portal.util.PortalImpl" id="com.liferay.portal.util.Portal" />
-	<bean class="com.liferay.portal.verify.model.AssetTagVerifiableModel" />
+
+	<!--
+	The classes in com.liferay.portal.verify.model.* are loaded dynamically by
+	VerifyAuditedModel#doVerify and VerifyResourcePermissions#doVerify
+	-->
+
 	<bean class="com.liferay.portal.verify.model.GroupVerifiableResourcedModel" />
-	<bean class="com.liferay.portal.verify.model.LayoutBranchVerifiableModel" />
+	<bean class="com.liferay.portal.verify.model.LayoutBranchVerifiableResourcedModel" />
+	<bean class="com.liferay.portal.verify.model.LayoutFriendlyURLVerifiableAuditedModel" />
 	<bean class="com.liferay.portal.verify.model.LayoutPrototypeVerifiableModel" />
 	<bean class="com.liferay.portal.verify.model.LayoutSetPrototypeVerifiableModel" />
-	<bean class="com.liferay.portal.verify.model.RatingsEntryVerifiableModel" />
+	<bean class="com.liferay.portal.verify.model.LayoutVerifiableAuditedModel" />
+	<bean class="com.liferay.portal.verify.model.OrganizationVerifiableModel" />
+	<bean class="com.liferay.portal.verify.model.RepositoryEntryVerifiableAuditedModel" />
 	<bean class="com.liferay.portal.verify.model.RoleVerifiableModel" />
-	<bean class="com.liferay.portal.verify.model.TeamVerifiableModel" />
 	<bean class="com.liferay.portal.verify.model.UserGroupVerifiableModel" />
 	<bean class="com.liferay.portal.workflow.LayoutRevisionWorkflowHandler" id="com.liferay.portal.workflow.LayoutRevisionWorkflowHandler" />
 	<bean class="com.liferay.portal.workflow.UserWorkflowHandler" id="com.liferay.portal.workflow.UserWorkflowHandler" />
@@ -367,10 +361,6 @@
 	<bean class="com.liferay.portlet.social.util.SocialRelationTypesImpl" id="com.liferay.social.kernel.util.SocialRelationTypes" />
 	<bean class="com.liferay.social.kernel.util.SocialRelationTypesUtil" id="com.liferay.social.kernel.util.SocialRelationTypesUtil">
 		<property name="socialRelationTypes" ref="com.liferay.social.kernel.util.SocialRelationTypes" />
-	</bean>
-	<bean class="com.liferay.portlet.trash.util.TrashImpl" id="com.liferay.trash.kernel.util.Trash" />
-	<bean class="com.liferay.trash.kernel.util.TrashUtil" id="com.liferay.trash.kernel.util.TrashUtil">
-		<property name="trash" ref="com.liferay.trash.kernel.util.Trash" />
 	</bean>
 	<bean class="com.liferay.portlet.usersadmin.util.UsersAdminImpl" id="com.liferay.users.admin.kernel.util.UsersAdmin" />
 	<bean class="com.liferay.users.admin.kernel.util.UsersAdminUtil" id="com.liferay.users.admin.kernel.util.UsersAdminUtil">

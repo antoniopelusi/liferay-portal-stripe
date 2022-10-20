@@ -61,7 +61,6 @@ import com.liferay.portal.kernel.util.Validator;
 import java.net.URLEncoder;
 
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
@@ -185,16 +184,14 @@ public class PunchOutSessionResourceImpl
 			businessCommerceAccount, buyerGroup, buyerLiferayUser,
 			commerceChannel, editCartCommerceOrder, punchOutSession);
 
-		HashMap<String, Object> punchOutSessionAttributes =
-			_punchOutSessionContributor.getPunchOutSessionAttributes(
-				punchOutContext);
-
 		PunchOutAccessToken punchOutAccessToken =
 			_punchOutAccessTokenProvider.generatePunchOutAccessToken(
 				buyerGroup.getGroupId(),
 				businessCommerceAccount.getCommerceAccountId(),
 				cart.getCurrencyCode(), buyerLiferayUser.getEmailAddress(),
-				commerceOrderUuid, punchOutSessionAttributes);
+				commerceOrderUuid,
+				_punchOutSessionContributor.getPunchOutSessionAttributes(
+					punchOutContext));
 
 		String tokenString = Base64.encodeToURL(punchOutAccessToken.getToken());
 
@@ -238,7 +235,6 @@ public class PunchOutSessionResourceImpl
 		String password2 = StringPool.BLANK;
 		boolean autoScreenName = true;
 		String screenName = StringPool.BLANK;
-		String openId = StringPool.BLANK;
 		Locale locale = LocaleUtil.getDefault();
 		long prefixId = 0;
 		long suffixId = 0;
@@ -253,10 +249,10 @@ public class PunchOutSessionResourceImpl
 
 		com.liferay.portal.kernel.model.User user = _userLocalService.addUser(
 			creatorUserId, companyId, autoPassword, password1, password2,
-			autoScreenName, screenName, email, 0, openId, locale, firstName,
-			middleName, lastName, prefixId, suffixId, false, birthdayMonth,
-			birthdayDay, birthdayYear, jobTitle, new long[] {groupId},
-			organizationIds, roleIds, userGroupIds, sendEmail,
+			autoScreenName, screenName, email, locale, firstName, middleName,
+			lastName, prefixId, suffixId, false, birthdayMonth, birthdayDay,
+			birthdayYear, jobTitle, new long[] {groupId}, organizationIds,
+			roleIds, userGroupIds, sendEmail,
 			_serviceContextHelper.getServiceContext(groupId));
 
 		user = _userLocalService.updateLastLogin(

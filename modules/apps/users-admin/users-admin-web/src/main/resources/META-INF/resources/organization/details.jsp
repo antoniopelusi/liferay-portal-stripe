@@ -114,26 +114,21 @@ if (organization != null) {
 	</clay:col>
 </clay:row>
 
-<script>
-	new Liferay.DynamicSelect([
-		{
-			select: '<portlet:namespace />countryId',
-			selectData: Liferay.Address.getCountries,
-			selectDesc: 'nameCurrentValue',
-			selectId: 'countryId',
-			selectSort: '<%= true %>',
-			selectVal: '<%= countryId %>',
-		},
-		{
-			select: '<portlet:namespace />regionId',
-			selectData: Liferay.Address.getRegions,
-			selectDesc: 'name',
-			selectDisableOnEmpty: true,
-			selectId: 'regionId',
-			selectVal: '<%= regionId %>',
-		},
-	]);
-</script>
+<liferay-frontend:component
+	componentId="CountryRegionDynamicSelect"
+	context='<%=
+		HashMapBuilder.<String, Object>put(
+			"countrySelect", portletDisplay.getNamespace() + "countryId"
+		).put(
+			"countrySelectVal", countryId
+		).put(
+			"regionSelect", portletDisplay.getNamespace() + "regionId"
+		).put(
+			"regionSelectVal", regionId
+		).build()
+	%>'
+	module="js/CountryRegionDynamicSelect"
+/>
 
 <c:if test="<%= organization == null %>">
 	<aui:script sandbox="<%= true %>">

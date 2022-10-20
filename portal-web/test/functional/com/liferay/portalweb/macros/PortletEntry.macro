@@ -54,7 +54,7 @@ definition {
 	}
 
 	macro clickMoveToRecycleBin {
-		MenuItem.click(menuItem = "Move to Recycle Bin");
+		MenuItem.click(menuItem = "Delete");
 	}
 
 	macro create {
@@ -156,7 +156,9 @@ definition {
 	}
 
 	macro save {
-		Button.clickSave();
+		Click(
+			key_text = "Save",
+			locator1 = "Button#ANY");
 
 		Alert.viewSuccessMessage();
 

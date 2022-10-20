@@ -6,6 +6,7 @@ definition {
 		var buildNumberCurl = '''
 				${portalURL}/api/jsonws/portal/get-build-number -H 'Authorization: Bearer ${accessToken}'
 			''';
+
 		var buildNumberOutput = JSONCurlUtil.post("${buildNumberCurl}");
 
 		if (!(contains("${buildNumberOutput}", "${portalBuild}"))) {
@@ -19,6 +20,7 @@ definition {
 		var portalVersionCurl = '''
 			${portalURL}/api/jsonws/portal/get-version -H 'Authorization: Bearer ${accessToken}'
 		''';
+
 		var portalVersionOutput = JSONCurlUtil.post("${portalVersionCurl}");
 
 		if (!(contains("${portalVersionOutput}", "${portalVersion}"))) {
@@ -170,6 +172,7 @@ definition {
 
 	macro getConfigFileContent {
 		var liferayHome = PropsUtil.get("liferay.home.dir.name");
+
 		var fileContent = FileUtil.read("${liferayHome}/osgi/configs/${configFileName}");
 
 		return "${fileContent}";
@@ -202,7 +205,10 @@ definition {
 
 		var output = JSONCurlUtil.post("${curl}");
 
-		if (contains("${output}", ""agreedToTermsOfUse":true") && contains("${output}", ""companyId":"${companyId}"")) {
+		var result1 = JSONUtil.getWithJSONPath("${output}", "$.agreedToTermsOfUse");
+		var result2 = JSONUtil.getWithJSONPath("${output}", "$.companyId");
+
+		if (("${result1}" == "true") && ("${result2}" == "${companyId}")) {
 			echo("Get current user successful.");
 		}
 		else {
@@ -224,12 +230,6 @@ definition {
 		Click(
 			key_itemName = "${configurationCategory}",
 			locator1 = "ListGroupItem#ITEM_TEXT");
-
-		var browserType = PropsUtil.get("browser.type");
-
-		if ("${browserType}" == "chrome") {
-			Pause(locator1 = "3000");
-		}
 
 		Click(
 			key_configurationName = "${configurationName}",
@@ -301,6 +301,20 @@ definition {
 			key_configurationName = "${configurationName}",
 			key_configurationScope = "${configurationScope}",
 			locator1 = "SystemSettings#SCOPED_CONFIGURATION_NAME");
+	}
+
+	macro viewInputText {
+		AssertTextEquals(
+			key_fieldLabel = "${fieldLabel}",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "${fieldValue}");
+	}
+
+	macro viewNumberInputText {
+		AssertTextEquals(
+			key_fieldLabel = "${fieldLabel}",
+			locator1 = "TextInput#GENERIC_NUMBER_INPUT",
+			value1 = "${fieldValue}");
 	}
 
 	macro viewSettingsText {

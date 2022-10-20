@@ -117,6 +117,12 @@ public interface DiscountOrderTypeResource {
 			return new DiscountOrderTypeResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -162,6 +168,7 @@ public interface DiscountOrderTypeResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -246,7 +253,7 @@ public interface DiscountOrderTypeResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-pricing/v2.0/discount-order-types/{discountOrderTypeId}");
 
 			httpInvoker.path("discountOrderTypeId", discountOrderTypeId);
@@ -325,7 +332,7 @@ public interface DiscountOrderTypeResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-pricing/v2.0/discount-order-types/batch");
 
 			httpInvoker.userNameAndPassword(
@@ -415,7 +422,7 @@ public interface DiscountOrderTypeResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-pricing/v2.0/discounts/by-externalReferenceCode/{externalReferenceCode}/discount-order-types");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -504,7 +511,7 @@ public interface DiscountOrderTypeResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-pricing/v2.0/discounts/by-externalReferenceCode/{externalReferenceCode}/discount-order-types");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -609,7 +616,7 @@ public interface DiscountOrderTypeResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-pricing/v2.0/discounts/{id}/discount-order-types");
 
 			httpInvoker.path("id", id);
@@ -695,7 +702,7 @@ public interface DiscountOrderTypeResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-pricing/v2.0/discounts/{id}/discount-order-types");
 
 			httpInvoker.path("id", id);
@@ -775,7 +782,7 @@ public interface DiscountOrderTypeResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-pricing/v2.0/discounts/discount-order-types/batch");
 
 			httpInvoker.path("id", id);

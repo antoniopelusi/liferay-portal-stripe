@@ -376,6 +376,48 @@
 	</entity>
 	<entity human-name="message boards stats user" local-service="true" name="MBStatsUser" remote-service="false">
 	</entity>
+	<entity human-name="message boards suspicious activity" local-service="true" name="MBSuspiciousActivity" remote-service="true" uuid="true">
+
+		<!-- PK fields -->
+
+		<column container-model="true" name="suspiciousActivityId" primary="true" type="long" />
+
+		<!-- Group instance -->
+
+		<column name="groupId" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" uad-anonymize-field-name="fullName" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="messageId" type="long" />
+		<column name="threadId" type="long" />
+		<column name="reason" type="String" />
+		<column name="validated" type="boolean" />
+
+		<!-- Finder methods -->
+
+		<finder name="MessageId" return-type="Collection">
+			<finder-column name="messageId" />
+		</finder>
+		<finder name="ThreadId" return-type="Collection">
+			<finder-column name="threadId" />
+		</finder>
+		<finder name="U_M" return-type="MBSuspiciousActivity">
+			<finder-column name="userId" />
+			<finder-column name="messageId" />
+		</finder>
+		<finder name="U_T" return-type="MBSuspiciousActivity">
+			<finder-column name="userId" />
+			<finder-column name="threadId" />
+		</finder>
+	</entity>
 	<entity human-name="message boards thread" local-service="true" name="MBThread" remote-service="true" trash-enabled="true" uuid="true">
 
 		<!-- PK fields -->

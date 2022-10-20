@@ -17,11 +17,12 @@ import {ClayCheckbox, ClayInput, ClayRadio, ClayRadioGroup} from '@clayui/form';
 import ClayIcon from '@clayui/icon';
 import ClayLabel from '@clayui/label';
 import ClayList from '@clayui/list';
-import ClayManagementToolbar from '@clayui/management-toolbar';
 import {ClayPaginationBarWithBasicItems} from '@clayui/pagination-bar';
 import ClaySticker from '@clayui/sticker';
 import ClayToolbar from '@clayui/toolbar';
 import {ClayTooltipProvider} from '@clayui/tooltip';
+import {ManagementToolbar} from 'frontend-js-components-web';
+import {sub} from 'frontend-js-web';
 import React, {useEffect, useState} from 'react';
 
 const DEFAULT_DELTA = 10;
@@ -74,7 +75,7 @@ function InstanceSelector({selected, setSelected, virtualInstances}) {
 	};
 
 	const _isSelectAllChecked = () =>
-		currentVirtualInstances.length > 0 &&
+		!!currentVirtualInstances.length &&
 		currentVirtualInstances
 			.slice(activePage * delta - delta, activePage * delta)
 			.every(({id}) => selected.includes(id));
@@ -102,18 +103,18 @@ function InstanceSelector({selected, setSelected, virtualInstances}) {
 
 	return (
 		<>
-			<ClayManagementToolbar>
-				<ClayManagementToolbar.ItemList>
-					<ClayManagementToolbar.Item>
+			<ManagementToolbar.Container>
+				<ManagementToolbar.ItemList>
+					<ManagementToolbar.Item>
 						<ClayCheckbox
 							aria-label={Liferay.Language.get('toggle')}
 							checked={_isSelectAllChecked()}
 							onChange={_handleToggleSelectAll}
 						/>
-					</ClayManagementToolbar.Item>
-				</ClayManagementToolbar.ItemList>
+					</ManagementToolbar.Item>
+				</ManagementToolbar.ItemList>
 
-				<ClayManagementToolbar.Search>
+				<ManagementToolbar.Search>
 					<ClayInput.Group>
 						<ClayInput.GroupItem>
 							<ClayInput
@@ -154,17 +155,17 @@ function InstanceSelector({selected, setSelected, virtualInstances}) {
 							</ClayInput.GroupInsetItem>
 						</ClayInput.GroupItem>
 					</ClayInput.Group>
-				</ClayManagementToolbar.Search>
-			</ClayManagementToolbar>
+				</ManagementToolbar.Search>
+			</ManagementToolbar.Container>
 
-			{selected.length > 0 && (
+			{!!selected.length && (
 				<ClayToolbar subnav={{displayType: 'primary'}}>
 					<ClayToolbar.Nav>
 						<ClayToolbar.Item expand>
 							<ClayToolbar.Section>
 								<span className="component-text text-truncate-inline">
 									<span className="text-truncate">
-										{Liferay.Util.sub(
+										{sub(
 											Liferay.Language.get(
 												'x-instances-selected'
 											),
@@ -235,7 +236,7 @@ function InstanceSelector({selected, setSelected, virtualInstances}) {
 										</ClayList.ItemTitle>
 
 										<ClayList.ItemText>
-											{Liferay.Util.sub(
+											{sub(
 												Liferay.Language.get(
 													'instance-id-x'
 												),
@@ -308,8 +309,8 @@ function ExecutionScope({
 
 			<ClayRadioGroup
 				name={`${portletNamespace}scope`}
-				onSelectedValueChange={(newScope) => setScope(newScope)}
-				selectedValue={scope}
+				onChange={(newScope) => setScope(newScope)}
+				value={scope}
 			>
 				<ClayRadio
 					label={Liferay.Language.get('all-instances')}

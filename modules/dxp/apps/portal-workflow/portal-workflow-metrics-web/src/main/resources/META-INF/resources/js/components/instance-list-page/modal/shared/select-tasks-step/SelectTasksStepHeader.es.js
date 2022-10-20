@@ -9,8 +9,8 @@
  * distribution rights of the Software.
  */
 
-import ClayManagementToolbar from '@clayui/management-toolbar';
 import {usePrevious} from '@liferay/frontend-js-react-web';
+import {ManagementToolbar} from 'frontend-js-components-web';
 import React, {useContext, useEffect} from 'react';
 
 import ResultsBar from '../../../../../shared/components/results-bar/ResultsBar.es';
@@ -68,24 +68,24 @@ function Header({items = [], instanceIds, totalCount, withoutUnassigned}) {
 	);
 
 	const allPageSelected =
-		items.length > 0 && items.length === selectedOnPage.length;
+		!!items.length && items.length === selectedOnPage.length;
 
 	const checkbox = {
 		checked: allPageSelected || selectAll,
 		indeterminate:
-			selectedOnPage.length > 0 && !allPageSelected && !selectAll,
+			!!selectedOnPage.length && !allPageSelected && !selectAll,
 	};
 
 	const remainingItems = items.filter(
 		(item) => !tasks.find(({id}) => item.id === id)
 	);
 
-	const toolbarActive = tasks.length > 0;
+	const toolbarActive = !!tasks.length;
 
 	useEffect(() => {
 		if (
 			selectAll &&
-			remainingItems.length > 0 &&
+			!!remainingItems.length &&
 			previousCount === totalCount
 		) {
 			setSelectTasks({selectAll, tasks: items});
@@ -137,11 +137,11 @@ function Header({items = [], instanceIds, totalCount, withoutUnassigned}) {
 			>
 				{!toolbarActive && (
 					<>
-						<ClayManagementToolbar.Item>
+						<ManagementToolbar.Item>
 							<strong className="ml-0 mr-0 navbar-text">
 								{Liferay.Language.get('filter-by')}
 							</strong>
-						</ClayManagementToolbar.Item>
+						</ManagementToolbar.Item>
 
 						<ProcessStepFilter
 							options={stepFilterOptions}
@@ -161,7 +161,7 @@ function Header({items = [], instanceIds, totalCount, withoutUnassigned}) {
 				)}
 			</ToolbarWithSelection>
 
-			{selectedFilters.length > 0 && (
+			{!!selectedFilters.length && (
 				<ResultsBar>
 					<ResultsBar.TotalCount totalCount={totalCount} />
 

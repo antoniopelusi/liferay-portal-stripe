@@ -1,0 +1,87 @@
+definition {
+
+	macro addHeaders {
+		Variables.assertDefined(parameterList = "${headerKey},${headerValue}");
+
+		Click(
+			locator1 = "Button#BUTTON_WITH_VALUE",
+			value = "Headers");
+
+		Type(
+			locator1 = "OpenAPI#HEADER_PARAMETER",
+			name = "key",
+			value1 = "${headerKey}");
+
+		Type(
+			locator1 = "OpenAPI#HEADER_PARAMETER",
+			name = "value",
+			value1 = "${headerValue}");
+
+		Button.clickSave();
+	}
+
+	macro executeAPIMethodWithParameters {
+		Variables.assertDefined(parameterList = "${service},${method},${parameter}");
+
+		Click(
+			locator1 = "OpenAPI#API_METHOD",
+			method = "${method}",
+			service = "${service}");
+
+		if ("${parameter}" == "siteId") {
+			if (!(isSet(groupName))) {
+				var groupName = "Guest";
+			}
+
+			var value = JSONGroupAPI._getGroupIdByNameNoSelenium(
+				groupName = "${groupName}",
+				site = "true");
+		}
+
+		Type(
+			locator1 = "OpenAPI#PARAMETER_UNDER_METHOD",
+			method = "${method}",
+			parameter = "${parameter}",
+			value1 = "${value}");
+
+		if (isSet(requestBody)) {
+			Type(
+				locator1 = "OpenAPI#REQUEST_BODY",
+				method = "${method}",
+				value1 = "${requestBody}");
+		}
+
+		Click(
+			locator1 = "Button#EXECUTE",
+			method = "${method}");
+	}
+
+	macro executeGraphqlQuery {
+		Click(
+			locator1 = "Button#BUTTON_WITH_VALUE",
+			value = "GraphQL");
+
+		AssertElementPresent.assertVisible(locator1 = "OpenAPI#GRAPHQL_EDITOR_LINE");
+
+		Click(
+			editor = "query-editor",
+			locator1 = "OpenAPI#GRAPHQL_EDITOR_LINE");
+
+		RobotType.robotTypeShortcut(locator1 = "Ctrl + a");
+
+		RobotType(locator1 = "${query}");
+
+		Click(
+			locator1 = "Button#BUTTON_WITH_VALUE",
+			value = "Execute Query (Ctrl-Enter)");
+	}
+
+	macro navigateToOpenAPI {
+		Variables.assertDefined(parameterList = "${api},${version}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		Navigator.openSpecificURL(url = "${portalURL}/o/api?endpoint=${portalURL}/o/${api}/${version}/openapi.json");
+	}
+
+}

@@ -12,7 +12,14 @@
  * details.
  */
 
-import {addParams, openModal, openSelectionModal} from 'frontend-js-web';
+import {
+	addParams,
+	openConfirmModal,
+	openModal,
+	openSelectionModal,
+} from 'frontend-js-web';
+
+import openDeleteArticleModal from './modals/openDeleteArticleModal';
 
 const ACTIONS = {
 	compareVersions({itemData, portletNamespace}) {
@@ -42,19 +49,17 @@ const ACTIONS = {
 	},
 
 	delete({itemData, trashEnabled}) {
-		let message = Liferay.Language.get(
-			'are-you-sure-you-want-to-delete-this'
-		);
-
 		if (trashEnabled) {
-			message = Liferay.Language.get(
-				'are-you-sure-you-want-to-move-this-to-the-recycle-bin'
-			);
+			this.send(itemData.deleteURL);
+
+			return;
 		}
 
-		if (confirm(message)) {
-			this.send(itemData.deleteURL);
-		}
+		openDeleteArticleModal({
+			onDelete: () => {
+				this.send(itemData.deleteURL);
+			},
+		});
 	},
 
 	deleteArticleTranslations({itemData, portletNamespace}) {
@@ -63,28 +68,34 @@ const ACTIONS = {
 			multiple: true,
 			onSelect: (selectedItems) => {
 				if (selectedItems?.length) {
-					if (
-						confirm(
-							Liferay.Language.get(
-								'are-you-sure-you-want-to-delete-the-selected-entries'
-							)
-						)
-					) {
-						const form = document.hrefFm;
+					openConfirmModal({
+						message: Liferay.Language.get(
+							'are-you-sure-you-want-to-delete-the-selected-entries'
+						),
+						onConfirm: (isConfirmed) => {
+							if (isConfirmed) {
+								const form = document.hrefFm;
 
-						if (!form) {
-							return;
-						}
+								if (!form) {
+									return;
+								}
 
-						const input = document.createElement('input');
+								const input = document.createElement('input');
 
-						input.name = `${portletNamespace}rowIds`;
-						input.value = selectedItems.map((item) => item.value);
+								input.name = `${portletNamespace}rowIds`;
+								input.value = selectedItems.map(
+									(item) => item.value
+								);
 
-						form.appendChild(input);
+								form.appendChild(input);
 
-						submitForm(form, itemData.deleteArticleTranslationsURL);
-					}
+								submitForm(
+									form,
+									itemData.deleteArticleTranslationsURL
+								);
+							}
+						},
+					});
 				}
 			},
 			title: Liferay.Language.get('delete-translations'),
@@ -116,27 +127,23 @@ const ACTIONS = {
 	},
 
 	publishArticleToLive({itemData}) {
-		if (
-			confirm(
-				Liferay.Language.get(
-					'are-you-sure-you-want-to-publish-the-selected-web-content'
-				)
-			)
-		) {
-			this.send(itemData.publishArticleURL);
-		}
+		openConfirmModal({
+			message: Liferay.Language.get(
+				'are-you-sure-you-want-to-publish-the-selected-web-content'
+			),
+			onConfirm: (isConfirmed) =>
+				isConfirmed && this.send(itemData.publishArticleURL),
+		});
 	},
 
 	publishFolderToLive({itemData}) {
-		if (
-			confirm(
-				Liferay.Language.get(
-					'are-you-sure-you-want-to-publish-the-selected-folder'
-				)
-			)
-		) {
-			this.send(itemData.publishFolderURL);
-		}
+		openConfirmModal({
+			message: Liferay.Language.get(
+				'are-you-sure-you-want-to-publish-the-selected-folder'
+			),
+			onConfirm: (isConfirmed) =>
+				isConfirmed && this.send(itemData.publishFolderURL),
+		});
 	},
 
 	send(url) {

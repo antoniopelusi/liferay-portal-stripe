@@ -76,8 +76,6 @@ definition {
 	}
 
 	macro editFieldLabel {
-		Pause(locator1 = "1000");
-
 		Type(
 			key_fieldName = "label",
 			locator1 = "FormFields#TEXT_FIELD",
@@ -105,7 +103,9 @@ definition {
 	}
 
 	macro gotoBack {
-		Click.pauseClickAt(locator1 = "DocumentsAndMediaMetadataSets#SIDEBAR_BACK");
+		WaitForVisible(locator1 = "DocumentsAndMediaMetadataSets#SIDEBAR_BACK");
+
+		Click(locator1 = "DocumentsAndMediaMetadataSets#SIDEBAR_BACK");
 	}
 
 	macro gotoBasicTab {

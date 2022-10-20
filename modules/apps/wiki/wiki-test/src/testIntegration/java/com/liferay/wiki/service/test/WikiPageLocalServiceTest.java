@@ -120,11 +120,10 @@ public class WikiPageLocalServiceTest {
 			TestPropsValues.getUserId(), _node.getNodeId(), "FrontPage",
 			RandomTestUtil.randomString(), true, serviceContext);
 
-		List<AssetCategory> categories =
-			AssetCategoryLocalServiceUtil.getCategories(
-				WikiPage.class.getName(), frontPage.getResourcePrimKey());
-
-		Assert.assertTrue(ListUtil.isNull(categories));
+		Assert.assertTrue(
+			ListUtil.isNull(
+				AssetCategoryLocalServiceUtil.getCategories(
+					WikiPage.class.getName(), frontPage.getResourcePrimKey())));
 	}
 
 	@Test(expected = DuplicatePageExternalReferenceCodeException.class)
@@ -170,14 +169,12 @@ public class WikiPageLocalServiceTest {
 
 		for (char invalidCharacter : invalidCharacters) {
 			try {
-				ServiceContext serviceContext =
-					ServiceContextTestUtil.getServiceContext(
-						_group.getGroupId());
-
 				WikiTestUtil.addPage(
 					TestPropsValues.getUserId(), _node.getNodeId(),
 					"ChildPage" + invalidCharacter,
-					RandomTestUtil.randomString(), true, serviceContext);
+					RandomTestUtil.randomString(), true,
+					ServiceContextTestUtil.getServiceContext(
+						_group.getGroupId()));
 
 				Assert.fail(
 					"Created a page with invalid character " +
@@ -201,14 +198,20 @@ public class WikiPageLocalServiceTest {
 
 	@Test
 	public void testAddPageWithoutExternalReferenceCode() throws Exception {
-		WikiPage wikiPage = WikiTestUtil.addPage(
+		WikiPage wikiPage1 = WikiTestUtil.addPage(
 			TestPropsValues.getUserId(), _node.getNodeId(),
 			RandomTestUtil.randomString(), RandomTestUtil.randomString(), true,
 			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
-		Assert.assertEquals(
-			wikiPage.getExternalReferenceCode(),
-			String.valueOf(wikiPage.getPageId()));
+		String externalReferenceCode = wikiPage1.getExternalReferenceCode();
+
+		Assert.assertEquals(externalReferenceCode, wikiPage1.getUuid());
+
+		WikiPage wikiPage2 =
+			WikiPageLocalServiceUtil.getLatestPageByExternalReferenceCode(
+				_group.getGroupId(), externalReferenceCode);
+
+		Assert.assertEquals(wikiPage1, wikiPage2);
 	}
 
 	@Test(expected = AssetCategoryTestException.class)
@@ -761,12 +764,10 @@ public class WikiPageLocalServiceTest {
 			RandomTestUtil.randomString(), RandomTestUtil.randomString(), true,
 			serviceContext);
 
-		serviceContext = ServiceContextTestUtil.getServiceContext(
-			_group.getGroupId());
-
 		WikiPageLocalServiceUtil.renamePage(
 			TestPropsValues.getUserId(), _node.getNodeId(), page.getTitle(),
-			"New Title", true, serviceContext);
+			"New Title", true,
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
 		WikiPage renamedPage = WikiPageLocalServiceUtil.getPage(
 			_node.getNodeId(), "New Title");
@@ -798,12 +799,10 @@ public class WikiPageLocalServiceTest {
 			RandomTestUtil.randomString(), RandomTestUtil.randomString(), true,
 			serviceContext);
 
-		serviceContext = ServiceContextTestUtil.getServiceContext(
-			_group.getGroupId());
-
 		WikiPageLocalServiceUtil.renamePage(
 			TestPropsValues.getUserId(), _node.getNodeId(), page.getTitle(),
-			"New Title", true, serviceContext);
+			"New Title", true,
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
 		WikiPage renamedPage = WikiPageLocalServiceUtil.getPage(
 			_node.getNodeId(), "New Title");

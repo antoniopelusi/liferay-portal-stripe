@@ -29,6 +29,42 @@ definition {
 		}
 	}
 
+	@description = "Verify that an administrator user that it's not asset creator can reassign and transition the task"
+	@ignore = "Test Stub"
+	@priority = "5"
+	test AdministratorUserCanReassignAndTransitionAnyTasks {
+
+		// TODO AdministratorUserCanReassignAndTransitionAnyTasks pending implementation
+
+	}
+
+	@description = "Verify that any user with administrator role can reassign allowed tasks"
+	@ignore = "Test Stub"
+	@priority = "5"
+	test AdministratorUserCanReassignAnyTasks {
+
+		// TODO AdministratorUserCanReassignAnyTasks pending implementation
+
+	}
+
+	@description = "Verify that an administrator user that it's not asset creator can reassign multiple already assigned tasks to different users"
+	@ignore = "Test Stub"
+	@priority = "5"
+	test AdministratorUserCanReassignMultipleTasksAssignedToOtherUsers {
+
+		// TODO AdministratorUserCanReassignMultipleTasksAssignedToOtherUsers pending implementation
+
+	}
+
+	@description = "Verify that the Asset Creator user can resubmit the task after a administrator that it's not asset creator reject a task assigned to him"
+	@ignore = "Test Stub"
+	@priority = "5"
+	test AssetCreatorCanResubmitTaskRejectedByOtherAdministratorUser {
+
+		// TODO AssetCreatorCanResubmitTaskRejectedByOtherAdministratorUser pending implementation
+
+	}
+
 	@description = "LPS-98517 - Verify that the Assignee dropdown options are listed in alphabetical order"
 	@priority = "3"
 	test AssigneeOptionsAreListedInAlphabeticalOrder {
@@ -186,7 +222,6 @@ definition {
 	}
 
 	@description = "Verify that the users are able to identify the current nodes of the instance in the workflow, when there is multiple statuses"
-	@ignore = "true"
 	@priority = "4"
 	test CanIdentifyMultipleCurrentNode {
 		property portal.acceptance = "true";
@@ -194,9 +229,15 @@ definition {
 
 		Workflow.openWorkflowListView();
 
-		Workflow.uploadDefinition(
-			workflowDefinitionFile = "multi-task-process-workflow-definition.xml",
-			workflowDefinitionTitle = "Multi Task Process");
+		Workflow.addNewDefinition(workflowDefinitionTitle = "Multi Task Process");
+
+		ProcessBuilderKaleoDesignerReact.uploadDefinition(workflowDefinitionFile = "multi-task-process-workflow-definition.xml");
+
+		ProcessBuilderKaleoDesignerReact.diagramSourceSwitchView();
+
+		Button.clickPublish();
+
+		Navigator.gotoBack();
 
 		Navigator.gotoNavItem(navItem = "Configuration");
 
@@ -226,12 +267,59 @@ definition {
 	}
 
 	@description = "Verify that the users are able to identify the past stages that the workflow instance has already passed by"
-	@ignore = "Test Stub"
 	@priority = "3"
 	test CanIdentifyPastStagesOnWorkflow {
+		property test.name.skip.portal.instance = "WorkflowMetricsAllItemsList#CanIdentifyPastStagesOnWorkflow";
 
-		// TODO LRQA-72393 CanIdentifyPastStagesOnWorkflow pending implementation
+		Workflow.openWorkflowListView();
 
+		Workflow.addNewDefinition(workflowDefinitionTitle = "Multi Task Process");
+
+		ProcessBuilderKaleoDesignerReact.uploadDefinition(workflowDefinitionFile = "multi-task-process-workflow-definition.xml");
+
+		ProcessBuilderKaleoDesignerReact.diagramSourceSwitchView();
+
+		Button.clickPublish();
+
+		Navigator.gotoBack();
+
+		Navigator.gotoNavItem(navItem = "Configuration");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Multi Task Process",
+			workflowResourceValue = "Blogs Entry");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry",
+			entryTitle = "Blogs Entry Title");
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Navigator.gotoNavTab(navTab = "Assigned to My Roles");
+
+		LexiconEntry.gotoEllipsisMenuItem(menuItem = "Assign to Me");
+
+		Workflow.confirmWorkflowAction();
+
+		WorkflowMetrics.goToWorkflowAllItems(workflowProcessName = "Multi Task Process");
+
+		WorkflowMetrics.goToBulkTransitionSelectTasks();
+
+		WorkflowMetrics.selectAllTransitionTasks();
+
+		WorkflowMetrics.chooseTransitionPerStep(
+			taskName = "Task1",
+			transitionOption = "task1_join_join");
+
+		WorkflowMetrics.goToKebabMenuOptions(dropdownItem = "Track Workflow");
+
+		WorkflowMetrics.viewCurrentNodeCircleIcon(currentNode = "task2");
+
+		WorkflowMetrics.viewCurrentNodeCircleIcon(currentNode = "task3");
+
+		WorkflowMetrics.viewCurrentNodeDoneIcon(currentNode = "fork");
+
+		WorkflowMetrics.viewCurrentNodeDoneIcon(currentNode = "task1");
 	}
 
 	@description = "LPS-92052 - Verify that the user is able to click on the table header Assignee to choose the items order (A-Z / Z-A)"
@@ -900,13 +988,15 @@ definition {
 			entryContent = "Test Content",
 			entryTitle = "Test Blog");
 
-		Pause(locator1 = "60000");
-
 		WorkflowMetrics.goToWorkflowAllItems(workflowProcessName = "Single Approver");
 
 		WaitForElementPresent(locator1 = "WorkflowAllItems#WORKFLOW_INSTANCE_ID");
 
 		var getInstanceId = selenium.getText("WorkflowAllItems#WORKFLOW_INSTANCE_ID");
+
+		while ((IsElementNotPresent(key_status = "check", locator1 = "WorkflowAllItems#DETAIL_SLA_STATUS")) && (maxIterations = "20")) {
+			Refresh();
+		}
 
 		Click(locator1 = "WorkflowAllItems#WORKFLOW_INSTANCE_ID");
 
@@ -1006,11 +1096,13 @@ definition {
 			entryContent = "Test Content",
 			entryTitle = "Test Blog");
 
-		Pause(locator1 = "50000");
-
 		WorkflowMetrics.goToWorkflowAllItems(workflowProcessName = "Single Approver");
 
 		WaitForElementPresent(locator1 = "WorkflowAllItems#WORKFLOW_INSTANCE_ID");
+
+		while ((IsElementNotPresent(key_status = "check", locator1 = "WorkflowAllItems#DETAIL_SLA_STATUS")) && (maxIterations = "30")) {
+			Refresh();
+		}
 
 		Click(locator1 = "WorkflowAllItems#WORKFLOW_INSTANCE_ID");
 
@@ -1067,17 +1159,27 @@ definition {
 			workflowAssetType = "Blogs Entry",
 			workflowTask = "Review");
 
+		WorkflowMetrics.goToWorkflowProcessMetrics(workflowProcessName = "Single Approver");
+
+		WorkflowMetrics.waitForCompletedSLA(
+			key_expectedValue = "2",
+			key_status = "UNTRACKED");
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
 		Workflow.approveTaskByActions(
 			workflowAssetTitle = "Blogs Entry Title 1",
 			workflowAssetType = "Blogs Entry",
 			workflowTask = "Review");
 
-		Pause(locator1 = "60000");
-
 		WorkflowMetrics.goToDashboardAllItemsWithFilter(
 			workflowFilterOption = "COMPLETED",
 			workflowMetricsTab = "PERFORMANCE",
 			workflowProcess = "Single Approver");
+
+		while ((IsElementNotPresent(key_itemSubject = "Blogs Entry: Blogs Entry Title 1", key_value = "-", locator1 = "WorkflowMetricsAllItemsList#DUE_DATE_COLUMN_VALUE")) && (maxIterations = "30")) {
+			Refresh();
+		}
 
 		WorkflowMetrics.validateDueDateBySLADetails(
 			itemName = "Blogs Entry: Blogs Entry Title 1",
@@ -1086,6 +1188,14 @@ definition {
 			statusResult = "success");
 
 		Navigator.openURL();
+
+		WorkflowMetrics.goToWorkflowProcessMetrics(workflowProcessName = "Single Approver");
+
+		WorkflowMetrics.waitForCompletedSLA(
+			key_expectedValue = "1",
+			key_status = "OVERDUE");
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
 
 		WorkflowMetrics.goToDashboardAllItemsWithFilter(
 			workflowFilterOption = "PENDING",
@@ -1100,12 +1210,14 @@ definition {
 
 		Button.click(button = "Done");
 
-		Pause(locator1 = "60000");
-
 		WorkflowMetrics.goToDashboardAllItemsWithFilter(
 			workflowFilterOption = "COMPLETED",
 			workflowMetricsTab = "PERFORMANCE",
 			workflowProcess = "Single Approver");
+
+		while ((IsElementNotPresent(key_itemSubject = "Blogs Entry: Blogs Entry Title 2", key_value = "-", locator1 = "WorkflowMetricsAllItemsList#DUE_DATE_COLUMN_VALUE")) && (maxIterations = "30")) {
+			Refresh();
+		}
 
 		WorkflowMetrics.validateDueDateBySLADetails(
 			itemName = "Blogs Entry: Blogs Entry Title 2",
@@ -1448,19 +1560,13 @@ definition {
 
 		Navigator.gotoNavItem(navItem = "Performance");
 
-		Pause(locator = "120000");
-
-		Refresh();
-
 		Click(
 			key_index = "4",
 			locator1 = "WorkflowMetrics#DASHBOARD_TOTAL_COMPLETED_ITEMS_BUTTON");
 
-		Click(locator1 = "WorkflowAllItems#WORKFLOW_INSTANCE_ID");
-
-		Refresh();
-
-		Pause(locator1 = "10000");
+		while ((IsElementNotPresent(key_status = "Overdue", locator1 = "WorkflowAllItems#DETAIL_PAGE_SLA_DEFINITION_RESOLVED")) && (maxIterations = "10")) {
+			Refresh();
+		}
 
 		Click(locator1 = "WorkflowAllItems#WORKFLOW_INSTANCE_ID");
 
@@ -1571,12 +1677,10 @@ definition {
 
 		Click(locator1 = "WorkflowAllItems#WORKFLOW_INSTANCE_ID");
 
-		while (IsElementPresent(key_slaStatusTitle = "OPEN", locator1 = "WorkflowAllItems#DETAIL_PAGE_SLA_STATUS_TITLE") && (maxIterations = "24")) {
+		while ((IsElementPresent(key_slaStatusTitle = "OPEN", locator1 = "WorkflowAllItems#DETAIL_PAGE_SLA_STATUS_TITLE")) && (maxIterations = "24")) {
 			echo("Waiting 5 seconds to recheck");
 
 			Click(locator1 = "WorkflowAllItems#DETAIL_PAGE_CLOSE");
-
-			Pause(locator1 = "5000");
 
 			Refresh();
 
@@ -1657,9 +1761,9 @@ definition {
 
 		Click(locator1 = "WorkflowMetrics#DASHBOARD_TOTAL_PENDING_ITEMS_TITLE");
 
-		Pause(locator1 = "60000");
-
-		Refresh();
+		while ((IsElementNotPresent(key_status = "check", locator1 = "WorkflowAllItems#DETAIL_SLA_STATUS")) && (maxIterations = "30")) {
+			Refresh();
+		}
 
 		Click(locator1 = "WorkflowAllItems#WORKFLOW_INSTANCE_ID");
 
@@ -1946,6 +2050,15 @@ definition {
 			value1 = "400");
 	}
 
+	@description = "Verify that users with different roles then administrator can't reassign tasks"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test NonAdministratorUsersCantReassignTasks {
+
+		// TODO NonAdministratorUsersCantReassignTasks pending implementation
+
+	}
+
 	@description = "LPS-92053 - Verify that the Go to submission page button opens the submission page in another tab"
 	@priority = "4"
 	test OpenSubmissionPageInAnotherTab {
@@ -1972,8 +2085,6 @@ definition {
 		Click(locator1 = "WorkflowAllItems#WORKFLOW_INSTANCE_ID");
 
 		Click(locator1 = "WorkflowAllItems#BUTTON_GO_TO_SUBMISSION_PAGE");
-
-		Pause(locator1 = "3000");
 	}
 
 	@description = "LPS-130167 - Verify that the ordination icon is displayed next to the column title to be ordered"
@@ -2062,12 +2173,14 @@ definition {
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry");
 
-		Pause(locator1 = "60000");
-
 		WorkflowMetrics.goToDashboardAllItemsWithFilter(
 			workflowFilterOption = "ONTIME",
 			workflowMetricsTab = "DASHBOARD",
 			workflowProcess = "Single Approver");
+
+		while ((IsElementNotPresent(key_itemPosition = "1", key_rowNumber = "3", locator1 = "WorkflowAllItems#METRICS_INSTANCE_ITEMS_POSITION")) && (maxIterations = "20")) {
+			Refresh();
+		}
 
 		WorkflowMetrics.assertDueDatePopoverInfo(
 			itemPosition = "3",
@@ -2223,8 +2336,6 @@ definition {
 			entryContent = "Blogs Entry  Content",
 			entryTitle = "Blogs Entry Title 2");
 
-		Pause(locator1 = "60000");
-
 		WorkflowMetrics.goToDashboardAllItemsWithFilter(
 			workflowFilterOption = "PENDING",
 			workflowMetricsTab = "DASHBOARD",
@@ -2240,7 +2351,9 @@ definition {
 			keyCompare = "Blogs Entry: Blogs Entry Title 1",
 			rowNumber = "2");
 
-		Pause(locator1 = "60000");
+		while ((IsElementNotPresent(locator1 = "WorkflowAllItems#assertTableOrder", rowNumber = "1")) && (maxIterations = "10")) {
+			Refresh();
+		}
 
 		Click(
 			key_orderBy = "Due Date",
@@ -2377,30 +2490,20 @@ definition {
 
 		Navigator.openURL();
 
-		ProductMenu.gotoPortlet(
-			category = "People",
-			panel = "Site Administration",
-			portlet = "Memberships");
-
-		for (var orderNumber : list "1,2,3") {
-			var key_order = "${orderNumber}";
-
-			Site.assignUserAsMemberCP(
-				userFirstName = "user${orderNumber}",
-				userLastName = "user${orderNumber}",
-				userScreenName = "user${orderNumber}");
-		}
-
-		Navigator.openURL();
-
 		ApplicationsMenu.gotoPortlet(
 			category = "Workflow",
 			panel = "Applications",
 			portlet = "Process Builder");
 
-		Workflow.uploadDefinition(
-			workflowDefinitionFile = "similar-single-approver-workflow-definition.xml",
-			workflowDefinitionTitle = "Similar Single Approver Process");
+		Workflow.addNewDefinition(workflowDefinitionTitle = "Similar Single Approver Process");
+
+		ProcessBuilderKaleoDesignerReact.uploadDefinition(workflowDefinitionFile = "similar-single-approver-workflow-definition.xml");
+
+		ProcessBuilderKaleoDesignerReact.diagramSourceSwitchView();
+
+		Button.clickPublish();
+
+		Navigator.gotoBack();
 
 		Navigator.gotoNavItem(navItem = "Configuration");
 
@@ -2598,7 +2701,6 @@ definition {
 	}
 
 	@description = "LPS-86652 - Verify that hovering the cursor on the process step, when it contains more than 1 option, the toolip will display a bullet list"
-	@ignore = "true"
 	@priority = "3"
 	test TooltipDisplaysStepsListWhenMultipleItems {
 		property portal.acceptance = "true";
@@ -2609,9 +2711,15 @@ definition {
 			panel = "Applications",
 			portlet = "Process Builder");
 
-		Workflow.uploadDefinition(
-			workflowDefinitionFile = "multi-task-process-workflow-definition.xml",
-			workflowDefinitionTitle = "Multi Task Process");
+		Workflow.addNewDefinition(workflowDefinitionTitle = "Multi Task Process");
+
+		ProcessBuilderKaleoDesignerReact.uploadDefinition(workflowDefinitionFile = "multi-task-process-workflow-definition.xml");
+
+		ProcessBuilderKaleoDesignerReact.diagramSourceSwitchView();
+
+		Button.clickPublish();
+
+		Navigator.gotoBack();
 
 		Navigator.gotoNavItem(navItem = "Configuration");
 
@@ -2713,7 +2821,6 @@ definition {
 	}
 
 	@description = "Verify that when the user clicks the link in the detail modal, the Workflow in use is displayed"
-	@ignore = "true"
 	@priority = "5"
 	test TrackApprovalDisplayWorkflowInUse {
 		property portal.acceptance = "true";
@@ -2721,9 +2828,15 @@ definition {
 
 		Workflow.openWorkflowListView();
 
-		Workflow.uploadDefinition(
-			workflowDefinitionFile = "multi-task-process-workflow-definition.xml",
-			workflowDefinitionTitle = "Multi Task Process");
+		Workflow.addNewDefinition(workflowDefinitionTitle = "Multi Task Process");
+
+		ProcessBuilderKaleoDesignerReact.uploadDefinition(workflowDefinitionFile = "multi-task-process-workflow-definition.xml");
+
+		ProcessBuilderKaleoDesignerReact.diagramSourceSwitchView();
+
+		Button.clickPublish();
+
+		Navigator.gotoBack();
 
 		Navigator.gotoNavItem(navItem = "Configuration");
 
@@ -2741,7 +2854,7 @@ definition {
 
 		WorkflowMetricsAllItemsList.goToTrackWorkflowlink();
 
-		WorkflowMetricsAllItemsList.viewNodesDisplayed(nodesTrackWorkflow = "Start,task1,task2,task3,End");
+		WorkflowMetricsAllItemsList.viewNodesDisplayed(nodesTrackWorkflow = "start,task1,task2,task3,end");
 	}
 
 	@description = "LPS-108138 - Verify that, in All Items page, when the users select an instance that can't be transitioned by them, the option to transition is not available to be selected"
@@ -2779,18 +2892,6 @@ definition {
 			configurationScope = "Virtual Instance Scope");
 
 		PortalSettings.uncheckStrangersVerifyEmailCheckbox();
-
-		Navigator.openURL();
-
-		ProductMenu.gotoPortlet(
-			category = "People",
-			panel = "Site Administration",
-			portlet = "Memberships");
-
-		Site.assignUserAsMemberCP(
-			userFirstName = "user",
-			userLastName = "user",
-			userScreenName = "user");
 
 		ApplicationsMenu.gotoPortlet(
 			category = "Workflow",
@@ -2843,9 +2944,15 @@ definition {
 			panel = "Applications",
 			portlet = "Process Builder");
 
-		Workflow.uploadDefinition(
-			workflowDefinitionFile = "multi-task-process-workflow-definition.xml",
-			workflowDefinitionTitle = "Multi Task Process");
+		Workflow.addNewDefinition(workflowDefinitionTitle = "Multi Task Process");
+
+		ProcessBuilderKaleoDesignerReact.uploadDefinition(workflowDefinitionFile = "multi-task-process-workflow-definition.xml");
+
+		ProcessBuilderKaleoDesignerReact.diagramSourceSwitchView();
+
+		Button.clickPublish();
+
+		Navigator.gotoBack();
 
 		Navigator.gotoNavItem(navItem = "Configuration");
 
@@ -2896,9 +3003,7 @@ definition {
 			nameOfAssignee = "Test Test",
 			taskList = "task3");
 
-		while (IsElementNotPresent(key_workflowInstanceAssignee = "Test Test, Unassigned, User User", key_workflowInstanceName = "Blogs Entry", locator1 = "WorkflowAllItems#WORKFLOW_ALL_ITEMS_TABLE_CURRENT_ASSIGNEE_VALUE") && (maxIterations = "20")) {
-			Pause(locator1 = "3000");
-
+		while ((IsElementNotPresent(key_workflowInstanceAssignee = "Test Test, Unassigned, User User", key_workflowInstanceName = "Blogs Entry", locator1 = "WorkflowAllItems#WORKFLOW_ALL_ITEMS_TABLE_CURRENT_ASSIGNEE_VALUE")) && (maxIterations = "10")) {
 			Refresh();
 		}
 
@@ -3006,8 +3111,6 @@ definition {
 			workflowAssetType = "Blogs Entry",
 			workflowTask = "Review");
 
-		Pause(locator1 = "60000");
-
 		WorkflowMetrics.goToWorkflowAllItems(workflowProcessName = "Single Approver");
 
 		WaitForElementPresent(locator1 = "WorkflowAllItems#WORKFLOW_INSTANCE_ID");
@@ -3016,7 +3119,15 @@ definition {
 
 		Click(locator1 = "WorkflowAllItems#WORKFLOW_INSTANCE_ID");
 
-		AssertElementPresent(locator1 = "WorkflowAllItems#DETAIL_PAGE_SLA_PAUSED");
+		while ((IsElementNotPresent(locator1 = "WorkflowAllItems#DETAIL_PAGE_SLA_PAUSED")) && (maxIterations = "20")) {
+			Refresh();
+
+			Click(locator1 = "WorkflowAllItems#WORKFLOW_INSTANCE_ID");
+		}
+
+		if (IsElementNotPresent(locator1 = "WorkflowAllItems#DETAIL_PAGE_SLA_PAUSED")) {
+			echo("Pause information not displayed");
+		}
 	}
 
 	@description = "LPS-92053 - Verify that, in the item detail modal, Open when an SLA is paused, the SLA status will be related to the moment when it triggered the pause timer"
@@ -3052,9 +3163,9 @@ definition {
 			entryContent = "Test Content",
 			entryTitle = "Test Blog");
 
-		Pause(locator1 = "60000");
-
 		WorkflowMetrics.goToWorkflowAllItems(workflowProcessName = "Single Approver");
+
+		WorkflowMetrics.assertSLAMetricsCalculated();
 
 		WaitForElementPresent(locator1 = "WorkflowAllItems#WORKFLOW_INSTANCE_ID");
 

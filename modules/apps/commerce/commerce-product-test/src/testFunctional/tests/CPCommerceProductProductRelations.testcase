@@ -1,10 +1,9 @@
 @component-name = "portal-commerce"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "true";
 	property portal.upstream = "true";
+	property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 	property testray.main.component.name = "Product Info Management";
 
 	setUp {
@@ -65,7 +64,7 @@ definition {
 			category = "Product Management",
 			portlet = "Products");
 
-		Pause(locator1 = "3000");
+		WaitForElementPresent(locator1 = "CommerceNavigation#EMPTY_SEARCH_CONTAINER");
 
 		CPCommerceCatalog.newProductsEntry(
 			productCatalog = "Master",
@@ -150,6 +149,64 @@ definition {
 				key_value = "${valueList}",
 				locator1 = "CommerceEntry#VALUE_PRODUCT_RELATIONS");
 		}
+	}
+
+	@description = "This is a test for COMMERCE-8308. SearchProductRelations"
+	@priority = "4"
+	test SearchProductRelations {
+		property portal.acceptance = "false";
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		CommerceNavigator.gotoPortlet(
+			category = "Product Management",
+			portlet = "Products");
+
+		AppBuilderAdmin.searchByItem(itemName = "Turbocharger");
+
+		CommerceNavigator.gotoEntry(entryName = "Turbocharger");
+
+		CommerceEntry.gotoMenuTab(menuTab = "Media");
+
+		for (var number : list "106,107,108") {
+			CommerceEntry.checkImageName(uploadFileName = "Minium_ProductImage_${number}.png");
+		}
+
+		CommerceEntry.gotoMenuTab(menuTab = "Visibility");
+
+		for (var nameList : list "Channels,Account Groups") {
+			CommerceEntry.assertCheckedSpecificToggle(name = "${nameList}");
+		}
+
+		CommerceEntry.gotoMenuTab(menuTab = "Product Relations");
+
+		Click(locator1 = "Button#PLUS");
+
+		Click(
+			key_selectAction = "Add Up-Sell Product",
+			locator1 = "FormViewBuilder#FIELD_ELLIPSIS_ACTION_FIELDSET");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_IFRAME");
+
+		AppBuilderAdmin.searchByItem(itemName = "Turbocharger");
+
+		AssertElementPresent(
+			key_entry = "Turbocharger",
+			locator1 = "CommerceNavigation#TD_ANY_ENTRY_NAME");
+
+		CommerceNavigator.clearSearchBar();
+
+		AssertElementNotPresent(
+			key_entry = "Turbocharger",
+			locator1 = "CommerceNavigation#TD_ANY_ENTRY_NAME");
+
+		Click(
+			key_pageNumber = "3",
+			locator1 = "CommerceNavigation#PAGINATION_ANY_PAGE");
+
+		AssertElementPresent(
+			key_entry = "Turbocharger",
+			locator1 = "CommerceNavigation#TD_ANY_ENTRY_NAME");
 	}
 
 }

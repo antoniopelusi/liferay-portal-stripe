@@ -9,8 +9,6 @@ definition {
 
 	setUp {
 		TestCase.setUpPortalInstance();
-
-		SignIn.signInTestSetup();
 	}
 
 	tearDown {
@@ -25,6 +23,8 @@ definition {
 	test DeleteLiferayDXPLicense {
 		property commerce.enabled = "false";
 		property test.name.skip.portal.instance = "CommerceLicense#DeleteLiferayDXPLicense";
+
+		SignIn.signInTestSetup();
 
 		ApplicationsMenuHelper.openApplicationsMenu();
 
@@ -46,6 +46,10 @@ definition {
 	@priority = "4"
 	test LiferayDXPLicenseExpire {
 		property dxp.license.file = "portal-dxp-license-custom-expiration-48-hours.xml";
+
+		SignIn.signInTestSetup(licenseExpired = "true");
+
+		// Pausing 300 seconds due to LRQA-64640
 
 		Pause(locator1 = "300000");
 

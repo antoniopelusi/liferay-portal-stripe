@@ -142,6 +142,27 @@ public class ObjectValidationRule implements Cloneable, Serializable {
 
 	protected String engine;
 
+	public String getEngineLabel() {
+		return engineLabel;
+	}
+
+	public void setEngineLabel(String engineLabel) {
+		this.engineLabel = engineLabel;
+	}
+
+	public void setEngineLabel(
+		UnsafeSupplier<String, Exception> engineLabelUnsafeSupplier) {
+
+		try {
+			engineLabel = engineLabelUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected String engineLabel;
+
 	public Map<String, String> getErrorLabel() {
 		return errorLabel;
 	}

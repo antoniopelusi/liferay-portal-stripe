@@ -19,6 +19,7 @@ import com.liferay.dynamic.data.mapping.expression.DDMExpression;
 import com.liferay.dynamic.data.mapping.expression.DDMExpressionFunctionFactory;
 import com.liferay.dynamic.data.mapping.expression.DDMExpressionFunctionTracker;
 import com.liferay.dynamic.data.mapping.expression.internal.functions.PowFunction;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
@@ -29,18 +30,13 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
-import org.mockito.Matchers;
-import org.mockito.runners.MockitoJUnitRunner;
-
-import org.powermock.api.mockito.PowerMockito;
+import org.mockito.Mockito;
 
 /**
  * @author Leonardo Barros
  */
-@RunWith(MockitoJUnitRunner.class)
-public class DDMExpressionFactoryImplTest extends PowerMockito {
+public class DDMExpressionFactoryImplTest {
 
 	@ClassRule
 	@Rule
@@ -66,23 +62,21 @@ public class DDMExpressionFactoryImplTest extends PowerMockito {
 	}
 
 	private void _setUpDDMExpressionFunctionTracker() throws Exception {
-		DDMExpressionFunctionTracker ddmExpressionFunctionTracker = mock(
-			DDMExpressionFunctionTracker.class);
+		DDMExpressionFunctionTracker ddmExpressionFunctionTracker =
+			Mockito.mock(DDMExpressionFunctionTracker.class);
 
-		when(
+		Mockito.when(
 			ddmExpressionFunctionTracker.getDDMExpressionFunctionFactories(
-				Matchers.any())
+				Mockito.any())
 		).thenReturn(
 			HashMapBuilder.<String, DDMExpressionFunctionFactory>put(
 				"pow", () -> new PowFunction()
 			).build()
 		);
 
-		field(
-			DDMExpressionFactoryImpl.class, "ddmExpressionFunctionTracker"
-		).set(
-			_ddmExpressionFactoryImpl, ddmExpressionFunctionTracker
-		);
+		ReflectionTestUtil.setFieldValue(
+			_ddmExpressionFactoryImpl, "ddmExpressionFunctionTracker",
+			ddmExpressionFunctionTracker);
 	}
 
 	private final DDMExpressionFactoryImpl _ddmExpressionFactoryImpl =

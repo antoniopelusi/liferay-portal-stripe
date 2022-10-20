@@ -58,7 +58,7 @@ import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.repository.portletrepository.PortletRepository;
 import com.liferay.portal.webserver.WebServerServlet;
-import com.liferay.trash.kernel.util.Trash;
+import com.liferay.trash.TrashHelper;
 
 import java.io.File;
 import java.io.IOException;
@@ -392,11 +392,14 @@ public class PortletFileRepositoryImpl implements PortletFileRepository {
 		long groupId, long folderId, String fileName) {
 
 		try {
-			return getPortletFileEntry(groupId, folderId, fileName);
+			LocalRepository localRepository =
+				_repositoryProvider.getLocalRepository(groupId);
+
+			return localRepository.fetchFileEntry(folderId, fileName);
 		}
-		catch (PortalException portalException) {
+		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException);
+				_log.debug(exception);
 			}
 		}
 
@@ -579,7 +582,7 @@ public class PortletFileRepositoryImpl implements PortletFileRepository {
 		String fileName = fileEntry.getFileName();
 
 		if (fileEntry.isInTrash()) {
-			fileName = _trash.getOriginalTitle(fileEntry.getTitle());
+			fileName = _trashHelper.getOriginalTitle(fileEntry.getTitle());
 		}
 
 		sb.append(URLCodec.encodeURL(HtmlUtil.unescape(fileName)));
@@ -641,19 +644,15 @@ public class PortletFileRepositoryImpl implements PortletFileRepository {
 		String uniqueFileName = fileName;
 
 		for (int i = 1;; i++) {
-			try {
-				getPortletFileEntry(groupId, folderId, uniqueFileName);
+			FileEntry fileEntry = fetchPortletFileEntry(
+				groupId, folderId, uniqueFileName);
 
-				uniqueFileName = FileUtil.appendParentheticalSuffix(
-					fileName, String.valueOf(i));
-			}
-			catch (Exception exception) {
-				if (_log.isDebugEnabled()) {
-					_log.debug(exception);
-				}
-
+			if (fileEntry == null) {
 				break;
 			}
+
+			uniqueFileName = FileUtil.appendParentheticalSuffix(
+				fileName, String.valueOf(i));
 		}
 
 		return uniqueFileName;
@@ -817,7 +816,7 @@ public class PortletFileRepositoryImpl implements PortletFileRepository {
 	private RepositoryProvider _repositoryProvider;
 
 	@Reference
-	private Trash _trash;
+	private TrashHelper _trashHelper;
 
 	@Reference
 	private UserLocalService _userLocalService;

@@ -1,6 +1,8 @@
 @component-name = "portal-analytics-cloud"
 definition {
 
+	property analytics.cloud.release = "true";
+	property analytics.cloud.upstream = "true";
 	property portal.release = "false";
 	property portal.upstream = "true";
 	property property.group = "analytics.cloud.profile";
@@ -15,13 +17,13 @@ definition {
 	tearDown {
 		var testPortalInstance = PropsUtil.get("test.portal.instance");
 
+		ACUtils.tearDownAC();
+
 		ACUtils.tearDownDXP();
 
 		if ("${testPortalInstance}" == "true") {
 			PortalInstances.tearDownCP();
 		}
-
-		ACUtils.tearDownAC();
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8785 | Test Summary: Add a keyword that already exists"
@@ -59,12 +61,8 @@ definition {
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8786 | Test Summary: Add keyword when there are none"
-	@ignore = "true"
 	@priority = "3"
 	test AddKeywordCurrentlyNone {
-
-		// AC Story ticket: LRAC-9248
-
 		task ("Go to AC Settings > definitions > Interests") {
 			ACNavigation.goToSettings();
 
@@ -74,10 +72,7 @@ definition {
 		}
 
 		task ("Check no result") {
-
-			// This test is being ignored due to a history that makes changes to empty state messages.
-
-			ACUtils.viewNoResultsMessage(noResultMessage = "You have not added keywords to the blocklist yet.");
+			ACUtils.viewNoResultsMessage(noResultMessage = "No Keywords Found");
 		}
 
 		task ("Add keywords and assert result") {
@@ -196,12 +191,8 @@ definition {
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8789 | Test Summary: Delete a keyword block"
-	@ignore = "true"
 	@priority = "3"
 	test DeleteKeywordBlock {
-
-		// AC Story ticket: LRAC-9248
-
 		task ("Go to settings, definitions and definitions type") {
 			ACNavigation.goToSettings();
 
@@ -227,10 +218,7 @@ definition {
 		}
 
 		task ("Assert that all keywords were deleted") {
-
-			// This test is being ignored due to a history that makes changes to empty state messages.
-
-			ACUtils.viewNoResultsMessage(noResultMessage = "You have not added keywords to the blocklist yet.");
+			ACUtils.viewNoResultsMessage(noResultMessage = "No Keywords Found");
 		}
 	}
 
@@ -269,12 +257,8 @@ definition {
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8791 | Test Summary: Delete multiple keywords"
-	@ignore = "true"
 	@priority = "3"
 	test DeleteMultipleKeywords {
-
-		// AC Story ticket: LRAC-9248
-
 		task ("Go to settings, definitions and definitions type") {
 			ACNavigation.goToSettings();
 
@@ -298,10 +282,7 @@ definition {
 		}
 
 		task ("Assert that all keywords were deleted") {
-
-			// This test is being ignored due to a history that makes changes to empty state messages.
-
-			ACUtils.viewNoResultsMessage(noResultMessage = "You have not added keywords to the blocklist yet.");
+			ACUtils.viewNoResultsMessage(noResultMessage = "No Keywords Found");
 		}
 	}
 
@@ -410,7 +391,7 @@ definition {
 		task ("Search a keyword not added and assert that ones shouldn't be there") {
 			ACUtils.searchBar(searchItem = "Should not be here");
 
-			ACUtils.viewNoResultsMessage(noResultMessage = "There are no Keywords found.");
+			ACUtils.viewGenericText(textValueList = "There are no results found.,Please try a different search term.");
 
 			ACUtils.clearSearchBar();
 		}

@@ -477,7 +477,7 @@
 				"label": "width",
 				"name": "width",
 				"responsive": false,
-				"type": "text"
+				"type": "length"
 			},
 			{
 				"cssTemplate": "height: {value} !important;",
@@ -487,7 +487,7 @@
 				"label": "height",
 				"name": "height",
 				"responsive": false,
-				"type": "text"
+				"type": "length"
 			},
 			{
 				"cssTemplate": "min-width: {value} !important;",
@@ -497,7 +497,7 @@
 				"label": "min-width",
 				"name": "minWidth",
 				"responsive": false,
-				"type": "text"
+				"type": "length"
 			},
 			{
 				"cssTemplate": "max-width: {value} !important;",
@@ -507,7 +507,7 @@
 				"label": "max-width",
 				"name": "maxWidth",
 				"responsive": false,
-				"type": "text"
+				"type": "length"
 			},
 			{
 				"cssTemplate": "min-height: {value} !important;",
@@ -517,7 +517,7 @@
 				"label": "min-height",
 				"name": "minHeight",
 				"responsive": false,
-				"type": "text"
+				"type": "length"
 			},
 			{
 				"cssTemplate": "max-height: {value} !important;",
@@ -527,7 +527,7 @@
 				"label": "max-height",
 				"name": "maxHeight",
 				"responsive": false,
-				"type": "text"
+				"type": "length"
 			},
 			{
 				"cssTemplate": "overflow: {value} !important;",
@@ -582,16 +582,18 @@
 		"label": "text",
 		"styles": [
 			{
+				"cssProperty": "font-family",
 				"cssTemplate": "font-family: {value} !important;",
 				"dataType": "string",
 				"defaultValue": "",
+				"icon": "font-family",
 				"label": "font-family",
 				"name": "fontFamily",
 				"responsive": false,
 				"type": "select",
 				"validValues": [
 					{
-						"label": "default",
+						"label": "inherited",
 						"value": ""
 					},
 					{
@@ -612,16 +614,18 @@
 				]
 			},
 			{
+				"cssProperty": "font-weight",
 				"cssTemplate": "font-weight: {value} !important;",
 				"dataType": "string",
 				"defaultValue": "",
+				"icon": "bold",
 				"label": "font-weight",
 				"name": "fontWeight",
 				"responsive": false,
 				"type": "select",
 				"validValues": [
 					{
-						"label": "default",
+						"label": "inherited",
 						"value": ""
 					},
 					{
@@ -652,16 +656,21 @@
 				]
 			},
 			{
+				"cssProperty": "font-size",
 				"cssTemplate": "font-size: {value} !important;",
 				"dataType": "string",
 				"defaultValue": "",
+				"icon": "font-size",
 				"label": "font-size",
 				"name": "fontSize",
 				"responsive": false,
 				"type": "select",
+				"typeOptions": {
+					"showLengthField": true
+				},
 				"validValues": [
 					{
-						"label": "default",
+						"label": "inherited",
 						"value": ""
 					},
 					{
@@ -682,6 +691,7 @@
 				]
 			},
 			{
+				"cssProperty": "color",
 				"cssTemplate": "color: {value} !important;",
 				"dataType": "string",
 				"label": "text-color",
@@ -697,21 +707,25 @@
 				"name": "textAlign",
 				"responsive": true,
 				"responsiveTemplate": "text{viewport}{value}",
-				"type": "select",
+				"type": "buttonGroup",
 				"validValues": [
 					{
-						"label": "left",
+						"icon": "align-left",
+						"label": "align-left",
 						"value": "left"
 					},
 					{
-						"label": "center",
+						"icon": "align-center",
+						"label": "align-center",
 						"value": "center"
 					},
 					{
-						"label": "right",
+						"icon": "align-right",
+						"label": "align-right",
 						"value": "right"
 					},
 					{
+						"icon": "align-justify",
 						"label": "justify",
 						"value": "justify"
 					}
@@ -723,6 +737,7 @@
 		"label": "background",
 		"styles": [
 			{
+				"cssProperty": "background-color",
 				"cssTemplate": "background-color: {value} !important;",
 				"dataType": "string",
 				"label": "background-color",
@@ -749,10 +764,11 @@
 				"cssTemplate": "border-style: solid; border-width: {value}px !important;",
 				"dataType": "number",
 				"defaultValue": 0,
+				"icon": "border-width",
 				"label": "border-width",
 				"name": "borderWidth",
 				"responsive": false,
-				"type": "text",
+				"type": "length",
 				"typeOptions": {
 					"validation": {
 						"type": "number"
@@ -760,13 +776,18 @@
 				}
 			},
 			{
+				"cssProperty": "border-radius",
 				"cssTemplate": "border-radius: {value} !important;",
 				"dataType": "string",
 				"defaultValue": "",
+				"icon": "corner-radius",
 				"label": "border-radius",
 				"name": "borderRadius",
 				"responsive": false,
 				"type": "select",
+				"typeOptions": {
+					"showLengthField": true
+				},
 				"validValues": [
 					{
 						"label": "default",
@@ -795,6 +816,7 @@
 				]
 			},
 			{
+				"cssProperty": "border-color",
 				"cssTemplate": "border-color: {value} !important;",
 				"dataType": "string",
 				"label": "border-color",
@@ -811,6 +833,7 @@
 				"cssTemplate": "opacity: {value} !important;",
 				"dataType": "number",
 				"defaultValue": "",
+				"icon": "opacity",
 				"label": "opacity",
 				"name": "opacity",
 				"responsive": false,
@@ -822,9 +845,11 @@
 				}
 			},
 			{
+				"cssProperty": "box-shadow",
 				"cssTemplate": "box-shadow: {value} !important;",
 				"dataType": "object",
 				"defaultValue": "",
+				"icon": "shadow",
 				"label": "shadow",
 				"name": "shadow",
 				"responsive": false,

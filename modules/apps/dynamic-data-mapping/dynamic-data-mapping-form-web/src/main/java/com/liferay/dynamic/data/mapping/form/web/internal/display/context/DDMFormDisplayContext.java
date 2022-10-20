@@ -80,6 +80,7 @@ import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.CookieKeys;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
+import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -275,7 +276,7 @@ public class DDMFormDisplayContext {
 
 		if (ddmFormInstanceRecordVersion != null) {
 			DDMFormValues mergedDDMFormValues = _ddmFormValuesMerger.merge(
-				ddmFormInstanceRecordVersion.getDDMFormValues(),
+				ddmForm, ddmFormInstanceRecordVersion.getDDMFormValues(),
 				ddmFormRenderingContext.getDDMFormValues());
 
 			ddmFormRenderingContext.setDDMFormValues(mergedDDMFormValues);
@@ -336,6 +337,13 @@ public class DDMFormDisplayContext {
 
 					_ddmFormInstance.setSettings(
 						latestApprovedDDMFormInstanceVersion.getSettings());
+
+					DDMStructureVersion ddmStructureVersion =
+						latestApprovedDDMFormInstanceVersion.
+							getStructureVersion();
+
+					_ddmFormInstance.setStructureId(
+						ddmStructureVersion.getStructureId());
 				}
 			}
 		}
@@ -429,10 +437,11 @@ public class DDMFormDisplayContext {
 			return submitLabel;
 		}
 
-		ResourceBundle resourceBundle = _getResourceBundle(
-			getLocale(_getHttpServletRequest(), getDDMForm()));
+		ResourceBundle resourceBundle = _getResourceBundle();
 
-		if (_hasWorkflowEnabled(getFormInstance(), getThemeDisplay())) {
+		if (_hasWorkflowEnabled(getFormInstance(), getThemeDisplay()) ||
+			StringUtil.equals(ddmFormInstance.getStorageType(), "object")) {
+
 			DDMFormInstanceRecord ddmFormInstanceRecord =
 				getFormInstanceRecord();
 
@@ -563,56 +572,43 @@ public class DDMFormDisplayContext {
 	}
 
 	public boolean isFormAvailable() throws PortalException {
-		if (isPreview()) {
-			return true;
+		DDMFormInstance ddmFormInstance = getFormInstance();
+
+		if ((ddmFormInstance == null) || !isFormPublished()) {
+			return false;
 		}
 
-		DDMFormInstance formInstance = getFormInstance();
-
-		if (formInstance != null) {
-			Group group = _groupLocalService.getGroup(
-				formInstance.getGroupId());
-
-			Group scopeGroup = _groupLocalService.getGroup(
-				_portal.getScopeGroupId(_renderRequest));
-
-			if ((group != null) && (scopeGroup != null) &&
-				group.isStagingGroup() && !scopeGroup.isStagingGroup()) {
-
-				return false;
-			}
-
-			if ((group != null) && group.isStagedRemotely()) {
-				ThemeDisplay themeDisplay = getThemeDisplay();
-
-				Role role = _roleLocalService.getRole(
-					themeDisplay.getCompanyId(), RoleConstants.ADMINISTRATOR);
-
-				List<User> users = _userLocalService.getRoleUsers(
-					role.getRoleId());
-
-				if (!DDMFormInstanceStagingUtil.
-						isFormInstancePublishedToRemoteLive(
-							group, users.get(0), formInstance.getUuid())) {
-
-					return false;
-				}
-			}
+		if (!isFormShared() && isSharedURL()) {
+			return false;
 		}
 
-		if (isSharedURL()) {
-			if (isFormPublished() && isFormShared()) {
-				return true;
-			}
+		Group group = _groupLocalService.getGroup(ddmFormInstance.getGroupId());
+
+		Group scopeGroup = _groupLocalService.getGroup(
+			_portal.getScopeGroupId(_renderRequest));
+
+		if ((group != null) && (scopeGroup != null) && group.isStagingGroup() &&
+			!scopeGroup.isStagingGroup()) {
 
 			return false;
 		}
 
-		if (formInstance != null) {
-			return true;
+		if ((group != null) && group.isStagedRemotely()) {
+			ThemeDisplay themeDisplay = getThemeDisplay();
+
+			Role role = _roleLocalService.getRole(
+				themeDisplay.getCompanyId(), RoleConstants.ADMINISTRATOR);
+
+			List<User> users = _userLocalService.getRoleUsers(role.getRoleId());
+
+			if (!DDMFormInstanceStagingUtil.isFormInstancePublishedToRemoteLive(
+					group, users.get(0), ddmFormInstance.getUuid())) {
+
+				return false;
+			}
 		}
 
-		return false;
+		return true;
 	}
 
 	public boolean isFormShared() {
@@ -828,13 +824,13 @@ public class DDMFormDisplayContext {
 			ddmForm = latestStructureVersion.getDDMForm();
 		}
 		else {
-			DDMFormInstanceVersion latestFormInstanceVersion =
+			DDMFormInstanceVersion latestDDMFormInstanceVersion =
 				_getLatestApprovedDDMFormInstanceVersion();
 
-			DDMStructureVersion structureVersion =
-				latestFormInstanceVersion.getStructureVersion();
+			DDMStructureVersion ddmStructureVersion =
+				latestDDMFormInstanceVersion.getStructureVersion();
 
-			ddmForm = structureVersion.getDDMForm();
+			ddmForm = ddmStructureVersion.getDDMForm();
 		}
 
 		if (requireCaptcha) {
@@ -865,13 +861,13 @@ public class DDMFormDisplayContext {
 			ddmFormLayout = latestStructureVersion.getDDMFormLayout();
 		}
 		else {
-			DDMFormInstanceVersion latestFormInstanceVersion =
+			DDMFormInstanceVersion latestDDMFormInstanceVersion =
 				_getLatestApprovedDDMFormInstanceVersion();
 
-			DDMStructureVersion structureVersion =
-				latestFormInstanceVersion.getStructureVersion();
+			DDMStructureVersion ddmStructureVersion =
+				latestDDMFormInstanceVersion.getStructureVersion();
 
-			ddmFormLayout = structureVersion.getDDMFormLayout();
+			ddmFormLayout = ddmStructureVersion.getDDMFormLayout();
 		}
 
 		if (requireCaptcha) {
@@ -1064,11 +1060,13 @@ public class DDMFormDisplayContext {
 		}
 	}
 
-	private ResourceBundle _getResourceBundle(Locale locale) {
-		ResourceBundle portalResourceBundle = _portal.getResourceBundle(locale);
+	private ResourceBundle _getResourceBundle() {
+		ResourceBundle portalResourceBundle = _portal.getResourceBundle(
+			LocaleThreadLocal.getThemeDisplayLocale());
 
 		ResourceBundle moduleResourceBundle = ResourceBundleUtil.getBundle(
-			"content.Language", locale, getClass());
+			"content.Language", LocaleThreadLocal.getThemeDisplayLocale(),
+			getClass());
 
 		return new AggregateResourceBundle(
 			moduleResourceBundle, portalResourceBundle);

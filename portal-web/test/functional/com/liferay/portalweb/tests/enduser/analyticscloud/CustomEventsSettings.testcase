@@ -1,6 +1,8 @@
 @component-name = "portal-analytics-cloud"
 definition {
 
+	property analytics.cloud.release = "true";
+	property analytics.cloud.upstream = "true";
 	property custom.properties = "jsonws.web.service.paths.excludes=";
 	property portal.release = "false";
 	property portal.upstream = "true";
@@ -61,6 +63,8 @@ definition {
 	tearDown {
 		var testPortalInstance = PropsUtil.get("test.portal.instance");
 
+		ACUtils.tearDownAC();
+
 		ACUtils.tearDownDXP();
 
 		if ("${testPortalInstance}" == "true") {
@@ -69,10 +73,6 @@ definition {
 		else {
 			JSONGroup.deleteGroupByName(groupName = "Site Name");
 		}
-
-		JSONUser.tearDownNonAdminUsers();
-
-		ACUtils.tearDownAC();
 	}
 
 	@description = "Feature ID: LRAC-4265 | Automation ID: LRAC-10008 | Test Summary: Sample javascript copy"
@@ -80,6 +80,7 @@ definition {
 	test CanCopySampleJavascript {
 		var layoutName = "Custom 2";
 		var globalAttributesList = "canonicalUrl,pageTitle,referrer,url";
+
 		var disableAttributesList = "${globalAttributesList},birthdate";
 		var attributesList = "category,like";
 
@@ -174,6 +175,78 @@ definition {
 
 		task ("Check the attributes that the custom event has") {
 			ACUtils.viewNameList(nameList = "${globalAttributesList},device,like");
+		}
+	}
+
+	@description = "Bug: LRAC-10747 | Automation ID: LRAC-11378 | Test Summary: Delete Custom Events description"
+	@priority = "3"
+	test CanDeleteCustomEventDescription {
+		task ("Fill fields and create custom event") {
+			var customEventName = ACCustomEvents.generateCustomEventName();
+
+			ACCustomEvents.createCustomEvent(
+				customEventName = "${customEventName}",
+				timeToSendCustomEvent = "1");
+		}
+
+		task ("Close sessions") {
+			ACUtils.closeAllSessionsAndWait();
+		}
+
+		task ("Switch the property in AC") {
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
+		}
+
+		task ("Navigation to custom events tab") {
+			ACNavigation.goToSettings();
+
+			ACSettings.goToDefinitions();
+
+			ACSettings.goToEvents();
+
+			ACNavigation.openItem(itemName = "Custom Events");
+		}
+
+		task ("Edit the new custom event") {
+			ACNavigation.openItem(itemName = "${customEventName}");
+
+			ACUtils.clickAnyButton(button = "Edit");
+		}
+
+		task ("Change the description of the custom event") {
+			ACCustomEvents.changeCustomEventDisplayNameOrDescription(newDescription = "${customEventName} Description");
+		}
+
+		task ("Navigation to custom events tab") {
+			ACNavigation.backNavigation(pageName = "Events");
+
+			ACNavigation.openItem(itemName = "Custom Events");
+		}
+
+		task ("Check if the description has been changed") {
+			ACCustomEvents.viewDisplayNameOrDescriptionList(nameValue = "${customEventName} Description");
+		}
+
+		task ("Edit the new custom event") {
+			ACNavigation.openItem(itemName = "${customEventName}");
+
+			ACUtils.clickAnyButton(button = "Edit");
+		}
+
+		task ("Delete the description of the custom event") {
+			ACCustomEvents.changeCustomEventDisplayNameOrDescription(newDescription = "");
+		}
+
+		task ("Navigation to custom events tab") {
+			ACNavigation.backNavigation(pageName = "Events");
+
+			ACNavigation.openItem(itemName = "Custom Events");
+		}
+
+		task ("Check if the description is deleted") {
+			AssertTextNotPresent(value1 = "${customEventName} Description");
 		}
 	}
 
@@ -332,6 +405,9 @@ definition {
 	@description = "Feature ID: LRAC-4265 | Automation ID: LRAC-9865 | Test Summary: Custom Event shown in AC"
 	@priority = "5"
 	test CustomEventIsShownInAC {
+		property portal.acceptance = "true";
+		property portal.release = "true";
+
 		task ("Fill fields and create custom event") {
 			var customEventName = ACCustomEvents.generateCustomEventName();
 
@@ -436,12 +512,8 @@ definition {
 	}
 
 	@description = "Feature ID: LRAC-4265 | Automation ID: LRAC-10007 | Test Summary: Search for Custom Event"
-	@ignore = "true"
 	@priority = "3"
 	test CustomEventListSearchable {
-
-		// AC Story ticket: LRAC-9248
-
 		task ("Fill fields and create 2 custom events") {
 			var customEventName1 = ACCustomEvents.generateCustomEventName();
 
@@ -491,9 +563,7 @@ definition {
 		task ("Search for the name of the custom event that doesn't exist and verify that it didn't find anything") {
 			ACUtils.searchBar(searchItem = "acqa");
 
-			// This test is being ignored due to a history that makes changes to empty state messages.
-
-			ACUtils.viewNoResultsMessage(noResultMessage = "There are no items found.");
+			ACUtils.viewNoResultsMessage(noResultMessage = "There are no results found.");
 		}
 	}
 

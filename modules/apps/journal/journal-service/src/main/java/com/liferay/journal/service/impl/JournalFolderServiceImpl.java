@@ -54,8 +54,8 @@ public class JournalFolderServiceImpl extends JournalFolderServiceBaseImpl {
 
 	@Override
 	public JournalFolder addFolder(
-			long groupId, long parentFolderId, String name, String description,
-			ServiceContext serviceContext)
+			String externalReferenceCode, long groupId, long parentFolderId,
+			String name, String description, ServiceContext serviceContext)
 		throws PortalException {
 
 		ModelResourcePermissionUtil.check(
@@ -63,8 +63,8 @@ public class JournalFolderServiceImpl extends JournalFolderServiceBaseImpl {
 			groupId, parentFolderId, ActionKeys.ADD_FOLDER);
 
 		return journalFolderLocalService.addFolder(
-			getUserId(), groupId, parentFolderId, name, description,
-			serviceContext);
+			externalReferenceCode, getUserId(), groupId, parentFolderId, name,
+			description, serviceContext);
 	}
 
 	@Override
@@ -123,6 +123,21 @@ public class JournalFolderServiceImpl extends JournalFolderServiceBaseImpl {
 	@Override
 	public JournalFolder getFolder(long folderId) throws PortalException {
 		JournalFolder folder = journalFolderLocalService.getFolder(folderId);
+
+		_journalFolderModelResourcePermission.check(
+			getPermissionChecker(), folder, ActionKeys.VIEW);
+
+		return folder;
+	}
+
+	@Override
+	public JournalFolder getFolderByExternalReferenceCode(
+			long groupId, String externalReferenceCode)
+		throws PortalException {
+
+		JournalFolder folder =
+			journalFolderLocalService.getJournalFolderByExternalReferenceCode(
+				groupId, externalReferenceCode);
 
 		_journalFolderModelResourcePermission.check(
 			getPermissionChecker(), folder, ActionKeys.VIEW);

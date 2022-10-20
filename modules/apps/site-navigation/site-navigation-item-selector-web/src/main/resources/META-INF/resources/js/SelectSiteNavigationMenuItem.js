@@ -13,42 +13,19 @@
  */
 
 import {TreeView as ClayTreeView} from '@clayui/core';
+import ClayEmptyState from '@clayui/empty-state';
 import ClayForm, {ClayInput} from '@clayui/form';
 import ClayIcon from '@clayui/icon';
 import ClayLayout from '@clayui/layout';
-import {Treeview} from 'frontend-js-components-web';
-import React, {useRef, useState} from 'react';
-
-function findSiteNavigationMenuItem(
-	siteNavigationMenuItemId,
-	siteNavigationMenuItems = []
-) {
-	// eslint-disable-next-line no-for-of-loops/no-for-of-loops
-	for (const siteNavigationMenuItem of siteNavigationMenuItems) {
-		if (siteNavigationMenuItem.id === siteNavigationMenuItemId) {
-			return siteNavigationMenuItem;
-		}
-
-		const childrenSiteNavigationMenuItem = findSiteNavigationMenuItem(
-			siteNavigationMenuItemId,
-			siteNavigationMenuItem.children
-		);
-
-		if (childrenSiteNavigationMenuItem) {
-			return childrenSiteNavigationMenuItem;
-		}
-	}
-
-	return null;
-}
+import {getOpener} from 'frontend-js-web';
+import React, {useState} from 'react';
 
 const nodeByName = (items, name) => {
 	return items.reduce(function reducer(acc, item) {
-		if (item.name.match(new RegExp(name, 'i'))) {
+		if (item.name?.toLowerCase().includes(name.toLowerCase())) {
 			acc.push(item);
 		}
-
-		if (item.children) {
+		else if (item.children) {
 			acc.concat(item.children.reduce(reducer, acc));
 		}
 
@@ -57,60 +34,51 @@ const nodeByName = (items, name) => {
 };
 
 const SelectSiteNavigationMenuItem = ({itemSelectorSaveEvent, nodes}) => {
-	const [filter, setFilter] = useState('');
 	const [items, setItems] = useState(nodes);
-	const initialItemsRef = useRef(items);
 
 	const handleQueryChange = (event) => {
 		const value = event.target.value;
 
-		if (!window.Liferay.__FF__.enableClayTreeView) {
-			setFilter(value);
+		if (!value) {
+			setItems(nodes);
+
+			return;
 		}
-		else {
-			if (!value) {
-				setItems(initialItemsRef.current);
 
-				return;
-			}
-
-			const newItems = nodeByName(initialItemsRef.current, value);
-
-			if (newItems.length) {
-				setItems(newItems);
-			}
-		}
-	};
-
-	const handleSelectionChange = (selectedNodeIds) => {
-		const selectedNodeId = [...selectedNodeIds][0];
-
-		if (selectedNodeId) {
-			const {id, name} = findSiteNavigationMenuItem(
-				selectedNodeId,
-				nodes
-			);
-
-			const data = {
-				selectSiteNavigationMenuItemId: id,
-				selectSiteNavigationMenuItemName: name,
-			};
-
-			Liferay.Util.getOpener().Liferay.fire(itemSelectorSaveEvent, {
-				data,
-			});
-		}
+		setItems(nodeByName(nodes, value));
 	};
 
 	const handleTreeViewSelectionChange = (event, item) => {
-		event.preventDefault();
+		if (item.disabled) {
+			return;
+		}
 
-		Liferay.Util.getOpener().Liferay.fire(itemSelectorSaveEvent, {
+		getOpener().Liferay.fire(itemSelectorSaveEvent, {
 			data: {
 				selectSiteNavigationMenuItemId: item.id,
 				selectSiteNavigationMenuItemName: item.name,
 			},
 		});
+	};
+
+	const onClick = (event, item, expand) => {
+		event.preventDefault();
+
+		if (item.disabled) {
+			expand.toggle(item.id);
+
+			return;
+		}
+
+		handleTreeViewSelectionChange(event, item);
+	};
+
+	const onKeyUp = (event, item) => {
+		if (event.key === ' ' || event.key === 'Enter') {
+			event.preventDefault();
+
+			handleTreeViewSelectionChange(event, item);
+		}
 	};
 
 	return (
@@ -135,32 +103,26 @@ const SelectSiteNavigationMenuItem = ({itemSelectorSaveEvent, nodes}) => {
 				</ClayInput.Group>
 			</ClayForm.Group>
 
-			{!window.Liferay.__FF__.enableClayTreeView ? (
-				<Treeview
-					NodeComponent={Treeview.Card}
-					filter={filter}
-					nodes={nodes}
-					onSelectedNodesChange={handleSelectionChange}
-				/>
-			) : (
+			{items.length ? (
 				<ClayTreeView
 					items={items}
 					onItemsChange={setItems}
 					showExpanderOnHover={false}
 				>
-					{(item) => (
+					{(item, _selection, expand) => (
 						<ClayTreeView.Item>
 							<ClayTreeView.ItemStack
-								onClick={(event) => {
-									if (!item.disabled) {
-										handleTreeViewSelectionChange(
-											event,
-											item
-										);
+								onClick={(event) =>
+									onClick(event, item, expand)
+								}
+								onKeyDownCapture={(event) => {
+									if (event.key === ' ' && item.disabled) {
+										event.stopPropagation();
 									}
 								}}
+								onKeyUp={(event) => onKeyUp(event, item)}
 							>
-								<ClayIcon symbol="folder" />
+								<ClayIcon symbol={item.icon} />
 
 								{item.name}
 							</ClayTreeView.ItemStack>
@@ -169,13 +131,13 @@ const SelectSiteNavigationMenuItem = ({itemSelectorSaveEvent, nodes}) => {
 								{(item) => (
 									<ClayTreeView.Item
 										onClick={(event) =>
-											handleTreeViewSelectionChange(
-												event,
-												item
-											)
+											onClick(event, item)
+										}
+										onKeyUp={(event) =>
+											onKeyUp(event, item)
 										}
 									>
-										<ClayIcon symbol="folder" />
+										<ClayIcon symbol={item.icon} />
 
 										{item.name}
 									</ClayTreeView.Item>
@@ -184,6 +146,15 @@ const SelectSiteNavigationMenuItem = ({itemSelectorSaveEvent, nodes}) => {
 						</ClayTreeView.Item>
 					)}
 				</ClayTreeView>
+			) : (
+				<ClayEmptyState
+					description={Liferay.Language.get(
+						'try-again-with-a-different-search'
+					)}
+					imgSrc={`${themeDisplay.getPathThemeImages()}/states/search_state.gif`}
+					small
+					title={Liferay.Language.get('no-results-found')}
+				/>
 			)}
 		</ClayLayout.ContainerFluid>
 	);

@@ -21,7 +21,6 @@ import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.dynamic.data.mapping.render.DDMFormFieldRenderingContext;
 import com.liferay.object.dynamic.data.mapping.form.field.type.constants.ObjectDDMFormFieldTypeConstants;
 import com.liferay.object.model.ObjectDefinition;
-import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.model.ObjectField;
 import com.liferay.object.rest.context.path.RESTContextPathResolver;
 import com.liferay.object.rest.context.path.RESTContextPathResolverRegistry;
@@ -30,15 +29,15 @@ import com.liferay.object.scope.ObjectScopeProviderRegistry;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.service.ObjectFieldLocalService;
+import com.liferay.object.system.SystemObjectDefinitionMetadata;
+import com.liferay.object.system.SystemObjectDefinitionMetadataTracker;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONFactory;
-import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.service.PersistedModelLocalService;
 import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
@@ -47,6 +46,7 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.util.Map;
+import java.util.Objects;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -73,16 +73,16 @@ public class ObjectRelationshipDDMFormFieldTemplateContextContributor
 		return HashMapBuilder.<String, Object>put(
 			"apiURL", _getAPIURL(ddmFormField, ddmFormFieldRenderingContext)
 		).put(
-			"initialLabel",
-			_getInitialLabel(
-				ddmFormField, ddmFormFieldRenderingContext.getValue())
-		).put(
 			"inputName", ddmFormField.getName()
 		).put(
 			"labelKey", _getLabelKey(ddmFormField)
 		).put(
 			"objectDefinitionId",
 			GetterUtil.getLong(ddmFormField.getProperty("objectDefinitionId"))
+		).put(
+			"parameterObjectFieldName",
+			GetterUtil.getString(
+				ddmFormField.getProperty("parameterObjectFieldName"))
 		).put(
 			"placeholder",
 			() -> {
@@ -98,9 +98,18 @@ public class ObjectRelationshipDDMFormFieldTemplateContextContributor
 						ddmFormFieldRenderingContext.getLocale()));
 			}
 		).put(
-			"value", ddmFormFieldRenderingContext.getValue()
+			"value",
+			() -> {
+				String value = ddmFormFieldRenderingContext.getValue();
+
+				if (Objects.equals(value, "0")) {
+					return StringPool.BLANK;
+				}
+
+				return value;
+			}
 		).put(
-			"valueKey", "id"
+			"valueKey", _getValueKey(ddmFormField)
 		).build();
 	}
 
@@ -179,27 +188,6 @@ public class ObjectRelationshipDDMFormFieldTemplateContextContributor
 		}
 	}
 
-	private String _getInitialLabel(DDMFormField ddmFormField, String value) {
-		String initialLabel = GetterUtil.getString(
-			ddmFormField.getProperty("initialLabel"));
-
-		if (Validator.isNotNull(initialLabel)) {
-			return initialLabel;
-		}
-
-		if (Validator.isBlank(value)) {
-			return StringPool.BLANK;
-		}
-
-		ObjectDefinition objectDefinition = _getObjectDefinition(ddmFormField);
-
-		if ((objectDefinition != null) && objectDefinition.isSystem()) {
-			return _getPersistedModelValue(objectDefinition, value);
-		}
-
-		return _getObjectEntryTitleValue(value);
-	}
-
 	private String _getLabelKey(DDMFormField ddmFormField) {
 		String labelKey = GetterUtil.getString(
 			ddmFormField.getProperty("labelKey"));
@@ -232,61 +220,18 @@ public class ObjectRelationshipDDMFormFieldTemplateContextContributor
 						ddmFormField.getProperty("objectDefinitionId")))));
 	}
 
-	private String _getObjectEntryTitleValue(String value) {
-		ObjectEntry objectEntry = _objectEntryLocalService.fetchObjectEntry(
-			GetterUtil.getLong(value));
+	private String _getValueKey(DDMFormField ddmFormField) {
+		ObjectDefinition objectDefinition = _getObjectDefinition(ddmFormField);
 
-		if (objectEntry != null) {
-			try {
-				return objectEntry.getTitleValue();
-			}
-			catch (PortalException portalException) {
-				if (_log.isDebugEnabled()) {
-					_log.debug(portalException);
-				}
-			}
+		SystemObjectDefinitionMetadata systemObjectDefinitionMetadata =
+			_systemObjectDefinitionMetadataTracker.
+				getSystemObjectDefinitionMetadata(objectDefinition.getName());
+
+		if (systemObjectDefinitionMetadata == null) {
+			return "id";
 		}
 
-		return value;
-	}
-
-	private String _getObjectFieldDBColumnName(
-		ObjectDefinition objectDefinition) {
-
-		ObjectField objectField = _objectFieldLocalService.fetchObjectField(
-			objectDefinition.getTitleObjectFieldId());
-
-		if (objectField != null) {
-			return objectField.getDBColumnName();
-		}
-
-		return objectDefinition.getPKObjectFieldDBColumnName();
-	}
-
-	private String _getPersistedModelValue(
-		ObjectDefinition objectDefinition, String value) {
-
-		try {
-			PersistedModelLocalService persistedModelLocalService =
-				_persistedModelLocalServiceRegistry.
-					getPersistedModelLocalService(
-						objectDefinition.getClassName());
-
-			JSONObject jsonObject = _jsonFactory.createJSONObject(
-				_jsonFactory.looseSerialize(
-					persistedModelLocalService.getPersistedModel(
-						GetterUtil.getLong(value))));
-
-			return jsonObject.getString(
-				_getObjectFieldDBColumnName(objectDefinition));
-		}
-		catch (Exception exception) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(exception);
-			}
-
-			return value;
-		}
+		return systemObjectDefinitionMetadata.getRESTDTOIdPropertyName();
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
@@ -316,5 +261,9 @@ public class ObjectRelationshipDDMFormFieldTemplateContextContributor
 
 	@Reference
 	private RESTContextPathResolverRegistry _restContextPathResolverRegistry;
+
+	@Reference
+	private SystemObjectDefinitionMetadataTracker
+		_systemObjectDefinitionMetadataTracker;
 
 }

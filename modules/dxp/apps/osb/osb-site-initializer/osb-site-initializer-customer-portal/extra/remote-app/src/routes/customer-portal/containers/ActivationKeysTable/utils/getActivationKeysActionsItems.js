@@ -10,14 +10,16 @@
  */
 
 import ClayIcon from '@clayui/icon';
+import i18n from '../../../../../common/I18n';
 import {downloadAllKeysDetails} from './downloadActivationLicenseKey';
 
 export function getActivationKeysActionsItems(
 	accountKey,
-	licenseKeyDownloadURL,
+	provisioningServerAPI,
 	sessionId,
 	handleAlertStatus,
 	handleRedirectPage,
+	handleDeactivatePage,
 	productName
 ) {
 	return [
@@ -28,18 +30,28 @@ export function getActivationKeysActionsItems(
 					symbol="plus"
 				/>
 			),
-			label: 'Generate New',
+			label: i18n.translate('generate-new'),
 			onClick: handleRedirectPage,
+		},
+		{
+			icon: (
+				<ClayIcon
+					className="mr-1 text-neutral-4"
+					symbol="minus-circle"
+				/>
+			),
+			label: i18n.translate('deactivate'),
+			onClick: handleDeactivatePage,
 		},
 		{
 			icon: (
 				<ClayIcon className="mr-1 text-neutral-4" symbol="download" />
 			),
-			label: 'Export All Key Details (csv)',
+			label: i18n.translate('export-all-key-details-csv'),
 			onClick: async () => {
 				const downloadedAggregated = await downloadAllKeysDetails(
 					accountKey,
-					licenseKeyDownloadURL,
+					provisioningServerAPI,
 					sessionId,
 					productName
 				);

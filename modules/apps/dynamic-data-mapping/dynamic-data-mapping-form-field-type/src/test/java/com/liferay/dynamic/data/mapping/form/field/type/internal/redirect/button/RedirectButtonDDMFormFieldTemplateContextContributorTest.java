@@ -18,47 +18,82 @@ import com.liferay.dynamic.data.mapping.render.DDMFormFieldRenderingContext;
 import com.liferay.dynamic.data.mapping.test.util.DDMFormTestUtil;
 import com.liferay.dynamic.data.mapping.test.util.DDMFormValuesTestUtil;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactory;
-import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactoryUtil;
+import com.liferay.portal.kernel.language.Language;
+import com.liferay.portal.kernel.portlet.LiferayPortletURL;
+import com.liferay.portal.kernel.portlet.PortletURLFactory;
+import com.liferay.portal.kernel.portlet.PortletURLFactoryUtil;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.portlet.MockLiferayPortletURL;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
 import java.util.Locale;
 import java.util.Map;
 
-import javax.portlet.PortletURL;
+import javax.portlet.PortletRequest;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
-import org.mockito.Matchers;
+import org.mockito.Mockito;
 
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.mock.web.MockHttpServletRequest;
 
 /**
  * @author Rodrigo Paulino
  */
-@PrepareForTest({LanguageUtil.class, RequestBackedPortletURLFactoryUtil.class})
-@RunWith(PowerMockRunner.class)
 public class RedirectButtonDDMFormFieldTemplateContextContributorTest {
+
+	@ClassRule
+	@Rule
+	public static final LiferayUnitTestRule liferayUnitTestRule =
+		LiferayUnitTestRule.INSTANCE;
 
 	@Before
 	public void setUp() throws Exception {
-		_setUpRequestBackedPortletURLFactoryUtil();
+		PortletURLFactoryUtil portletURLFactoryUtil =
+			new PortletURLFactoryUtil();
+
+		PortletURLFactory portletURLFactory = Mockito.mock(
+			PortletURLFactory.class);
+
+		LiferayPortletURL mockLiferayPortletURL = new MockLiferayPortletURL();
+
+		mockLiferayPortletURL.setPortletId(_PORTLET_ID);
+
+		Mockito.doReturn(
+			mockLiferayPortletURL
+		).when(
+			portletURLFactory
+		).create(
+			Mockito.any(PortletRequest.class), Mockito.anyString(),
+			Mockito.anyString()
+		);
+
+		Mockito.doReturn(
+			mockLiferayPortletURL
+		).when(
+			portletURLFactory
+		).create(
+			Mockito.any(HttpServletRequest.class), Mockito.anyString(),
+			Mockito.anyLong(), Mockito.anyString()
+		);
+
+		portletURLFactoryUtil.setPortletURLFactory(portletURLFactory);
 	}
 
 	@Test
 	public void testGetParametersWithMessageArgumentsAndParameters() {
-		_mockLanguageUtilFormat(
+		_setLanguage(
 			"message1", new Object[] {"messageArgument1", "messageArgument2"});
 
 		Map<String, Object> parameters =
@@ -93,7 +128,7 @@ public class RedirectButtonDDMFormFieldTemplateContextContributorTest {
 
 	@Test
 	public void testGetParametersWithoutMessageArgumentsAndParameters() {
-		_mockLanguageUtilFormat("message2", new Object[0]);
+		_setLanguage("message2", new Object[0]);
 
 		Map<String, Object> parameters =
 			_redirectButtonDDMFormFieldTemplateContextContributor.getParameters(
@@ -123,68 +158,35 @@ public class RedirectButtonDDMFormFieldTemplateContextContributorTest {
 
 	private DDMFormFieldRenderingContext _mockDDMFormFieldRenderingContext() {
 		DDMFormFieldRenderingContext ddmFormFieldRenderingContext =
-			PowerMockito.mock(DDMFormFieldRenderingContext.class);
+			new DDMFormFieldRenderingContext();
 
-		PowerMockito.when(
-			ddmFormFieldRenderingContext.getLocale()
-		).thenReturn(
-			LocaleUtil.US
-		);
+		HttpServletRequest httpServletRequest = new MockHttpServletRequest();
+
+		httpServletRequest.setAttribute(
+			WebKeys.THEME_DISPLAY, Mockito.mock(ThemeDisplay.class));
+
+		ddmFormFieldRenderingContext.setHttpServletRequest(httpServletRequest);
+
+		ddmFormFieldRenderingContext.setLocale(LocaleUtil.US);
 
 		return ddmFormFieldRenderingContext;
 	}
 
-	private void _mockLanguageUtilFormat(
-		String message, Object[] messageArguments) {
+	private void _setLanguage(String message, Object[] messageArguments) {
+		Language language = Mockito.mock(Language.class);
 
-		PowerMockito.mockStatic(LanguageUtil.class);
-
-		PowerMockito.when(
-			LanguageUtil.format(
-				Matchers.any(Locale.class), Matchers.eq(message),
-				Matchers.eq(messageArguments))
+		Mockito.when(
+			language.format(
+				Mockito.any(Locale.class), Mockito.eq(message),
+				Mockito.eq(messageArguments))
 		).thenReturn(
 			StringUtil.merge(
 				ArrayUtil.append(messageArguments, message), StringPool.COMMA)
 		);
-	}
 
-	private PortletURL _mockPortletURL() {
-		MockLiferayPortletURL mockLiferayPortletURL =
-			new MockLiferayPortletURL();
-
-		mockLiferayPortletURL.setPortletId(_PORTLET_ID);
-
-		return mockLiferayPortletURL;
-	}
-
-	private RequestBackedPortletURLFactory
-		_mockRequestBackedPortletURLFactory() {
-
-		RequestBackedPortletURLFactory requestBackedPortletURLFactory =
-			PowerMockito.mock(RequestBackedPortletURLFactory.class);
-
-		PowerMockito.when(
-			requestBackedPortletURLFactory.createActionURL(Matchers.anyString())
-		).thenReturn(
-			_mockPortletURL()
-		);
-
-		return requestBackedPortletURLFactory;
-	}
-
-	private void _setUpRequestBackedPortletURLFactoryUtil() {
-		PowerMockito.mockStatic(RequestBackedPortletURLFactoryUtil.class);
-
-		RequestBackedPortletURLFactory requestBackedPortletURLFactory =
-			_mockRequestBackedPortletURLFactory();
-
-		PowerMockito.when(
-			RequestBackedPortletURLFactoryUtil.create(
-				Matchers.any(HttpServletRequest.class))
-		).thenReturn(
-			requestBackedPortletURLFactory
-		);
+		ReflectionTestUtil.setFieldValue(
+			_redirectButtonDDMFormFieldTemplateContextContributor, "_language",
+			language);
 	}
 
 	private static final String _PORTLET_ID = "portletId";

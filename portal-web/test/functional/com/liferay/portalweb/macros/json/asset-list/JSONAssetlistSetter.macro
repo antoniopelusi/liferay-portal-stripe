@@ -32,7 +32,6 @@ definition {
 		var globalGroupId = JSONGroupAPI._getGroupIdByName(
 			groupName = "Global",
 			site = "true");
-
 		var list = ListUtil.newList();
 
 		ListUtil.add("${list}", "com.liferay.blogs.model.BlogsEntry");
@@ -73,17 +72,13 @@ definition {
 		}
 
 		var classNameIds = ListUtil.toString("${list}");
-
 		var googleDriveShortcutClassTypeId = JSONDLfileentrytype._getFileEntryTypeId(
 			fileEntryTypeName = "Google Drive Shortcut",
 			groupId = "${globalGroupId}");
-
 		var externalVideoShortcutClassTypeId = JSONDLfileentrytype._getFileEntryTypeId(
 			fileEntryTypeName = "External Video Shortcut",
 			groupId = "${globalGroupId}");
-
 		var basicDocumentClassTypeId = "0";
-
 		var classTypeIdsDLFileEntry = JSONDLfileentrytype._getFileEntryTypeIds(groupId = "${groupId}");
 
 		if ("${classTypeIdsDLFileEntry}" == "") {
@@ -117,7 +112,6 @@ definition {
 			classNameId = "${classNameId}",
 			groupId = "${globalGroupId}",
 			structureName = "Basic Web Content");
-
 		var classTypeIdsDDMStructure = JSONDDMstructure._getStructureIds(
 			classNameId = "${classNameId}",
 			groupId = "${groupId}");
@@ -353,6 +347,7 @@ classTypeIdsJournalArticleAssetRendererFactory=${classTypeIdsDDMStructure}
 
 		var newLine = '''
 ''';
+
 		var typeSettings = StringUtil.regexReplaceAll("${typeSettings}", "${newLine}", "%0A");
 
 		return "${typeSettings}";

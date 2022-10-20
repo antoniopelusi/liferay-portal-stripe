@@ -40,11 +40,6 @@ $c: '.ddm-form-builder';
 			}
 		}
 
-		&.hovered {
-			border-width: 1px;
-			margin: 1px 2px;
-		}
-
 		&.active-drop-child {
 			border-color: $light-blue;
 			border-style: dashed;

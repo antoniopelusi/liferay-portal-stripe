@@ -31,6 +31,7 @@ import com.liferay.layout.page.template.model.LayoutPageTemplateStructure;
 import com.liferay.layout.page.template.model.LayoutPageTemplateStructureRel;
 import com.liferay.layout.page.template.service.LayoutPageTemplateStructureLocalService;
 import com.liferay.layout.util.constants.LayoutDataItemTypeConstants;
+import com.liferay.layout.util.structure.FormStyledLayoutStructureItem;
 import com.liferay.layout.util.structure.FragmentStyledLayoutStructureItem;
 import com.liferay.layout.util.structure.LayoutStructure;
 import com.liferay.layout.util.structure.LayoutStructureItem;
@@ -39,6 +40,7 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
@@ -221,7 +223,15 @@ public class LayoutPageTemplateStructureRelStagedModelDataHandler
 						portletDataContext, layoutPageTemplateStructureRel,
 						data));
 
-			data = _processData(data, portletDataContext);
+			LayoutStructure layoutStructure = LayoutStructure.of(data);
+
+			_processImportFormLayoutStructureItemsData(
+				layoutStructure, portletDataContext);
+
+			_processImportFragmentLayoutStructureItemsData(
+				layoutStructure, portletDataContext);
+
+			data = layoutStructure.toString();
 		}
 
 		importedLayoutPageTemplateStructureRel.setData(data);
@@ -263,10 +273,40 @@ public class LayoutPageTemplateStructureRelStagedModelDataHandler
 		return _stagedModelRepository;
 	}
 
-	private String _processData(
-		String data, PortletDataContext portletDataContext) {
+	private void _processImportFormLayoutStructureItemsData(
+		LayoutStructure layoutStructure,
+		PortletDataContext portletDataContext) {
 
-		LayoutStructure layoutStructure = LayoutStructure.of(data);
+		List<FormStyledLayoutStructureItem> formStyledLayoutStructureItems =
+			layoutStructure.getFormStyledLayoutStructureItems();
+
+		for (FormStyledLayoutStructureItem formStyledLayoutStructureItem :
+				formStyledLayoutStructureItems) {
+
+			JSONObject successMessageJSONObject =
+				formStyledLayoutStructureItem.getSuccessMessageJSONObject();
+
+			if (successMessageJSONObject == null) {
+				continue;
+			}
+
+			JSONObject layoutJSONObject =
+				successMessageJSONObject.getJSONObject("layout");
+
+			if ((layoutJSONObject == null) ||
+				(layoutJSONObject.length() == 0)) {
+
+				continue;
+			}
+
+			layoutJSONObject.put(
+				"groupId", portletDataContext.getScopeGroupId());
+		}
+	}
+
+	private void _processImportFragmentLayoutStructureItemsData(
+		LayoutStructure layoutStructure,
+		PortletDataContext portletDataContext) {
 
 		Map<Long, Long> fragmentEntryLinkIds =
 			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
@@ -294,8 +334,6 @@ public class LayoutPageTemplateStructureRelStagedModelDataHandler
 			fragmentStyledLayoutStructureItem.setFragmentEntryLinkId(
 				fragmentEntryLinkId);
 		}
-
-		return layoutStructure.toString();
 	}
 
 	private String _processReferenceStagedModels(
@@ -365,6 +403,9 @@ public class LayoutPageTemplateStructureRelStagedModelDataHandler
 
 	@Reference
 	private FragmentEntryLinkLocalService _fragmentEntryLinkLocalService;
+
+	@Reference
+	private LayoutLocalService _layoutLocalService;
 
 	@Reference
 	private LayoutPageTemplateStructureLocalService

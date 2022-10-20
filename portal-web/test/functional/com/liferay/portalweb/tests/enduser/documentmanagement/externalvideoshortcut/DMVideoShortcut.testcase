@@ -115,13 +115,10 @@ definition {
 		KBAdmin.openKBAdmin(siteURLKey = "guest");
 
 		KBArticle.addCP(
-			embedVideo = "true",
+			embedVideo = "https://www.facebook.com/Cristiano/videos/1710977485745946",
 			kbArticleContent = "Knowledge Base Video Content",
 			kbArticleTitle = "Knowledge Base Article Title",
-			videoShortcutDescription = "Video Shortcut Description",
-			videoShortcutPreview = "https://www.facebook.com",
-			videoShortcutTitle = "Test Facebook Video",
-			videoURL = "https://www.facebook.com/Cristiano/videos/1710977485745946");
+			navTab = "URL");
 
 		KBAdmin.openKBAdmin(siteURLKey = "guest");
 
@@ -239,11 +236,8 @@ definition {
 		WebContentNavigator.gotoAddCP();
 
 		WebContent.addCP(
-			embedVideo = "true",
-			videoShortcutDescription = "Video Shortcut Description",
-			videoShortcutPreview = "https://player.twitch.tv",
-			videoShortcutTitle = "Test Twitch Video Name",
-			videoURL = "https://www.twitch.tv/videos/806178790",
+			embedVideo = "https://www.twitch.tv/videos/806178790",
+			navTab = "URL",
 			webContentContent = "WC WebContent Content",
 			webContentTitle = "WC WebContent Title");
 
@@ -295,14 +289,10 @@ definition {
 			siteName = "Guest");
 
 		Blogs.addEntry(
-			embedVideo = "true",
+			embedVideo = "https://vimeo.com/483035084",
 			entryContent = "video",
 			entryTitle = "Blogs Entry Title",
-			extractedVideoShortcutTitle = "Air",
-			videoShortcutDescription = "Video Shortcut Description",
-			videoShortcutPreview = "https://player.vimeo.com",
-			videoShortcutTitle = "Test Vimeo Video",
-			videoURL = "https://vimeo.com/483035084");
+			navTab = "URL");
 
 		Navigator.gotoSitePage(
 			pageName = "Blog Page",
@@ -345,7 +335,7 @@ definition {
 
 		WebContentNavigator.gotoPreviewEntryCP(webContentTitle = "WC WebContent Title");
 
-		Pause(locator1 = "5000");
+		WaitForVisible(locator1 = "IFrame#MODAL_BODY");
 
 		SelectFrame(locator1 = "IFrame#MODAL_BODY");
 
@@ -448,7 +438,7 @@ definition {
 
 		DMDocument.enableActionsMenuOnPortlet();
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		ContentPagesNavigator.openViewContentPage(
 			pageName = "Test Content Page Name",
@@ -502,12 +492,8 @@ definition {
 		WebContentNavigator.gotoAddCP();
 
 		WebContent.addCP(
-			embedVideo = "true",
-			extractedVideoShortcutTitle = "Liferay Digital Experience Platform",
-			videoShortcutDescription = "Video Shortcut Description",
-			videoShortcutPreview = "https://www.youtube.com",
-			videoShortcutTitle = "Test YouTube Video",
-			videoURL = "https://www.youtube.com/watch?v=HOdbzGCI5ME",
+			embedVideo = "https://www.youtube.com/watch?v=HOdbzGCI5ME",
+			navTab = "URL",
 			webContentContent = "WC WebContent Content",
 			webContentTitle = "WC WebContent Title");
 
@@ -517,6 +503,97 @@ definition {
 
 		WebContent.viewVideoPreview(
 			service = "https://www.youtube.com",
+			webContentTitle = "WC WebContent Title");
+	}
+
+	@description = "This ensures that an external video in an external video fragment can be rendered correctly after moving it to a folder."
+	@priority = "4"
+	test CanViewExternalVideoViaFragmentAfterMovingToFolder {
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Content Page Name",
+			type = "content");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		VideoShortcut.addCP(
+			videoShortcutTitle = "Liferay Digital Experience Platform",
+			videoURL = "https://www.youtube.com/watch?v=HOdbzGCI5ME");
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Content Page Name",
+			siteName = "Guest");
+
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "External Video");
+
+		PageEditor.gotoConfiguration(fragmentName = "External Video");
+
+		Click(
+			key_fieldLabel = "Video",
+			key_text = "plus",
+			locator1 = "Icon#ANY_ITEM_SELECTOR");
+
+		ItemSelector.addVideoFromDM(
+			navTab = "Documents and Media",
+			videoShortcutTitle = "Liferay Digital Experience Platform");
+
+		PageEditor.publish();
+
+		JSONFolder.addFolder(
+			dmFolderDescription = "DM Folder Description",
+			dmFolderName = "DM Folder Name",
+			groupName = "Guest");
+
+		JSONDocument.moveFileEntryToFolder(
+			dmDocumentTitle = "Liferay Digital Experience Platform",
+			folderName = "DM Folder Name",
+			groupName = "Guest");
+
+		ContentPagesNavigator.openViewContentPage(
+			pageName = "Content Page Name",
+			siteName = "Guest");
+
+		YoutubePortlet.assertVideoTitle(videoTitle = "Liferay Digital Experience Platform");
+	}
+
+	@description = "This ensures that an external video in the WC content field can be rendered correctly after moving it to a folder."
+	@priority = "4"
+	test CanViewVideoInWCAfterMovingToFolder {
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		VideoShortcut.addCP(
+			videoShortcutTitle = "Test YouTube Video",
+			videoURL = "https://youtu.be/HOdbzGCI5ME");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+
+		WebContentNavigator.gotoAddCP();
+
+		WebContent.addCP(
+			embedVideo = "true",
+			navTab = "Documents and Media",
+			videoShortcutTitle = "Test YouTube Video",
+			webContentContent = "Web Content Content",
+			webContentTitle = "WC WebContent Title");
+
+		PortletEntry.publish();
+
+		JSONFolder.addFolder(
+			dmFolderDescription = "DM Folder Description",
+			dmFolderName = "DM Folder Name",
+			groupName = "Guest");
+
+		JSONDocument.moveFileEntryToFolder(
+			dmDocumentTitle = "Test YouTube Video",
+			folderName = "DM Folder Name",
+			groupName = "Guest");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+
+		WebContent.viewVideoPreview(
+			service = "youtube",
 			webContentTitle = "WC WebContent Title");
 	}
 
@@ -806,7 +883,9 @@ definition {
 
 		SearchPortlets.viewResultDetails(searchAssetTitle = "Test YouTube Video");
 
-		Pause(locator1 = "3000");
+		WaitForElementPresent(
+			key_videoShortcutPreview = "https://www.youtube.com",
+			locator1 = "DocumentsAndMediaDocument#VIDEO_SHORTCUT_PREVIEW");
 
 		AssertVisible(
 			key_videoShortcutPreview = "https://www.youtube.com",

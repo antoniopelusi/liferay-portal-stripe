@@ -152,6 +152,14 @@
 			};
 		})();
 
+		var featureFlags = <%= PropsValues.FEATURE_FLAGS_JSON %>;
+
+		Liferay.FeatureFlags = Object.keys(featureFlags).reduce(
+			(acc, key) => ({
+				...acc, [key]: featureFlags[key] === 'true'
+			}), {}
+		);
+
 		Liferay.PortletKeys = {
 			DOCUMENT_LIBRARY: '<%= PortletKeys.DOCUMENT_LIBRARY %>',
 			DYNAMIC_DATA_MAPPING: 'com_liferay_dynamic_data_mapping_web_portlet_DDMPortlet',
@@ -214,9 +222,7 @@
 
 				String completeURL = PortalUtil.getCurrentCompleteURL(request);
 
-				String canonicalURL = PortalUtil.getCanonicalURL(completeURL, themeDisplay, layout, false, false);
-
-				LayoutSEOLink layoutSEOLink = layoutSEOLinkManager.getCanonicalLayoutSEOLink(layout, themeDisplay.getLocale(), canonicalURL, PortalUtil.getAlternateURLs(canonicalURL, themeDisplay, layout));
+				LayoutSEOLink layoutSEOLink = layoutSEOLinkManager.getCanonicalLayoutSEOLink(layout, themeDisplay.getLocale(), PortalUtil.getCanonicalURL(completeURL, themeDisplay, layout, false, false), themeDisplay);
 				%>
 
 				return '<%= HtmlUtil.escapeJS(layoutSEOLink.getHref()) %>';
@@ -271,6 +277,15 @@
 			},
 			getPortalURL: function() {
 				return '<%= themeDisplay.getPortalURL() %>';
+			},
+			getRealUserId: function() {
+				return '<%= themeDisplay.getRealUserId() %>';
+			},
+			getRemoteAddr: function() {
+				return '<%= themeDisplay.getRemoteAddr() %>';
+			},
+			getRemoteHost: function() {
+				return '<%= themeDisplay.getRemoteHost() %>';
 			},
 			getScopeGroupId: function() {
 				return '<%= scopeGroup.getGroupId() %>';

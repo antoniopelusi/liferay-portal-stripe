@@ -11,9 +11,7 @@ definition {
 	setUp {
 		TestCase.setUpPortalInstance();
 
-		User.firstLoginUI(
-			password = "test",
-			userEmailAddress = "test@liferay.com");
+		User.firstLoginPG();
 	}
 
 	tearDown {
@@ -30,6 +28,60 @@ definition {
 			WebContent.tearDownCP();
 
 			RemoteApps.tearDown();
+		}
+	}
+
+	@description = "This is a test for LPS-154668. I can create a New Virtual Instance of Liferay Site with the initializer"
+	@priority = "4"
+	test AddLiferayWelcomeSiteVirtualInstanceWithInitializer {
+		property custom.properties = "virtual.hosts.valid.hosts=localhost,127.0.0.1,www.able.com";
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "LiferayOnline#AddLiferayWelcomeSiteVirtualInstanceWithInitializer";
+
+		task ("Add virtual instance Liferay Site with the Liferay Site Initializer") {
+			HeadlessPortalInstanceAPI.addPortalInstanceWithVirtualInstanceInitializer(
+				domain = "www.able.com",
+				portalInstanceId = "www.able.com",
+				siteInitializerKey = "com.liferay.site.initializer.welcome",
+				virtualHost = "www.able.com");
+		}
+
+		task ("Go to the new Virtual Instance") {
+			Navigator.openSpecificURL(url = "http://www.able.com:8080");
+		}
+
+		task ("Assert the Liferay Site Initializer Welcome  Page") {
+			AssertElementPresent(locator1 = "Home#DEFAULT_LOGO");
+		}
+	}
+
+	@description = "This is a test for LPS-154668. I can create a Site of Liferay Welcome Site with the initializer"
+	@priority = "4"
+	test AddLiferayWelcomeSiteWithInitializer {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "LiferayOnline#AddLiferayWelcomeSiteWithInitializer";
+
+		task ("Go to Sites and add a new one") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Sites",
+				panel = "Control Panel",
+				portlet = "Sites");
+
+			Site.addSiteTemplateCP(
+				siteName = "Liferay Welcome Site",
+				siteTemplateName = "Welcome");
+		}
+
+		task ("Go to Liferay Welcome Site") {
+			ApplicationsMenu.gotoSite(site = "Liferay Welcome Site");
+		}
+
+		task ("Assert the Liferay Site Initializer Welcome  Page") {
+			AssertElementPresent(locator1 = "Home#DEFAULT_LOGO");
+		}
+
+		task ("Delete de Site created") {
+			JSONGroup.deleteGroupByName(groupName = "Liferay Welcome Site");
 		}
 	}
 
@@ -85,21 +137,21 @@ definition {
 		}
 	}
 
-	@description = "This is a test for LPS-135077. Raylife initializer is not deployed and is not shown on inicializer list"
+	@description = "This is a test for LPS-151826 related with LPS-135077. Raylife AP initializer is not deployed and is not shown on inicializer list"
 	@priority = "4"
-	test CannotSelectInitializerWithoutDeploy {
+	test CannotSelectInitializerWithoutDeployRaylifeAP {
 		property osgi.app.includes = "gogo-shell";
-		property test.name.skip.portal.instance = "LiferayOnline#CannotSelectInitializerWithoutDeploy";
+		property test.name.skip.portal.instance = "LiferayOnline#CannotSelectInitializerWithoutDeployRaylifeAP";
 
 		task ("Go to Gogo Shell Admin and Stop Raylife Module") {
 			GogoShell.openGogoShellAdmin();
 
-			var moduleId = GogoShell.getModuleID(moduleName = "com.liferay.site.initializer.raylife");
+			var moduleId = GogoShell.getModuleID(moduleName = "com.liferay.site.initializer.raylife.ap");
 
 			GogoShell.stopModule(moduleId = "${moduleId}");
 
 			GogoShell.viewModuleStatus(
-				moduleName = "com.liferay.site.initializer.raylife",
+				moduleName = "com.liferay.site.initializer.raylife.ap",
 				moduleStatus = "Resolved");
 		}
 
@@ -115,7 +167,7 @@ definition {
 			Click(locator1 = "OpenIDConnectLogin#OPENID_CONNECT_DROPDOWN_MENU");
 
 			AssertElementNotPresent(
-				key_providerNname = "Raylife",
+				key_providerNname = "Raylife AP",
 				locator1 = "OpenIDConnectLogin#OPENID_CONNECT_DROPDOWN_OPTION");
 		}
 
@@ -125,7 +177,52 @@ definition {
 			GogoShell.startModule(moduleId = "${moduleId}");
 
 			GogoShell.viewModuleStatus(
-				moduleName = "com.liferay.site.initializer.raylife",
+				moduleName = "com.liferay.site.initializer.raylife.ap",
+				moduleStatus = "Active");
+		}
+	}
+
+	@description = "This is a test for LPS-135077. Raylife D2C initializer is not deployed and is not shown on inicializer list"
+	@priority = "4"
+	test CannotSelectInitializerWithoutDeployRaylifeD2C {
+		property osgi.app.includes = "gogo-shell";
+		property test.name.skip.portal.instance = "LiferayOnline#CannotSelectInitializerWithoutDeployRaylifeD2C";
+
+		task ("Go to Gogo Shell Admin and Stop Raylife Module") {
+			GogoShell.openGogoShellAdmin();
+
+			var moduleId = GogoShell.getModuleID(moduleName = "com.liferay.site.initializer.raylife.d2c");
+
+			GogoShell.stopModule(moduleId = "${moduleId}");
+
+			GogoShell.viewModuleStatus(
+				moduleName = "com.liferay.site.initializer.raylife.d2c",
+				moduleStatus = "Resolved");
+		}
+
+		task ("Go to Add a New Virtual Instance and Assert the Raylife Module is Not Present") {
+			PortalInstances.openVirtualInstancesAdmin();
+
+			LexiconEntry.gotoAdd();
+
+			Type(
+				locator1 = "TextInput#WEB_ID",
+				value1 = "Test");
+
+			Click(locator1 = "OpenIDConnectLogin#OPENID_CONNECT_DROPDOWN_MENU");
+
+			AssertElementNotPresent(
+				key_providerNname = "Raylife D2C",
+				locator1 = "OpenIDConnectLogin#OPENID_CONNECT_DROPDOWN_OPTION");
+		}
+
+		task ("Go to Gogo Shell Admin and Start Raylife Module") {
+			GogoShell.openGogoShellAdmin();
+
+			GogoShell.startModule(moduleId = "${moduleId}");
+
+			GogoShell.viewModuleStatus(
+				moduleName = "com.liferay.site.initializer.raylife.d2c",
 				moduleStatus = "Active");
 		}
 	}
@@ -196,7 +293,7 @@ definition {
 		}
 
 		task ("Assert the Remote App is Not Present") {
-			RemoteApps.assertTableEntryNameNotPresent(entryName = "My New Remote App");
+			RemoteApps.viewEmptyRemoteTable();
 		}
 	}
 
@@ -228,7 +325,7 @@ definition {
 
 			PageEditor.addWidget(portletName = "Vanilla Counter");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Assert Vanilla Counter is displayed") {
@@ -363,7 +460,7 @@ definition {
 			}
 
 			task ("Publish Content Page") {
-				PageEditor.clickPublish();
+				PageEditor.publish();
 			}
 
 			task ("Navigate to the content page") {

@@ -28,7 +28,7 @@ public class CTCollectionThreadLocal {
 	}
 
 	public static boolean isProductionMode() {
-		if (_ctCollectionId.get() == 0) {
+		if (_ctCollectionId.get() == _CT_COLLECTION_ID_PRODUCTION) {
 			return true;
 		}
 
@@ -45,11 +45,15 @@ public class CTCollectionThreadLocal {
 		return _ctCollectionId.setWithSafeCloseable(ctCollectionId);
 	}
 
+	public static SafeCloseable setProductionModeWithSafeCloseable() {
+		return setCTCollectionIdWithSafeCloseable(_CT_COLLECTION_ID_PRODUCTION);
+	}
+
 	private static long _getCTCollectionId() {
 		CTCollectionIdSupplier ctCollectionIdSupplier = _ctCollectionIdSupplier;
 
 		if (ctCollectionIdSupplier == null) {
-			return 0;
+			return _CT_COLLECTION_ID_PRODUCTION;
 		}
 
 		return ctCollectionIdSupplier.getCTCollectionId();
@@ -57,6 +61,8 @@ public class CTCollectionThreadLocal {
 
 	private CTCollectionThreadLocal() {
 	}
+
+	private static final int _CT_COLLECTION_ID_PRODUCTION = 0;
 
 	private static final CentralizedThreadLocal<Long> _ctCollectionId =
 		new CentralizedThreadLocal<>(

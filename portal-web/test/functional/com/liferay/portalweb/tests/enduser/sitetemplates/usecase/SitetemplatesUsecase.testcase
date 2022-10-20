@@ -353,7 +353,7 @@ definition {
 
 		PageEditor.addWidget(portletName = "Message Boards");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		MessageboardsThread.addPG(
 			threadBody = "Message Boards Body",
@@ -477,7 +477,6 @@ definition {
 		property test.name.skip.portal.instance = "SitetemplatesUsecase#SiteTemplatePageLinkInWebContentRedirectCorrectly";
 
 		var portalURL = PropsUtil.get("portal.url");
-
 		var siteName = TestCase.getSiteName(siteName = "${siteName}");
 
 		SiteTemplates.addCP(siteTemplateName = "Template Site");
@@ -512,7 +511,7 @@ definition {
 		CKEditor.addEntryExternalURL(
 			displayText = "${page2URL}",
 			entryExternalURL = "${entryExternalURL}",
-			fieldLabel = "content");
+			fieldLabel = "Content");
 
 		PortletEntry.publish();
 
@@ -658,7 +657,6 @@ definition {
 		LAR.exportSiteCP(siteScopeName = "Site A");
 
 		var key_larFileName = "${larFileName}";
-
 		var larFileName = LAR.getLarFileName();
 
 		LAR.downloadLar();
@@ -726,8 +724,7 @@ definition {
 	@description = "This is a use case for LPS-92663. Navigation menus are copied when a site is created from a site template."
 	@priority = "4"
 	test ViewNavigationMenuCopyFromSitesTemplate {
-		property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-		property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		var siteName = TestCase.getSiteName(siteName = "${siteName}");
 
@@ -735,7 +732,7 @@ definition {
 			siteTemplateActive = "Yes",
 			siteTemplateName = "Site Template Name");
 
-		var siteTemplateId = SiteTemplates.getSiteTemplateID(siteTemplateName = "Site Template Name");
+		var siteTemplateId = JSONSiteTemplate.getSiteTemplateIdByName(siteTemplateName = "Site Template Name");
 
 		SiteTemplates.addSitePageViaSiteTemplateCP(
 			pageName = "Page1 Name",
@@ -751,7 +748,7 @@ definition {
 
 		NavigationMenusAdmin.addItem(
 			item = "Page",
-			pageNames = "Page1 Name,Page2 Name",
+			pageNameList = "Page1 Name,Page2 Name",
 			privacy = "Private Pages");
 
 		NavigationMenusAdmin.viewItem(itemName = "Page1 Name");
@@ -830,7 +827,7 @@ definition {
 			siteTemplateActive = "Yes",
 			siteTemplateName = "Site Template Name");
 
-		var siteTemplateId = SiteTemplates.getSiteTemplateID(siteTemplateName = "Site Template Name");
+		var siteTemplateId = JSONSiteTemplate.getSiteTemplateIdByName(siteTemplateName = "Site Template Name");
 
 		SiteTemplates.addSitePageViaSiteTemplateCP(
 			inheritChanges = "disable",

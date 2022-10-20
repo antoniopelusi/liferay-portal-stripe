@@ -270,15 +270,14 @@ public class MarkdownSourceFormatterReadmeCheck extends BaseFileCheck {
 				String category = checkInfo.getCategory();
 
 				if (Validator.isNotNull(category)) {
-					String markdownFileName =
-						SourceFormatterUtil.getMarkdownFileName(
-							StringUtil.removeChar(category, CharPool.SPACE) +
-								"Checks");
+					String categoryWithoutSpace = StringUtil.removeChar(
+						category, CharPool.SPACE);
 
 					sb.append(
 						_getLink(
-							markdownFileName, "", category,
-							category + " Checks"));
+							SourceFormatterUtil.getMarkdownFileName(
+								categoryWithoutSpace + "Checks"),
+							"", category, category + " Checks"));
 
 					sb.append(" | ");
 				}

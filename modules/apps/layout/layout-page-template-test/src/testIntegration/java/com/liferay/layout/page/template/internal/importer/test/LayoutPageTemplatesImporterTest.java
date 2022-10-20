@@ -16,6 +16,7 @@ package com.liferay.layout.page.template.internal.importer.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.fragment.constants.FragmentConstants;
+import com.liferay.fragment.entry.processor.constants.FragmentEntryProcessorConstants;
 import com.liferay.fragment.model.FragmentCollection;
 import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.service.FragmentCollectionLocalService;
@@ -266,17 +267,18 @@ public class LayoutPageTemplatesImporterTest {
 
 		Assert.assertEquals(
 			"fluid", containerStyledLayoutStructureItem.getWidthType());
+
+		JSONObject itemConfigJSONObject =
+			containerStyledLayoutStructureItem.getItemConfigJSONObject();
+
+		JSONObject stylesJSONObject = itemConfigJSONObject.getJSONObject(
+			"styles");
+
 		Assert.assertEquals(
-			StringPool.BLANK,
-			containerStyledLayoutStructureItem.getMarginRight());
-		Assert.assertEquals(
-			"5", containerStyledLayoutStructureItem.getPaddingBottom());
-		Assert.assertEquals(
-			"5", containerStyledLayoutStructureItem.getPaddingLeft());
-		Assert.assertEquals(
-			"5", containerStyledLayoutStructureItem.getPaddingTop());
-		Assert.assertEquals(
-			"fluid", containerStyledLayoutStructureItem.getWidthType());
+			StringPool.BLANK, stylesJSONObject.getString("marginBottom"));
+		Assert.assertEquals("5", stylesJSONObject.getString("paddingBottom"));
+		Assert.assertEquals("5", stylesJSONObject.getString("paddingLeft"));
+		Assert.assertEquals("5", stylesJSONObject.getString("paddingTop"));
 
 		JSONObject jsonObject =
 			containerStyledLayoutStructureItem.getBackgroundImageJSONObject();
@@ -643,7 +645,7 @@ public class LayoutPageTemplatesImporterTest {
 			TestPropsValues.getUserId(), _group.getGroupId(),
 			fragmentCollection.getFragmentCollectionId(), key, name,
 			StringPool.BLANK, html, StringPool.BLANK, false, StringPool.BLANK,
-			null, 0, FragmentConstants.TYPE_COMPONENT,
+			null, 0, FragmentConstants.TYPE_COMPONENT, null,
 			WorkflowConstants.STATUS_APPROVED, serviceContext);
 	}
 
@@ -894,8 +896,8 @@ public class LayoutPageTemplatesImporterTest {
 
 		JSONObject editableFragmentEntryProcessorJSONObject =
 			jsonObject.getJSONObject(
-				"com.liferay.fragment.entry.processor.editable." +
-					"EditableFragmentEntryProcessor");
+				FragmentEntryProcessorConstants.
+					KEY_EDITABLE_FRAGMENT_ENTRY_PROCESSOR);
 
 		Assert.assertNotNull(editableFragmentEntryProcessorJSONObject);
 
@@ -920,8 +922,8 @@ public class LayoutPageTemplatesImporterTest {
 
 		JSONObject editableFragmentEntryProcessorJSONObject =
 			jsonObject.getJSONObject(
-				"com.liferay.fragment.entry.processor.editable." +
-					"EditableFragmentEntryProcessor");
+				FragmentEntryProcessorConstants.
+					KEY_EDITABLE_FRAGMENT_ENTRY_PROCESSOR);
 
 		Assert.assertNotNull(editableFragmentEntryProcessorJSONObject);
 
@@ -942,8 +944,8 @@ public class LayoutPageTemplatesImporterTest {
 
 		JSONObject freeMarkerFragmentEntryProcessorJSONObject =
 			jsonObject.getJSONObject(
-				"com.liferay.fragment.entry.processor.freemarker." +
-					"FreeMarkerFragmentEntryProcessor");
+				FragmentEntryProcessorConstants.
+					KEY_FREEMARKER_FRAGMENT_ENTRY_PROCESSOR);
 
 		Assert.assertNotNull(freeMarkerFragmentEntryProcessorJSONObject);
 
@@ -968,8 +970,8 @@ public class LayoutPageTemplatesImporterTest {
 
 		JSONObject editableFragmentEntryProcessorJSONObject =
 			jsonObject.getJSONObject(
-				"com.liferay.fragment.entry.processor.editable." +
-					"EditableFragmentEntryProcessor");
+				FragmentEntryProcessorConstants.
+					KEY_EDITABLE_FRAGMENT_ENTRY_PROCESSOR);
 
 		Assert.assertNotNull(editableFragmentEntryProcessorJSONObject);
 
@@ -999,8 +1001,8 @@ public class LayoutPageTemplatesImporterTest {
 
 		JSONObject editableFragmentEntryProcessorJSONObject =
 			jsonObject.getJSONObject(
-				"com.liferay.fragment.entry.processor.editable." +
-					"EditableFragmentEntryProcessor");
+				FragmentEntryProcessorConstants.
+					KEY_EDITABLE_FRAGMENT_ENTRY_PROCESSOR);
 
 		Assert.assertNotNull(editableFragmentEntryProcessorJSONObject);
 
@@ -1023,8 +1025,8 @@ public class LayoutPageTemplatesImporterTest {
 
 		JSONObject freeMarkerFragmentEntryProcessorJSONObject =
 			jsonObject.getJSONObject(
-				"com.liferay.fragment.entry.processor.freemarker." +
-					"FreeMarkerFragmentEntryProcessor");
+				FragmentEntryProcessorConstants.
+					KEY_FREEMARKER_FRAGMENT_ENTRY_PROCESSOR);
 
 		Assert.assertNotNull(freeMarkerFragmentEntryProcessorJSONObject);
 

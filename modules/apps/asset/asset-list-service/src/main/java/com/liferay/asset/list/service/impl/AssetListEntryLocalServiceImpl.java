@@ -23,6 +23,7 @@ import com.liferay.asset.list.exception.AssetListEntryTitleException;
 import com.liferay.asset.list.exception.DuplicateAssetListEntryTitleException;
 import com.liferay.asset.list.model.AssetListEntry;
 import com.liferay.asset.list.model.AssetListEntryAssetEntryRel;
+import com.liferay.asset.list.model.AssetListEntryAssetEntryRelTable;
 import com.liferay.asset.list.model.AssetListEntrySegmentsEntryRel;
 import com.liferay.asset.list.service.AssetListEntryAssetEntryRelLocalService;
 import com.liferay.asset.list.service.AssetListEntrySegmentsEntryRelLocalService;
@@ -31,6 +32,7 @@ import com.liferay.asset.list.service.persistence.AssetListEntryAssetEntryRelPer
 import com.liferay.asset.list.service.persistence.AssetListEntrySegmentsEntryRelPersistence;
 import com.liferay.asset.util.AssetRendererFactoryWrapper;
 import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
+import com.liferay.petra.sql.dsl.DSLQueryFactoryUtil;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
@@ -47,12 +49,14 @@ import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.segments.constants.SegmentsEntryConstants;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -114,7 +118,22 @@ public class AssetListEntryLocalServiceImpl
 					segmentsEntryId, StringPool.BLANK, serviceContext);
 		}
 
-		for (long assetEntryId : assetEntryIds) {
+		List<Long> selectedAssetEntryIds = new ArrayList<>(
+			dslQuery(
+				DSLQueryFactoryUtil.selectDistinct(
+					AssetListEntryAssetEntryRelTable.INSTANCE.assetEntryId
+				).from(
+					AssetListEntryAssetEntryRelTable.INSTANCE
+				).where(
+					AssetListEntryAssetEntryRelTable.INSTANCE.assetListEntryId.
+						eq(assetListEntryId)
+				)));
+
+		for (long assetEntryId : SetUtil.fromArray(assetEntryIds)) {
+			if (selectedAssetEntryIds.contains(assetEntryId)) {
+				continue;
+			}
+
 			_assetListEntryAssetEntryRelLocalService.
 				addAssetListEntryAssetEntryRel(
 					assetListEntryId, assetEntryId, segmentsEntryId,

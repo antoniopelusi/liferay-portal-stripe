@@ -38,28 +38,6 @@ public class InfoItemFieldValues {
 		return new Builder();
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x)
-	 */
-	@Deprecated
-	public InfoItemFieldValues add(InfoFieldValue<Object> infoFieldValue) {
-		_builder.infoFieldValue(infoFieldValue);
-
-		return this;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x)
-	 */
-	@Deprecated
-	public InfoItemFieldValues addAll(
-		List<InfoFieldValue<Object>> infoFieldValues) {
-
-		_builder.infoFieldValues(infoFieldValues);
-
-		return this;
-	}
-
 	public InfoFieldValue<Object> getInfoFieldValue(String infoFieldName) {
 		Collection<InfoFieldValue<Object>> infoFieldValues =
 			_builder._infoFieldValuesByIdMap.getOrDefault(
@@ -112,7 +90,7 @@ public class InfoItemFieldValues {
 		for (InfoFieldValue<Object> infoFieldValue :
 				_builder._infoFieldValues) {
 
-			InfoField infoField = infoFieldValue.getInfoField();
+			InfoField<?> infoField = infoFieldValue.getInfoField();
 
 			map.put(infoField.getName(), infoFieldValue.getValue(locale));
 			map.put(infoField.getUniqueId(), infoFieldValue.getValue(locale));
@@ -134,9 +112,13 @@ public class InfoItemFieldValues {
 		}
 
 		public Builder infoFieldValue(InfoFieldValue<Object> infoFieldValue) {
+			if (infoFieldValue == null) {
+				return this;
+			}
+
 			_infoFieldValues.add(infoFieldValue);
 
-			InfoField infoField = infoFieldValue.getInfoField();
+			InfoField<?> infoField = infoFieldValue.getInfoField();
 
 			Collection<InfoFieldValue<Object>> infoFieldValues =
 				_infoFieldValuesByNameMap.computeIfAbsent(

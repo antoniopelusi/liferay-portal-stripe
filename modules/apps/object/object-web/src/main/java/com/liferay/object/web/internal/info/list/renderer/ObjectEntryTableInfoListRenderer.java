@@ -87,7 +87,7 @@ public class ObjectEntryTableInfoListRenderer
 
 			List<ObjectField> objectFields =
 				_objectFieldLocalService.getObjectFields(
-					objectEntry.getObjectDefinitionId());
+					objectEntry.getObjectDefinitionId(), false);
 
 			try {
 				objectFields = _objectFieldLocalService.getActiveObjectFields(

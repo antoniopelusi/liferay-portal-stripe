@@ -14,68 +14,75 @@
 
 package com.liferay.layout.taglib.internal.display.context;
 
-import com.liferay.asset.info.display.contributor.util.ContentAccessor;
+import com.liferay.fragment.entry.processor.constants.FragmentEntryProcessorConstants;
 import com.liferay.fragment.entry.processor.helper.FragmentEntryProcessorHelper;
 import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.renderer.DefaultFragmentRendererContext;
-import com.liferay.frontend.token.definition.FrontendToken;
-import com.liferay.frontend.token.definition.FrontendTokenDefinition;
-import com.liferay.frontend.token.definition.FrontendTokenDefinitionRegistry;
-import com.liferay.frontend.token.definition.FrontendTokenMapping;
+import com.liferay.fragment.service.FragmentEntryLinkLocalServiceUtil;
+import com.liferay.fragment.util.configuration.FragmentConfigurationField;
+import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
 import com.liferay.info.constants.InfoDisplayWebKeys;
+import com.liferay.info.exception.InfoFormException;
+import com.liferay.info.exception.InfoFormValidationException;
+import com.liferay.info.exception.NoSuchFormVariationException;
+import com.liferay.info.field.InfoField;
 import com.liferay.info.field.InfoFieldValue;
+import com.liferay.info.form.InfoForm;
 import com.liferay.info.item.ClassPKInfoItemIdentifier;
 import com.liferay.info.item.InfoItemDetails;
 import com.liferay.info.item.InfoItemIdentifier;
 import com.liferay.info.item.InfoItemReference;
 import com.liferay.info.item.InfoItemServiceTracker;
 import com.liferay.info.item.provider.InfoItemFieldValuesProvider;
+import com.liferay.info.item.provider.InfoItemFormProvider;
 import com.liferay.info.item.provider.InfoItemObjectProvider;
 import com.liferay.info.type.WebImage;
-import com.liferay.layout.responsive.ResponsiveLayoutStructureUtil;
 import com.liferay.layout.taglib.internal.servlet.ServletContextUtil;
 import com.liferay.layout.util.constants.LayoutDataItemTypeConstants;
 import com.liferay.layout.util.structure.ContainerStyledLayoutStructureItem;
+import com.liferay.layout.util.structure.DropZoneLayoutStructureItem;
+import com.liferay.layout.util.structure.FormStyledLayoutStructureItem;
+import com.liferay.layout.util.structure.FragmentStyledLayoutStructureItem;
 import com.liferay.layout.util.structure.LayoutStructure;
 import com.liferay.layout.util.structure.LayoutStructureItem;
 import com.liferay.layout.util.structure.LayoutStructureItemUtil;
+import com.liferay.layout.util.structure.RootLayoutStructureItem;
+import com.liferay.layout.util.structure.RowStyledLayoutStructureItem;
 import com.liferay.layout.util.structure.StyledLayoutStructureItem;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.ClassedModel;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutConstants;
-import com.liferay.portal.kernel.model.LayoutSet;
+import com.liferay.portal.kernel.model.Theme;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
-import com.liferay.portal.kernel.service.LayoutSetLocalServiceUtil;
+import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
-import com.liferay.portal.kernel.util.PropsUtil;
+import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.segments.SegmentsEntryRetriever;
 import com.liferay.segments.context.RequestContextMapper;
-import com.liferay.style.book.model.StyleBookEntry;
-import com.liferay.style.book.util.DefaultStyleBookEntryUtil;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -96,16 +103,73 @@ public class RenderLayoutStructureDisplayContext {
 
 		_themeDisplay = (ThemeDisplay)_httpServletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
+
+		Theme theme = _themeDisplay.getTheme();
+
+		String colorPalette = theme.getSetting("color-palette");
+
+		_themeColorsCssClasses = SetUtil.fromArray(
+			StringUtil.split(colorPalette));
+	}
+
+	public String getAddInfoItemActionURL() {
+		StringBundler sb = new StringBundler(3);
+
+		sb.append(PortalUtil.getPortalURL(_httpServletRequest));
+		sb.append(_themeDisplay.getPathMain());
+		sb.append("/portal/add_info_item");
+
+		return sb.toString();
 	}
 
 	public List<String> getCollectionStyledLayoutStructureItemIds() {
-		return _collectionStyledLayoutStructureItemIds;
+		List<String> collectionStyledLayoutStructureItemIds =
+			(List<String>)_httpServletRequest.getAttribute(
+				_COLLECTION_STYLED_LAYOUT_STRUCTURE_ITEM_IDS);
+
+		if (collectionStyledLayoutStructureItemIds == null) {
+			collectionStyledLayoutStructureItemIds = new ArrayList<>();
+
+			_httpServletRequest.setAttribute(
+				_COLLECTION_STYLED_LAYOUT_STRUCTURE_ITEM_IDS,
+				collectionStyledLayoutStructureItemIds);
+		}
+
+		return collectionStyledLayoutStructureItemIds;
+	}
+
+	public String getColorCssClasses(
+		StyledLayoutStructureItem styledLayoutStructureItem) {
+
+		StringBundler sb = new StringBundler(4);
+
+		JSONObject itemConfigJSONObject =
+			styledLayoutStructureItem.getItemConfigJSONObject();
+
+		JSONObject stylesJSONObject = itemConfigJSONObject.getJSONObject(
+			"styles");
+
+		String backgroundColorCssClass = stylesJSONObject.getString(
+			"backgroundColor");
+
+		if (_themeColorsCssClasses.contains(backgroundColorCssClass)) {
+			sb.append("bg-");
+			sb.append(backgroundColorCssClass);
+		}
+
+		String textColorCssClass = stylesJSONObject.getString("textColor");
+
+		if (_themeColorsCssClasses.contains(textColorCssClass)) {
+			sb.append(" text-");
+			sb.append(textColorCssClass);
+		}
+
+		return sb.toString();
 	}
 
 	public String getContainerLinkHref(
 			ContainerStyledLayoutStructureItem
-				containerStyledLayoutStructureItem,
-			Object displayObject, Locale locale)
+				containerStyledLayoutStructureItem)
 		throws PortalException {
 
 		JSONObject linkJSONObject =
@@ -116,7 +180,7 @@ public class RenderLayoutStructureDisplayContext {
 		}
 
 		JSONObject localizedJSONObject = linkJSONObject.getJSONObject(
-			LocaleUtil.toLanguageId(locale));
+			LocaleUtil.toLanguageId(_themeDisplay.getLocale()));
 
 		if ((localizedJSONObject != null) &&
 			(localizedJSONObject.length() > 0)) {
@@ -225,6 +289,9 @@ public class RenderLayoutStructureDisplayContext {
 			"collectionFieldId");
 
 		if (Validator.isNotNull(collectionFieldId)) {
+			Object displayObject = _httpServletRequest.getAttribute(
+				InfoDisplayWebKeys.INFO_LIST_DISPLAY_OBJECT);
+
 			String mappedCollectionValue = _getMappedCollectionValue(
 				collectionFieldId, displayObject);
 
@@ -254,15 +321,15 @@ public class RenderLayoutStructureDisplayContext {
 		JSONObject hrefJSONObject = linkJSONObject.getJSONObject("href");
 
 		if (hrefJSONObject != null) {
-			return hrefJSONObject.getString(LocaleUtil.toLanguageId(locale));
+			return hrefJSONObject.getString(
+				LocaleUtil.toLanguageId(_themeDisplay.getLocale()));
 		}
 
 		return StringPool.BLANK;
 	}
 
 	public String getContainerLinkTarget(
-		ContainerStyledLayoutStructureItem containerStyledLayoutStructureItem,
-		Locale locale) {
+		ContainerStyledLayoutStructureItem containerStyledLayoutStructureItem) {
 
 		JSONObject linkJSONObject =
 			containerStyledLayoutStructureItem.getLinkJSONObject();
@@ -272,7 +339,7 @@ public class RenderLayoutStructureDisplayContext {
 		}
 
 		JSONObject localizedJSONObject = linkJSONObject.getJSONObject(
-			LocaleUtil.toLanguageId(locale));
+			LocaleUtil.toLanguageId(_themeDisplay.getLocale()));
 
 		if ((localizedJSONObject != null) &&
 			(localizedJSONObject.length() > 0)) {
@@ -283,190 +350,9 @@ public class RenderLayoutStructureDisplayContext {
 		return linkJSONObject.getString("target");
 	}
 
-	public String getCssClass(
-			StyledLayoutStructureItem styledLayoutStructureItem)
-		throws Exception {
-
-		StringBundler cssClassSB = new StringBundler(35);
-
-		String align = styledLayoutStructureItem.getAlign();
-
-		if (Validator.isNotNull(align)) {
-			cssClassSB.append(" ");
-			cssClassSB.append(align);
-		}
-
-		String backgroundColorCssClass =
-			styledLayoutStructureItem.getBackgroundColorCssClass();
-
-		if (Validator.isNotNull(backgroundColorCssClass)) {
-			cssClassSB.append(" bg-");
-			cssClassSB.append(backgroundColorCssClass);
-		}
-
-		String borderColorCssClass =
-			styledLayoutStructureItem.getBorderColorCssClass();
-
-		if (Validator.isNotNull(borderColorCssClass)) {
-			cssClassSB.append(" border-");
-			cssClassSB.append(borderColorCssClass);
-		}
-
-		String display = styledLayoutStructureItem.getDisplay();
-
-		if (Objects.equals(display, "none")) {
-			cssClassSB.append(" d-lg-");
-			cssClassSB.append(display);
-		}
-		else if (Objects.equals(
-					styledLayoutStructureItem.getContentDisplay(),
-					"flex-column")) {
-
-			cssClassSB.append(" d-flex flex-column");
-		}
-		else if (Objects.equals(
-					styledLayoutStructureItem.getContentDisplay(),
-					"flex-row")) {
-
-			cssClassSB.append(" d-flex flex-row");
-		}
-		else if (Validator.isNotNull(display)) {
-			cssClassSB.append(" d-lg-");
-			cssClassSB.append(display);
-		}
-
-		String flexWrap = styledLayoutStructureItem.getFlexWrap();
-
-		if (Validator.isNotNull(flexWrap)) {
-			cssClassSB.append(" ");
-			cssClassSB.append(flexWrap);
-		}
-
-		String justify = styledLayoutStructureItem.getJustify();
-
-		if (Validator.isNotNull(justify)) {
-			cssClassSB.append(" ");
-			cssClassSB.append(justify);
-		}
-
-		boolean addHorizontalMargin = true;
-
-		if (styledLayoutStructureItem instanceof
-				ContainerStyledLayoutStructureItem) {
-
-			ContainerStyledLayoutStructureItem
-				containerStyledLayoutStructureItem =
-					(ContainerStyledLayoutStructureItem)
-						styledLayoutStructureItem;
-
-			if (Objects.equals(
-					containerStyledLayoutStructureItem.getWidthType(),
-					"fixed")) {
-
-				cssClassSB.append(" container-fluid container-fluid-max-xl");
-
-				addHorizontalMargin = false;
-			}
-		}
-
-		String marginBottom = styledLayoutStructureItem.getMarginBottom();
-
-		if (Validator.isNotNull(marginBottom)) {
-			cssClassSB.append(" mb-lg-");
-			cssClassSB.append(marginBottom);
-		}
-
-		if (addHorizontalMargin) {
-			String marginLeft = styledLayoutStructureItem.getMarginLeft();
-
-			if (Validator.isNotNull(marginLeft)) {
-				cssClassSB.append(" ml-lg-");
-				cssClassSB.append(marginLeft);
-			}
-
-			String marginRight = styledLayoutStructureItem.getMarginRight();
-
-			if (Validator.isNotNull(marginRight)) {
-				cssClassSB.append(" mr-lg-");
-				cssClassSB.append(marginRight);
-			}
-		}
-
-		String marginTop = styledLayoutStructureItem.getMarginTop();
-
-		if (Validator.isNotNull(marginTop)) {
-			cssClassSB.append(" mt-lg-");
-			cssClassSB.append(marginTop);
-		}
-
-		String paddingBottom = styledLayoutStructureItem.getPaddingBottom();
-
-		if (Validator.isNotNull(paddingBottom)) {
-			cssClassSB.append(" pb-lg-");
-			cssClassSB.append(paddingBottom);
-		}
-
-		String paddingLeft = styledLayoutStructureItem.getPaddingLeft();
-
-		if (Validator.isNotNull(paddingLeft)) {
-			cssClassSB.append(" pl-lg-");
-			cssClassSB.append(paddingLeft);
-		}
-
-		String paddingRight = styledLayoutStructureItem.getPaddingRight();
-
-		if (Validator.isNotNull(paddingRight)) {
-			cssClassSB.append(" pr-lg-");
-			cssClassSB.append(paddingRight);
-		}
-
-		String paddingTop = styledLayoutStructureItem.getPaddingTop();
-
-		if (Validator.isNotNull(paddingTop)) {
-			cssClassSB.append(" pt-lg-");
-			cssClassSB.append(paddingTop);
-		}
-
-		String textAlignCssClass =
-			styledLayoutStructureItem.getTextAlignCssClass();
-
-		if (Validator.isNotNull(textAlignCssClass) &&
-			!Objects.equals(textAlignCssClass, "none")) {
-
-			if (!StringUtil.startsWith(textAlignCssClass, "text-")) {
-				cssClassSB.append(" text-lg-");
-			}
-			else {
-				cssClassSB.append(StringPool.SPACE);
-			}
-
-			cssClassSB.append(textAlignCssClass);
-		}
-
-		String textColorCssClass =
-			styledLayoutStructureItem.getTextColorCssClass();
-
-		if (Validator.isNotNull(textColorCssClass)) {
-			cssClassSB.append(" text-");
-			cssClassSB.append(textColorCssClass);
-		}
-
-		String responsiveCssClassValues =
-			ResponsiveLayoutStructureUtil.getResponsiveCssClassValues(
-				styledLayoutStructureItem);
-
-		if (Validator.isNotNull(responsiveCssClassValues)) {
-			cssClassSB.append(StringPool.SPACE);
-			cssClassSB.append(responsiveCssClassValues);
-		}
-
-		return cssClassSB.toString();
-	}
-
 	public DefaultFragmentRendererContext getDefaultFragmentRendererContext(
-		FragmentEntryLink fragmentEntryLink, String itemId,
-		List<String> collectionStyledLayoutStructureItemIds,
-		int collectionElementIndex) {
+		int collectionElementIndex, FragmentEntryLink fragmentEntryLink,
+		InfoForm infoForm, String itemId) {
 
 		DefaultFragmentRendererContext defaultFragmentRendererContext =
 			new DefaultFragmentRendererContext(fragmentEntryLink);
@@ -479,6 +365,7 @@ public class RenderLayoutStructureDisplayContext {
 		Layout layout = _themeDisplay.getLayout();
 
 		if (!Objects.equals(layout.getType(), LayoutConstants.TYPE_PORTLET)) {
+			defaultFragmentRendererContext.setInfoForm(infoForm);
 			defaultFragmentRendererContext.setMode(_mode);
 			defaultFragmentRendererContext.setPreviewClassNameId(
 				_getPreviewClassNameId());
@@ -500,11 +387,118 @@ public class RenderLayoutStructureDisplayContext {
 
 		defaultFragmentRendererContext.
 			setCollectionStyledLayoutStructureItemIds(
-				collectionStyledLayoutStructureItemIds);
+				getCollectionStyledLayoutStructureItemIds());
 		defaultFragmentRendererContext.setCollectionElementIndex(
 			collectionElementIndex);
 
 		return defaultFragmentRendererContext;
+	}
+
+	public String getErrorMessage(
+		FormStyledLayoutStructureItem formStyledLayoutStructureItem,
+		InfoForm infoForm) {
+
+		InfoFormException infoFormException =
+			(InfoFormException)SessionErrors.get(
+				_httpServletRequest, formStyledLayoutStructureItem.getItemId());
+
+		if (!(infoFormException instanceof InfoFormValidationException)) {
+			return infoFormException.getLocalizedMessage(
+				_themeDisplay.getLocale());
+		}
+
+		InfoFormValidationException infoFormValidationException =
+			(InfoFormValidationException)infoFormException;
+
+		if (Validator.isNull(
+				infoFormValidationException.getInfoFieldUniqueId())) {
+
+			return infoFormException.getLocalizedMessage(
+				_themeDisplay.getLocale());
+		}
+
+		String formInputLabel = _getFormInputLabel(
+			infoFormValidationException.getInfoFieldUniqueId(),
+			_themeDisplay.getLocale());
+
+		if (Validator.isNotNull(formInputLabel)) {
+			return infoFormValidationException.getLocalizedMessage(
+				formInputLabel, _themeDisplay.getLocale());
+		}
+
+		InfoField infoField = infoForm.getInfoField(
+			infoFormValidationException.getInfoFieldUniqueId());
+
+		formInputLabel = infoField.getLabel(_themeDisplay.getLocale());
+
+		return infoFormValidationException.getLocalizedMessage(
+			formInputLabel, _themeDisplay.getLocale());
+	}
+
+	public String getFormStyledLayoutStructureItemRedirect(
+			FormStyledLayoutStructureItem formStyledLayoutStructureItem)
+		throws Exception {
+
+		JSONObject successMessageJSONObject =
+			formStyledLayoutStructureItem.getSuccessMessageJSONObject();
+
+		if (successMessageJSONObject == null) {
+			return StringPool.BLANK;
+		}
+
+		String redirect = StringPool.BLANK;
+
+		if (successMessageJSONObject.has("url")) {
+			redirect = _getFormStyledLayoutStructureItemURLRedirect(
+				successMessageJSONObject);
+		}
+		else if (successMessageJSONObject.has("layout")) {
+			redirect = _getFormStyledLayoutStructureItemLayoutRedirect(
+				successMessageJSONObject);
+		}
+
+		return redirect;
+	}
+
+	public InfoForm getInfoForm(
+		FormStyledLayoutStructureItem formStyledLayoutStructureItem) {
+
+		long classNameId = formStyledLayoutStructureItem.getClassNameId();
+
+		if (classNameId <= 0) {
+			return null;
+		}
+
+		InfoItemServiceTracker infoItemServiceTracker =
+			ServletContextUtil.getInfoItemServiceTracker();
+
+		InfoItemFormProvider<Object> infoItemFormProvider =
+			infoItemServiceTracker.getFirstInfoItemService(
+				InfoItemFormProvider.class,
+				PortalUtil.getClassName(classNameId));
+
+		if (infoItemFormProvider != null) {
+			try {
+				return infoItemFormProvider.getInfoForm(
+					String.valueOf(
+						formStyledLayoutStructureItem.getClassTypeId()),
+					_themeDisplay.getScopeGroupId());
+			}
+			catch (NoSuchFormVariationException noSuchFormVariationException) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(noSuchFormVariationException);
+				}
+
+				return null;
+			}
+		}
+
+		return null;
+	}
+
+	public String getLayoutMode() {
+		return ParamUtil.getString(
+			_httpServletRequest, "p_l_mode", Constants.VIEW);
 	}
 
 	public LayoutStructure getLayoutStructure() {
@@ -523,7 +517,7 @@ public class RenderLayoutStructureDisplayContext {
 	public String getStyle(StyledLayoutStructureItem styledLayoutStructureItem)
 		throws Exception {
 
-		StringBundler styleSB = new StringBundler(59);
+		StringBundler sb = new StringBundler(8);
 
 		JSONObject backgroundImageJSONObject =
 			styledLayoutStructureItem.getBackgroundImageJSONObject();
@@ -563,197 +557,123 @@ public class RenderLayoutStructureDisplayContext {
 		}
 
 		if (fileEntryId != 0) {
-			styleSB.append("--background-image-file-entry-id:");
-			styleSB.append(fileEntryId);
-			styleSB.append(StringPool.SEMICOLON);
+			sb.append("--background-image-file-entry-id:");
+			sb.append(fileEntryId);
+			sb.append(StringPool.SEMICOLON);
 		}
 
 		String backgroundImageURL = _getBackgroundImage(
 			backgroundImageJSONObject);
 
-		if (isCommonStylesFFEnabled()) {
-			if (Validator.isNotNull(backgroundImageURL)) {
-				styleSB.append("--lfr-background-image-");
-				styleSB.append(styledLayoutStructureItem.getItemId());
-				styleSB.append(": url(");
-				styleSB.append(backgroundImageURL);
-				styleSB.append(");");
-			}
-
-			return styleSB.toString();
-		}
-
 		if (Validator.isNotNull(backgroundImageURL)) {
-			styleSB.append("background-position: 50% 50%; background-repeat: ");
-			styleSB.append("no-repeat; background-size: cover; ");
-			styleSB.append("background-image: url(");
-			styleSB.append(backgroundImageURL);
-			styleSB.append(");");
+			sb.append("--lfr-background-image-");
+			sb.append(styledLayoutStructureItem.getItemId());
+			sb.append(": url(");
+			sb.append(backgroundImageURL);
+			sb.append(");");
 		}
 
-		String backgroundColor = styledLayoutStructureItem.getBackgroundColor();
-
-		if (Validator.isNotNull(backgroundColor)) {
-			styleSB.append("background-color: ");
-			styleSB.append(getStyleFromStyleBookEntry(backgroundColor));
-			styleSB.append(StringPool.SEMICOLON);
-		}
-
-		String borderColor = styledLayoutStructureItem.getBorderColor();
-
-		if (Validator.isNotNull(borderColor)) {
-			styleSB.append("border-color: ");
-			styleSB.append(getStyleFromStyleBookEntry(borderColor));
-			styleSB.append(StringPool.SEMICOLON);
-		}
-
-		String borderRadius = styledLayoutStructureItem.getBorderRadius();
-
-		if (Validator.isNotNull(borderRadius)) {
-			styleSB.append("border-radius: ");
-			styleSB.append(getStyleFromStyleBookEntry(borderRadius));
-			styleSB.append(StringPool.SEMICOLON);
-		}
-
-		String borderWidth = styledLayoutStructureItem.getBorderWidth();
-
-		if (Validator.isNotNull(borderWidth)) {
-			styleSB.append("border-style: solid; border-width: ");
-			styleSB.append(borderWidth);
-			styleSB.append("px;");
-		}
-
-		String shadow = styledLayoutStructureItem.getShadow();
-
-		if (Validator.isNotNull(shadow)) {
-			styleSB.append("box-shadow: ");
-			styleSB.append(getStyleFromStyleBookEntry(shadow));
-			styleSB.append(StringPool.SEMICOLON);
-		}
-
-		String fontFamily = styledLayoutStructureItem.getFontFamily();
-
-		if (Validator.isNotNull(fontFamily)) {
-			styleSB.append("font-family: ");
-			styleSB.append(getStyleFromStyleBookEntry(fontFamily));
-			styleSB.append(StringPool.SEMICOLON);
-		}
-
-		String fontSize = styledLayoutStructureItem.getFontSize();
-
-		if (Validator.isNotNull(fontSize)) {
-			styleSB.append("font-size: ");
-			styleSB.append(getStyleFromStyleBookEntry(fontSize));
-			styleSB.append(StringPool.SEMICOLON);
-		}
-
-		String fontWeight = styledLayoutStructureItem.getFontWeight();
-
-		if (Validator.isNotNull(fontWeight)) {
-			styleSB.append("font-weight: ");
-			styleSB.append(getStyleFromStyleBookEntry(fontWeight));
-			styleSB.append(StringPool.SEMICOLON);
-		}
-
-		String height = styledLayoutStructureItem.getHeight();
-
-		if (Validator.isNotNull(height)) {
-			styleSB.append("height: ");
-			styleSB.append(height);
-			styleSB.append(StringPool.SEMICOLON);
-		}
-
-		String maxHeight = styledLayoutStructureItem.getMaxHeight();
-
-		if (Validator.isNotNull(maxHeight)) {
-			styleSB.append("max-height: ");
-			styleSB.append(getStyleFromStyleBookEntry(maxHeight));
-			styleSB.append(StringPool.SEMICOLON);
-		}
-
-		String maxWidth = styledLayoutStructureItem.getMaxWidth();
-
-		if (Validator.isNotNull(maxWidth)) {
-			styleSB.append("max-width: ");
-			styleSB.append(getStyleFromStyleBookEntry(maxWidth));
-			styleSB.append(StringPool.SEMICOLON);
-		}
-
-		String minHeight = styledLayoutStructureItem.getMinHeight();
-
-		if (Validator.isNotNull(minHeight)) {
-			styleSB.append("min-height: ");
-			styleSB.append(getStyleFromStyleBookEntry(minHeight));
-			styleSB.append(StringPool.SEMICOLON);
-		}
-
-		String minWidth = styledLayoutStructureItem.getMinWidth();
-
-		if (Validator.isNotNull(minWidth)) {
-			styleSB.append("min-width: ");
-			styleSB.append(getStyleFromStyleBookEntry(minWidth));
-			styleSB.append(StringPool.SEMICOLON);
-		}
-
-		String opacityValue = styledLayoutStructureItem.getOpacity();
-
-		if (Validator.isNotNull(opacityValue)) {
-			int opacity = GetterUtil.getInteger(opacityValue, 100);
-
-			styleSB.append("opacity: ");
-			styleSB.append(opacity / 100.0);
-			styleSB.append(StringPool.SEMICOLON);
-		}
-
-		String overflow = styledLayoutStructureItem.getOverflow();
-
-		if (Validator.isNotNull(overflow)) {
-			styleSB.append("overflow: ");
-			styleSB.append(getStyleFromStyleBookEntry(overflow));
-			styleSB.append(StringPool.SEMICOLON);
-		}
-
-		String textColor = styledLayoutStructureItem.getTextColor();
-
-		if (Validator.isNotNull(textColor)) {
-			styleSB.append("color: ");
-			styleSB.append(getStyleFromStyleBookEntry(textColor));
-			styleSB.append(StringPool.SEMICOLON);
-		}
-
-		String width = styledLayoutStructureItem.getWidth();
-
-		if (Validator.isNotNull(width)) {
-			styleSB.append("width: ");
-			styleSB.append(width);
-			styleSB.append(StringPool.SEMICOLON);
-		}
-
-		return styleSB.toString();
+		return sb.toString();
 	}
 
-	public String getStyleFromStyleBookEntry(String styleValue)
+	public String getSuccessMessage(
+			FormStyledLayoutStructureItem formStyledLayoutStructureItem)
 		throws Exception {
 
-		JSONObject frontendTokensValuesJSONObject =
-			_getFrontendTokensJSONObject();
+		String successMessage = null;
 
-		JSONObject styleValueJSONObject =
-			frontendTokensValuesJSONObject.getJSONObject(styleValue);
+		JSONObject successMessageJSONObject =
+			formStyledLayoutStructureItem.getSuccessMessageJSONObject();
 
-		if (styleValueJSONObject == null) {
-			return styleValue;
+		if ((successMessageJSONObject != null) &&
+			successMessageJSONObject.has("message")) {
+
+			JSONObject messageJSONObject =
+				successMessageJSONObject.getJSONObject("message");
+
+			successMessage = messageJSONObject.getString(
+				_themeDisplay.getLanguageId());
+
+			if (Validator.isNull(successMessage)) {
+				String siteDefaultLanguageId = LanguageUtil.getLanguageId(
+					PortalUtil.getSiteDefaultLocale(
+						_themeDisplay.getScopeGroupId()));
+
+				successMessage = messageJSONObject.getString(
+					siteDefaultLanguageId);
+			}
 		}
 
-		String cssVariable = styleValueJSONObject.getString(
-			FrontendTokenMapping.TYPE_CSS_VARIABLE);
+		if (Validator.isNull(successMessage)) {
+			successMessage = LanguageUtil.get(
+				_themeDisplay.getLocale(),
+				"thank-you.-your-information-was-successfully-received");
+		}
 
-		return "var(--" + cssVariable + ")";
+		return successMessage;
 	}
 
-	public boolean isCommonStylesFFEnabled() {
-		if (GetterUtil.getBoolean(PropsUtil.get("feature.flag.LPS-132571"))) {
+	public boolean includeCommonStyles(FragmentEntryLink fragmentEntryLink)
+		throws Exception {
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
+			fragmentEntryLink.getEditableValues());
+
+		JSONObject stylesFragmentEntryEntryProcessorJSONObject =
+			jsonObject.getJSONObject(
+				FragmentEntryProcessorConstants.
+					KEY_STYLES_FRAGMENT_ENTRY_PROCESSOR);
+
+		if (stylesFragmentEntryEntryProcessorJSONObject == null) {
+			return false;
+		}
+
+		if (stylesFragmentEntryEntryProcessorJSONObject.getBoolean(
+				"hasCommonStyles")) {
+
 			return true;
+		}
+
+		return false;
+	}
+
+	public boolean isIncludeContainer(
+		RowStyledLayoutStructureItem rowStyledLayoutStructureItem) {
+
+		LayoutStructureItem parentLayoutStructureItem =
+			_layoutStructure.getLayoutStructureItem(
+				rowStyledLayoutStructureItem.getParentItemId());
+
+		if (!(parentLayoutStructureItem instanceof RootLayoutStructureItem)) {
+			return false;
+		}
+
+		Layout layout = _themeDisplay.getLayout();
+
+		if (Objects.equals(layout.getType(), LayoutConstants.TYPE_PORTLET)) {
+			return true;
+		}
+
+		LayoutStructureItem rootParentLayoutStructureItem =
+			_layoutStructure.getLayoutStructureItem(
+				parentLayoutStructureItem.getParentItemId());
+
+		if (rootParentLayoutStructureItem == null) {
+			return true;
+		}
+
+		if (rootParentLayoutStructureItem instanceof
+				DropZoneLayoutStructureItem) {
+
+			LayoutStructureItem dropZoneParentLayoutStructureItem =
+				_layoutStructure.getLayoutStructureItem(
+					rootParentLayoutStructureItem.getParentItemId());
+
+			if (dropZoneParentLayoutStructureItem instanceof
+					RootLayoutStructureItem) {
+
+				return true;
+			}
 		}
 
 		return false;
@@ -934,82 +854,113 @@ public class RenderLayoutStructureDisplayContext {
 			classPKInfoItemIdentifier.getClassPK(), fieldId, locale);
 	}
 
-	private JSONObject _getFrontendTokensJSONObject() throws Exception {
-		if (_frontendTokensJSONObject != null) {
-			return _frontendTokensJSONObject;
-		}
+	private String _getFormInputLabel(String infoFieldUniqueId, Locale locale) {
+		FragmentEntryConfigurationParser fragmentEntryConfigurationParser =
+			ServletContextUtil.getFragmentEntryConfigurationParser();
 
-		_frontendTokensJSONObject = JSONFactoryUtil.createJSONObject();
+		Map<Long, LayoutStructureItem> fragmentLayoutStructureItems =
+			_layoutStructure.getFragmentLayoutStructureItems();
 
-		FrontendTokenDefinitionRegistry frontendTokenDefinitionRegistry =
-			ServletContextUtil.getFrontendTokenDefinitionRegistry();
+		for (LayoutStructureItem layoutStructureItem :
+				fragmentLayoutStructureItems.values()) {
 
-		LayoutSet layoutSet = LayoutSetLocalServiceUtil.fetchLayoutSet(
-			_themeDisplay.getSiteGroupId(), false);
+			if (!(layoutStructureItem instanceof
+					FragmentStyledLayoutStructureItem)) {
 
-		FrontendTokenDefinition frontendTokenDefinition =
-			frontendTokenDefinitionRegistry.getFrontendTokenDefinition(
-				layoutSet.getThemeId());
-
-		if (frontendTokenDefinition == null) {
-			return _frontendTokensJSONObject;
-		}
-
-		StyleBookEntry styleBookEntry = null;
-
-		if (!ParamUtil.getBoolean(
-				_httpServletRequest, "styleBookEntryPreview")) {
-
-			styleBookEntry = DefaultStyleBookEntryUtil.getDefaultStyleBookEntry(
-				_themeDisplay.getLayout());
-		}
-
-		JSONObject frontendTokenValuesJSONObject = null;
-
-		if (styleBookEntry != null) {
-			frontendTokenValuesJSONObject = JSONFactoryUtil.createJSONObject(
-				styleBookEntry.getFrontendTokensValues());
-		}
-		else {
-			frontendTokenValuesJSONObject = JSONFactoryUtil.createJSONObject();
-		}
-
-		Collection<FrontendToken> frontendTokens =
-			frontendTokenDefinition.getFrontendTokens();
-
-		for (FrontendToken frontendToken : frontendTokens) {
-			List<FrontendTokenMapping> frontendTokenMappings = new ArrayList<>(
-				frontendToken.getFrontendTokenMappings(
-					FrontendTokenMapping.TYPE_CSS_VARIABLE));
-
-			if (ListUtil.isEmpty(frontendTokenMappings)) {
 				continue;
 			}
 
-			_frontendTokensJSONObject.put(
-				frontendToken.getName(),
-				JSONUtil.put(
-					FrontendTokenMapping.TYPE_CSS_VARIABLE,
-					() -> {
-						FrontendTokenMapping frontendTokenMapping =
-							frontendTokenMappings.get(0);
+			FragmentStyledLayoutStructureItem
+				fragmentStyledLayoutStructureItem =
+					(FragmentStyledLayoutStructureItem)layoutStructureItem;
 
-						return frontendTokenMapping.getValue();
-					}
-				).put(
-					"value",
-					Optional.ofNullable(
-						frontendTokenValuesJSONObject.getJSONObject(
-							frontendToken.getName())
-					).map(
-						valueJSONObject -> valueJSONObject.getString("value")
-					).orElse(
-						frontendToken.getDefaultValue()
-					)
-				));
+			if (fragmentStyledLayoutStructureItem.getFragmentEntryLinkId() <=
+					0) {
+
+				continue;
+			}
+
+			FragmentEntryLink fragmentEntryLink =
+				FragmentEntryLinkLocalServiceUtil.fetchFragmentEntryLink(
+					fragmentStyledLayoutStructureItem.getFragmentEntryLinkId());
+
+			if ((fragmentEntryLink == null) ||
+				Validator.isNull(fragmentEntryLink.getEditableValues())) {
+
+				continue;
+			}
+
+			String inputFieldId = GetterUtil.getString(
+				fragmentEntryConfigurationParser.getFieldValue(
+					fragmentEntryLink.getEditableValues(),
+					new FragmentConfigurationField(
+						"inputFieldId", "string", StringPool.BLANK, false,
+						"text"),
+					locale));
+
+			if (!Objects.equals(inputFieldId, infoFieldUniqueId)) {
+				continue;
+			}
+
+			return GetterUtil.getString(
+				fragmentEntryConfigurationParser.getFieldValue(
+					fragmentEntryLink.getEditableValues(),
+					new FragmentConfigurationField(
+						"inputLabel", "string", StringPool.BLANK, true, "text"),
+					locale));
 		}
 
-		return _frontendTokensJSONObject;
+		return StringPool.BLANK;
+	}
+
+	private String _getFormStyledLayoutStructureItemLayoutRedirect(
+			JSONObject successMessageJSONObject)
+		throws Exception {
+
+		JSONObject layoutJSONObject = successMessageJSONObject.getJSONObject(
+			"layout");
+
+		if (layoutJSONObject == null) {
+			return StringPool.BLANK;
+		}
+
+		String layoutUuid = layoutJSONObject.getString("layoutUuid");
+		long groupId = layoutJSONObject.getLong("groupId");
+		boolean privateLayout = layoutJSONObject.getBoolean("privateLayout");
+
+		Layout layout = LayoutLocalServiceUtil.fetchLayoutByUuidAndGroupId(
+			layoutUuid, groupId, privateLayout);
+
+		if (layout != null) {
+			return PortalUtil.getLayoutURL(layout, _themeDisplay);
+		}
+
+		return StringPool.BLANK;
+	}
+
+	private String _getFormStyledLayoutStructureItemURLRedirect(
+			JSONObject successMessageJSONObject)
+		throws Exception {
+
+		JSONObject urlJSONObject = successMessageJSONObject.getJSONObject(
+			"url");
+
+		if (urlJSONObject == null) {
+			return StringPool.BLANK;
+		}
+
+		String redirect = urlJSONObject.getString(
+			_themeDisplay.getLanguageId());
+
+		if (Validator.isNull(redirect)) {
+			String siteDefaultLanguageId = LanguageUtil.getLanguageId(
+				PortalUtil.getSiteDefaultLocale(
+					_themeDisplay.getScopeGroupId()));
+
+			redirect = urlJSONObject.getString(siteDefaultLanguageId);
+		}
+
+		return redirect;
 	}
 
 	private String _getMainItemId() {
@@ -1064,12 +1015,6 @@ public class RenderLayoutStructureDisplayContext {
 
 		Object value = infoFieldValue.getValue(
 			LocaleUtil.fromLanguageId(_themeDisplay.getLanguageId()));
-
-		if (value instanceof ContentAccessor) {
-			ContentAccessor contentAccessor = (ContentAccessor)infoFieldValue;
-
-			return contentAccessor.getContent();
-		}
 
 		if (value instanceof String) {
 			return (String)value;
@@ -1167,12 +1112,12 @@ public class RenderLayoutStructureDisplayContext {
 		return _segmentsEntryIds;
 	}
 
+	private static final String _COLLECTION_STYLED_LAYOUT_STRUCTURE_ITEM_IDS =
+		"COLLECTION_STYLED_LAYOUT_STRUCTURE_ITEM_IDS";
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		RenderLayoutStructureDisplayContext.class);
 
-	private final List<String> _collectionStyledLayoutStructureItemIds =
-		new ArrayList<>();
-	private JSONObject _frontendTokensJSONObject;
 	private final HttpServletRequest _httpServletRequest;
 	private final LayoutStructure _layoutStructure;
 	private final String _mainItemId;
@@ -1183,6 +1128,7 @@ public class RenderLayoutStructureDisplayContext {
 	private String _previewVersion;
 	private long[] _segmentsEntryIds;
 	private final boolean _showPreview;
+	private final Set<String> _themeColorsCssClasses;
 	private final ThemeDisplay _themeDisplay;
 
 }

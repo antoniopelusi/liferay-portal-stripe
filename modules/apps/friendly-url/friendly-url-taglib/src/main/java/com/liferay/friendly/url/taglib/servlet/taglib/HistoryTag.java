@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.taglib.util.IncludeTag;
 
@@ -139,8 +140,18 @@ public class HistoryTag extends IncludeTag {
 				WebKeys.THEME_DISPLAY);
 
 		return StringBundler.concat(
-			themeDisplay.getPortalURL(), Portal.PATH_MODULE, "/friendly-url/",
-			getClassName(), StringPool.SLASH, getClassPK());
+			themeDisplay.getPortalURL(), PortalUtil.getPathContext(),
+			Portal.PATH_MODULE, "/friendly-url/",
+			_getGroupId(httpServletRequest), StringPool.SLASH, getClassName(),
+			StringPool.SLASH, getClassPK());
+	}
+
+	private long _getGroupId(HttpServletRequest httpServletRequest) {
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		return themeDisplay.getSiteGroupId();
 	}
 
 	private static final String _PAGE = "/history/page.jsp";

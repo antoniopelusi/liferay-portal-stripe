@@ -215,6 +215,7 @@ public class ObjectDefinitionServiceTest {
 			"A" + RandomTestUtil.randomString(), null, null,
 			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			ObjectDefinitionConstants.SCOPE_COMPANY,
+			ObjectDefinitionConstants.STORAGE_TYPE_DEFAULT,
 			Arrays.asList(
 				ObjectFieldUtil.createObjectField(
 					"Text", "String", RandomTestUtil.randomString(),
@@ -242,6 +243,7 @@ public class ObjectDefinitionServiceTest {
 					LocalizedMapUtil.getLocalizedMap(
 						RandomTestUtil.randomString()),
 					ObjectDefinitionConstants.SCOPE_COMPANY,
+					ObjectDefinitionConstants.STORAGE_TYPE_DEFAULT,
 					Arrays.asList(
 						ObjectFieldUtil.createObjectField(
 							"Text", "String", RandomTestUtil.randomString(),
@@ -320,6 +322,7 @@ public class ObjectDefinitionServiceTest {
 					LocalizedMapUtil.getLocalizedMap(
 						RandomTestUtil.randomString()),
 					ObjectDefinitionConstants.SCOPE_COMPANY,
+					ObjectDefinitionConstants.STORAGE_TYPE_DEFAULT,
 					Arrays.asList(
 						ObjectFieldUtil.createObjectField(
 							"Text", "String", RandomTestUtil.randomString(),
@@ -354,6 +357,7 @@ public class ObjectDefinitionServiceTest {
 					LocalizedMapUtil.getLocalizedMap(
 						RandomTestUtil.randomString()),
 					ObjectDefinitionConstants.SCOPE_COMPANY,
+					ObjectDefinitionConstants.STORAGE_TYPE_DEFAULT,
 					Arrays.asList(
 						ObjectFieldUtil.createObjectField(
 							"Text", "String", RandomTestUtil.randomString(),
@@ -361,7 +365,7 @@ public class ObjectDefinitionServiceTest {
 
 			objectDefinition =
 				_objectDefinitionService.updateCustomObjectDefinition(
-					objectDefinition.getObjectDefinitionId(), 0, 0,
+					objectDefinition.getObjectDefinitionId(), 0, 0, 0, false,
 					objectDefinition.isActive(),
 					LocalizedMapUtil.getLocalizedMap("Able"), "Able", null,
 					null, false, LocalizedMapUtil.getLocalizedMap("Ables"),
@@ -392,6 +396,7 @@ public class ObjectDefinitionServiceTest {
 					LocalizedMapUtil.getLocalizedMap(
 						RandomTestUtil.randomString()),
 					ObjectDefinitionConstants.SCOPE_COMPANY,
+					ObjectDefinitionConstants.STORAGE_TYPE_DEFAULT,
 					Arrays.asList(
 						ObjectFieldUtil.createObjectField(
 							"Text", "String", RandomTestUtil.randomString(),
@@ -401,10 +406,11 @@ public class ObjectDefinitionServiceTest {
 				_objectFieldLocalService.addCustomObjectField(
 					ownerUser.getUserId(), 0,
 					objectDefinition.getObjectDefinitionId(), "Text", "String",
-					false, false, null,
+					null, false, false, null,
 					LocalizedMapUtil.getLocalizedMap(
 						RandomTestUtil.randomString()),
-					StringUtil.randomId(), false, Collections.emptyList());
+					StringUtil.randomId(), false, false,
+					Collections.emptyList());
 
 			objectDefinition =
 				_objectDefinitionService.updateTitleObjectFieldId(

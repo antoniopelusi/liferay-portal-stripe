@@ -16,7 +16,12 @@ export function normalizeFieldSettings(
 	objectFieldSettings: ObjectFieldSetting[] | undefined
 ) {
 	const settings: {
-		[key in ObjectFieldSettingName]?: string | number | boolean;
+		[key in ObjectFieldSettingName]?:
+			| string
+			| number
+			| boolean
+			| ObjectFieldFilterSetting[]
+			| {id: number; objectStates: ObjectState[]};
 	} = {};
 
 	objectFieldSettings?.forEach(({name, value}) => {
@@ -27,15 +32,20 @@ export function normalizeFieldSettings(
 }
 
 export function updateFieldSettings(
-	objectFieldSettings: ObjectFieldSetting[] | undefined,
+	objectFieldSettings: ObjectFieldSetting[] = [],
 	{name, value}: ObjectFieldSetting
 ) {
-	return objectFieldSettings?.map((setting) =>
-		setting.name === name
-			? {
-					...setting,
-					value,
-			  }
-			: setting
-	);
+	let isNewSetting = true;
+
+	const settings = objectFieldSettings.map((setting) => {
+		if (setting.name === name) {
+			isNewSetting = false;
+
+			return {...setting, value};
+		}
+
+		return setting;
+	});
+
+	return isNewSetting ? [...settings, {name, value}] : settings;
 }

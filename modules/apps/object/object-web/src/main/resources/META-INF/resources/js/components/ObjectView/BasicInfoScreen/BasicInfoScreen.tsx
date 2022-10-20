@@ -13,17 +13,19 @@
  */
 
 import ClayForm, {ClayCheckbox} from '@clayui/form';
-import React, {useContext} from 'react';
+import {
+	Card,
+	Input,
+	invalidateRequired,
+} from '@liferay/object-js-components-web';
+import React from 'react';
 
-import {invalidateRequired} from '../../../hooks/useForm';
-import Card from '../../Card/Card';
-import Input from '../../Form/Input';
-import ViewContext, {TYPES} from '../context';
+import {TYPES, useViewContext} from '../objectViewContext';
 
 const defaultLanguageId = Liferay.ThemeDisplay.getDefaultLanguageId();
 
 export default function BasicInfoScreen() {
-	const [{objectView}, dispatch] = useContext(ViewContext);
+	const [{objectView}, dispatch] = useViewContext();
 
 	const handleChangeName = (newName: string) => {
 		dispatch({
@@ -46,35 +48,31 @@ export default function BasicInfoScreen() {
 	}
 
 	return (
-		<Card>
-			<Card.Header title={Liferay.Language.get('basic-info')} />
+		<Card title={Liferay.Language.get('basic-info')}>
+			<ClayForm.Group>
+				<Input
+					disabled={false}
+					error={error}
+					label={Liferay.Language.get('name')}
+					name="name"
+					onChange={({target: {value}}) => {
+						handleChangeName(value);
+					}}
+					required
+					value={objectView.name[defaultLanguageId]}
+				/>
+			</ClayForm.Group>
 
-			<Card.Body>
-				<ClayForm.Group>
-					<Input
-						disabled={false}
-						error={error}
-						label={Liferay.Language.get('name')}
-						name="name"
-						onChange={({target: {value}}: any) => {
-							handleChangeName(value);
-						}}
-						required
-						value={objectView.name[defaultLanguageId]}
-					/>
-				</ClayForm.Group>
-
-				<ClayForm.Group className="mb-0">
-					<ClayCheckbox
-						checked={objectView.defaultObjectView}
-						disabled={false}
-						label={Liferay.Language.get('mark-as-default')}
-						onChange={({target: {checked}}) => {
-							handleChangeChecked(checked);
-						}}
-					/>
-				</ClayForm.Group>
-			</Card.Body>
+			<ClayForm.Group className="mb-0">
+				<ClayCheckbox
+					checked={objectView.defaultObjectView}
+					disabled={false}
+					label={Liferay.Language.get('mark-as-default')}
+					onChange={({target: {checked}}) => {
+						handleChangeChecked(checked);
+					}}
+				/>
+			</ClayForm.Group>
 		</Card>
 	);
 }

@@ -232,6 +232,7 @@ definition {
 			${portalURL}/api/jsonws/user/get-user-by-email-address/company-id/${companyId}/email-address/${userEmailAddress} \
 				-u ${creatorEmailAddress}:${creatorPassword}
 		''';
+
 		var userId = JSONCurlUtil.get("${curl}", "$['userId']");
 
 		return "${userId}";
@@ -265,6 +266,7 @@ definition {
 			${portalURL}/api/jsonws/user/get-user-by-screen-name/company-id/${companyId}/screen-name/${userScreenName} \
 				-u ${userScreenName}:${creatorPassword}
 		''';
+
 		var userId = JSONCurlUtil.get("${curl}", "$['userId']");
 
 		return "${userId}";
@@ -294,6 +296,7 @@ definition {
 			-d <CURL_DATA[start=-1]CURL_DATA> \
 			-d <CURL_DATA[end=-1]CURL_DATA>
 		''';
+
 		var userIds = JSONCurlUtil.post("${curl}", "$..['userId']");
 
 		return "${userIds}";

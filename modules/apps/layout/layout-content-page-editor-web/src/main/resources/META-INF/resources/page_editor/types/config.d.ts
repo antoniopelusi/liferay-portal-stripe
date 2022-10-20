@@ -125,7 +125,7 @@ export interface Config {
 	getCollectionItemCountURL: string;
 	getCollectionMappingFieldsURL: string;
 	getCollectionSupportedFiltersURL: string;
-	getExperienceUsedPortletsURL: string;
+	getExperienceDataURL: string;
 	getIframeContentCssURL: string;
 	getIframeContentURL: string;
 	getInfoItemFieldValueURL: string;
@@ -133,7 +133,7 @@ export interface Config {
 	getLayoutFriendlyURL: string;
 	getLayoutPageTemplateCollectionsURL: string;
 	getPageContentsURL: string;
-	getWidgetsURL: string;
+	getPortletsURL: string;
 	imageSelectorURL: string;
 	infoItemPreviewSelectorURL: string;
 	infoItemSelectorURL: string;
@@ -167,6 +167,18 @@ export interface Config {
 	renderFragmentEntryURL: string;
 	restoreCollectionDisplayConfigURL: string;
 	searchContainerPageMaxDelta: number;
+
+	selectedMappingTypes?: {
+		type: {
+			id: string;
+			label: string;
+		};
+		subtype: {
+			id: string;
+			label: string;
+		};
+	};
+
 	selectedSegmentsEntryId: string;
 
 	sidebarPanels: {
@@ -201,6 +213,7 @@ export interface Config {
 	unmarkItemForDeletionURL: string;
 	updateCollectionDisplayConfigURL: string;
 	updateConfigurationValuesURL: string;
+	updateFormItemConfigURL: string;
 	updateItemConfigURL: string;
 	updateLayoutPageTemplateDataURL: string;
 	updateRowColumnsURL: string;

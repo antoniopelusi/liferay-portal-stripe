@@ -103,6 +103,34 @@ definition {
 		selenium.assertLiferayErrors();
 	}
 
+	function dragAndDropPortletToPortletNoError {
+		WaitForSPARefresh();
+
+		selenium.waitForElementPresent("${locator1}");
+
+		selenium.mouseOver("${locator1}");
+
+		selenium.waitForVisible("${locator1}");
+
+		selenium.waitForTextCaseInsensitive("${locator1}", "${value1}");
+
+		selenium.waitForVisible("${locator2}");
+
+		ScrollWebElementIntoView.scrollWebElementIntoView(locator1 = "${locator2}");
+
+		selenium.mouseOver("${locator2}");
+
+		selenium.mouseDown("${locator1}");
+
+		selenium.mouseMove("${locator2}");
+
+		selenium.pause("3000");
+
+		selenium.mouseRelease();
+
+		selenium.assertLiferayErrors();
+	}
+
 	function dragAndDropReorganizeObjects {
 		WaitForSPARefresh();
 
@@ -181,6 +209,100 @@ definition {
 		selenium.assertLiferayErrors();
 	}
 
+	function javaScriptDragAndDropObjectAboveShortNestedObject {
+		WaitForSPARefresh();
+
+		selenium.waitForElementPresent("${locator1}");
+
+		selenium.waitForElementPresent("${locator2}");
+
+		var javaScript = '''
+Simulate = {
+	dragAndDrop: async function(source, target) {
+		const dataTransfer = new DataTransfer();
+
+		const dispatchEvent = async(type, element) => {
+			const rect = element.getBoundingClientRect();
+
+			const event = new DragEvent(
+				type,{
+					bubbles: true,
+					clientX: rect.left + (rect.width / 2),
+					clientY: rect.top + (rect.height / (10 / 3)),
+					dataTransfer: dataTransfer,
+					relatedTarget: element
+				});
+
+			element.dispatchEvent(event);
+		};
+
+		await dispatchEvent('dragstart', source);
+
+		await dispatchEvent('dragover', target);
+
+		await dispatchEvent('drop', target);
+
+		await dispatchEvent('dragend', source);
+	}
+};
+
+Simulate.dragAndDrop(arguments[0], arguments[1]);
+		''';
+
+		selenium.executeJavaScript("${javaScript}", "${locator1}", "${locator2}");
+
+		selenium.assertJavaScriptErrors();
+
+		selenium.assertLiferayErrors();
+	}
+
+	function javaScriptDragAndDropObjectAboveTallNestedObject {
+		WaitForSPARefresh();
+
+		selenium.waitForElementPresent("${locator1}");
+
+		selenium.waitForElementPresent("${locator2}");
+
+		var javaScript = '''
+Simulate = {
+	dragAndDrop: async function(source, target) {
+		const dataTransfer = new DataTransfer();
+
+		const dispatchEvent = async(type, element) => {
+			const rect = element.getBoundingClientRect();
+
+			const event = new DragEvent(
+				type,{
+					bubbles: true,
+					clientX: rect.left + (rect.width / 2),
+					clientY: rect.top + (rect.height / 5),
+					dataTransfer: dataTransfer,
+					relatedTarget: element
+				});
+
+			element.dispatchEvent(event);
+		};
+
+		await dispatchEvent('dragstart', source);
+
+		await dispatchEvent('dragover', target);
+
+		await dispatchEvent('drop', target);
+
+		await dispatchEvent('dragend', source);
+	}
+};
+
+Simulate.dragAndDrop(arguments[0], arguments[1]);
+		''';
+
+		selenium.executeJavaScript("${javaScript}", "${locator1}", "${locator2}");
+
+		selenium.assertJavaScriptErrors();
+
+		selenium.assertLiferayErrors();
+	}
+
 	function javaScriptDragAndDropObjectBelowShortNestedObject {
 		WaitForSPARefresh();
 
@@ -235,9 +357,13 @@ Simulate.dragAndDrop(arguments[0], arguments[1]);
 
 		selenium.waitForElementPresent("${locator2}");
 
+		if (contains("${ratio}", "ratio")) {
+			var ratio = "5 / 4";
+		}
+
 		var javaScript = '''
 Simulate = {
-	dragAndDrop: async function(source, target) {
+	dragAndDrop: async function(source, target, ratio) {
 		const dataTransfer = new DataTransfer();
 
 		const dispatchEvent = async(type, element) => {
@@ -247,7 +373,7 @@ Simulate = {
 				type,{
 					bubbles: true,
 					clientX: rect.left + (rect.width / 2),
-					clientY: rect.top + (rect.height / (5 / 4)),
+					clientY: rect.top + (rect.height / (ratio)),
 					dataTransfer: dataTransfer,
 					relatedTarget: element
 				});
@@ -265,7 +391,7 @@ Simulate = {
 	}
 };
 
-Simulate.dragAndDrop(arguments[0], arguments[1]);
+Simulate.dragAndDrop(arguments[0], arguments[1], ${ratio});
 		''';
 
 		selenium.executeJavaScript("${javaScript}", "${locator1}", "${locator2}");

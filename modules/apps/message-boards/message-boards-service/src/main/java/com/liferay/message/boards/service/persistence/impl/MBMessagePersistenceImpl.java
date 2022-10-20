@@ -9105,7 +9105,7 @@ public class MBMessagePersistenceImpl
 	 * </p>
 	 *
 	 * @param userId the user ID
-	 * @param classNameId the class name ID
+	 * @param classNameIds the class name IDs
 	 * @param start the lower bound of the range of message-boards messages
 	 * @param end the upper bound of the range of message-boards messages (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -17430,7 +17430,7 @@ public class MBMessagePersistenceImpl
 	 * </p>
 	 *
 	 * @param userId the user ID
-	 * @param classNameId the class name ID
+	 * @param classNameIds the class name IDs
 	 * @param status the status
 	 * @param start the lower bound of the range of message-boards messages
 	 * @param end the upper bound of the range of message-boards messages (not inclusive)
@@ -21263,23 +21263,6 @@ public class MBMessagePersistenceImpl
 					}
 				}
 				else {
-					if (list.size() > 1) {
-						Collections.sort(list, Collections.reverseOrder());
-
-						if (_log.isWarnEnabled()) {
-							if (!productionMode || !useFinderCache) {
-								finderArgs = new Object[] {
-									groupId, externalReferenceCode
-								};
-							}
-
-							_log.warn(
-								"MBMessagePersistenceImpl.fetchByG_ERC(long, String, boolean) with parameters (" +
-									StringUtil.merge(finderArgs) +
-										") yields a result set with more than 1 result. This violates the logical unique restriction. There is no order guarantee on which result is returned by this finder.");
-						}
-					}
-
 					MBMessage mbMessage = list.get(0);
 
 					result = mbMessage;
@@ -21688,6 +21671,10 @@ public class MBMessagePersistenceImpl
 			mbMessage.setUuid(uuid);
 		}
 
+		if (Validator.isNull(mbMessage.getExternalReferenceCode())) {
+			mbMessage.setExternalReferenceCode(mbMessage.getUuid());
+		}
+
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
@@ -21831,7 +21818,7 @@ public class MBMessagePersistenceImpl
 	 */
 	@Override
 	public MBMessage fetchByPrimaryKey(Serializable primaryKey) {
-		if (ctPersistenceHelper.isProductionMode(MBMessage.class)) {
+		if (ctPersistenceHelper.isProductionMode(MBMessage.class, primaryKey)) {
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
@@ -22255,6 +22242,9 @@ public class MBMessagePersistenceImpl
 		_uniqueIndexColumnNames.add(new String[] {"uuid_", "groupId"});
 
 		_uniqueIndexColumnNames.add(new String[] {"groupId", "urlSubject"});
+
+		_uniqueIndexColumnNames.add(
+			new String[] {"groupId", "externalReferenceCode"});
 	}
 
 	/**

@@ -23,7 +23,9 @@ import com.liferay.poshi.core.pql.PQLEntityFactory;
 import com.liferay.poshi.core.prose.PoshiProseMatcher;
 import com.liferay.poshi.core.script.PoshiScriptParserException;
 import com.liferay.poshi.core.selenium.LiferaySelenium;
+import com.liferay.poshi.core.selenium.LiferaySeleniumMethod;
 import com.liferay.poshi.core.util.FileUtil;
+import com.liferay.poshi.core.util.GetterUtil;
 import com.liferay.poshi.core.util.MathUtil;
 import com.liferay.poshi.core.util.OSDetector;
 import com.liferay.poshi.core.util.PropsUtil;
@@ -96,6 +98,7 @@ public class PoshiContext {
 		_filePaths.clear();
 		_functionFileNames.clear();
 		_functionLocatorCounts.clear();
+		_liferaySeleniumMethods.clear();
 		_macroFileNames.clear();
 		_namespacedClassCommandNamePropertiesMap.clear();
 		_namespaces.clear();
@@ -105,7 +108,6 @@ public class PoshiContext {
 		_poshiPropertyNames.clear();
 		_rootElements.clear();
 		_rootVarElements.clear();
-		_seleniumParameterCounts.clear();
 		_testCaseDescriptions.clear();
 		_testCaseNamespacedClassCommandNames.clear();
 		_testCaseNamespacedClassNames.clear();
@@ -222,6 +224,12 @@ public class PoshiContext {
 		String className, String namespace) {
 
 		return _rootElements.get("function#" + namespace + "." + className);
+	}
+
+	public static LiferaySeleniumMethod getLiferaySeleniumMethod(
+		String methodName) {
+
+		return _liferaySeleniumMethods.get(methodName);
 	}
 
 	public static Element getMacroCommandElement(
@@ -460,12 +468,8 @@ public class PoshiContext {
 			classType + "#" + namespace + "." + className);
 	}
 
-	public static int getSeleniumParameterCount(String commandName) {
-		return _seleniumParameterCounts.get(commandName);
-	}
-
 	public static List<List<String>> getTestBatchGroups(
-			String propertyQuery, int maxGroupSize)
+			String propertyQuery, long maxGroupSize)
 		throws Exception {
 
 		if (maxGroupSize <= 0) {
@@ -510,14 +514,14 @@ public class PoshiContext {
 
 			Collections.sort(classCommandNameGroup);
 
-			int testCount = classCommandNameGroup.size();
+			long testCount = classCommandNameGroup.size();
 
-			int groupCount = MathUtil.quotient(testCount, maxGroupSize, true);
+			long groupCount = MathUtil.quotient(testCount, maxGroupSize, true);
 
-			int groupSize = MathUtil.quotient(testCount, groupCount, true);
+			long groupSize = MathUtil.quotient(testCount, groupCount, true);
 
 			List<List<String>> testBatchGroups = Lists.partition(
-				classCommandNameGroup, groupSize);
+				classCommandNameGroup, GetterUtil.getInteger(groupSize));
 
 			for (List<String> testBatchGroup : testBatchGroups) {
 				orderedTestBatchGroups.put(
@@ -730,6 +734,15 @@ public class PoshiContext {
 			String propertyValue = propertyElement.attributeValue("value");
 
 			properties.setProperty(propertyName, propertyValue);
+		}
+
+		if (Validator.isNotNull(
+				commandElement.attributeValue("disable-webdriver"))) {
+
+			String disableWebdriver = commandElement.attributeValue(
+				"disable-webdriver");
+
+			properties.setProperty("disable-webdriver", disableWebdriver);
 		}
 
 		if (Validator.isNotNull(
@@ -1297,11 +1310,11 @@ public class PoshiContext {
 
 					_namespaces.add(namespace);
 
-					Set<URL> poshiURLs = _getPoshiURLs(
-						fileSystem, includes,
-						resourceURLString.substring(x + 1));
-
-					_storeRootElements(poshiURLs, namespace);
+					_storeRootElements(
+						_getPoshiURLs(
+							fileSystem, includes,
+							resourceURLString.substring(x + 1)),
+						namespace);
 				}
 			}
 		}
@@ -1311,12 +1324,12 @@ public class PoshiContext {
 		Method[] methods = LiferaySelenium.class.getMethods();
 
 		for (Method method : methods) {
-			Class<?>[] classes = method.getParameterTypes();
+			LiferaySeleniumMethod liferaySeleniumMethod =
+				new LiferaySeleniumMethod(method);
 
-			_seleniumParameterCounts.put(method.getName(), classes.length);
+			_liferaySeleniumMethods.put(
+				method.getName(), liferaySeleniumMethod);
 		}
-
-		_seleniumParameterCounts.put("open", 1);
 	}
 
 	private static void _storePathElement(
@@ -1716,11 +1729,10 @@ public class PoshiContext {
 				maxSubgroupSize = 1;
 			}
 
-			List<List<String>> testBatchGroups = getTestBatchGroups(
-				PropsValues.TEST_BATCH_PROPERTY_QUERY, maxSubgroupSize);
-
 			List<List<List<String>>> segments = Lists.partition(
-				testBatchGroups, PropsValues.TEST_BATCH_MAX_GROUP_SIZE);
+				getTestBatchGroups(
+					PropsValues.TEST_BATCH_PROPERTY_QUERY, maxSubgroupSize),
+				PropsValues.TEST_BATCH_MAX_GROUP_SIZE);
 
 			for (int i = 0; i < segments.size(); i++) {
 				List<List<String>> segment = segments.get(i);
@@ -1915,6 +1927,8 @@ public class PoshiContext {
 		Collections.synchronizedSet(new HashSet<>());
 	private static final Map<String, Integer> _functionLocatorCounts =
 		Collections.synchronizedMap(new HashMap<>());
+	private static final Map<String, LiferaySeleniumMethod>
+		_liferaySeleniumMethods = Collections.synchronizedMap(new HashMap<>());
 	private static final Set<String> _macroFileNames =
 		Collections.synchronizedSet(new HashSet<>());
 	private static final Pattern _namespaceClassCommandNamePattern =
@@ -1940,8 +1954,6 @@ public class PoshiContext {
 	private static final Map<String, Element> _rootElements =
 		Collections.synchronizedMap(new HashMap<>());
 	private static final Map<String, List<Element>> _rootVarElements =
-		Collections.synchronizedMap(new HashMap<>());
-	private static final Map<String, Integer> _seleniumParameterCounts =
 		Collections.synchronizedMap(new HashMap<>());
 	private static final Map<String, String> _testCaseDescriptions =
 		Collections.synchronizedMap(new HashMap<>());

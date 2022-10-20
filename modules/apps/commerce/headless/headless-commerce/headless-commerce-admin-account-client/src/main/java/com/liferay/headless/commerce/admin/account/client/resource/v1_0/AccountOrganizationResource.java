@@ -137,6 +137,12 @@ public interface AccountOrganizationResource {
 			return new AccountOrganizationResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -182,6 +188,7 @@ public interface AccountOrganizationResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -277,7 +284,7 @@ public interface AccountOrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-account/v1.0/accounts/by-externalReferenceCode/{externalReferenceCode}/accountOrganizations");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -367,7 +374,7 @@ public interface AccountOrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-account/v1.0/accounts/by-externalReferenceCode/{externalReferenceCode}/accountOrganizations");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -440,7 +447,7 @@ public interface AccountOrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-account/v1.0/accounts/by-externalReferenceCode/{externalReferenceCode}/accountOrganizations/{organizationId}");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -526,7 +533,7 @@ public interface AccountOrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-account/v1.0/accounts/by-externalReferenceCode/{externalReferenceCode}/accountOrganizations/{organizationId}");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -618,7 +625,7 @@ public interface AccountOrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-account/v1.0/accounts/{id}/accountOrganizations");
 
 			httpInvoker.path("id", id);
@@ -705,7 +712,7 @@ public interface AccountOrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-account/v1.0/accounts/{id}/accountOrganizations");
 
 			httpInvoker.path("id", id);
@@ -785,7 +792,7 @@ public interface AccountOrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-account/v1.0/accounts/accountOrganizations/batch");
 
 			httpInvoker.path("id", id);
@@ -858,7 +865,7 @@ public interface AccountOrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-account/v1.0/accounts/{id}/accountOrganizations/{organizationId}");
 
 			httpInvoker.path("id", id);
@@ -942,7 +949,7 @@ public interface AccountOrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-account/v1.0/accounts/{id}/accountOrganizations/{organizationId}");
 
 			httpInvoker.path("id", id);

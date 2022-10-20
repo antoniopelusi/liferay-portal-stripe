@@ -1,7 +1,6 @@
 @component-name = "portal-object"
 definition {
 
-	property portal.acceptance = "true";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Object";
@@ -90,6 +89,14 @@ definition {
 			objectName = "CustomObject146357");
 	}
 
+	@description = "LPS-142175 - Verify it's possible to export an object with Actions"
+	@priority = "4"
+	test CanExportObjectWithAction {
+
+		// TODO LPS-142175 CanExportObjectWithAction pending implementation
+
+	}
+
 	@description = "LPS-142175 - Verify if it is possible to import the data structure to a custom objects"
 	@priority = "5"
 	test CanImportDataStructure {
@@ -134,6 +141,14 @@ definition {
 		ObjectAdmin.goToLayoutsTab();
 
 		ObjectAdmin.assertObjectLayout(layoutLabel = "Layout");
+	}
+
+	@description = "LPS-142175 - Verify it's possible to import object with Actions"
+	@priority = "4"
+	test CanImportObjectWithAction {
+
+		// TODO LPS-142175 CanImportObjectWithAction pending implementation
+
 	}
 
 	@description = "LPS-142175 - Verify it is possible to import the same object more then one time"

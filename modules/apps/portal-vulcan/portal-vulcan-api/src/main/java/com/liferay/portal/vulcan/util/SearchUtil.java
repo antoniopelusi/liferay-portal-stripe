@@ -28,6 +28,7 @@ import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.IndexSearcherHelperUtil;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
+import com.liferay.portal.kernel.search.Query;
 import com.liferay.portal.kernel.search.QueryConfig;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.facet.SimpleFacet;
@@ -39,7 +40,6 @@ import com.liferay.portal.kernel.search.generic.MatchAllQuery;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
 import com.liferay.portal.search.aggregation.AggregationResult;
 import com.liferay.portal.search.searcher.SearchResponse;
@@ -71,11 +71,9 @@ public class SearchUtil {
 		Object[] orderByComparatorColumns = _getOrderByComparatorColumns(sorts);
 
 		if (orderByComparatorColumns != null) {
-			OrderByComparator<T> orderByComparator =
+			queryDefinition.setOrderByComparator(
 				OrderByComparatorFactoryUtil.create(
-					clazz.getSimpleName(), orderByComparatorColumns);
-
-			queryDefinition.setOrderByComparator(orderByComparator);
+					clazz.getSimpleName(), orderByComparatorColumns));
 		}
 
 		queryDefinition.setStart(pagination.getStartPosition());
@@ -95,9 +93,10 @@ public class SearchUtil {
 			UnsafeFunction<Document, T, Exception> transformUnsafeFunction)
 		throws Exception {
 
-		if (actions == null) {
-			actions = Collections.emptyMap();
-		}
+		Hits hits = null;
+		long totalCount = 0;
+
+		Indexer<?> indexer = IndexerRegistryUtil.getIndexer(indexerClassName);
 
 		if (sorts == null) {
 			sorts = new Sort[] {
@@ -111,19 +110,19 @@ public class SearchUtil {
 
 		searchContextUnsafeConsumer.accept(searchContext);
 
-		List<T> items = new ArrayList<>();
-
-		Hits hits = null;
-
-		Indexer<?> indexer = IndexerRegistryUtil.getIndexer(indexerClassName);
-
 		if (searchContext.isVulcanCheckPermissions()) {
 			hits = indexer.search(searchContext);
+			totalCount = indexer.searchCount(searchContext);
 		}
 		else {
-			hits = IndexSearcherHelperUtil.search(
-				searchContext, indexer.getFullQuery(searchContext));
+			Query query = indexer.getFullQuery(searchContext);
+
+			hits = IndexSearcherHelperUtil.search(searchContext, query);
+			totalCount = IndexSearcherHelperUtil.searchCount(
+				searchContext, query);
 		}
+
+		List<T> items = new ArrayList<>();
 
 		for (Document document : hits.getDocs()) {
 			T item = transformUnsafeFunction.apply(document);
@@ -134,8 +133,8 @@ public class SearchUtil {
 		}
 
 		return Page.of(
-			actions, _getFacets(searchContext), items, pagination,
-			indexer.searchCount(searchContext));
+			(actions != null) ? actions : Collections.emptyMap(),
+			_getFacets(searchContext), items, pagination, totalCount);
 	}
 
 	public static class SearchContext

@@ -15,7 +15,7 @@
 import {ReactPortal} from '@liferay/frontend-js-react-web';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 
 import {useGlobalContext} from '../../contexts/GlobalContext';
 import {useSelector} from '../../contexts/StoreContext';
@@ -24,7 +24,7 @@ import selectLanguageId from '../../selectors/selectLanguageId';
 const TOPPER_BAR_HEIGHT = 24;
 const TOPPER_BAR_BORDER_WIDTH = 2;
 
-export function TopperLabel({children, itemElement}) {
+export function TopperLabel({children, itemElement, style}) {
 	const globalContext = useGlobalContext();
 	const languageId = useSelector(selectLanguageId);
 	const layoutData = useSelector((state) => state.layoutData);
@@ -33,22 +33,23 @@ export function TopperLabel({children, itemElement}) {
 		style: {},
 	});
 
+	const wrapper = useMemo(
+		() => globalContext.document.getElementById('wrapper'),
+		[globalContext]
+	);
+
 	useEffect(() => {
 		if (itemElement) {
-			const controlMenuContainer = globalContext.document.querySelector(
-				'.control-menu-container'
-			);
 			const pageEditorWrapper = globalContext.document.getElementById(
 				'page-editor'
 			);
 
-			let controlMenuContainerHeight = 0;
 			let itemElementLeft = 0;
 			let itemElementRight = 0;
 			let itemElementTop = 0;
 			let itemElementMarginLeft = 0;
 			let itemElementMarginRight = 0;
-			let scrollY = globalContext.window.scrollY;
+			let scrollY = wrapper.scrollTop;
 
 			const updatePosition = () => {
 				const languageDirection =
@@ -66,9 +67,7 @@ export function TopperLabel({children, itemElement}) {
 					itemElementMarginRight +
 					TOPPER_BAR_BORDER_WIDTH;
 
-				const isInset =
-					itemElementTop - scrollY <
-					controlMenuContainerHeight + TOPPER_BAR_HEIGHT;
+				const isInset = Math.floor(itemElementTop - scrollY) <= 0;
 
 				const top = isInset
 					? itemElementTop + TOPPER_BAR_BORDER_WIDTH
@@ -84,7 +83,7 @@ export function TopperLabel({children, itemElement}) {
 			};
 
 			const handleScroll = () => {
-				scrollY = globalContext.window.scrollY;
+				scrollY = wrapper.scrollTop;
 				updatePosition();
 			};
 
@@ -101,17 +100,20 @@ export function TopperLabel({children, itemElement}) {
 					parseInt(computedStyle.marginLeft, 10) || 0;
 
 				itemElementLeft =
-					globalContext.window.scrollX + boundingClientRect.left;
-
-				// We use here body instead of window.innerWidth
-				// to prevent issues if the scrollbar is present.
+					boundingClientRect.left -
+					wrapper.offsetLeft +
+					wrapper.scrollLeft;
 
 				itemElementRight =
-					globalContext.document.body.getBoundingClientRect().width -
-					(boundingClientRect.right - globalContext.window.scrollX);
+					wrapper.getBoundingClientRect().width -
+					(boundingClientRect.right -
+						wrapper.offsetLeft +
+						wrapper.scrollLeft);
 
 				itemElementTop =
-					globalContext.window.scrollY + boundingClientRect.top;
+					boundingClientRect.top -
+					wrapper.offsetTop +
+					wrapper.scrollTop;
 			};
 
 			const resizeObserver = globalContext.window.ResizeObserver
@@ -119,13 +121,10 @@ export function TopperLabel({children, itemElement}) {
 						entries.forEach((entry) => {
 							if (
 								entry.target === itemElement ||
+								entry.target === wrapper ||
 								entry.target === pageEditorWrapper
 							) {
 								updateItemElementSize(itemElement);
-							}
-							else if (entry.target === controlMenuContainer) {
-								controlMenuContainerHeight =
-									entry.contentRect.height;
 							}
 						});
 
@@ -138,10 +137,6 @@ export function TopperLabel({children, itemElement}) {
 			if (resizeObserver) {
 				resizeObserver.observe(itemElement);
 
-				if (controlMenuContainer) {
-					resizeObserver.observe(controlMenuContainer);
-				}
-
 				if (pageEditorWrapper) {
 					resizeObserver.observe(pageEditorWrapper);
 				}
@@ -150,23 +145,16 @@ export function TopperLabel({children, itemElement}) {
 				resizeIntervalId = setInterval(() => {
 					updateItemElementSize(itemElement);
 
-					controlMenuContainerHeight =
-						controlMenuContainer?.getBoundingClientRect().height ||
-						0;
-
 					updatePosition();
 				}, 500);
 			}
 
-			globalContext.window.addEventListener('scroll', handleScroll);
+			wrapper.addEventListener('scroll', handleScroll);
 			updateItemElementSize(itemElement);
 			updatePosition();
 
 			return () => {
-				globalContext.window.removeEventListener(
-					'scroll',
-					handleScroll
-				);
+				wrapper.removeEventListener('scroll', handleScroll);
 
 				if (resizeObserver) {
 					resizeObserver.disconnect();
@@ -176,10 +164,10 @@ export function TopperLabel({children, itemElement}) {
 				}
 			};
 		}
-	}, [globalContext, itemElement, languageId, layoutData]);
+	}, [globalContext, itemElement, languageId, layoutData, wrapper]);
 
 	return (
-		<ReactPortal container={globalContext.document.body} wrapper={false}>
+		<ReactPortal container={wrapper} wrapper={false}>
 			<div
 				className={classNames(
 					'cadmin',
@@ -187,7 +175,7 @@ export function TopperLabel({children, itemElement}) {
 					'tbar',
 					{'page-editor__topper__bar--inset': positionConfig.isInset}
 				)}
-				style={positionConfig.style}
+				style={{...style, ...positionConfig.style}}
 			>
 				{children}
 			</div>
@@ -197,4 +185,5 @@ export function TopperLabel({children, itemElement}) {
 
 TopperLabel.propTypes = {
 	itemElement: PropTypes.object,
+	style: PropTypes.object,
 };

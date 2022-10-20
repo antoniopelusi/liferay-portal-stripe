@@ -133,9 +133,13 @@ public class FileEntryInfoItemFieldValuesProvider
 					FileVersion fileVersion = fileEntry.getFileVersion();
 
 					DLFileEntryMetadata dlFileEntryMetadata =
-						_dlFileEntryMetadataLocalService.getFileEntryMetadata(
+						_dlFileEntryMetadataLocalService.fetchFileEntryMetadata(
 							ddmStructure.getStructureId(),
 							fileVersion.getFileVersionId());
+
+					if (dlFileEntryMetadata == null) {
+						continue;
+					}
 
 					infoFieldValues.addAll(
 						_ddmFormValuesInfoFieldValuesProvider.
@@ -211,7 +215,7 @@ public class FileEntryInfoItemFieldValuesProvider
 						new ClassPKInfoItemIdentifier(
 							fileEntry.getFileEntryId())));
 
-				fileURLWebImage.setAlt(fileEntry.getTitle());
+				fileURLWebImage.setAlt(fileEntry.getDescription());
 
 				fileEntryFieldValues.add(
 					new InfoFieldValue<>(
@@ -297,7 +301,7 @@ public class FileEntryInfoItemFieldValuesProvider
 					FileEntry.class.getName(),
 					new ClassPKInfoItemIdentifier(fileEntry.getFileEntryId())));
 
-			imagePreviewURLWebImage.setAlt(fileEntry.getTitle());
+			imagePreviewURLWebImage.setAlt(fileEntry.getDescription());
 
 			fileEntryFieldValues.add(
 				new InfoFieldValue<>(

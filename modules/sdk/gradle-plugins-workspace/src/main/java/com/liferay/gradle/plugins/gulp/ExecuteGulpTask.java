@@ -14,7 +14,7 @@
 
 package com.liferay.gradle.plugins.gulp;
 
-import com.liferay.gradle.plugins.node.tasks.ExecuteNodeScriptTask;
+import com.liferay.gradle.plugins.node.task.ExecuteNodeScriptTask;
 import com.liferay.gradle.util.GradleUtil;
 
 import java.util.List;

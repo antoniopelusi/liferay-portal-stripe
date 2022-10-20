@@ -95,7 +95,7 @@ definition {
 
 		Form.closeSidebar();
 
-		Form.save();
+		Form.publishForm();
 
 		ProductMenu.gotoPortlet(
 			category = "Site Builder",
@@ -424,8 +424,6 @@ definition {
 
 		Form.save();
 
-		Alert.viewSuccessMessageText(successMessage = "Your request completed successfully.");
-
 		AssertElementPresent(
 			key_formattingStyle = "h2",
 			locator1 = "FormFields#PARAGRAPH_TEXT_VALUE_STYLE",
@@ -569,7 +567,7 @@ definition {
 
 		Form.save();
 
-		AssertElementPresent(locator1 = "Message#SUCCESS");
+		Alert.viewSuccessMessage();
 
 		ProductMenu.gotoPortlet(
 			category = "Content & Data",
@@ -626,8 +624,6 @@ definition {
 	@description = "Verify that an Image can be uploaded to the Body Text"
 	@priority = "5"
 	test CanSupportImages {
-		property test.name.skip.portal.instance = "FormsParagraphField#CanSupportImages";
-
 		FormsAdmin.addForm();
 
 		Form.editName(formName = "Form 1");
@@ -646,14 +642,20 @@ definition {
 
 		Form.save();
 
-		Alert.viewSuccessMessageText(successMessage = "Your request completed successfully.");
-
 		FormsAdminNavigator.gotoBack();
 
 		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
 
 		AssertElementPresent(
-			key_imageName = "Document_1",
+			key_imageName = "document_1",
+			locator1 = "AdaptiveMedia#IMAGE_VARIANT_SOURCE_URL");
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishedForm();
+
+		AssertElementPresent(
+			key_imageName = "document_1",
 			locator1 = "AdaptiveMedia#IMAGE_VARIANT_SOURCE_URL");
 	}
 
@@ -686,7 +688,7 @@ definition {
 
 		Form.save();
 
-		AssertElementPresent(locator1 = "Message#SUCCESS");
+		Alert.viewSuccessMessage();
 
 		ProductMenu.gotoPortlet(
 			category = "Content & Data",
@@ -729,7 +731,7 @@ definition {
 
 		Form.save();
 
-		AssertElementPresent(locator1 = "Message#SUCCESS");
+		Alert.viewSuccessMessage();
 
 		Click(locator1 = "Icon#BACK");
 

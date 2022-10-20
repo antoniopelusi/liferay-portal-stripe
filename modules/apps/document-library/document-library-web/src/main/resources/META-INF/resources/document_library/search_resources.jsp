@@ -42,6 +42,7 @@ if (searchFolderId > 0) {
 String keywords = ParamUtil.getString(request, "keywords");
 
 DLAdminDisplayContext dlAdminDisplayContext = (DLAdminDisplayContext)request.getAttribute(DLAdminDisplayContext.class.getName());
+DLPortletInstanceSettingsHelper dlPortletInstanceSettingsHelper = new DLPortletInstanceSettingsHelper(dlRequestHelper);
 
 EntriesChecker entriesChecker = new EntriesChecker(liferayPortletRequest, liferayPortletResponse);
 
@@ -123,9 +124,11 @@ entriesChecker.setRememberCheckBoxStateURLRegex("^(?!.*" + liferayPortletRespons
 							path="/document_library/view_file_entry_descriptive.jsp"
 						/>
 
-						<liferay-ui:search-container-column-jsp
-							path="/document_library/file_entry_action.jsp"
-						/>
+						<c:if test="<%= dlPortletInstanceSettingsHelper.isShowActions() %>">
+							<liferay-ui:search-container-column-jsp
+								path="/document_library/file_entry_action.jsp"
+							/>
+						</c:if>
 					</c:when>
 					<c:when test="<%= (curFolder != null) && DLFolderPermission.contains(permissionChecker, curFolder, ActionKeys.VIEW) %>">
 
@@ -147,9 +150,11 @@ entriesChecker.setRememberCheckBoxStateURLRegex("^(?!.*" + liferayPortletRespons
 							path="/document_library/view_folder_descriptive.jsp"
 						/>
 
-						<liferay-ui:search-container-column-jsp
-							path="/document_library/folder_action.jsp"
-						/>
+						<c:if test="<%= dlPortletInstanceSettingsHelper.isShowActions() %>">
+							<liferay-ui:search-container-column-jsp
+								path="/document_library/folder_action.jsp"
+							/>
+						</c:if>
 					</c:when>
 					<c:otherwise>
 						<liferay-ui:search-container-column-icon

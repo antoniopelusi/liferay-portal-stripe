@@ -18,6 +18,7 @@ import com.liferay.petra.io.StreamUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.events.EventsProcessorUtil;
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
+import com.liferay.portal.kernel.exception.NoSuchVirtualHostException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
@@ -73,6 +74,20 @@ public class PortalInstances {
 	}
 
 	public static long getCompanyId(HttpServletRequest httpServletRequest) {
+		try {
+			return getCompanyId(httpServletRequest, false);
+		}
+		catch (NoSuchVirtualHostException noSuchVirtualHostException) {
+			_log.error(noSuchVirtualHostException);
+
+			return 0;
+		}
+	}
+
+	public static long getCompanyId(
+			HttpServletRequest httpServletRequest, boolean strict)
+		throws NoSuchVirtualHostException {
+
 		if (_log.isDebugEnabled()) {
 			_log.debug("Get company id");
 		}
@@ -88,7 +103,8 @@ public class PortalInstances {
 			return companyIdObj.longValue();
 		}
 
-		long companyId = _getCompanyIdByVirtualHosts(httpServletRequest);
+		long companyId = _getCompanyIdByVirtualHosts(
+			httpServletRequest, strict);
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("Company id from host " + companyId);
@@ -262,6 +278,12 @@ public class PortalInstances {
 	public static long initCompany(
 		ServletContext servletContext, String webId) {
 
+		return initCompany(servletContext, webId, false);
+	}
+
+	public static long initCompany(
+		ServletContext servletContext, String webId, boolean skipCheck) {
+
 		// Begin initializing company
 
 		if (_log.isDebugEnabled()) {
@@ -288,11 +310,13 @@ public class PortalInstances {
 		try {
 			CompanyThreadLocal.setCompanyId(companyId);
 
-			try {
-				CompanyLocalServiceUtil.checkCompany(webId);
-			}
-			catch (Exception exception) {
-				_log.error(exception);
+			if (!skipCheck) {
+				try {
+					CompanyLocalServiceUtil.checkCompany(webId);
+				}
+				catch (Exception exception) {
+					_log.error(exception);
+				}
 			}
 
 			String principalName = null;
@@ -448,16 +472,10 @@ public class PortalInstances {
 		WebAppPool.remove(companyId, WebKeys.PORTLET_CATEGORY);
 	}
 
-	private static long _getCompanyIdByVirtualHosts(
-		HttpServletRequest httpServletRequest) {
+	private static long _getCompanyIdByHost(
+		String host, HttpServletRequest httpServletRequest) {
 
-		String host = PortalUtil.getHost(httpServletRequest);
-
-		if (_log.isDebugEnabled()) {
-			_log.debug("Host " + host);
-		}
-
-		if (Validator.isNull(host) || isVirtualHostsIgnoreHost(host)) {
+		if (Validator.isNull(host)) {
 			return 0;
 		}
 
@@ -468,6 +486,8 @@ public class PortalInstances {
 			if (virtualHost == null) {
 				return 0;
 			}
+
+			CompanyThreadLocal.setCompanyId(virtualHost.getCompanyId());
 
 			if (virtualHost.getLayoutSetId() != 0) {
 				LayoutSet layoutSet = LayoutSetLocalServiceUtil.getLayoutSet(
@@ -511,6 +531,29 @@ public class PortalInstances {
 		}
 
 		return 0;
+	}
+
+	private static long _getCompanyIdByVirtualHosts(
+			HttpServletRequest httpServletRequest, boolean strict)
+		throws NoSuchVirtualHostException {
+
+		String host = PortalUtil.getHost(httpServletRequest);
+
+		if (_log.isDebugEnabled()) {
+			_log.debug("Host " + host);
+		}
+
+		if (isVirtualHostsIgnoreHost(host)) {
+			return 0;
+		}
+
+		long companyId = _getCompanyIdByHost(host, httpServletRequest);
+
+		if (strict && (companyId == 0)) {
+			throw new NoSuchVirtualHostException(host);
+		}
+
+		return companyId;
 	}
 
 	private static boolean _isCompanyVirtualHostname(

@@ -96,7 +96,8 @@ public class FragmentEntryLinkStagedModelDataHandlerTest
 			"css", "html", "js", fragmentEntryLink.getConfiguration(),
 			fragmentEntryLink.getEditableValues(),
 			fragmentEntryLink.getNamespace(),
-			fragmentEntryLink.getPosition() + 1, serviceContext);
+			fragmentEntryLink.getPosition() + 1, fragmentEntryLink.getType(),
+			serviceContext);
 
 		try {
 			exportImportStagedModel(stagedModel);
@@ -117,10 +118,6 @@ public class FragmentEntryLinkStagedModelDataHandlerTest
 	public void testStageFragmentEntryLinkWithNoFragmentEntry()
 		throws Exception {
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(
-				stagingGroup.getGroupId(), TestPropsValues.getUserId());
-
 		StagedModel stagedModel =
 			_fragmentEntryLinkLocalService.addFragmentEntryLink(
 				TestPropsValues.getUserId(), stagingGroup.getGroupId(), 0, 0,
@@ -128,7 +125,10 @@ public class FragmentEntryLinkStagedModelDataHandlerTest
 					fetchDefaultSegmentsExperienceId(_layout.getPlid()),
 				stagingGroup.getDefaultPublicPlid(), StringPool.BLANK, "html",
 				StringPool.BLANK, StringPool.BLANK, StringPool.BLANK,
-				StringPool.BLANK, 0, StringPool.BLANK, serviceContext);
+				StringPool.BLANK, 0, StringPool.BLANK,
+				FragmentConstants.TYPE_COMPONENT,
+				ServiceContextTestUtil.getServiceContext(
+					stagingGroup.getGroupId(), TestPropsValues.getUserId()));
 
 		try {
 			exportImportStagedModel(stagedModel);
@@ -199,7 +199,7 @@ public class FragmentEntryLinkStagedModelDataHandlerTest
 				RandomTestUtil.randomString(), RandomTestUtil.randomString(),
 				RandomTestUtil.randomString(), RandomTestUtil.randomString(),
 				RandomTestUtil.randomString(), false, configuration, null, 0,
-				FragmentConstants.TYPE_COMPONENT,
+				FragmentConstants.TYPE_COMPONENT, null,
 				WorkflowConstants.STATUS_APPROVED, serviceContext);
 
 		return _fragmentEntryLinkLocalService.addFragmentEntryLink(
@@ -210,7 +210,8 @@ public class FragmentEntryLinkStagedModelDataHandlerTest
 			group.getDefaultPublicPlid(), fragmentEntry.getCss(),
 			fragmentEntry.getHtml(), fragmentEntry.getJs(),
 			fragmentEntry.getConfiguration(), StringPool.BLANK,
-			StringPool.BLANK, 1, StringPool.BLANK, serviceContext);
+			StringPool.BLANK, 1, StringPool.BLANK, fragmentEntry.getType(),
+			serviceContext);
 	}
 
 	@Override

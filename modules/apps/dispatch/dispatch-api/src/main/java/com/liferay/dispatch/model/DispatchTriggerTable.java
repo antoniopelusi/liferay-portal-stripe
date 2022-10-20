@@ -36,6 +36,8 @@ public class DispatchTriggerTable extends BaseTable<DispatchTriggerTable> {
 
 	public final Column<DispatchTriggerTable, Long> mvccVersion = createColumn(
 		"mvccVersion", Long.class, Types.BIGINT, Column.FLAG_NULLITY);
+	public final Column<DispatchTriggerTable, String> uuid = createColumn(
+		"uuid_", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
 	public final Column<DispatchTriggerTable, String> externalReferenceCode =
 		createColumn(
 			"externalReferenceCode", String.class, Types.VARCHAR,
@@ -82,6 +84,8 @@ public class DispatchTriggerTable extends BaseTable<DispatchTriggerTable> {
 		"startDate", Date.class, Types.TIMESTAMP, Column.FLAG_DEFAULT);
 	public final Column<DispatchTriggerTable, Boolean> system = createColumn(
 		"system_", Boolean.class, Types.BOOLEAN, Column.FLAG_DEFAULT);
+	public final Column<DispatchTriggerTable, String> timeZoneId = createColumn(
+		"timeZoneId", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
 
 	private DispatchTriggerTable() {
 		super("DispatchTrigger", DispatchTriggerTable::new);

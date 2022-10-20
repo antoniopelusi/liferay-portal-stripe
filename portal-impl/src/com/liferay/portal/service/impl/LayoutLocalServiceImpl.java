@@ -25,6 +25,7 @@ import com.liferay.petra.sql.dsl.query.FromStep;
 import com.liferay.petra.sql.dsl.query.GroupByStep;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.events.StartupHelperUtil;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.change.tracking.CTTransactionException;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
@@ -2654,8 +2655,9 @@ public class LayoutLocalServiceImpl extends LayoutLocalServiceBaseImpl {
 	 *         String)}.
 	 * @param  hasIconImage whether the icon image will be updated
 	 * @param  iconBytes the byte array of the layout's new icon image
-	 * @param  masterLayoutPlid the primary key of the master layout
 	 * @param  styleBookEntryId the primary key of the style book entrys
+	 * @param  faviconFileEntryId the file entry ID of the layout's new favicon
+	 * @param  masterLayoutPlid the primary key of the master layout
 	 * @param  serviceContext the service context to be applied. Can set the
 	 *         modification date and expando bridge attributes for the layout.
 	 *         For layouts that are linked to a layout prototype, attributes
@@ -2675,8 +2677,9 @@ public class LayoutLocalServiceImpl extends LayoutLocalServiceBaseImpl {
 			Map<Locale, String> titleMap, Map<Locale, String> descriptionMap,
 			Map<Locale, String> keywordsMap, Map<Locale, String> robotsMap,
 			String type, boolean hidden, Map<Locale, String> friendlyURLMap,
-			boolean hasIconImage, byte[] iconBytes, long masterLayoutPlid,
-			long styleBookEntryId, ServiceContext serviceContext)
+			boolean hasIconImage, byte[] iconBytes, long styleBookEntryId,
+			long faviconFileEntryId, long masterLayoutPlid,
+			ServiceContext serviceContext)
 		throws PortalException {
 
 		// Layout
@@ -2729,6 +2732,7 @@ public class LayoutLocalServiceImpl extends LayoutLocalServiceBaseImpl {
 			layout, hasIconImage, iconBytes, "iconImageId", 0, 0, 0);
 
 		layout.setStyleBookEntryId(styleBookEntryId);
+		layout.setFaviconFileEntryId(faviconFileEntryId);
 		layout.setMasterLayoutPlid(masterLayoutPlid);
 
 		boolean layoutUpdateable = ParamUtil.getBoolean(
@@ -2842,7 +2846,7 @@ public class LayoutLocalServiceImpl extends LayoutLocalServiceBaseImpl {
 			long groupId, boolean privateLayout, long layoutId,
 			String typeSettings, byte[] iconBytes, String themeId,
 			String colorSchemeId, long styleBookEntryId, String css,
-			long masterLayoutPlid)
+			long faviconFileEntryId, long masterLayoutPlid)
 		throws PortalException {
 
 		Layout layout = layoutPersistence.findByG_P_L(
@@ -2863,6 +2867,7 @@ public class LayoutLocalServiceImpl extends LayoutLocalServiceBaseImpl {
 		layout.setColorSchemeId(colorSchemeId);
 		layout.setStyleBookEntryId(styleBookEntryId);
 		layout.setCss(css);
+		layout.setFaviconFileEntryId(faviconFileEntryId);
 		layout.setMasterLayoutPlid(masterLayoutPlid);
 
 		PortalUtil.updateImageId(
@@ -3372,6 +3377,7 @@ public class LayoutLocalServiceImpl extends LayoutLocalServiceBaseImpl {
 
 		Layout layout = layoutLocalService.getLayout(plid);
 
+		layout.setModifiedDate(new Date());
 		layout.setStatus(status);
 
 		User user = _userLocalService.getUser(userId);
@@ -3938,7 +3944,9 @@ public class LayoutLocalServiceImpl extends LayoutLocalServiceBaseImpl {
 	private boolean _mergeLayout(Layout layout, Object... arguments)
 		throws PortalException {
 
-		if (MergeLayoutPrototypesThreadLocal.isInProgress()) {
+		if (MergeLayoutPrototypesThreadLocal.isInProgress() ||
+			StartupHelperUtil.isUpgrading()) {
+
 			return false;
 		}
 
@@ -3988,9 +3996,10 @@ public class LayoutLocalServiceImpl extends LayoutLocalServiceBaseImpl {
 	private boolean _mergeLayouts(
 		Group group, LayoutSet layoutSet, Object... arguments) {
 
-		if (MergeLayoutPrototypesThreadLocal.isMergeComplete(
+		if ((MergeLayoutPrototypesThreadLocal.isMergeComplete(
 				"getLayouts", arguments) &&
-			!group.isUser()) {
+			 !group.isUser()) ||
+			StartupHelperUtil.isUpgrading()) {
 
 			return false;
 		}

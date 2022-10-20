@@ -12,7 +12,9 @@
  * details.
  */
 
-import {openModal} from 'frontend-js-web';
+import {openConfirmModal, openModal} from 'frontend-js-web';
+
+import openDeleteLayoutModal from './openDeleteLayoutModal';
 
 const ACTIONS = {
 	copyLayout: ({copyLayoutURL}, portletNamespace) => {
@@ -26,19 +28,25 @@ const ACTIONS = {
 	},
 
 	deleteLayout: ({deleteLayoutURL, message}) => {
-		if (confirm(message)) {
-			Liferay.Util.navigate(deleteLayoutURL);
-		}
+		openDeleteLayoutModal({
+			message,
+			onDelete: () => {
+				Liferay.Util.navigate(deleteLayoutURL);
+			},
+		});
 	},
 
 	discardDraft: ({discardDraftURL}) => {
-		const discardDraftMessage = Liferay.Language.get(
-			'are-you-sure-you-want-to-discard-current-draft-and-apply-latest-published-changes'
-		);
-
-		if (confirm(discardDraftMessage)) {
-			Liferay.Util.navigate(discardDraftURL);
-		}
+		openConfirmModal({
+			message: Liferay.Language.get(
+				'are-you-sure-you-want-to-discard-current-draft-and-apply-latest-published-changes'
+			),
+			onConfirm: (isConfirmed) => {
+				if (isConfirmed) {
+					Liferay.Util.navigate(discardDraftURL);
+				}
+			},
+		});
 	},
 
 	exportTranslation: ({exportTranslationURL}) => {

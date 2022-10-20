@@ -81,6 +81,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>CRITERION_CONJUNCTION_BUTTON</td>
+	<td>//button//*[contains(@class,'lexicon-icon lexicon-icon-paste')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>CRITERION_CONJUNCTION_ITEM</td>
 	<td>//button[contains(@class,'dropdown-item') and contains(.,'${key_criterionConjunctionItem}')]</td>
 	<td></td>
@@ -106,6 +111,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ENABLE_SEGMENTS_INSTANCE_SETTINGS</td>
+	<td>//div[@role='alert']//a[text()='To enable, go to Instance Settings.']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>MEMBERS_MATCHED</td>
 	<td>//b[contains(@class,'ml-2 text-dark')]</td>
 	<td></td>
@@ -123,6 +133,11 @@
 <tr>
 	<td>PROPERTY_FIELD</td>
 	<td>//div[@class='criterion'][1]//*[@data-testid='simple-string']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PROPERTY_FIELD_2</td>
+	<td>//div[@class='criterion'][${key_indexNumber}]//*[@data-testid='simple-string']</td>
 	<td></td>
 </tr>
 <tr>

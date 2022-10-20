@@ -8,6 +8,7 @@ definition {
 			value1 = "Select");
 
 		var assetTypeLocator = StringUtil.replace("${assetType}", " ", "_");
+
 		var assetTypeLocator = StringUtil.upperCase("${assetTypeLocator}");
 
 		MenuItem.click(menuItem = "${assetType}");

@@ -17,14 +17,13 @@ package com.liferay.poshi.runner;
 import com.liferay.poshi.core.PoshiContext;
 import com.liferay.poshi.core.PoshiValidation;
 import com.liferay.poshi.core.util.PropsUtil;
-import com.liferay.poshi.core.util.Validator;
 import com.liferay.poshi.runner.selenium.SeleniumUtil;
 
 import java.io.File;
 
-import junit.framework.TestCase;
+import java.util.Properties;
 
-import org.apache.commons.lang3.ArrayUtils;
+import junit.framework.TestCase;
 
 import org.junit.After;
 
@@ -49,18 +48,15 @@ public abstract class PoshiRunnerTestCase extends TestCase {
 				"Test directory does not exist: " + testBaseDirName);
 		}
 
-		if (Validator.isNotNull(System.getenv("JENKINS_HOME"))) {
-			PropsUtil.set(
-				"browser.firefox.bin.file", "/opt/firefox-52.0.2esr/firefox");
-		}
+		Properties properties = new Properties();
 
-		String[] poshiFileNames = ArrayUtils.addAll(
-			PoshiContext.POSHI_SUPPORT_FILE_INCLUDES,
-			PoshiContext.POSHI_TEST_FILE_INCLUDES);
+		properties.setProperty("test.base.dir.name", testBaseDirName);
+
+		PropsUtil.setProperties(properties);
 
 		PoshiContext.clear();
 
-		PoshiContext.readFiles(poshiFileNames, testBaseDirName);
+		PoshiContext.readFiles();
 
 		PoshiValidation.validate();
 	}

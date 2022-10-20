@@ -1,0 +1,89 @@
+definition {
+
+	macro addRaylifeAPSite {
+		Site.openSitesAdmin();
+
+		Site.addSiteTemplateCP(
+			siteName = "${siteName}",
+			siteTemplateName = "Raylife AP");
+	}
+
+	macro assertPageHeader {
+		AssertElementPresent(
+			key_header = "${key_header}",
+			locator1 = "RaylifeAP#COMPONENT_HEADER");
+	}
+
+	macro assertVisibleSidebar {
+		AssertVisible(
+			key_menuSidebar = "${key_menuSidebar}",
+			locator1 = "RaylifeAP#MENU_SIDEBAR");
+	}
+
+	macro clickOnSubsectionTasks {
+		Click(
+			key_subsection = "${key_subsection}",
+			locator1 = "RaylifeAP#TASKS_SECTION");
+	}
+
+	macro expandedSidebar {
+		MouseOver(
+			key_menuSidebar = "${key_menuSidebar}",
+			locator1 = "RaylifeAP#MENU_SIDEBAR");
+	}
+
+	macro mouseOverSidebar {
+		var key_menu = "${menu}";
+
+		MouseOver(locator1 = "RaylifeAP#MENU_SIDEBAR");
+	}
+
+	macro signIn {
+		if (isSet(emailAddress)) {
+			Type(
+				labelTitle = "Email Address",
+				locator1 = "RaylifeAP#SIGN_IN_FORM",
+				value1 = "${emailAddress}");
+		}
+		else {
+			Type(
+				labelTitle = "Email Address",
+				locator1 = "RaylifeAP#SIGN_IN_FORM",
+				value1 = "test@liferay.com");
+		}
+
+		if (isSet(password)) {
+			Type(
+				labelTitle = "Password",
+				locator1 = "RaylifeAP#SIGN_IN_FORM",
+				value1 = "${password}");
+		}
+		else {
+			Type(
+				labelTitle = "Password",
+				locator1 = "RaylifeAP#SIGN_IN_FORM",
+				value1 = "test");
+		}
+
+		Check(
+			inputFieldId = "rememberMe",
+			locator1 = "TextInput#INPUT_ID");
+
+		Click(locator1 = "Button#SIGN_IN");
+	}
+
+	macro tearDownCP {
+		Site.openSitesAdmin();
+
+		PortletEntry.selectAll();
+
+		Click(locator1 = "Icon#SITES_VERTICAL_ELLIPSIS");
+
+		MenuItem.clickNoError(menuItem = "Delete");
+
+		Click(locator1 = "Button#MODAL_DELETE");
+
+		Alert.viewSuccessMessage();
+	}
+
+}

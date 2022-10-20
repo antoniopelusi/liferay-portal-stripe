@@ -1,0 +1,78 @@
+{
+	"apple@GET": [
+		{
+			"request": {
+				"color": "green"
+			},
+			"response": {
+				"price": 5
+			}
+		},
+		{
+			"request": {
+				"color": "red"
+			},
+			"response": {
+				"price": 6
+			}
+		},
+		{
+			"request": {
+				"color": "yellow"
+			},
+			"response": {
+				"!exception": "The item is out of stock."
+			}
+		},
+		{
+			"response": {
+				"!exception": "The input is invalid."
+			}
+		}
+	],
+	"banana@POST": [
+		{
+			"request": {
+				"color": "green"
+			},
+			"response": {
+				"!exception": "Unripen banana :("
+			}
+		},
+		{
+			"request": {
+				"color": "yellow"
+			},
+			"response": {
+				"message": "Yummy!"
+			}
+		},
+		{
+			"response": {
+				"!exception": "The input is invalid."
+			}
+		}
+	],
+	"orange": [
+		{
+			"id": 1,
+			"name": "Navel Orange"
+		},
+		{
+			"id": 2,
+			"name": "Blood Orange"
+		}
+	],
+	"raspberry": [
+		{
+			"id": 1,
+			"name": "Bristol"
+		}
+	],
+	"supercalifragilisticexpialidocious/something/to/say/when/you/have/nothing/to/say?a=b&c=d&e=f": [
+		{
+			"id": 1,
+			"name": "Merlot"
+		}
+	]
+}

@@ -15,40 +15,136 @@
 import {yupResolver} from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 
+import i18n from '../i18n';
+
 const yupSchema = {
+	build: yup.object({
+		description: yup.string(),
+		gitHash: yup.string(),
+		id: yup.string(),
+		name: yup.string().required(),
+		productVersionId: yup.string().required(),
+		promoted: yup.boolean(),
+		routineId: yup.string().required(),
+		template: yup.boolean(),
+	}),
 	case: yup.object({
+		addAnother: yup.boolean(),
+		caseTypeId: yup.string().required(),
 		componentId: yup.string().required(),
 		description: yup.string(),
 		descriptionType: yup.string(),
-		estimatedDuration: yup.number(),
+		estimatedDuration: yup.number().min(0),
 		name: yup.string().required(),
-		priority: yup.number(),
+		priority: yup.string(),
 		steps: yup.string(),
-		stepsType: yup.string().required(),
+		stepsType: yup.string(),
+	}),
+	caseResult: yup.object({
+		commentMBMessage: yup.string(),
+		dueStatus: yup.string().required(),
+		issues: yup.string(),
+		userId: yup.number(),
 	}),
 	caseType: yup.object({
 		name: yup.string().required(),
 	}),
+	component: yup.object({
+		id: yup.string(),
+		name: yup.string().required(),
+		projectId: yup.string(),
+		teamId: yup.string(),
+	}),
 	factorCategory: yup.object({
+		id: yup.string(),
 		name: yup.string().required(),
 	}),
 	factorOption: yup.object({
-		factorCategoryId: yup.string().required(),
+		factorCategoryId: yup.string(),
 		name: yup.string().required(),
+	}),
+	option: yup.object({
+		name: yup.string(),
+	}),
+	password: yup.object({
+		confirmpassword: yup
+			.string()
+			.required()
+			.oneOf(
+				[yup.ref('password'), null],
+				i18n.translate('passwords-must-match')
+			),
+		password: yup
+			.string()
+			.required()
+			.matches(
+				/[a-zA-Z]/,
+				i18n.translate('password-can-only-contain-latin-letters')
+			),
+	}),
+	productVersion: yup.object({
+		id: yup.string(),
+		name: yup.string().required(),
+		projectId: yup.string(),
 	}),
 	project: yup.object({
-		description: yup.string().required(),
+		description: yup.string().notRequired(),
+		id: yup.string().notRequired(),
 		name: yup.string().required(),
 	}),
+	requirement: yup.object({
+		componentId: yup.string().required(),
+		description: yup.string().required(),
+		descriptionType: yup.string().required(),
+		id: yup.string(),
+		key: yup.string(),
+		linkTitle: yup.string().required(),
+		linkURL: yup.string().required(),
+		summary: yup.string().required(),
+	}),
 	routine: yup.object({
-		autoanalyze: yup.boolean(),
+		autoanalyze: yup.boolean().required(),
+		id: yup.number(),
 		name: yup.string().required(),
 	}),
 	suite: yup.object({
 		autoanalyze: yup.boolean(),
+		caseParameters: yup.string(),
 		description: yup.string(),
+		id: yup.string(),
 		name: yup.string().required(),
 		smartSuite: yup.string(),
+	}),
+	team: yup.object({
+		id: yup.string(),
+		name: yup.string().required(),
+		projectId: yup.string(),
+		teamId: yup.string(),
+	}),
+	user: yup.object({
+		alternateName: yup.string().required(),
+		emailAddress: yup.string().email().required(),
+		familyName: yup.string().required(),
+		givenName: yup.string().required(),
+		password: yup
+			.string()
+			.required(i18n.translate('no-password-provided'))
+			.min(
+				8,
+				i18n.translate(
+					'password-is-too-short-should-be-8-chars-minimum'
+				)
+			)
+			.matches(
+				/[a-zA-Z]/,
+				i18n.translate('password-can-only-contain-latin-letters')
+			),
+		repassword: yup
+			.string()
+			.oneOf(
+				[yup.ref('password'), null],
+				i18n.translate('passwords-must-match')
+			),
 	}),
 };
 

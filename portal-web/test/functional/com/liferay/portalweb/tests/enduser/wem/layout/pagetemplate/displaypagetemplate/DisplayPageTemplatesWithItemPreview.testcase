@@ -69,9 +69,7 @@ definition {
 				fragmentName = "Footer Nav Dark",
 				scope = "Master");
 
-			Button.click(button = "Publish Master");
-
-			Alert.viewSuccessMessage();
+			MastersPageTemplates.publishMaster();
 		}
 
 		task ("Add a Heading fragment to the display Page Template") {
@@ -229,7 +227,7 @@ definition {
 		task ("Add 21 web contents based on Basic Web Content") {
 			var n = "1";
 
-			while ("${n}" != "22" && (maxIterations = "30")) {
+			while (("${n}" != "22") && (maxIterations = "30")) {
 				JSONWebcontent.addWebContent(
 					content = "Web Content Content ${n}",
 					groupName = "Test Site Name",
@@ -267,7 +265,7 @@ definition {
 		task ("Preview 16 different web contents via preview item selector") {
 			var n = "1";
 
-			while ("${n}" != "17" && (maxIterations = "30")) {
+			while (("${n}" != "17") && (maxIterations = "30")) {
 				DisplayPageTemplate.selectPreviewItem(
 					assetTitle = "Web Content Title ${n}",
 					assetType = "Web Content Article",
@@ -604,7 +602,7 @@ definition {
 			PageEditor.editCollectionDisplay(
 				fragmentName = "Collection Display",
 				infoItemRelatedListProviderName = "Items with This Category",
-				listStyle = "Bulleted List");
+				styleDisplay = "Bulleted List");
 		}
 
 		task ("View the no items message is shown in Collection Display") {
@@ -1119,12 +1117,10 @@ definition {
 				groupName = "Test Site Name",
 				title = "Category Name 1",
 				vocabularyName = "Vocabulary Name");
-
 			var secondCategoryId = JSONCategory.addCategory(
 				groupName = "Test Site Name",
 				title = "Category Name 2",
 				vocabularyName = "Vocabulary Name");
-
 			var thirdCategoryId = JSONCategory.addCategory(
 				groupName = "Test Site Name",
 				title = "Category Name 3",

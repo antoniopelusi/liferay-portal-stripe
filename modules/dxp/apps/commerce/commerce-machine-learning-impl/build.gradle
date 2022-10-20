@@ -25,7 +25,6 @@ dependencies {
 	compileOnly project(":apps:dispatch:dispatch-api")
 	compileOnly project(":apps:frontend-taglib:frontend-taglib")
 	compileOnly project(":apps:info:info-api")
-	compileOnly project(":apps:petra:petra-json-web-service-client")
 	compileOnly project(":apps:portal-search:portal-search-api")
 	compileOnly project(":apps:portal-search:portal-search-engine-adapter-api")
 	compileOnly project(":apps:portal-vulcan:portal-vulcan-api")
@@ -36,6 +35,4 @@ dependencies {
 	compileOnly project(":core:petra:petra-string")
 	compileOnly project(":dxp:apps:commerce:commerce-machine-learning-api")
 	compileOnly project(":dxp:apps:commerce:headless:headless-commerce-machine-learning-api")
-
-	testCompile group: "org.mockito", name: "mockito-core", version: "1.10.8"
 }

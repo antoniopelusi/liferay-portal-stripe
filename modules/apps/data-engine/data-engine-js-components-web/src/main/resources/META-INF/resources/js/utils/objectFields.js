@@ -14,7 +14,7 @@
 
 import {fetch} from 'frontend-js-web';
 
-import {EVENT_TYPES} from '../custom/form/eventTypes.es';
+import {EVENT_TYPES} from '../custom/form/eventTypes';
 
 const HEADERS = {
 	'Accept': 'application/json',
@@ -70,7 +70,7 @@ export async function addObjectFields(dispatch) {
 
 		dispatch({
 			payload: {objectFields},
-			type: EVENT_TYPES.OBJECT_FIELDS.ADD,
+			type: EVENT_TYPES.OBJECT.FIELDS_CHANGE,
 		});
 	}
 }
@@ -84,13 +84,13 @@ export async function updateObjectFields(dispatch) {
 
 		dispatch({
 			payload: {objectFields},
-			type: EVENT_TYPES.OBJECT_FIELDS.ADD,
+			type: EVENT_TYPES.OBJECT.FIELDS_CHANGE,
 		});
 	}
 	else {
 		dispatch({
 			payload: {objectFields: []},
-			type: EVENT_TYPES.OBJECT_FIELDS.ADD,
+			type: EVENT_TYPES.OBJECT.FIELDS_CHANGE,
 		});
 	}
 }
@@ -106,7 +106,8 @@ export function getSelectedValue(value) {
 }
 
 export function getObjectFieldName({settingsContext}) {
-	const getAdvancedColumn = ({title}) => title.toLowerCase() === 'advanced';
+	const getAdvancedColumn = ({title}) =>
+		title === Liferay.Language.get('advanced');
 	const fieldsFromAdvancedColumn = settingsContext.pages.find(
 		getAdvancedColumn
 	)?.rows[0].columns[0].fields;

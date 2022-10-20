@@ -51,16 +51,28 @@ export default class UnsafeHTML extends React.PureComponent {
 
 		const scriptElements = Array.from(
 			this.state.ref.querySelectorAll('script')
-		).filter((script) => !script.type || script.type === 'text/javascript');
+		).filter(
+			(script) =>
+				!script.type ||
+				script.type === 'module' ||
+				script.type === 'text/javascript'
+		);
 
 		const runNextScript = () => {
 			if (scriptElements.length) {
 				const nextScriptElement = doc.createElement('script');
 				const prevScriptElement = scriptElements.shift();
 
-				nextScriptElement.appendChild(
-					doc.createTextNode(prevScriptElement.innerHTML)
-				);
+				nextScriptElement.type = prevScriptElement.type;
+
+				if (prevScriptElement.src) {
+					nextScriptElement.src = prevScriptElement.src;
+				}
+				else {
+					nextScriptElement.appendChild(
+						doc.createTextNode(prevScriptElement.innerHTML)
+					);
+				}
 
 				prevScriptElement.parentNode.replaceChild(
 					nextScriptElement,

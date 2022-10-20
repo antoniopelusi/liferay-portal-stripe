@@ -37,44 +37,6 @@ public class InfoFieldSet implements InfoFieldSetEntry {
 		return new Builder();
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x)
-	 */
-	@Deprecated
-	public InfoFieldSet(
-		InfoLocalizedValue<String> labelInfoLocalizedValue, String name) {
-
-		this(
-			builder(
-			).labelInfoLocalizedValue(
-				labelInfoLocalizedValue
-			).name(
-				name
-			));
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x)
-	 */
-	@Deprecated
-	public InfoFieldSet add(InfoFieldSetEntry infoFieldSetEntry) {
-		_builder.infoFieldSetEntry(infoFieldSetEntry);
-
-		return this;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x)
-	 */
-	@Deprecated
-	public InfoFieldSet addAll(
-		Collection<InfoFieldSetEntry> infoFieldSetEntries) {
-
-		_builder.infoFieldSetEntries(infoFieldSetEntries);
-
-		return this;
-	}
-
 	@Override
 	public boolean equals(Object object) {
 		if (this == object) {
@@ -98,14 +60,14 @@ public class InfoFieldSet implements InfoFieldSetEntry {
 		return false;
 	}
 
-	public List<InfoField> getAllInfoFields() {
-		List<InfoField> allInfoFields = new ArrayList<>();
+	public List<InfoField<?>> getAllInfoFields() {
+		List<InfoField<?>> allInfoFields = new ArrayList<>();
 
 		for (InfoFieldSetEntry infoFieldSetEntry :
 				_builder._infoFieldSetEntries.values()) {
 
 			if (infoFieldSetEntry instanceof InfoField) {
-				allInfoFields.add((InfoField)infoFieldSetEntry);
+				allInfoFields.add((InfoField<?>)infoFieldSetEntry);
 			}
 			else if (infoFieldSetEntry instanceof InfoFieldSet) {
 				InfoFieldSet infoFieldSet = (InfoFieldSet)infoFieldSetEntry;
@@ -115,6 +77,31 @@ public class InfoFieldSet implements InfoFieldSetEntry {
 		}
 
 		return allInfoFields;
+	}
+
+	public InfoField<?> getInfoField(String name) {
+		for (InfoFieldSetEntry infoFieldSetEntry :
+				_builder._infoFieldSetEntries.values()) {
+
+			InfoField<?> infoField = null;
+
+			if (infoFieldSetEntry instanceof InfoField) {
+				infoField = (InfoField<?>)infoFieldSetEntry;
+			}
+			else if (infoFieldSetEntry instanceof InfoFieldSet) {
+				InfoFieldSet infoFieldSet = (InfoFieldSet)infoFieldSetEntry;
+
+				infoField = infoFieldSet.getInfoField(name);
+			}
+
+			if ((infoField != null) &&
+				Objects.equals(infoField.getUniqueId(), name)) {
+
+				return infoField;
+			}
+		}
+
+		return null;
 	}
 
 	public List<InfoFieldSetEntry> getInfoFieldSetEntries() {

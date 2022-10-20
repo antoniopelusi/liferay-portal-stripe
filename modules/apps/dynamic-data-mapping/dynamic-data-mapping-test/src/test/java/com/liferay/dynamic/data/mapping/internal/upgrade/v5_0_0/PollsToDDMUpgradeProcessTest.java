@@ -20,13 +20,16 @@ import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldOptions;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Localization;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.SetUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
 import java.util.Set;
@@ -39,12 +42,8 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
-import org.mockito.Matchers;
-import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
+import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
-
-import org.powermock.api.support.membermodification.MemberMatcher;
 
 import org.skyscreamer.jsonassert.JSONAssert;
 
@@ -70,7 +69,7 @@ public class PollsToDDMUpgradeProcessTest extends BaseDDMTestCase {
 			HashMapBuilder.put(
 				"radio-field-type-label", "Single Selection"
 			).build());
-		setUpLocaleUtil();
+		setUpLanguageUtil();
 		_setUpLocalizationUtil();
 		_setUpPollsToDDMUpgradeProcess();
 	}
@@ -143,17 +142,13 @@ public class PollsToDDMUpgradeProcessTest extends BaseDDMTestCase {
 	@Test
 	public void testGetDDMFormField() throws Exception {
 		DDMFormField ddmFormField = _pollsToDDMUpgradeProcess.getDDMFormField(
-			new DDMFormFieldOptions(LocaleUtil.US));
+			new DDMFormFieldOptions(LocaleUtil.US), null);
 
 		Assert.assertEquals("string", ddmFormField.getDataType());
 
-		LocalizedValue label = ddmFormField.getLabel();
-
-		Assert.assertEquals("Single Selection", label.getString(LocaleUtil.US));
-
 		Assert.assertEquals("radio", ddmFormField.getType());
 		Assert.assertFalse((boolean)ddmFormField.getProperty("inline"));
-		Assert.assertFalse(ddmFormField.isShowLabel());
+		Assert.assertTrue(ddmFormField.isShowLabel());
 		Assert.assertNotNull(ddmFormField.getDDMFormFieldOptions());
 
 		String ddmFormFieldName = ddmFormField.getName();
@@ -169,7 +164,7 @@ public class PollsToDDMUpgradeProcessTest extends BaseDDMTestCase {
 	@Test
 	public void testGetDDMFormLayoutDefinition() throws Exception {
 		DDMFormField ddmFormField = _pollsToDDMUpgradeProcess.getDDMFormField(
-			new DDMFormFieldOptions(LocaleUtil.US));
+			new DDMFormFieldOptions(LocaleUtil.US), null);
 
 		ddmFormField.setName("SingleSelection");
 
@@ -207,64 +202,55 @@ public class PollsToDDMUpgradeProcessTest extends BaseDDMTestCase {
 	private void _setUpLocalizationUtil() {
 		LocalizationUtil localizationUtil = new LocalizationUtil();
 
-		when(
-			_localization.getAvailableLanguageIds(Matchers.anyString())
+		Mockito.when(
+			_localization.getAvailableLanguageIds(
+				Mockito.nullable(String.class))
 		).thenReturn(
 			new String[] {"en_US", "pt_BR"}
 		);
 
-		when(
+		Mockito.when(
 			_localization.getLocalization(
-				Matchers.anyString(), Matchers.anyString())
+				Mockito.nullable(String.class), Mockito.nullable(String.class))
 		).then(
-			new Answer<String>() {
+			(Answer<String>)invocationOnMock -> {
+				Object[] arguments = invocationOnMock.getArguments();
 
-				public String answer(InvocationOnMock invocationOnMock)
-					throws Throwable {
+				String xml = (String)arguments[0];
 
-					Object[] arguments = invocationOnMock.getArguments();
-
-					String xml = (String)arguments[0];
-
-					String languageIdAttribute =
-						"language-id='" + (String)arguments[1] + "'>";
-
-					String languageIdElement = xml.substring(
-						xml.indexOf(languageIdAttribute) +
-							languageIdAttribute.length());
-
-					return languageIdElement.substring(
-						0, languageIdElement.indexOf("</"));
+				if (Validator.isNull(xml)) {
+					return StringPool.BLANK;
 				}
 
+				String languageIdAttribute =
+					"language-id='" + arguments[1] + "'>";
+
+				String languageIdElement = xml.substring(
+					xml.indexOf(languageIdAttribute) +
+						languageIdAttribute.length());
+
+				return languageIdElement.substring(
+					0, languageIdElement.indexOf("</"));
 			}
 		);
 
 		localizationUtil.setLocalization(_localization);
 	}
 
-	private void _setUpPollsToDDMUpgradeProcess() throws Exception {
+	private void _setUpPollsToDDMUpgradeProcess() {
 		_pollsToDDMUpgradeProcess = new PollsToDDMUpgradeProcess(
 			ddmFormLayoutJSONSerializer, null, ddmFormValuesJSONSerializer,
 			null, null);
 
-		MemberMatcher.field(
-			PollsToDDMUpgradeProcess.class, "_availableLocales"
-		).set(
-			_pollsToDDMUpgradeProcess,
-			SetUtil.fromArray(LocaleUtil.BRAZIL, LocaleUtil.US)
-		);
+		ReflectionTestUtil.setFieldValue(
+			_pollsToDDMUpgradeProcess, "_availableLocales",
+			SetUtil.fromArray(LocaleUtil.BRAZIL, LocaleUtil.US));
 
-		MemberMatcher.field(
-			PollsToDDMUpgradeProcess.class, "_defaultLocale"
-		).set(
-			_pollsToDDMUpgradeProcess, LocaleUtil.US
-		);
+		ReflectionTestUtil.setFieldValue(
+			_pollsToDDMUpgradeProcess, "_defaultLocale", LocaleUtil.US);
 	}
 
-	@Mock
-	private Localization _localization;
-
+	private final Localization _localization = Mockito.mock(Localization.class);
 	private PollsToDDMUpgradeProcess _pollsToDDMUpgradeProcess;
 
 }

@@ -43,6 +43,10 @@ public class AlertTag extends BaseContainerTag {
 		return _autoClose;
 	}
 
+	public boolean getDefaultTitleDisabled() {
+		return _defaultTitleDisabled;
+	}
+
 	public boolean getDismissible() {
 		return _dismissible;
 	}
@@ -65,6 +69,10 @@ public class AlertTag extends BaseContainerTag {
 
 	public void setAutoClose(boolean autoClose) {
 		_autoClose = autoClose;
+	}
+
+	public void setDefaultTitleDisabled(boolean defaultTitleDisabled) {
+		_defaultTitleDisabled = defaultTitleDisabled;
 	}
 
 	public void setDismissible(boolean dismissible) {
@@ -92,6 +100,7 @@ public class AlertTag extends BaseContainerTag {
 		super.cleanUp();
 
 		_autoClose = false;
+		_defaultTitleDisabled = false;
 		_dismissible = false;
 		_displayType = "info";
 		_message = null;
@@ -171,9 +180,22 @@ public class AlertTag extends BaseContainerTag {
 
 		jspWriter.write("</span></div></div><div class=\"autofit-col ");
 		jspWriter.write("autofit-col-expand\"><div class=\"autofit-section\">");
-		jspWriter.write("<strong class=\"lead\">");
-		jspWriter.write(_getTitle(_title, _displayType));
-		jspWriter.write(":</strong>");
+
+		if (_defaultTitleDisabled) {
+			if (Validator.isNotNull(_title)) {
+				jspWriter.write("<strong class=\"lead\">");
+				jspWriter.write(
+					LanguageUtil.get(
+						TagResourceBundleUtil.getResourceBundle(pageContext),
+						_title));
+				jspWriter.write("</strong>");
+			}
+		}
+		else {
+			jspWriter.write("<strong class=\"lead\">");
+			jspWriter.write(_getTitle(_title, _displayType));
+			jspWriter.write(":</strong>");
+		}
 
 		if (Validator.isNotNull(_message)) {
 			jspWriter.write(
@@ -218,6 +240,7 @@ public class AlertTag extends BaseContainerTag {
 	private static final String _ATTRIBUTE_NAMESPACE = "clay:alert:";
 
 	private boolean _autoClose;
+	private boolean _defaultTitleDisabled;
 	private boolean _dismissible;
 	private String _displayType = "info";
 	private String _message;

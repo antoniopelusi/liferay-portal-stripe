@@ -92,6 +92,12 @@ public interface PaymentMethodGroupRelTermResource {
 			return new PaymentMethodGroupRelTermResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -137,6 +143,7 @@ public interface PaymentMethodGroupRelTermResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -224,7 +231,7 @@ public interface PaymentMethodGroupRelTermResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-channel/v1.0/payment-method-group-rel-terms/{paymentMethodGroupRelTermId}");
 
 			httpInvoker.path(
@@ -305,7 +312,7 @@ public interface PaymentMethodGroupRelTermResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-channel/v1.0/payment-method-group-rel-terms/batch");
 
 			httpInvoker.userNameAndPassword(
@@ -409,7 +416,7 @@ public interface PaymentMethodGroupRelTermResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-channel/v1.0/payment-method-group-rels/{id}/payment-method-group-rel-terms");
 
 			httpInvoker.path("id", id);
@@ -499,7 +506,7 @@ public interface PaymentMethodGroupRelTermResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-channel/v1.0/payment-method-group-rels/{id}/payment-method-group-rel-terms");
 
 			httpInvoker.path("id", id);

@@ -177,6 +177,88 @@ definition {
 		AssetPublisherPortlet.viewAssetPG(assetTitle = "WC WebContent Title");
 	}
 
+	@description = "This ensures that the permanent redirection can be performed when accessing the old friendly URL of a blog entry displayed with a display page template."
+	@priority = "4"
+	test PermanentRedirectionCanBePerformedWhenAccessingBlogOldFriendlyURL {
+		property custom.properties = "locale.prepend.friendly.url.style=0";
+		property portal.acceptance = "false";
+		property test.name.skip.portal.instance = "FriendlyURLService#PermanentRedirectionCanBePerformedWhenAccessingBlogOldFriendlyURL";
+
+		var portalURL = PropsUtil.get("portal.url");
+
+		Redirect.configureFriendlyURLRedirection(redirectionType = "Permanent");
+
+		JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+			contentType = "Blogs Entry",
+			displayPageTemplateEntryName = "Display Page Name",
+			groupName = "Test Site Name");
+
+		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+		DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+
+		PageEditor.publish();
+
+		DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title",
+			groupName = "Test Site Name");
+
+		BlogsNavigator.openToEditEntryInSite(
+			entryTitle = "Blogs Entry Title",
+			groupName = "Test Site Name",
+			siteURLKey = "test-site-name");
+
+		Panel.expandPanel(panel = "Configuration");
+
+		BlogsEntry.addCustomURL(customURL = "blogs-entry-new");
+
+		PortletEntry.publish();
+
+		Navigator.openSpecificURL(url = "${portalURL}/web/test-site-name/b/blogs-entry-title");
+
+		AssertLocation(value1 = "${portalURL}/web/test-site-name/b/blogs-entry-new");
+
+		Redirect.viewURLRedirectionType(
+			permanent = "true",
+			url = "${portalURL}/web/test-site-name/b/blogs-entry-title");
+	}
+
+	@description = "This ensures that the permanent redirection can be performed when accessing the old friendly URL of a page."
+	@priority = "4"
+	test PermanentRedirectionCanBePerformedWhenAccessingPageOldFriendlyURL {
+		property custom.properties = "locale.prepend.friendly.url.style=0";
+		property test.name.skip.portal.instance = "FriendlyURLService#PermanentRedirectionCanBePerformedWhenAccessingPageOldFriendlyURL";
+
+		var portalURL = PropsUtil.get("portal.url");
+
+		Redirect.configureFriendlyURLRedirection(
+			redirectionType = "Permanent",
+			systemSettingsInstanceScope = "true");
+
+		PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+		PagesAdmin.gotoPageEllipsisMenuItem(
+			menuItem = "Configure",
+			pageName = "Test Source Page");
+
+		PagesAdmin.editFriendlyURL(friendlyURLEdit = "/new-page-url");
+
+		Navigator.openSpecificURL(url = "${portalURL}/web/test-site-name/test-source-page");
+
+		AssertLocation(value1 = "${portalURL}/web/test-site-name/new-page-url");
+
+		AssertVisible(
+			key_pageName = "Test Source Page",
+			locator1 = "Home#PAGE_ACTIVE");
+
+		Redirect.viewURLRedirectionType(
+			permanent = "true",
+			url = "${portalURL}/web/test-site-name/test-source-page");
+	}
+
 	@description = "This ensures that a user is redirected to the updated friendlyURL when he accesses the former friendlyURL."
 	@priority = "5"
 	test RedirectToUpdatedFriendlyURL {
@@ -368,6 +450,88 @@ definition {
 		AssertVisible(
 			key_pageName = "Pagina de prueba",
 			locator1 = "Home#PAGE_ACTIVE");
+	}
+
+	@description = "This ensures that the temporary redirection can be performed when accessing the old friendly URL of a blog entry displayed with a display page template."
+	@priority = "4"
+	test TemporaryRedirectionCanBePerformedWhenAccessingBlogOldFriendlyURL {
+		property custom.properties = "locale.prepend.friendly.url.style=0";
+		property portal.acceptance = "false";
+		property test.name.skip.portal.instance = "FriendlyURLService#TemporaryRedirectionCanBePerformedWhenAccessingBlogOldFriendlyURL";
+
+		var portalURL = PropsUtil.get("portal.url");
+
+		Redirect.configureFriendlyURLRedirection(
+			redirectionType = "Temporary",
+			systemSettingsInstanceScope = "true");
+
+		JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+			contentType = "Blogs Entry",
+			displayPageTemplateEntryName = "Display Page Name",
+			groupName = "Test Site Name");
+
+		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+		DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+
+		PageEditor.publish();
+
+		DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title",
+			groupName = "Test Site Name");
+
+		BlogsNavigator.openToEditEntryInSite(
+			entryTitle = "Blogs Entry Title",
+			groupName = "Test Site Name",
+			siteURLKey = "test-site-name");
+
+		Panel.expandPanel(panel = "Configuration");
+
+		BlogsEntry.addCustomURL(customURL = "blogs-entry-new");
+
+		PortletEntry.publish();
+
+		Navigator.openSpecificURL(url = "${portalURL}/web/test-site-name/b/blogs-entry-title");
+
+		AssertLocation(value1 = "${portalURL}/web/test-site-name/b/blogs-entry-new");
+
+		Redirect.viewURLRedirectionType(
+			temporary = "true",
+			url = "${portalURL}/web/test-site-name/b/blogs-entry-title");
+	}
+
+	@description = "This ensures that the temporary redirection can be performed when accessing the old friendly URL of a page."
+	@priority = "4"
+	test TemporaryRedirectionCanBePerformedWhenAccessingPageOldFriendlyURL {
+		property custom.properties = "locale.prepend.friendly.url.style=0";
+		property test.name.skip.portal.instance = "FriendlyURLService#TemporaryRedirectionCanBePerformedWhenAccessingPageOldFriendlyURL";
+
+		var portalURL = PropsUtil.get("portal.url");
+
+		Redirect.configureFriendlyURLRedirection(redirectionType = "Temporary");
+
+		PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+		PagesAdmin.gotoPageEllipsisMenuItem(
+			menuItem = "Configure",
+			pageName = "Test Source Page");
+
+		PagesAdmin.editFriendlyURL(friendlyURLEdit = "/new-page-url");
+
+		Navigator.openSpecificURL(url = "${portalURL}/web/test-site-name/test-source-page");
+
+		AssertLocation(value1 = "${portalURL}/web/test-site-name/new-page-url");
+
+		AssertVisible(
+			key_pageName = "Test Source Page",
+			locator1 = "Home#PAGE_ACTIVE");
+
+		Redirect.viewURLRedirectionType(
+			temporary = "true",
+			url = "${portalURL}/web/test-site-name/test-source-page");
 	}
 
 	@description = "This ensures that both the active URL and old friendlyURL can be viewed from the history."

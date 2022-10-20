@@ -18,6 +18,7 @@ import com.liferay.change.tracking.spi.reference.TableReferenceDefinition;
 import com.liferay.change.tracking.spi.reference.builder.ChildTableReferenceInfoBuilder;
 import com.liferay.change.tracking.spi.reference.builder.ParentTableReferenceInfoBuilder;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.workflow.kaleo.model.KaleoInstanceTable;
 import com.liferay.portal.workflow.kaleo.model.KaleoInstanceTokenTable;
 import com.liferay.portal.workflow.kaleo.service.persistence.KaleoInstanceTokenPersistence;
 
@@ -43,7 +44,14 @@ public class KaleoInstanceTokenTableReferenceDefinition
 			parentTableReferenceInfoBuilder) {
 
 		parentTableReferenceInfoBuilder.groupedModel(
-			KaleoInstanceTokenTable.INSTANCE);
+			KaleoInstanceTokenTable.INSTANCE
+		).parentColumnReference(
+			KaleoInstanceTokenTable.INSTANCE.kaleoInstanceTokenId,
+			KaleoInstanceTokenTable.INSTANCE.parentKaleoInstanceTokenId
+		).singleColumnReference(
+			KaleoInstanceTokenTable.INSTANCE.kaleoInstanceId,
+			KaleoInstanceTable.INSTANCE.kaleoInstanceId
+		);
 	}
 
 	@Override

@@ -16,6 +16,7 @@ package com.liferay.object.service;
 
 import com.liferay.object.model.ObjectView;
 import com.liferay.object.model.ObjectViewColumn;
+import com.liferay.object.model.ObjectViewFilterColumn;
 import com.liferay.object.model.ObjectViewSortColumn;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -59,6 +60,7 @@ public interface ObjectViewService extends BaseService {
 			long objectDefinitionId, boolean defaultObjectView,
 			Map<Locale, String> nameMap,
 			List<ObjectViewColumn> objectViewColumns,
+			List<ObjectViewFilterColumn> objectViewFilterColumns,
 			List<ObjectViewSortColumn> objectViewSortColumns)
 		throws PortalException;
 
@@ -79,6 +81,7 @@ public interface ObjectViewService extends BaseService {
 			long objectViewId, boolean defaultObjectView,
 			Map<Locale, String> nameMap,
 			List<ObjectViewColumn> objectViewColumns,
+			List<ObjectViewFilterColumn> objectViewFilterColumns,
 			List<ObjectViewSortColumn> objectViewSortColumns)
 		throws PortalException;
 

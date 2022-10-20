@@ -2,6 +2,6 @@
 
 <Configuration strict="true">
 	<Loggers>
-		<Logger level="WARN" name="com.liferay.portal.vulcan.util.ObjectMapperUtil" />
+		<Logger level="WARN" name="com.liferay.portal.vulcan.jaxrs.exception.mapper.BaseExceptionMapper" />
 	</Loggers>
 </Configuration>

@@ -21,24 +21,32 @@ import com.liferay.commerce.configuration.CommerceOrderFieldsConfiguration;
 import com.liferay.commerce.constants.CommerceConstants;
 import com.liferay.commerce.constants.CommerceOrderActionKeys;
 import com.liferay.commerce.constants.CommerceOrderConstants;
+import com.liferay.commerce.constants.CommerceOrderPaymentConstants;
+import com.liferay.commerce.constants.CommercePaymentConstants;
 import com.liferay.commerce.constants.CommercePortletKeys;
 import com.liferay.commerce.constants.CommerceShipmentConstants;
 import com.liferay.commerce.constants.CommerceWebKeys;
 import com.liferay.commerce.context.CommerceContext;
 import com.liferay.commerce.currency.model.CommerceCurrency;
-import com.liferay.commerce.currency.model.CommerceMoney;
 import com.liferay.commerce.frontend.model.HeaderActionModel;
+import com.liferay.commerce.frontend.model.StepModel;
 import com.liferay.commerce.model.CommerceAddress;
 import com.liferay.commerce.model.CommerceOrder;
 import com.liferay.commerce.model.CommerceOrderNote;
 import com.liferay.commerce.model.CommerceOrderType;
 import com.liferay.commerce.model.CommerceShipmentItem;
+import com.liferay.commerce.order.CommerceOrderHttpHelper;
 import com.liferay.commerce.order.content.web.internal.portlet.configuration.CommerceOrderContentPortletInstanceConfiguration;
 import com.liferay.commerce.order.content.web.internal.portlet.configuration.OpenCommerceOrderContentPortletInstanceConfiguration;
+import com.liferay.commerce.order.engine.CommerceOrderEngine;
 import com.liferay.commerce.order.importer.type.CommerceOrderImporterType;
 import com.liferay.commerce.order.importer.type.CommerceOrderImporterTypeRegistry;
+import com.liferay.commerce.order.status.CommerceOrderStatus;
+import com.liferay.commerce.order.status.CommerceOrderStatusRegistry;
+import com.liferay.commerce.payment.method.CommercePaymentMethod;
+import com.liferay.commerce.payment.method.CommercePaymentMethodRegistry;
 import com.liferay.commerce.payment.model.CommercePaymentMethodGroupRel;
-import com.liferay.commerce.payment.service.CommercePaymentMethodGroupRelService;
+import com.liferay.commerce.payment.service.CommercePaymentMethodGroupRelLocalService;
 import com.liferay.commerce.percentage.PercentageFormatter;
 import com.liferay.commerce.price.CommerceOrderPrice;
 import com.liferay.commerce.price.CommerceOrderPriceCalculation;
@@ -50,18 +58,17 @@ import com.liferay.commerce.service.CommerceOrderNoteService;
 import com.liferay.commerce.service.CommerceOrderService;
 import com.liferay.commerce.service.CommerceOrderTypeService;
 import com.liferay.commerce.service.CommerceShipmentItemService;
+import com.liferay.commerce.term.service.CommerceTermEntryService;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.document.library.util.DLURLHelperUtil;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenuBuilder;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemBuilder;
 import com.liferay.item.selector.ItemSelector;
-import com.liferay.item.selector.ItemSelectorReturnType;
-import com.liferay.item.selector.criteria.FileEntryItemSelectorReturnType;
-import com.liferay.item.selector.criteria.file.criterion.FileItemSelectorCriterion;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.petra.portlet.url.builder.ResourceURLBuilder;
-import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
@@ -70,11 +77,12 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Region;
 import com.liferay.portal.kernel.module.configuration.ConfigurationException;
 import com.liferay.portal.kernel.module.configuration.ConfigurationProviderUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
-import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactory;
-import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactoryUtil;
+import com.liferay.portal.kernel.portlet.LiferayWindowState;
+import com.liferay.portal.kernel.portlet.PortletURLFactoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
@@ -84,12 +92,16 @@ import com.liferay.portal.kernel.service.ServiceContextFactory;
 import com.liferay.portal.kernel.settings.GroupServiceSettingsLocator;
 import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.FastDateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.FileUtil;
-import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.webserver.WebServerServletTokenUtil;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.io.File;
 import java.io.InputStream;
@@ -99,11 +111,13 @@ import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.Format;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import javax.portlet.PortletRequest;
 import javax.portlet.PortletURL;
 
 import javax.servlet.http.HttpServletRequest;
@@ -116,14 +130,19 @@ public class CommerceOrderContentDisplayContext {
 	public CommerceOrderContentDisplayContext(
 			CommerceAddressService commerceAddressService,
 			CommerceChannelLocalService commerceChannelLocalService,
+			CommerceOrderEngine commerceOrderEngine,
+			CommerceOrderHttpHelper commerceOrderHttpHelper,
 			CommerceOrderImporterTypeRegistry commerceOrderImporterTypeRegistry,
 			CommerceOrderNoteService commerceOrderNoteService,
 			CommerceOrderPriceCalculation commerceOrderPriceCalculation,
 			CommerceOrderService commerceOrderService,
+			CommerceOrderStatusRegistry commerceOrderStatusRegistry,
 			CommerceOrderTypeService commerceOrderTypeService,
-			CommercePaymentMethodGroupRelService
-				commercePaymentMethodGroupRelService,
+			CommercePaymentMethodGroupRelLocalService
+				commercePaymentMethodGroupRelLocalService,
+			CommercePaymentMethodRegistry commercePaymentMethodRegistry,
 			CommerceShipmentItemService commerceShipmentItemService,
+			CommerceTermEntryService commerceTermEntryService,
 			DLAppLocalService dlAppLocalService,
 			HttpServletRequest httpServletRequest, ItemSelector itemSelector,
 			ModelResourcePermission<CommerceOrder> modelResourcePermission,
@@ -133,14 +152,19 @@ public class CommerceOrderContentDisplayContext {
 
 		_commerceAddressService = commerceAddressService;
 		_commerceChannelLocalService = commerceChannelLocalService;
+		_commerceOrderEngine = commerceOrderEngine;
+		_commerceOrderHttpHelper = commerceOrderHttpHelper;
 		_commerceOrderImporterTypeRegistry = commerceOrderImporterTypeRegistry;
 		_commerceOrderNoteService = commerceOrderNoteService;
 		_commerceOrderPriceCalculation = commerceOrderPriceCalculation;
 		_commerceOrderService = commerceOrderService;
+		_commerceOrderStatusRegistry = commerceOrderStatusRegistry;
 		_commerceOrderTypeService = commerceOrderTypeService;
-		_commercePaymentMethodGroupRelService =
-			commercePaymentMethodGroupRelService;
+		_commercePaymentMethodGroupRelLocalService =
+			commercePaymentMethodGroupRelLocalService;
+		_commercePaymentMethodRegistry = commercePaymentMethodRegistry;
 		_commerceShipmentItemService = commerceShipmentItemService;
+		_commerceTermEntryService = commerceTermEntryService;
 		_dlAppLocalService = dlAppLocalService;
 		_httpServletRequest = httpServletRequest;
 		_itemSelector = itemSelector;
@@ -175,6 +199,14 @@ public class CommerceOrderContentDisplayContext {
 			_cpRequestHelper.getScopeGroupId());
 	}
 
+	public String formatCommerceOrderDate(Date date) {
+		if (date == null) {
+			return StringPool.BLANK;
+		}
+
+		return _commerceOrderDateFormatDate.format(date);
+	}
+
 	public List<CommerceAddress> getBillingCommerceAddresses(
 			long commerceAccountId, long companyId)
 		throws PortalException {
@@ -195,6 +227,58 @@ public class CommerceOrderContentDisplayContext {
 		}
 
 		return commerceAccountId;
+	}
+
+	public String getCommerceAccountThumbnailURL() throws PortalException {
+		CommerceOrder commerceOrder = getCommerceOrder();
+
+		if (commerceOrder == null) {
+			return StringPool.BLANK;
+		}
+
+		CommerceAccount commerceAccount = commerceOrder.getCommerceAccount();
+
+		ThemeDisplay themeDisplay = _cpRequestHelper.getThemeDisplay();
+
+		StringBundler sb = new StringBundler(5);
+
+		sb.append(themeDisplay.getPathImage());
+		sb.append("/organization_logo?img_id=");
+		sb.append(commerceAccount.getLogoId());
+
+		if (commerceAccount.getLogoId() > 0) {
+			sb.append("&t=");
+			sb.append(
+				WebServerServletTokenUtil.getToken(
+					commerceAccount.getLogoId()));
+		}
+
+		return sb.toString();
+	}
+
+	public CreationMenu getCommerceAddressCreationMenu(
+			String mvcRenderCommandName)
+		throws Exception {
+
+		return CreationMenuBuilder.addDropdownItem(
+			dropdownItem -> {
+				dropdownItem.setHref(
+					PortletURLBuilder.createRenderURL(
+						_cpRequestHelper.getLiferayPortletResponse()
+					).setMVCRenderCommandName(
+						mvcRenderCommandName
+					).setCMD(
+						Constants.ADD
+					).setParameter(
+						"commerceOrderId", getCommerceOrderId()
+					).setWindowState(
+						LiferayWindowState.POP_UP
+					).buildString());
+				dropdownItem.setLabel(
+					LanguageUtil.get(
+						_cpRequestHelper.getRequest(), "add-new-address"));
+			}
+		).build();
 	}
 
 	public List<CommerceOrderImporterType> getCommerceImporterTypes(
@@ -237,18 +321,6 @@ public class CommerceOrderContentDisplayContext {
 			key);
 	}
 
-	public String getCommerceOrderItemsDetailURL(long commerceOrderId) {
-		return PortletURLBuilder.createRenderURL(
-			_cpRequestHelper.getLiferayPortletResponse()
-		).setMVCRenderCommandName(
-			"viewCommerceOrderItems"
-		).setRedirect(
-			_cpRequestHelper.getCurrentURL()
-		).setParameter(
-			"commerceOrderId", commerceOrderId
-		).buildString();
-	}
-
 	public CommerceOrderNote getCommerceOrderNote() throws PortalException {
 		if ((_commerceOrderNote == null) && (_commerceOrderNoteId > 0)) {
 			_commerceOrderNote = _commerceOrderNoteService.getCommerceOrderNote(
@@ -288,38 +360,6 @@ public class CommerceOrderContentDisplayContext {
 			commerceOrder.getCommerceOrderId(), false);
 	}
 
-	public String getCommerceOrderPaymentMethodName(CommerceOrder commerceOrder)
-		throws PortalException {
-
-		String commercePaymentMethodKey =
-			commerceOrder.getCommercePaymentMethodKey();
-
-		if (Validator.isNull(commercePaymentMethodKey)) {
-			return StringPool.BLANK;
-		}
-
-		CommercePaymentMethodGroupRel commercePaymentMethod =
-			_commercePaymentMethodGroupRelService.
-				getCommercePaymentMethodGroupRel(
-					commerceOrder.getGroupId(), commercePaymentMethodKey);
-
-		if (commercePaymentMethod == null) {
-			return StringPool.BLANK;
-		}
-
-		String name = commercePaymentMethod.getName(
-			_cpRequestHelper.getLocale());
-
-		if (!commercePaymentMethod.isActive()) {
-			name = StringBundler.concat(
-				name, " (",
-				LanguageUtil.get(_cpRequestHelper.getRequest(), "inactive"),
-				CharPool.CLOSE_PARENTHESIS);
-		}
-
-		return name;
-	}
-
 	public CommerceOrderPrice getCommerceOrderPrice() throws PortalException {
 		return _commerceOrderPriceCalculation.getCommerceOrderPrice(
 			getCommerceOrder(), _commerceContext);
@@ -340,20 +380,6 @@ public class CommerceOrderContentDisplayContext {
 		}
 
 		return _commerceOrderDateFormatTime.format(orderDate);
-	}
-
-	public String getCommerceOrderTotal(CommerceOrder commerceOrder)
-		throws PortalException {
-
-		CommerceMoney totalCommerceMoney =
-			_commerceOrderPriceCalculation.getTotal(
-				commerceOrder, _commerceContext);
-
-		if (totalCommerceMoney == null) {
-			return StringPool.BLANK;
-		}
-
-		return totalCommerceMoney.format(_cpRequestHelper.getLocale());
 	}
 
 	public String getCommerceOrderTypeName(String languageId)
@@ -419,25 +445,6 @@ public class CommerceOrderContentDisplayContext {
 			CommerceShipmentConstants.getShipmentStatusLabel(status));
 	}
 
-	public String getCSVFileEntryItemSelectorURL() {
-		RequestBackedPortletURLFactory requestBackedPortletURLFactory =
-			RequestBackedPortletURLFactoryUtil.create(
-				_cpRequestHelper.getRenderRequest());
-
-		FileItemSelectorCriterion fileItemSelectorCriterion =
-			new FileItemSelectorCriterion();
-
-		fileItemSelectorCriterion.setDesiredItemSelectorReturnTypes(
-			Collections.<ItemSelectorReturnType>singletonList(
-				new FileEntryItemSelectorReturnType()));
-
-		PortletURL itemSelectorURL = _itemSelector.getItemSelectorURL(
-			requestBackedPortletURLFactory, "addFileEntry",
-			fileItemSelectorCriterion);
-
-		return itemSelectorURL.toString();
-	}
-
 	public String getCSVTemplateDownloadURL() throws Exception {
 		FileEntry fileEntry =
 			_dlAppLocalService.fetchFileEntryByExternalReferenceCode(
@@ -467,6 +474,31 @@ public class CommerceOrderContentDisplayContext {
 		return DLURLHelperUtil.getDownloadURL(
 			fileEntry, fileEntry.getFileVersion(),
 			_cpRequestHelper.getThemeDisplay(), StringPool.BLANK, false, true);
+	}
+
+	public String getDescriptiveAddress(CommerceAddress commerceAddress) {
+		StringBundler sb = new StringBundler(5);
+
+		sb.append(commerceAddress.getCity());
+		sb.append(StringPool.COMMA_AND_SPACE);
+
+		try {
+			Region region = commerceAddress.getRegion();
+
+			if (region != null) {
+				sb.append(region.getName());
+				sb.append(StringPool.COMMA_AND_SPACE);
+			}
+		}
+		catch (PortalException portalException) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(portalException);
+			}
+		}
+
+		sb.append(commerceAddress.getZip());
+
+		return sb.toString();
 	}
 
 	public String getDisplayStyle(String portletId)
@@ -531,24 +563,103 @@ public class CommerceOrderContentDisplayContext {
 		return _cpRequestHelper.getScopeGroupId();
 	}
 
-	public List<DropdownItem> getDropdownItems() {
-		return ListUtil.fromArray(
-			DropdownItemBuilder.setHref(
-				"/first-link"
-			).setIcon(
-				"home"
-			).setLabel(
-				"First link"
-			).build(),
-			DropdownItemBuilder.setActive(
-				true
-			).setHref(
-				"/second-link"
-			).setIcon(
-				"blogs"
-			).setLabel(
-				"Second link"
-			).build());
+	public List<DropdownItem> getDropdownItems() throws Exception {
+		List<DropdownItem> dropdownItems = new ArrayList<>();
+
+		CommerceOrder commerceOrder = getCommerceOrder();
+
+		if (commerceOrder.isOpen()) {
+			for (CommerceOrderImporterType commerceOrderImporterType :
+					getCommerceImporterTypes(commerceOrder)) {
+
+				dropdownItems.add(
+					DropdownItemBuilder.setHref(
+						PortletURLBuilder.create(
+							PortletURLFactoryUtil.create(
+								_cpRequestHelper.getRenderRequest(),
+								_cpRequestHelper.getPortletId(),
+								PortletRequest.RENDER_PHASE)
+						).setMVCRenderCommandName(
+							"/commerce_open_order_content" +
+								"/view_commerce_order_importer_type"
+						).setRedirect(
+							PortalUtil.getCurrentURL(
+								_cpRequestHelper.getRequest())
+						).setParameter(
+							"commerceOrderId", getCommerceOrderId()
+						).setParameter(
+							"commerceOrderImporterTypeKey",
+							commerceOrderImporterType.getKey()
+						).setWindowState(
+							LiferayWindowState.POP_UP
+						).buildString()
+					).setLabel(
+						LanguageUtil.get(
+							_cpRequestHelper.getRequest(),
+							commerceOrderImporterType.getLabel(
+								_cpRequestHelper.getLocale()))
+					).setTarget(
+						"modal"
+					).build());
+			}
+		}
+
+		if (commerceOrder.isOpen() &&
+			hasModelPermission(commerceOrder, ActionKeys.DELETE)) {
+
+			dropdownItems.add(
+				DropdownItemBuilder.setHref(
+					PortletURLBuilder.createActionURL(
+						_cpRequestHelper.getLiferayPortletResponse()
+					).setActionName(
+						"/commerce_open_order_content/edit_commerce_order"
+					).setCMD(
+						Constants.DELETE
+					).setRedirect(
+						PortalUtil.getCurrentURL(_cpRequestHelper.getRequest())
+					).setParameter(
+						"commerceOrderId", getCommerceOrderId()
+					).buildString()
+				).setLabel(
+					LanguageUtil.get(_cpRequestHelper.getRequest(), "delete")
+				).build());
+
+			dropdownItems.add(
+				DropdownItemBuilder.setHref(
+					PortletURLBuilder.createActionURL(
+						_cpRequestHelper.getLiferayPortletResponse()
+					).setActionName(
+						"/commerce_open_order_content/edit_commerce_order_item"
+					).setCMD(
+						Constants.RESET
+					).setRedirect(
+						PortalUtil.getCurrentURL(_cpRequestHelper.getRequest())
+					).setParameter(
+						"commerceOrderId", getCommerceOrderId()
+					).buildString()
+				).setLabel(
+					LanguageUtil.get(
+						_cpRequestHelper.getRequest(), "remove-all-items")
+				).build());
+		}
+
+		if (!commerceOrder.isOpen()) {
+			dropdownItems.add(
+				DropdownItemBuilder.setHref(
+					ResourceURLBuilder.createResourceURL(
+						_cpRequestHelper.getLiferayPortletResponse(),
+						CommercePortletKeys.COMMERCE_ORDER_CONTENT
+					).setParameter(
+						"commerceOrderId", getCommerceOrderId()
+					).setResourceID(
+						"/commerce_order_content/export_commerce_order_report"
+					).buildString()
+				).setLabel(
+					LanguageUtil.get(_cpRequestHelper.getRequest(), "print")
+				).build());
+		}
+
+		return dropdownItems;
 	}
 
 	public String getExportCommerceOrderReportURL() {
@@ -565,7 +676,133 @@ public class CommerceOrderContentDisplayContext {
 	public List<HeaderActionModel> getHeaderActionModels()
 		throws PortalException {
 
-		return Collections.emptyList();
+		List<HeaderActionModel> headerActionModels = new ArrayList<>();
+
+		CommerceOrder commerceOrder = getCommerceOrder();
+
+		headerActionModels.add(
+			new HeaderActionModel(
+				"btn-secondary", null,
+				PortletURLBuilder.createActionURL(
+					_cpRequestHelper.getLiferayPortletResponse()
+				).setActionName(
+					"/commerce_open_order_content/edit_commerce_order"
+				).setCMD(
+					Constants.UPDATE
+				).setRedirect(
+					_cpRequestHelper.getCurrentURL()
+				).setParameter(
+					"commerceOrderId", commerceOrder.getCommerceOrderId()
+				).buildPortletURL(
+				).toString(),
+				null, "save"));
+
+		if (isShowRetryPayment()) {
+			headerActionModels.add(
+				new HeaderActionModel(
+					"btn-primary", null, getRetryPaymentURL(), null,
+					"retry-payment"));
+		}
+
+		CommerceOrderStatus currentCommerceOrderStatus =
+			_commerceOrderEngine.getCurrentCommerceOrderStatus(commerceOrder);
+
+		if ((currentCommerceOrderStatus == null) ||
+			!currentCommerceOrderStatus.isComplete(commerceOrder) ||
+			(currentCommerceOrderStatus.getKey() ==
+				CommerceOrderConstants.ORDER_STATUS_CANCELLED) ||
+			(currentCommerceOrderStatus.getKey() ==
+				CommerceOrderConstants.ORDER_STATUS_IN_PROGRESS)) {
+
+			return headerActionModels;
+		}
+
+		if (!commerceOrder.isOpen()) {
+			String portletURL = PortletURLBuilder.createActionURL(
+				_cpRequestHelper.getLiferayPortletResponse()
+			).setActionName(
+				"/commerce_open_order_content/edit_commerce_order"
+			).setCMD(
+				"reorder"
+			).setParameter(
+				"commerceOrderId", commerceOrder.getCommerceOrderId()
+			).buildString();
+
+			headerActionModels.add(
+				new HeaderActionModel(
+					"btn-primary", null, portletURL, null, "reorder"));
+		}
+
+		List<CommerceOrderStatus> commerceOrderStatuses =
+			_commerceOrderEngine.getNextCommerceOrderStatuses(commerceOrder);
+
+		for (CommerceOrderStatus commerceOrderStatus : commerceOrderStatuses) {
+			if ((commerceOrderStatus.getKey() ==
+					CommerceOrderConstants.ORDER_STATUS_SHIPPED) ||
+				!commerceOrderStatus.isValidForOrder(commerceOrder) ||
+				!commerceOrderStatus.isTransitionCriteriaMet(commerceOrder)) {
+
+				continue;
+			}
+
+			String label;
+			String transitionName;
+
+			if (commerceOrderStatus.getKey() ==
+					CommerceOrderConstants.ORDER_STATUS_IN_PROGRESS) {
+
+				if (!hasPermission(
+						CommerceOrderActionKeys.
+							CHECKOUT_OPEN_COMMERCE_ORDERS)) {
+
+					continue;
+				}
+
+				label = "checkout";
+				transitionName = "checkout";
+
+				if (!commerceOrder.isApproved()) {
+					label = "submit";
+					transitionName = "submit";
+				}
+			}
+			else if (commerceOrderStatus.getKey() ==
+						CommerceOrderConstants.ORDER_STATUS_PROCESSING) {
+
+				if (!hasPermission(
+						CommerceOrderActionKeys.APPROVE_OPEN_COMMERCE_ORDERS)) {
+
+					continue;
+				}
+
+				label = "accept-order";
+				transitionName = String.valueOf(commerceOrderStatus.getKey());
+			}
+			else {
+				continue;
+			}
+
+			String buttonCssClass = "btn-primary";
+
+			if (commerceOrderStatus.getPriority() ==
+					CommerceOrderConstants.ORDER_STATUS_ANY) {
+
+				buttonCssClass = "btn-secondary";
+			}
+
+			String transitionOrderPortletURLString = PortletURLBuilder.create(
+				getTransitionOrderPortletURL()
+			).setParameter(
+				"transitionName", transitionName
+			).buildString();
+
+			headerActionModels.add(
+				new HeaderActionModel(
+					buttonCssClass, null, transitionOrderPortletURLString, null,
+					label));
+		}
+
+		return headerActionModels;
 	}
 
 	public String getLocalizedPercentage(BigDecimal percentage, Locale locale)
@@ -578,6 +815,81 @@ public class CommerceOrderContentDisplayContext {
 		return _percentageFormatter.getLocalizedPercentage(
 			locale, commerceCurrency.getMaxFractionDigits(),
 			commerceCurrency.getMinFractionDigits(), percentage);
+	}
+
+	public List<StepModel> getOrderSteps() throws PortalException {
+		List<StepModel> steps = new ArrayList<>();
+
+		CommerceOrder commerceOrder = getCommerceOrder();
+
+		CommerceOrderStatus currentCommerceOrderStatus =
+			_commerceOrderEngine.getCurrentCommerceOrderStatus(commerceOrder);
+
+		if ((commerceOrder == null) || (currentCommerceOrderStatus == null) ||
+			(currentCommerceOrderStatus.getPriority() == -1)) {
+
+			return steps;
+		}
+
+		if ((currentCommerceOrderStatus != null) &&
+			currentCommerceOrderStatus.isWorkflowEnabled(commerceOrder)) {
+
+			return _getWorkflowSteps(commerceOrder);
+		}
+
+		if (ArrayUtil.contains(
+				CommerceOrderConstants.ORDER_STATUSES_OPEN,
+				commerceOrder.getOrderStatus())) {
+
+			return steps;
+		}
+
+		List<CommerceOrderStatus> commerceOrderStatuses =
+			_commerceOrderStatusRegistry.getCommerceOrderStatuses();
+
+		for (CommerceOrderStatus commerceOrderStatus : commerceOrderStatuses) {
+			if (((commerceOrderStatus.getKey() ==
+					CommerceOrderConstants.ORDER_STATUS_PARTIALLY_SHIPPED) &&
+				 (commerceOrder.getOrderStatus() !=
+					 CommerceOrderConstants.ORDER_STATUS_PARTIALLY_SHIPPED)) ||
+				!commerceOrderStatus.isValidForOrder(commerceOrder) ||
+				ArrayUtil.contains(
+					CommerceOrderConstants.ORDER_STATUSES_OPEN,
+					commerceOrderStatus.getKey()) ||
+				(commerceOrderStatus.getPriority() == -1)) {
+
+				continue;
+			}
+
+			StepModel step = new StepModel();
+
+			step.setId(
+				CommerceOrderConstants.getOrderStatusLabel(
+					commerceOrderStatus.getKey()));
+			step.setLabel(
+				commerceOrderStatus.getLabel(_cpRequestHelper.getLocale()));
+
+			if (commerceOrderStatus.equals(currentCommerceOrderStatus) &&
+				(commerceOrderStatus.getKey() !=
+					CommerceOrderConstants.ORDER_STATUS_COMPLETED)) {
+
+				step.setState("active");
+			}
+			else if ((currentCommerceOrderStatus != null) &&
+					 (commerceOrderStatus.getPriority() <=
+						 currentCommerceOrderStatus.getPriority()) &&
+					 commerceOrderStatus.isComplete(commerceOrder)) {
+
+				step.setState("completed");
+			}
+			else {
+				step.setState("inactive");
+			}
+
+			steps.add(step);
+		}
+
+		return steps;
 	}
 
 	public PortletURL getPortletURL() throws PortalException {
@@ -600,6 +912,22 @@ public class CommerceOrderContentDisplayContext {
 		}
 
 		return portletURL;
+	}
+
+	public String getRetryPaymentURL() throws PortalException {
+		return PortletURLBuilder.create(
+			_commerceOrderHttpHelper.getCommerceCheckoutPortletURL(
+				_cpRequestHelper.getRequest())
+		).setParameter(
+			"checkoutStepName", "payment-process"
+		).setParameter(
+			"commerceOrderUuid",
+			() -> {
+				CommerceOrder commerceOrder = getCommerceOrder();
+
+				return commerceOrder.getUuid();
+			}
+		).buildString();
 	}
 
 	public SearchContainer<CommerceOrder> getSearchContainer()
@@ -645,6 +973,36 @@ public class CommerceOrderContentDisplayContext {
 
 		return _commerceAddressService.getShippingCommerceAddresses(
 			companyId, AccountEntry.class.getName(), commerceAccountId);
+	}
+
+	public PortletURL getTransitionOrderPortletURL() throws PortalException {
+		return PortletURLBuilder.createActionURL(
+			_cpRequestHelper.getLiferayPortletResponse()
+		).setActionName(
+			"/commerce_open_order_content/edit_commerce_order"
+		).setCMD(
+			"transition"
+		).setRedirect(
+			_cpRequestHelper.getCurrentURL()
+		).setParameter(
+			"commerceOrderId", getCommerceOrderId()
+		).buildPortletURL();
+	}
+
+	public boolean hasManageCommerceOrderDeliveryTermsPermission() {
+		ThemeDisplay themeDisplay = _cpRequestHelper.getThemeDisplay();
+
+		return _portletResourcePermission.contains(
+			themeDisplay.getPermissionChecker(), themeDisplay.getScopeGroupId(),
+			CommerceOrderActionKeys.MANAGE_COMMERCE_ORDER_DELIVERY_TERMS);
+	}
+
+	public boolean hasManageCommerceOrderPaymentTermsPermission() {
+		ThemeDisplay themeDisplay = _cpRequestHelper.getThemeDisplay();
+
+		return _portletResourcePermission.contains(
+			themeDisplay.getPermissionChecker(), themeDisplay.getScopeGroupId(),
+			CommerceOrderActionKeys.MANAGE_COMMERCE_ORDER_PAYMENT_TERMS);
 	}
 
 	public boolean hasModelPermission(
@@ -731,6 +1089,96 @@ public class CommerceOrderContentDisplayContext {
 		return true;
 	}
 
+	public boolean isShowRetryPayment() throws PortalException {
+		CommerceOrder commerceOrder = getCommerceOrder();
+
+		if (_hasOrderStatusInProgress(commerceOrder.getOrderStatus()) &&
+			_hasPaymentStatusRetryPayment(commerceOrder.getPaymentStatus()) &&
+			_isCommercePaymentMethodOnline(
+				commerceOrder.getCommercePaymentMethodKey()) &&
+			_isCommercePaymentMethodActive(
+				commerceOrder.getCommercePaymentMethodKey(),
+				commerceOrder.getGroupId())) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	private List<StepModel> _getWorkflowSteps(CommerceOrder commerceOrder) {
+		List<StepModel> steps = new ArrayList<>();
+
+		int[] workflowStatuses = {
+			WorkflowConstants.STATUS_DRAFT, WorkflowConstants.STATUS_PENDING,
+			WorkflowConstants.STATUS_APPROVED
+		};
+
+		for (int workflowStatus : workflowStatuses) {
+			StepModel step = new StepModel();
+
+			String workflowStatusLabel = WorkflowConstants.getStatusLabel(
+				workflowStatus);
+
+			step.setId(workflowStatusLabel);
+			step.setLabel(
+				LanguageUtil.get(
+					_cpRequestHelper.getLocale(), workflowStatusLabel));
+
+			if (commerceOrder.getStatus() == workflowStatus) {
+				step.setState("active");
+			}
+			else if (commerceOrder.getStatus() < workflowStatus) {
+				step.setState("completed");
+			}
+			else {
+				step.setState("inactive");
+			}
+
+			steps.add(step);
+		}
+
+		return steps;
+	}
+
+	private boolean _hasOrderStatusInProgress(int orderStatus) {
+		if (CommerceOrderConstants.ORDER_STATUS_IN_PROGRESS == orderStatus) {
+			return true;
+		}
+
+		return false;
+	}
+
+	private boolean _hasPaymentStatusRetryPayment(int paymentStatus) {
+		return ArrayUtil.contains(
+			CommerceOrderPaymentConstants.STATUSES_RETRY_PAYMENT,
+			paymentStatus);
+	}
+
+	private boolean _isCommercePaymentMethodActive(
+			String commercePaymentMethodKey, long groupId)
+		throws PortalException {
+
+		CommercePaymentMethodGroupRel commercePaymentMethodGroupRel =
+			_commercePaymentMethodGroupRelLocalService.
+				getCommercePaymentMethodGroupRel(
+					groupId, commercePaymentMethodKey);
+
+		return commercePaymentMethodGroupRel.isActive();
+	}
+
+	private boolean _isCommercePaymentMethodOnline(
+		String commercePaymentMethodKey) {
+
+		CommercePaymentMethod commercePaymentMethod =
+			_commercePaymentMethodRegistry.getCommercePaymentMethod(
+				commercePaymentMethodKey);
+
+		return ArrayUtil.contains(
+			CommercePaymentConstants.COMMERCE_PAYMENT_METHOD_TYPES_ONLINE,
+			commercePaymentMethod.getPaymentType());
+	}
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		CommerceOrderContentDisplayContext.class);
 
@@ -740,6 +1188,8 @@ public class CommerceOrderContentDisplayContext {
 	private final CommerceContext _commerceContext;
 	private final Format _commerceOrderDateFormatDate;
 	private final Format _commerceOrderDateFormatTime;
+	private final CommerceOrderEngine _commerceOrderEngine;
+	private final CommerceOrderHttpHelper _commerceOrderHttpHelper;
 	private final CommerceOrderImporterTypeRegistry
 		_commerceOrderImporterTypeRegistry;
 	private CommerceOrderNote _commerceOrderNote;
@@ -747,10 +1197,13 @@ public class CommerceOrderContentDisplayContext {
 	private final CommerceOrderNoteService _commerceOrderNoteService;
 	private final CommerceOrderPriceCalculation _commerceOrderPriceCalculation;
 	private final CommerceOrderService _commerceOrderService;
+	private final CommerceOrderStatusRegistry _commerceOrderStatusRegistry;
 	private final CommerceOrderTypeService _commerceOrderTypeService;
-	private final CommercePaymentMethodGroupRelService
-		_commercePaymentMethodGroupRelService;
+	private final CommercePaymentMethodGroupRelLocalService
+		_commercePaymentMethodGroupRelLocalService;
+	private final CommercePaymentMethodRegistry _commercePaymentMethodRegistry;
 	private final CommerceShipmentItemService _commerceShipmentItemService;
+	private final CommerceTermEntryService _commerceTermEntryService;
 	private final CPRequestHelper _cpRequestHelper;
 	private final DLAppLocalService _dlAppLocalService;
 	private final HttpServletRequest _httpServletRequest;

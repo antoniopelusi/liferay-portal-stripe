@@ -8,7 +8,6 @@ definition {
 		}
 
 		var catalogId = CommerceJSONCatalogsAPI._getCommerceCatalogIdByName(catalogName = "${catalogName}");
-
 		var optionCategoryIds = CommerceJSONSpecificationsAPI._getCommerceSpecificationIdBySpecKey(specificationKey = "${specificationKey}");
 
 		for (var optionCategoryId : list "${optionCategoryIds}") {
@@ -19,7 +18,7 @@ definition {
 		var i = "1";
 		var payload = "[";
 
-		while ("${i}" != "${size}" && (maxIterations = "101")) {
+		while (("${i}" != "${size}") && (maxIterations = "101")) {
 			var array = '''
     		{
 				"active": true,
@@ -46,6 +45,7 @@ definition {
 			}
 			else {
 				var array = StringUtil.replace("${array}", "${array}", "${array},");
+
 				var payload = StringUtil.replace("${payload}", "${payload}", "${payload}${array}");
 			}
 
@@ -106,6 +106,7 @@ definition {
 			-u test@liferay.com:test \
 			-H 'accept: application/json' \
 		''';
+
 		var optionCategoryId = JSONCurlUtil.get("${curl}", "$.items..optionCategory.id");
 
 		return "${optionCategoryId}";
@@ -130,6 +131,7 @@ definition {
 			-u test@liferay.com:test \
 			-H 'accept: application/json' \
 		''';
+
 		var specificationIds = JSONCurlUtil.get("${curl}", "$..['id']");
 
 		return "${specificationIds}";
@@ -147,6 +149,7 @@ definition {
 			-u test@liferay.com:test \
 			-H 'accept: application/json' \
 		''';
+
 		var specificationsCount = JSONCurlUtil.get("${curl}", "$['totalCount']");
 
 		echo("The Commerce specifications count is: ${specificationsCount}");

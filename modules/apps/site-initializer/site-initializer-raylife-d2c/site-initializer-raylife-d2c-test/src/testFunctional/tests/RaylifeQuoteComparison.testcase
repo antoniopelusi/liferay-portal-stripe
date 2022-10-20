@@ -1,18 +1,20 @@
 @component-name = "portal-solutions"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "false";
 	property portal.upstream = "true";
-	property testray.main.component.name = "Raylife";
+	property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+	property testray.main.component.name = "Site Initializer Raylife D2C";
+
+	var testSiteName = "Raylife D2C";
+	var testSiteURL = "raylife-d2c";
 
 	setUp {
 		TestCase.setUpPortalInstance();
 
 		User.firstLoginPG();
 
-		Raylife.createRaylifeSite(siteName = "Raylife");
+		Raylife.createRaylifeSite(site = "${testSiteName}");
 	}
 
 	tearDown {
@@ -31,7 +33,7 @@ definition {
 	@description = "LPS-144323 - Verify if pressing the 'Purchase this policy' button in the 'Basic' quote redirects to another page"
 	@priority = "5"
 	test CanPurchaseBasicPolicy {
-		ApplicationsMenu.gotoSite(key_site = "Raylife");
+		ApplicationsMenu.gotoSite(site = "${testSiteName}");
 
 		RaylifeHomePage.startFlow();
 
@@ -61,7 +63,7 @@ definition {
 	@description = "LPS-144325 - Verify if pressing the 'Purchase this policy' button in the 'Premium' quote redirects to another page"
 	@priority = "5"
 	test CanPurchasePremiumPolicy {
-		ApplicationsMenu.gotoSite(key_site = "Raylife");
+		ApplicationsMenu.gotoSite(site = "${testSiteName}");
 
 		RaylifeHomePage.startFlow();
 
@@ -91,7 +93,7 @@ definition {
 	@description = "LPS-144324 - Verify if pressing the 'Purchase this policy' button in the 'Standard' quote redirects to another page"
 	@priority = "5"
 	test CanPurchaseStandardPolicy {
-		ApplicationsMenu.gotoSite(key_site = "Raylife");
+		ApplicationsMenu.gotoSite(site = "${testSiteName}");
 
 		RaylifeHomePage.startFlow();
 
@@ -121,7 +123,7 @@ definition {
 	@description = "LPS-144321 = Verify Page Header's Title: <User’s First Name>, here’s your custom quote! shows the same First Name from the user input on Basics - Contact Info page"
 	@priority = "4"
 	test CanViewUserNameInTitle {
-		ApplicationsMenu.gotoSite(key_site = "Raylife");
+		ApplicationsMenu.gotoSite(site = "${testSiteName}");
 
 		RaylifeHomePage.startFlow();
 

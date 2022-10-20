@@ -23,6 +23,7 @@ FolderActionDisplayContext folderActionDisplayContext = new FolderActionDisplayC
 <c:if test="<%= folderActionDisplayContext.isShowActions() %>">
 	<liferay-ui:icon-menu
 		direction="left-side"
+		dropdownCssClass="dropdown-menu-indicator-start"
 		icon="<%= StringPool.BLANK %>"
 		markupView="lexicon"
 		message='<%= LanguageUtil.get(request, "actions") %>'
@@ -30,6 +31,9 @@ FolderActionDisplayContext folderActionDisplayContext = new FolderActionDisplayC
 	>
 		<c:if test="<%= folderActionDisplayContext.isDownloadFolderActionVisible() %>">
 			<liferay-ui:icon
+				icon="download"
+				iconCssClass="dropdown-item-indicator-start"
+				markupView="lexicon"
 				message="download"
 				method="get"
 				url="<%= folderActionDisplayContext.getDownloadFolderURL() %>"
@@ -38,6 +42,9 @@ FolderActionDisplayContext folderActionDisplayContext = new FolderActionDisplayC
 
 		<c:if test="<%= folderActionDisplayContext.isEditFolderActionVisible() %>">
 			<liferay-ui:icon
+				icon="pencil"
+				iconCssClass="dropdown-item-indicator-start"
+				markupView="lexicon"
 				message="edit"
 				url="<%= folderActionDisplayContext.getEditFolderURL() %>"
 			/>
@@ -45,6 +52,9 @@ FolderActionDisplayContext folderActionDisplayContext = new FolderActionDisplayC
 
 		<c:if test="<%= folderActionDisplayContext.isMoveFolderActionVisible() %>">
 			<liferay-ui:icon
+				icon="move-folder"
+				iconCssClass="dropdown-item-indicator-start"
+				markupView="lexicon"
 				message="move"
 				url="<%= folderActionDisplayContext.getMoveFolderURL() %>"
 			/>
@@ -90,7 +100,7 @@ FolderActionDisplayContext folderActionDisplayContext = new FolderActionDisplayC
 			<liferay-ui:icon
 				cssClass='<%= folderActionDisplayContext.getRandomNamespace() + "-slide-show" %>'
 				message="view-slide-show"
-				url="javascript:;"
+				url="javascript:void(0);"
 			/>
 		</c:if>
 
@@ -115,6 +125,9 @@ FolderActionDisplayContext folderActionDisplayContext = new FolderActionDisplayC
 			/>
 
 			<liferay-ui:icon
+				icon="password-policies"
+				iconCssClass="dropdown-item-indicator-start"
+				markupView="lexicon"
 				message="permissions"
 				method="get"
 				url="<%= permissionsURL %>"
@@ -123,8 +136,12 @@ FolderActionDisplayContext folderActionDisplayContext = new FolderActionDisplayC
 		</c:if>
 
 		<c:if test="<%= folderActionDisplayContext.isDeleteFolderActionVisible() %>">
-			<liferay-ui:icon-delete
-				trash="<%= folderActionDisplayContext.isTrashEnabled() %>"
+			<liferay-ui:icon
+				icon="trash"
+				iconCssClass="dropdown-item-indicator-start"
+				markupView="lexicon"
+				message="delete"
+				method="get"
 				url="<%= folderActionDisplayContext.getDeleteFolderURL() %>"
 			/>
 		</c:if>

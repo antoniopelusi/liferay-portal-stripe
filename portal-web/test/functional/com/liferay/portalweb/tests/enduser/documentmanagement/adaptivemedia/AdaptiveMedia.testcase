@@ -37,7 +37,7 @@ definition {
 			imageFileName = "high_resolution_photo.jpg",
 			navTab = "Documents and Media");
 
-		AdaptiveMedia.viewImageVariantURL(imageName = "high_resolution_photo.jpg");
+		AdaptiveMedia.viewImageVariantURL(imageName = "high_resolution_photo-jpg");
 
 		PortletEntry.publish();
 	}
@@ -64,10 +64,10 @@ definition {
 		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
 
 		SelectFrame.selectFrameNoLoading(
-			key_fieldLabel = "content",
+			key_fieldLabel = "Content",
 			locator1 = "CKEditor#BODY_FIELD_IFRAME_WEB_CONTENT_ARTICLE");
 
-		AdaptiveMedia.viewImageVariantURL(imageName = "high_resolution_photo.jpg");
+		AdaptiveMedia.viewImageVariantURL(imageName = "high_resolution_photo-jpg");
 	}
 
 	@description = "This ensures that the SVG image can be added and optimized in a blog entry."
@@ -91,7 +91,7 @@ definition {
 			imageFileName = "Document_1.svg",
 			navTab = "Documents and Media");
 
-		AdaptiveMedia.viewImageVariantURL(imageName = "Document_1.svg");
+		AdaptiveMedia.viewImageVariantURL(imageName = "document_1-svg");
 
 		PortletEntry.publish();
 	}
@@ -338,12 +338,41 @@ definition {
 	}
 
 	@description = "This is a test for LPS-78626. It ensures that a reloaded image can be viewed after changing the screen resolution."
-	@ignore = "Test Stub"
 	@priority = "5"
 	test CanRenderImageAfterChangingScreenResolution {
+		var fileEntryId = JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentTitle = "Document_1.jpg",
+			groupName = "Guest",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_1.jpg");
 
-		// TODO LPS-148675 CanRenderImageAfterChangingScreenResolution pending implementation
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
 
+		DMNavigator.gotoDocumentPermissionsCP(dmDocumentTitle = "Document_1");
+
+		PermissionsInline.addOrRemoveViewPermissionFromAllRoles(
+			addOrRemoveViewPermission = "Remove",
+			roleList = "Guest");
+
+		JSONBlog.addEntryWithImage(
+			coverImageId = "${fileEntryId}",
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title",
+			groupName = "Guest");
+
+		BlogsNavigator.openToEditEntryInSite(
+			entryTitle = "Blogs Entry Title",
+			groupName = "Guest",
+			siteURLKey = "guest");
+
+		SetWindowSize(value1 = "200,720");
+
+		AssertVisible(
+			key_coverImageName = "Document_1",
+			locator1 = "BlogsEntry#ENTRY_COVER_IMAGE_UNPUBLISHED");
+
+		AssertConsoleTextNotPresent(value1 = "com.liferay.adaptive.media.exception.AMRuntimeException");
 	}
 
 	@priority = "5"
@@ -392,7 +421,7 @@ definition {
 
 		AdaptiveMedia.selectAdaptiveMediaImage(imageName = "Low Resolution");
 
-		AdaptiveMedia.viewNumberOfAdaptedImages(numberOfAdaptedImages = "2/3");
+		AdaptiveMedia.viewNumberOfAdaptedImages(numberOfAdaptedImages = "3/4");
 	}
 
 	@priority = "5"
@@ -434,7 +463,7 @@ definition {
 
 		AdaptiveMedia.selectAdaptiveMediaImage(imageName = "High Resolution");
 
-		AdaptiveMedia.viewNumberOfAdaptedImages(numberOfAdaptedImages = "0/1");
+		AdaptiveMedia.viewNumberOfAdaptedImages(numberOfAdaptedImages = "0/2");
 
 		AdaptiveMedia.editImageResolution(
 			imageName = "High Resolution",
@@ -444,7 +473,7 @@ definition {
 
 		AdaptiveMedia.selectAdaptiveMediaImage(imageName = "High Resolution Edited");
 
-		AdaptiveMedia.viewNumberOfAdaptedImages(numberOfAdaptedImages = "0/1");
+		AdaptiveMedia.viewNumberOfAdaptedImages(numberOfAdaptedImages = "0/2");
 	}
 
 	@priority = "4"
@@ -485,12 +514,42 @@ definition {
 	}
 
 	@description = "This test covers LPS-136280. It validates that an image can be adapted in a web content after it is updated."
-	@ignore = "Test Stub"
 	@priority = "4"
 	test ImageVariantsAreGeneratedAfterEditingWebContentWithImage {
+		property portal.acceptance = "false";
 
-		// TODO LPS-149586
+		WebContentNavigator.openToAddBasicArticle(
+			groupName = "Guest",
+			siteURLKey = "guest");
 
+		WebContent.addCP(
+			embedImage = "true",
+			navTab = "Documents and Media",
+			siteName = "Guest",
+			uploadFileName = "high_resolution_photo.jpg",
+			webContentContent = "Web Content Content",
+			webContentTitle = "WC WebContent Title");
+
+		PortletEntry.publish();
+
+		WebContentNavigator.openToEditWCInSite(
+			groupName = "Guest",
+			siteURLKey = "guest",
+			webContentTitle = "WC WebContent Title");
+
+		PortletEntry.publish();
+
+		Navigator.gotoPage(pageName = "Home");
+
+		Search.searchCP(searchTerm = "Test");
+
+		Search.gotoResultAssetViaTitle(searchAssetTitle = "WC WebContent Title");
+
+		for (var imageVariantContent : list "(max-width:300px),(max-width:1000px) and (min-width:300px)") {
+			AssertElementPresent(
+				key_mediaContent = "${imageVariantContent}",
+				locator1 = "AdaptiveMedia#IMAGE_VARIANT_SOURCE_TAG");
+		}
 	}
 
 }

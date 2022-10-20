@@ -12,57 +12,73 @@
  * details.
  */
 
-import {TYPES} from './context';
-
 export type TName = {
 	[key: string]: string;
 };
 
-export type TObjectField = {
-	checked: boolean;
-	filtered?: boolean | undefined;
-	id: number;
-	indexed: boolean;
-	indexedAsKeyword: boolean;
-	indexedLanguageId: string;
+export type TWorkflowStatus = {
+	label: string;
+	value: string;
+};
+
+export type TObjectColumn = {
+	defaultSort?: boolean;
+	fieldLabel?: string;
+	filterBy?: string;
 	label: TName;
-	listTypeDefinitionId: boolean;
-	name: string;
-	required: boolean;
-	type: string;
+	objectFieldBusinessType?: string;
+	objectFieldName: string;
+	priority?: number;
+	sortOrder?: string;
+	type?: string;
+	value?: string;
+	valueList?: LabelValueObject[];
 };
 
 export type TObjectViewColumn = {
-	fieldLabel: string;
-	isDefaultSort: boolean;
+	defaultSort?: boolean;
+	fieldLabel?: string;
 	label: TName;
+	objectFieldBusinessType?: string;
 	objectFieldName: string;
 	priority?: number;
 };
 
 export type TObjectViewSortColumn = {
-	fieldLabel: string;
+	fieldLabel?: string;
 	label: TName;
 	objectFieldName: string;
 	priority?: number;
 	sortOrder?: string;
 };
 
+export type TObjectViewFilterColumn = {
+	definition: {[key: string]: string[]} | null;
+	disableEdit?: boolean;
+	fieldLabel?: string;
+	filterBy?: string;
+	filterType: string | null;
+	label: TName;
+	objectFieldBusinessType?: string;
+	objectFieldName: string;
+	value?: string;
+	valueList?: LabelValueObject[];
+};
+
 export type TObjectView = {
 	defaultObjectView: boolean;
 	name: TName;
+	objectDefinitionId: number;
 	objectViewColumns: TObjectViewColumn[];
+	objectViewFilterColumns: TObjectViewFilterColumn[];
 	objectViewSortColumns: TObjectViewSortColumn[];
 };
 
 export type TState = {
+	filterOperators: TFilterOperators;
 	isViewOnly: boolean;
-	objectFields: TObjectField[];
+	objectFields: ObjectField[];
 	objectView: TObjectView;
 	objectViewId: string;
-};
-
-export type TAction = {
-	payload: {[key: string]: any};
-	type: keyof typeof TYPES;
+	workflowStatusJSONArray: TWorkflowStatus[];
 };

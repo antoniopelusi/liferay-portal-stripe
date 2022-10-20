@@ -14,6 +14,7 @@
 
 package com.liferay.layout.page.template.internal.upgrade.v3_4_2;
 
+import com.liferay.fragment.entry.processor.constants.FragmentEntryProcessorConstants;
 import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.service.FragmentEntryLinkLocalServiceUtil;
 import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
@@ -246,10 +247,10 @@ public class LayoutPageTemplateStructureRelUpgradeProcess
 
 				JSONObject fragmentConfigValuesJSONObject =
 					editableValuesJSONObject.getJSONObject(
-						"com.liferay.fragment.entry.processor.freemarker." +
-							"FreeMarkerFragmentEntryProcessor");
+						FragmentEntryProcessorConstants.
+							KEY_FREEMARKER_FRAGMENT_ENTRY_PROCESSOR);
 
-				if (_isEmpty(fragmentConfigValuesJSONObject)) {
+				if (fragmentConfigValuesJSONObject == null) {
 					continue;
 				}
 
@@ -258,6 +259,10 @@ public class LayoutPageTemplateStructureRelUpgradeProcess
 						getConfigurationDefaultValuesJSONObject(
 							fragmentEntryLink.getConfiguration()),
 					fragmentConfigValuesJSONObject, stylesJSONObject);
+
+				if (_isEmpty(fragmentConfigValuesJSONObject)) {
+					continue;
+				}
 
 				_replaceAlign(fragmentConfigValuesJSONObject, stylesJSONObject);
 				_replaceBorderRadius(
@@ -281,9 +286,9 @@ public class LayoutPageTemplateStructureRelUpgradeProcess
 					"data_ from LayoutPageTemplateStructureRel");
 			PreparedStatement preparedStatement =
 				AutoBatchPreparedStatementUtil.autoBatch(
-					connection.prepareStatement(
-						"update LayoutPageTemplateStructureRel set data_ = ? " +
-							"where lPageTemplateStructureRelId = ?"))) {
+					connection,
+					"update LayoutPageTemplateStructureRel set data_ = ? " +
+						"where lPageTemplateStructureRelId = ?")) {
 
 			while (resultSet.next()) {
 				long layoutPageTemplateStructureRelId = resultSet.getLong(

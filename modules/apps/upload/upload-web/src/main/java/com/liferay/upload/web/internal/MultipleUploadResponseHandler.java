@@ -25,7 +25,6 @@ import com.liferay.document.library.kernel.util.DLValidator;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.Language;
@@ -63,7 +62,8 @@ public class MultipleUploadResponseHandler implements UploadResponseHandler {
 			PortletRequest portletRequest, PortalException portalException)
 		throws PortalException {
 
-		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
+		String errorMessage = StringPool.BLANK;
+		int errorType = 0;
 
 		if (portalException instanceof AntivirusScannerException ||
 			portalException instanceof DLStorageQuotaExceededException ||
@@ -72,9 +72,6 @@ public class MultipleUploadResponseHandler implements UploadResponseHandler {
 			portalException instanceof FileNameException ||
 			portalException instanceof FileSizeException ||
 			portalException instanceof UploadRequestSizeException) {
-
-			String errorMessage = StringPool.BLANK;
-			int errorType = 0;
 
 			ThemeDisplay themeDisplay =
 				(ThemeDisplay)portletRequest.getAttribute(
@@ -115,6 +112,7 @@ public class MultipleUploadResponseHandler implements UploadResponseHandler {
 			else if (portalException instanceof FileNameException) {
 				errorMessage = themeDisplay.translate(
 					"please-enter-a-file-with-a-valid-file-name");
+				errorType = ServletResponseConstants.SC_FILE_NAME_EXCEPTION;
 			}
 			else if (portalException instanceof FileSizeException) {
 				FileSizeException fileSizeException =
@@ -126,20 +124,20 @@ public class MultipleUploadResponseHandler implements UploadResponseHandler {
 					_language.formatStorageSize(
 						fileSizeException.getMaxSize(),
 						themeDisplay.getLocale()));
+
+				errorType = ServletResponseConstants.SC_FILE_SIZE_EXCEPTION;
 			}
 			else if (portalException instanceof UploadRequestSizeException) {
 				errorType =
 					ServletResponseConstants.SC_UPLOAD_REQUEST_SIZE_EXCEPTION;
 			}
-
-			jsonObject.put(
-				"message", errorMessage
-			).put(
-				"status", errorType
-			);
 		}
 
-		return jsonObject;
+		return JSONUtil.put(
+			"message", errorMessage
+		).put(
+			"status", errorType
+		);
 	}
 
 	@Override

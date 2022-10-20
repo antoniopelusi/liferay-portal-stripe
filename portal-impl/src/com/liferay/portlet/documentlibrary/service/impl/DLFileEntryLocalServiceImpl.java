@@ -248,10 +248,6 @@ public class DLFileEntryLocalServiceImpl
 
 		long fileEntryId = counterLocalService.increment();
 
-		if (Validator.isNull(externalReferenceCode)) {
-			externalReferenceCode = String.valueOf(fileEntryId);
-		}
-
 		_validateExternalReferenceCode(externalReferenceCode, groupId);
 
 		DLFileEntry dlFileEntry = dlFileEntryPersistence.create(fileEntryId);
@@ -643,11 +639,10 @@ public class DLFileEntryLocalServiceImpl
 			ddmStructures = dlFileEntryType.getDDMStructures();
 		}
 		else {
-			long classNameId = _classNameLocalService.getClassNameId(
-				DLFileEntryMetadata.class);
-
 			ddmStructures = DDMStructureManagerUtil.getClassStructures(
-				companyId, classNameId);
+				companyId,
+				_classNameLocalService.getClassNameId(
+					DLFileEntryMetadata.class));
 		}
 
 		copyFileEntryMetadata(
@@ -2028,9 +2023,7 @@ public class DLFileEntryLocalServiceImpl
 			_resourceLocalService.addResources(
 				dlFileEntry.getCompanyId(), dlFileEntry.getGroupId(),
 				dlFileEntry.getUserId(), DLFileEntry.class.getName(),
-				dlFileEntry.getFileEntryId(), false,
-				serviceContext.isAddGroupPermissions(),
-				serviceContext.isAddGuestPermissions());
+				dlFileEntry.getFileEntryId(), false, serviceContext);
 		}
 		else {
 			if (serviceContext.isDeriveDefaultPermissions()) {
@@ -2061,11 +2054,9 @@ public class DLFileEntryLocalServiceImpl
 		DLFileVersion dlFileVersion = _dlFileVersionPersistence.create(
 			fileVersionId);
 
-		String uuid = ParamUtil.getString(
-			serviceContext, "fileVersionUuid", serviceContext.getUuid());
-
-		dlFileVersion.setUuid(uuid);
-
+		dlFileVersion.setUuid(
+			ParamUtil.getString(
+				serviceContext, "fileVersionUuid", serviceContext.getUuid()));
 		dlFileVersion.setGroupId(dlFileEntry.getGroupId());
 		dlFileVersion.setCompanyId(dlFileEntry.getCompanyId());
 		dlFileVersion.setUserId(user.getUserId());
@@ -2179,10 +2170,8 @@ public class DLFileEntryLocalServiceImpl
 
 			int type = expandoBridge.getAttributeType(key);
 
-			Serializable serializable = ExpandoColumnConstants.getSerializable(
-				type, value);
-
-			expandoBridge.setAttribute(key, serializable);
+			expandoBridge.setAttribute(
+				key, ExpandoColumnConstants.getSerializable(type, value));
 		}
 	}
 
@@ -2233,11 +2222,10 @@ public class DLFileEntryLocalServiceImpl
 				continue;
 			}
 
-			DDMFormValues ddmFormValues =
+			ddmFormValuesMap.put(
+				ddmStructure.getStructureKey(),
 				StorageEngineManagerUtil.getDDMFormValues(
-					dlFileEntryMetadata.getDDMStorageId());
-
-			ddmFormValuesMap.put(ddmStructure.getStructureKey(), ddmFormValues);
+					dlFileEntryMetadata.getDDMStorageId()));
 		}
 
 		if (!ddmFormValuesMap.isEmpty()) {
@@ -2470,7 +2458,8 @@ public class DLFileEntryLocalServiceImpl
 				}
 			}
 
-			String fileName = DLUtil.getSanitizedFileName(title, extension);
+			String fileName = DLValidatorUtil.fixName(
+				DLUtil.getSanitizedFileName(title, extension));
 
 			if (Validator.isNotNull(sourceFileName)) {
 				fileName = DLUtil.getSanitizedFileName(
@@ -3197,14 +3186,10 @@ public class DLFileEntryLocalServiceImpl
 			LocalizationUtil.getMap(subjectLocalizedValuesMap));
 		subscriptionSender.setMailId(
 			"file_entry", fileVersion.getFileEntryId());
-
 		subscriptionSender.setNotificationType(notificationType);
-
-		String portletId = PortletProviderUtil.getPortletId(
-			FileEntry.class.getName(), PortletProvider.Action.EDIT);
-
-		subscriptionSender.setPortletId(portletId);
-
+		subscriptionSender.setPortletId(
+			PortletProviderUtil.getPortletId(
+				FileEntry.class.getName(), PortletProvider.Action.EDIT));
 		subscriptionSender.setReplyToAddress(fromAddress);
 		subscriptionSender.setScopeGroupId(fileVersion.getGroupId());
 		subscriptionSender.setSendToCurrentUser(true);
@@ -3345,14 +3330,10 @@ public class DLFileEntryLocalServiceImpl
 			LocalizationUtil.getMap(subjectLocalizedValuesMap));
 		subscriptionSender.setMailId(
 			"file_entry", fileVersion.getFileEntryId());
-
 		subscriptionSender.setNotificationType(notificationType);
-
-		String portletId = PortletProviderUtil.getPortletId(
-			FileEntry.class.getName(), PortletProvider.Action.EDIT);
-
-		subscriptionSender.setPortletId(portletId);
-
+		subscriptionSender.setPortletId(
+			PortletProviderUtil.getPortletId(
+				FileEntry.class.getName(), PortletProvider.Action.EDIT));
 		subscriptionSender.setReplyToAddress(fromAddress);
 		subscriptionSender.setScopeGroupId(fileVersion.getGroupId());
 		subscriptionSender.setServiceContext(serviceContext);
@@ -3497,6 +3478,10 @@ public class DLFileEntryLocalServiceImpl
 			String externalReferenceCode, long groupId)
 		throws PortalException {
 
+		if (Validator.isNull(externalReferenceCode)) {
+			return;
+		}
+
 		DLFileEntry dlFileEntry = dlFileEntryPersistence.fetchByG_ERC(
 			groupId, externalReferenceCode);
 
@@ -3515,7 +3500,9 @@ public class DLFileEntryLocalServiceImpl
 			DLFolder parentDLFolder = _dlFolderPersistence.findByPrimaryKey(
 				folderId);
 
-			if (groupId != parentDLFolder.getGroupId()) {
+			if ((groupId != parentDLFolder.getGroupId()) ||
+				parentDLFolder.isInTrash()) {
+
 				throw new NoSuchFolderException();
 			}
 		}

@@ -18,11 +18,11 @@ import com.liferay.gradle.plugins.BaseDefaultsPlugin;
 import com.liferay.gradle.plugins.LiferayBasePlugin;
 import com.liferay.gradle.plugins.LiferayOSGiPlugin;
 import com.liferay.gradle.plugins.db.support.DBSupportPlugin;
-import com.liferay.gradle.plugins.db.support.tasks.CleanServiceBuilderTask;
+import com.liferay.gradle.plugins.db.support.task.CleanServiceBuilderTask;
 import com.liferay.gradle.plugins.internal.util.GradleUtil;
 import com.liferay.gradle.plugins.service.builder.BuildServiceTask;
 import com.liferay.gradle.plugins.service.builder.ServiceBuilderPlugin;
-import com.liferay.gradle.plugins.tasks.BuildDBTask;
+import com.liferay.gradle.plugins.task.BuildDBTask;
 import com.liferay.gradle.plugins.util.PortalTools;
 import com.liferay.gradle.util.Validator;
 

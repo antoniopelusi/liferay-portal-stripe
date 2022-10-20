@@ -12,7 +12,9 @@
  * details.
  */
 
-import {openSimpleInputModal} from 'frontend-js-web';
+import {getCheckedCheckboxes, openSimpleInputModal} from 'frontend-js-web';
+
+import openDeleteStyleBookModal from './openDeleteStyleBookModal';
 
 export default function propsTransformer({
 	additionalProps: {copyStyleBookEntryURL, exportStyleBookEntriesURL},
@@ -32,7 +34,7 @@ export default function propsTransformer({
 
 		styleBookEntryIds.setAttribute(
 			'value',
-			Liferay.Util.listCheckedExcept(form, `${portletNamespace}allRowIds`)
+			getCheckedCheckboxes(form, `${portletNamespace}allRowIds`)
 		);
 
 		const styleBookEntryFm = document.getElementById(
@@ -45,17 +47,16 @@ export default function propsTransformer({
 	};
 
 	const deleteSelectedStyleBookEntries = () => {
-		if (
-			confirm(
-				Liferay.Language.get('are-you-sure-you-want-to-delete-this')
-			)
-		) {
-			const form = document.getElementById(`${portletNamespace}fm`);
+		openDeleteStyleBookModal({
+			multiple: true,
+			onDelete: () => {
+				const form = document.getElementById(`${portletNamespace}fm`);
 
-			if (form) {
-				submitForm(form);
-			}
-		}
+				if (form) {
+					submitForm(form);
+				}
+			},
+		});
 	};
 
 	const exportSelectedStyleBookEntries = () => {

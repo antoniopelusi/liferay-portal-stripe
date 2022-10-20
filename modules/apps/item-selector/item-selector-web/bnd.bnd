@@ -1,4 +1,4 @@
 Bundle-Name: Liferay Item Selector Web
 Bundle-SymbolicName: com.liferay.item.selector.web
-Bundle-Version: 7.0.18
+Bundle-Version: 7.0.27
 Web-ContextPath: /item-selector-web

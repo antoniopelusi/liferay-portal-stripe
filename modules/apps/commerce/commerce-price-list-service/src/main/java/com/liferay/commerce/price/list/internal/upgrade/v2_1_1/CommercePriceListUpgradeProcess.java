@@ -14,19 +14,26 @@
 
 package com.liferay.commerce.price.list.internal.upgrade.v2_1_1;
 
-import com.liferay.commerce.price.list.internal.upgrade.base.BaseCommercePriceListUpgradeProcess;
+import com.liferay.portal.kernel.upgrade.UpgradeProcess;
+import com.liferay.portal.kernel.upgrade.UpgradeProcessFactory;
+import com.liferay.portal.kernel.upgrade.UpgradeStep;
 
 /**
  * @author Riccardo Alberti
  */
-public class CommercePriceListUpgradeProcess
-	extends BaseCommercePriceListUpgradeProcess {
+public class CommercePriceListUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	public void doUpgrade() throws Exception {
-		addColumn("CommercePriceList", "netPrice", "BOOLEAN");
-
 		runSQL("update CommercePriceList set netPrice = [$TRUE$]");
+	}
+
+	@Override
+	protected UpgradeStep[] getPreUpgradeSteps() {
+		return new UpgradeStep[] {
+			UpgradeProcessFactory.addColumns(
+				"CommercePriceList", "netPrice BOOLEAN")
+		};
 	}
 
 }

@@ -4,6 +4,12 @@
 	display: none;
 }
 
+.portlet-content-container {
+	.button-holder {
+		margin-top: 1em;
+	}
+}
+
 .portlet-document-library,
 .portlet-dynamic-data-mapping {
 	.field-labels-inline {
@@ -68,8 +74,8 @@
 	}
 
 	.lfr-ddm-small-image-preview {
-		background-color: #fff;
-		border: 1px solid #ccc;
+		background-color: $white;
+		border: 1px solid $border-color;
 		margin-right: 1em;
 		max-height: 120px;
 		max-width: 120px;
@@ -306,20 +312,29 @@ textarea.script {
 			margin-left: 15px;
 		}
 	}
-
-	.taglib-icon-help {
-		margin-left: 5px;
-	}
 }
 
 .lfr-ddm-legend {
-	color: #272833;
+	color: $gray-900;
 	font-size: 0.875rem;
 	font-weight: 600;
 	margin-bottom: 0.25rem;
 }
 
+.lfr-ddm-link-to-page-modal.modal-dialog:not(.dialog-iframe-modal):not(.modal-full-screen) {
+	position: fixed;
+}
+
 .lfr-ddm-link-to-page-modal {
+	.collapse.navbar-collapse {
+		.active {
+			border-bottom: 4px solid $blue;
+		}
+		li.public,
+		li.private {
+			padding: 1.5em;
+		}
+	}
 	.lfr-ddm-breadcrumb {
 		padding-left: 0;
 		padding-right: 0;
@@ -336,6 +351,15 @@ textarea.script {
 			padding-top: 0;
 		}
 
+		.lfr-ddm-link {
+			align-items: center;
+			display: flex;
+
+			a {
+				margin-left: 1em;
+			}
+		}
+
 		.loading-icon {
 			display: block;
 			font-size: 48px;
@@ -345,8 +369,9 @@ textarea.script {
 		&.nav {
 			> li {
 				> a {
+					display: block;
 					margin-left: 20px;
-					padding-left: 0;
+					padding: 0.625rem 1rem 0.625rem 0;
 				}
 
 				.loading-icon {
@@ -358,8 +383,7 @@ textarea.script {
 			}
 
 			.lfr-ddm-page-radio {
-				position: absolute;
-				top: 10px;
+				position: relative;
 			}
 		}
 	}
@@ -371,6 +395,11 @@ textarea.script {
 	border-radius: 0.25rem;
 	margin-top: 0.5rem;
 	padding: 0.625rem;
+
+	.form-builder-field-node {
+		display: inline;
+		margin-right: 5px;
+	}
 }
 
 .form-builder-placeholder {

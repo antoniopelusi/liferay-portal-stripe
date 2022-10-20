@@ -117,6 +117,21 @@ public interface DLFolderModel
 	public void setUuid(String uuid);
 
 	/**
+	 * Returns the external reference code of this document library folder.
+	 *
+	 * @return the external reference code of this document library folder
+	 */
+	@AutoEscape
+	public String getExternalReferenceCode();
+
+	/**
+	 * Sets the external reference code of this document library folder.
+	 *
+	 * @param externalReferenceCode the external reference code of this document library folder
+	 */
+	public void setExternalReferenceCode(String externalReferenceCode);
+
+	/**
 	 * Returns the folder ID of this document library folder.
 	 *
 	 * @return the folder ID of this document library folder
@@ -513,16 +528,6 @@ public interface DLFolderModel
 	 */
 	@Override
 	public long getTrashEntryClassPK();
-
-	/**
-	 * Returns the trash handler for this document library folder.
-	 *
-	 * @return the trash handler for this document library folder
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public com.liferay.portal.kernel.trash.TrashHandler getTrashHandler();
 
 	/**
 	 * Returns <code>true</code> if this document library folder is in the Recycle Bin.

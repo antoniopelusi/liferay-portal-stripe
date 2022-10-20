@@ -81,6 +81,20 @@ public class ObjectActionSerDes {
 			sb.append(objectAction.getActive());
 		}
 
+		if (objectAction.getConditionExpression() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"conditionExpression\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(objectAction.getConditionExpression()));
+
+			sb.append("\"");
+		}
+
 		if (objectAction.getDateCreated() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -107,6 +121,20 @@ public class ObjectActionSerDes {
 
 			sb.append(
 				liferayToJSONDateFormat.format(objectAction.getDateModified()));
+
+			sb.append("\"");
+		}
+
+		if (objectAction.getDescription() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"description\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(objectAction.getDescription()));
 
 			sb.append("\"");
 		}
@@ -173,6 +201,16 @@ public class ObjectActionSerDes {
 			sb.append(_toJSON(objectAction.getParameters()));
 		}
 
+		if (objectAction.getStatus() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"status\": ");
+
+			sb.append(String.valueOf(objectAction.getStatus()));
+		}
+
 		sb.append("}");
 
 		return sb.toString();
@@ -209,6 +247,15 @@ public class ObjectActionSerDes {
 			map.put("active", String.valueOf(objectAction.getActive()));
 		}
 
+		if (objectAction.getConditionExpression() == null) {
+			map.put("conditionExpression", null);
+		}
+		else {
+			map.put(
+				"conditionExpression",
+				String.valueOf(objectAction.getConditionExpression()));
+		}
+
 		if (objectAction.getDateCreated() == null) {
 			map.put("dateCreated", null);
 		}
@@ -225,6 +272,14 @@ public class ObjectActionSerDes {
 			map.put(
 				"dateModified",
 				liferayToJSONDateFormat.format(objectAction.getDateModified()));
+		}
+
+		if (objectAction.getDescription() == null) {
+			map.put("description", null);
+		}
+		else {
+			map.put(
+				"description", String.valueOf(objectAction.getDescription()));
 		}
 
 		if (objectAction.getId() == null) {
@@ -266,6 +321,13 @@ public class ObjectActionSerDes {
 			map.put("parameters", String.valueOf(objectAction.getParameters()));
 		}
 
+		if (objectAction.getStatus() == null) {
+			map.put("status", null);
+		}
+		else {
+			map.put("status", String.valueOf(objectAction.getStatus()));
+		}
+
 		return map;
 	}
 
@@ -299,6 +361,14 @@ public class ObjectActionSerDes {
 					objectAction.setActive((Boolean)jsonParserFieldValue);
 				}
 			}
+			else if (Objects.equals(
+						jsonParserFieldName, "conditionExpression")) {
+
+				if (jsonParserFieldValue != null) {
+					objectAction.setConditionExpression(
+						(String)jsonParserFieldValue);
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "dateCreated")) {
 				if (jsonParserFieldValue != null) {
 					objectAction.setDateCreated(
@@ -309,6 +379,11 @@ public class ObjectActionSerDes {
 				if (jsonParserFieldValue != null) {
 					objectAction.setDateModified(
 						toDate((String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "description")) {
+				if (jsonParserFieldValue != null) {
+					objectAction.setDescription((String)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "id")) {
@@ -343,6 +418,12 @@ public class ObjectActionSerDes {
 					objectAction.setParameters(
 						(Map)ObjectActionSerDes.toMap(
 							(String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "status")) {
+				if (jsonParserFieldValue != null) {
+					objectAction.setStatus(
+						StatusSerDes.toDTO((String)jsonParserFieldValue));
 				}
 			}
 		}

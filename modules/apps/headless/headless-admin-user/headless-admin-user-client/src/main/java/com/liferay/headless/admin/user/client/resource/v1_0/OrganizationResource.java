@@ -268,6 +268,12 @@ public interface OrganizationResource {
 			return new OrganizationResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -313,6 +319,7 @@ public interface OrganizationResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -425,7 +432,7 @@ public interface OrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/accounts/by-external-reference-code/{externalReferenceCode}/organizations");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -509,7 +516,7 @@ public interface OrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/accounts/by-external-reference-code/{externalReferenceCode}/organizations/{organizationId}");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -594,7 +601,7 @@ public interface OrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/accounts/by-external-reference-code/{externalReferenceCode}/organizations/{organizationId}");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -699,7 +706,7 @@ public interface OrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/accounts/{accountId}/organizations");
 
 			httpInvoker.path("accountId", accountId);
@@ -782,7 +789,7 @@ public interface OrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/accounts/{accountId}/organizations/{organizationId}");
 
 			httpInvoker.path("accountId", accountId);
@@ -865,7 +872,7 @@ public interface OrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/accounts/{accountId}/organizations/{organizationId}");
 
 			httpInvoker.path("accountId", accountId);
@@ -974,7 +981,7 @@ public interface OrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/organizations");
 
 			httpInvoker.userNameAndPassword(
@@ -1055,7 +1062,7 @@ public interface OrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/organizations");
 
 			httpInvoker.userNameAndPassword(
@@ -1130,7 +1137,7 @@ public interface OrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/organizations/batch");
 
 			httpInvoker.userNameAndPassword(
@@ -1212,7 +1219,7 @@ public interface OrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/organizations/by-external-reference-code/{externalReferenceCode}");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -1296,7 +1303,7 @@ public interface OrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/organizations/by-external-reference-code/{externalReferenceCode}");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -1382,7 +1389,7 @@ public interface OrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/organizations/by-external-reference-code/{externalReferenceCode}");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -1468,7 +1475,7 @@ public interface OrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/organizations/by-external-reference-code/{externalReferenceCode}");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -1547,7 +1554,7 @@ public interface OrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/organizations/{organizationId}");
 
 			httpInvoker.path("organizationId", organizationId);
@@ -1624,7 +1631,7 @@ public interface OrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/organizations/batch");
 
 			httpInvoker.userNameAndPassword(
@@ -1703,7 +1710,7 @@ public interface OrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/organizations/{organizationId}");
 
 			httpInvoker.path("organizationId", organizationId);
@@ -1787,7 +1794,7 @@ public interface OrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/organizations/{organizationId}");
 
 			httpInvoker.path("organizationId", organizationId);
@@ -1871,7 +1878,7 @@ public interface OrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/organizations/{organizationId}");
 
 			httpInvoker.path("organizationId", organizationId);
@@ -1948,7 +1955,7 @@ public interface OrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/organizations/batch");
 
 			httpInvoker.userNameAndPassword(
@@ -2057,7 +2064,7 @@ public interface OrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/organizations/{organizationId}/child-organizations");
 
 			httpInvoker.path("organizationId", organizationId);
@@ -2151,7 +2158,7 @@ public interface OrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/organizations/{organizationId}/user-accounts/by-email-address");
 
 			httpInvoker.path("organizationId", organizationId);
@@ -2252,7 +2259,7 @@ public interface OrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/organizations/{organizationId}/user-accounts/by-email-address");
 
 			httpInvoker.path("organizationId", organizationId);
@@ -2336,7 +2343,7 @@ public interface OrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/organizations/{organizationId}/user-accounts/by-email-address/{emailAddress}");
 
 			httpInvoker.path("organizationId", organizationId);
@@ -2421,7 +2428,7 @@ public interface OrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/organizations/{organizationId}/user-accounts/by-email-address/{emailAddress}");
 
 			httpInvoker.path("organizationId", organizationId);
@@ -2533,7 +2540,7 @@ public interface OrganizationResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/organizations/{parentOrganizationId}/organizations");
 
 			httpInvoker.path("parentOrganizationId", parentOrganizationId);

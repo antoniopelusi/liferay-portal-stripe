@@ -100,6 +100,13 @@ public class ListTypeEntryLocalServiceImpl
 			listTypeDefinitionId);
 	}
 
+	@Override
+	public ListTypeEntry getListTypeEntry(long listTypeDefinitionId, String key)
+		throws PortalException {
+
+		return listTypeEntryPersistence.findByLTDI_K(listTypeDefinitionId, key);
+	}
+
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public ListTypeEntry updateListTypeEntry(

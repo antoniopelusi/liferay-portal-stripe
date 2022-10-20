@@ -148,7 +148,7 @@ renderResponse.setTitle(LanguageUtil.get(resourceBundle, "import-translation"));
 											/>
 										</span>
 
-										<liferay-ui:message arguments="<%= importTranslationResultsDisplayContext.getFailureMessagesCount() %>" key='<%= (importTranslationResultsDisplayContext.getFailureMessagesCount() == 1) ? "x-file-could-not-be-published" : "x-files-could-not-be-published" %>' />
+										<liferay-ui:message arguments="<%= importTranslationResultsDisplayContext.getFailureMessagesCount() %>" key="<%= importTranslationResultsDisplayContext.getFailureMessageKey() %>" />
 									</div>
 								</liferay-util:whitespace-remover>
 							</clay:content-col>
@@ -165,19 +165,17 @@ renderResponse.setTitle(LanguageUtil.get(resourceBundle, "import-translation"));
 										/>
 									</div>
 
-									<c:if test="<%= importTranslationResultsDisplayContext.isDownloadCSVReportEnabled() %>">
-										<div class="btn-group-item">
-											<clay:link
-												displayType="secondary"
-												download='<%= StringUtil.randomString() + ".csv" %>'
-												href="<%= importTranslationResultsDisplayContext.getFailureMessagesCSVDataURL(locale) %>"
-												label="download-csv-error-report"
-												small="<%= true %>"
-												target="_blank"
-												type="button"
-											/>
-										</div>
-									</c:if>
+									<div class="btn-group-item">
+										<clay:link
+											displayType="secondary"
+											download='<%= StringUtil.randomString() + ".csv" %>'
+											href="<%= importTranslationResultsDisplayContext.getFailureMessagesCSVDataURL(locale) %>"
+											label="download-csv-error-report"
+											small="<%= true %>"
+											target="_blank"
+											type="button"
+										/>
+									</div>
 								</div>
 							</clay:content-col>
 						</clay:content-row>

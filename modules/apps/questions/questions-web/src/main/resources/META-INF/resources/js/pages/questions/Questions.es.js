@@ -40,6 +40,7 @@ import {
 	subscribeSectionQuery,
 	unsubscribeSectionQuery,
 } from '../../utils/client.es';
+import {ALL_SECTIONS_ID} from '../../utils/contants.es';
 import lang from '../../utils/lang.es';
 import {
 	deleteCacheKey,
@@ -159,7 +160,10 @@ export default withRouter(
 		}, [queryParams]);
 
 		useEffect(() => {
-			document.title = (section && section.title) || sectionTitle;
+			document.title =
+				sectionTitle === ALL_SECTIONS_ID
+					? Liferay.Language.get('all-questions')
+					: (section && section.title) || sectionTitle;
 		}, [sectionTitle, section]);
 
 		useEffect(() => {
@@ -280,7 +284,9 @@ export default withRouter(
 					}keywords/any(x:x eq '${keywords}')`;
 				}
 				else if (creatorId) {
-					filter += ` and creator/id eq ${creatorId}`;
+					const operand = filter ? 'and' : '';
+
+					filter += `${operand} creator/id eq ${creatorId}`;
 				}
 
 				sort = sort || 'dateCreated:desc';
@@ -385,7 +391,7 @@ export default withRouter(
 		function buildURL(search, page, pageSize) {
 			let url = '/questions';
 
-			if (sectionTitle || sectionTitle === '0') {
+			if (sectionTitle || sectionTitle === ALL_SECTIONS_ID) {
 				url += `/${sectionTitle}`;
 			}
 
@@ -413,11 +419,11 @@ export default withRouter(
 
 		const [debounceCallback] = useDebounceCallback(
 			(search) => changePage(search, 1, 20),
-			500
+			1000
 		);
 
 		useEffect(() => {
-			if (sectionTitle && sectionTitle !== '0') {
+			if (sectionTitle && sectionTitle !== ALL_SECTIONS_ID) {
 				const variables = {
 					filter: `title eq '${slugToText(
 						sectionTitle
@@ -439,7 +445,7 @@ export default withRouter(
 					}
 				});
 			}
-			else if (sectionTitle === '0') {
+			else if (sectionTitle === ALL_SECTIONS_ID) {
 				const variables = {siteKey: context.siteKey};
 				getSections({
 					variables,
@@ -482,7 +488,9 @@ export default withRouter(
 
 				window.location.replace(
 					`/c/portal/login?redirect=${baseURL}${
-						context.historyRouterBasePath ? '' : '#'
+						context.historyRouterBasePath
+							? context.historyRouterBasePath.replace('/', '')
+							: '#'
 					}/questions/${sectionTitle}/new`
 				);
 			}
@@ -590,11 +598,19 @@ export default withRouter(
 										/>
 									)
 								}
+								hrefConstructor={(page) =>
+									`${getFullPath('questions')}${
+										context.historyRouterBasePath
+											? ''
+											: '#/'
+									}questions/${sectionTitle}?page=${page}&pagesize=${pageSize}`
+								}
 								loading={loading}
 								totalCount={totalCount}
 							>
 								{(question) => (
 									<QuestionRow
+										context={context}
 										currentSection={sectionTitle}
 										key={question.id}
 										question={question}
@@ -743,7 +759,7 @@ export default withRouter(
 												<ClayButtonWithIcon
 													displayType="unstyled"
 													onClick={() => {
-														debounceCallback('');
+														setSearch('');
 													}}
 													symbol="times-circle"
 													type="submit"
@@ -768,7 +784,8 @@ export default withRouter(
 											Boolean(
 												section.actions['add-thread']
 											)) ||
-										context.canCreateThread) && (
+										context.canCreateThread) &&
+									sectionTitle !== ALL_SECTIONS_ID && (
 										<ClayInput.GroupItem shrink>
 											<ClayButton
 												className="c-ml-3 d-none d-sm-block text-nowrap"
@@ -792,7 +809,7 @@ export default withRouter(
 							<link
 								href={`${getFullPath('questions')}${
 									context.historyRouterBasePath ? '' : '#/'
-								}questions/${sectionTitle}`}
+								}questions/${sectionTitle}?page=${page}&pagesize=${pageSize}`}
 								rel="canonical"
 							/>
 						</Helmet>

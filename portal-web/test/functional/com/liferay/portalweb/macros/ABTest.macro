@@ -156,6 +156,10 @@ definition {
 		if (IsNotVisible(locator1 = "ABTest#AB_TEST_SIDE_BAR")) {
 			Click(locator1 = "ABTest#AB_TEST_BUTTON");
 		}
+
+		while (IsNotVisible(locator1 = "ABTest#AB_TEST_SIDE_BAR")) {
+			WaitForElementPresent(locator1 = "ABTest#AB_TEST_SIDE_BAR");
+		}
 	}
 
 	macro runTest {
@@ -206,6 +210,7 @@ definition {
 		Click(locator1 = "ABTest#SELECT_CLICKABLE_ELEMENT");
 
 		var idelement = selenium.getAttribute("//div[contains(@class,'text-truncate')]@title");
+
 		var idelement = StringUtil.substring("${idelement}", "1", "19");
 
 		Click(locator1 = "ABTest#X_BUTTON_TARGET_ID_ELEMENT");

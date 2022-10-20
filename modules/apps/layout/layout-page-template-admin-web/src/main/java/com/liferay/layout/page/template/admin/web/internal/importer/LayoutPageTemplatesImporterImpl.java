@@ -179,9 +179,13 @@ public class LayoutPageTemplatesImporterImpl
 			}
 		};
 
+		long segmentsExperienceId =
+			_segmentsExperienceLocalService.fetchDefaultSegmentsExperienceId(
+				layout.getPlid());
+
 		return _importPageElement(
 			consumer, layout, layoutStructure, parentItemId, pageElementJSON,
-			position);
+			position, segmentsExperienceId);
 	}
 
 	@Override
@@ -207,7 +211,7 @@ public class LayoutPageTemplatesImporterImpl
 
 		return _importPageElement(
 			consumer, layout, layoutStructure, parentItemId, pageElementJSON,
-			position);
+			position, segmentsExperienceId);
 	}
 
 	private void _deleteExistingPortletPreferences(long plid) {
@@ -348,40 +352,6 @@ public class LayoutPageTemplatesImporterImpl
 		}
 
 		return _language.format(locale, languageKey, arguments);
-	}
-
-	private List<FragmentEntryLink> _getFragmentEntryLinks(
-			LayoutStructure layoutStructure, List<String> childrenItemIds)
-		throws Exception {
-
-		List<FragmentEntryLink> fragmentEntryLinks = new ArrayList<>();
-
-		for (String childItemId : childrenItemIds) {
-			LayoutStructureItem layoutStructureItem =
-				layoutStructure.getLayoutStructureItem(childItemId);
-
-			if (layoutStructureItem instanceof
-					FragmentStyledLayoutStructureItem) {
-
-				FragmentStyledLayoutStructureItem
-					fragmentStyledLayoutStructureItem =
-						(FragmentStyledLayoutStructureItem)layoutStructureItem;
-
-				fragmentEntryLinks.add(
-					_fragmentEntryLinkLocalService.getFragmentEntryLink(
-						fragmentStyledLayoutStructureItem.
-							getFragmentEntryLinkId()));
-			}
-
-			List<String> currentChildrenItemIds =
-				layoutStructureItem.getChildrenItemIds();
-
-			fragmentEntryLinks.addAll(
-				_getFragmentEntryLinks(
-					layoutStructure, currentChildrenItemIds));
-		}
-
-		return fragmentEntryLinks;
 	}
 
 	private String _getKey(String defaultKey, String name, ZipEntry zipEntry) {
@@ -809,28 +779,19 @@ public class LayoutPageTemplatesImporterImpl
 	private List<FragmentEntryLink> _importPageElement(
 			Consumer<LayoutStructure> consumer, Layout layout,
 			LayoutStructure layoutStructure, String parentItemId,
-			String pageElementJSON, int position)
+			String pageElementJSON, int position, long segmentsExperienceId)
 		throws Exception {
 
 		PageElement pageElement = _objectMapper.readValue(
 			pageElementJSON, PageElement.class);
 
-		Set<String> warningMessages = new HashSet<>();
-
-		_processPageElement(
-			layout, layoutStructure,
-			LayoutStructureConstants.LATEST_PAGE_DEFINITION_VERSION,
-			pageElement, parentItemId, position, warningMessages);
-
 		List<FragmentEntryLink> fragmentEntryLinks = new ArrayList<>();
 
-		LayoutStructureItem parentLayoutStructureItem =
-			layoutStructure.getLayoutStructureItem(parentItemId);
-
-		fragmentEntryLinks.addAll(
-			_getFragmentEntryLinks(
-				layoutStructure,
-				parentLayoutStructureItem.getChildrenItemIds()));
+		_processPageElement(
+			fragmentEntryLinks, layout, layoutStructure,
+			LayoutStructureConstants.LATEST_PAGE_DEFINITION_VERSION,
+			pageElement, parentItemId, position, segmentsExperienceId,
+			new HashSet<>());
 
 		consumer.accept(layoutStructure);
 
@@ -900,14 +861,20 @@ public class LayoutPageTemplatesImporterImpl
 			PageTemplateCollectionEntry pageTemplateCollectionEntry =
 				entry.getValue();
 
+			Map<String, PageTemplateEntry> pageTemplatesEntries =
+				pageTemplateCollectionEntry.getPageTemplatesEntries();
+
+			if (MapUtil.isEmpty(pageTemplatesEntries)) {
+				continue;
+			}
+
 			LayoutPageTemplateCollection layoutPageTemplateCollection =
 				_getLayoutPageTemplateCollection(
 					groupId, layoutPageTemplateCollectionId,
 					pageTemplateCollectionEntry, overwrite);
 
 			_processPageTemplateEntries(
-				groupId, layoutPageTemplateCollection,
-				pageTemplateCollectionEntry.getPageTemplatesEntries(),
+				groupId, layoutPageTemplateCollection, pageTemplatesEntries,
 				overwrite, zipFile);
 		}
 	}
@@ -1127,9 +1094,12 @@ public class LayoutPageTemplatesImporterImpl
 						pageElement.getPageElements()) {
 
 					if (_processPageElement(
-							layout, layoutStructure, pageDefinitionVersion,
-							childPageElement,
+							new ArrayList<>(), layout, layoutStructure,
+							pageDefinitionVersion, childPageElement,
 							rootLayoutStructureItem.getItemId(), position,
+							_segmentsExperienceLocalService.
+								fetchDefaultSegmentsExperienceId(
+									layout.getPlid()),
 							warningMessages)) {
 
 						position++;
@@ -1150,9 +1120,10 @@ public class LayoutPageTemplatesImporterImpl
 	}
 
 	private boolean _processPageElement(
-			Layout layout, LayoutStructure layoutStructure,
-			double pageDefinitionVersion, PageElement pageElement,
-			String parentItemId, int position, Set<String> warningMessages)
+			List<FragmentEntryLink> fragmentEntryLinks, Layout layout,
+			LayoutStructure layoutStructure, double pageDefinitionVersion,
+			PageElement pageElement, String parentItemId, int position,
+			long segmentsExperienceId, Set<String> warningMessages)
 		throws Exception {
 
 		LayoutStructureItemImporter layoutStructureItemImporter =
@@ -1166,7 +1137,8 @@ public class LayoutPageTemplatesImporterImpl
 				layoutStructureItemImporter.addLayoutStructureItem(
 					layoutStructure,
 					new LayoutStructureItemImporterContext(
-						layout, pageDefinitionVersion, parentItemId, position),
+						layout, pageDefinitionVersion, parentItemId, position,
+						segmentsExperienceId),
 					pageElement, warningMessages);
 		}
 		else if (pageElement.getType() == PageElement.Type.ROOT) {
@@ -1180,6 +1152,17 @@ public class LayoutPageTemplatesImporterImpl
 			return false;
 		}
 
+		if (layoutStructureItem instanceof FragmentStyledLayoutStructureItem) {
+			FragmentStyledLayoutStructureItem
+				fragmentStyledLayoutStructureItem =
+					(FragmentStyledLayoutStructureItem)layoutStructureItem;
+
+			fragmentEntryLinks.add(
+				_fragmentEntryLinkLocalService.getFragmentEntryLink(
+					fragmentStyledLayoutStructureItem.
+						getFragmentEntryLinkId()));
+		}
+
 		if (pageElement.getPageElements() == null) {
 			return true;
 		}
@@ -1188,9 +1171,10 @@ public class LayoutPageTemplatesImporterImpl
 
 		for (PageElement childPageElement : pageElement.getPageElements()) {
 			if (_processPageElement(
-					layout, layoutStructure, pageDefinitionVersion,
-					childPageElement, layoutStructureItem.getItemId(),
-					childPosition, warningMessages)) {
+					fragmentEntryLinks, layout, layoutStructure,
+					pageDefinitionVersion, childPageElement,
+					layoutStructureItem.getItemId(), childPosition,
+					segmentsExperienceId, warningMessages)) {
 
 				childPosition++;
 			}

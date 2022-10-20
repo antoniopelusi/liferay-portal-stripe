@@ -40,7 +40,6 @@ definition {
 	@refactordone
 	test CanCustomizeMetaTags {
 		var portalURL = PropsUtil.get("portal.url");
-
 		var siteId = JSONGroupSetter.setGroupId(groupName = "Test Site Name");
 
 		Navigator.openToGroupPagesPortlet(
@@ -164,7 +163,6 @@ definition {
 	@refactordone
 	test CanEditMetaTagCustomizations {
 		var portalURL = PropsUtil.get("portal.url");
-
 		var siteId = JSONGroupSetter.setGroupId(groupName = "Test Site Name");
 
 		Navigator.openToGroupPagesPortlet(
@@ -380,9 +378,7 @@ definition {
 		var dmFileEntryId = JSONDocument.getFileEntryId(
 			dmDocumentTitle = "DM Document Title",
 			groupName = "Test Site Name");
-
 		var portalURL = PropsUtil.get("portal.url");
-
 		var siteId = JSONGroupAPI._getGroupIdByName(
 			groupName = "Test Site Name",
 			site = "true");
@@ -455,7 +451,6 @@ definition {
 			siteURLKey = "test-site-name");
 
 		var portalURL = PropsUtil.get("portal.url");
-
 		var siteId = JSONGroupAPI._getGroupIdByName(
 			groupName = "Test Site Name",
 			site = "true");

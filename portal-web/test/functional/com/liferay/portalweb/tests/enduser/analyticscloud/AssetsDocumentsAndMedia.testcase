@@ -1,6 +1,8 @@
 @component-name = "portal-analytics-cloud"
 definition {
 
+	property analytics.cloud.release = "true";
+	property analytics.cloud.upstream = "true";
 	property portal.release = "false";
 	property portal.upstream = "true";
 	property property.group = "analytics.cloud.profile";
@@ -31,6 +33,8 @@ definition {
 	tearDown {
 		var testPortalInstance = PropsUtil.get("test.portal.instance");
 
+		ACUtils.tearDownAC();
+
 		ACUtils.tearDownDXP();
 
 		if ("${testPortalInstance}" == "true") {
@@ -39,10 +43,6 @@ definition {
 		else {
 			JSONGroup.deleteGroupByName(groupName = "Site Name");
 		}
-
-		JSONUser.tearDownNonAdminUsers();
-
-		ACUtils.tearDownAC();
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8419 | Test Summary: Document asset appears on list shows pages that the document exists on"
@@ -89,9 +89,7 @@ definition {
 			var fileEntryId = JSONDocument.getFileEntryId(
 				dmDocumentTitle = "DM AC Title",
 				groupName = "Site Name");
-
 			var portalURL = PropsUtil.get("portal.url");
-
 			var siteName = TestCase.getSiteName(siteName = "${siteName}");
 
 			ACAssets.viewAssetAppearsOnMetric(
@@ -141,6 +139,8 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8402 | Test Summary: Documents audience card shows expected amount of know and anonymous individuals"
 	@priority = "5"
 	test AudienceCardShowsExpectedAmountKnowAndAnonymousIndividualsInDM {
+		property analytics.cloud.upstream = "false";
+
 		var usernameList = "ac,liferay";
 		var emailList = "ac@liferay.com,liferay@liferay.com";
 
@@ -334,14 +334,9 @@ definition {
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8396 | Test Summary: Documents list is searchable"
-	@ignore = "true"
 	@priority = "4"
 	test CanDocumentsAndMediaListSearchable {
-
-		// AC Story ticket: LRAC-10405
-
 		var documentNameList = "DM AC Title,New Document";
-
 		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
 
 		task ("Add another document") {
@@ -385,9 +380,7 @@ definition {
 
 			ACUtils.searchBar(searchItem = "Should not be here");
 
-			// This test is being ignored due to a history that makes changes to empty state messages.
-
-			ACUtils.viewNoResultsMessage(noResultMessage = "There are no Documents and Media found.");
+			ACUtils.viewNoResultsMessage(noResultMessage = "There are no results found.");
 		}
 	}
 
@@ -445,9 +438,9 @@ definition {
 		}
 	}
 
-	@description = "Bug: LRAC-7848 | Automation ID: LRAC-10590 | Test Summary: Number of Documents and Media ratings is not getting negative when we delete a vote"
-	@priority = "3"
-	test DocumentsAndMediaRatingsNotGettingNegativeWhenDeleteVote {
+	@description = "Bug: LRAC-11450 | Automation ID: LRAC-11509 | Test Summary: The number of documents and media rating show the expected value"
+	@priority = "4"
+	test CheckDocumentsAndMediaRatingShowExpectedValue {
 		task ("Connect the DXP to AC") {
 			ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
 		}
@@ -461,7 +454,70 @@ definition {
 		}
 
 		task ("Choose a rating star for the DM") {
-			Click(locator1 = "Icon#INFO");
+			DMDocument.expandInfo();
+
+			Ratings.rateStar(ratingStarCount = "4");
+		}
+
+		task ("Close sessions") {
+			ACUtils.closeAllSessionsAndWait();
+		}
+
+		task ("Switch to new property in AC") {
+			ACUtils.launchAC();
+
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
+		}
+
+		task ("Navigate to documents and media assets list") {
+			ACNavigation.goToAssets();
+
+			ACNavigation.switchTab(tabName = "Documents and Media");
+		}
+
+		task ("Change the time filter") {
+			ACTimeFilter.clickTimeFilterButton();
+
+			ACTimeFilter.setLast24Hours();
+		}
+
+		task ("Check DM rating") {
+			ACUtils.viewTableInformation(
+				nameList = "DM AC Title",
+				numberValueList = "8.00/10");
+		}
+
+		task ("Check DM rating in visitor behavior") {
+			ACNavigation.openItem(itemName = "DM AC Title");
+
+			ACAssets.viewVisitorsBehaviorMetric(
+				metricTitle = "Rating",
+				metricValue = "8.00");
+		}
+	}
+
+	@description = "Bug: LRAC-7848 | Automation ID: LRAC-10590 | Test Summary: Number of Documents and Media ratings is not getting negative when we delete a vote"
+	@priority = "3"
+	test DocumentsAndMediaRatingsNotGettingNegativeWhenDeleteVote {
+		property portal.upstream = "quarantine";
+
+		// AC Quarantine reason: Flaky behavior with rating not deleting
+		// AC Quarantine ticket: LRAC-11263
+
+		task ("Connect the DXP to AC") {
+			ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		}
+
+		task ("View the documents and media page") {
+			ACUtils.navigateToSitePage(
+				actionType = "View DM",
+				documentTitleList = "DM AC Title",
+				pageName = "AC Page",
+				siteName = "Site Name");
+		}
+
+		task ("Choose a rating star for the DM") {
+			DMDocument.expandInfo();
 
 			Ratings.rateStar(ratingStarCount = "4");
 		}
@@ -507,7 +563,7 @@ definition {
 		}
 
 		task ("Delete the rating star for the DM") {
-			Click(locator1 = "Icon#INFO");
+			DMDocument.expandInfo();
 
 			Ratings.revokeStarsRating();
 		}
@@ -664,7 +720,6 @@ definition {
 	@priority = "5"
 	test DocumentsTechnologyCardShowsViewsByExpectedDevice {
 		var documentNameList = "DM AC Title,DM AC Title";
-
 		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
 
 		task ("Download the document") {
@@ -849,7 +904,9 @@ definition {
 
 		task ("Download the documents and media") {
 			for (var n : list "1,2") {
-				DMDocument.downloadCP(dmDocumentTitle = "DM AC Title");
+				DMDocument.downloadCP(
+					dmDocumentSize = "13 KB",
+					dmDocumentTitle = "DM AC Title");
 			}
 		}
 
@@ -895,6 +952,8 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8118 | Test Summary: Document known individuals list shows the individuals who have viewed the documents"
 	@priority = "5"
 	test KnownIndividualsListShowsIndividualsWhoHaveViewedDocuments {
+		property analytics.cloud.upstream = "false";
+
 		var usernameList = "ac,liferay";
 		var emailList = "ac@liferay.com,liferay@liferay.com";
 		var nameList = "ac ac,liferay liferay";
@@ -963,6 +1022,8 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8115 | Test Summary: Assert document list shows all of the documents and media assets in a list"
 	@priority = "5"
 	test ViewAllDocumentsAndMediaShownInAssetList {
+		property portal.acceptance = "true";
+
 		var assetName = "DM AC Title,DM AC Title 2,DM AC Title 3,DM AC Title 4";
 
 		for (var n : list "2,3,4") {
@@ -999,6 +1060,13 @@ definition {
 	@description = "Documents visitor behavior card shows expected amount of views"
 	@priority = "5"
 	test VisitorBehaviorCardShowsExpectedAmountOfPreviewsInDM {
+
+		//property portal.acceptance = "true";
+
+		property portal.release = "true";
+
+		// This test can be put back into acceptance after LRAC-11639 is resolved
+
 		var documentNameList = "DM AC Title,DM AC Title";
 
 		task ("Connect the DXP to AC") {

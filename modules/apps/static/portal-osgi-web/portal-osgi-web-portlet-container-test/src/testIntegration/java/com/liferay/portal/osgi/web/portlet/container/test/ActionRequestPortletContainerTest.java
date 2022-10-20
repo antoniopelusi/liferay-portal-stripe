@@ -16,7 +16,6 @@ package com.liferay.portal.osgi.web.portlet.container.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
-import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.portlet.LiferayPortletURL;
 import com.liferay.portal.kernel.portlet.PortletURLFactoryUtil;
 import com.liferay.portal.kernel.security.auth.AuthToken;
@@ -42,7 +41,6 @@ import java.io.PrintWriter;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletURL;
@@ -189,13 +187,12 @@ public class ActionRequestPortletContainerTest
 
 			LogEntry logEntry = logEntries.get(0);
 
+			Throwable throwable = logEntry.getThrowable();
+
 			Assert.assertEquals(
-				StringBundler.concat(
-					"com.liferay.portal.kernel.security.auth.",
-					"PrincipalException$MustHaveSessionCSRFToken: User 0 ",
-					"session does not have a CSRF token for ",
-					"com.liferay.portlet.SecurityPortletContainerWrapper"),
-				logEntry.getMessage());
+				"User 0 session does not have a CSRF token for " +
+					"com.liferay.portlet.SecurityPortletContainerWrapper",
+				throwable.getMessage());
 
 			Assert.assertEquals(403, response.getCode());
 			Assert.assertFalse(testPortlet.isCalledAction());
@@ -347,12 +344,10 @@ public class ActionRequestPortletContainerTest
 
 			PortletURL portletURL = resourceResponse.createActionURL();
 
-			Map<String, String[]> parameterMap =
-				HttpComponentsUtil.getParameterMap(
-					HttpComponentsUtil.getQueryString(portletURL.toString()));
-
 			String portalAuthenticationToken = MapUtil.getString(
-				parameterMap, "p_auth");
+				HttpComponentsUtil.getParameterMap(
+					HttpComponentsUtil.getQueryString(portletURL.toString())),
+				"p_auth");
 
 			printWriter.write(portalAuthenticationToken);
 		}

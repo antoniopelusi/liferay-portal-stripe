@@ -106,6 +106,7 @@ import com.liferay.portal.kernel.util.UnsyncPrintWriterPool;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.util.MaintenanceUtil;
 import com.liferay.portal.util.PrefsPropsUtil;
+import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.ShutdownUtil;
 import com.liferay.server.admin.web.internal.constants.ImageMagickResourceLimitConstants;
 
@@ -155,10 +156,15 @@ public class EditServerMVCActionCommand
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
+		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
+
 		PermissionChecker permissionChecker =
 			themeDisplay.getPermissionChecker();
 
-		if (!permissionChecker.isOmniadmin()) {
+		if (!permissionChecker.isOmniadmin() &&
+			(!permissionChecker.isCompanyAdmin() ||
+			 !cmd.equals("updateMail"))) {
+
 			SessionErrors.add(
 				actionRequest,
 				PrincipalException.MustBeOmniadmin.class.getName());
@@ -170,8 +176,6 @@ public class EditServerMVCActionCommand
 
 		PortletPreferences portletPreferences = PrefsPropsUtil.getPreferences(
 			ParamUtil.getLong(actionRequest, "preferencesCompanyId"));
-
-		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
 
 		String redirect = ParamUtil.getString(actionRequest, "redirect");
 
@@ -228,6 +232,9 @@ public class EditServerMVCActionCommand
 		}
 		else if (cmd.equals("updateMail")) {
 			_updateMail(actionRequest, portletPreferences);
+		}
+		else if (cmd.equals("updatePortalProperties")) {
+			_updatePortalProperties(actionRequest);
 		}
 		else if (cmd.equals("verifyMembershipPolicies")) {
 			_verifyMembershipPolicies();
@@ -781,6 +788,30 @@ public class EditServerMVCActionCommand
 		portletPreferences.store();
 
 		_mailService.clearSession();
+	}
+
+	private void _updatePortalProperties(ActionRequest actionRequest) {
+		Enumeration<String> enumeration = actionRequest.getParameterNames();
+
+		Map<String, String> portalProperties = new HashMap<>();
+
+		while (enumeration.hasMoreElements()) {
+			String name = enumeration.nextElement();
+
+			if (name.startsWith("portalProperty")) {
+				portalProperties.put(
+					name.substring(14),
+					ParamUtil.getString(actionRequest, name, "false"));
+			}
+		}
+
+		_updatePortalProperties(portalProperties);
+	}
+
+	private void _updatePortalProperties(Map<String, String> portalProperties) {
+		for (Map.Entry<String, String> entry : portalProperties.entrySet()) {
+			PropsUtil.set(entry.getKey(), entry.getValue());
+		}
 	}
 
 	private void _verifyMembershipPolicies() throws Exception {

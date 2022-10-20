@@ -388,6 +388,8 @@ definition {
 	@description = "This test asserts that a user can create multi factory configurations."
 	@priority = "4"
 	test CanCreateTwoFactoryConfigurations {
+		property test.name.skip.portal.instance = "InstanceSettings#CanCreateTwoFactoryConfigurations";
+
 		var openIdConnectClientId = PropsUtil.get("google.client.id.1");
 		var openIdConnectClientId1 = PropsUtil.get("google.client.id.2");
 		var openIdConnectClientSecret = PropsUtil.get("google.client.secret.1");
@@ -553,7 +555,6 @@ definition {
 		var articleId = JSONWebcontentSetter.setArticleId(
 			groupName = "Terms of Use Site",
 			title = "Terms of Use WC Title");
-
 		var groupId = JSONGroupSetter.setGroupId(groupName = "Terms of Use Site");
 
 		FormFields.viewCheckboxChecked(fieldName = "terms-of-use-required");
@@ -863,6 +864,7 @@ definition {
 		SystemSettings.deleteConfiguration();
 
 		var tempFileDirectory = selenium.getOutputDirName();
+
 		var exportConfigFile = FileUtil.exists("${tempFileDirectory}");
 
 		if ("${exportConfigFile}" == "true") {
@@ -878,14 +880,15 @@ definition {
 			osgiConfigFileBaseDir = "${tempFileDirectory}",
 			osgiConfigFileName = "${tempFileName}");
 
-		Pause(locator = "60000");
-
 		PortalSettings.gotoConfiguration(
 			configurationCategory = "SSO",
 			configurationName = "OpenID Connect Provider Connection",
 			configurationScope = "Virtual Instance Scope");
 
 		while (IsElementNotPresent(key_rowEntry = "Google", locator1 = "ContentRow#ENTRY_CONTENT_ENTRY_NAME")) {
+
+			// Pausing due to LRQA-75772, wait for the config file deploy.
+
 			Pause(locator1 = "1000");
 
 			Refresh();
@@ -957,6 +960,8 @@ definition {
 
 	@priority = "4"
 	test FactoryConfigurationCanBeDeleted {
+		property test.name.skip.portal.instance = "InstanceSettings#FactoryConfigurationCanBeDeleted";
+
 		var openIdConnectClientId = PropsUtil.get("google.client.id.1");
 		var openIdConnectClientSecret = PropsUtil.get("google.client.secret.1");
 
@@ -994,6 +999,8 @@ definition {
 
 	@priority = "4"
 	test FactoryConfigurationCanBeEdited {
+		property test.name.skip.portal.instance = "InstanceSettings#FactoryConfigurationCanBeEdited";
+
 		var openIdConnectClientId = PropsUtil.get("google.client.id.1");
 		var openIdConnectClientSecret = PropsUtil.get("google.client.secret.1");
 
@@ -1064,8 +1071,8 @@ definition {
 		AssertElementPresent(locator1 = "Button#UPDATE");
 
 		var tempFileName = TestCase.getDownloadedTempFileName(fileNamePattern = "com.liferay.account.configuration.AccountEntryEmailDomainsConfiguration.scoped-*.config");
-
 		var tempFileDirectory = selenium.getOutputDirName();
+
 		var exportedConfigFile = FileUtil.exists("${tempFileDirectory}/${tempFileName}");
 
 		if ("${exportedConfigFile}" == "true") {
@@ -1078,6 +1085,8 @@ definition {
 
 	@priority = "4"
 	test SingleFactoryConfigurationCanBeExported {
+		property test.name.skip.portal.instance = "InstanceSettings#SingleFactoryConfigurationCanBeExported";
+
 		var openIdConnectClientId = PropsUtil.get("google.client.id.1");
 		var openIdConnectClientSecret = PropsUtil.get("google.client.secret.1");
 
@@ -1100,8 +1109,8 @@ definition {
 		LexiconEntry.viewEntryName(rowEntry = "Google");
 
 		var tempFileName = TestCase.getDownloadedTempFileName(fileNamePattern = "com.liferay.portal.security.sso.openid.connect.internal.configuration.OpenIdConnectProviderConfiguration-*.config");
-
 		var tempFileDirectory = selenium.getOutputDirName();
+
 		var exportedConfigFile = FileUtil.exists("${tempFileDirectory}/${tempFileName}");
 
 		if ("${exportedConfigFile}" == "true") {
@@ -1347,7 +1356,7 @@ definition {
 
 		Navigator.gotoPage(pageName = "AP Test Page");
 
-		AssetPublisherPortlet.configureAddSiteScopes(otherSite = "Site Name");
+		AssetPublisherPortlet.configureScope(otherSite = "Site Name");
 
 		Navigator.gotoPage(pageName = "AP Test Page");
 
@@ -1411,6 +1420,63 @@ definition {
 		Navigator.openURL();
 
 		AssertElementPresent(locator1 = "PageAudit#PAGE_AUDIT_BUTTON");
+	}
+
+	@description = "This is a use case for LPS-156105. The test assert the value of mail setting for new instance is inherited from server level."
+	@priority = "2"
+	test ViewInstanceMailSettingsValueIsInheritedFromServerLevel {
+		property test.name.skip.portal.instance = "InstanceSettings#ViewInstanceMailSettingsValueIsInheritedFromServerLevel";
+
+		task ("Given change the server/company level mail setting value") {
+			ServerAdministration.openServerAdmin();
+
+			Navigator.gotoNavItem(navItem = "Mail");
+
+			FormFields.editText(
+				fieldName = "pop3Host",
+				fieldValue = "popserver");
+
+			PortletEntry.save();
+
+			PortalSettings.gotoConfiguration(
+				configurationCategory = "Email",
+				configurationName = "Mail Settings",
+				configurationScope = "Virtual Instance Scope");
+
+			FormFields.editText(
+				fieldName = "pop3Host",
+				fieldValue = "popcompany");
+
+			PortletEntry.save();
+		}
+
+		task ("When a new instance is added") {
+			PortalInstances.openVirtualInstancesAdmin();
+
+			PortalInstances.addCP(
+				mailDomain = "www.able.com",
+				virtualHost = "www.able.com",
+				webId = "www.able.com");
+
+			User.firstLoginUI(
+				password = "test",
+				specificURL = "http://www.able.com:8080",
+				userEmailAddress = "test@www.able.com");
+
+			Navigator.openSpecificURL(url = "http://www.able.com:8080");
+		}
+
+		task ("Then assert the value of mail setting for new instance is inherited from server level") {
+			PortalSettings.gotoConfiguration(
+				baseURL = "http://www.able.com:8080",
+				configurationCategory = "Email",
+				configurationName = "Mail Settings",
+				configurationScope = "Virtual Instance Scope");
+
+			FormFields.viewTextValue(
+				fieldName = "pop3Host",
+				fieldValue = "popserver");
+		}
 	}
 
 	@description = "This test asserts that a user can update the password changed notification subject and body. The notification also send when set password via json."

@@ -17,12 +17,9 @@ package com.liferay.commerce.shipping.engine.fixed.service.base;
 import com.liferay.commerce.shipping.engine.fixed.model.CommerceShippingFixedOptionQualifier;
 import com.liferay.commerce.shipping.engine.fixed.service.CommerceShippingFixedOptionQualifierLocalService;
 import com.liferay.commerce.shipping.engine.fixed.service.CommerceShippingFixedOptionQualifierLocalServiceUtil;
-import com.liferay.commerce.shipping.engine.fixed.service.persistence.CommerceShippingFixedOptionPersistence;
 import com.liferay.commerce.shipping.engine.fixed.service.persistence.CommerceShippingFixedOptionQualifierPersistence;
-import com.liferay.commerce.shipping.engine.fixed.service.persistence.CommerceShippingFixedOptionRelFinder;
-import com.liferay.commerce.shipping.engine.fixed.service.persistence.CommerceShippingFixedOptionRelPersistence;
 import com.liferay.petra.sql.dsl.query.DSLQuery;
-import com.liferay.portal.kernel.bean.BeanReference;
+import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
 import com.liferay.portal.kernel.dao.jdbc.SqlUpdate;
@@ -40,14 +37,11 @@ import com.liferay.portal.kernel.module.framework.service.IdentifiableOSGiServic
 import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
-import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
+import com.liferay.portal.kernel.service.PersistedModelLocalService;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
-import com.liferay.portal.kernel.service.persistence.ClassNamePersistence;
-import com.liferay.portal.kernel.service.persistence.UserPersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
-import com.liferay.portal.spring.extender.service.ServiceReference;
 
 import java.io.Serializable;
 
@@ -56,6 +50,9 @@ import java.lang.reflect.Field;
 import java.util.List;
 
 import javax.sql.DataSource;
+
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * Provides the base implementation for the commerce shipping fixed option qualifier local service.
@@ -70,7 +67,7 @@ import javax.sql.DataSource;
  */
 public abstract class CommerceShippingFixedOptionQualifierLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
-	implements CommerceShippingFixedOptionQualifierLocalService,
+	implements AopService, CommerceShippingFixedOptionQualifierLocalService,
 			   IdentifiableOSGiService {
 
 	/*
@@ -429,321 +426,26 @@ public abstract class CommerceShippingFixedOptionQualifierLocalServiceBaseImpl
 			commerceShippingFixedOptionQualifier);
 	}
 
-	/**
-	 * Returns the commerce shipping fixed option local service.
-	 *
-	 * @return the commerce shipping fixed option local service
-	 */
-	public com.liferay.commerce.shipping.engine.fixed.service.
-		CommerceShippingFixedOptionLocalService
-			getCommerceShippingFixedOptionLocalService() {
-
-		return commerceShippingFixedOptionLocalService;
+	@Deactivate
+	protected void deactivate() {
+		_setLocalServiceUtilService(null);
 	}
 
-	/**
-	 * Sets the commerce shipping fixed option local service.
-	 *
-	 * @param commerceShippingFixedOptionLocalService the commerce shipping fixed option local service
-	 */
-	public void setCommerceShippingFixedOptionLocalService(
-		com.liferay.commerce.shipping.engine.fixed.service.
-			CommerceShippingFixedOptionLocalService
-				commerceShippingFixedOptionLocalService) {
-
-		this.commerceShippingFixedOptionLocalService =
-			commerceShippingFixedOptionLocalService;
+	@Override
+	public Class<?>[] getAopInterfaces() {
+		return new Class<?>[] {
+			CommerceShippingFixedOptionQualifierLocalService.class,
+			IdentifiableOSGiService.class, PersistedModelLocalService.class
+		};
 	}
 
-	/**
-	 * Returns the commerce shipping fixed option persistence.
-	 *
-	 * @return the commerce shipping fixed option persistence
-	 */
-	public CommerceShippingFixedOptionPersistence
-		getCommerceShippingFixedOptionPersistence() {
-
-		return commerceShippingFixedOptionPersistence;
-	}
-
-	/**
-	 * Sets the commerce shipping fixed option persistence.
-	 *
-	 * @param commerceShippingFixedOptionPersistence the commerce shipping fixed option persistence
-	 */
-	public void setCommerceShippingFixedOptionPersistence(
-		CommerceShippingFixedOptionPersistence
-			commerceShippingFixedOptionPersistence) {
-
-		this.commerceShippingFixedOptionPersistence =
-			commerceShippingFixedOptionPersistence;
-	}
-
-	/**
-	 * Returns the commerce shipping fixed option qualifier local service.
-	 *
-	 * @return the commerce shipping fixed option qualifier local service
-	 */
-	public CommerceShippingFixedOptionQualifierLocalService
-		getCommerceShippingFixedOptionQualifierLocalService() {
-
-		return commerceShippingFixedOptionQualifierLocalService;
-	}
-
-	/**
-	 * Sets the commerce shipping fixed option qualifier local service.
-	 *
-	 * @param commerceShippingFixedOptionQualifierLocalService the commerce shipping fixed option qualifier local service
-	 */
-	public void setCommerceShippingFixedOptionQualifierLocalService(
-		CommerceShippingFixedOptionQualifierLocalService
-			commerceShippingFixedOptionQualifierLocalService) {
-
-		this.commerceShippingFixedOptionQualifierLocalService =
-			commerceShippingFixedOptionQualifierLocalService;
-	}
-
-	/**
-	 * Returns the commerce shipping fixed option qualifier persistence.
-	 *
-	 * @return the commerce shipping fixed option qualifier persistence
-	 */
-	public CommerceShippingFixedOptionQualifierPersistence
-		getCommerceShippingFixedOptionQualifierPersistence() {
-
-		return commerceShippingFixedOptionQualifierPersistence;
-	}
-
-	/**
-	 * Sets the commerce shipping fixed option qualifier persistence.
-	 *
-	 * @param commerceShippingFixedOptionQualifierPersistence the commerce shipping fixed option qualifier persistence
-	 */
-	public void setCommerceShippingFixedOptionQualifierPersistence(
-		CommerceShippingFixedOptionQualifierPersistence
-			commerceShippingFixedOptionQualifierPersistence) {
-
-		this.commerceShippingFixedOptionQualifierPersistence =
-			commerceShippingFixedOptionQualifierPersistence;
-	}
-
-	/**
-	 * Returns the commerce shipping fixed option rel local service.
-	 *
-	 * @return the commerce shipping fixed option rel local service
-	 */
-	public com.liferay.commerce.shipping.engine.fixed.service.
-		CommerceShippingFixedOptionRelLocalService
-			getCommerceShippingFixedOptionRelLocalService() {
-
-		return commerceShippingFixedOptionRelLocalService;
-	}
-
-	/**
-	 * Sets the commerce shipping fixed option rel local service.
-	 *
-	 * @param commerceShippingFixedOptionRelLocalService the commerce shipping fixed option rel local service
-	 */
-	public void setCommerceShippingFixedOptionRelLocalService(
-		com.liferay.commerce.shipping.engine.fixed.service.
-			CommerceShippingFixedOptionRelLocalService
-				commerceShippingFixedOptionRelLocalService) {
-
-		this.commerceShippingFixedOptionRelLocalService =
-			commerceShippingFixedOptionRelLocalService;
-	}
-
-	/**
-	 * Returns the commerce shipping fixed option rel persistence.
-	 *
-	 * @return the commerce shipping fixed option rel persistence
-	 */
-	public CommerceShippingFixedOptionRelPersistence
-		getCommerceShippingFixedOptionRelPersistence() {
-
-		return commerceShippingFixedOptionRelPersistence;
-	}
-
-	/**
-	 * Sets the commerce shipping fixed option rel persistence.
-	 *
-	 * @param commerceShippingFixedOptionRelPersistence the commerce shipping fixed option rel persistence
-	 */
-	public void setCommerceShippingFixedOptionRelPersistence(
-		CommerceShippingFixedOptionRelPersistence
-			commerceShippingFixedOptionRelPersistence) {
-
-		this.commerceShippingFixedOptionRelPersistence =
-			commerceShippingFixedOptionRelPersistence;
-	}
-
-	/**
-	 * Returns the commerce shipping fixed option rel finder.
-	 *
-	 * @return the commerce shipping fixed option rel finder
-	 */
-	public CommerceShippingFixedOptionRelFinder
-		getCommerceShippingFixedOptionRelFinder() {
-
-		return commerceShippingFixedOptionRelFinder;
-	}
-
-	/**
-	 * Sets the commerce shipping fixed option rel finder.
-	 *
-	 * @param commerceShippingFixedOptionRelFinder the commerce shipping fixed option rel finder
-	 */
-	public void setCommerceShippingFixedOptionRelFinder(
-		CommerceShippingFixedOptionRelFinder
-			commerceShippingFixedOptionRelFinder) {
-
-		this.commerceShippingFixedOptionRelFinder =
-			commerceShippingFixedOptionRelFinder;
-	}
-
-	/**
-	 * Returns the counter local service.
-	 *
-	 * @return the counter local service
-	 */
-	public com.liferay.counter.kernel.service.CounterLocalService
-		getCounterLocalService() {
-
-		return counterLocalService;
-	}
-
-	/**
-	 * Sets the counter local service.
-	 *
-	 * @param counterLocalService the counter local service
-	 */
-	public void setCounterLocalService(
-		com.liferay.counter.kernel.service.CounterLocalService
-			counterLocalService) {
-
-		this.counterLocalService = counterLocalService;
-	}
-
-	/**
-	 * Returns the class name local service.
-	 *
-	 * @return the class name local service
-	 */
-	public com.liferay.portal.kernel.service.ClassNameLocalService
-		getClassNameLocalService() {
-
-		return classNameLocalService;
-	}
-
-	/**
-	 * Sets the class name local service.
-	 *
-	 * @param classNameLocalService the class name local service
-	 */
-	public void setClassNameLocalService(
-		com.liferay.portal.kernel.service.ClassNameLocalService
-			classNameLocalService) {
-
-		this.classNameLocalService = classNameLocalService;
-	}
-
-	/**
-	 * Returns the class name persistence.
-	 *
-	 * @return the class name persistence
-	 */
-	public ClassNamePersistence getClassNamePersistence() {
-		return classNamePersistence;
-	}
-
-	/**
-	 * Sets the class name persistence.
-	 *
-	 * @param classNamePersistence the class name persistence
-	 */
-	public void setClassNamePersistence(
-		ClassNamePersistence classNamePersistence) {
-
-		this.classNamePersistence = classNamePersistence;
-	}
-
-	/**
-	 * Returns the resource local service.
-	 *
-	 * @return the resource local service
-	 */
-	public com.liferay.portal.kernel.service.ResourceLocalService
-		getResourceLocalService() {
-
-		return resourceLocalService;
-	}
-
-	/**
-	 * Sets the resource local service.
-	 *
-	 * @param resourceLocalService the resource local service
-	 */
-	public void setResourceLocalService(
-		com.liferay.portal.kernel.service.ResourceLocalService
-			resourceLocalService) {
-
-		this.resourceLocalService = resourceLocalService;
-	}
-
-	/**
-	 * Returns the user local service.
-	 *
-	 * @return the user local service
-	 */
-	public com.liferay.portal.kernel.service.UserLocalService
-		getUserLocalService() {
-
-		return userLocalService;
-	}
-
-	/**
-	 * Sets the user local service.
-	 *
-	 * @param userLocalService the user local service
-	 */
-	public void setUserLocalService(
-		com.liferay.portal.kernel.service.UserLocalService userLocalService) {
-
-		this.userLocalService = userLocalService;
-	}
-
-	/**
-	 * Returns the user persistence.
-	 *
-	 * @return the user persistence
-	 */
-	public UserPersistence getUserPersistence() {
-		return userPersistence;
-	}
-
-	/**
-	 * Sets the user persistence.
-	 *
-	 * @param userPersistence the user persistence
-	 */
-	public void setUserPersistence(UserPersistence userPersistence) {
-		this.userPersistence = userPersistence;
-	}
-
-	public void afterPropertiesSet() {
-		persistedModelLocalServiceRegistry.register(
-			"com.liferay.commerce.shipping.engine.fixed.model.CommerceShippingFixedOptionQualifier",
-			commerceShippingFixedOptionQualifierLocalService);
+	@Override
+	public void setAopProxy(Object aopProxy) {
+		commerceShippingFixedOptionQualifierLocalService =
+			(CommerceShippingFixedOptionQualifierLocalService)aopProxy;
 
 		_setLocalServiceUtilService(
 			commerceShippingFixedOptionQualifierLocalService);
-	}
-
-	public void destroy() {
-		persistedModelLocalServiceRegistry.unregister(
-			"com.liferay.commerce.shipping.engine.fixed.model.CommerceShippingFixedOptionQualifier");
-
-		_setLocalServiceUtilService(null);
 	}
 
 	/**
@@ -807,74 +509,15 @@ public abstract class CommerceShippingFixedOptionQualifierLocalServiceBaseImpl
 		}
 	}
 
-	@BeanReference(
-		type = com.liferay.commerce.shipping.engine.fixed.service.CommerceShippingFixedOptionLocalService.class
-	)
-	protected com.liferay.commerce.shipping.engine.fixed.service.
-		CommerceShippingFixedOptionLocalService
-			commerceShippingFixedOptionLocalService;
-
-	@BeanReference(type = CommerceShippingFixedOptionPersistence.class)
-	protected CommerceShippingFixedOptionPersistence
-		commerceShippingFixedOptionPersistence;
-
-	@BeanReference(
-		type = CommerceShippingFixedOptionQualifierLocalService.class
-	)
 	protected CommerceShippingFixedOptionQualifierLocalService
 		commerceShippingFixedOptionQualifierLocalService;
 
-	@BeanReference(type = CommerceShippingFixedOptionQualifierPersistence.class)
+	@Reference
 	protected CommerceShippingFixedOptionQualifierPersistence
 		commerceShippingFixedOptionQualifierPersistence;
 
-	@BeanReference(
-		type = com.liferay.commerce.shipping.engine.fixed.service.CommerceShippingFixedOptionRelLocalService.class
-	)
-	protected com.liferay.commerce.shipping.engine.fixed.service.
-		CommerceShippingFixedOptionRelLocalService
-			commerceShippingFixedOptionRelLocalService;
-
-	@BeanReference(type = CommerceShippingFixedOptionRelPersistence.class)
-	protected CommerceShippingFixedOptionRelPersistence
-		commerceShippingFixedOptionRelPersistence;
-
-	@BeanReference(type = CommerceShippingFixedOptionRelFinder.class)
-	protected CommerceShippingFixedOptionRelFinder
-		commerceShippingFixedOptionRelFinder;
-
-	@ServiceReference(
-		type = com.liferay.counter.kernel.service.CounterLocalService.class
-	)
+	@Reference
 	protected com.liferay.counter.kernel.service.CounterLocalService
 		counterLocalService;
-
-	@ServiceReference(
-		type = com.liferay.portal.kernel.service.ClassNameLocalService.class
-	)
-	protected com.liferay.portal.kernel.service.ClassNameLocalService
-		classNameLocalService;
-
-	@ServiceReference(type = ClassNamePersistence.class)
-	protected ClassNamePersistence classNamePersistence;
-
-	@ServiceReference(
-		type = com.liferay.portal.kernel.service.ResourceLocalService.class
-	)
-	protected com.liferay.portal.kernel.service.ResourceLocalService
-		resourceLocalService;
-
-	@ServiceReference(
-		type = com.liferay.portal.kernel.service.UserLocalService.class
-	)
-	protected com.liferay.portal.kernel.service.UserLocalService
-		userLocalService;
-
-	@ServiceReference(type = UserPersistence.class)
-	protected UserPersistence userPersistence;
-
-	@ServiceReference(type = PersistedModelLocalServiceRegistry.class)
-	protected PersistedModelLocalServiceRegistry
-		persistedModelLocalServiceRegistry;
 
 }

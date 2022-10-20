@@ -12,7 +12,7 @@
  * details.
  */
 
-import {throttle} from 'frontend-js-web';
+import {openToast, throttle} from 'frontend-js-web';
 import React, {
 	useCallback,
 	useContext,
@@ -25,6 +25,7 @@ import React, {
 import {useDrag, useDrop} from 'react-dnd';
 import {getEmptyImage} from 'react-dnd-html5-backend';
 
+import {FRAGMENT_ENTRY_TYPES} from '../../config/constants/fragmentEntryTypes';
 import {LAYOUT_DATA_ITEM_TYPES} from '../../config/constants/layoutDataItemTypes';
 import {
 	useCollectionItemIndex,
@@ -32,7 +33,7 @@ import {
 	useToControlsId,
 } from '../../contexts/CollectionItemContext';
 import {useSelectItem} from '../../contexts/ControlsContext';
-import {useSelector} from '../../contexts/StoreContext';
+import {useSelectorRef} from '../../contexts/StoreContext';
 import {DRAG_DROP_TARGET_TYPE} from './constants/dragDropTargetType';
 import {TARGET_POSITIONS} from './constants/targetPositions';
 import defaultComputeHover from './defaultComputeHover';
@@ -51,6 +52,11 @@ export const initialDragDrop = {
 	setCanDrag: () => {},
 
 	state: {
+
+		/**
+		 * Id of the closest container of drop item
+		 */
+		dropContainerId: null,
 
 		/**
 		 * Item that is being dragged
@@ -99,6 +105,14 @@ export const initialDragDrop = {
 };
 
 const DragAndDropContext = React.createContext(initialDragDrop);
+
+export function useDropContainerId() {
+	return useContext(DragAndDropContext).state.dropContainerId;
+}
+
+export function useIsDroppable() {
+	return useContext(DragAndDropContext).state.droppable;
+}
 
 export function useSetCanDrag() {
 	return useContext(DragAndDropContext).setCanDrag;
@@ -166,12 +180,22 @@ export function useDragItem(sourceItem, onDragEnd, onBegin = () => {}) {
 	};
 }
 
-export function useDragSymbol({icon, label, type}, onDragEnd) {
+export function useDragSymbol(
+	{fragmentEntryType, icon, label, type},
+	onDragEnd
+) {
 	const selectItem = useSelectItem();
 
 	const sourceItem = useMemo(
-		() => ({icon, isSymbol: true, itemId: label, name: label, type}),
-		[icon, label, type]
+		() => ({
+			fragmentEntryType,
+			icon,
+			isSymbol: true,
+			itemId: label,
+			name: label,
+			type,
+		}),
+		[fragmentEntryType, icon, label, type]
 	);
 
 	const {handlerRef, isDraggingSource, sourceRef} = useDragItem(
@@ -279,10 +303,6 @@ export function useDropTarget(_targetItem, computeHover = defaultComputeHover) {
 }
 
 export function DragAndDropContextProvider({children}) {
-	const layoutDataRef = useRef({
-		items: [],
-	});
-
 	const [canDrag, setCanDrag] = useState(true);
 
 	const [state, reducerDispatch] = useReducer(
@@ -299,11 +319,7 @@ export function DragAndDropContextProvider({children}) {
 		return throttle(reducerDispatch, 100);
 	}, [reducerDispatch]);
 
-	useSelector((state) => {
-		layoutDataRef.current = state.layoutData;
-
-		return null;
-	});
+	const layoutDataRef = useSelectorRef((state) => state.layoutData);
 
 	const dragAndDropContext = useMemo(
 		() => ({
@@ -325,7 +341,45 @@ export function DragAndDropContextProvider({children}) {
 }
 
 function computeDrop({dispatch, layoutDataRef, onDragEnd, state}) {
-	if (state.droppable && state.dropItem && state.dropTargetItem) {
+	if (!state.droppable) {
+		let message = Liferay.Language.get('an-unexpected-error-occurred');
+
+		if (state.dropTargetItem.type === LAYOUT_DATA_ITEM_TYPES.dropZone) {
+			message = Liferay.Language.get(
+				'fragments-and-widgets-cannot-be-placed-inside-this-area'
+			);
+		}
+		else if (
+			state.dropTargetItem.type === LAYOUT_DATA_ITEM_TYPES.collection
+		) {
+			message = Liferay.Language.get(
+				'fragments-cannot-be-placed-inside-an-unmapped-collection-display-fragment'
+			);
+		}
+		else if (state.dropTargetItem.type === LAYOUT_DATA_ITEM_TYPES.form) {
+			message = Liferay.Language.get(
+				'fragments-cannot-be-placed-inside-an-unmapped-form-container'
+			);
+		}
+		else if (
+			state.dropItem.fragmentEntryType === FRAGMENT_ENTRY_TYPES.input
+		) {
+			message = Liferay.Language.get(
+				'form-components-can-only-be-placed-inside-a-mapped-form-container'
+			);
+		}
+
+		openToast({
+			message,
+			type: 'danger',
+		});
+
+		dispatch(initialDragDrop.state);
+
+		return;
+	}
+
+	if (state.dropItem && state.dropTargetItem) {
 		if (state.elevate) {
 			const parentItem =
 				layoutDataRef.current.items[state.dropTargetItem.parentId];

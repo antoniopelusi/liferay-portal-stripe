@@ -224,11 +224,11 @@ public class LayoutTypePortletImpl
 		// specified
 
 		if (startPortlets == null) {
-			startPortlets = new ArrayList<>();
+			startPortlets = Collections.emptyList();
 		}
 
 		if (endPortlets == null) {
-			endPortlets = new ArrayList<>();
+			endPortlets = Collections.emptyList();
 		}
 
 		if (startPortlets.isEmpty() && endPortlets.isEmpty()) {
@@ -269,11 +269,9 @@ public class LayoutTypePortletImpl
 
 	@Override
 	public List<Portlet> getAllPortlets() {
-		List<Portlet> staticPortlets = getStaticPortlets(
-			PropsKeys.LAYOUT_STATIC_PORTLETS_ALL);
-
 		return addStaticPortlets(
-			getExplicitlyAddedPortlets(), staticPortlets,
+			getExplicitlyAddedPortlets(),
+			getStaticPortlets(PropsKeys.LAYOUT_STATIC_PORTLETS_ALL),
 			getEmbeddedPortlets());
 	}
 

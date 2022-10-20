@@ -1,11 +1,11 @@
 @component-name = "portal-analytics-cloud"
 definition {
 
-	property analytics.cloud.enabled = "true";
-	property minimum.slave.ram = "24";
+	property analytics.cloud.release = "true";
+	property analytics.cloud.upstream = "true";
 	property portal.release = "false";
 	property portal.upstream = "true";
-	property slave.label = "slave-1";
+	property property.group = "analytics.cloud.profile";
 	property testray.main.component.name = "Analytics Cloud";
 
 	setUp {
@@ -29,6 +29,8 @@ definition {
 	tearDown {
 		var testPortalInstance = PropsUtil.get("test.portal.instance");
 
+		ACUtils.tearDownAC();
+
 		ACUtils.tearDownDXP();
 
 		if ("${testPortalInstance}" == "true") {
@@ -37,10 +39,6 @@ definition {
 		else {
 			JSONGroup.deleteGroupByName(groupName = "Site Name");
 		}
-
-		JSONUser.tearDownNonAdminUsers();
-
-		ACUtils.tearDownAC();
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-9204 | Test Summary: Add segment using a session property 'Device'"
@@ -339,9 +337,9 @@ definition {
 
 			ACSegments.addSegmentField(segmentField = "URL");
 
-			ACSegments.goToSidebarAttributes(criterion = "Account Attributes");
+			ACSegments.goToSidebarAttributes(criterion = "Individual Attributes");
 
-			ACSegments.addSegmentField(segmentField = "accountName");
+			ACSegments.addSegmentField(segmentField = "additionalName");
 		}
 
 		task ("Assert that Duplicate and Delete are present in the criterias options") {
@@ -355,7 +353,7 @@ definition {
 			MenuItem.viewPresent(menuItem = "Delete");
 
 			Click(
-				criteriaName = "accountName",
+				criteriaName = "additionalName",
 				index = "1",
 				locator1 = "ACSegments#CRITERIA_ELLIPSIS");
 

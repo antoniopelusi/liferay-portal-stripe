@@ -9,20 +9,22 @@
  * distribution rights of the Software.
  */
 
-import getCurrentEndDate from './getCurrentEndDate';
+import getDateCustomFormat from './getDateCustomFormat';
 
-export default function getActivationStatusDateRange(accountSubscriptionTerms) {
-	const dates = accountSubscriptionTerms.reduce(
-		(dateAccumulator, accountSubscriptionTerm) => {
+const dateFormat = {
+	day: '2-digit',
+	month: 'short',
+	year: 'numeric',
+};
+
+export default function getActivationStatusDateRange(orderItems) {
+	const dates = orderItems.reduce(
+		(dateAccumulator, orderItem) => {
+			const options = JSON.parse(orderItem.options);
+
 			return {
-				endDates: [
-					...dateAccumulator.endDates,
-					accountSubscriptionTerm.endDate,
-				],
-				startDates: [
-					...dateAccumulator.startDates,
-					accountSubscriptionTerm.startDate,
-				],
+				endDates: [...dateAccumulator.endDates, options.endDate],
+				startDates: [...dateAccumulator.startDates, options.startDate],
 			};
 		},
 		{endDates: [], startDates: []}
@@ -33,9 +35,10 @@ export default function getActivationStatusDateRange(accountSubscriptionTerms) {
 	const farthestEndDate = new Date(
 		Math.max(...dates.endDates.map((date) => new Date(date)))
 	);
-	const activationStatusDateRange = `${getCurrentEndDate(
-		earliestStartDate
-	)} - ${getCurrentEndDate(farthestEndDate)}`;
+	const activationStatusDateRange = `${getDateCustomFormat(
+		earliestStartDate,
+		dateFormat
+	)} - ${getDateCustomFormat(farthestEndDate, dateFormat)}`;
 
 	return activationStatusDateRange;
 }

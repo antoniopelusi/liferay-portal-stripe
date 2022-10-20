@@ -44,7 +44,6 @@ import com.liferay.headless.commerce.admin.account.internal.util.v1_0.AccountOrg
 import com.liferay.headless.commerce.admin.account.resource.v1_0.AccountResource;
 import com.liferay.headless.commerce.core.util.ExpandoUtil;
 import com.liferay.headless.commerce.core.util.ServiceContextHelper;
-import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -54,9 +53,10 @@ import com.liferay.portal.kernel.model.Country;
 import com.liferay.portal.kernel.model.Region;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Field;
-import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.CountryService;
 import com.liferay.portal.kernel.service.OrganizationLocalService;
 import com.liferay.portal.kernel.service.RegionLocalService;
@@ -69,7 +69,6 @@ import com.liferay.portal.vulcan.dto.converter.DefaultDTOConverterContext;
 import com.liferay.portal.vulcan.multipart.MultipartBody;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
-import com.liferay.portal.vulcan.resource.EntityModelResource;
 import com.liferay.portal.vulcan.util.SearchUtil;
 
 import java.io.IOException;
@@ -93,8 +92,7 @@ import org.osgi.service.component.annotations.ServiceScope;
 	properties = "OSGI-INF/liferay/rest/v1_0/account.properties",
 	scope = ServiceScope.PROTOTYPE, service = AccountResource.class
 )
-public class AccountResourceImpl
-	extends BaseAccountResourceImpl implements EntityModelResource {
+public class AccountResourceImpl extends BaseAccountResourceImpl {
 
 	@Override
 	public Response deleteAccount(Long id) throws Exception {
@@ -210,18 +208,18 @@ public class AccountResourceImpl
 			AccountEntry.class.getName(), search, pagination,
 			queryConfig -> queryConfig.setSelectedFieldNames(
 				Field.ENTRY_CLASS_PK),
-			new UnsafeConsumer() {
+			searchContext -> {
+				PermissionChecker permissionChecker =
+					PermissionThreadLocal.getPermissionChecker();
 
-				public void accept(Object object) throws Exception {
-					SearchContext searchContext = (SearchContext)object;
-
+				if (!permissionChecker.isOmniadmin()) {
 					searchContext.setAttribute(
 						"organizationIds",
 						_organizationLocalService.getUserOrganizationIds(
 							contextUser.getUserId(), true));
-					searchContext.setCompanyId(contextCompany.getCompanyId());
 				}
 
+				searchContext.setCompanyId(contextCompany.getCompanyId());
 			},
 			sorts,
 			document -> _toAccount(

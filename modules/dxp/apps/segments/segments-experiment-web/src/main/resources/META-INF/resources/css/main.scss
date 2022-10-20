@@ -64,6 +64,13 @@ html#{$cadmin-selector} {
 				hyphens: auto;
 				overflow-wrap: break-word;
 			}
+
+			.segments-experiments-empty-state {
+				&__image {
+					height: auto;
+					width: 185px;
+				}
+			}
 		}
 	}
 }

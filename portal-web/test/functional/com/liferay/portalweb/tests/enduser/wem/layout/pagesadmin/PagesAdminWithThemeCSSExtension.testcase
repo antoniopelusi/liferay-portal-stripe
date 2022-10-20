@@ -1,0 +1,619 @@
+@component-name = "portal-wcm"
+definition {
+
+	property custom.properties = "feature.flag.LPS-153457=true";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Site Pages Administration";
+
+	setUp {
+		task ("Set up instance and sign in") {
+			TestCase.setUpPortalInstance();
+
+			User.firstLoginPG();
+		}
+
+		task ("Add a site") {
+			JSONGroup.addGroup(groupName = "Test Site Name");
+		}
+
+		task ("Upload two CSS extension files to Documents and Media") {
+			JSONDocument.addFileWithUploadedFile(
+				dmDocumentTitle = "Font Family",
+				groupName = "Test Site Name",
+				mimeType = "text/css",
+				sourceFileName = "font_family.css");
+
+			JSONDocument.addFileWithUploadedFile(
+				dmDocumentTitle = "Background Color",
+				groupName = "Test Site Name",
+				mimeType = "text/css",
+				sourceFileName = "background_color.css");
+		}
+
+		task ("Get the latest version URL of two documents") {
+			var firstURL = JSONDocument.getLatestVersionURL(
+				dmDocumentTitle = "Font Family",
+				groupName = "Test Site Name");
+			var secondURL = JSONDocument.getLatestVersionURL(
+				dmDocumentTitle = "Background Color",
+				groupName = "Test Site Name");
+		}
+
+		task ("Add two remote apps for CSS extension") {
+			JSONRemoteApp.addRemoteAppEntry(
+				mainURL = "${firstURL}",
+				name = "FontFamily",
+				type = "themeCSS");
+
+			JSONRemoteApp.addRemoteAppEntry(
+				mainURL = "${secondURL}",
+				name = "BackgroundColor",
+				type = "themeCSS");
+		}
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
+
+			RemoteApps.tearDown();
+		}
+	}
+
+	@description = "This is a test for LPS-153653. The site designer could add theme CSS extension to page, page template, and group of pages."
+	@priority = "5"
+	test AddThemeCSSExtension {
+		task ("Given a site designer has a widget page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Page Name");
+		}
+
+		task ("When the site designer accesses to Look and Feel settings of widget page") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			PagesAdmin.gotoPageEllipsisMenuItem(
+				menuItem = "Configure",
+				pageName = "Test Page Name");
+
+			Navigator.gotoNavTab(navTab = "Look and Feel");
+
+			AssertAttributeValue(
+				attribute1 = "placeholder",
+				key_text = "Extension",
+				locator1 = "TextInput#ANY",
+				value1 = "No theme CSS extension was loaded.");
+		}
+
+		task ("Then the site designer could add a theme CSS Extension to widget page") {
+			PagesAdmin.addThemeCSSExtension(extensionName = "FontFamily");
+
+			AssertTextEquals(
+				key_text = "Extension",
+				locator1 = "TextInput#ANY",
+				value1 = "FontFamily");
+
+			PortletEntry.save();
+
+			Navigator.gotoSitePage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			AssertCssValue(
+				locator1 = "//body",
+				locator2 = "font-family",
+				value1 = "&quot;Times New Roman&quot;");
+		}
+
+		task ("Given a site designer has a content page template") {
+			JSONLayoutpagetemplate.addLayoutPageTemplateCollection(
+				groupName = "Test Site Name",
+				layoutPageTemplateCollectionName = "Page Template Collection");
+
+			PageTemplatesAdmin.openPageTemplatesAdmin(siteURLKey = "test-site-name");
+
+			Navigator.gotoNavNested(navNested = "Page Template Collection");
+
+			PageTemplatesAdmin.addPageTemplate(
+				pageTemplateName = "Page Template Name",
+				pageTemplateType = "Content Page Template");
+
+			PageEditor.assertFragmentSidebarLoaded();
+		}
+
+		task ("When the site designer accesses to Look and Feel settings of content page template") {
+			PageEditor.gotoTab(tabName = "Page Design Options");
+
+			Click(locator1 = "PageEditor#MORE_LINK");
+
+			WaitForPageLoad();
+
+			Navigator.gotoNavTab(navTab = "Look and Feel");
+
+			AssertAttributeValue(
+				attribute1 = "placeholder",
+				key_text = "Extension",
+				locator1 = "TextInput#ANY",
+				value1 = "No theme CSS extension was loaded.");
+		}
+
+		task ("Then the site designer could add a theme CSS Extension to widget page") {
+			PagesAdmin.addThemeCSSExtension(extensionName = "FontFamily");
+
+			AssertTextEquals(
+				key_text = "Extension",
+				locator1 = "TextInput#ANY",
+				value1 = "FontFamily");
+
+			PortletEntry.save();
+
+			Navigator.gotoBack();
+
+			PageEditor.assertFragmentSidebarLoaded();
+
+			AssertCssValue(
+				locator1 = "//body",
+				locator2 = "font-family",
+				value1 = "&quot;Times New Roman&quot;");
+		}
+
+		task ("When the site designer accesses to Look and Feel settings of Pages") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			WaitForPageLoad();
+
+			Click(locator1 = "Icon#HEADER_VERTICAL_ELLIPSIS");
+
+			DropdownMenuItem.click(menuItem = "Configuration");
+
+			WaitForPageLoad();
+
+			Navigator.gotoNavTab(navTab = "Look and Feel");
+
+			Panel.expandPanel(panel = "Look and Feel");
+
+			AssertAttributeValue(
+				attribute1 = "placeholder",
+				key_text = "Extension",
+				locator1 = "TextInput#ANY",
+				value1 = "No theme CSS extension was loaded.");
+		}
+
+		task ("Then the site designer could add a theme CSS Extension to Pages") {
+			PagesAdmin.addThemeCSSExtension(extensionName = "BackgroundColor");
+
+			AssertTextEquals(
+				key_text = "Extension",
+				locator1 = "TextInput#ANY",
+				value1 = "BackgroundColor");
+
+			PortletEntry.save();
+
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Content Page Name",
+				type = "content");
+
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
+
+			AssertCssValue(
+				locator1 = "//body",
+				locator2 = "background-color",
+				value1 = "rgba(128, 128, 0, 1)");
+
+			Navigator.gotoSitePage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			AssertCssValue(
+				locator1 = "//body",
+				locator2 = "font-family",
+				value1 = "&quot;Times New Roman&quot;");
+
+			AssertCssValue(
+				locator1 = "//body",
+				locator2 = "background-color",
+				value1 = "rgba(255, 255, 255, 1)");
+		}
+	}
+
+	@description = "This is a test for LPS-153653 and LPS-153658. The site designer could change theme CSS extension selection to an inheritor page. View the inherited theme CSS extension from master."
+	@priority = "5"
+	test ChangeThemeCSSExtensionOfInheritorPage {
+		task ("Given a site designer has a content page template with a theme CSS extension") {
+			JSONLayoutpagetemplate.addLayoutPageTemplateCollection(
+				groupName = "Test Site Name",
+				layoutPageTemplateCollectionName = "Page Template Collection");
+
+			JSONLayoutpagetemplate.addLayoutPageTemplateEntry(
+				groupName = "Test Site Name",
+				layoutPageTemplateCollectionName = "Page Template Collection",
+				layoutPageTemplateEntryName = "Content Page Template",
+				layoutPageTemplateStatus = "Draft",
+				layoutPageTemplateType = "Content Page Template");
+
+			PageTemplatesAdmin.openPageTemplatesAdmin(siteURLKey = "test-site-name");
+
+			Navigator.gotoNavNested(navNested = "Page Template Collection");
+
+			PageTemplatesAdmin.gotoPageTemplate(pageTemplateName = "Content Page Template");
+
+			PageEditor.assertFragmentSidebarLoaded();
+
+			PageEditor.gotoTab(tabName = "Page Design Options");
+
+			Click(locator1 = "PageEditor#MORE_LINK");
+
+			WaitForPageLoad();
+
+			Navigator.gotoNavTab(navTab = "Look and Feel");
+
+			PagesAdmin.addThemeCSSExtension(extensionName = "FontFamily");
+
+			PortletEntry.save();
+
+			Navigator.gotoBack();
+
+			PageEditor.assertFragmentSidebarLoaded();
+
+			PageEditor.publish();
+		}
+
+		task ("When the site designer adds a content page based on content page template") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			ContentPages.addPage(
+				collectionName = "Page Template Collection",
+				pageName = "Test Page Name 1",
+				pageTemplateName = "Content Page Template");
+		}
+
+		task ("Then the site designer could change the theme CSS extension of content page") {
+			PageEditor.gotoTab(tabName = "Page Design Options");
+
+			Click(locator1 = "PageEditor#MORE_LINK");
+
+			WaitForPageLoad();
+
+			Navigator.gotoNavTab(navTab = "Look and Feel");
+
+			PagesAdmin.addThemeCSSExtension(extensionName = "BackgroundColor");
+
+			AssertTextEquals(
+				key_text = "Extension",
+				locator1 = "TextInput#ANY",
+				value1 = "BackgroundColor");
+
+			PortletEntry.save();
+
+			Navigator.gotoBack();
+
+			PageEditor.assertFragmentSidebarLoaded();
+
+			AssertCssValue(
+				locator1 = "//body",
+				locator2 = "background-color",
+				value1 = "rgba(128, 128, 0, 1)");
+
+			AssertCssValue(
+				locator1 = "//body",
+				locator2 = "font-family",
+				value1 = "system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Oxygen-Sans, Ubuntu, Cantarell, &quot;Helvetica Neue&quot;, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;");
+		}
+
+		task ("Given a site designer has a master page with a theme CSS extension") {
+			JSONLayoutpagetemplate.addMasterPageTemplateEntry(
+				groupName = "Test Site Name",
+				masterPageTemplateEntryName = "Master Page Template");
+
+			MastersPageTemplatesAdmin.openMastersAdmin(siteURLKey = "test-site-name");
+
+			MastersPageTemplatesAdmin.gotoMasters(masterLayoutName = "Master Page Template");
+
+			PageEditor.gotoTab(tabName = "Page Design Options");
+
+			Click(locator1 = "PageEditor#MORE_LINK");
+
+			WaitForPageLoad();
+
+			Navigator.gotoNavTab(navTab = "Look and Feel");
+
+			PagesAdmin.addThemeCSSExtension(extensionName = "FontFamily");
+
+			PortletEntry.save();
+
+			Navigator.gotoBack();
+
+			PageEditor.assertFragmentSidebarLoaded();
+
+			MastersPageTemplates.publishMaster();
+		}
+
+		task ("When the site designer adds a content page based on master page") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			ContentPages.addPage(
+				masterLayoutName = "Master Page Template",
+				pageName = "Test Page Name 2");
+		}
+
+		task ("Then the site designer could change the theme CSS extension of content page") {
+			PageEditor.gotoTab(tabName = "Page Design Options");
+
+			Click(locator1 = "PageEditor#MORE_LINK");
+
+			WaitForPageLoad();
+
+			Navigator.gotoNavTab(navTab = "Look and Feel");
+
+			AssertAttributeValue(
+				attribute1 = "placeholder",
+				key_text = "Extension",
+				locator1 = "TextInput#ANY",
+				value1 = "Theme CSS is inherited from master.");
+
+			PagesAdmin.addThemeCSSExtension(extensionName = "BackgroundColor");
+
+			AssertTextEquals(
+				key_text = "Extension",
+				locator1 = "TextInput#ANY",
+				value1 = "BackgroundColor");
+
+			PortletEntry.save();
+
+			Navigator.gotoBack();
+
+			PageEditor.assertFragmentSidebarLoaded();
+
+			AssertCssValue(
+				locator1 = "//body",
+				locator2 = "background-color",
+				value1 = "rgba(128, 128, 0, 1)");
+
+			AssertCssValue(
+				locator1 = "//body",
+				locator2 = "font-family",
+				value1 = "system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Oxygen-Sans, Ubuntu, Cantarell, &quot;Helvetica Neue&quot;, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;");
+		}
+
+		task ("Given a site designer applies a theme CSS extension to the Pages") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			WaitForPageLoad();
+
+			Click(locator1 = "Icon#HEADER_VERTICAL_ELLIPSIS");
+
+			DropdownMenuItem.click(menuItem = "Configuration");
+
+			WaitForPageLoad();
+
+			Navigator.gotoNavTab(navTab = "Look and Feel");
+
+			Panel.expandPanel(panel = "Look and Feel");
+
+			PagesAdmin.addThemeCSSExtension(extensionName = "FontFamily");
+
+			PortletEntry.save();
+		}
+
+		task ("When the site designer adds a widget page") {
+			PagesAdmin.addPage(pageName = "Test Page Name 3");
+		}
+
+		task ("Then the site designer could change the theme CSS extension of widget page") {
+			Navigator.gotoNavTab(navTab = "Look and Feel");
+
+			AssertAttributeValue(
+				attribute1 = "placeholder",
+				key_text = "Extension",
+				locator1 = "TextInput#ANY",
+				value1 = "Theme CSS is inherited from Pages.");
+
+			PagesAdmin.addThemeCSSExtension(extensionName = "BackgroundColor");
+
+			AssertTextEquals(
+				key_text = "Extension",
+				locator1 = "TextInput#ANY",
+				value1 = "BackgroundColor");
+
+			PortletEntry.save();
+
+			Navigator.gotoSitePage(
+				pageName = "Test Page Name 3",
+				siteName = "Test Site Name");
+
+			AssertCssValue(
+				locator1 = "//body",
+				locator2 = "background-color",
+				value1 = "rgba(128, 128, 0, 1)");
+
+			AssertCssValue(
+				locator1 = "//body",
+				locator2 = "font-family",
+				value1 = "system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Oxygen-Sans, Ubuntu, Cantarell, &quot;Helvetica Neue&quot;, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;");
+		}
+	}
+
+	@description = "This is a test for LPS-153653. The site designer could delete inherited theme CSS extension from page template."
+	@priority = "4"
+	test ClearInheritedThemeCSSExtensionFromPageTemplate {
+		task ("Given a site designer has a content page template with a theme CSS extension") {
+			JSONLayoutpagetemplate.addLayoutPageTemplateCollection(
+				groupName = "Test Site Name",
+				layoutPageTemplateCollectionName = "Page Template Collection");
+
+			JSONLayoutpagetemplate.addLayoutPageTemplateEntry(
+				groupName = "Test Site Name",
+				layoutPageTemplateCollectionName = "Page Template Collection",
+				layoutPageTemplateEntryName = "Content Page Template",
+				layoutPageTemplateStatus = "Draft",
+				layoutPageTemplateType = "Content Page Template");
+
+			PageTemplatesAdmin.openPageTemplatesAdmin(siteURLKey = "test-site-name");
+
+			Navigator.gotoNavNested(navNested = "Page Template Collection");
+
+			PageTemplatesAdmin.gotoPageTemplate(pageTemplateName = "Content Page Template");
+
+			PageEditor.assertFragmentSidebarLoaded();
+
+			PageEditor.gotoTab(tabName = "Page Design Options");
+
+			Click(locator1 = "PageEditor#MORE_LINK");
+
+			WaitForPageLoad();
+
+			Navigator.gotoNavTab(navTab = "Look and Feel");
+
+			PagesAdmin.addThemeCSSExtension(extensionName = "FontFamily");
+
+			PortletEntry.save();
+
+			Navigator.gotoBack();
+
+			PageEditor.assertFragmentSidebarLoaded();
+
+			PageEditor.publish();
+		}
+
+		task ("When the site designer adds a content page based on content page template") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			ContentPages.addPage(
+				collectionName = "Page Template Collection",
+				pageName = "Test Page Name",
+				pageTemplateName = "Content Page Template");
+		}
+
+		task ("Then the site designer could clear inherited theme CSS extension") {
+			AssertCssValue(
+				locator1 = "//body",
+				locator2 = "font-family",
+				value1 = "&quot;Times New Roman&quot;");
+
+			PageEditor.gotoTab(tabName = "Page Design Options");
+
+			Click(locator1 = "PageEditor#MORE_LINK");
+
+			WaitForPageLoad();
+
+			Navigator.gotoNavTab(navTab = "Look and Feel");
+
+			AssertTextEquals(
+				key_text = "Extension",
+				locator1 = "TextInput#ANY",
+				value1 = "FontFamily");
+
+			Click(
+				key_fieldLabel = "Extension",
+				key_text = "trash",
+				locator1 = "Icon#ANY_ITEM_SELECTOR");
+
+			AssertTextEquals(
+				key_text = "Extension",
+				locator1 = "TextInput#ANY",
+				value1 = "");
+
+			AssertAttributeValue(
+				attribute1 = "placeholder",
+				key_text = "Extension",
+				locator1 = "TextInput#ANY",
+				value1 = "No theme CSS extension was loaded.");
+
+			PortletEntry.save();
+
+			Navigator.gotoBack();
+
+			PageEditor.assertFragmentSidebarLoaded();
+
+			AssertCssValue(
+				locator1 = "//body",
+				locator2 = "font-family",
+				value1 = "system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Oxygen-Sans, Ubuntu, Cantarell, &quot;Helvetica Neue&quot;, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;");
+		}
+	}
+
+	@description = "This is a test for LPS-153653. The site designer could delete the theme CSS extenion selection."
+	@priority = "4"
+	test ClearThemeCSSExtensionSelection {
+		task ("Given a site designer has a content page with a theme CSS extension") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Page Name",
+				type = "content");
+
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.gotoTab(tabName = "Page Design Options");
+
+			Click(locator1 = "PageEditor#MORE_LINK");
+
+			WaitForPageLoad();
+
+			Navigator.gotoNavTab(navTab = "Look and Feel");
+
+			PagesAdmin.addThemeCSSExtension(extensionName = "FontFamily");
+
+			AssertTextEquals(
+				key_text = "Extension",
+				locator1 = "TextInput#ANY",
+				value1 = "FontFamily");
+
+			PortletEntry.save();
+
+			Navigator.gotoBack();
+
+			PageEditor.assertFragmentSidebarLoaded();
+		}
+
+		task ("When the site designer accesses to the Look and Feel settings") {
+			PageEditor.gotoTab(tabName = "Page Design Options");
+
+			Click(locator1 = "PageEditor#MORE_LINK");
+
+			WaitForPageLoad();
+		}
+
+		task ("Then the site designer could clear the theme CSS extension selection") {
+			Navigator.gotoNavTab(navTab = "Look and Feel");
+
+			Click(
+				key_fieldLabel = "Extension",
+				key_text = "trash",
+				locator1 = "Icon#ANY_ITEM_SELECTOR");
+
+			AssertTextEquals(
+				key_text = "Extension",
+				locator1 = "TextInput#ANY",
+				value1 = "");
+
+			AssertAttributeValue(
+				attribute1 = "placeholder",
+				key_text = "Extension",
+				locator1 = "TextInput#ANY",
+				value1 = "No theme CSS extension was loaded.");
+
+			PortletEntry.save();
+
+			Navigator.gotoBack();
+
+			PageEditor.assertFragmentSidebarLoaded();
+
+			AssertCssValue(
+				locator1 = "//body",
+				locator2 = "font-family",
+				value1 = "system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Oxygen-Sans, Ubuntu, Cantarell, &quot;Helvetica Neue&quot;, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;");
+		}
+	}
+
+}

@@ -30,13 +30,13 @@ export default function ForkNode({
 	return (
 		<BaseNode
 			actions={actions}
-			className="fork-node"
 			description={description}
 			descriptionSidebar={descriptionSidebar}
 			icon="arrow-split"
 			id={id}
 			label={label}
 			newNode={newNode}
+			nodeTypeClassName="fork-node"
 			notifications={notifications}
 			type="fork"
 			{...otherProps}

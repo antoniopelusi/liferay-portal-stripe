@@ -53,7 +53,7 @@ else {
 	<aui:input name="type" type="hidden" value="<%= type %>" />
 
 	<div class="lfr-form-content">
-		<liferay-ui:error exception="<%= CPMeasurementUnitKeyException.class %>" message="please-enter-a-valid-key" />
+		<liferay-ui:error exception="<%= DuplicateCPMeasurementUnitKeyException.class %>" message="please-enter-a-valid-key" />
 
 		<aui:model-context bean="<%= cpMeasurementUnit %>" model="<%= CPMeasurementUnit.class %>" />
 
@@ -90,7 +90,7 @@ else {
 </aui:form>
 
 <c:if test="<%= cpMeasurementUnit == null %>">
-	<aui:script require="commerce-frontend-js/utilities/debounce as debounce, commerce-frontend-js/utilities/slugify as slugify">
+	<aui:script require="frontend-js-web/liferay/debounce/debounce.es as debounce, commerce-frontend-js/utilities/slugify as slugify">
 		var form = document.getElementById('<portlet:namespace />fm');
 
 		var keyInput = form.querySelector('#<portlet:namespace />key');

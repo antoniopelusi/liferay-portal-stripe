@@ -91,6 +91,7 @@ import com.liferay.portal.struts.TilesUtil;
 import com.liferay.portal.struts.model.ActionForward;
 import com.liferay.portal.struts.model.ActionMapping;
 import com.liferay.portal.struts.model.ModuleConfig;
+import com.liferay.portal.tools.DBUpgrader;
 import com.liferay.portal.util.MaintenanceUtil;
 import com.liferay.portal.util.PortalInstances;
 import com.liferay.portal.util.PropsUtil;
@@ -138,16 +139,17 @@ public class MainServlet extends HttpServlet {
 			_log.debug("Destroy plugins");
 		}
 
-		DependencyManagerSyncUtil.sync();
+		_licenseInstallModuleServiceLifecycleServiceRegistration.unregister();
+
+		_systemCheckModuleServiceLifecycleServiceRegistration.unregister();
+
+		_servletContextServiceRegistration.unregister();
+
+		_portalPortletsInitializedModuleServiceLifecycleServiceRegistration.
+			unregister();
 
 		_portalInitializedModuleServiceLifecycleServiceRegistration.
 			unregister();
-		_portalPortletsInitializedModuleServiceLifecycleServiceRegistration.
-			unregister();
-		_servletContextServiceRegistration.unregister();
-		_systemCheckModuleServiceLifecycleServiceRegistration.unregister();
-
-		_licenseInstallModuleServiceLifecycleServiceRegistration.unregister();
 
 		PortalLifecycleUtil.flushDestroys();
 
@@ -339,11 +341,14 @@ public class MainServlet extends HttpServlet {
 		}
 
 		try {
-			String xml = StreamUtil.toString(
-				servletContext.getResourceAsStream(
-					"/WEB-INF/shielded-container-web.xml"));
+			_checkShieldedContainerWebXml(
+				StreamUtil.toString(
+					servletContext.getResourceAsStream(
+						"/WEB-INF/shielded-container-web.xml")));
 
-			_checkWebSettings(xml);
+			_checkWebXml(
+				StreamUtil.toString(
+					servletContext.getResourceAsStream("/WEB-INF/web.xml")));
 		}
 		catch (Exception exception) {
 			_log.error(exception);
@@ -386,6 +391,12 @@ public class MainServlet extends HttpServlet {
 			_log.error(exception);
 		}
 
+		if (PropsValues.UPGRADE_DATABASE_AUTO_RUN) {
+			DBUpgrader.upgradeModules();
+
+			StartupHelperUtil.setUpgrading(false);
+		}
+
 		servletContext.setAttribute(WebKeys.STARTUP_FINISHED, Boolean.TRUE);
 
 		StartupHelperUtil.setStartupFinished(true);
@@ -420,6 +431,8 @@ public class MainServlet extends HttpServlet {
 		}
 
 		ThreadLocalCacheManager.clearAll(Lifecycle.REQUEST);
+
+		DependencyManagerSyncUtil.sync();
 	}
 
 	@Override
@@ -603,17 +616,27 @@ public class MainServlet extends HttpServlet {
 		}
 	}
 
-	private void _checkWebSettings(String xml) throws DocumentException {
-		Document doc = UnsecureSAXReaderUtil.read(xml);
+	private void _checkShieldedContainerWebXml(String xml)
+		throws DocumentException {
 
-		Element root = doc.getRootElement();
+		Document document = UnsecureSAXReaderUtil.read(xml);
+
+		I18nServlet.setLanguageIds(document.getRootElement());
+
+		I18nFilter.setLanguageIds(I18nServlet.getLanguageIds());
+	}
+
+	private void _checkWebXml(String xml) throws DocumentException {
+		Document document = UnsecureSAXReaderUtil.read(xml);
+
+		Element rootElement = document.getRootElement();
 
 		int timeout = PropsValues.SESSION_TIMEOUT;
 
-		Element sessionConfig = root.element("session-config");
+		Element sessionConfigElement = rootElement.element("session-config");
 
-		if (sessionConfig != null) {
-			String sessionTimeout = sessionConfig.elementText(
+		if (sessionConfigElement != null) {
+			String sessionTimeout = sessionConfigElement.elementText(
 				"session-timeout");
 
 			timeout = GetterUtil.getInteger(sessionTimeout, timeout);
@@ -622,10 +645,6 @@ public class MainServlet extends HttpServlet {
 		PropsUtil.set(PropsKeys.SESSION_TIMEOUT, String.valueOf(timeout));
 
 		PropsValues.SESSION_TIMEOUT = timeout;
-
-		I18nServlet.setLanguageIds(root);
-
-		I18nFilter.setLanguageIds(I18nServlet.getLanguageIds());
 	}
 
 	private void _destroyCompanies() throws Exception {
@@ -728,8 +747,13 @@ public class MainServlet extends HttpServlet {
 
 		if (StartupHelperUtil.isDBNew()) {
 			CompanyLocalServiceUtil.addCompany(
-				null, PropsValues.COMPANY_DEFAULT_WEB_ID, "localhost",
-				PropsValues.COMPANY_DEFAULT_WEB_ID, false, 0, true);
+				null, PropsValues.COMPANY_DEFAULT_WEB_ID,
+				GetterUtil.getString(
+					PropsValues.COMPANY_DEFAULT_VIRTUAL_HOST_NAME, "localhost"),
+				GetterUtil.getString(
+					PropsValues.COMPANY_DEFAULT_VIRTUAL_HOST_MAIL_DOMAIN,
+					PropsValues.COMPANY_DEFAULT_WEB_ID),
+				false, 0, true);
 		}
 
 		ServletContext servletContext = getServletContext();
@@ -738,7 +762,15 @@ public class MainServlet extends HttpServlet {
 			String[] webIds = PortalInstances.getWebIds();
 
 			for (String webId : webIds) {
-				PortalInstances.initCompany(servletContext, webId);
+				boolean skipCheck = false;
+
+				if (StartupHelperUtil.isDBNew() &&
+					webId.equals(PropsValues.COMPANY_DEFAULT_WEB_ID)) {
+
+					skipCheck = true;
+				}
+
+				PortalInstances.initCompany(servletContext, webId, skipCheck);
 			}
 		}
 		finally {

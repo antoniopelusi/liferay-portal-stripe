@@ -68,7 +68,7 @@ definition {
 				fieldName = "Author Profile Image",
 				panel = "Styles");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a new user with Administrator role") {
@@ -102,6 +102,7 @@ definition {
 			PortletEntry.save();
 
 			var userPortrait = selenium.getAttribute("//img[contains(@id,'avatar') and contains(@src,'image')]@src");
+
 			var userPortrait = StringUtil.extractLast("${userPortrait}", "image/");
 		}
 
@@ -181,7 +182,7 @@ definition {
 				fragmentName = "Heading",
 				id = "element-text");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Mark the display page template as default") {
@@ -236,7 +237,7 @@ definition {
 				fieldName = "Last Editor Profile Image",
 				panel = "Styles");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Mark the display page as default") {
@@ -258,6 +259,7 @@ definition {
 				locator1 = "UsersAndOrganizationsEditUser#DETAILS_PROFILE_IMAGE");
 
 			var userPortrait = selenium.getAttribute("//img[contains(@id,'avatar') and contains(@src,'image')]@src");
+
 			var userPortrait = StringUtil.extractLast("${userPortrait}", "image/");
 		}
 
@@ -305,6 +307,7 @@ definition {
 			PortletEntry.save();
 
 			var userPortrait = selenium.getAttribute("//img[contains(@id,'avatar') and contains(@src,'image')]@src");
+
 			var userPortrait = StringUtil.extractLast("${userPortrait}", "image/");
 		}
 
@@ -358,11 +361,11 @@ definition {
 			PageEditorEditableLink.updateURL(url = "https://liferay.com");
 
 			AssertVisible(
-				key_append = "//img[contains(@src,'Document_1.jpg')]",
+				key_append = "//img[contains(@src,'document_1-jpg')]",
 				key_url = "https://liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a web content based on Basic Web Content") {
@@ -398,12 +401,12 @@ definition {
 
 		task ("Assert mapped URL work in display page template") {
 			AssertVisible(
-				key_append = "//img[contains(@src,'Document_1.jpg')]",
+				key_append = "//img[contains(@src,'document_1-jpg')]",
 				key_url = "https://liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			Click(
-				key_append = "//img[contains(@src,'Document_1.jpg')]",
+				key_append = "//img[contains(@src,'document_1-jpg')]",
 				key_url = "https://liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
@@ -434,7 +437,7 @@ definition {
 
 			PageEditorEditableLink.updateURL(url = "https://liferay.com");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View the mapped URL in link editable field") {
@@ -473,7 +476,7 @@ definition {
 				key_url = "https://liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a web content based on Basic Web Content") {
@@ -566,7 +569,7 @@ definition {
 				fragmentName = "Paragraph",
 				id = "element-text");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a web content based on new structure") {
@@ -635,7 +638,7 @@ definition {
 				var n = ${n} + 1;
 			}
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Mark the display page as default") {
@@ -715,7 +718,7 @@ definition {
 
 			PageEditorEditableLink.mapURLToAsset(field = "Text");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a web content based on new structure") {
@@ -802,7 +805,7 @@ definition {
 
 			PageEditorEditableLink.mapURLToAsset(field = "Text");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a web content based on new structure") {
@@ -889,7 +892,7 @@ definition {
 
 			PageEditorEditableLink.mapURLToAsset(field = "Text");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a web content based on new structure") {
@@ -976,7 +979,7 @@ definition {
 				fieldName = "Image",
 				panel = "Styles");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a web content based on new structure") {
@@ -1249,7 +1252,7 @@ definition {
 		}
 
 		task ("Mark the display page template as default") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Document Display Page");
 		}
@@ -1344,7 +1347,7 @@ definition {
 	@description = "This is a test for LPS-118060. The contributed content types and their subtypes are available when creating a display page template."
 	@priority = "5"
 	test ViewTypesDuringCreation {
-		property osgi.app.includes = "document-library-google-docs";
+		property osgi.modules.includes = "document-library-google-docs";
 		property portal.acceptance = "true";
 
 		task ("Add a custom Web Content structure") {
@@ -1398,7 +1401,9 @@ definition {
 				locator1 = "Select#GENERIC_SELECT_FIELD",
 				value1 = "Web Content Article");
 
-			Pause(locator1 = "3000");
+			WaitForEditable(
+				key_fieldLabel = "Subtype",
+				locator1 = "Select#GENERIC_SELECT_FIELD");
 
 			for (var subtype : list "Basic Web Content,WC Structure Name") {
 				AssertElementPresent(
@@ -1412,7 +1417,9 @@ definition {
 				locator1 = "Select#GENERIC_SELECT_FIELD",
 				value1 = "Document");
 
-			Pause(locator1 = "3000");
+			WaitForEditable(
+				key_fieldLabel = "Subtype",
+				locator1 = "Select#GENERIC_SELECT_FIELD");
 
 			for (var subtype : list "Basic Document,Google Drive Shortcut,DM Document Type Name") {
 				AssertElementPresent(

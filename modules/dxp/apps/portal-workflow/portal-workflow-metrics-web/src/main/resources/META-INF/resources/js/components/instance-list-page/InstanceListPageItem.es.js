@@ -228,7 +228,7 @@ function QuickActionMenu({disabled, instance, setShowInstanceTrackerModal}) {
 		},
 	];
 
-	if (transitions.length > 0) {
+	if (transitions.length) {
 		const transitionItems = [
 			{
 				type: 'divider',
@@ -254,7 +254,7 @@ function QuickActionMenu({disabled, instance, setShowInstanceTrackerModal}) {
 
 		kebabItems.push(...transitionItems);
 	}
-	else if (transitions.length === 0 && taskNames.length > 1) {
+	else if (!transitions.length && taskNames.length > 1) {
 		kebabItems.splice(
 			1,
 			1,
@@ -352,6 +352,7 @@ function DueDateSLAResults({slaResults, slaStatusIconInfo}) {
 					header={Liferay.Language.get('due-date')}
 					onMouseEnter={() => setPopover(true)}
 					onMouseLeave={() => setPopover(false)}
+					onShowChange={setPopover}
 					show={popover}
 					trigger={
 						<div

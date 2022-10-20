@@ -11,9 +11,9 @@
 
 import ClayButton from '@clayui/button';
 import ClayDropDown from '@clayui/drop-down';
-import ClayManagementToolbar from '@clayui/management-toolbar';
 import ClaySlider from '@clayui/slider';
 import classNames from 'classnames';
+import {ManagementToolbar} from 'frontend-js-components-web';
 import {debounce} from 'frontend-js-web';
 import React, {useEffect, useState} from 'react';
 
@@ -52,9 +52,9 @@ function DiagramHeader({
 	}, [pinsRadius]);
 
 	return (
-		<ClayManagementToolbar className="py-2">
-			<ClayManagementToolbar.ItemList>
-				<ClayManagementToolbar.Item>
+		<ManagementToolbar.Container className="py-2">
+			<ManagementToolbar.ItemList>
+				<ManagementToolbar.Item>
 					<label className="mr-3">
 						{Liferay.Language.get('pin-size')}
 					</label>
@@ -127,7 +127,7 @@ function DiagramHeader({
 												id="custom-radius-slider"
 												max={PINS_RADIUS.MAX}
 												min={PINS_RADIUS.MIN}
-												onValueChange={updatePinsRadius}
+												onChange={updatePinsRadius}
 												showTooltip={false}
 												step={PINS_RADIUS.STEP}
 												value={pinsRadius}
@@ -138,9 +138,9 @@ function DiagramHeader({
 							</ClayDropDown.Group>
 						</ClayDropDown.ItemList>
 					</ClayDropDown>
-				</ClayManagementToolbar.Item>
-			</ClayManagementToolbar.ItemList>
-		</ClayManagementToolbar>
+				</ManagementToolbar.Item>
+			</ManagementToolbar.ItemList>
+		</ManagementToolbar.Container>
 	);
 }
 

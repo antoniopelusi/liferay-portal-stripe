@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.portlet.PortletRequest;
@@ -30,6 +31,11 @@ import javax.portlet.PortletRequest;
  * @author Tom Wang
  */
 public interface JournalHelper {
+
+	public String createURLPattern(
+			JournalArticle article, Locale locale, boolean privateLayout,
+			String separator, ThemeDisplay themeDisplay)
+		throws PortalException;
 
 	public String diffHtml(
 			long groupId, String articleId, double sourceVersion,

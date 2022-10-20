@@ -5,7 +5,75 @@ definition {
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property setup.wizard.enabled = "true";
+	property test.assert.warning.exceptions = "true";
 	property testray.main.component.name = "Setup Wizard";
+
+	@priority = "3"
+	test MySQLtoEmptyMySQL {
+		property databases.size = "1";
+		property test.name.skip.portal.instance = "SetupWizardMySQL#MySQLtoEmptyMySQL";
+
+		SetupWizard.configurePG(
+			administratorEmail = "test@liferay.com",
+			administratorFirstName = "Test",
+			administratorLastName = "Test",
+			databaseName = "lportal1",
+			databasePassword = PropsUtil.get("database.mysql.password"),
+			databaseType = "MySQL",
+			databaseUserName = PropsUtil.get("database.mysql.username"),
+			jdbcDriverClassName = PropsUtil.get("database.mysql.driver"),
+			jdbcURL = PropsUtil.get("database.mysql.url"));
+
+		Smoke.viewWelcomeContentPage();
+
+		Smoke.runSmoke();
+	}
+
+	@priority = "3"
+	test MySQLtoHSQL {
+		property database.types = "hypersonic";
+		property test.name.skip.portal.instance = "SetupWizardMySQL#MySQLtoHSQL";
+
+		SetupWizard.configurePG(
+			administratorEmail = "test@liferay.com",
+			administratorFirstName = "Test",
+			administratorLastName = "Test",
+			databasePassword = PropsUtil.get("database.hypersonic.password"),
+			databaseType = "Hypersonic",
+			databaseUserName = PropsUtil.get("database.hypersonic.username"),
+			jdbcDriverClassName = PropsUtil.get("database.hypersonic.driver"),
+			jdbcURL = PropsUtil.get("database.hypersonic.url"));
+
+		Smoke.viewWelcomeContentPage();
+
+		Smoke.runSmoke();
+	}
+
+	@priority = "3"
+	test MySQLtoHSQLDeleteLiferayHome {
+		property database.types = "hypersonic";
+		property test.name.skip.portal.instance = "SetupWizardMySQL#MySQLtoHSQLDeleteLiferayHome";
+
+		Portlet.shutdownServer();
+
+		Portlet.startServer(
+			base_branch = "${base_branch}",
+			deleteLiferayHome = "true");
+
+		SetupWizard.configurePG(
+			administratorEmail = "test@liferay.com",
+			administratorFirstName = "Test",
+			administratorLastName = "Test",
+			databasePassword = PropsUtil.get("database.hypersonic.password"),
+			databaseType = "Hypersonic",
+			databaseUserName = PropsUtil.get("database.hypersonic.username"),
+			jdbcDriverClassName = PropsUtil.get("database.hypersonic.driver"),
+			jdbcURL = PropsUtil.get("database.hypersonic.url"));
+
+		Smoke.viewWelcomeContentPage();
+
+		Smoke.runSmoke();
+	}
 
 	@priority = "4"
 	test MySQLtoMySQLEditedAdministratorUser {

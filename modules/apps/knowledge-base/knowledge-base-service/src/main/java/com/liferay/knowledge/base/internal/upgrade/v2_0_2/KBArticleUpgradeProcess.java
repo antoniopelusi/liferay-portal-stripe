@@ -35,7 +35,7 @@ public class KBArticleUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		try (SafeCloseable safeCloseable = addTempIndex(
+		try (SafeCloseable safeCloseable = addTemporaryIndex(
 				"KBArticle", false, "groupId", "kbFolderId", "urlTitle")) {
 
 			boolean changed = true;

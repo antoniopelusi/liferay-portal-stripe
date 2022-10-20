@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.scripting.Scripting;
 import com.liferay.portal.kernel.scripting.ScriptingException;
 import com.liferay.portal.kernel.scripting.ScriptingExecutor;
+import com.liferay.portal.kernel.scripting.ScriptingValidator;
 import com.liferay.portal.kernel.scripting.UnsupportedLanguageException;
 
 import java.io.IOException;
@@ -113,6 +114,16 @@ public class ScriptingImpl implements Scripting {
 		return _scriptingExecutors.keySet();
 	}
 
+	@Override
+	public void validate(String language, String script)
+		throws ScriptingException {
+
+		ScriptingValidator scriptingValidator = _scriptingValidators.get(
+			language);
+
+		scriptingValidator.validate(script);
+	}
+
 	@Reference(
 		cardinality = ReferenceCardinality.MULTIPLE,
 		policy = ReferencePolicy.DYNAMIC,
@@ -123,10 +134,28 @@ public class ScriptingImpl implements Scripting {
 			scriptingExecutor.getLanguage(), scriptingExecutor);
 	}
 
+	@Reference(
+		cardinality = ReferenceCardinality.MULTIPLE,
+		policy = ReferencePolicy.DYNAMIC,
+		policyOption = ReferencePolicyOption.GREEDY
+	)
+	protected void setScriptingValidator(
+		ScriptingValidator scriptingValidator) {
+
+		_scriptingValidators.put(
+			scriptingValidator.getLanguage(), scriptingValidator);
+	}
+
 	protected void unsetScriptingExecutors(
 		ScriptingExecutor scriptingExecutor) {
 
 		_scriptingExecutors.remove(scriptingExecutor.getLanguage());
+	}
+
+	protected void unsetScriptingValidator(
+		ScriptingValidator scriptingValidator) {
+
+		_scriptingValidators.remove(scriptingValidator.getLanguage());
 	}
 
 	private String _getErrorMessage(String script, Exception exception) {
@@ -171,6 +200,8 @@ public class ScriptingImpl implements Scripting {
 	private static final Log _log = LogFactoryUtil.getLog(ScriptingImpl.class);
 
 	private final Map<String, ScriptingExecutor> _scriptingExecutors =
+		new ConcurrentHashMap<>();
+	private final Map<String, ScriptingValidator> _scriptingValidators =
 		new ConcurrentHashMap<>();
 
 }

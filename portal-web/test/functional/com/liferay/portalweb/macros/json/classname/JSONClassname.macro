@@ -11,6 +11,7 @@ definition {
 			  -u test@liferay.com:test \
 			  -d value=${value}
 		''';
+
 		var classNameId = JSONCurlUtil.post("${curl}", "$.[?(@['value'] == '${value}')]['classNameId']");
 
 		if ("${classNameId}" == "") {

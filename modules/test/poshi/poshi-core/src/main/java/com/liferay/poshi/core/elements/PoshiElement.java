@@ -23,6 +23,7 @@ import com.liferay.poshi.core.util.PropsValues;
 import com.liferay.poshi.core.util.RegexUtil;
 import com.liferay.poshi.core.util.StringPool;
 import com.liferay.poshi.core.util.StringUtil;
+import com.liferay.poshi.core.util.Validator;
 
 import java.net.URL;
 
@@ -333,9 +334,6 @@ public abstract class PoshiElement
 			String poshiScriptSnippet = poshiNode.toPoshiScript();
 
 			if (((previousPoshiNode == null) ||
-				 ((previousPoshiNode instanceof VarPoshiElement) &&
-				  !(previousPoshiNode instanceof PropertyPoshiElement) &&
-				  (poshiNode instanceof VarPoshiElement)) ||
 				 ((previousPoshiNode instanceof PropertyPoshiElement) &&
 				  (poshiNode instanceof PropertyPoshiElement)) ||
 				 ((previousPoshiNode instanceof InlinePoshiComment) &&
@@ -348,6 +346,9 @@ public abstract class PoshiElement
 
 			String padPoshiScriptSnippet = padPoshiScriptSnippet(
 				poshiScriptSnippet);
+
+			padPoshiScriptSnippet = _removeEmptyLineBetweenVariables(
+				padPoshiScriptSnippet, poshiNode, previousPoshiNode);
 
 			if (padPoshiScriptSnippet.startsWith("\n\n") &&
 				StringUtil.endsWith(
@@ -556,7 +557,11 @@ public abstract class PoshiElement
 						sb.toString()) &&
 					!nestedConditions.isEmpty()) {
 
-					nestedConditions.add(sb.toString());
+					String nestedCondition = sb.toString();
+
+					if (!nestedCondition.contains("maxIterations")) {
+						nestedConditions.add(nestedCondition);
+					}
 				}
 			}
 
@@ -668,7 +673,9 @@ public abstract class PoshiElement
 				continue;
 			}
 
-			if (trimmedPoshiScriptSnippet.startsWith("var") && (c != ';')) {
+			if (_isVarPoshiScriptSnippet(trimmedPoshiScriptSnippet) &&
+				(c != ';')) {
+
 				continue;
 			}
 
@@ -1021,11 +1028,61 @@ public abstract class PoshiElement
 		}
 	}
 
+	private boolean _isVarPoshiScriptSnippet(String poshiScriptSnippet) {
+		poshiScriptSnippet = StringUtil.trimLeading(poshiScriptSnippet);
+
+		if (poshiScriptSnippet.startsWith("static") ||
+			poshiScriptSnippet.startsWith("var")) {
+
+			Matcher matcher = _varNamePattern.matcher(poshiScriptSnippet);
+
+			return matcher.find();
+		}
+
+		return false;
+	}
+
+	private String _removeEmptyLineBetweenVariables(
+		String poshiScriptSnippet, PoshiNode<?, ?> poshiNode,
+		PoshiNode<?, ?> previousPoshiNode) {
+
+		if ((previousPoshiNode == null) ||
+			!_isVarPoshiScriptSnippet(previousPoshiNode.toPoshiScript()) ||
+			!_isVarPoshiScriptSnippet(poshiNode.toPoshiScript())) {
+
+			return poshiScriptSnippet;
+		}
+
+		String previousVariableName = StringPool.BLANK;
+		PoshiElement previousPoshiElement = (PoshiElement)previousPoshiNode;
+
+		if (previousPoshiNode instanceof VarPoshiElement) {
+			previousVariableName = previousPoshiElement.attributeValue("name");
+		}
+		else if (previousPoshiNode instanceof ExecutePoshiElement) {
+			Element element = previousPoshiElement.element("return");
+
+			if (element != null) {
+				previousVariableName = element.attributeValue("name");
+			}
+		}
+
+		if (Validator.isNotNull(previousVariableName) &&
+			!poshiScriptSnippet.contains("${" + previousVariableName + "}")) {
+
+			return poshiScriptSnippet.replaceFirst("\n\n", "\n");
+		}
+
+		return poshiScriptSnippet;
+	}
+
 	private static final Pattern _nestedConditionPattern = Pattern.compile(
 		"(\\|{2}|\\&{2})");
 	private static final Pattern _poshiScriptCommentPattern = Pattern.compile(
 		"^[\\s]*(\\/\\/.*?(\\n|$)|\\/\\*.*?\\*\\/)", Pattern.DOTALL);
 	private static final Pattern _varInvocationAssignmentStatementPattern;
+	private static final Pattern _varNamePattern = Pattern.compile(
+		VAR_NAME_REGEX);
 
 	static {
 		INVOCATION_REGEX = "[\\s]*[\\w\\.]*" + PARAMETER_REGEX;

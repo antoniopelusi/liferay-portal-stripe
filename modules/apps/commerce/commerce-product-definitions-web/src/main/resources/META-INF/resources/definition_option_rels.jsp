@@ -63,8 +63,7 @@ CPDefinition cpDefinition = cpDefinitionOptionRelDisplayContext.getCPDefinition(
 					})
 					.then((e) => {
 						Liferay.fire(events.UPDATE_DATASET_DISPLAY, {
-							id:
-								'<%= CommerceProductDataSetConstants.COMMERCE_DATA_SET_KEY_PRODUCT_OPTIONS %>',
+							id: '<%= CommerceProductFDSNames.PRODUCT_OPTIONS %>',
 						});
 						return null;
 					});
@@ -116,9 +115,7 @@ CPDefinition cpDefinition = cpDefinitionOptionRelDisplayContext.getCPDefinition(
 				itemCreatedMessage: '<%= LanguageUtil.get(request, "option-created") %>',
 				itemSelectedMessage: '<%= LanguageUtil.get(request, "option-selected") %>',
 				itemsKey: 'id',
-				linkedDatasetsId: [
-					'<%= CommerceProductDataSetConstants.COMMERCE_DATA_SET_KEY_PRODUCT_OPTIONS %>',
-				],
+				linkedDatasetsId: ['<%= CommerceProductFDSNames.PRODUCT_OPTIONS %>'],
 				multiSelectableEntries: true,
 				onItemCreated: addNewItem,
 				onItemSelected: selectItem,
@@ -130,7 +127,7 @@ CPDefinition cpDefinition = cpDefinitionOptionRelDisplayContext.getCPDefinition(
 						fieldName: ['name', 'LANG'],
 					},
 				],
-				spritemap: '<%= themeDisplay.getPathThemeImages() %>/clay/icons.svg',
+				spritemap: '<%= FrontendIconsUtil.getSpritemap(themeDisplay) %>',
 				titleLabel: '<%= LanguageUtil.get(request, "add-existing-option") %>',
 			});
 		</aui:script>
@@ -140,19 +137,22 @@ CPDefinition cpDefinition = cpDefinitionOptionRelDisplayContext.getCPDefinition(
 			elementClasses="mt-4"
 			title='<%= LanguageUtil.get(request, "options") %>'
 		>
-			<aui:form action="<%= cpDefinitionOptionRelDisplayContext.getPortletURL() %>" method="post" name="fm">
-				<clay:data-set-display
+			<portlet:actionURL name="/cp_definitions/edit_cp_definition" var="editProductDefinitionOptionRelsActionURL" />
+
+			<aui:form action="<%= editProductDefinitionOptionRelsActionURL %>" method="post" name="fm">
+				<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
+				<aui:input name="cpDefinitionId" type="hidden" value="<%= cpDefinitionOptionRelDisplayContext.getCPDefinitionId() %>" />
+				<aui:input name="workflowAction" type="hidden" value="<%= WorkflowConstants.ACTION_SAVE_DRAFT %>" />
+
+				<frontend-data-set:classic-display
 					contextParams='<%=
 						HashMapBuilder.<String, String>put(
 							"cpDefinitionId", String.valueOf(cpDefinitionOptionRelDisplayContext.getCPDefinitionId())
 						).build()
 					%>'
-					dataProviderKey="<%= CommerceProductDataSetConstants.COMMERCE_DATA_SET_KEY_PRODUCT_OPTIONS %>"
-					id="<%= CommerceProductDataSetConstants.COMMERCE_DATA_SET_KEY_PRODUCT_OPTIONS %>"
+					dataProviderKey="<%= CommerceProductFDSNames.PRODUCT_OPTIONS %>"
+					id="<%= CommerceProductFDSNames.PRODUCT_OPTIONS %>"
 					itemsPerPage="<%= 10 %>"
-					namespace="<%= liferayPortletResponse.getNamespace() %>"
-					pageNumber="<%= 1 %>"
-					portletURL="<%= currentURLObj %>"
 					selectedItemsKey="cpdefinitionOptionRelId"
 				/>
 			</aui:form>

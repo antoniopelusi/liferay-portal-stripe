@@ -1,62 +1,26 @@
-*,
-*:after,
-*:before {
-	box-sizing: border-box;
-	font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-	margin: 0;
-	padding: 0;
-}
-
-body {
-	font-size: 100%;
-	list-style-type: none;
-}
-
-.cursor-pointer {
-	cursor: pointer;
-}
-
-.dropdown-menu {
-	z-index: 9999;
-}
-
-.portlet {
-	margin-bottom: 0;
-}
-
 @import 'liferay';
+
+@import 'variables';
 
 // stylelint-disable selector-type-no-unknown
 liferay-remote-app-testray {
-	@import 'variables';
-
 	@import 'typography';
 
 	@import 'components/avatar';
 	@import 'components/chart';
+	@import 'components/code';
 	@import 'components/layout';
 	@import 'components/progress_bar';
 	@import 'components/table';
-}
+	@import 'components/tablechart';
 
-.dropdown-section .custom-control-label {
-	color: unset;
-}
+	.subnav-tbar-primary {
+		background-color: white;
 
-.management-bar {
-	div:nth-child(1) {
-		max-width: none;
-	}
-
-	.navbar-nav {
-		flex-wrap: initial;
-	}
-}
-
-.subnav-tbar {
-	background-color: #b3cdff;
-
-	div:nth-child(1) {
-		max-width: none;
+		.result-filter {
+			background-color: $color-primary-dark;
+			border-color: $color-primary-dark;
+			color: $color-white;
+		}
 	}
 }

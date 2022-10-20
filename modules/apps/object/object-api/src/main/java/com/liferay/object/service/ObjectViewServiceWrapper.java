@@ -40,13 +40,15 @@ public class ObjectViewServiceWrapper
 			java.util.Map<java.util.Locale, String> nameMap,
 			java.util.List<com.liferay.object.model.ObjectViewColumn>
 				objectViewColumns,
+			java.util.List<com.liferay.object.model.ObjectViewFilterColumn>
+				objectViewFilterColumns,
 			java.util.List<com.liferay.object.model.ObjectViewSortColumn>
 				objectViewSortColumns)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _objectViewService.addObjectView(
 			objectDefinitionId, defaultObjectView, nameMap, objectViewColumns,
-			objectViewSortColumns);
+			objectViewFilterColumns, objectViewSortColumns);
 	}
 
 	@Override
@@ -80,13 +82,15 @@ public class ObjectViewServiceWrapper
 			java.util.Map<java.util.Locale, String> nameMap,
 			java.util.List<com.liferay.object.model.ObjectViewColumn>
 				objectViewColumns,
+			java.util.List<com.liferay.object.model.ObjectViewFilterColumn>
+				objectViewFilterColumns,
 			java.util.List<com.liferay.object.model.ObjectViewSortColumn>
 				objectViewSortColumns)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _objectViewService.updateObjectView(
 			objectViewId, defaultObjectView, nameMap, objectViewColumns,
-			objectViewSortColumns);
+			objectViewFilterColumns, objectViewSortColumns);
 	}
 
 	@Override

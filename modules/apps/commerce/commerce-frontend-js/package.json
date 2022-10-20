@@ -15,10 +15,8 @@
 			"!<rootDir>/src/**/entry.js"
 		],
 		"testPathIgnorePatterns": [
-			"<rootDir>/test/components/AddToCart",
 			"<rootDir>/test/components/MiniCart",
-			"<rootDir>/test/components/QuantitySelector",
-			"<rootDir>/test/utils/"
+			"<rootDir>/test/tests_utilities/"
 		]
 	},
 	"main": "index.js",
@@ -32,5 +30,5 @@
 		"test": "liferay-npm-scripts test",
 		"watch": "liferay-npm-scripts webpack --watch"
 	},
-	"version": "4.0.47"
+	"version": "4.0.58"
 }

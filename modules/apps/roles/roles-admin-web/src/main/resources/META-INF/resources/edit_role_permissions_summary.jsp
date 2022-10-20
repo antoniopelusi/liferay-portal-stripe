@@ -22,32 +22,37 @@ EditRolePermissionsSummaryDisplayContext editRolePermissionsSummaryDisplayContex
 SearchContainer<PermissionDisplay> searchContainer = editRolePermissionsSummaryDisplayContext.getSearchContainer();
 %>
 
-<clay:sheet>
-	<clay:sheet-header>
-		<h3 class="sheet-title"><liferay-ui:message key="summary" /></h3>
-	</clay:sheet-header>
+<aui:form action="#" method="POST" name="fm">
+	<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
 
-	<clay:sheet-section>
-		<liferay-ui:search-iterator
-			paginate="<%= false %>"
-			searchContainer="<%= searchContainer %>"
-			searchResultCssClass="show-quick-actions-on-hover table table-autofit"
-		/>
-	</clay:sheet-section>
+	<clay:sheet>
+		<clay:sheet-header>
+			<h3 class="sheet-title"><liferay-ui:message key="summary" /></h3>
+		</clay:sheet-header>
 
-	<c:if test="<%= searchContainer.getTotal() > 0 %>">
-		<clay:sheet-footer>
-			<clay:content-row>
-				<clay:content-col
-					cssClass="taglib-search-iterator-page-iterator-bottom"
-					expand="<%= true %>"
-				>
-					<liferay-ui:search-paginator
-						markupView="lexicon"
-						searchContainer="<%= searchContainer %>"
-					/>
-				</clay:content-col>
-			</clay:content-row>
-		</clay:sheet-footer>
-	</c:if>
-</clay:sheet>
+		<clay:sheet-section>
+			<liferay-ui:search-iterator
+				markupView="deprecated"
+				paginate="<%= false %>"
+				searchContainer="<%= searchContainer %>"
+				searchResultCssClass="show-quick-actions-on-hover table table-autofit"
+			/>
+		</clay:sheet-section>
+
+		<c:if test="<%= searchContainer.getTotal() > 0 %>">
+			<clay:sheet-footer>
+				<clay:content-row>
+					<clay:content-col
+						cssClass="taglib-search-iterator-page-iterator-bottom"
+						expand="<%= true %>"
+					>
+						<liferay-ui:search-paginator
+							markupView="lexicon"
+							searchContainer="<%= searchContainer %>"
+						/>
+					</clay:content-col>
+				</clay:content-row>
+			</clay:sheet-footer>
+		</c:if>
+	</clay:sheet>
+</aui:form>

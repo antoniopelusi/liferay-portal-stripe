@@ -14,8 +14,8 @@
 
 package com.liferay.portal.security.auth.tunnel;
 
-import com.liferay.petra.encryptor.Encryptor;
-import com.liferay.petra.encryptor.EncryptorException;
+import com.liferay.portal.kernel.encryptor.EncryptorException;
+import com.liferay.portal.kernel.encryptor.EncryptorUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.User;
@@ -42,9 +42,6 @@ import java.util.Objects;
 import javax.crypto.spec.SecretKeySpec;
 
 import javax.servlet.http.HttpServletRequest;
-
-import org.apache.commons.codec.DecoderException;
-import org.apache.commons.codec.binary.Hex;
 
 /**
  * @author Tomas Polesovsky
@@ -82,7 +79,8 @@ public class TunnelAuthenticationManagerImpl
 			HttpAuthorizationHeader.AUTH_PARAMETER_NAME_USERNAME);
 
 		try {
-			expectedPassword = Encryptor.encrypt(getSharedSecretKey(), login);
+			expectedPassword = EncryptorUtil.encrypt(
+				getSharedSecretKey(), login);
 		}
 		catch (EncryptorException encryptorException) {
 			AuthException authException = new RemoteAuthException(
@@ -150,7 +148,7 @@ public class TunnelAuthenticationManagerImpl
 		HttpAuthorizationHeader httpAuthorizationHeader =
 			new HttpAuthorizationHeader(HttpAuthorizationHeader.SCHEME_BASIC);
 
-		String password = Encryptor.encrypt(getSharedSecretKey(), login);
+		String password = EncryptorUtil.encrypt(getSharedSecretKey(), login);
 
 		httpAuthorizationHeader.setAuthParameter(
 			HttpAuthorizationHeader.AUTH_PARAMETER_NAME_PASSWORD, password);
@@ -184,11 +182,11 @@ public class TunnelAuthenticationManagerImpl
 
 		if (PropsValues.TUNNELING_SERVLET_SHARED_SECRET_HEX) {
 			try {
-				key = Hex.decodeHex(sharedSecret.toCharArray());
+				key = StringUtil.hexStringToBytes(sharedSecret);
 			}
-			catch (DecoderException decoderException) {
+			catch (IllegalArgumentException illegalArgumentException) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(decoderException);
+					_log.warn(illegalArgumentException);
 				}
 
 				AuthException authException = new AuthException();

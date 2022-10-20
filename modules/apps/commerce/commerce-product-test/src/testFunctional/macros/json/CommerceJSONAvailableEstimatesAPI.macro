@@ -29,7 +29,6 @@ definition {
 
 	macro _getAvailableEstimatesCount {
 		var availableEstimatesCount = "0";
-
 		var commerceAvailabilityEstimateIds = CommerceJSONAvailableEstimatesAPI._getCommerceAvailableEstimates();
 
 		for (var commerceAvailabilityEstimateId : list "${commerceAvailabilityEstimateIds}") {

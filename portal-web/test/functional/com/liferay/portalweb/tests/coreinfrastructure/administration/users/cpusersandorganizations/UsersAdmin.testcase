@@ -77,7 +77,7 @@ definition {
 
 		PageEditor.addWidget(portletName = "Asset Publisher");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/test-content-page-name");
 
@@ -836,6 +836,30 @@ definition {
 			userComment = "test");
 
 		AssertConsoleTextNotPresent(value1 = "java.lang.NullPointerException");
+	}
+
+	@description = "This is a use case for LPS-159181. Assert user can add widget to its private site page."
+	@priority = "4"
+	test CanAddWidgettoMyDashbaordPage {
+		UserBar.gotoDropdownItem(dropdownItem = "My Dashboard");
+
+		Portlet.addPG(portletName = "Calendar");
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Dashboard");
+
+		Portlet.viewDefaultTitle(portletName = "Calendar");
+	}
+
+	@description = "This is a use case for LPS-159181. Assert user can add widget to its public site page."
+	@priority = "4"
+	test CanAddWidgettoMyProfilePage {
+		Navigator.gotoPersonalSite();
+
+		Portlet.addPG(portletName = "Asset Publisher");
+
+		Navigator.gotoPersonalSite();
+
+		Portlet.viewDefaultTitle(portletName = "Asset Publisher");
 	}
 
 	@priority = "3"
@@ -1807,8 +1831,6 @@ definition {
 			User.logoutPG();
 
 			User.forgotPasswordSendResetLink(userEmailAddress = "userea@liferay.com");
-
-			Pause(locator1 = "30000");
 		}
 
 		task ("And open link to reset password in email") {
@@ -2287,7 +2309,6 @@ definition {
 			script = "${script}");
 
 		var companyId = JSONCompany.getCompanyId();
-
 		var userId = JSONUserSetter.setUserId(userEmailAddress = "test@liferay.com");
 
 		AssertTextEquals.assertPartialText(
@@ -2528,7 +2549,7 @@ definition {
 
 		MockMock.viewMail(
 			asset = "${portalURL}: Your New Account",
-			content = "Your can setup your password here: ${portalURL}/c/portal/update_password?",
+			content = "You can setup your password here: ${portalURL}/c/portal/update_password?",
 			recipient = "userfn userln",
 			sender = "Joe Bloggs",
 			subject = "${portalURL}: Your New Account");
@@ -2804,8 +2825,8 @@ definition {
 		Site.openSiteSettingsAdmin(siteURLKey = "my-site");
 
 		Site.addVirtualHostsURLCP(
-			publicPageVirtualHostURL = "www.able.com",
-			publicVirtualHosts = "true");
+			pageVirtualHosts = "true",
+			publicPageVirtualHostURL = "www.able.com");
 
 		Navigator.gotoBack();
 

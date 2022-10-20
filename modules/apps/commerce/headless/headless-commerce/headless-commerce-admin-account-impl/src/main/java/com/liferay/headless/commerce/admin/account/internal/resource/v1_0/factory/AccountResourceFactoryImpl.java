@@ -14,6 +14,7 @@
 
 package com.liferay.headless.commerce.admin.account.internal.resource.v1_0.factory;
 
+import com.liferay.headless.commerce.admin.account.internal.security.permission.LiberalPermissionChecker;
 import com.liferay.headless.commerce.admin.account.resource.v1_0.AccountResource;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.User;
@@ -193,7 +194,7 @@ public class AccountResourceFactoryImpl implements AccountResource.Factory {
 		}
 		else {
 			PermissionThreadLocal.setPermissionChecker(
-				_liberalPermissionCheckerFactory.create(user));
+				new LiberalPermissionChecker(user));
 		}
 
 		AccountResource accountResource = _componentServiceObjects.getService();
@@ -254,9 +255,6 @@ public class AccountResourceFactoryImpl implements AccountResource.Factory {
 
 	@Reference
 	private GroupLocalService _groupLocalService;
-
-	@Reference(target = "(permission.checker.type=liberal)")
-	private PermissionCheckerFactory _liberalPermissionCheckerFactory;
 
 	@Reference
 	private ResourceActionLocalService _resourceActionLocalService;

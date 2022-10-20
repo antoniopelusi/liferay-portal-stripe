@@ -27,28 +27,29 @@ import com.liferay.commerce.pricing.exception.CommercePriceModifierTypeException
 import com.liferay.commerce.pricing.exception.DuplicateCommercePriceModifierException;
 import com.liferay.commerce.pricing.exception.NoSuchPriceModifierException;
 import com.liferay.commerce.pricing.model.CommercePriceModifier;
+import com.liferay.commerce.pricing.service.CommercePriceModifierRelLocalService;
 import com.liferay.commerce.pricing.service.CommercePricingClassLocalService;
 import com.liferay.commerce.pricing.service.base.CommercePriceModifierLocalServiceBaseImpl;
 import com.liferay.commerce.pricing.type.CommercePriceModifierType;
 import com.liferay.commerce.pricing.type.CommercePriceModifierTypeRegistry;
 import com.liferay.commerce.product.model.CPDefinition;
 import com.liferay.expando.kernel.service.ExpandoRowLocalService;
-import com.liferay.portal.kernel.bean.BeanReference;
+import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.service.WorkflowInstanceLinkLocalService;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.OrderByComparator;
-import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.workflow.WorkflowHandlerRegistryUtil;
-import com.liferay.portal.spring.extender.service.ServiceReference;
 
 import java.io.Serializable;
 
@@ -63,9 +64,17 @@ import java.util.Set;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * @author Riccardo Alberti
  */
+@Component(
+	enabled = false,
+	property = "model.class.name=com.liferay.commerce.pricing.model.CommercePriceModifier",
+	service = AopService.class
+)
 public class CommercePriceModifierLocalServiceImpl
 	extends CommercePriceModifierLocalServiceBaseImpl {
 
@@ -132,11 +141,11 @@ public class CommercePriceModifierLocalServiceImpl
 
 		// Commerce price modifier
 
-		User user = userLocalService.getUser(serviceContext.getUserId());
+		User user = _userLocalService.getUser(serviceContext.getUserId());
 
 		Date date = new Date();
 
-		Date displayDate = PortalUtil.getDate(
+		Date displayDate = _portal.getDate(
 			displayDateMonth, displayDateDay, displayDateYear, displayDateHour,
 			displayDateMinute, user.getTimeZone(),
 			CommercePriceModifierDisplayDateException.class);
@@ -144,7 +153,7 @@ public class CommercePriceModifierLocalServiceImpl
 		Date expirationDate = null;
 
 		if (!neverExpire) {
-			expirationDate = PortalUtil.getDate(
+			expirationDate = _portal.getDate(
 				expirationDateMonth, expirationDateDay, expirationDateYear,
 				expirationDateHour, expirationDateMinute, user.getTimeZone(),
 				CommercePriceModifierExpirationDateException.class);
@@ -273,7 +282,7 @@ public class CommercePriceModifierLocalServiceImpl
 
 		// Commerce price modifier rels
 
-		commercePriceModifierRelLocalService.deleteCommercePriceModifierRels(
+		_commercePriceModifierRelLocalService.deleteCommercePriceModifierRels(
 			commercePriceModifier.getCommercePriceModifierId());
 
 		// Commerce price modifier
@@ -405,7 +414,7 @@ public class CommercePriceModifierLocalServiceImpl
 			boolean neverExpire, ServiceContext serviceContext)
 		throws PortalException {
 
-		User user = userLocalService.getUser(serviceContext.getUserId());
+		User user = _userLocalService.getUser(serviceContext.getUserId());
 
 		CommercePriceModifier commercePriceModifier =
 			commercePriceModifierPersistence.findByPrimaryKey(
@@ -416,14 +425,14 @@ public class CommercePriceModifierLocalServiceImpl
 		String currentTarget = commercePriceModifier.getTarget();
 
 		if (!currentTarget.equals(target)) {
-			commercePriceModifierRelLocalService.
+			_commercePriceModifierRelLocalService.
 				deleteCommercePriceModifierRels(
 					commercePriceModifier.getCommercePriceModifierId());
 		}
 
 		Date date = new Date();
 
-		Date displayDate = PortalUtil.getDate(
+		Date displayDate = _portal.getDate(
 			displayDateMonth, displayDateDay, displayDateYear, displayDateHour,
 			displayDateMinute, user.getTimeZone(),
 			CommercePriceModifierDisplayDateException.class);
@@ -431,7 +440,7 @@ public class CommercePriceModifierLocalServiceImpl
 		Date expirationDate = null;
 
 		if (!neverExpire) {
-			expirationDate = PortalUtil.getDate(
+			expirationDate = _portal.getDate(
 				expirationDateMonth, expirationDateDay, expirationDateYear,
 				expirationDateHour, expirationDateMinute, user.getTimeZone(),
 				CommercePriceModifierExpirationDateException.class);
@@ -474,7 +483,7 @@ public class CommercePriceModifierLocalServiceImpl
 			Map<String, Serializable> workflowContext)
 		throws PortalException {
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 		Date date = new Date();
 
 		CommercePriceModifier commercePriceModifier =
@@ -528,7 +537,7 @@ public class CommercePriceModifierLocalServiceImpl
 		for (CommercePriceModifier commercePriceModifier :
 				commercePriceModifiers) {
 
-			long userId = PortalUtil.getValidUserId(
+			long userId = _portal.getValidUserId(
 				commercePriceModifier.getCompanyId(),
 				commercePriceModifier.getUserId());
 
@@ -563,7 +572,7 @@ public class CommercePriceModifierLocalServiceImpl
 			for (CommercePriceModifier commercePriceModifier :
 					commercePriceModifiers) {
 
-				long userId = PortalUtil.getValidUserId(
+				long userId = _portal.getValidUserId(
 					commercePriceModifier.getCompanyId(),
 					commercePriceModifier.getUserId());
 
@@ -674,20 +683,30 @@ public class CommercePriceModifierLocalServiceImpl
 	private static final Log _log = LogFactoryUtil.getLog(
 		CommercePriceModifierLocalServiceImpl.class);
 
-	@ServiceReference(type = AssetEntryLocalService.class)
+	@Reference
 	private AssetEntryLocalService _assetEntryLocalService;
 
-	@ServiceReference(type = CommercePriceModifierTypeRegistry.class)
+	@Reference
+	private CommercePriceModifierRelLocalService
+		_commercePriceModifierRelLocalService;
+
+	@Reference
 	private CommercePriceModifierTypeRegistry
 		_commercePriceModifierTypeRegistry;
 
-	@BeanReference(type = CommercePricingClassLocalService.class)
+	@Reference
 	private CommercePricingClassLocalService _commercePricingClassLocalService;
 
-	@ServiceReference(type = ExpandoRowLocalService.class)
+	@Reference
 	private ExpandoRowLocalService _expandoRowLocalService;
 
-	@ServiceReference(type = WorkflowInstanceLinkLocalService.class)
+	@Reference
+	private Portal _portal;
+
+	@Reference
+	private UserLocalService _userLocalService;
+
+	@Reference
 	private WorkflowInstanceLinkLocalService _workflowInstanceLinkLocalService;
 
 }

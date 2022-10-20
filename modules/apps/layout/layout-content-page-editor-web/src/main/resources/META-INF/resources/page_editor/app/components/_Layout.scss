@@ -1,4 +1,5 @@
 $editablesBorderWidth: 1px;
+$editableTypes: 'link', 'rich-text', 'text';
 $emptyItemMinHeight: 180px;
 $emptyCollectionItemMinWidth: 124px;
 $emptyColumnMinWidth: 48px;
@@ -7,6 +8,20 @@ $dashedBorderWidth: 2px;
 
 html#{$cadmin-selector} {
 	.page-editor {
+		&.is-dragging {
+			.page-editor__fragment-content,
+			.empty {
+				opacity: 0.5;
+				transition: opacity 0.2s;
+			}
+
+			.drop-container .page-editor__fragment-content,
+			.drop-container .empty,
+			.drop-container.empty {
+				opacity: 1;
+			}
+		}
+
 		&__collection {
 			&__block {
 				box-shadow: inset 0 0 0 1px fade_out($cadmin-purple, 0.7);
@@ -126,23 +141,21 @@ html#{$cadmin-selector} {
 		}
 
 		&__container.empty,
-		&__row {
-			&.empty {
-				min-height: $emptyItemMinHeight;
+		&__row.empty {
+			min-height: $emptyItemMinHeight;
 
-				&.flex-column-reverse {
-					.page-editor__col {
-						flex: 1;
+			&.flex-column-reverse {
+				.page-editor__col {
+					flex: 1;
 
-						&__border {
-							min-height: $emptyItemMinHeight / 2;
-						}
+					&__border {
+						min-height: $emptyItemMinHeight / 2;
 					}
 				}
+			}
 
-				.page-editor__col {
-					min-height: $emptyItemMinHeight / 2;
-				}
+			.page-editor__col {
+				min-height: $emptyItemMinHeight / 2;
 			}
 		}
 
@@ -195,6 +208,15 @@ html#{$cadmin-selector} {
 
 			&--active {
 				box-shadow: inset 0 0 0 $editablesBorderWidth $cadmin-primary;
+
+				&:not(.page-editor__editable--mapped) {
+					@each $type in $editableTypes {
+						&[type='#{$type}'],
+						&[data-lfr-editable-type='#{$type}'] {
+							cursor: text;
+						}
+					}
+				}
 			}
 		}
 
@@ -212,18 +234,33 @@ html#{$cadmin-selector} {
 			left: 1px;
 		}
 
-		&__no-fragments-message {
+		&__no-fragments-state {
 			background: $cadmin-primary-l3;
 			border: $dashedBorderWidth dashed $cadmin-primary-l2;
-			padding: 15vh 0;
+			padding: 15vh 5vw;
+
+			&.page-editor__form-unmapped-state {
+				border: none;
+				box-shadow: inset 0 0 0 1px $cadmin-primary-l2;
+			}
+
+			&__message,
+			&__title {
+				font-family: $cadmin-font-family-base;
+				text-align: center;
+			}
+
+			&__message {
+				color: $secondary;
+				font-size: 14px;
+				margin: 0;
+			}
 
 			&__title {
-				color: $cadmin-gray-500;
-				font-family: $cadmin-font-family-base;
-				font-size: 14px;
+				color: $dark;
+				font-size: 16px;
 				font-weight: 600;
-				margin-top: 0;
-				text-align: center;
+				margin-bottom: 12px;
 			}
 		}
 

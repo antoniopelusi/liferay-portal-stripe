@@ -1,6 +1,7 @@
 @component-name = "portal-batch-engine"
 definition {
 
+	property custom.properties = "feature.flag.COMMERCE-8087=true";
 	property portal.release = "false";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Batch Engine";
@@ -23,6 +24,77 @@ definition {
 			JSONAccountEntryAPI._deleteAllAccountEntries();
 
 			BatchPlanner.batchPlannerTearDown();
+
+			JSONUser.tearDownNonAdminUsers();
+		}
+	}
+
+	@description = "Verify users can download the original import file in the executions list after a completed import"
+	@priority = "3"
+	test CanDownloadOriginalImportFile {
+		property portal.acceptance = "true";
+
+		task ("Given a completed import") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.importFile(
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
+				fieldMappings = "name:Account Name,type:Account Type,description:Account Description,externalReferenceCode:External Reference Code",
+				fileName = "csv_account_import.csv");
+		}
+
+		task ("When the user goes to the Import/Export Center and clicks on the ellipses for the import execution") {
+			ImportExport.openImportExportAdmin();
+
+			Click.waitForMenuToggleJSClick(locator1 = "Icon#BODY_VERTICAL_ELLIPSIS");
+		}
+
+		task ("And the user clicks on the Download Original File menu item") {
+			MenuItem.click(menuItem = "Download Original File");
+		}
+
+		task ("Then the original import file is downloaded") {
+			DownloadTempFile();
+
+			var originalFileDownloadName = TestCase.getDownloadedTempFileName(fileNamePattern = "*.zip");
+
+			AntCommand(
+				locator1 = "build-test.xml",
+				value1 = "unzip-temp-file -DfileName=${originalFileDownloadName}");
+
+			var originalFileDownloadName = TestCase.getDownloadedTempFileName(fileNamePattern = "csv_account_import-*.csv");
+
+			ImportExport.assertFileContent(
+				comparisonFileName = "csv_account_import.csv",
+				fileName = "${originalFileDownloadName}");
+		}
+	}
+
+	@description = "Verify users can download a sample file for a selected entity so that they can fill it with data and import it"
+	@priority = "3"
+	test CanDownloadSampleImportFile {
+		property portal.acceptance = "true";
+
+		task ("Given the user is in the import page") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoImport();
+		}
+
+		task ("When the user selects an entity and clicks on the Download a Sample File for This Entity button") {
+			ImportExport.selectEntity(entityType = "Account (v1_0 - Liferay Headless Admin User)");
+
+			Click.clickAt(locator1 = "ImportExport#SAMPLE_FILE_DOWNLOAD_BUTTON");
+		}
+
+		task ("Then a sample file for that entity should be downloaded") {
+			DownloadTempFile();
+
+			var sampleFileName = TestCase.getDownloadedTempFileName(fileNamePattern = "account-*.csv");
+
+			ImportExport.assertFileContent(
+				comparisonFileName = "csv_account_import_sample.csv",
+				fileName = "${sampleFileName}");
 		}
 	}
 
@@ -49,16 +121,15 @@ definition {
 			ImportExport.openImportExportAdmin();
 
 			ImportExport.exportFile(
-				entityType = "Channel",
+				entityType = "Channel (v1_0 - Liferay Headless Commerce Admin Channel)",
 				exportFields = "name,type,currencyCode",
-				exportFileFormat = "CSV",
-				headlessEndpoint = "/headless-commerce-admin-channel");
+				exportFileFormat = "CSV");
 		}
 
 		task ("Then only those fields should be imported") {
-			ImportExport.assertExportFileContent(
+			ImportExport.assertFileContent(
 				comparisonFileName = "csv_channel_import_auto_map.csv",
-				exportFileName = "export.csv");
+				fileName = "export.csv");
 		}
 	}
 
@@ -74,9 +145,7 @@ definition {
 
 			UploadDependencyFile.uploadFile(fileName = "csv_account_import.csv");
 
-			ImportExport.selectEntity(
-				entityType = "Account",
-				headlessEndpoint = "/headless-admin-user");
+			ImportExport.selectEntity(entityType = "Account (v1_0 - Liferay Headless Admin User)");
 		}
 
 		task ("When the user maps only specific fields and imports the file") {
@@ -139,16 +208,50 @@ definition {
 			ImportExport.openImportExportAdmin();
 
 			ImportExport.exportFile(
-				entityType = "Channel",
+				entityType = "Channel (v1_0 - Liferay Headless Commerce Admin Channel)",
 				exportFields = "name,type,currencyCode",
-				exportFileFormat = "JSON",
-				headlessEndpoint = "/headless-commerce-admin-channel");
+				exportFileFormat = "JSON");
 		}
 
-		task ("Then only those fields should be imported") {
-			ImportExport.assertExportFileContent(
+		task ("Then only those fields should be exported") {
+			ImportExport.assertFileContent(
 				comparisonFileName = "json_channel_import.txt",
-				exportFileName = "export.json");
+				fileName = "export.json");
+		}
+	}
+
+	@description = "Verify users can exclude fields from being exported in JSONL format"
+	@priority = "3"
+	test CanExcludeJSONLFieldsFromExport {
+		property portal.acceptance = "true";
+
+		task ("Given several channels") {
+			CommerceJSONChannelsAPI._addChannel(
+				channelName = "Test Channel 1",
+				channelType = "site",
+				currencyCode = "USD",
+				externalReferenceCode = "101");
+
+			CommerceJSONChannelsAPI._addChannel(
+				channelName = "Test Channel 2",
+				channelType = "site",
+				currencyCode = "CAD",
+				externalReferenceCode = "102");
+		}
+
+		task ("When the user selects specific channel fields for export and exports the channels in JSONL format") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.exportFile(
+				entityType = "Channel (v1_0 - Liferay Headless Commerce Admin Channel)",
+				exportFields = "name,type,currencyCode",
+				exportFileFormat = "JSONL");
+		}
+
+		task ("Then only those fields should be exported") {
+			ImportExport.assertFileContent(
+				comparisonFileName = "jsonl_channel_import.jsonl",
+				fileName = "export.jsonl");
 		}
 	}
 
@@ -181,16 +284,15 @@ definition {
 			ImportExport.openImportExportAdmin();
 
 			ImportExport.exportFile(
-				entityType = "Account",
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
 				exportFields = "name,type,description,externalReferenceCode",
-				exportFileFormat = "CSV",
-				headlessEndpoint = "/headless-admin-user");
+				exportFileFormat = "CSV");
 		}
 
 		task ("Then a CSV file should be generated for download which contains account data") {
-			ImportExport.assertExportFileContent(
+			ImportExport.assertFileContent(
 				comparisonFileName = "csv_account_import_auto_map.csv",
-				exportFileName = "export.csv");
+				fileName = "export.csv");
 		}
 	}
 
@@ -224,16 +326,15 @@ definition {
 
 			ImportExport.exportFile(
 				containsHeaders = "false",
-				entityType = "Account",
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
 				exportFields = "name,type,description,externalReferenceCode",
-				exportFileFormat = "CSV",
-				headlessEndpoint = "/headless-admin-user");
+				exportFileFormat = "CSV");
 		}
 
 		task ("Then the generated CSV file should contains account data with no headers") {
-			ImportExport.assertExportFileContent(
+			ImportExport.assertFileContent(
 				comparisonFileName = "csv_account_import_no_headers.csv",
-				exportFileName = "export.csv");
+				fileName = "export.csv");
 		}
 	}
 
@@ -266,16 +367,15 @@ definition {
 			ImportExport.openImportExportAdmin();
 
 			ImportExport.exportFile(
-				entityType = "Account",
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
 				exportFields = "name,type,description,externalReferenceCode",
-				exportFileFormat = "JSON",
-				headlessEndpoint = "/headless-admin-user");
+				exportFileFormat = "JSON");
 		}
 
 		task ("Then a JSON file should be generated for download which contains account data") {
-			ImportExport.assertExportFileContent(
+			ImportExport.assertFileContent(
 				comparisonFileName = "json_account_export.txt",
-				exportFileName = "export.json");
+				fileName = "export.json");
 		}
 	}
 
@@ -308,16 +408,15 @@ definition {
 			ImportExport.openImportExportAdmin();
 
 			ImportExport.exportFile(
-				entityType = "Account",
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
 				exportFields = "name,type,description,externalReferenceCode",
-				exportFileFormat = "JSONL",
-				headlessEndpoint = "/headless-admin-user");
+				exportFileFormat = "JSONL");
 		}
 
 		task ("Then a JSONL file should be generated for download which contains account data") {
-			ImportExport.assertExportFileContent(
+			ImportExport.assertFileContent(
 				comparisonFileName = "jsonl_account_import.jsonl",
-				exportFileName = "export.jsonl");
+				fileName = "export.jsonl");
 		}
 	}
 
@@ -330,18 +429,16 @@ definition {
 			ImportExport.openImportExportAdmin();
 
 			ImportExport.importFile(
-				entityType = "Account",
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
 				fieldMappings = "name:Account Name,type:Account Type,description:Account Description,externalReferenceCode:External Reference Code",
-				fileName = "csv_account_import.csv",
-				headlessEndpoint = "/headless-admin-user");
+				fileName = "csv_account_import.csv");
 
 			ImportExport.openImportExportAdmin();
 
 			ImportExport.exportFile(
-				entityType = "Account",
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
 				exportFields = "name,type,description,externalReferenceCode",
-				exportFileFormat = "CSV",
-				headlessEndpoint = "/headless-admin-user");
+				exportFileFormat = "CSV");
 		}
 
 		task ("When I go to the Import/Export Center and filter action by all") {
@@ -354,7 +451,7 @@ definition {
 			ImportExport.assertExecutionEntry(
 				entityType = "Account",
 				executionAction = "Import",
-				executionName = "csv_account_import.csv",
+				executionName = "csv_account_import",
 				executionStatus = "Completed");
 
 			ImportExport.assertExecutionEntry(
@@ -372,7 +469,7 @@ definition {
 			ImportExport.assertExecutionEntry(
 				entityType = "Account",
 				executionAction = "Import",
-				executionName = "csv_account_import.csv",
+				executionName = "csv_account_import",
 				executionStatus = "Completed");
 
 			ImportExport.assertNoExecutionEntry(
@@ -396,8 +493,70 @@ definition {
 			ImportExport.assertNoExecutionEntry(
 				entityType = "Account",
 				executionAction = "Import",
-				executionName = "csv_account_import.csv",
+				executionName = "csv_account_import",
 				executionStatus = "Completed");
+		}
+	}
+
+	@description = "Verify users can filter Import/Export templates by Action."
+	@priority = "3"
+	test CanFilterTemplatesByAction {
+		property portal.acceptance = "true";
+
+		task ("Given account import and export templates") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoImport();
+
+			ImportExport.configureImport(
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
+				fieldMappings = "name:Account Name,type:Account Type,description:Account Description,externalReferenceCode:External Reference Code",
+				fileName = "csv_account_import.csv",
+				templateName = "Test Account Import Template");
+
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoExport();
+
+			ImportExport.configureExport(
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
+				exportFields = "name,type,description,externalReferenceCode",
+				exportFileFormat = "JSON",
+				templateName = "Test Account Export Template");
+		}
+
+		task ("When I go to the Import/Export templates list and filter action by all") {
+			ImportExport.openImportExportAdmin();
+
+			Navigator.gotoNavTab(navTab = "Templates");
+
+			ManagementBar.setFilterAndOrder(filterBy = "All");
+		}
+
+		task ("Then both the export and import templates should be shown") {
+			LexiconEntry.viewEntryName(rowEntry = "Test Account Import Template");
+
+			LexiconEntry.viewEntryName(rowEntry = "Test Account Export Template");
+		}
+
+		task ("When I filter Action by Import") {
+			ManagementBar.setFilterAndOrder(filterBy = "Import");
+		}
+
+		task ("Then only the import template should be shown") {
+			LexiconEntry.viewEntryName(rowEntry = "Test Account Import Template");
+
+			LexiconEntry.viewNoEntry(rowEntry = "Test Account Export Template");
+		}
+
+		task ("When I filter Action by Export") {
+			ManagementBar.setFilterAndOrder(filterBy = "Export");
+		}
+
+		task ("Then only the export template should be shown") {
+			LexiconEntry.viewNoEntry(rowEntry = "Test Account Import Template");
+
+			LexiconEntry.viewEntryName(rowEntry = "Test Account Export Template");
 		}
 	}
 
@@ -412,10 +571,9 @@ definition {
 			ImportExport.gotoImport();
 
 			ImportExport.configureImport(
-				entityType = "Account",
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
 				fieldMappings = "name:Account Name,type:Account Type,description:Account Description,externalReferenceCode:External Reference Code",
-				fileName = "csv_account_import.csv",
-				headlessEndpoint = "/headless-admin-user");
+				fileName = "csv_account_import.csv");
 		}
 
 		task ("When the user imports the file") {
@@ -471,9 +629,7 @@ definition {
 				checkboxName = "Headers",
 				locator1 = "Checkbox#ANY_CHECKBOX");
 
-			ImportExport.selectEntity(
-				entityType = "Account",
-				headlessEndpoint = "/headless-admin-user");
+			ImportExport.selectEntity(entityType = "Account (v1_0 - Liferay Headless Admin User)");
 		}
 
 		task ("Then the user should be able to map account fields to columns in the CSV file") {
@@ -526,10 +682,9 @@ definition {
 			ImportExport.gotoImport();
 
 			ImportExport.configureImport(
-				entityType = "Account",
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
 				fieldMappings = "name:name,type:type,description:description,externalReferenceCode:externalReferenceCode",
-				fileName = "json_account_import.json",
-				headlessEndpoint = "/headless-admin-user");
+				fileName = "json_account_import.json");
 		}
 
 		task ("When the user imports the file") {
@@ -578,10 +733,9 @@ definition {
 			ImportExport.gotoImport();
 
 			ImportExport.configureImport(
-				entityType = "Account",
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
 				fieldMappings = "name:name,type:type,description:description,externalReferenceCode:externalReferenceCode",
-				fileName = "jsonl_account_import.jsonl",
-				headlessEndpoint = "/headless-admin-user");
+				fileName = "jsonl_account_import.jsonl");
 		}
 
 		task ("When the user imports the file") {
@@ -630,10 +784,9 @@ definition {
 			ImportExport.gotoImport();
 
 			ImportExport.configureImport(
-				entityType = "Channel",
+				entityType = "Channel (v1_0 - Liferay Headless Commerce Admin Channel)",
 				fieldMappings = "name:Channel Name,type:Channel Type",
-				fileName = "csv_channel_import.csv",
-				headlessEndpoint = "/headless-commerce-admin-channel");
+				fileName = "csv_channel_import.csv");
 		}
 
 		task ("When the user tries to import a file without mapping all the required fields") {
@@ -663,7 +816,7 @@ definition {
 		task ("Then the file should be imported successfully") {
 			WaitForElementPresent(locator1 = "ImportExport#EXECUTION_SUCCESS");
 
-			Button.clickDone();
+			Button.click(button = "Back to the List");
 
 			CommerceChannels.openChannelsAdmin();
 
@@ -694,18 +847,16 @@ definition {
 			ImportExport.openImportExportAdmin();
 
 			ImportExport.importFile(
-				entityType = "Account",
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
 				fieldMappings = "name:Account Name,type:Account Type,description:Account Description,externalReferenceCode:External Reference Code",
-				fileName = "csv_account_import.csv",
-				headlessEndpoint = "/headless-admin-user");
+				fileName = "csv_account_import.csv");
 
 			ImportExport.openImportExportAdmin();
 
 			ImportExport.exportFile(
-				entityType = "Account",
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
 				exportFields = "name,type,description",
-				exportFileFormat = "CSV",
-				headlessEndpoint = "/headless-admin-user");
+				exportFileFormat = "CSV");
 		}
 
 		task ("When I go to the Import/Export Center and order by create date") {
@@ -743,6 +894,78 @@ definition {
 		}
 	}
 
+	@description = "Verify users can recall a template during an export."
+	@priority = "3"
+	test CanRecallExportTemplate {
+		property portal.acceptance = "true";
+
+		task ("Given an account export template") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoExport();
+
+			ImportExport.configureExport(
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
+				exportFields = "name,type,description,externalReferenceCode",
+				exportFileFormat = "JSON",
+				templateName = "Test Account Export Template");
+		}
+
+		task ("When the user is configuring an export and selects the template") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoExport();
+
+			Select(
+				key_selectFieldLabel = "Template",
+				locator1 = "ImportExport#SELECT",
+				value1 = "Test Account Export Template");
+		}
+
+		task ("Then the export should be configured according to the template") {
+			ImportExport.assertExportTemplate(
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
+				exportFields = "name,type,description,externalReferenceCode",
+				exportFileFormat = "JSON",
+				templateName = "Test Account Export Template");
+		}
+	}
+
+	@description = "Verify users can recall a template during an import."
+	@priority = "3"
+	test CanRecallImportTemplate {
+		property portal.acceptance = "true";
+
+		task ("Given an account import template") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoImport();
+
+			ImportExport.configureImport(
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
+				fieldMappings = "name:Account Name,type:Account Type,description:Account Description,externalReferenceCode:External Reference Code",
+				fileName = "csv_account_import.csv",
+				templateName = "Test Account Import Template");
+		}
+
+		task ("When the user is configuring an import and selects the template") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoImport();
+
+			Select(
+				key_selectFieldLabel = "Template",
+				locator1 = "ImportExport#SELECT",
+				value1 = "Test Account Import Template");
+		}
+
+		task ("Then the import should be configured according to the template") {
+			ImportExport.assertImportTemplate(
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
+				templateName = "Test Account Import Template");
+		}
+	}
+
 	@description = "Verify users can save export configuration as a template during the export process"
 	@priority = "3"
 	test CanSaveTemplateDuringExport {
@@ -754,10 +977,9 @@ definition {
 			ImportExport.gotoExport();
 
 			ImportExport.configureExport(
-				entityType = "Account",
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
 				exportFields = "name,type,description,externalReferenceCode",
-				exportFileFormat = "JSON",
-				headlessEndpoint = "/headless-admin-user");
+				exportFileFormat = "JSON");
 		}
 
 		task ("When the user saves the configuration as a template") {
@@ -769,14 +991,7 @@ definition {
 
 			Navigator.gotoNavTab(navTab = "Templates");
 
-			LexiconEntry.gotoEntry(rowEntry = "Test Account Export Template");
-
-			ImportExport.assertExportTemplate(
-				entityType = "Account",
-				exportFields = "name,type,description,externalReferenceCode",
-				exportFileFormat = "JSON",
-				headlessEndpoint = "/headless-admin-user",
-				templateName = "Test Account Export Template");
+			LexiconEntry.viewEntryName(rowEntry = "Test Account Export Template");
 		}
 	}
 
@@ -791,10 +1006,9 @@ definition {
 			ImportExport.gotoImport();
 
 			ImportExport.configureImport(
-				entityType = "Account",
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
 				fieldMappings = "name:Account Name,type:Account Type,description:Account Description,externalReferenceCode:External Reference Code",
-				fileName = "csv_account_import.csv",
-				headlessEndpoint = "/headless-admin-user");
+				fileName = "csv_account_import.csv");
 		}
 
 		task ("When the user saves the configuration as a template") {
@@ -806,12 +1020,85 @@ definition {
 
 			Navigator.gotoNavTab(navTab = "Templates");
 
-			LexiconEntry.gotoEntry(rowEntry = "Test Account Import Template");
+			LexiconEntry.viewEntryName(rowEntry = "Test Account Import Template");
+		}
+	}
 
-			ImportExport.assertImportTemplate(
-				entityType = "Account",
-				headlessEndpoint = "/headless-admin-user",
+	@description = "Verify users can schedule an import"
+	@priority = "3"
+	test CanScheduleImport {
+		property test.name.skip.portal.instance = "ImportExport#CanScheduleImport";
+
+		task ("Given an account import template") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoImport();
+
+			ImportExport.configureImport(
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
+				fieldMappings = "name:Account Name,type:Account Type,description:Account Description",
+				fileName = "csv_account_import.csv",
 				templateName = "Test Account Import Template");
+		}
+
+		task ("When the user schedules this import for a given time") {
+			var templateId = JSONBatchPlannerPlansAPI._getBatchPlannerPlanIds();
+
+			JobScheduler.openJobSchedulerAdmin();
+
+			var filePath = TestCase.getDependenciesDirPath(fileName = "csv_account_import.csv");
+
+			JobScheduler.addScheduleTrigger(
+				taskExecutorType = "batch-planner-executor-name",
+				triggerName = "Scheduled Account Import",
+				triggerProperties = '''batchPlannerPlanId=${templateId}
+					external-file-url=${filePath}''');
+
+			var currentMinute = DateUtil.getFormattedCurrentDate("mm", "UTC");
+
+			JobScheduler.activateScheduleTrigger(
+				cronExpression = "0 ${currentMinute} * ? * *",
+				trigger = "Scheduled Account Import");
+		}
+
+		task ("Then the import is triggered automatically at that time") {
+			Refresh();
+
+			AssertElementPresent(
+				key_rowEntry = "Scheduled Account Import",
+				key_rowStatus = "Success",
+				locator1 = "ContentRow#ENTRY_CONTENT_ENTRY_STATUS");
+
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.assertExecutionEntry(
+				entityType = "Account",
+				executionAction = "Import",
+				executionName = "Triggered by Scheduled Account Import",
+				executionStatus = "Completed");
+
+			Accounts.openAccountsAdmin();
+
+			Accounts.viewAccountDetails(
+				accountDescription = "Test Business Account Description",
+				accountName = "Test Business Account",
+				accountType = "Business");
+
+			Navigator.gotoBack();
+
+			Accounts.viewAccountDetails(
+				accountDescription = "Test Guest Account Description",
+				accountName = "Test Guest Account",
+				accountType = "Guest");
+
+			Navigator.gotoBack();
+
+			Accounts.viewAccountDetails(
+				accountDescription = "Test Person Account Description",
+				accountName = "Test Person Account",
+				accountType = "Person");
+
+			JSONJobScheduler._deleteJobSchedulerTrigger(triggerName = "Scheduled Account Import");
 		}
 	}
 
@@ -824,49 +1111,45 @@ definition {
 			ImportExport.openImportExportAdmin();
 
 			ImportExport.importFile(
-				entityType = "Account",
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
 				fieldMappings = "name:Account Name,type:Account Type,description:Account Description,externalReferenceCode:External Reference Code",
-				fileName = "csv_account_import.csv",
-				headlessEndpoint = "/headless-admin-user");
+				fileName = "csv_account_import.csv");
 
 			ImportExport.openImportExportAdmin();
 
 			ImportExport.exportFile(
-				entityType = "Account",
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
 				exportFields = "name,type,description,externalReferenceCode",
-				exportFileFormat = "CSV",
-				headlessEndpoint = "/headless-admin-user");
+				exportFileFormat = "CSV");
 		}
 
 		task ("And given a channel import and export") {
 			ImportExport.openImportExportAdmin();
 
 			ImportExport.importFile(
-				entityType = "Channel",
+				entityType = "Channel (v1_0 - Liferay Headless Commerce Admin Channel)",
 				fieldMappings = "name:Channel Name,type:Channel Type,currencyCode:Currency Code",
-				fileName = "csv_channel_import.csv",
-				headlessEndpoint = "/headless-commerce-admin-channel");
+				fileName = "csv_channel_import.csv");
 
 			ImportExport.openImportExportAdmin();
 
 			ImportExport.exportFile(
-				entityType = "Channel",
+				entityType = "Channel (v1_0 - Liferay Headless Commerce Admin Channel)",
 				exportFields = "name,type,currencyCode",
-				exportFileFormat = "CSV",
-				headlessEndpoint = "/headless-commerce-admin-channel");
+				exportFileFormat = "CSV");
 		}
 
 		task ("When I go to the Import/Export center and search executions by name") {
 			ImportExport.openImportExportAdmin();
 
-			Search.searchCP(searchTerm = "csv_account_import.csv");
+			Search.searchCP(searchTerm = "csv_account_import");
 		}
 
 		task ("Then only executions with the name keyword should be shown") {
 			ImportExport.assertExecutionEntry(
 				entityType = "Account",
 				executionAction = "Import",
-				executionName = "csv_account_import.csv",
+				executionName = "csv_account_import",
 				executionStatus = "Completed");
 
 			ImportExport.assertNoExecutionEntry(
@@ -878,7 +1161,7 @@ definition {
 			ImportExport.assertNoExecutionEntry(
 				entityType = "Channel",
 				executionAction = "Import",
-				executionName = "csv_channel_import.csv",
+				executionName = "csv_channel_import",
 				executionStatus = "Completed");
 
 			ImportExport.assertNoExecutionEntry(
@@ -896,7 +1179,7 @@ definition {
 			ImportExport.assertExecutionEntry(
 				entityType = "Channel",
 				executionAction = "Import",
-				executionName = "csv_channel_import.csv",
+				executionName = "csv_channel_import",
 				executionStatus = "Completed");
 
 			ImportExport.assertExecutionEntry(
@@ -908,7 +1191,7 @@ definition {
 			ImportExport.assertNoExecutionEntry(
 				entityType = "Account",
 				executionAction = "Import",
-				executionName = "csv_account_import.csv",
+				executionName = "csv_account_import",
 				executionStatus = "Completed");
 
 			ImportExport.assertNoExecutionEntry(
@@ -928,7 +1211,7 @@ definition {
 			ImportExport.assertExecutionEntry(
 				entityType = "Channel",
 				executionAction = "Import",
-				executionName = "csv_channel_import.csv",
+				executionName = "csv_channel_import",
 				executionStatus = "Completed");
 
 			ImportExport.assertNoExecutionEntry(
@@ -940,7 +1223,7 @@ definition {
 			ImportExport.assertNoExecutionEntry(
 				entityType = "Account",
 				executionAction = "Import",
-				executionName = "csv_account_import.csv",
+				executionName = "csv_account_import",
 				executionStatus = "Completed");
 
 			ImportExport.assertNoExecutionEntry(
@@ -962,10 +1245,9 @@ definition {
 			ImportExport.gotoImport();
 
 			ImportExport.configureImport(
-				entityType = "Account",
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
 				fieldMappings = "name:Account Name,type:Account Type,description:Account Description,externalReferenceCode:External Reference Code",
 				fileName = "csv_account_import.csv",
-				headlessEndpoint = "/headless-admin-user",
 				templateName = "Test Account Import Template");
 
 			ImportExport.openImportExportAdmin();
@@ -973,10 +1255,9 @@ definition {
 			ImportExport.gotoExport();
 
 			ImportExport.configureExport(
-				entityType = "Account",
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
 				exportFields = "name,type,description,externalReferenceCode",
 				exportFileFormat = "JSON",
-				headlessEndpoint = "/headless-admin-user",
 				templateName = "Test Account Export Template");
 		}
 
@@ -986,10 +1267,9 @@ definition {
 			ImportExport.gotoImport();
 
 			ImportExport.configureImport(
-				entityType = "Channel",
+				entityType = "Channel (v1_0 - Liferay Headless Commerce Admin Channel)",
 				fieldMappings = "name:Channel Name,type:Channel Type,currencyCode:Currency Code",
 				fileName = "csv_channel_import.csv",
-				headlessEndpoint = "/headless-commerce-admin-channel",
 				templateName = "Test Channel Import Template");
 
 			ImportExport.openImportExportAdmin();
@@ -997,10 +1277,9 @@ definition {
 			ImportExport.gotoExport();
 
 			ImportExport.configureExport(
-				entityType = "Channel",
+				entityType = "Channel (v1_0 - Liferay Headless Commerce Admin Channel)",
 				exportFields = "name,type,currencyCode",
 				exportFileFormat = "CSV",
-				headlessEndpoint = "/headless-commerce-admin-channel",
 				templateName = "Test Channel Export Template");
 		}
 
@@ -1053,6 +1332,91 @@ definition {
 		}
 	}
 
+	@description = "Verify certain users can be granted permission to view specific templates."
+	@priority = "3"
+	test CanShareTemplates {
+		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
+		property portal.acceptance = "true";
+
+		task ("Given a power user") {
+			JSONUser.addUserWithRole(
+				roleTitle = "Power User",
+				userEmailAddress = "test1@liferay.com",
+				userFirstName = "test1",
+				userLastName = "test1",
+				userScreenName = "test1test");
+		}
+
+		task ("And given the power user can view the templates list") {
+			Permissions.definePermissionViaJSONAPI(
+				resourceAction = "VIEW_CONTROL_PANEL",
+				resourceName = "90",
+				roleTitle = "Power User");
+
+			Permissions.definePermissionViaJSONAPI(
+				resourceAction = "ACCESS_IN_CONTROL_PANEL",
+				resourceName = "com_liferay_batch_planner_web_internal_portlet_BatchPlannerPortlet",
+				roleTitle = "Power User");
+		}
+
+		task ("And given an account export template") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoExport();
+
+			ImportExport.configureExport(
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
+				exportFields = "name,type,description,externalReferenceCode",
+				exportFileFormat = "JSON",
+				templateName = "Test Account Export Template");
+		}
+
+		task ("When the power user goes to the templates list") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "test1@liferay.com",
+				userLoginFullName = "test1test");
+
+			ImportExport.openImportExportAdmin();
+
+			Navigator.gotoNavTab(navTab = "Templates");
+
+			LexiconEntry.viewNoEntry(rowEntry = "Test Account Export Template");
+		}
+
+		task ("Then they cannot view the template") {
+			LexiconEntry.viewNoEntry(rowEntry = "Test Account Export Template");
+		}
+
+		task ("When the power user role is granted permission to view the template") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "test@liferay.com",
+				userLoginFullName = "Test Test");
+
+			ImportExport.openImportExportAdmin();
+
+			Navigator.gotoNavTab(navTab = "Templates");
+
+			LexiconEntry.gotoEllipsisMenuItem(menuItem = "Edit Permissions");
+
+			PermissionsInline.addOrRemoveAnyPermissionsFromSpecificRole(
+				addOrRemoveViewPermission = "Add",
+				permissionsKeyList = "INLINE_PERMISSIONS_VIEW_CHECKBOX",
+				roleTitle = "Power User");
+		}
+
+		task ("Then the power user can now view the template") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "test1@liferay.com",
+				userLoginFullName = "test1test");
+
+			ImportExport.openImportExportAdmin();
+
+			Navigator.gotoNavTab(navTab = "Templates");
+
+			LexiconEntry.viewEntryName(rowEntry = "Test Account Export Template");
+		}
+	}
+
 	@description = "Verify users receive a notification when an export is triggered."
 	@priority = "3"
 	test CanViewExportNotifications {
@@ -1064,10 +1428,9 @@ definition {
 			ImportExport.gotoExport();
 
 			ImportExport.configureExport(
-				entityType = "Account",
-				exportFields = "accountUserAccounts",
-				exportFileFormat = "CSV",
-				headlessEndpoint = "/headless-admin-user");
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
+				exportFields = "",
+				exportFileFormat = "CSV");
 
 			Button.click(button = "Export");
 
@@ -1075,7 +1438,7 @@ definition {
 		}
 
 		task ("And given a succesful export") {
-			Button.clickCancel();
+			Button.click(button = "Back to the List");
 
 			ImportExport.mapExport(exportFields = "name,type,description,externalReferenceCode");
 
@@ -1121,6 +1484,52 @@ definition {
 		}
 	}
 
+	@description = "Verify users can download a report of the rows that had warnings or were not imported."
+	@priority = "3"
+	test CanViewImportErrorReport {
+		property portal.acceptance = "true";
+
+		task ("Given a failed account import due to an invalid account type in the second row") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.gotoImport();
+
+			ImportExport.configureImport(
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
+				fieldMappings = "name:Account Name,type:Account Type,description:Account Description,externalReferenceCode:External Reference Code",
+				fileName = "csv_account_import_error.csv",
+				stopImportOnError = "true");
+
+			Button.click(button = "Next");
+
+			Button.click(button = "Start Import");
+
+			WaitForElementPresent(
+				key_status = "Failed",
+				locator1 = "ImportExport#IMPORT_EXPORT_STATUS");
+		}
+
+		task ("When the user goes to the Import/Export Center and clicks on the ellipses for the import execution") {
+			ImportExport.openImportExportAdmin();
+
+			Click.waitForMenuToggleJSClick(locator1 = "Icon#BODY_VERTICAL_ELLIPSIS");
+		}
+
+		task ("And the user clicks on the Download Error Report menu item") {
+			MenuItem.click(menuItem = "Download Error Report");
+		}
+
+		task ("Then an error report is downloaded which indicates an invalid type in the second row") {
+			DownloadTempFile();
+
+			var errorReportDownloadName = TestCase.getDownloadedTempFileName(fileNamePattern = "*.csv");
+
+			ImportExport.assertFileContent(
+				comparisonFileName = "account_import_error_report.csv",
+				fileName = "${errorReportDownloadName}");
+		}
+	}
+
 	@description = "Verify users receive a notification when an import is triggered."
 	@priority = "3"
 	test CanViewImportNotifications {
@@ -1132,27 +1541,27 @@ definition {
 			ImportExport.gotoImport();
 
 			ImportExport.configureImport(
-				entityType = "Account",
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
 				fieldMappings = "name:Account Name,type:Account Type,description:Account Description,externalReferenceCode:External Reference Code",
 				fileName = "csv_account_import_error.csv",
-				headlessEndpoint = "/headless-admin-user",
 				stopImportOnError = "true");
 
 			Button.click(button = "Next");
 
 			Button.click(button = "Start Import");
 
-			WaitForElementPresent(locator1 = "Message#ERROR_FORM_FIELD_REQUIRED");
+			WaitForElementPresent(
+				key_status = "Failed",
+				locator1 = "ImportExport#IMPORT_EXPORT_STATUS");
 		}
 
 		task ("And given a succesful import") {
 			ImportExport.openImportExportAdmin();
 
 			ImportExport.importFile(
-				entityType = "Account",
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
 				fieldMappings = "name:Account Name,type:Account Type,description:Account Description,externalReferenceCode:External Reference Code",
-				fileName = "csv_account_import.csv",
-				headlessEndpoint = "/headless-admin-user");
+				fileName = "csv_account_import.csv");
 		}
 
 		task ("When the imports are finished") {
@@ -1161,13 +1570,13 @@ definition {
 			ImportExport.assertExecutionEntry(
 				entityType = "Account",
 				executionAction = "Import",
-				executionName = "csv_account_import_error.csv",
+				executionName = "csv_account_import_error",
 				executionStatus = "Failed");
 
 			ImportExport.assertExecutionEntry(
 				entityType = "Account",
 				executionAction = "Import",
-				executionName = "csv_account_import.csv",
+				executionName = "csv_account_import",
 				executionStatus = "Completed");
 		}
 
@@ -1203,10 +1612,9 @@ definition {
 			ImportExport.gotoImport();
 
 			ImportExport.configureImport(
-				entityType = "Account",
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
 				fieldMappings = "name:Account Name,type:Account Type,description:Account Description,externalReferenceCode:External Reference Code",
 				fileName = "csv_account_import_error.csv",
-				headlessEndpoint = "/headless-admin-user",
 				stopImportOnError = "true");
 		}
 
@@ -1223,7 +1631,7 @@ definition {
 		task ("Then the only the rows without error should be imported") {
 			WaitForElementPresent(locator1 = "ImportExport#EXECUTION_SUCCESS");
 
-			Button.clickDone();
+			Button.click(button = "Back to the List");
 
 			Accounts.openAccountsAdmin();
 
@@ -1259,9 +1667,7 @@ definition {
 		}
 
 		task ("When I select the entity type") {
-			ImportExport.selectEntity(
-				entityType = "Account",
-				headlessEndpoint = "/headless-admin-user");
+			ImportExport.selectEntity(entityType = "Account (v1_0 - Liferay Headless Admin User)");
 		}
 
 		task ("Then the fields are automatically mapped") {
@@ -1283,9 +1689,7 @@ definition {
 		}
 
 		task ("When I select the entity type") {
-			ImportExport.selectEntity(
-				entityType = "Account",
-				headlessEndpoint = "/headless-admin-user");
+			ImportExport.selectEntity(entityType = "Account (v1_0 - Liferay Headless Admin User)");
 		}
 
 		task ("Then the fields are automatically mapped") {
@@ -1307,9 +1711,7 @@ definition {
 		}
 
 		task ("When I select the entity type") {
-			ImportExport.selectEntity(
-				entityType = "Account",
-				headlessEndpoint = "/headless-admin-user");
+			ImportExport.selectEntity(entityType = "Account (v1_0 - Liferay Headless Admin User)");
 		}
 
 		task ("Then the fields are automatically mapped") {
@@ -1328,10 +1730,9 @@ definition {
 			ImportExport.gotoImport();
 
 			ImportExport.configureImport(
-				entityType = "Account",
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
 				fieldMappings = "name:Account Name,type:Account Type,description:Account Description,externalReferenceCode:External Reference Code",
 				fileName = "csv_account_import_error.csv",
-				headlessEndpoint = "/headless-admin-user",
 				stopImportOnError = "true");
 		}
 
@@ -1370,9 +1771,7 @@ definition {
 
 			UploadDependencyFile.uploadFile(fileName = "csv_account_import.csv");
 
-			ImportExport.selectEntity(
-				entityType = "Account",
-				headlessEndpoint = "/headless-admin-user");
+			ImportExport.selectEntity(entityType = "Account (v1_0 - Liferay Headless Admin User)");
 		}
 
 		task ("When the user maps the import fields") {
@@ -1395,10 +1794,9 @@ definition {
 			ImportExport.gotoImport();
 
 			ImportExport.configureImport(
-				entityType = "Account",
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
 				fieldMappings = "name:Account Name,type:Account Type,description:Account Description,externalReferenceCode:External Reference Code",
-				fileName = "csv_account_import.csv",
-				headlessEndpoint = "/headless-admin-user");
+				fileName = "csv_account_import.csv");
 		}
 
 		task ("When the user clicks Next") {
@@ -1422,6 +1820,37 @@ definition {
 		}
 	}
 
+	@description = "Verify users can view how many rows were successfully imported, how many rows were not imported, and the total number of rows for an import."
+	@priority = "3"
+	test ViewImportedRows {
+		property portal.acceptance = "true";
+
+		task ("Given a failed account import in which one of 3 rows was skipped due to an error in the second row") {
+			ImportExport.openImportExportAdmin();
+
+			ImportExport.importFile(
+				entityType = "Account (v1_0 - Liferay Headless Admin User)",
+				fieldMappings = "name:Account Name,type:Account Type,description:Account Description,externalReferenceCode:External Reference Code",
+				fileName = "csv_account_import_error.csv",
+				stopImportOnError = "false");
+		}
+
+		task ("When the user goes to the Import/Export Center and views the import execution") {
+			ImportExport.openImportExportAdmin();
+		}
+
+		task ("Then the user should be able to view 2 successful rows, 1 failed row, and a total of 3") {
+			ImportExport.assertExecutionEntry(
+				entityType = "Account",
+				executionAction = "Import",
+				executionName = "csv_account_import_error",
+				executionStatus = "Partially Completed",
+				failedRows = "1",
+				successfulRows = "2",
+				totalRows = "3");
+		}
+	}
+
 	@description = "Verify users are shown a preview for the first row being imported in a JSON file."
 	@priority = "3"
 	test ViewJSONFirstRowPreview {
@@ -1434,9 +1863,7 @@ definition {
 
 			UploadDependencyFile.uploadFile(fileName = "json_account_import.json");
 
-			ImportExport.selectEntity(
-				entityType = "Account",
-				headlessEndpoint = "/headless-admin-user");
+			ImportExport.selectEntity(entityType = "Account (v1_0 - Liferay Headless Admin User)");
 		}
 
 		task ("When the user maps the import fields") {
@@ -1459,10 +1886,9 @@ definition {
 			ImportExport.gotoImport();
 
 			ImportExport.configureImport(
-				entityType = "Channel",
+				entityType = "Channel (v1_0 - Liferay Headless Commerce Admin Channel)",
 				fieldMappings = "currencyCode:currencyCode,name:name,type:type",
-				fileName = "json_channel_import.json",
-				headlessEndpoint = "/headless-commerce-admin-channel");
+				fileName = "json_channel_import.json");
 		}
 
 		task ("When the user clicks Next") {
@@ -1494,9 +1920,7 @@ definition {
 
 			UploadDependencyFile.uploadFile(fileName = "jsonl_account_import.jsonl");
 
-			ImportExport.selectEntity(
-				entityType = "Account",
-				headlessEndpoint = "/headless-admin-user");
+			ImportExport.selectEntity(entityType = "Account (v1_0 - Liferay Headless Admin User)");
 		}
 
 		task ("When the user maps the import fields") {
@@ -1519,10 +1943,9 @@ definition {
 			ImportExport.gotoImport();
 
 			ImportExport.configureImport(
-				entityType = "Channel",
+				entityType = "Channel (v1_0 - Liferay Headless Commerce Admin Channel)",
 				fieldMappings = "currencyCode:currencyCode,name:name,type:type",
-				fileName = "jsonl_channel_import.jsonl",
-				headlessEndpoint = "/headless-commerce-admin-channel");
+				fileName = "jsonl_channel_import.jsonl");
 		}
 
 		task ("When the user clicks Next") {
@@ -1554,9 +1977,7 @@ definition {
 		}
 
 		task ("When the user selects the import entity") {
-			ImportExport.selectEntity(
-				entityType = "Channel",
-				headlessEndpoint = "/headless-commerce-admin-channel");
+			ImportExport.selectEntity(entityType = "Channel (v1_0 - Liferay Headless Commerce Admin Channel)");
 		}
 
 		task ("Then the required and optional fields should be shown for that entity.") {

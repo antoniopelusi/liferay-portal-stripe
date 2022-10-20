@@ -35,247 +35,231 @@ long totalMemory = runtime.totalMemory();
 long usedMemory = totalMemory - runtime.freeMemory();
 %>
 
-<liferay-ui:panel-container
-	extended="<%= true %>"
-	id="adminServerAdministrationActionsPanelContainer"
-	persistState="<%= true %>"
->
-	<div class="panel panel-secondary server-admin-tabs" id="adminServerInformationPanel">
-		<div class="panel-body">
-			<div class="alert alert-info">
-				<strong><liferay-ui:message key="info" /></strong>: <%= ReleaseInfo.getReleaseInfo() %>
-				<c:if test="<%= (installedPatches != null) && (installedPatches.length > 0) %>">
-					<strong><liferay-ui:message key="patch" /></strong>: <%= StringUtil.merge(installedPatches, StringPool.COMMA_AND_SPACE) %>
-				</c:if>
+<aui:fieldset-group markupView="lexicon">
+	<aui:fieldset>
+		<div class="alert alert-info">
+			<strong><liferay-ui:message key="info" /></strong>: <%= ReleaseInfo.getReleaseInfo() %>
+			<c:if test="<%= (installedPatches != null) && (installedPatches.length > 0) %>">
+				<strong><liferay-ui:message key="patch" /></strong>: <%= StringUtil.merge(installedPatches, StringPool.COMMA_AND_SPACE) %>
+			</c:if>
 
-				<strong><liferay-ui:message key="uptime" /></strong>:
+			<strong><liferay-ui:message key="uptime" /></strong>:
 
-				<c:if test="<%= days > 0 %>">
-					<%= days %> <%= LanguageUtil.get(request, ((days > 1) ? "days" : "day")) %>,
-				</c:if>
-
-				<%
-				NumberFormat timeNumberFormat = NumberFormat.getInstance();
-
-				timeNumberFormat.setMaximumIntegerDigits(2);
-				timeNumberFormat.setMinimumIntegerDigits(2);
-				%>
-
-				<%= timeNumberFormat.format(hours) %>:<%= timeNumberFormat.format(minutes) %>:<%= timeNumberFormat.format(seconds) %>
-			</div>
-
-			<div class="meter-wrapper text-center">
-				<portlet:resourceURL id="/server_admin/view_chart" var="totalMemoryChartURL">
-					<portlet:param name="type" value="total" />
-					<portlet:param name="totalMemory" value="<%= String.valueOf(totalMemory) %>" />
-					<portlet:param name="usedMemory" value="<%= String.valueOf(usedMemory) %>" />
-				</portlet:resourceURL>
-
-				<img alt="<liferay-ui:message escapeAttribute="<%= true %>" key="memory-used-vs-total-memory" />" src="<%= totalMemoryChartURL %>" />
-
-				<portlet:resourceURL id="/server_admin/view_chart" var="maxMemoryChartURL">
-					<portlet:param name="type" value="max" />
-					<portlet:param name="maxMemory" value="<%= String.valueOf(runtime.maxMemory()) %>" />
-					<portlet:param name="usedMemory" value="<%= String.valueOf(usedMemory) %>" />
-				</portlet:resourceURL>
-
-				<img alt="<liferay-ui:message escapeAttribute="<%= true %>" key="memory-used-vs-max-memory" />" src="<%= maxMemoryChartURL %>" />
-			</div>
-
-			<br />
+			<c:if test="<%= days > 0 %>">
+				<%= days %> <%= LanguageUtil.get(request, ((days > 1) ? "days" : "day")) %>,
+			</c:if>
 
 			<%
-			NumberFormat basicNumberFormat = NumberFormat.getInstance(locale);
+			NumberFormat timeNumberFormat = NumberFormat.getInstance();
+
+			timeNumberFormat.setMaximumIntegerDigits(2);
+			timeNumberFormat.setMinimumIntegerDigits(2);
 			%>
 
-			<table class="lfr-table memory-status-table">
-				<tr>
-					<td>
-						<h4 class="float-right"><liferay-ui:message key="used-memory" /></h4>
-					</td>
-					<td>
-						<span class="text-muted"><%= basicNumberFormat.format(usedMemory) %> <liferay-ui:message key="bytes" /></span>
-					</td>
-				</tr>
-				<tr>
-					<td>
-						<h4 class="float-right"><liferay-ui:message key="total-memory" /></h4>
-					</td>
-					<td>
-						<span class="text-muted"><%= basicNumberFormat.format(runtime.totalMemory()) %> <liferay-ui:message key="bytes" /></span>
-					</td>
-				</tr>
-				<tr>
-					<td>
-						<h4 class="float-right"><liferay-ui:message key="maximum-memory" /></h4>
-					</td>
-					<td>
-						<span class="text-muted"><%= basicNumberFormat.format(runtime.maxMemory()) %> <liferay-ui:message key="bytes" /></span>
-					</td>
-				</tr>
-			</table>
-
-			<br />
+			<%= timeNumberFormat.format(hours) %>:<%= timeNumberFormat.format(minutes) %>:<%= timeNumberFormat.format(seconds) %>
 		</div>
-	</div>
 
-	<liferay-ui:panel
-		collapsible="<%= true %>"
-		cssClass="panel-secondary server-admin-actions-panel"
-		extended="<%= true %>"
-		id="adminServerAdministrationSystemActionsPanel"
-		markupView="lexicon"
-		persistState="<%= true %>"
-		title="system-actions"
-	>
+		<div class="meter-wrapper text-center">
+			<portlet:resourceURL id="/server_admin/view_chart" var="totalMemoryChartURL">
+				<portlet:param name="type" value="total" />
+				<portlet:param name="totalMemory" value="<%= String.valueOf(totalMemory) %>" />
+				<portlet:param name="usedMemory" value="<%= String.valueOf(usedMemory) %>" />
+			</portlet:resourceURL>
+
+			<img alt="<liferay-ui:message escapeAttribute="<%= true %>" key="memory-used-vs-total-memory" />" src="<%= totalMemoryChartURL %>" />
+
+			<portlet:resourceURL id="/server_admin/view_chart" var="maxMemoryChartURL">
+				<portlet:param name="type" value="max" />
+				<portlet:param name="maxMemory" value="<%= String.valueOf(runtime.maxMemory()) %>" />
+				<portlet:param name="usedMemory" value="<%= String.valueOf(usedMemory) %>" />
+			</portlet:resourceURL>
+
+			<img alt="<liferay-ui:message escapeAttribute="<%= true %>" key="memory-used-vs-max-memory" />" src="<%= maxMemoryChartURL %>" />
+		</div>
+
+		<br />
+
+		<%
+		NumberFormat basicNumberFormat = NumberFormat.getInstance(locale);
+		%>
+
+		<table class="lfr-table memory-status-table">
+			<tr>
+				<td>
+					<span class="font-weight-semi-bold"><liferay-ui:message key="used-memory" /></span>
+				</td>
+				<td>
+					<span class="text-muted"><%= basicNumberFormat.format(usedMemory) %> <liferay-ui:message key="bytes" /></span>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<span class="font-weight-semi-bold"><liferay-ui:message key="total-memory" /></span>
+				</td>
+				<td>
+					<span class="text-muted"><%= basicNumberFormat.format(runtime.totalMemory()) %> <liferay-ui:message key="bytes" /></span>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<span class="font-weight-semi-bold"><liferay-ui:message key="maximum-memory" /></span>
+				</td>
+				<td>
+					<span class="text-muted"><%= basicNumberFormat.format(runtime.maxMemory()) %> <liferay-ui:message key="bytes" /></span>
+				</td>
+			</tr>
+		</table>
+	</aui:fieldset>
+
+	<aui:fieldset collapsed="<%= false %>" collapsible="<%= true %>" label="system-actions">
 		<ul class="list-group system-action-group">
-			<li class="clearfix list-group-item">
-				<div class="float-left">
-					<h5><liferay-ui:message key="run-the-garbage-collector-to-free-up-memory" /></h5>
+			<li class="list-group-item list-group-item-flex">
+				<div class="autofit-col autofit-col-expand">
+					<p class="list-group-title text-truncate">
+						<liferay-ui:message key="run-the-garbage-collector-to-free-up-memory" />
+					</p>
 				</div>
 
-				<div class="float-right">
+				<div class="autofit-col">
 					<aui:button cssClass="save-server-button" data-cmd="gc" value="execute" />
 				</div>
 			</li>
-			<li class="clearfix list-group-item">
-				<div class="float-left">
-					<h5><liferay-ui:message key="generate-thread-dump" /></h5>
+			<li class="list-group-item list-group-item-flex">
+				<div class="autofit-col autofit-col-expand">
+					<p class="list-group-title text-truncate">
+						<liferay-ui:message key="generate-thread-dump" />
+					</p>
 				</div>
 
-				<div class="float-right">
+				<div class="autofit-col">
 					<aui:button cssClass="save-server-button" data-cmd="threadDump" value="execute" />
 				</div>
 			</li>
 		</ul>
-	</liferay-ui:panel>
+	</aui:fieldset>
 
-	<liferay-ui:panel
-		collapsible="<%= true %>"
-		cssClass="panel-secondary server-admin-actions-panel"
-		extended="<%= true %>"
-		id="adminServerAdministrationCacheActionsPanel"
-		markupView="lexicon"
-		persistState="<%= true %>"
-		title="cache-actions"
-	>
+	<aui:fieldset collapsed="<%= false %>" collapsible="<%= true %>" label="cache-actions">
 		<ul class="list-group system-action-group">
-			<li class="clearfix list-group-item">
-				<div class="float-left">
-					<h5><liferay-ui:message key="clear-content-cached-by-this-vm" /></h5>
+			<li class="list-group-item list-group-item-flex">
+				<div class="autofit-col autofit-col-expand">
+					<p class="list-group-title text-truncate">
+						<liferay-ui:message key="clear-content-cached-by-this-vm" />
+					</p>
 				</div>
 
-				<div class="float-right">
+				<div class="autofit-col">
 					<aui:button cssClass="save-server-button" data-cmd="cacheSingle" value="execute" />
 				</div>
 			</li>
-			<li class="clearfix list-group-item">
-				<div class="float-left">
-					<h5><liferay-ui:message key="clear-content-cached-across-the-cluster" /></h5>
+			<li class="list-group-item list-group-item-flex">
+				<div class="autofit-col autofit-col-expand">
+					<p class="list-group-title text-truncate">
+						<liferay-ui:message key="clear-content-cached-across-the-cluster" />
+					</p>
 				</div>
 
-				<div class="float-right">
+				<div class="autofit-col">
 					<aui:button cssClass="save-server-button" data-cmd="cacheMulti" value="execute" />
 				</div>
 			</li>
-			<li class="clearfix list-group-item">
-				<div class="float-left">
-					<h5><liferay-ui:message key="clear-the-database-cache" /></h5>
+			<li class="list-group-item list-group-item-flex">
+				<div class="autofit-col autofit-col-expand">
+					<p class="list-group-title text-truncate">
+						<liferay-ui:message key="clear-the-database-cache" />
+					</p>
 				</div>
 
-				<div class="float-right">
+				<div class="autofit-col">
 					<aui:button cssClass="save-server-button" data-cmd="cacheDb" value="execute" />
 				</div>
 			</li>
-			<li class="clearfix list-group-item">
-				<div class="float-left">
-					<h5><liferay-ui:message key="clear-the-direct-servlet-cache" /></h5>
+			<li class="list-group-item list-group-item-flex">
+				<div class="autofit-col autofit-col-expand">
+					<p class="list-group-title text-truncate">
+						<liferay-ui:message key="clear-the-direct-servlet-cache" />
+					</p>
 				</div>
 
-				<div class="float-right">
+				<div class="autofit-col">
 					<aui:button cssClass="save-server-button" data-cmd="cacheServlet" value="execute" />
 				</div>
 			</li>
 		</ul>
-	</liferay-ui:panel>
+	</aui:fieldset>
 
-	<liferay-ui:panel
-		collapsible="<%= true %>"
-		cssClass="panel-secondary server-admin-actions-panel"
-		extended="<%= true %>"
-		id="adminServerAdministrationVerificationActionsPanel"
-		markupView="lexicon"
-		persistState="<%= true %>"
-		title="verification-actions"
-	>
+	<aui:fieldset collapsed="<%= false %>" collapsible="<%= true %>" label="verification-actions">
 		<ul class="list-group system-action-group">
-			<li class="clearfix list-group-item">
-				<div class="float-left">
-					<h5><liferay-ui:message key="verify-database-tables-of-all-plugins" /></h5>
+			<li class="list-group-item list-group-item-flex">
+				<div class="autofit-col autofit-col-expand">
+					<p class="list-group-title text-truncate">
+						<liferay-ui:message key="verify-database-tables-of-all-plugins" />
+					</p>
 				</div>
 
-				<div class="float-right">
+				<div class="autofit-col">
 					<aui:button cssClass="save-server-button" data-cmd="verifyPluginTables" value="execute" />
 				</div>
 			</li>
-			<li class="clearfix list-group-item">
-				<div class="float-left">
-					<h5><liferay-ui:message key="verify-membership-policies" /></h5>
+			<li class="list-group-item list-group-item-flex">
+				<div class="autofit-col autofit-col-expand">
+					<p class="list-group-title text-truncate">
+						<liferay-ui:message key="verify-membership-policies" />
+					</p>
 				</div>
 
-				<div class="float-right">
+				<div class="autofit-col">
 					<aui:button cssClass="save-server-button" data-cmd="verifyMembershipPolicies" value="execute" />
 				</div>
 			</li>
 		</ul>
-	</liferay-ui:panel>
+	</aui:fieldset>
 
-	<liferay-ui:panel
-		collapsible="<%= true %>"
-		cssClass="panel-secondary server-admin-actions-panel"
-		extended="<%= true %>"
-		id="adminServerAdministrationCleanUpActionsPanel"
-		markupView="lexicon"
-		persistState="<%= true %>"
-		title="clean-up-actions"
-	>
+	<aui:fieldset collapsed="<%= false %>" collapsible="<%= true %>" label="clean-up-actions">
 		<ul class="list-group system-action-group">
-			<li class="clearfix list-group-item">
-				<div class="float-left">
-					<h5><liferay-ui:message key="reset-preview-and-thumbnail-files-for-documents-and-media" /> <liferay-ui:icon-help message="reset-preview-and-thumbnail-files-for-documents-and-media-help" /></h5>
+			<li class="list-group-item list-group-item-flex">
+				<div class="autofit-col autofit-col-expand">
+					<p class="list-group-title text-truncate">
+						<liferay-ui:message key="reset-preview-and-thumbnail-files-for-documents-and-media" /> <liferay-ui:icon-help message="reset-preview-and-thumbnail-files-for-documents-and-media-help" />
+					</p>
 				</div>
 
-				<div class="float-right">
+				<div class="autofit-col">
 					<aui:button cssClass="save-server-button" data-cmd="dlPreviews" value="execute" />
 				</div>
 			</li>
-			<li class="clearfix list-group-item">
-				<div class="float-left">
-					<h5><liferay-ui:message key="clean-up-permissions" /> <liferay-ui:icon-help message="clean-up-permissions-help" /></h5>
+			<li class="list-group-item list-group-item-flex">
+				<div class="autofit-col autofit-col-expand">
+					<p class="list-group-title text-truncate">
+						<liferay-ui:message key="clean-up-permissions" /> <liferay-ui:icon-help message="clean-up-permissions-help" />
+					</p>
 				</div>
 
-				<div class="float-right">
+				<div class="autofit-col">
 					<aui:button cssClass="save-server-button" data-cmd="cleanUpAddToPagePermissions" value="execute" />
 				</div>
 			</li>
-			<li class="clearfix list-group-item">
-				<div class="float-left">
-					<h5><liferay-ui:message key="clean-up-orphaned-page-revision-portlet-preferences" /> <liferay-ui:icon-help message="clean-up-orphaned-page-revision-portlet-preferences-help" /></h5>
+			<li class="list-group-item list-group-item-flex">
+				<div class="autofit-col autofit-col-expand">
+					<p class="list-group-title text-truncate">
+						<liferay-ui:message key="clean-up-orphaned-page-revision-portlet-preferences" /> <liferay-ui:icon-help message="clean-up-orphaned-page-revision-portlet-preferences-help" />
+					</p>
 				</div>
 
-				<div class="float-right">
+				<div class="autofit-col">
 					<aui:button cssClass="save-server-button" data-cmd="cleanUpLayoutRevisionPortletPreferences" value="execute" />
 				</div>
 			</li>
-			<li class="clearfix list-group-item">
-				<div class="float-left">
-					<h5><liferay-ui:message key="clean-up-orphaned-theme-portlet-preferences" /> <liferay-ui:icon-help message="clean-up-orphaned-theme-portlet-preferences-help" /></h5>
+			<li class="list-group-item list-group-item-flex">
+				<div class="autofit-col autofit-col-expand">
+					<p class="list-group-title text-truncate">
+						<liferay-ui:message key="clean-up-orphaned-theme-portlet-preferences" /> <liferay-ui:icon-help message="clean-up-orphaned-theme-portlet-preferences-help" />
+					</p>
 				</div>
 
-				<div class="float-right">
+				<div class="autofit-col">
 					<aui:button cssClass="save-server-button" data-cmd="cleanUpOrphanedPortletPreferences" value="execute" />
 				</div>
 			</li>
 		</ul>
-	</liferay-ui:panel>
-</liferay-ui:panel-container>
+	</aui:fieldset>
+</aui:fieldset-group>

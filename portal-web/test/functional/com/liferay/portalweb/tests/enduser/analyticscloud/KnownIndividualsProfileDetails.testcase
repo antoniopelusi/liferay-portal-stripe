@@ -1,6 +1,8 @@
 @component-name = "portal-analytics-cloud"
 definition {
 
+	property analytics.cloud.release = "true";
+	property analytics.cloud.upstream = "true";
 	property portal.release = "false";
 	property portal.upstream = "true";
 	property property.group = "analytics.cloud.profile";
@@ -43,6 +45,8 @@ definition {
 	tearDown {
 		var testPortalInstance = PropsUtil.get("test.portal.instance");
 
+		ACUtils.tearDownAC();
+
 		ACUtils.tearDownDXP();
 
 		if ("${testPortalInstance}" == "true") {
@@ -51,15 +55,13 @@ definition {
 		else {
 			JSONGroup.deleteGroupByName(groupName = "Site Name");
 		}
-
-		JSONUser.tearDownNonAdminUsers();
-
-		ACUtils.tearDownAC();
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8938 | Test Summary: All attributes of the individual appear in a list"
 	@priority = "5"
 	test AllIndividualAttributesAppearInList {
+		property analytics.cloud.upstream = "false";
+
 		task ("Sign in as new user to view the site page") {
 			User.logoutAndLoginPG(
 				userLoginEmailAddress = "user1@liferay.com",
@@ -119,70 +121,11 @@ definition {
 		}
 	}
 
-	@description = "Feature ID: Legacy | Automation ID: LRAC-8939 | Test Summary: Assert Individuals details search result displays correct number"
-	@priority = "3"
-	test AssertIndividualsSearchDetailsResult {
-		task ("Sign in as new user to view the site page") {
-			User.logoutAndLoginPG(
-				userLoginEmailAddress = "user1@liferay.com",
-				userLoginFullName = "user1 user1");
-
-			ACUtils.navigateToSitePage(
-				pageName = "AC Page",
-				siteName = "Site Name");
-		}
-
-		task ("Close sessions") {
-			ACUtils.closeAllSessionsAndWait();
-		}
-
-		task ("Switch to new property in AC") {
-			ACUtils.launchAC();
-
-			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
-		}
-
-		task ("Go to the Individual > KnownIndividual > Details") {
-			ACNavigation.goToIndividuals();
-
-			ACIndividualsDashboard.goToKnownIndividualsTab();
-
-			ACIndividualsDashboard.goToKnownIndividualDetails(individualName = "user1 user1");
-
-			ACNavigation.switchTab(tabName = "Details");
-		}
-
-		task ("Assert Individuals details search result displays correct number and items") {
-			ACUtils.searchBar(searchItem = "Name");
-
-			ACUtils.viewSearchResultsInfo(
-				count = "2",
-				searchTerm = '''"Name"''');
-
-			for (var individualAttribute : list "familyName,givenName") {
-				ACIndividualsDashboard.assertIndividualAttribute(key_individualAttribute = "${individualAttribute}");
-			}
-
-			for (var individualAttribute : list "birthDate,classPK,contactId,createDate,email,modifiedDate") {
-				ACIndividualsDashboard.assertNoIndividualAttribute(key_individualAttribute = "${individualAttribute}");
-			}
-
-			ACUtils.searchBar(searchItem = "Should not be here");
-
-			ACUtils.viewSearchResultsInfo(
-				count = "0",
-				searchTerm = '''"Should not be here"''');
-
-			AssertTextEquals(
-				key_noResultMessage = "There are no items found.",
-				locator1 = "ACAssets#NO_RESULTS_CONTENT_MESSAGE",
-				value1 = "There are no items found.");
-		}
-	}
-
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8938 | Test Summary: Order an Individual's Details"
 	@priority = "3"
 	test OrderIndividualDetails {
+		property analytics.cloud.upstream = "false";
+
 		task ("Sign in as new user to view the site page") {
 			User.logoutAndLoginPG(
 				userLoginEmailAddress = "user1@liferay.com",

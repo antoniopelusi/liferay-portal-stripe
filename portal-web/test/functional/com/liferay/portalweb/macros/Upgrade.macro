@@ -75,8 +75,6 @@ definition {
 			entryContent = "${entryContent}",
 			entryTitle = "${entryTitle}");
 
-		Pause(locator1 = "3000");
-
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/site-name/test-page");
 
 		AssertClick.assertTextClickAt(
@@ -102,8 +100,6 @@ definition {
 			dmDocumentFile = "${dmDocumentFile}",
 			dmDocumentTitle = "${dmDocumentTitle}");
 
-		Pause(locator1 = "3000");
-
 		if (isSet(depotName)) {
 			DepotNavigator.openDepotDocumentsAndMediaAdmin(depotName = "Test Depot Name");
 		}
@@ -128,9 +124,11 @@ definition {
 
 		WebContentNavigator.gotoAddCP();
 
-		WebContent.addCP(
-			webContentContent = "${webContentContent}",
-			webContentTitle = "${webContentTitle}");
+		PortletEntry.inputTitle(title = "${webContentTitle}");
+
+		CKEditor.addContentInWebContent(
+			content = "${webContentContent}",
+			fieldLabel = "content");
 
 		PortletEntry.publish();
 
@@ -237,7 +235,7 @@ definition {
 		}
 
 		task ("Publish the content page") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Navigate to the content page") {
@@ -289,7 +287,7 @@ definition {
 		}
 
 		task ("Publish the content page") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Assert the Title fragment is updated") {
@@ -315,7 +313,7 @@ definition {
 		}
 
 		task ("Publish the content page") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Assert the Button fragment is present") {
@@ -436,7 +434,7 @@ definition {
 
 		Form.closeSidebar();
 
-		Form.save();
+		PortletEntry.publish();
 
 		ProductMenu.gotoPortlet(
 			category = "Content & Data",
@@ -450,7 +448,14 @@ definition {
 			category = "Site Builder",
 			portlet = "Pages");
 
-		PagesAdmin.addPublicPage(pageName = "Form Page");
+		LexiconEntry.gotoAdd();
+
+		if (IsElementPresent(key_menuItem = "Page", locator1 = "MenuItem#ANY_MENU_ITEM")) {
+			PagesAdmin.addPage(pageName = "Form Page");
+		}
+		else if (IsElementPresent(key_menuItem = "Public Page", locator1 = "MenuItem#ANY_MENU_ITEM")) {
+			PagesAdmin.addPublicPage(pageName = "Form Page");
+		}
 
 		Navigator.gotoPage(pageName = "Form Page");
 
@@ -990,7 +995,11 @@ definition {
 				fragmentLocator = "//div[@class='fragment-title']/h1[@class='title']",
 				text = "LOREM IPSUM DOLOR SIT AMET");
 
-			PortletEntry.publish();
+			Button.clickPublish();
+
+			AssertConsoleTextNotPresent(value1 = "javax.portlet.PortletException:");
+
+			Alert.viewSuccessMessageText(successMessage = "Your request completed successfully.");
 		}
 
 		task ("Assert could delete fragment upgrading from 7.2") {
@@ -1075,8 +1084,9 @@ definition {
 
 			DisplayPageTemplate.clickPencilItem(item = "Edit Webcontent Title");
 
-			WebContent.addCP(
-				webContentContent = "Webcontent Content Edit",
+			WebContent.addWithStructureCP(
+				webContentRichText = "Webcontent Content Edit",
+				webContentRichTextFieldLabel = "content",
 				webContentTitle = "Webcontent Title Edit");
 
 			PortletEntry.publish();
@@ -1508,7 +1518,11 @@ definition {
 			WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
 		}
 
+		WaitForPageLoad();
+
 		WebContentNavigator.gotoEditCP(webContentTitle = "${webContentTitle}");
+
+		WaitForPageLoad();
 
 		Panel.expandPanel(panel = "Categorization");
 
@@ -1521,7 +1535,11 @@ definition {
 			WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
 		}
 
+		WaitForPageLoad();
+
 		WebContentNavigator.gotoEditCP(webContentTitle = "${webContentTitle}");
+
+		WaitForPageLoad();
 
 		Panel.expandPanel(panel = "Categorization");
 
@@ -1546,6 +1564,8 @@ definition {
 			WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
 		}
 
+		WaitForPageLoad();
+
 		WebContent.moveToRecycleBinCP(webContentTitle = "${webContentTitle}");
 	}
 
@@ -1556,19 +1576,21 @@ definition {
 
 		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Name");
 
-		if ("${webContentColor}" == "false") {
-			for (var fieldFieldLabel : list "Boolean,Date,Decimal,Documents and Media,Geolocation,HTML,Image,Integer,Link to Page,Number,Radio,Select,Separator,Text,Text Box,Web Content") {
-				DataEngine.editFieldLabel(
-					fieldFieldLabel = "${fieldFieldLabel}",
-					fieldFieldLabelEdit = "${fieldFieldLabel} Edit");
-			}
+		DataEngine.editFieldLabel(
+			fieldFieldLabel = "Boolean",
+			fieldFieldLabelEdit = "Boolean Edit",
+			fieldName = "Boolean");
+
+		if ("${webContentColor}" == "true") {
+			DataEngine.editFieldLabel(
+				fieldFieldLabel = "Color",
+				fieldFieldLabelEdit = "Color Edit");
 		}
-		else {
-			for (var fieldFieldLabel : list "Boolean,Color,Date,Decimal,Documents and Media,Geolocation,HTML,Image,Integer,Link to Page,Number,Radio,Select,Separator,Text,Text Box,Web Content") {
-				DataEngine.editFieldLabel(
-					fieldFieldLabel = "${fieldFieldLabel}",
-					fieldFieldLabelEdit = "${fieldFieldLabel} Edit");
-			}
+
+		for (var fieldFieldLabel : list "Date,Decimal,Documents and Media,Geolocation,HTML,Image,Integer,Link to Page,Number,Radio,Select,Separator,Text,Text Box,Web Content") {
+			DataEngine.editFieldLabel(
+				fieldFieldLabel = "${fieldFieldLabel}",
+				fieldFieldLabelEdit = "${fieldFieldLabel} Edit");
 		}
 
 		WebContentStructures.saveCP(structureName = "WC Structure Name");
@@ -1662,24 +1684,9 @@ definition {
 		PortletEntry.changeLocale(locale = "ja-JP");
 
 		WebContent.viewCP(
+			upgradedFieldLabel = "true",
 			webContentContent = "Webコンテンツ",
 			webContentTitle = "Webコンテンツのタイトル");
-
-		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
-
-		Translations.importTranslation(
-			archive = "true",
-			dependencyfile = "true",
-			fileName = "WebContentTitle-en_US.zip",
-			webContentTitle = "WebContentTitle");
-
-		WebContentNavigator.gotoEditCP(webContentTitle = "WebContentTitle");
-
-		PortletEntry.changeLocale(locale = "de-DE");
-
-		WebContent.viewCP(
-			webContentContent = "Internetinhalt",
-			webContentTitle = "TiteldesWebinhalts");
 	}
 
 	macro exportDefaultSiteIntoNewSite {
@@ -2145,6 +2152,10 @@ definition {
 
 		Staging.gotoPublishToLive();
 
+		Staging.configurePublishToLive(
+			checkContentNameList = "Web Content",
+			contentDateRange = "All");
+
 		Staging.publishToLive();
 
 		ProductMenu.gotoLiveSite(site = "Staging Site");
@@ -2483,6 +2494,185 @@ definition {
 			userEmailAddress = "test@liferay.com");
 	}
 
+	macro submitFormEntry {
+		Navigator.openURL();
+
+		Navigator.gotoPage(pageName = "Form Page");
+
+		FormFields.editText(
+			fieldName = "Numeric",
+			fieldValue = "1000");
+
+		FormFields.editText(
+			fieldName = "SingleLineText",
+			fieldValue = "SingleLineText Test");
+
+		FormFields.editTextMultiline(
+			fieldName = "MultilineText",
+			fieldValue = "MultilineText Test");
+
+		FormFields.selectSelectOption(
+			fieldName = "Select from List",
+			selectOption = "Select 1");
+
+		FormFields.selectRadioOption(
+			fieldName = "SingleSelection",
+			radioOption = "Option 1");
+
+		FormFields.selectGridRadioOptionWithoutCategory(
+			fieldName = "Grid",
+			optionColumnNumber = "1",
+			optionRowNumber = "1");
+
+		FormViewBuilder.editDate(
+			fieldName = "Date",
+			fieldValue = "01/01/1000");
+
+		FormFields.selectCheckboxOption(
+			checkboxOption = "Option 2",
+			fieldName = "MultipleSelection");
+
+		FormFields.viewUploadField(
+			fieldLabel = "Upload",
+			fieldName = "Upload");
+
+		ItemSelector.gotoItemSelectorViaSelectButton();
+
+		ItemSelector.uploadFile(
+			navTab = "Upload",
+			uploadFileName = "Document_2.jpg");
+
+		FormPortlet.submitSuccessfully();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoViewEntries();
+
+		FormsAdmin.viewFormTableEntry(
+			fieldLabel = "Status",
+			fieldValue = "Approved");
+
+		FormsAdmin.viewFormTableEntry(
+			fieldLabel = "Numeric",
+			fieldValue = "1000");
+	}
+
+	macro submitFormEntry7010 {
+		Navigator.openURL();
+
+		Navigator.gotoPage(pageName = "Form Page");
+
+		FormFields.editText(
+			fieldName = "SingleLineText",
+			fieldValue = "SingleLineText Test");
+
+		FormFields.editTextMultiline(
+			fieldName = "MultilineText",
+			fieldValue = "MultilineText Test");
+
+		FormFields.selectSelectOption(
+			fieldName = "Select from List",
+			selectOption = "Select 1");
+
+		FormFields.selectRadioOption(
+			fieldName = "SingleSelection",
+			radioOption = "Option 1");
+
+		FormViewBuilder.editDate(
+			fieldName = "Date",
+			fieldValue = "01/01/1000");
+
+		FormFields.selectCheckboxOption(
+			checkboxOption = "Option 2",
+			fieldName = "MultipleSelection");
+
+		FormPortlet.submitSuccessfully();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoViewEntries();
+
+		FormsAdmin.viewFormTableEntry(
+			fieldLabel = "Multiple Selection",
+			fieldValue = "Option 1, Option 2, Option 3");
+
+		FormsAdmin.viewFormTableEntry(
+			fieldLabel = "Status",
+			fieldValue = "Approved");
+	}
+
+	macro submitFormEntry7310 {
+		Navigator.openURL();
+
+		Navigator.gotoPage(pageName = "Form Page");
+
+		FormFields.selectColorFromColorPicker(
+			colorValue = "FF0D0D",
+			fieldLabel = "Color",
+			fieldName = "Color");
+
+		FormFields.editText(
+			fieldName = "Numeric",
+			fieldValue = "1000");
+
+		FormFields.editText(
+			fieldName = "SingleLineText",
+			fieldValue = "SingleLineText Test");
+
+		FormFields.editTextMultiline(
+			fieldName = "MultilineText",
+			fieldValue = "MultilineText Test");
+
+		FormFields.selectSelectOption(
+			fieldName = "Select from List",
+			selectOption = "Select 1");
+
+		FormFields.selectRadioOption(
+			fieldName = "Single Selection",
+			radioOption = "Option 1");
+
+		FormFields.selectGridRadioOptionWithoutCategory(
+			fieldName = "Grid",
+			optionColumnNumber = "1",
+			optionRowNumber = "1");
+
+		FormViewBuilder.editDate(
+			fieldName = "Date",
+			fieldValue = "01/01/1000");
+
+		FormFields.selectCheckboxOption(
+			checkboxOption = "Option 2",
+			fieldName = "Multiple Selection");
+
+		Click(locator1 = "FormFields#UPLOAD_ON_WIDGET");
+
+		ItemSelector.uploadFile(
+			navTab = "Documents and Media",
+			uploadFileName = "Document_2.jpg");
+
+		FormPortlet.submitSuccessfully();
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoViewEntries();
+
+		FormsAdmin.viewFormTableEntry(
+			fieldLabel = "Status",
+			fieldValue = "Approved");
+
+		FormsAdmin.viewFormTableEntry(
+			fieldLabel = "Numeric",
+			fieldValue = "1000");
+	}
+
 	macro submitNewWorkflow {
 		Navigator.openURL();
 
@@ -2499,8 +2689,6 @@ definition {
 		ProductMenu.gotoPortlet(
 			category = "Content & Data",
 			portlet = "Blogs");
-
-		Pause(locator1 = "3000");
 
 		Blogs.addWithWorkflow(
 			entryContent = "Blogs Entry Content",
@@ -2962,6 +3150,11 @@ definition {
 	macro viewAndAddImageResolution {
 		AdaptiveMedia.openAdaptiveMediaAdmin();
 
+		AdaptiveMedia.viewImageResolutionTableEntry(
+			imageName = "Preview",
+			maxHeight = "Auto",
+			maxWidth = "1000");
+
 		AdaptiveMedia.selectAdaptiveMediaImage(imageName = "Thumbnail 300x300");
 
 		AdaptiveMedia.viewNumberOfAdaptedImages(numberOfAdaptedImages = "1/1");
@@ -3199,7 +3392,7 @@ definition {
 
 		PageEditor.replyToComment(commentReply = "Fragment Comment 2");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/test-content-page-name");
 
@@ -3316,7 +3509,6 @@ definition {
 
 	macro viewAndEditOpenGraph {
 		var portalURL = PropsUtil.get("portal.url");
-
 		var siteId = JSONGroupSetter.setGroupId(groupName = "Test Site Name");
 
 		Navigator.openToGroupPagesPortlet(
@@ -3874,6 +4066,18 @@ definition {
 		AssertElementNotPresent(locator1 = "SearchResults#USER_FACET_ANY_USER");
 	}
 
+	macro viewConfigurationChecked {
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Content Page Name",
+			siteName = "Test Site Name");
+
+		PageEditor.gotoAdvanced(fragmentName = "Button");
+
+		AssertChecked.assertCheckedNotVisible(
+			checkboxName = "Hide from Site Search Results",
+			locator1 = "Checkbox#ANY_CHECKBOX");
+	}
+
 	macro viewContributedFragmentStyle {
 		task ("Navigate to page in view mode") {
 			ApplicationsMenu.gotoSite(site = "Test Site Name");
@@ -3888,74 +4092,140 @@ definition {
 		}
 
 		task ("Assert styles of Container in view mode") {
+			SetWindowSize(value1 = "1800,1040");
+
 			var screenWidth = selenium.getElementWidth("//body");
-			var containerWidth = selenium.getElementWidth("//div[contains(@class,'container')][contains(@class,'pb-3')][contains(@class,'pt-3')]");
+			var containerWidth = selenium.getElementWidth("xpath=(//div[contains(@class,'lfr-layout-structure-item-container')])[2]");
 
 			TestUtils.assertNotEquals(
 				actual = "${containerWidth}",
 				expected = "${screenWidth}");
 
-			AssertVisible(locator1 = "//div[contains(@class,'container')][contains(@class,'pb-3')][contains(@class,'pt-3')]");
+			ContentPages.viewFragmentCommonStyle(
+				fragmentName = "Container",
+				styleName = "backgroundColor",
+				styleValue = "rgb(46, 90, 172)");
+
+			ContentPages.viewFragmentCommonStyle(
+				fragmentName = "Container",
+				index = "2",
+				styleName = "paddingBottom",
+				styleValue = "3");
+
+			ContentPages.viewFragmentCommonStyle(
+				fragmentName = "Container",
+				index = "2",
+				styleName = "paddingTop",
+				styleValue = "3");
 
 			AssertCssValue(
-				locator1 = "//div[contains(@class,'container')][contains(@class,'pb-3')][contains(@class,'pt-3')]//parent::div",
-				locator2 = "background-color",
-				value1 = "rgba(46, 90, 172, 1)");
-
-			AssertCssValue(
-				locator1 = "//div[contains(@class,'container')][contains(@class,'pb-3')][contains(@class,'pt-3')]",
+				locator1 = "xpath=(//div[contains(@class,'lfr-layout-structure-item-container')])[2]",
 				locator2 = "max-width",
 				value1 = "${containerWidth}px");
 		}
 
 		task ("Assert styles of Button in view mode") {
+			ContentPages.viewFragmentCommonStyle(
+				fragmentName = "button",
+				styleName = "textAlign",
+				styleValue = "center");
+
+			ContentPages.viewFragmentCommonStyle(
+				fragmentName = "button",
+				styleName = "marginBottom",
+				styleValue = "1");
+
 			PageEditor.viewFragmentStyle(
-				alignment = "center",
 				fragmentName = "Button",
-				marginBottom = "1",
 				size = "lg",
 				type = "link");
 		}
 
 		task ("Assert styles of Card in view mode") {
+			ContentPages.viewFragmentCommonStyle(
+				fragmentName = "card",
+				styleName = "textAlign",
+				styleValue = "center");
+
+			ContentPages.viewFragmentCommonStyle(
+				fragmentName = "card",
+				styleName = "borderRadius",
+				styleValue = "0.375rem");
+
+			ContentPages.viewFragmentCommonStyle(
+				fragmentName = "card",
+				styleName = "boxShadow",
+				styleValue = "rgba(0, 0, 0, 0.176) 0px 1rem 3rem");
+
+			ContentPages.viewFragmentCommonStyle(
+				fragmentName = "card",
+				styleName = "marginBottom",
+				styleValue = "1");
+
 			PageEditor.viewFragmentStyle(
-				alignment = "center",
-				borderRadius = "0.375rem",
-				boxShadow = "0 1rem 3rem rgba(0, 0, 0, .175)",
 				fragmentName = "Card",
-				imageSize = "0",
-				marginBottom = "1");
+				imageSize = "0");
 		}
 
 		task ("Assert styles of Heading in view mode") {
+			ContentPages.viewFragmentCommonStyle(
+				fragmentName = "heading",
+				styleName = "textAlign",
+				styleValue = "center");
+
+			ContentPages.viewFragmentCommonStyle(
+				fragmentName = "heading",
+				styleName = "color",
+				styleValue = "rgb(40, 125, 60)");
+
+			ContentPages.viewFragmentCommonStyle(
+				fragmentName = "heading",
+				styleName = "marginBottom",
+				styleValue = "1");
+
 			PageEditor.viewFragmentStyle(
-				alignment = "center",
 				fragmentName = "Heading",
-				headingLevel = "h2",
-				marginBottom = "1",
-				textColor = "#287D3C");
+				headingLevel = "h2");
 		}
 
 		task ("Assert styles of HTML in view mode") {
-			PageEditor.viewFragmentStyle(
-				fragmentName = "HTML",
-				marginBottom = "1");
+			ContentPages.viewFragmentCommonStyle(
+				fragmentName = "html",
+				styleName = "marginBottom",
+				styleValue = "1");
 		}
 
 		task ("Assert styles of Image in view mode") {
+			ContentPages.viewFragmentCommonStyle(
+				fragmentName = "image",
+				styleName = "textAlign",
+				styleValue = "center");
+
+			ContentPages.viewFragmentCommonStyle(
+				fragmentName = "image",
+				styleName = "marginBottom",
+				styleValue = "1");
+
 			PageEditor.viewFragmentStyle(
-				alignment = "center",
 				fragmentName = "Image",
-				imageSize = "0",
-				marginBottom = "1");
+				imageSize = "0");
 		}
 
 		task ("Assert styles of Paragraph in view mode") {
-			PageEditor.viewFragmentStyle(
-				alignment = "center",
-				fragmentName = "Paragraph",
-				marginBottom = "1",
-				textColor = "#B95000");
+			ContentPages.viewFragmentCommonStyle(
+				fragmentName = "image",
+				styleName = "textAlign",
+				styleValue = "center");
+
+			ContentPages.viewFragmentCommonStyle(
+				fragmentName = "image",
+				styleName = "marginBottom",
+				styleValue = "1");
+
+			ContentPages.viewFragmentCommonStyle(
+				fragmentName = "paragraph",
+				styleName = "color",
+				styleValue = "rgb(185, 80, 0)");
 		}
 
 		task ("Assert styles of Separator in view mode") {
@@ -3981,15 +4251,16 @@ definition {
 				key_width = "300px",
 				locator1 = "Fragment#VIDEO_WIDTH");
 
-			AssertElementPresent(locator1 = "//div[contains(@class,'video')]/parent::div/parent::div/parent::div[contains(@class,'mb-1')]");
+			ContentPages.viewFragmentCommonStyle(
+				fragmentName = "video",
+				styleName = "marginBottom",
+				styleValue = "1");
 		}
 
 		task ("Navigate to page in edit mode") {
 			ContentPagesNavigator.openEditContentPage(
 				pageName = "Test Fragment Content Page",
 				siteName = "Test Site Name");
-
-			WaitForPageLoad();
 		}
 
 		task ("Assert styles of Container in edit mode") {
@@ -3999,17 +4270,13 @@ definition {
 				paddingTop = "3",
 				position = "2");
 
-			AssertCssValue(
-				key_position = "1",
-				locator1 = "PageEditor#CONTAINER_CONTAINER",
-				locator2 = "background-color",
-				value1 = "rgba(46, 90, 172, 1)");
+			PageEditor.viewContainerStyle(backgroundColor = "rgb(46, 90, 172)");
 		}
 
 		task ("Assert styles of Button in edit mode") {
 			PageEditor.viewFragmentStyle(
 				alignment = "center",
-				fragmentName = "button",
+				fragmentName = "Button",
 				marginBottom = "1",
 				size = "lg",
 				type = "link");
@@ -4028,7 +4295,7 @@ definition {
 		task ("Assert styles of Heading in edit mode") {
 			PageEditor.viewFragmentStyle(
 				alignment = "center",
-				fragmentName = "heading",
+				fragmentName = "Heading",
 				headingLevel = "h2",
 				marginBottom = "1",
 				textColor = "rgb(40, 125, 60)");
@@ -4043,7 +4310,7 @@ definition {
 		task ("Assert styles of Image in edit mode") {
 			PageEditor.viewFragmentStyle(
 				alignment = "center",
-				fragmentName = "image",
+				fragmentName = "Image",
 				imageSize = "0",
 				marginBottom = "1");
 		}
@@ -4051,7 +4318,7 @@ definition {
 		task ("Assert styles of Paragraph in edit mode") {
 			PageEditor.viewFragmentStyle(
 				alignment = "center",
-				fragmentName = "paragraph",
+				fragmentName = "Paragraph",
 				marginBottom = "1",
 				textColor = "rgb(185, 80, 0)");
 		}
@@ -4080,7 +4347,7 @@ definition {
 				locator1 = "Fragment#VIDEO_WIDTH");
 
 			PageEditor.viewFragmentStyle(
-				fragmentName = "video",
+				fragmentName = "Video URL",
 				marginBottom = "1");
 		}
 	}
@@ -4154,6 +4421,80 @@ definition {
 		AssertVisible(locator1 = "ControlMenu#ADD");
 	}
 
+	macro viewDefinedGridLayout {
+		task ("Navigate to page in edit mode") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
+		}
+
+		task ("View the Grid Styles") {
+			PageEditor.gotoConfiguration(fragmentName = "Grid");
+
+			PageEditor.viewGridStyle(
+				columnCount = "6",
+				position = "1");
+
+			PageEditor.switchViewport(deviceType = "Tablet");
+
+			AssertSelectedLabel(
+				key_fieldLabel = "Layout",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
+				value1 = "1 Module per Row");
+
+			PageEditor.switchViewport(deviceType = "Landscape Phone");
+
+			AssertSelectedLabel(
+				key_fieldLabel = "Layout",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
+				value1 = "3 Modules per Row");
+
+			PageEditor.switchViewport(deviceType = "Portrait Phone");
+
+			AssertSelectedLabel(
+				key_fieldLabel = "Layout",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
+				value1 = "2 Modules per Row");
+		}
+
+		task ("Change to the Desktop viewport") {
+			PageEditor.switchViewport(deviceType = "Desktop");
+		}
+
+		task ("Configure the Grid") {
+			PageEditor.editLayoutGrid(
+				columnCount = "3",
+				panel = "General");
+		}
+
+		task ("View the Grid Styles after updating") {
+			PageEditor.viewGridStyle(
+				columnCount = "3",
+				position = "1");
+
+			PageEditor.switchViewport(deviceType = "Tablet");
+
+			AssertSelectedLabel(
+				key_fieldLabel = "Layout",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
+				value1 = "3 Modules per Row");
+
+			PageEditor.switchViewport(deviceType = "Landscape Phone");
+
+			AssertSelectedLabel(
+				key_fieldLabel = "Layout",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
+				value1 = "1 Module per Row");
+
+			PageEditor.switchViewport(deviceType = "Portrait Phone");
+
+			AssertSelectedLabel(
+				key_fieldLabel = "Layout",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
+				value1 = "1 Module per Row");
+		}
+	}
+
 	macro viewDocument {
 		Navigator.gotoPage(pageName = "Document");
 
@@ -4180,7 +4521,6 @@ definition {
 
 	macro viewDocuments {
 		var portalURL = PropsUtil.get("portal.url");
-
 		var siteId = JSONGroupAPI._getGroupIdByName(
 			groupName = "Guest",
 			site = "true");
@@ -4256,7 +4596,7 @@ definition {
 
 		var key_imageSourceURL = "${portalURL}/documents/${siteId}/0/DM";
 
-		AssertElementPresent.pauseAssertVisible(locator1 = "DocumentsAndMediaDocument#DOCUMENT_VIEWPORT_PREVIEW");
+		WaitForVisible(locator1 = "DocumentsAndMediaDocument#DOCUMENT_VIEWPORT_PREVIEW");
 
 		Navigator.gotoPage(pageName = "Documents");
 
@@ -4309,9 +4649,7 @@ definition {
 
 		WaitForPageLoad();
 
-		DataEngine.viewField(
-			fieldFieldLabel = "Boolean",
-			fieldName = "Multiple Selection");
+		FormFields.viewBooleanField(fieldValue = "Boolean");
 
 		DataEngine.viewField(
 			fieldFieldLabel = "Number",
@@ -4374,7 +4712,7 @@ definition {
 		}
 
 		task ("Publish the content page") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View the inline text of the card fragment at view mode") {
@@ -4387,6 +4725,339 @@ definition {
 				fragmentName = "card",
 				text = "Editable Title");
 		}
+	}
+
+	macro viewFormEntry {
+		Navigator.openURL();
+
+		Navigator.gotoPage(pageName = "Form Page");
+
+		FormFields.viewParagraphField(
+			fieldTitle = "Paragraph",
+			fieldValue = "Paragraph body text.");
+
+		FormFields.viewLabel(
+			fieldLabel = "Numeric",
+			fieldName = "Numeric");
+
+		FormFields.viewLabel(
+			fieldLabel = "SingleLineText",
+			fieldName = "SingleLineText");
+
+		FormFields.viewLabel(
+			fieldLabel = "MultilineText",
+			fieldName = "MultilineText");
+
+		FormFields.viewLabel(
+			fieldLabel = "Select from List",
+			fieldName = "Select from List");
+
+		FormFields.viewLabel(
+			fieldLabel = "Single Selection",
+			fieldName = "Single Selection");
+
+		FormFields.viewLabel(
+			fieldLabel = "Date",
+			fieldName = "Date");
+
+		FormFields.viewLabel(
+			fieldLabel = "Multiple Selection",
+			fieldName = "Multiple Selection");
+
+		FormFields.viewLabel(
+			fieldLabel = "Upload",
+			fieldName = "Upload");
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoViewEntries();
+
+		FormsAdmin.viewFormTableEntry(
+			fieldLabel = "Status",
+			fieldValue = "Approved");
+
+		FormsAdmin.viewFormTableEntry(
+			fieldLabel = "Numeric",
+			fieldValue = "123");
+
+		FormsAdmin.viewFormTableEntry(
+			fieldLabel = "Multiple Selection",
+			fieldValue = "Option 1, Option 2, Option 3");
+
+		FormsAdminNavigator.gotoView();
+
+		FormFields.viewParagraphField(
+			fieldTitle = "Paragraph",
+			fieldValue = "Paragraph body text.");
+
+		FormsAdmin.viewTextEntry(
+			fieldLabel = "Numeric",
+			fieldName = "Numeric",
+			fieldValue = "123");
+
+		FormsAdmin.viewTextEntry(
+			fieldLabel = "SingleLineText",
+			fieldName = "SingleLineText",
+			fieldValue = "SingleLineText");
+
+		FormsAdmin.viewMultilineTextEntry(
+			fieldLabel = "MultilineText",
+			fieldName = "MultilineText",
+			fieldValue = "MultilineText");
+
+		FormsAdmin.viewSelectEntry(
+			fieldLabel = "Select from List",
+			fieldName = "SelectFromList",
+			selectOption = "Select 1");
+
+		FormsAdmin.viewRadioEntry(
+			fieldLabel = "Single Selection",
+			fieldName = "SingleSelection",
+			fieldValue = "Option 1");
+
+		FormFields.assertGridOptionChecked(
+			columnValue = "Option 1",
+			rowValue = "Option 1");
+
+		FormsAdmin.viewDateEntry(
+			fieldLabel = "Date",
+			fieldName = "Date",
+			fieldValue = "05/02/2022");
+
+		FormsAdmin.viewUploadFile(
+			fieldLabel = "Upload",
+			fieldName = "Upload",
+			uploadFileName = "Document_1.jpg");
+	}
+
+	macro viewFormEntry7010 {
+		Navigator.openURL();
+
+		Navigator.gotoPage(pageName = "Form Page");
+
+		FormFields.viewParagraphField(
+			fieldTitle = "Paragraph",
+			fieldValue = "Paragraph body text.");
+
+		FormFields.viewLabel(
+			fieldLabel = "SingleLineText",
+			fieldName = "SingleLineText");
+
+		FormFields.viewLabel(
+			fieldLabel = "MultilineText",
+			fieldName = "MultilineText");
+
+		FormFields.viewLabel(
+			fieldLabel = "Select from List",
+			fieldName = "Select from List");
+
+		FormFields.viewLabel(
+			fieldLabel = "Single Selection",
+			fieldName = "Single Selection");
+
+		FormFields.viewLabel(
+			fieldLabel = "Date",
+			fieldName = "Date");
+
+		FormFields.viewLabel(
+			fieldLabel = "Multiple Selection",
+			fieldName = "Multiple Selection");
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoViewEntries();
+
+		FormsAdmin.viewFormTableEntry(
+			fieldLabel = "Status",
+			fieldValue = "Approved");
+
+		FormsAdmin.viewFormTableEntry(
+			fieldLabel = "Multiple Selection",
+			fieldValue = "Option 1, Option 2, Option 3");
+
+		FormsAdminNavigator.gotoView();
+
+		FormFields.viewParagraphField(
+			fieldTitle = "Paragraph",
+			fieldValue = "Paragraph body text.");
+
+		FormsAdmin.viewTextEntry(
+			fieldLabel = "SingleLineText",
+			fieldName = "SingleLineText",
+			fieldValue = "SingleLineText");
+
+		FormsAdmin.viewMultilineTextEntry(
+			fieldLabel = "MultilineText",
+			fieldName = "MultilineText",
+			fieldValue = "MultilineText");
+
+		FormsAdmin.viewSelectEntry(
+			fieldLabel = "Select from List",
+			fieldName = "SelectFromList",
+			selectOption = "Select 1");
+
+		FormsAdmin.viewRadioEntry(
+			fieldLabel = "Single Selection",
+			fieldName = "SingleSelection",
+			fieldValue = "Option 1");
+
+		FormsAdmin.viewDateEntry(
+			fieldLabel = "Date",
+			fieldName = "Date",
+			fieldValue = "05/02/2022");
+	}
+
+	macro viewFormEntry7310 {
+		Navigator.openURL();
+
+		Navigator.gotoPage(pageName = "Form Page");
+
+		FormFields.viewLabel(
+			fieldLabel = "Paragraph",
+			fieldName = "Paragraph");
+
+		FormFields.viewParagraphFieldTextBody(fieldValue = "Paragraph body text.");
+
+		FormFields.viewLabel(
+			fieldLabel = "Numeric",
+			fieldName = "Numeric");
+
+		FormFields.viewLabel(
+			fieldLabel = "SingleLineText",
+			fieldName = "SingleLineText");
+
+		FormFields.viewLabel(
+			fieldLabel = "MultilineText",
+			fieldName = "MultilineText");
+
+		FormFields.viewLabel(
+			fieldLabel = "Select from List",
+			fieldName = "Select from List");
+
+		FormFields.viewLabel(
+			fieldLabel = "Single Selection",
+			fieldName = "Single Selection");
+
+		FormFields.viewLabel(
+			fieldLabel = "Date",
+			fieldName = "Date");
+
+		FormFields.viewLabel(
+			fieldLabel = "Multiple Selection",
+			fieldName = "Multiple Selection");
+
+		FormFields.viewLabel(
+			fieldLabel = "Grid",
+			fieldName = "Grid");
+
+		FormFields.viewLabel(
+			fieldLabel = "Upload",
+			fieldName = "Upload");
+
+		FormFields.viewLabel(
+			fieldLabel = "Image",
+			fieldName = "Image");
+
+		FormFields.viewLabel(
+			fieldLabel = "Rich Text",
+			fieldName = "Rich Text");
+
+		FormFields.viewLabel(
+			fieldLabel = "Color",
+			fieldName = "Color");
+
+		FormFields.viewLabel(
+			fieldLabel = "Separator",
+			fieldName = "Separator");
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoViewEntries();
+
+		FormsAdmin.viewFormTableEntry(
+			fieldLabel = "Status",
+			fieldValue = "Approved");
+
+		FormsAdmin.viewFormTableEntry(
+			fieldLabel = "Numeric",
+			fieldValue = "123");
+
+		FormsAdmin.viewImageTableEntry();
+
+		FormsAdmin.viewFormTableEntry(
+			fieldLabel = "Multiple Selection",
+			fieldValue = "Option 1, Option 2, Option 3");
+
+		FormsAdminNavigator.gotoView();
+
+		FormFields.viewLabel(
+			fieldLabel = "Paragraph",
+			fieldName = "Paragraph");
+
+		FormFields.viewParagraphFieldTextBody(fieldValue = "Paragraph body text.");
+
+		FormsAdmin.viewTextEntry(
+			fieldLabel = "Numeric",
+			fieldName = "Numeric",
+			fieldValue = "123");
+
+		FormsAdmin.viewTextEntry(
+			fieldLabel = "SingleLineText",
+			fieldName = "SingleLineText",
+			fieldValue = "SingleLineText");
+
+		FormsAdmin.viewMultilineTextEntry(
+			fieldLabel = "MultilineText",
+			fieldName = "MultilineText",
+			fieldValue = "MultilineText");
+
+		FormsAdmin.viewSelectEntry(
+			fieldLabel = "Select from List",
+			fieldName = "Select from List",
+			selectOption = "Select 1");
+
+		FormsAdmin.viewRadioEntry(
+			fieldLabel = "Single Selection",
+			fieldName = "Single Selection",
+			fieldValue = "Option 1");
+
+		FormsAdmin.viewDateEntry(
+			fieldLabel = "Date",
+			fieldName = "Date",
+			fieldValue = "05/02/2022");
+
+		FormFields.assertGridOptionChecked(
+			columnValue = "Option 1",
+			rowValue = "Option 1");
+
+		FormsAdmin.viewUploadFile(
+			fieldLabel = "Upload",
+			fieldName = "Upload",
+			uploadFileName = "Document_1.jpg");
+
+		FormsAdmin.viewImageEntry(
+			fieldDescription = "",
+			fieldLabel = "Image",
+			fieldName = "Image");
+
+		FormFields.viewRichTextValue(
+			fieldName = "Rich Text",
+			fieldValue = "Rich text body.");
+
+		FormsAdmin.viewColorEntry(
+			fieldLabel = "Color",
+			fieldName = "Color",
+			fieldValue = "#FF0D0D");
+
+		FormFields.viewLabel(
+			fieldLabel = "Separator",
+			fieldName = "Separator");
 	}
 
 	macro viewInstanceSettings {
@@ -4551,7 +5222,6 @@ definition {
 
 	macro viewMatchingCalendarIndexesInPartitionedDatabase {
 		var baseSchemaIndex = SQL.executeMySQLStatement(mysqlStatement = "SHOW INDEX FROM lportal.Calendar;");
-
 		var partitionSchemaIndex = SQL.executeMySQLStatement(mysqlStatement = "SHOW INDEX FROM lpartition_41246.Calendar;");
 
 		if ("${baseSchemaIndex}" == "${partitionSchemaIndex}") {
@@ -4724,6 +5394,19 @@ definition {
 			portletName = "Web Content Display");
 	}
 
+	macro viewNoSearchResults {
+		ApplicationsMenu.gotoSite(site = "Test Site Name");
+
+		AssertClick(
+			key_navItem = "Content Page Name",
+			locator1 = "NavBar#NAV_ITEM_LINK",
+			value1 = "Content Page Name");
+
+		SearchPortlets.searchEmbedded(searchTerm = "Awesome Button");
+
+		SearchResultPortlet.viewNoSearchResults(searchTerm = "Awesome Button");
+	}
+
 	macro viewNoShareOptionAfterDisabled {
 		User.firstLoginPG(
 			password = "test",
@@ -4888,7 +5571,7 @@ definition {
 			rowEntry = "${name}");
 
 		AssertTextEquals(
-			key_configurationValue = "filter.mapping.url.pattern",
+			key_configurationValue = "filterMappingUrlPattern",
 			locator1 = "SystemSettings#CORS_CONFIGURATION",
 			value1 = "${urlPattern}");
 
@@ -4970,10 +5653,7 @@ definition {
 	}
 
 	macro viewResultRankingsEntry {
-		ApplicationsMenu.gotoPortlet(
-			category = "Search Tuning",
-			panel = "Applications",
-			portlet = "Result Rankings");
+		SearchTuning.openResultRankingsAdmin();
 
 		LexiconEntry.gotoEntryMenuItem(
 			menuItem = "Edit",
@@ -5212,6 +5892,129 @@ definition {
 			portletName = "Blogs");
 	}
 
+	macro viewSXPBlueprintAndElements {
+		Blueprints.openBlueprintsAdmin();
+
+		Navigator.gotoNavItem(navItem = "Elements");
+
+		while (IsElementNotPresent(locator1 = "Pagination#RESULTS")) {
+			Refresh();
+		}
+
+		var paginationResults = selenium.getText("Pagination#RESULTS");
+
+		var totalElements = StringUtil.extractLast("${paginationResults}", " ");
+
+		var difference = ${totalElements} - 39;
+
+		if ("${difference}" != "0") {
+			TestUtils.fail(message = "FAILED: Actual total elements '${totalElements}' is not equal to expected total elements of 39");
+		}
+
+		Search.searchCP(searchTerm = "Test Element");
+
+		AssertElementPresent(
+			entryTitle = "Test Element",
+			locator1 = "Blueprints#BLUEPRINTS_ADMIN_ENTRY_TITLE");
+
+		Search.searchCP(searchTerm = "Boost Contents in a Category for User Segments");
+
+		AssertElementPresent(
+			entryTitle = "Boost Contents in a Category for User Segments",
+			locator1 = "Blueprints#BLUEPRINTS_ADMIN_ENTRY_TITLE");
+
+		AssertTextEquals(
+			entryTitle = "Boost Contents in a Category for User Segments",
+			locator1 = "Blueprints#BLUEPRINTS_ADMIN_ENTRY_DESCRIPTION",
+			value1 = "Boost contents in a category for users belonging to the given user segments.");
+
+		Search.searchCP(searchTerm = "Search with Query String Syntax");
+
+		AssertElementPresent(
+			entryTitle = "Search with Query String Syntax",
+			locator1 = "Blueprints#BLUEPRINTS_ADMIN_ENTRY_TITLE");
+
+		Navigator.gotoNavItem(navItem = "Blueprints");
+
+		Blueprints.gotoBlueprint(title = "Test Blueprint");
+
+		AssertElementPresent(
+			index = "40",
+			locator1 = "Blueprints#BLUEPRINTS_ADDED_ELEMENT_NTH_ELEMENT");
+
+		AssertElementPresent(
+			element = "Test Element",
+			locator1 = "Blueprints#BLUEPRINTS_ADDED_ELEMENT");
+
+		AssertElementPresent(
+			element = "Boost Contents in a Category for the Time of Day",
+			locator1 = "Blueprints#BLUEPRINTS_ADDED_ELEMENT");
+
+		AssertElementPresent(
+			element = "Boost Contents in a Category for User Segments",
+			locator1 = "Blueprints#BLUEPRINTS_ADDED_ELEMENT");
+
+		AssertElementPresent(
+			element = "Boost Contents in a Category for a Period of Time",
+			locator1 = "Blueprints#BLUEPRINTS_ADDED_ELEMENT");
+
+		AssertElementPresent(
+			element = "Search with Query String Syntax",
+			locator1 = "Blueprints#BLUEPRINTS_ADDED_ELEMENT");
+
+		AssertElementPresent(
+			elementName = "Boost Contents in a Category for the Time of Day",
+			fieldLabel = "Asset Category ID",
+			locator1 = "Blueprints#BLUEPRINTS_ADDED_ELEMENT_INPUT_FIELD",
+			value1 = "12345");
+
+		AssertElementPresent(
+			dropdownName = "Time of Day",
+			locator1 = "Blueprints#BLUEPRINTS_ADDED_ELEMENT_GENERIC_DROPDOWN_OPTION",
+			option = "Morning (4am - 12pm)");
+
+		AssertTextPresent(
+			element = "Boost Contents in a Category for User Segments",
+			locator1 = "Blueprints#BLUEPRINTS_ADDED_ELEMENT",
+			value1 = "Boost contents in a category for users belonging to the given user segments.");
+
+		AssertElementPresent(
+			elementName = "Boost Contents in a Category for a Period of Time",
+			fieldName = "Date: From",
+			locator1 = "Blueprints#BLUEPRINTS_ADDED_ELEMENT_FIELD_LABEL");
+
+		AssertElementNotPresent(
+			elementName = "Boost Contents in a Category for a Period of Time",
+			fieldName = "Create Date: From",
+			locator1 = "Blueprints#BLUEPRINTS_ADDED_ELEMENT_FIELD_LABEL");
+
+		AssertElementPresent(
+			elementName = "Boost Contents in a Category for a Period of Time",
+			fieldName = "Date: To",
+			locator1 = "Blueprints#BLUEPRINTS_ADDED_ELEMENT_FIELD_LABEL");
+
+		AssertElementNotPresent(
+			elementName = "Boost Contents in a Category for a Period of Time",
+			fieldName = "Create Date: To",
+			locator1 = "Blueprints#BLUEPRINTS_ADDED_ELEMENT_FIELD_LABEL");
+
+		AssertNotChecked.assertNotCheckedNotVisible(
+			elementName = "Boost Proximity",
+			locator1 = "Blueprints#BLUEPRINTS_ADDED_ELEMENT_ENABLE_DISABLE_TOGGLE");
+
+		Blueprints.searchBlueprintsPreview(searchTerm = "test");
+
+		AssertElementNotPresent(locator1 = "Message#ERROR");
+	}
+
+	macro viewSynonymsEntry {
+		SearchTuning.openSynonymsAdmin();
+
+		AssertElementPresent(
+			key_synonyms = "apple, banana",
+			locator1 = "SearchTuning#SYNONYMS_ENTRY");
+	}
+
 	macro viewSystemSettings {
 		ApplicationsMenu.gotoPortlet(
 			category = "Configuration",
@@ -5250,8 +6053,6 @@ definition {
 		FormFields.viewCheckboxNotChecked(fieldName = "databaseContentKeywordSearchEnabled");
 
 		FormFields.viewCheckboxNotChecked(fieldName = "expireAllArticleVersionsEnabled");
-
-		FormFields.viewCheckboxNotChecked(fieldName = "articleViewPermissionsCheckEnabled");
 
 		ApplicationsMenu.gotoPortlet(
 			category = "Configuration",
@@ -5409,6 +6210,7 @@ definition {
 		PortletEntry.changeLocale(locale = "es-ES");
 
 		WebContent.viewCP(
+			upgradedFieldLabel = "true",
 			webContentContent = "Contenidoweb",
 			webContentDescription = "Descripcion",
 			webContentTitle = "Titulodelcontenidoweb");
@@ -5420,6 +6222,7 @@ definition {
 		PortletEntry.changeLocale(locale = "ja-JP");
 
 		WebContent.viewCP(
+			upgradedFieldLabel = "true",
 			webContentContent = "wc webcontentコンテンツ",
 			webContentDescription = "wc webcontent記述",
 			webContentTitle = "wc webcontentタイトルを並べて");
@@ -5471,6 +6274,94 @@ definition {
 			webContentTitle = "Título del contenido web de WC");
 
 		PortletEntry.publish();
+	}
+
+	macro viewUpdateFieldNameToFieldReference {
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form");
+
+		FormFields.viewFieldReference(
+			fieldName = "Paragraph",
+			key_fieldReferenceValue = "Paragraph");
+
+		FormFields.viewFieldReference(
+			fieldName = "Numeric",
+			key_fieldReferenceValue = "Numeric");
+
+		FormFields.viewFieldReference(
+			fieldName = "SingleLineText",
+			key_fieldReferenceValue = "SingleLineText");
+
+		FormFields.viewFieldReference(
+			fieldName = "MultilineText",
+			key_fieldReferenceValue = "MultilineText");
+
+		FormFields.viewFieldReference(
+			fieldName = "SelectFromList",
+			key_fieldReferenceValue = "SelectFromList");
+
+		FormFields.viewFieldReference(
+			fieldName = "SingleSelection",
+			key_fieldReferenceValue = "SingleSelection");
+
+		FormFields.viewFieldReference(
+			fieldName = "Grid",
+			key_fieldReferenceValue = "Grid");
+
+		FormFields.viewFieldReference(
+			fieldName = "Date",
+			key_fieldReferenceValue = "Date");
+
+		FormFields.viewFieldReference(
+			fieldName = "MultipleSelection",
+			key_fieldReferenceValue = "MultipleSelection");
+
+		FormFields.viewFieldReference(
+			fieldName = "Upload",
+			key_fieldReferenceValue = "Upload");
+	}
+
+	macro viewUpdateFieldNameToFieldReference7010 {
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoEditFormByName(formName = "Form");
+
+		FormFields.viewFieldReference(
+			fieldName = "Paragraph",
+			key_fieldReferenceValue = "Paragraph");
+
+		FormFields.viewFieldReference(
+			fieldName = "SingleLineText",
+			key_fieldReferenceValue = "SingleLineText");
+
+		FormFields.viewFieldReference(
+			fieldName = "MultilineText",
+			key_fieldReferenceValue = "MultilineText");
+
+		FormFields.viewFieldReference(
+			fieldName = "SelectFromList",
+			key_fieldReferenceValue = "SelectFromList");
+
+		FormFields.viewFieldReference(
+			fieldName = "SingleSelection",
+			key_fieldReferenceValue = "SingleSelection");
+
+		FormFields.viewFieldReference(
+			fieldName = "Date",
+			key_fieldReferenceValue = "Date");
+
+		FormFields.viewFieldReference(
+			fieldName = "MultipleSelection",
+			key_fieldReferenceValue = "MultipleSelection");
 	}
 
 	macro viewUpgrade {
@@ -5740,6 +6631,27 @@ definition {
 		Upgrade.viewMatchingCalendarIndexesInPartitionedDatabase();
 	}
 
+	macro viewUploadFormEntry {
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoViewEntries();
+
+		FormsAdmin.viewFormTableEntry(
+			fieldLabel = "Status",
+			fieldValue = "Approved");
+
+		FormsAdminNavigator.gotoView();
+
+		FormsAdmin.viewUploadFile(
+			fieldLabel = "Upload",
+			fieldName = "Upload",
+			uploadFileName = "Document_1.jpg");
+	}
+
 	macro ViewWebContentWCStructureWCTemplateWCDandAssetPublisher {
 		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
 
@@ -5836,8 +6748,8 @@ definition {
 		}
 
 		WebContent.viewWithStructureCP(
-			webContentMultipleSelection = "Boolean",
-			webContentMultipleSelectionFieldLabel = "Boolean",
+			webContentBoolean = "true",
+			webContentBooleanFieldLabel = "Boolean",
 			webContentTitle = "Boolean Web Content");
 
 		Navigator.gotoBack();
@@ -5993,7 +6905,7 @@ definition {
 			rowEntry = "${filter}");
 
 		AssertTextEquals(
-			key_configurationValue = "filter.mapping.url.pattern",
+			key_configurationValue = "filterMappingUrlPattern",
 			locator1 = "SystemSettings#CORS_CONFIGURATION",
 			value1 = "${urlPattern}");
 	}

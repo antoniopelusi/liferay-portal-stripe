@@ -9,6 +9,7 @@ definition {
 		if ("${os}" == "true") {
 			var newline = '''
 ''';
+
 			var fileContent = StringUtil.replace("${fileContent}", "${newline}", "%0A");
 
 			return "${fileContent}";

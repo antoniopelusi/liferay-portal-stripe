@@ -61,7 +61,8 @@ import org.osgi.service.component.annotations.Reference;
 		"com.liferay.portlet.use-default-template=false",
 		"javax.portlet.display-name=Content Performance",
 		"javax.portlet.name=" + AnalyticsReportsPortletKeys.ANALYTICS_REPORTS,
-		"javax.portlet.resource-bundle=content.Language"
+		"javax.portlet.resource-bundle=content.Language",
+		"javax.portlet.version=3.0"
 	},
 	service = {AnalyticsReportsPortlet.class, Portlet.class}
 )
@@ -91,7 +92,7 @@ public class AnalyticsReportsPortlet extends MVCPortlet {
 		renderRequest.setAttribute(
 			AnalyticsReportsWebKeys.ANALYTICS_REPORTS_DISPLAY_CONTEXT,
 			new AnalyticsReportsDisplayContext(
-				infoItemReference, renderResponse));
+				infoItemReference, _portal, renderRequest, renderResponse));
 
 		super.doDispatch(renderRequest, renderResponse);
 	}

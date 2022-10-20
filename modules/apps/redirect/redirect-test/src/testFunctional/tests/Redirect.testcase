@@ -40,7 +40,6 @@ definition {
 	@refactordone
 	test CanAccessPermanentEntry {
 		var portalURL = PropsUtil.get("portal.url");
-
 		var siteName = TestCase.getSiteName(siteName = "${siteName}");
 
 		JSONRedirect.addRedirect(
@@ -59,6 +58,7 @@ definition {
 			${portalURL}/web/test-site-name/test-source-page \
 				-w %{http_code}
 		''';
+
 		var output = JSONCurlUtil.post("${curl}");
 
 		if (contains("${output}", "301")) {
@@ -74,7 +74,6 @@ definition {
 	@refactordone
 	test CanAccessTemporaryEntry {
 		var portalURL = PropsUtil.get("portal.url");
-
 		var siteName = TestCase.getSiteName(siteName = "${siteName}");
 
 		JSONRedirect.addRedirect(
@@ -90,6 +89,7 @@ definition {
 			${portalURL}/web/test-site-name/test-source-page \
 				-w %{http_code}
 		''';
+
 		var output = JSONCurlUtil.post("${curl}");
 
 		if (contains("${output}", "302")) {
@@ -105,7 +105,6 @@ definition {
 	@refactordone
 	test CanAccessUpdatedPermanentEntry {
 		var portalURL = PropsUtil.get("portal.url");
-
 		var siteName = TestCase.getSiteName(siteName = "${siteName}");
 
 		JSONLayout.addPublicLayout(
@@ -139,7 +138,6 @@ definition {
 	@refactordone
 	test CanAccessUpdatedTemporaryEntry {
 		var portalURL = PropsUtil.get("portal.url");
-
 		var siteName = TestCase.getSiteName(siteName = "${siteName}");
 
 		JSONLayout.addPublicLayout(
@@ -572,7 +570,6 @@ definition {
 	@refactordone
 	test CanCheckDestinationURL {
 		var portalURL = PropsUtil.get("portal.url");
-
 		var siteName = TestCase.getSiteName(siteName = "${siteName}");
 
 		JSONLayout.addPublicLayout(
@@ -782,7 +779,6 @@ definition {
 	@refactordone
 	test CanEditEntry {
 		var portalURL = PropsUtil.get("portal.url");
-
 		var siteName = TestCase.getSiteName(siteName = "${siteName}");
 
 		JSONRedirect.addRedirect(
@@ -922,16 +918,24 @@ definition {
 			locator1 = "ContentRow#ENTRY_CONTENT_REDIRECT_DESTINATION_URL_COLUMN");
 	}
 
-	@description = "This ensures that the 404 tab is not shown and no new 404 tracking is performed when 404 tracking is disabled."
+	@description = "This ensures that the 404 tab is not shown and no new 404 tracking is performed when 404 tracking is disabled. Also covers LPS-121346, it ensures that the home page is not shown when accessing a not existing page."
 	@priority = "5"
 	test CannotView404ByDefault {
 		property test.name.skip.portal.instance = "Redirect#CannotView404ByDefault";
 
 		var portalURL = PropsUtil.get("portal.url");
 
-		Navigator.openSpecificURL(url = "${portalURL}/web/test-site-name/my-url-that-does-not-exist");
+		Navigator.openSpecificURL(url = "${portalURL}/web/guest/my-url-that-does-not-exist");
 
-		Redirect.openRedirectAdmin(siteURLKey = "test-site-name");
+		AssertTextEquals(
+			locator1 = "Home#ERROR_MESSAGE_ALERT_ERROR",
+			value1 = "Not Found");
+
+		AssertElementNotPresent(
+			key_title = "Welcome to Liferay",
+			locator1 = "Masterclass#FRAGMENT_HEADING");
+
+		Redirect.openRedirectAdmin(siteURLKey = "guest");
 
 		Redirect.view404URLsTab(disabled404Tracking = "true");
 
@@ -941,7 +945,7 @@ definition {
 
 		PortletEntry.save();
 
-		Redirect.open404URLsAdmin(siteURLKey = "test-site-name");
+		Redirect.open404URLsAdmin(siteURLKey = "guest");
 
 		Redirect.view404URLsDefault();
 	}
@@ -1260,7 +1264,6 @@ definition {
 	@refactordone
 	test CanViewExpiredAndActiveEntries {
 		var portalURL = PropsUtil.get("portal.url");
-
 		var siteName = TestCase.getSiteName(siteName = "${siteName}");
 
 		JSONRedirect.addRedirect(

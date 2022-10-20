@@ -58,7 +58,8 @@ public class CamelCaseNameCheck extends BaseCheck {
 			detailAST, nameDetailAST, "non", "nonProxyHost",
 			"nonSerializableObjectHandler", "nonSpringServlet");
 		_checkIncorrectCamelCase(detailAST, nameDetailAST, "re", "reCaptcha");
-		_checkIncorrectCamelCase(detailAST, nameDetailAST, "sub", "subSelect");
+		_checkIncorrectCamelCase(
+			detailAST, nameDetailAST, "sub", "subDSLQuery", "subSelect");
 
 		_checkRequiredCamelCase(
 			detailAST, nameDetailAST, "name", "filenameFilter", "hostname",

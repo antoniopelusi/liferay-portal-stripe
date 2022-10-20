@@ -16,6 +16,7 @@ import ClayAlert from '@clayui/alert';
 import ClayButton from '@clayui/button';
 import ClayIcon from '@clayui/icon';
 import ClayLayout from '@clayui/layout';
+import ClayLink from '@clayui/link';
 import {useModal} from '@clayui/modal';
 import {ReactPortal, useIsMounted} from '@liferay/frontend-js-react-web';
 import {openToast} from 'frontend-js-web';
@@ -25,16 +26,13 @@ import {config} from '../../../app/config/index';
 import {useDispatch, useSelector} from '../../../app/contexts/StoreContext';
 import selectCanUpdateExperiences from '../../../app/selectors/selectCanUpdateExperiences';
 import selectCanUpdateSegments from '../../../app/selectors/selectCanUpdateSegments';
+import {useSessionState} from '../../../core/hooks/useSessionState';
 import createExperience from '../thunks/createExperience';
 import duplicateExperience from '../thunks/duplicateExperience';
 import removeExperience from '../thunks/removeExperience';
 import updateExperience from '../thunks/updateExperience';
 import updateExperiencePriority from '../thunks/updateExperiencePriority';
-import {
-	recoverModalExperienceState,
-	storeModalExperienceState,
-	useDebounceCallback,
-} from '../utils';
+import {useDebounceCallback} from '../utils';
 import ExperienceModal from './ExperienceModal';
 import ExperiencesList from './ExperiencesList';
 
@@ -91,6 +89,12 @@ const ExperienceSelector = ({
 	const [openModal, setOpenModal] = useState(false);
 	const [editingExperience, setEditingExperience] = useState({});
 
+	const [modalExperienceState, setModalExperienceState] = useSessionState(
+		'modalExperienceState'
+	);
+	const modalExperienceStateRef = useRef(modalExperienceState);
+	modalExperienceStateRef.current = modalExperienceState;
+
 	const {observer: modalObserver, onClose: onModalClose} = useModal({
 		onClose: () => {
 			setOpenModal(false);
@@ -118,7 +122,7 @@ const ExperienceSelector = ({
 		experienceName,
 		segmentId,
 	}) => {
-		storeModalExperienceState({
+		setModalExperienceState({
 			experienceId,
 			experienceName,
 			plid: config.plid,
@@ -130,7 +134,8 @@ const ExperienceSelector = ({
 
 	useEffect(() => {
 		if (config.plid) {
-			const modalExperienceState = recoverModalExperienceState();
+			const modalExperienceState = modalExperienceStateRef.current;
+			setModalExperienceState(null);
 
 			if (
 				modalExperienceState &&
@@ -146,7 +151,7 @@ const ExperienceSelector = ({
 				});
 			}
 		}
-	}, []);
+	}, [setModalExperienceState]);
 
 	useEffect(() => {
 		if (open) {
@@ -421,6 +426,8 @@ const ExperiencesSelectorHeader = ({
 	onNewExperience,
 	showEmptyStateMessage,
 }) => {
+	const [dismissAlert, setDismissAlert] = useState(false);
+
 	return (
 		<>
 			<ClayLayout.ContentRow className="mb-3" verticalAlign="center">
@@ -456,15 +463,41 @@ const ExperiencesSelectorHeader = ({
 				</p>
 			)}
 
-			<ClayAlert
-				className="mx-0"
-				displayType="warning"
-				title={Liferay.Language.get('warning')}
-			>
-				{Liferay.Language.get(
-					'changes-to-experiences-are-applied-immediately'
-				)}
-			</ClayAlert>
+			{!config.isSegmentationEnabled && !dismissAlert ? (
+				<ClayAlert
+					className="mx-0 segmentation-disabled-alert"
+					displayType="warning"
+					onClose={() => setDismissAlert(true)}
+				>
+					<strong className="d-block lead">
+						{Liferay.Language.get(
+							'experiences-cannot-be-displayed-because-segmentation-is-disabled'
+						)}
+					</strong>
+
+					{config.segmentsConfigurationURL ? (
+						<ClayLink href={config.segmentsConfigurationURL}>
+							{Liferay.Language.get(
+								'to-enable,-go-to-instance-settings'
+							)}
+						</ClayLink>
+					) : (
+						Liferay.Language.get(
+							'contact-your-system-administrator-to-enable-it'
+						)
+					)}
+				</ClayAlert>
+			) : (
+				<ClayAlert
+					className="mx-0"
+					displayType="warning"
+					title={Liferay.Language.get('warning')}
+				>
+					{Liferay.Language.get(
+						'changes-to-experiences-are-applied-immediately'
+					)}
+				</ClayAlert>
+			)}
 		</>
 	);
 };

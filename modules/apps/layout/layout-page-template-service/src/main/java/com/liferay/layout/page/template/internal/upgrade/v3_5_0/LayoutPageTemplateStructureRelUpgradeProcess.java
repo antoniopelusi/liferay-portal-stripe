@@ -24,10 +24,8 @@ public class LayoutPageTemplateStructureRelUpgradeProcess
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		if (!hasColumn("LayoutPageTemplateStructureRel", "lastPublishDate")) {
-			alterTableAddColumn(
-				"LayoutPageTemplateStructureRel", "lastPublishDate", "DATE");
-		}
+		alterTableAddColumn(
+			"LayoutPageTemplateStructureRel", "lastPublishDate", "DATE");
 
 		if (!hasColumn("LayoutPageTemplateStructureRel", "status")) {
 			alterTableAddColumn(
@@ -36,21 +34,13 @@ public class LayoutPageTemplateStructureRelUpgradeProcess
 			runSQL("update LayoutPageTemplateStructureRel set status = 0");
 		}
 
-		if (!hasColumn("LayoutPageTemplateStructureRel", "statusByUserId")) {
-			alterTableAddColumn(
-				"LayoutPageTemplateStructureRel", "statusByUserId", "LONG");
-		}
-
-		if (!hasColumn("LayoutPageTemplateStructureRel", "statusByUserName")) {
-			alterTableAddColumn(
-				"LayoutPageTemplateStructureRel", "statusByUserName",
-				"VARCHAR(75)");
-		}
-
-		if (!hasColumn("LayoutPageTemplateStructureRel", "statusDate")) {
-			alterTableAddColumn(
-				"LayoutPageTemplateStructureRel", "statusDate", "DATE");
-		}
+		alterTableAddColumn(
+			"LayoutPageTemplateStructureRel", "statusByUserId", "LONG");
+		alterTableAddColumn(
+			"LayoutPageTemplateStructureRel", "statusByUserName",
+			"VARCHAR(75)");
+		alterTableAddColumn(
+			"LayoutPageTemplateStructureRel", "statusDate", "DATE");
 	}
 
 }

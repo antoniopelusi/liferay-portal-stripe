@@ -74,7 +74,7 @@
 							fieldName: 'name',
 						},
 					],
-					spritemap: '<%= themeDisplay.getPathThemeImages() %>/clay/icons.svg',
+					spritemap: '<%= FrontendIconsUtil.getSpritemap(themeDisplay) %>',
 					titleLabel: '<%= LanguageUtil.get(request, "add-existing-channel") %>',
 				});
 			</aui:script>
@@ -91,9 +91,6 @@
 					formName="fm"
 					id="<%= CommercePricingFDSNames.PRICE_LIST_QUALIFIER_CHANNELS %>"
 					itemsPerPage="<%= 10 %>"
-					namespace="<%= liferayPortletResponse.getNamespace() %>"
-					pageNumber="<%= 1 %>"
-					portletURL="<%= currentURLObj %>"
 				/>
 			</commerce-ui:panel>
 		</div>

@@ -16,7 +16,7 @@ package com.liferay.layout.content.page.editor.web.internal.portlet.action;
 
 import com.liferay.exportimport.kernel.staging.LayoutStagingUtil;
 import com.liferay.layout.content.page.editor.constants.ContentPageEditorPortletKeys;
-import com.liferay.layout.content.page.editor.listener.ContentPageEditorListenerTracker;
+import com.liferay.layout.content.page.editor.web.internal.util.FragmentEntryLinkManager;
 import com.liferay.layout.content.page.editor.web.internal.util.layout.structure.LayoutStructureUtil;
 import com.liferay.layout.util.LayoutCopyHelper;
 import com.liferay.portal.aop.AopService;
@@ -24,8 +24,6 @@ import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutRevision;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
-import com.liferay.portal.kernel.security.auth.PrincipalException;
-import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.LayoutRevisionLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -94,22 +92,11 @@ public class PublishLayoutMVCActionCommand
 
 		Layout layout = _layoutLocalService.getLayout(draftLayout.getClassPK());
 
-		try {
-			LayoutPermissionUtil.check(
-				themeDisplay.getPermissionChecker(), draftLayout,
-				ActionKeys.UPDATE);
+		LayoutPermissionUtil.checkLayoutUpdatePermission(
+			themeDisplay.getPermissionChecker(), draftLayout);
 
-			LayoutPermissionUtil.check(
-				themeDisplay.getPermissionChecker(), layout, ActionKeys.UPDATE);
-		}
-		catch (PrincipalException principalException) {
-			if (!LayoutPermissionUtil.contains(
-					themeDisplay.getPermissionChecker(), layout,
-					ActionKeys.UPDATE_LAYOUT_CONTENT)) {
-
-				throw principalException;
-			}
-		}
+		LayoutPermissionUtil.checkLayoutUpdatePermission(
+			themeDisplay.getPermissionChecker(), layout);
 
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
 			actionRequest);
@@ -138,7 +125,7 @@ public class PublishLayoutMVCActionCommand
 		throws Exception {
 
 		LayoutStructureUtil.deleteMarkedForDeletionItems(
-			_contentPageEditorListenerTracker, draftLayout.getGroupId(),
+			_fragmentEntryLinkManager, draftLayout.getGroupId(),
 			draftLayout.getPlid());
 
 		if (_workflowDefinitionLinkLocalService.hasWorkflowDefinitionLink(
@@ -207,7 +194,7 @@ public class PublishLayoutMVCActionCommand
 	}
 
 	@Reference
-	private ContentPageEditorListenerTracker _contentPageEditorListenerTracker;
+	private FragmentEntryLinkManager _fragmentEntryLinkManager;
 
 	@Reference
 	private LayoutCopyHelper _layoutCopyHelper;

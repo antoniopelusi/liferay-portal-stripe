@@ -7,7 +7,7 @@ definition {
 
 		SelectFrame(locator1 = "IFrame#CONFIGURATION");
 
-		Pause(locator1 = "5000");
+		WaitForElementPresent.waitForLastScript();
 
 		WaitForElementPresent(locator1 = "Checkbox#SHOW_ACTIONS_CHECKBOX");
 
@@ -59,15 +59,17 @@ definition {
 			}
 
 			if ("${selectHomeFolder}" == "true") {
-				if (IsElementPresent(key_breadcrumbName = "Home", locator1 = "BreadcrumbPortlet#BREADCRUMB_FOLDER")) {
+				var siteName = TestCase.getSiteName(siteName = "${siteName}");
+
+				if (IsElementPresent(key_breadcrumbName = "${siteName}", locator1 = "BreadcrumbPortlet#BREADCRUMB_FOLDER")) {
 					AssertVisible(
 						key_text = "Select This Folder",
 						locator1 = "Button#ANY_DISABLED");
 
 					AssertClick(
-						key_breadcrumbName = "Home",
+						key_breadcrumbName = "${siteName}",
 						locator1 = "BreadcrumbPortlet#BREADCRUMB_FOLDER",
-						value1 = "Home");
+						value1 = "${siteName}");
 				}
 			}
 
@@ -111,7 +113,7 @@ definition {
 	macro viewCustomADTCarouselPG {
 		AssertElementPresent(locator1 = "MediaGallery#ADT_CAROUSEL_ITEM");
 
-		AssertElementPresent(locator1 = "MediaGallery#ADT_CAROUSEL_PLAY_PAUSE");
+		AssertElementPresent(locator1 = "MediaGallery#ADT_CAROUSEL_ITEM_ICON");
 
 		AssertElementPresent(locator1 = "MediaGallery#ADT_CAROUSEL_PREVIOUS_ARROW");
 

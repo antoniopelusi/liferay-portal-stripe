@@ -4,7 +4,9 @@ definition {
 		var key_resourceName = "${resourceName}";
 
 		if (isSet(modelResource)) {
-			CustomFields.openToAddResourceCustomField(modelResource = "${modelResource}");
+			CustomFields.openToAddResourceCustomField(
+				baseURL = "${baseURL}",
+				modelResource = "${modelResource}");
 		}
 		else {
 			AssertClick(
@@ -36,11 +38,48 @@ definition {
 					value1 = "${startingValue}");
 			}
 		}
+		else if (("${customFieldType}" == "Dropdown") || ("${customFieldType}" == "Checkbox") || ("${customFieldType}" == "Radio")) {
+			if (isSet(startingValue)) {
+				PortletEntry.inputTextArea(
+					fieldId = "Value",
+					text = "${startingValue}");
+			}
+			else {
+				PortletEntry.inputTextArea(
+					fieldId = "Value",
+					text = "${customFieldType}");
+			}
+		}
 
-		if (("${customFieldType}" == "Dropdown") || ("${customFieldType}" == "Checkbox") || ("${customFieldType}" == "Radio")) {
-			PortletEntry.inputTextArea(
-				fieldId = "Value",
-				text = "${customFieldType}");
+		if (isSet(nameLocalization)) {
+			if ("${nameLocalization}" == "false") {
+				Click(locator1 = "CustomFields#CUSTOM_FIELDS_ADVANCED_PROPERTIES");
+
+				WaitForElementPresent(
+					key_toggleSwitchLabel = "Localize Field Name",
+					locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+
+				Uncheck.uncheckToggleSwitch(
+					key_toggleSwitchLabel = "Localize Field Name",
+					locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+			}
+			else {
+				Click(locator1 = "CustomFields#CUSTOM_FIELDS_ADVANCED_PROPERTIES");
+
+				WaitForElementPresent(
+					key_toggleSwitchLabel = "Localize Field Name",
+					locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+
+				Check.checkToggleSwitch(
+					key_toggleSwitchLabel = "Localize Field Name",
+					locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+			}
+		}
+
+		if (isSet(customBooleanDefaultValue)) {
+			Select(
+				locator1 = "CustomFields#CUSTOM_BOOLEAN_DEFAULT_VALUE",
+				value1 = "${customBooleanDefaultValue}");
 		}
 
 		if ("${localization}" == "true") {
@@ -75,8 +114,6 @@ definition {
 
 		AssertVisible(locator1 = "CustomFieldsEditResource#CUSTOM_FIELDS_TABLE_NAME");
 
-		Pause(locator1 = "3000");
-
 		LexiconEntry.openEntryMenu(rowEntry = "${customFieldName}");
 
 		MenuItem.clickNoError(menuItem = "Delete");
@@ -98,8 +135,6 @@ definition {
 		var key_customFieldName = "${customFieldName}";
 
 		AssertVisible(locator1 = "CustomFieldsEditResource#CUSTOM_FIELDS_TABLE_NAME");
-
-		Pause(locator1 = "3000");
 
 		LexiconEntry.openEntryMenu(rowEntry = "${customFieldName}");
 

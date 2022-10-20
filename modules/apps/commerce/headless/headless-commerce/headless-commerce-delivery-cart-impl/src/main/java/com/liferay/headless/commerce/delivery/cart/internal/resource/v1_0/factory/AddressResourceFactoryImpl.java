@@ -14,6 +14,7 @@
 
 package com.liferay.headless.commerce.delivery.cart.internal.resource.v1_0.factory;
 
+import com.liferay.headless.commerce.delivery.cart.internal.security.permission.LiberalPermissionChecker;
 import com.liferay.headless.commerce.delivery.cart.resource.v1_0.AddressResource;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.User;
@@ -193,7 +194,7 @@ public class AddressResourceFactoryImpl implements AddressResource.Factory {
 		}
 		else {
 			PermissionThreadLocal.setPermissionChecker(
-				_liberalPermissionCheckerFactory.create(user));
+				new LiberalPermissionChecker(user));
 		}
 
 		AddressResource addressResource = _componentServiceObjects.getService();
@@ -254,9 +255,6 @@ public class AddressResourceFactoryImpl implements AddressResource.Factory {
 
 	@Reference
 	private GroupLocalService _groupLocalService;
-
-	@Reference(target = "(permission.checker.type=liberal)")
-	private PermissionCheckerFactory _liberalPermissionCheckerFactory;
 
 	@Reference
 	private ResourceActionLocalService _resourceActionLocalService;

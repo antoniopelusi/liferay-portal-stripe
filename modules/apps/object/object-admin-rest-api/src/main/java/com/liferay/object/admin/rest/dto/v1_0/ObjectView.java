@@ -291,6 +291,39 @@ public class ObjectView implements Serializable {
 
 	@Schema
 	@Valid
+	public ObjectViewFilterColumn[] getObjectViewFilterColumns() {
+		return objectViewFilterColumns;
+	}
+
+	public void setObjectViewFilterColumns(
+		ObjectViewFilterColumn[] objectViewFilterColumns) {
+
+		this.objectViewFilterColumns = objectViewFilterColumns;
+	}
+
+	@JsonIgnore
+	public void setObjectViewFilterColumns(
+		UnsafeSupplier<ObjectViewFilterColumn[], Exception>
+			objectViewFilterColumnsUnsafeSupplier) {
+
+		try {
+			objectViewFilterColumns =
+				objectViewFilterColumnsUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected ObjectViewFilterColumn[] objectViewFilterColumns;
+
+	@Schema
+	@Valid
 	public ObjectViewSortColumn[] getObjectViewSortColumns() {
 		return objectViewSortColumns;
 	}
@@ -442,6 +475,26 @@ public class ObjectView implements Serializable {
 				sb.append(String.valueOf(objectViewColumns[i]));
 
 				if ((i + 1) < objectViewColumns.length) {
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
+		}
+
+		if (objectViewFilterColumns != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"objectViewFilterColumns\": ");
+
+			sb.append("[");
+
+			for (int i = 0; i < objectViewFilterColumns.length; i++) {
+				sb.append(String.valueOf(objectViewFilterColumns[i]));
+
+				if ((i + 1) < objectViewFilterColumns.length) {
 					sb.append(", ");
 				}
 			}

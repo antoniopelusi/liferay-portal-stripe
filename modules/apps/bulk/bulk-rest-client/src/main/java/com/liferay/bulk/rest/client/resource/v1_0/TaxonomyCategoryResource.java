@@ -66,6 +66,12 @@ public interface TaxonomyCategoryResource {
 			return new TaxonomyCategoryResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -111,6 +117,7 @@ public interface TaxonomyCategoryResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -200,7 +207,8 @@ public interface TaxonomyCategoryResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port + "/o/bulk/v1.0/taxonomy-categories/batch");
+					_builder._port + _builder._contextPath +
+						"/o/bulk/v1.0/taxonomy-categories/batch");
 
 			httpInvoker.userNameAndPassword(
 				_builder._login + ":" + _builder._password);
@@ -283,7 +291,8 @@ public interface TaxonomyCategoryResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port + "/o/bulk/v1.0/taxonomy-categories/batch");
+					_builder._port + _builder._contextPath +
+						"/o/bulk/v1.0/taxonomy-categories/batch");
 
 			httpInvoker.userNameAndPassword(
 				_builder._login + ":" + _builder._password);

@@ -16,6 +16,7 @@ package com.liferay.site.navigation.admin.web.internal.portlet;
 
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portlet.display.template.PortletDisplayTemplate;
 import com.liferay.site.navigation.admin.constants.SiteNavigationAdminPortletKeys;
 import com.liferay.site.navigation.admin.web.internal.constants.SiteNavigationAdminWebKeys;
 import com.liferay.site.navigation.admin.web.internal.display.context.SiteNavigationAdminDisplayContext;
@@ -56,7 +57,8 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/view.jsp",
 		"javax.portlet.name=" + SiteNavigationAdminPortletKeys.SITE_NAVIGATION_ADMIN,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=guest,power-user,user"
+		"javax.portlet.security-role-ref=guest,power-user,user",
+		"javax.portlet.version=3.0"
 	},
 	service = Portlet.class
 )
@@ -72,7 +74,7 @@ public class SiteNavigationAdminPortlet extends MVCPortlet {
 				_portal.getHttpServletRequest(renderRequest),
 				_portal.getLiferayPortletRequest(renderRequest),
 				_portal.getLiferayPortletResponse(renderResponse),
-				_siteNavigationMenuItemTypeRegistry,
+				_portletDisplayTemplate, _siteNavigationMenuItemTypeRegistry,
 				_siteNavigationMenuLocalService, _siteNavigationMenuService);
 
 		renderRequest.setAttribute(
@@ -85,6 +87,9 @@ public class SiteNavigationAdminPortlet extends MVCPortlet {
 
 	@Reference
 	private Portal _portal;
+
+	@Reference
+	private PortletDisplayTemplate _portletDisplayTemplate;
 
 	@Reference
 	private SiteNavigationMenuItemTypeRegistry

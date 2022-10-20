@@ -12,6 +12,7 @@
 import {Button as ClayButton, DropDown} from '@clayui/core';
 import ClayIcon from '@clayui/icon';
 import React, {useEffect, useRef, useState} from 'react';
+import i18n from '../../../../common/I18n';
 import RoundedGroupButtons from '../../../../common/components/RoundedGroupButtons';
 import {useCustomerPortal} from '../../context';
 
@@ -24,7 +25,7 @@ const SubscriptionDropDownMenu = ({
 
 	return (
 		<div className="align-items-center d-flex mt-4 pb-3">
-			<h6>Type:</h6>
+			<h6>{i18n.translate('type')}:</h6>
 
 			<DropDown
 				active={active}
@@ -130,6 +131,7 @@ const SubscriptionsNavbar = ({
 									groupButtons={subscriptionGroups.map(
 										(subscriptionGroup) => ({
 											label: subscriptionGroup.name,
+
 											value: subscriptionGroup.name,
 										})
 									)}

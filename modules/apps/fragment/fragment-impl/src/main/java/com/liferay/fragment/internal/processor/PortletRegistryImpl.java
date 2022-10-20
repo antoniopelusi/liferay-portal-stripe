@@ -25,12 +25,12 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.portlet.PortletIdCodec;
-import com.liferay.portal.kernel.portlet.PortletPathsUtil;
+import com.liferay.portal.kernel.portlet.render.PortletRenderParts;
+import com.liferay.portal.kernel.portlet.render.PortletRenderUtil;
 import com.liferay.portal.kernel.service.PortletLocalService;
 import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.MapUtil;
-import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
@@ -68,6 +68,27 @@ public class PortletRegistryImpl implements PortletRegistry {
 
 		List<String> portletIds = new ArrayList<>();
 
+		if (fragmentEntryLink.isTypePortlet()) {
+			try {
+				JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
+					fragmentEntryLink.getEditableValues());
+
+				String portletId = jsonObject.getString("portletId");
+
+				if (Validator.isNotNull(portletId)) {
+					String instanceId = jsonObject.getString("instanceId");
+
+					portletIds.add(
+						PortletIdCodec.encode(portletId, instanceId));
+				}
+			}
+			catch (PortalException portalException) {
+				_log.error("Unable to get portlet IDs", portalException);
+			}
+
+			return portletIds;
+		}
+
 		Document document = Jsoup.parseBodyFragment(
 			fragmentEntryLink.getHtml());
 
@@ -98,22 +119,6 @@ public class PortletRegistryImpl implements PortletRegistry {
 				fragmentEntryLink.getNamespace() + element.attr("id"));
 
 			portletIds.add(portletId);
-		}
-
-		try {
-			JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
-				fragmentEntryLink.getEditableValues());
-
-			String portletId = jsonObject.getString("portletId");
-
-			if (Validator.isNotNull(portletId)) {
-				String instanceId = jsonObject.getString("instanceId");
-
-				portletIds.add(PortletIdCodec.encode(portletId, instanceId));
-			}
-		}
-		catch (PortalException portalException) {
-			_log.error("Unable to get portlet IDs", portalException);
 		}
 
 		return portletIds;
@@ -165,12 +170,15 @@ public class PortletRegistryImpl implements PortletRegistry {
 
 		for (Portlet portlet : portlets) {
 			try {
-				Map<String, Object> paths = PortletPathsUtil.getPortletPaths(
-					httpServletRequest, StringPool.BLANK, portlet);
+				PortletRenderParts portletRenderParts =
+					PortletRenderUtil.getPortletRenderParts(
+						httpServletRequest, StringPool.BLANK, portlet);
 
-				PortletPathsUtil.writeHeaderPaths(httpServletResponse, paths);
+				PortletRenderUtil.writeHeaderPaths(
+					httpServletResponse, portletRenderParts);
 
-				PortletPathsUtil.writeFooterPaths(httpServletResponse, paths);
+				PortletRenderUtil.writeFooterPaths(
+					httpServletResponse, portletRenderParts);
 			}
 			catch (Exception exception) {
 				_log.error(
@@ -221,9 +229,6 @@ public class PortletRegistryImpl implements PortletRegistry {
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		PortletRegistryImpl.class);
-
-	@Reference
-	private Portal _portal;
 
 	@Reference
 	private PortletLocalService _portletLocalService;

@@ -14,7 +14,7 @@
 
 import {ClayButtonWithIcon} from '@clayui/button';
 import {ClayInput} from '@clayui/form';
-import ClayManagementToolbar from '@clayui/management-toolbar';
+import {ManagementToolbar} from 'frontend-js-components-web';
 import React from 'react';
 
 const SearchControls = ({
@@ -31,7 +31,7 @@ const SearchControls = ({
 }) => {
 	return (
 		<>
-			<ClayManagementToolbar.Search
+			<ManagementToolbar.Search
 				action={searchActionURL}
 				method={searchFormMethod}
 				name={searchFormName}
@@ -62,6 +62,7 @@ const SearchControls = ({
 								disabled={disabled}
 								displayType="unstyled"
 								symbol="search"
+								title={Liferay.Language.get('search-for')}
 								type="submit"
 							/>
 						</ClayInput.GroupInsetItem>
@@ -70,23 +71,23 @@ const SearchControls = ({
 
 				{searchData &&
 					Object.keys(searchData).map((key) =>
-						searchData[key].map((value) => (
+						searchData[key].map((value, index) => (
 							<ClayInput
-								key={key}
+								key={`${key}${index}`}
 								name={key}
 								type="hidden"
 								value={value}
 							/>
 						))
 					)}
-			</ClayManagementToolbar.Search>
+			</ManagementToolbar.Search>
 		</>
 	);
 };
 
 const ShowMobileButton = ({disabled, setSearchMobile}) => {
 	return (
-		<ClayManagementToolbar.Item className="navbar-breakpoint-d-none">
+		<ManagementToolbar.Item className="navbar-breakpoint-d-none">
 			<ClayButtonWithIcon
 				className="nav-link nav-link-monospaced"
 				disabled={disabled}
@@ -94,7 +95,7 @@ const ShowMobileButton = ({disabled, setSearchMobile}) => {
 				onClick={() => setSearchMobile(true)}
 				symbol="search"
 			/>
-		</ClayManagementToolbar.Item>
+		</ManagementToolbar.Item>
 	);
 };
 

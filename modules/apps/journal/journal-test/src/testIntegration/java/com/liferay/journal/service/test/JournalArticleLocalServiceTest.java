@@ -31,7 +31,9 @@ import com.liferay.dynamic.data.mapping.storage.Fields;
 import com.liferay.dynamic.data.mapping.test.util.DDMFormTestUtil;
 import com.liferay.dynamic.data.mapping.test.util.DDMStructureTestUtil;
 import com.liferay.dynamic.data.mapping.test.util.DDMTemplateTestUtil;
+import com.liferay.exportimport.kernel.service.StagingLocalService;
 import com.liferay.journal.constants.JournalFolderConstants;
+import com.liferay.journal.exception.ArticleFriendlyURLException;
 import com.liferay.journal.exception.DuplicateArticleExternalReferenceCodeException;
 import com.liferay.journal.exception.DuplicateArticleIdException;
 import com.liferay.journal.model.JournalArticle;
@@ -59,6 +61,7 @@ import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.CompanyLocalService;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ResourceLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionService;
@@ -73,9 +76,12 @@ import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
+import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.Constants;
+import com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -85,6 +91,8 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
+import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -141,6 +149,114 @@ public class JournalArticleLocalServiceTest {
 		_themeDisplay.setScopeGroupId(_group.getGroupId());
 		_themeDisplay.setSiteGroupId(_group.getGroupId());
 		_themeDisplay.setUser(user);
+	}
+
+	@Test
+	public void testArticleFriendlyURLValidation() throws Exception {
+		JournalArticle journalArticle = JournalTestUtil.addArticle(
+			_group.getGroupId(),
+			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			Collections.emptyMap());
+
+		Locale locale = _portal.getSiteDefaultLocale(_group.getGroupId());
+
+		String friendlyURL = FriendlyURLNormalizerUtil.normalize(
+			RandomTestUtil.randomString());
+
+		Map<Locale, String> friendlyURLMap = journalArticle.getFriendlyURLMap();
+
+		journalArticle = _updateJournalArticle(
+			HashMapBuilder.put(
+				locale, friendlyURL
+			).build(),
+			journalArticle);
+
+		friendlyURLMap.put(locale, friendlyURL);
+
+		Assert.assertEquals(friendlyURLMap, journalArticle.getFriendlyURLMap());
+	}
+
+	@Test
+	public void testArticleFriendlyURLValidationCompanyGroup()
+		throws Exception {
+
+		Group companyGroup = _groupLocalService.getCompanyGroup(
+			_group.getCompanyId());
+
+		JournalArticle journalArticle = JournalTestUtil.addArticle(
+			companyGroup.getGroupId(),
+			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			Collections.emptyMap());
+
+		Map<Locale, String> friendlyURLMap = journalArticle.getFriendlyURLMap();
+
+		journalArticle = _updateJournalArticle(
+			Collections.emptyMap(), journalArticle);
+
+		Assert.assertEquals(friendlyURLMap, journalArticle.getFriendlyURLMap());
+	}
+
+	@Test
+	public void testArticleFriendlyURLValidationCompanyGroupStagingEnabled()
+		throws Exception {
+
+		Group companyGroup = _groupLocalService.getCompanyGroup(
+			_group.getCompanyId());
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(
+				companyGroup.getGroupId(), TestPropsValues.getUserId());
+
+		PermissionChecker originalPermissionChecker =
+			PermissionThreadLocal.getPermissionChecker();
+
+		try {
+			PermissionThreadLocal.setPermissionChecker(
+				PermissionCheckerFactoryUtil.create(TestPropsValues.getUser()));
+
+			_stagingLocalService.enableLocalStaging(
+				TestPropsValues.getUserId(), companyGroup, false, false,
+				serviceContext);
+
+			Group stagingGroup = companyGroup.getStagingGroup();
+
+			JournalArticle journalArticle = JournalTestUtil.addArticle(
+				stagingGroup.getGroupId(),
+				JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+				Collections.emptyMap());
+
+			Map<Locale, String> friendlyURLMap =
+				journalArticle.getFriendlyURLMap();
+
+			journalArticle = _updateJournalArticle(
+				Collections.emptyMap(), journalArticle);
+
+			Assert.assertEquals(
+				friendlyURLMap, journalArticle.getFriendlyURLMap());
+		}
+		finally {
+			try {
+				_stagingLocalService.disableStaging(
+					companyGroup, serviceContext);
+			}
+			catch (Exception exception) {
+			}
+
+			PermissionThreadLocal.setPermissionChecker(
+				originalPermissionChecker);
+		}
+	}
+
+	@Test(expected = ArticleFriendlyURLException.class)
+	public void testArticleFriendlyURLValidationThrowsArticleFriendlyURLException()
+		throws Exception {
+
+		JournalArticle journalArticle = JournalTestUtil.addArticle(
+			_group.getGroupId(),
+			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			Collections.emptyMap());
+
+		_updateJournalArticle(Collections.emptyMap(), journalArticle);
 	}
 
 	@Test
@@ -572,8 +688,13 @@ public class JournalArticleLocalServiceTest {
 		Assert.assertEquals(
 			"Valeur Prédéfinie", field.getValue(LocaleUtil.FRENCH));
 		Assert.assertEquals(
-			"Valore Predefinito", field.getValue(LocaleUtil.ITALY));
+			"Valor Predefinido", field.getValue(LocaleUtil.SPAIN));
 		Assert.assertEquals("Predefined Value", field.getValue(LocaleUtil.US));
+
+		Locale unavailableLocale = LocaleUtil.ITALY;
+
+		Assert.assertEquals(
+			"Predefined Value", field.getValue(unavailableLocale));
 	}
 
 	private void _assertArticleUser(
@@ -597,7 +718,7 @@ public class JournalArticleLocalServiceTest {
 		throws Exception {
 
 		Set<Locale> availableLocales = DDMFormTestUtil.createAvailableLocales(
-			LocaleUtil.BRAZIL, LocaleUtil.FRENCH, LocaleUtil.ITALY,
+			LocaleUtil.BRAZIL, LocaleUtil.FRENCH, LocaleUtil.SPAIN,
 			LocaleUtil.US);
 
 		DDMForm ddmForm = DDMFormTestUtil.createDDMForm(
@@ -610,7 +731,7 @@ public class JournalArticleLocalServiceTest {
 
 		label.addString(LocaleUtil.BRAZIL, "rótulo");
 		label.addString(LocaleUtil.FRENCH, "étiquette");
-		label.addString(LocaleUtil.ITALY, "etichetta");
+		label.addString(LocaleUtil.SPAIN, "etiqueta");
 		label.addString(LocaleUtil.US, "label");
 
 		ddmFormField.setLabel(label);
@@ -632,7 +753,7 @@ public class JournalArticleLocalServiceTest {
 			).put(
 				LocaleUtil.FRENCH, "Valeur Prédéfinie"
 			).put(
-				LocaleUtil.ITALY, "Valore Predefinito"
+				LocaleUtil.SPAIN, "Valor Predefinido"
 			).put(
 				LocaleUtil.US, "Predefined Value"
 			).build(),
@@ -650,10 +771,43 @@ public class JournalArticleLocalServiceTest {
 					LocaleUtil.US, title
 				).build(),
 				null, content, ddmStructure.getStructureKey(),
-				ddmTemplate.getTemplateKey(), null, true, false, null, null,
+				ddmTemplate.getTemplateKey(), null, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+				0, true, 0, 0, 0, 0, 0, true, true, false, null, null,
 				serviceContext);
 
 		return new Tuple(article, ddmStructure);
+	}
+
+	private JournalArticle _updateJournalArticle(
+			Map<Locale, String> friendlyURLMap, JournalArticle journalArticle)
+		throws Exception {
+
+		Calendar calendar = CalendarFactoryUtil.getCalendar();
+
+		calendar.setTime(journalArticle.getDisplayDate());
+
+		int displayDateMonth = calendar.get(Calendar.MONTH);
+		int displayDateDay = calendar.get(Calendar.DATE);
+		int displayDateYear = calendar.get(Calendar.YEAR);
+		int displayDateHour = calendar.get(Calendar.HOUR);
+		int displayDateMinute = calendar.get(Calendar.MINUTE);
+
+		if (calendar.get(Calendar.AM_PM) == Calendar.PM) {
+			displayDateHour += 12;
+		}
+
+		return _journalArticleLocalService.updateArticle(
+			TestPropsValues.getUserId(), journalArticle.getGroupId(),
+			journalArticle.getFolderId(), journalArticle.getArticleId(),
+			journalArticle.getVersion(), journalArticle.getTitleMap(),
+			journalArticle.getDescriptionMap(), friendlyURLMap,
+			journalArticle.getContent(), journalArticle.getDDMStructureKey(),
+			journalArticle.getDDMTemplateKey(), journalArticle.getLayoutUuid(),
+			displayDateMonth, displayDateDay, displayDateYear, displayDateHour,
+			displayDateMinute, 0, 0, 0, 0, 0, true, 0, 0, 0, 0, 0, true,
+			journalArticle.isIndexable(), false, null, null, null, null,
+			ServiceContextTestUtil.getServiceContext(
+				journalArticle.getGroupId(), TestPropsValues.getUserId()));
 	}
 
 	@Inject(
@@ -685,6 +839,9 @@ public class JournalArticleLocalServiceTest {
 	private Group _group;
 
 	@Inject
+	private GroupLocalService _groupLocalService;
+
+	@Inject
 	private JournalArticleLocalService _journalArticleLocalService;
 
 	@Inject
@@ -708,6 +865,9 @@ public class JournalArticleLocalServiceTest {
 
 	@Inject
 	private RoleLocalService _roleLocalService;
+
+	@Inject
+	private StagingLocalService _stagingLocalService;
 
 	private ThemeDisplay _themeDisplay;
 

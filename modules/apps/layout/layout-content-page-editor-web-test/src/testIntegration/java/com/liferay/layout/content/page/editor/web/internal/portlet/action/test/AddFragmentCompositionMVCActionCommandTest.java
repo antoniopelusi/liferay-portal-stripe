@@ -241,7 +241,7 @@ public class AddFragmentCompositionMVCActionCommandTest {
 				"example-fragment-entry-key", RandomTestUtil.randomString(),
 				StringPool.BLANK, html, StringPool.BLANK, false,
 				StringPool.BLANK, null, 0, FragmentConstants.TYPE_COMPONENT,
-				WorkflowConstants.STATUS_APPROVED, _serviceContext);
+				null, WorkflowConstants.STATUS_APPROVED, _serviceContext);
 
 		long defaultSegmentsExperienceId =
 			_segmentsExperienceLocalService.fetchDefaultSegmentsExperienceId(
@@ -308,7 +308,8 @@ public class AddFragmentCompositionMVCActionCommandTest {
 				fragmentEntry.getFragmentEntryId(), defaultSegmentsExperienceId,
 				_layout.getPlid(), StringPool.BLANK, html, StringPool.BLANK,
 				_read("fragment_configuration.json"), editableValues,
-				StringPool.BLANK, 0, null, _serviceContext);
+				StringPool.BLANK, 0, null, fragmentEntry.getType(),
+				_serviceContext);
 
 		LayoutStructure layoutStructure = new LayoutStructure();
 
@@ -392,9 +393,9 @@ public class AddFragmentCompositionMVCActionCommandTest {
 
 		Assert.assertEquals(
 			_objectMapper.readTree(
-				expectedFragmentCompositionDataJSONObject.toJSONString()),
+				expectedFragmentCompositionDataJSONObject.toString()),
 			_objectMapper.readTree(
-				fragmentCompositionDataJSONObject.toJSONString()));
+				fragmentCompositionDataJSONObject.toString()));
 	}
 
 	@Test

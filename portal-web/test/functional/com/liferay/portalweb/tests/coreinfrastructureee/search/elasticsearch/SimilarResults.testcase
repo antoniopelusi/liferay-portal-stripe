@@ -22,7 +22,7 @@ definition {
 	}
 
 	@priority = "4"
-	test AssertSimilarResultsDisplayTemplate {
+	test AssertDisplayTemplate {
 		for (var count : list "1,2,3") {
 			JSONWebcontent.addWebContent(
 				content = "WC Content",
@@ -70,7 +70,7 @@ definition {
 	}
 
 	@priority = "4"
-	test AssertSimilarResultsDisplayWithBlogsWidget {
+	test AssertDisplayWithBlogsWidget {
 		for (var count : list "1,2,3") {
 			JSONBlog.addEntry(
 				entryContent = "Blogs Entry Content",
@@ -116,7 +116,51 @@ definition {
 	}
 
 	@priority = "4"
-	test AssertSimilarResultsMatchesAssetType {
+	test AssertDisplayWithMBMessages {
+		for (var count : list "1,2,3") {
+			JSONMBMessage.addMessage(
+				groupName = "Guest",
+				threadBody = "Thread Body",
+				threadSubject = "Thread Subject ${count}");
+		}
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Similar Results Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Guest",
+			layoutName = "Similar Results Page",
+			widgetName = "Similar Results");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "2",
+			groupName = "Guest",
+			layoutName = "Similar Results Page",
+			widgetName = "Message Boards");
+
+		Navigator.gotoPage(pageName = "Similar Results Page");
+
+		SearchPortlets.configureSimilarResults(
+			displayTemplate = "Compact Layout",
+			fields = "localized_title_en_US",
+			minimumDocumentFrequency = "1",
+			minimumTermFrequency = "1");
+
+		MessageboardsThread.gotoCP(threadSubject = "Thread Subject 1");
+
+		AssertElementPresent(
+			key_linkResultTitle = "Thread Subject 2",
+			locator1 = "Search#SIMILAR_RESULTS_LINK_TITLE");
+
+		AssertElementPresent(
+			key_linkResultTitle = "Thread Subject 3",
+			locator1 = "Search#SIMILAR_RESULTS_LINK_TITLE");
+	}
+
+	@priority = "4"
+	test AssertMatchesAssetType {
 		for (var count : list "1,2,3") {
 			JSONBlog.addEntry(
 				entryContent = "Blogs Content",
@@ -296,7 +340,7 @@ definition {
 	}
 
 	@priority = "4"
-	test CanViewSimilarResultsFromOtherSitesWithDocumentsWidget {
+	test CanViewFromOtherSitesWithDocumentsWidget {
 		for (var siteName : list "Site Name 1,Site Name 2,Site Name 3") {
 			JSONGroup.addGroup(groupName = "${siteName}");
 		}
@@ -347,7 +391,7 @@ definition {
 	}
 
 	@priority = "4"
-	test CanViewSimilarResultsFromSearchResults {
+	test CanViewFromSearchResults {
 		for (var count : list "1,2,3") {
 			JSONDocument.addFile(
 				dmDocumentDescription = "DM Content",
@@ -391,7 +435,7 @@ definition {
 	}
 
 	@priority = "4"
-	test ConfigureSimilarResultsDocumentFrequency {
+	test ConfigureDocumentFrequency {
 		property test.name.skip.portal.instance = "SimilarResults#ConfigureSimilarResultsDocumentFrequency";
 
 		JSONWebcontent.addWebContent(
@@ -458,7 +502,7 @@ definition {
 	}
 
 	@priority = "4"
-	test ConfigureSimilarResultsFields {
+	test ConfigureFields {
 		JSONBlog.addEntry(
 			entryContent = "Content",
 			entryTitle = "No Match Content");
@@ -507,7 +551,7 @@ definition {
 	}
 
 	@priority = "4"
-	test ConfigureSimilarResultsMaximumItemDisplay {
+	test ConfigureMaximumItemDisplay {
 		for (var titleName : list "Alpha,Bravo,Charlie,Delta,Echo,Foxtrot") {
 			JSONWebcontent.addWebContent(
 				content = "${titleName}",
@@ -548,7 +592,7 @@ definition {
 	}
 
 	@priority = "4"
-	test ConfigureSimilarResultsMaximumQueryTerms {
+	test ConfigureMaximumQueryTerms {
 		for (var count : list "One, Two, Three") {
 			JSONWebcontent.addWebContent(
 				content = "WC Content",
@@ -582,7 +626,7 @@ definition {
 	}
 
 	@priority = "4"
-	test ConfigureSimilarResultsMinimumShouldMatch {
+	test ConfigureMinimumShouldMatch {
 		JSONWebcontent.addWebContent(
 			content = "WC Content",
 			groupName = "Guest",
@@ -642,7 +686,7 @@ definition {
 	}
 
 	@priority = "4"
-	test ConfigureSimilarResultsStopWords {
+	test ConfigureStopWords {
 		JSONWebcontent.addWebContent(
 			content = "No Match",
 			groupName = "Guest",
@@ -702,7 +746,7 @@ definition {
 	}
 
 	@priority = "4"
-	test ConfigureSimilarResultsTermFrequency {
+	test ConfigureTermFrequency {
 		for (var count : list "One, Two, Three") {
 			JSONWebcontent.addWebContent(
 				content = "WC Content",
@@ -760,8 +804,70 @@ definition {
 			locator1 = "Search#SIMILAR_RESULTS_LINK_TITLE");
 	}
 
+	test ConfigureViewInContextLinkBehavior {
+		JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+			contentType = "Blogs Entry",
+			displayPageTemplateEntryName = "Blogs Display Page",
+			groupName = "Guest");
+
+		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "guest");
+
+		DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Blogs Display Page");
+
+		Button.clickPublish();
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Similar Results Blog 1",
+			groupName = "Guest");
+
+		JSONBlog.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Similar Results Blog 2",
+			groupName = "Guest");
+
+		BlogsNavigator.openBlogsAdmin(siteURLKey = "guest");
+
+		BlogsNavigator.gotoEditCP(entryTitle = "Similar Results Blog 2");
+
+		WebContent.editDisplayPage(pageName = "Blogs Display Page");
+
+		PortletEntry.publish();
+
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Similar Results Page",
+			type = "content");
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Similar Results Page",
+			siteName = "Guest");
+
+		PageEditor.addWidget(portletName = "Blogs");
+
+		PageEditor.addWidget(
+			portletName = "Similar Results",
+			targetFragmentName = "Blogs");
+
+		SearchPortlets.configureSimilarResults(linkBehavior = "View in Context");
+
+		PageEditor.publish();
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/guest/similar-results-page");
+
+		Click(
+			key_entryTitle = "Similar Results Blog 1",
+			locator1 = "BlogsEntry#TITLE_LINK");
+
+		Click(
+			key_linkResultTitle = "Similar Results Blog 2",
+			locator1 = "Search#SIMILAR_RESULTS_LINK_TITLE");
+
+		ControlMenu.viewHeaderTitle(headerTitle = "Blogs Display Page");
+	}
+
 	@priority = "4"
-	test ConfigureSimilarResultsWordLength {
+	test ConfigureWordLength {
 		JSONWebcontent.addWebContent(
 			content = "WC Content",
 			groupName = "Guest",
@@ -819,70 +925,8 @@ definition {
 			locator1 = "Search#SIMILAR_RESULTS_LINK_TITLE");
 	}
 
-	test ConfigureViewInContextLinkBehavior {
-		JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
-			contentType = "Blogs Entry",
-			displayPageTemplateEntryName = "Blogs Display Page",
-			groupName = "Guest");
-
-		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "guest");
-
-		DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Blogs Display Page");
-
-		Button.clickPublish();
-
-		JSONBlog.addEntry(
-			entryContent = "Blogs Entry Content",
-			entryTitle = "Similar Results Blog 1",
-			groupName = "Guest");
-
-		JSONBlog.addEntry(
-			entryContent = "Blogs Entry Content",
-			entryTitle = "Similar Results Blog 2",
-			groupName = "Guest");
-
-		BlogsNavigator.openBlogsAdmin(siteURLKey = "guest");
-
-		BlogsNavigator.gotoEditCP(entryTitle = "Similar Results Blog 2");
-
-		WebContent.editDisplayPage(pageName = "Blogs Display Page");
-
-		PortletEntry.publish();
-
-		JSONLayout.addPublicLayout(
-			groupName = "Guest",
-			layoutName = "Similar Results Page",
-			type = "content");
-
-		ContentPagesNavigator.openEditContentPage(
-			pageName = "Similar Results Page",
-			siteName = "Guest");
-
-		PageEditor.addWidget(portletName = "Blogs");
-
-		PageEditor.addWidget(
-			portletName = "Similar Results",
-			targetFragmentName = "Blogs");
-
-		SearchPortlets.configureSimilarResults(linkBehavior = "View in Context");
-
-		PageEditor.clickPublish();
-
-		Navigator.openWithAppendToBaseURL(urlAppend = "web/guest/similar-results-page");
-
-		Click(
-			key_entryTitle = "Similar Results Blog 1",
-			locator1 = "BlogsEntry#TITLE_LINK");
-
-		Click(
-			key_linkResultTitle = "Similar Results Blog 2",
-			locator1 = "Search#SIMILAR_RESULTS_LINK_TITLE");
-
-		ControlMenu.viewHeaderTitle(headerTitle = "Blogs Display Page");
-	}
-
 	@priority = "4"
-	test ViewSimilarResultsOnContentPages {
+	test ViewOnContentPages {
 		JSONWebcontent.addWebContent(
 			content = "WC Content",
 			groupName = "Guest",
@@ -899,7 +943,7 @@ definition {
 
 		PageEditor.addWidget(portletName = "Asset Publisher");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/guest/similar-results-page");
 
@@ -915,7 +959,7 @@ definition {
 			minimumDocumentFrequency = "1",
 			minimumTermFrequency = "1");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/guest/similar-results-page");
 
@@ -938,7 +982,7 @@ definition {
 	}
 
 	@priority = "4"
-	test ViewSimilarResultsWithDifferentScope {
+	test ViewWithDifferentScope {
 		for (var siteName : list "Site Name 1,Site Name 2,Site Name 3") {
 			JSONGroup.addGroup(groupName = "${siteName}");
 		}

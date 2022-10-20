@@ -57,7 +57,7 @@
 </tr>
 <tr>
 	<td>EDIT_ANSWER</td>
-	<td>//button[contains(@class,'text-reset')]//a[contains(.,'Edit')]</td>
+	<td>//button[contains(@class,'btn btn-secondary') and contains(.,'Edit')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -82,7 +82,7 @@
 </tr>
 <tr>
 	<td>PAGINATION_NEXT_LINK</td>
-	<td>//button[*[name()='svg'][contains(@class,'lexicon-icon-angle-right')]]</td>
+	<td>//a[*[name()='svg'][contains(@class,'lexicon-icon-angle-right')]]</td>
 	<td></td>
 </tr>
 <tr>
@@ -112,27 +112,27 @@
 </tr>
 <tr>
 	<td>QUESTIONS_BREADCRUMB_ELLIPSIS</td>
-	<td>//button[contains(@class,'dropdown')]//*[name()='svg'][contains(@class,'lexicon-icon-ellipsis-h')]</td>
+	<td>//span[contains(@class,'dropdown')]//*[name()='svg'][contains(@class,'lexicon-icon-ellipsis-h')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>QUESTIONS_BREADCRUMB_PARENT_TOPIC_BUTTON</td>
-	<td>//button[contains(@class,'dropdown') and contains(.,'${key_topicName}')]</td>
+	<td>//div[contains(@class,'dropdown')]/span[contains(.,'${key_topicName}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>QUESTIONS_BREADCRUMB_TOPIC_DROPDOWN_OPTION</td>
-	<td>//div[contains(@class,'dropdown-menu')]//span[contains(.,'${key_topicName}')]</td>
+	<td>//div[contains(@class,'dropdown-menu')]//a[contains(.,'${key_topicName}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>QUESTIONS_BREADCRUMB_HOME_DROPDOWN_TOGGLE</td>
-	<td>//li[contains(@class,'breadcrumb-item')][1]//button[contains(@class,'dropdown')]//*[name()='svg'][contains(@class,'caret-bottom')]</td>
+	<td>//li[contains(@class,'breadcrumb-item')][1]//div[contains(@class,'dropdown')]//*[name()='svg'][contains(@class,'caret-bottom')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>QUESTIONS_BREADCRUMB_TOPIC_DROPDOWN_TOGGLE</td>
-	<td>//button[contains(@class,'dropdown-toggle') and contains(.,'${key_topicName}')]//*[name()='svg'][contains(@class,'caret-bottom')]</td>
+	<td>//span[contains(@class,'dropdown-toggle') and contains(.,'${key_topicName}')]//*[name()='svg'][contains(@class,'caret-bottom')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -342,7 +342,7 @@
 </tr>
 <tr>
 	<td>TAGS_POSITION</td>
-	<td>//div[contains(@class,'question-tags')][${key_position}]</td>
+	<td>xpath=(//div[contains(@class,'question-tags')])[${key_position}]</td>
 	<td></td>
 </tr>
 <tr>
@@ -360,7 +360,9 @@
 	<td>//a[contains(@href, '${key_tagName}')]//*[contains(.,'Used ${key_amountOfUsedTimes} Times')]</td>
 	<td></td>
 </tr>
+
 <!--RELATED_QUESTIONS-->
+
 <tr>
 	<td>RELATED_QUESTIONS_EMPTY_TEXT</td>
 	<td>//h2[contains(@class,'text-secondary') and contains(.,'No related questions were found.')]</td>
@@ -371,7 +373,9 @@
 	<td>//a[contains(@class,'questions-title')]/h3[contains(.,'${key_questionTitle}')]</td>
 	<td></td>
 </tr>
+
 <!--WORKFLOW-->
+
 <tr>
 	<td>WORKFLOW_STATUS</td>
 	<td>//span[contains(@class,'label-item') and contains(.,'${key_status}')]</td>

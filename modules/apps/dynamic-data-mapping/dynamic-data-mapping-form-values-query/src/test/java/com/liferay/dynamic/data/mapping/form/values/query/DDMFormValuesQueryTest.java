@@ -22,8 +22,11 @@ import com.liferay.dynamic.data.mapping.model.UnlocalizedValue;
 import com.liferay.dynamic.data.mapping.model.Value;
 import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
+import com.liferay.portal.kernel.language.Language;
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -32,26 +35,28 @@ import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.Mockito;
 
 /**
  * @author Marcellus Tavares
  */
-@PrepareForTest(LocaleUtil.class)
-@RunWith(PowerMockRunner.class)
-public class DDMFormValuesQueryTest extends PowerMockito {
+public class DDMFormValuesQueryTest {
+
+	@ClassRule
+	@Rule
+	public static final LiferayUnitTestRule liferayUnitTestRule =
+		LiferayUnitTestRule.INSTANCE;
 
 	@Before
 	public void setUp() {
 		_ddmFormValues = createDDMFormValues();
 		_ddmFormValuesQueryFactory = new DDMFormValuesQueryFactoryImpl();
 
-		setUpLocaleUtil();
+		_setUpLanguageUtil();
 	}
 
 	@Test
@@ -617,23 +622,32 @@ public class DDMFormValuesQueryTest extends PowerMockito {
 		return ddmFormFieldValue.getName();
 	}
 
-	protected void setUpLocaleUtil() {
-		mockStatic(LocaleUtil.class);
+	private void _setUpLanguageUtil() {
+		LanguageUtil languageUtil = new LanguageUtil();
 
-		when(
-			LocaleUtil.fromLanguageId("en_US")
+		_whenLanguageIsAvailableLocale(LocaleUtil.BRAZIL);
+		_whenLanguageIsAvailableLocale(LocaleUtil.US);
+
+		languageUtil.setLanguage(_language);
+	}
+
+	private void _whenLanguageIsAvailableLocale(Locale locale) {
+		Mockito.when(
+			_language.isAvailableLocale(Mockito.eq(locale))
 		).thenReturn(
-			LocaleUtil.US
+			true
 		);
 
-		when(
-			LocaleUtil.fromLanguageId("pt_BR")
+		Mockito.when(
+			_language.isAvailableLocale(
+				Mockito.eq(LocaleUtil.toLanguageId(locale)))
 		).thenReturn(
-			LocaleUtil.BRAZIL
+			true
 		);
 	}
 
 	private DDMFormValues _ddmFormValues;
 	private DDMFormValuesQueryFactory _ddmFormValuesQueryFactory;
+	private final Language _language = Mockito.mock(Language.class);
 
 }

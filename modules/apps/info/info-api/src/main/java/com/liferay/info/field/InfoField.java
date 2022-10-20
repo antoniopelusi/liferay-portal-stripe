@@ -105,12 +105,20 @@ public class InfoField<T extends InfoFieldType> implements InfoFieldSetEntry {
 		return HashUtil.hash(hash, _builder._name);
 	}
 
+	public boolean isEditable() {
+		return _builder._editable;
+	}
+
 	public boolean isLocalizable() {
 		return _builder._localizable;
 	}
 
 	public boolean isMultivalued() {
 		return _builder._multivalued;
+	}
+
+	public boolean isRequired() {
+		return _builder._required;
 	}
 
 	@Override
@@ -137,12 +145,14 @@ public class InfoField<T extends InfoFieldType> implements InfoFieldSetEntry {
 		private final Map
 			<InfoFieldType.Attribute<? extends InfoFieldType, ?>, Object>
 				_attributes = new HashMap<>();
+		private boolean _editable;
 		private InfoFieldType _infoFieldType;
 		private InfoLocalizedValue<String> _labelInfoLocalizedValue;
 		private boolean _localizable;
 		private boolean _multivalued;
 		private String _name;
 		private String _namespace;
+		private boolean _required;
 		private String _uniqueId;
 
 	}
@@ -166,6 +176,12 @@ public class InfoField<T extends InfoFieldType> implements InfoFieldSetEntry {
 			return new InfoField<>(_builder);
 		}
 
+		public FinalStep<T> editable(boolean editable) {
+			_builder._editable = editable;
+
+			return this;
+		}
+
 		public FinalStep<T> labelInfoLocalizedValue(
 			InfoLocalizedValue<String> labelInfoLocalizedValue) {
 
@@ -182,6 +198,12 @@ public class InfoField<T extends InfoFieldType> implements InfoFieldSetEntry {
 
 		public FinalStep<T> multivalued(boolean multivalued) {
 			_builder._multivalued = multivalued;
+
+			return this;
+		}
+
+		public FinalStep<T> required(boolean required) {
+			_builder._required = required;
 
 			return this;
 		}

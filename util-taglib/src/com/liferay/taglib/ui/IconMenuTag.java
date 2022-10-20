@@ -33,6 +33,7 @@ import com.liferay.taglib.util.PortalIncludeUtil;
 import com.liferay.taglib.util.TagResourceBundleUtil;
 
 import java.util.Map;
+import java.util.Objects;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -91,6 +92,7 @@ public class IconMenuTag extends BaseBodyTagSupport implements BodyTag {
 			_cssClass = null;
 			_data = null;
 			_direction = "left";
+			_dropdownCssClass = null;
 			_endPage = null;
 			_extended = true;
 			_icon = null;
@@ -173,6 +175,10 @@ public class IconMenuTag extends BaseBodyTagSupport implements BodyTag {
 
 	public void setDisabled(boolean disabled) {
 		_disabled = disabled;
+	}
+
+	public void setDropdownCssClass(String dropdownCssClass) {
+		_dropdownCssClass = dropdownCssClass;
 	}
 
 	public void setEndPage(String endPage) {
@@ -258,20 +264,12 @@ public class IconMenuTag extends BaseBodyTagSupport implements BodyTag {
 			return _endPage;
 		}
 
-		if (Validator.isNotNull(_markupView)) {
-			return "/html/taglib/ui/icon_menu/" + _markupView + "/end.jsp";
-		}
-
 		return "/html/taglib/ui/icon_menu/end.jsp";
 	}
 
 	protected String getStartPage() {
 		if (Validator.isNotNull(_startPage)) {
 			return _startPage;
-		}
-
-		if (Validator.isNotNull(_markupView)) {
-			return "/html/taglib/ui/icon_menu/" + _markupView + "/start.jsp";
 		}
 
 		return "/html/taglib/ui/icon_menu/start.jsp";
@@ -301,7 +299,8 @@ public class IconMenuTag extends BaseBodyTagSupport implements BodyTag {
 			if (!FileAvailabilityUtil.isAvailable(
 					(ServletContext)httpServletRequest.getAttribute(
 						WebKeys.CTX),
-					getStartPage())) {
+					getStartPage()) ||
+				!Objects.equals(_markupView, "lexicon")) {
 
 				if (_showExpanded) {
 					jspWriter.write("<ul class=\"lfr-menu-expanded ");
@@ -358,9 +357,9 @@ public class IconMenuTag extends BaseBodyTagSupport implements BodyTag {
 							_message);
 					}
 
-					jspWriter.write("\" href=\"javascript:;\" id=\"");
+					jspWriter.write("\" href=\"javascript:void(0);\" id=\"");
 					jspWriter.write(_id);
-					jspWriter.write("\" title=\"");
+					jspWriter.write("\" role=\"button\" title=\"");
 					jspWriter.write(message);
 					jspWriter.write("\">");
 
@@ -441,7 +440,8 @@ public class IconMenuTag extends BaseBodyTagSupport implements BodyTag {
 			if (!FileAvailabilityUtil.isAvailable(
 					(ServletContext)httpServletRequest.getAttribute(
 						WebKeys.CTX),
-					getEndPage())) {
+					getEndPage()) ||
+				!Objects.equals(_markupView, "lexicon")) {
 
 				jspWriter.write("</ul>");
 
@@ -475,6 +475,8 @@ public class IconMenuTag extends BaseBodyTagSupport implements BodyTag {
 		httpServletRequest.setAttribute("liferay-ui:icon-menu:data", _data);
 		httpServletRequest.setAttribute(
 			"liferay-ui:icon-menu:direction", _direction);
+		httpServletRequest.setAttribute(
+			"liferay-ui:icon-menu:dropdownCssClass", _dropdownCssClass);
 		httpServletRequest.setAttribute("liferay-ui:icon-menu:icon", _icon);
 		httpServletRequest.setAttribute("liferay-ui:icon-menu:id", _id);
 
@@ -508,6 +510,7 @@ public class IconMenuTag extends BaseBodyTagSupport implements BodyTag {
 	private Map<String, Object> _data;
 	private String _direction = "left";
 	private boolean _disabled;
+	private String _dropdownCssClass;
 	private String _endPage;
 	private boolean _extended = true;
 	private String _icon;

@@ -12,13 +12,22 @@
  * details.
  */
 
+import ClayForm from '@clayui/form';
 import ClayIcon from '@clayui/icon';
 import ClayTabs from '@clayui/tabs';
 import {useIsMounted, usePrevious} from '@liferay/frontend-js-react-web';
-import {cancelDebounce, debounce, fetch, openToast} from 'frontend-js-web';
+import {
+	cancelDebounce,
+	debounce,
+	fetch,
+	objectToFormData,
+	openToast,
+	sub,
+} from 'frontend-js-web';
 import React, {useCallback, useEffect, useState} from 'react';
 
 import CodeMirrorEditor from './CodeMirrorEditor';
+import {FieldTypeSelector} from './FieldTypeSelector';
 import FragmentPreview from './FragmentPreview';
 
 const CHANGES_STATUS = {
@@ -36,17 +45,21 @@ const FragmentEditor = ({
 		},
 		autocompleteTags,
 		cacheable,
+		cacheableEnabled,
 		dataAttributes,
+		fieldTypes: availableFieldTypes,
 		fragmentCollectionId,
 		fragmentEntryId,
 		htmlEditorCustomEntities,
 		initialCSS,
 		initialConfiguration,
+		initialFieldTypes,
 		initialHTML,
 		initialJS,
 		name,
 		propagationEnabled,
 		readOnly,
+		showFieldTypes,
 		urls,
 	},
 }) => {
@@ -57,10 +70,11 @@ const FragmentEditor = ({
 	const [css, setCss] = useState(initialCSS);
 	const [html, setHtml] = useState(initialHTML);
 	const [js, setJs] = useState(initialJS);
-
+	const [fieldTypes, setFieldTypes] = useState(initialFieldTypes);
 	const previousConfiguration =
 		usePrevious(configuration) || initialConfiguration;
 	const previousCss = usePrevious(css) || initialCSS;
+	const previousFieldTypes = usePrevious(fieldTypes) || initialFieldTypes;
 	const previousHtml = usePrevious(html) || initialHTML;
 	const previousJs = usePrevious(js) || initialJS;
 
@@ -70,6 +84,7 @@ const FragmentEditor = ({
 		return (
 			previousConfiguration !== configuration ||
 			previousCss !== css ||
+			previousFieldTypes.length !== fieldTypes.length ||
 			previousHtml !== html ||
 			previousJs !== js ||
 			cacheable !== isCacheable
@@ -78,9 +93,11 @@ const FragmentEditor = ({
 		cacheable,
 		configuration,
 		css,
+		fieldTypes,
 		html,
 		previousCss,
 		previousConfiguration,
+		previousFieldTypes,
 		previousHtml,
 		previousJs,
 		isCacheable,
@@ -131,23 +148,21 @@ const FragmentEditor = ({
 		debounce(() => {
 			setChangesStatus(CHANGES_STATUS.saving);
 
-			const formData = new FormData();
-
-			formData.append(`${namespace}cacheable`, isCacheable);
-			formData.append(`${namespace}configurationContent`, configuration);
-			formData.append(`${namespace}cssContent`, css);
-			formData.append(`${namespace}htmlContent`, html);
-			formData.append(
-				`${namespace}fragmentCollectionId`,
-				fragmentCollectionId
-			);
-			formData.append(`${namespace}fragmentEntryId`, fragmentEntryId);
-			formData.append(`${namespace}jsContent`, js);
-			formData.append(`${namespace}name`, name);
-			formData.append(`${namespace}status`, allowedStatus.draft);
+			const data = {
+				cacheable: isCacheable,
+				configurationContent: configuration,
+				cssContent: css,
+				fieldTypes,
+				fragmentCollectionId,
+				fragmentEntryId,
+				htmlContent: html,
+				jsContent: js,
+				name,
+				status: allowedStatus.draft,
+			};
 
 			fetch(urls.edit, {
-				body: formData,
+				body: objectToFormData(Liferay.Util.ns(namespace, data)),
 				method: 'POST',
 			})
 				.then((response) => response.json())
@@ -177,7 +192,7 @@ const FragmentEditor = ({
 					});
 				});
 		}, 500),
-		[configuration, css, html, isCacheable, js]
+		[configuration, css, fieldTypes, html, isCacheable, js]
 	);
 
 	const previousSaveDraft = usePrevious(saveDraft);
@@ -226,10 +241,13 @@ const FragmentEditor = ({
 							</ClayTabs>
 						</div>
 
-						<div className="btn-group btn-group-nowrap float-right mt-1">
+						<div className="align-items-center btn-group btn-group-nowrap d-flex float-right">
 							{readOnly ? (
-								<span className="pr-3 pt-1 text-info">
-									<ClayIcon symbol="exclamation-circle" />
+								<span className="pr-3 text-info">
+									<ClayIcon
+										className="mr-2"
+										symbol="exclamation-circle"
+									/>
 
 									<span>
 										{Liferay.Language.get('read-only-view')}
@@ -239,12 +257,15 @@ const FragmentEditor = ({
 								<>
 									{propagationEnabled && (
 										<span
-											className="lfr-portal-tooltip pr-3 pt-1 text-info"
+											className="align-items-center d-flex lfr-portal-tooltip pr-3 text-info"
 											data-title={Liferay.Language.get(
 												'automatic-propagation-enabled-help'
 											)}
 										>
-											<ClayIcon symbol="exclamation-circle" />
+											<ClayIcon
+												className="mr-2"
+												symbol="exclamation-circle"
+											/>
 
 											<span>
 												{Liferay.Language.get(
@@ -270,6 +291,7 @@ const FragmentEditor = ({
 											<input
 												checked={isCacheable}
 												className="custom-control-input toggle-switch-check"
+												disabled={!cacheableEnabled}
 												name="cacheable"
 												onChange={(event) =>
 													setIsCacheable(
@@ -342,7 +364,7 @@ const FragmentEditor = ({
 						<div className="javascript source-editor">
 							<CodeMirrorEditor
 								codeFooterText="}"
-								codeHeaderHelpText={Liferay.Util.sub(
+								codeHeaderHelpText={sub(
 									Liferay.Language.get(
 										'parameter-x-provides-access-to-the-current-fragment-node-use-it-to-manipulate-fragment-components'
 									),
@@ -368,13 +390,43 @@ const FragmentEditor = ({
 				</ClayTabs.TabPane>
 
 				<ClayTabs.TabPane aria-labelledby="configuration">
-					<div className="fragment-editor">
-						<CodeMirrorEditor
-							content={initialConfiguration}
-							mode="json"
-							onChange={setConfiguration}
-							readOnly={readOnly}
-						/>
+					<div className="fragment-editor fragment-editor__configuration">
+						<div className="sheet sheet-lg">
+							{showFieldTypes && (
+								<FieldTypeSelector
+									availableFieldTypes={availableFieldTypes}
+									description={Liferay.Language.get(
+										'specify-which-field-types-this-fragment-supports'
+									)}
+									fieldTypes={fieldTypes}
+									onChangeFieldTypes={setFieldTypes}
+									readOnly={readOnly}
+									title={Liferay.Language.get('field-types')}
+								/>
+							)}
+
+							<ClayForm.Group>
+								<div className="sheet-section">
+									<h2 className="sheet-subtitle">json</h2>
+
+									{!readOnly && (
+										<p>
+											{Liferay.Language.get(
+												'add-the-json-configuration'
+											)}
+										</p>
+									)}
+
+									<CodeMirrorEditor
+										content={initialConfiguration}
+										mode="json"
+										onChange={setConfiguration}
+										readOnly={readOnly}
+										showHeader={false}
+									/>
+								</div>
+							</ClayForm.Group>
+						</div>
 					</div>
 				</ClayTabs.TabPane>
 			</ClayTabs.Content>

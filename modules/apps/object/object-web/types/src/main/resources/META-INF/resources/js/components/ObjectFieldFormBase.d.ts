@@ -12,19 +12,21 @@
  * details.
  */
 
+import {FormError} from '@liferay/object-js-components-web';
 import React, {ChangeEventHandler, ReactNode} from 'react';
-import {FormError} from '../hooks/useForm';
 import './ObjectFieldFormBase.scss';
 export default function ObjectFieldFormBase({
-	allowMaxLength,
-	allowUploadDocAndMedia,
 	children,
 	disabled,
+	editingField,
 	errors,
 	handleChange,
+	objectDefinitionId,
 	objectField: values,
 	objectFieldTypes,
 	objectName,
+	onAggregationFilterChange,
+	onRelationshipChange,
 	setValues,
 }: IProps): JSX.Element;
 export declare function useObjectFieldForm({
@@ -36,13 +38,18 @@ export declare function useObjectFieldForm({
 }: IUseObjectFieldForm): {
 	errors: FormError<
 		ObjectField & {
-			acceptedFileExtensions: any;
-			fileSource: any;
-			maximumFileSize: any;
-			maxLength: any;
-			showCounter: any;
-			showFilesInDocumentsAndMedia: any;
-			storageDLFolderPath: any;
+			function: unknown;
+			maxLength: unknown;
+			acceptedFileExtensions: unknown;
+			fileSource: unknown;
+			filters: unknown;
+			maximumFileSize: unknown;
+			objectFieldName: unknown;
+			objectRelationshipName: unknown;
+			showCounter: unknown;
+			showFilesInDocumentsAndMedia: unknown;
+			stateFlow: unknown;
+			storageDLFolderPath: unknown;
 		}
 	>;
 	handleChange: React.ChangeEventHandler<HTMLInputElement>;
@@ -58,21 +65,23 @@ interface IUseObjectFieldForm {
 	onSubmit: (field: ObjectField) => void;
 }
 interface IProps {
-	allowMaxLength?: boolean;
-	allowUploadDocAndMedia?: boolean;
 	children?: ReactNode;
 	disabled?: boolean;
+	editingField?: boolean;
 	errors: ObjectFieldErrors;
 	handleChange: ChangeEventHandler<HTMLInputElement>;
+	objectDefinitionId: number;
 	objectField: Partial<ObjectField>;
 	objectFieldTypes: ObjectFieldType[];
 	objectName: string;
+	onAggregationFilterChange?: (aggregationFilterArray: []) => void;
+	onRelationshipChange?: (objectDefinitionId2: number) => void;
 	setValues: (values: Partial<ObjectField>) => void;
 }
 export declare type ObjectFieldErrors = FormError<
 	ObjectField &
 		{
-			[key in ObjectFieldSettingName]: any;
+			[key in ObjectFieldSettingName]: unknown;
 		}
 >;
 export {};

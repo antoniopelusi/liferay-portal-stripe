@@ -49,7 +49,7 @@ public abstract class BaseNodeValidator<T extends Node>
 	private void _validateName(T node)
 		throws KaleoDefinitionValidationException {
 
-		String name = node.getName();
+		String name = node.getDefaultLabel();
 
 		if (name.length() > 200) {
 			throw new KaleoDefinitionValidationException.
@@ -68,7 +68,7 @@ public abstract class BaseNodeValidator<T extends Node>
 				notification -> Validator.isNull(notification.getTemplate()))) {
 
 			throw new KaleoDefinitionValidationException.
-				EmptyNotificationTemplate(node.getName());
+				EmptyNotificationTemplate(node.getDefaultLabel());
 		}
 	}
 

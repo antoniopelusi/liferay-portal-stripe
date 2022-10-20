@@ -10,6 +10,10 @@
  */
 
 module.exports = {
+	env: {
+		jest: true,
+		node: true,
+	},
 	rules: {
 		'@liferay/group-imports': 'off',
 		'@liferay/portal/no-loader-import-specifier': 'off',

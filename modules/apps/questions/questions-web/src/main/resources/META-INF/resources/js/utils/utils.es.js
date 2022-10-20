@@ -18,10 +18,7 @@ import {useRef} from 'react';
 import {client} from './client.es';
 import lang from './lang.es';
 
-export function dateToInternationalHuman(
-	ISOString,
-	localeKey = navigator.language
-) {
+export function dateToInternationalHuman(ISOString, language) {
 	const date = new Date(ISOString);
 
 	const options = {
@@ -29,13 +26,10 @@ export function dateToInternationalHuman(
 		hour: '2-digit',
 		minute: '2-digit',
 		month: 'short',
+		year: 'numeric',
 	};
 
-	if (date.getFullYear() !== new Date().getFullYear()) {
-		options.year = 'numeric';
-	}
-
-	const intl = new Intl.DateTimeFormat(localeKey, options);
+	const intl = new Intl.DateTimeFormat(language, options);
 
 	return intl.format(date);
 }

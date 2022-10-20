@@ -14,12 +14,12 @@
 
 package com.liferay.staging.configuration.web.internal.portlet;
 
-import com.liferay.change.tracking.model.CTPreferences;
-import com.liferay.change.tracking.service.CTPreferencesLocalService;
+import com.liferay.change.tracking.configuration.CTSettingsConfiguration;
 import com.liferay.exportimport.kernel.service.StagingLocalService;
 import com.liferay.exportimport.kernel.staging.Staging;
 import com.liferay.exportimport.kernel.staging.constants.StagingConstants;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
+import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskManager;
 import com.liferay.portal.kernel.backgroundtask.constants.BackgroundTaskConstants;
 import com.liferay.portal.kernel.exception.LocaleException;
@@ -28,6 +28,8 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.module.configuration.ConfigurationException;
+import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.service.GroupLocalService;
@@ -44,6 +46,8 @@ import com.liferay.staging.constants.StagingProcessesPortletKeys;
 
 import java.io.IOException;
 
+import java.util.Map;
+
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
 import javax.portlet.Portlet;
@@ -51,13 +55,16 @@ import javax.portlet.PortletException;
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletURL;
 
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Levente Hudák
  */
 @Component(
+	configurationPid = "com.liferay.change.tracking.configuration.CTSettingsConfiguration",
 	immediate = true,
 	property = {
 		"com.liferay.portlet.add-default-resource=true",
@@ -76,7 +83,8 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/view.jsp",
 		"javax.portlet.name=" + StagingConfigurationPortletKeys.STAGING_CONFIGURATION,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=power-user,user"
+		"javax.portlet.security-role-ref=power-user,user",
+		"javax.portlet.version=3.0"
 	},
 	service = Portlet.class
 )
@@ -122,11 +130,10 @@ public class StagingConfigurationPortlet extends MVCPortlet {
 		int stagingType = ParamUtil.getInteger(actionRequest, "stagingType");
 
 		if (stagingType != StagingConstants.TYPE_NOT_STAGED) {
-			CTPreferences ctPreferences =
-				_ctPreferencesLocalService.fetchCTPreferences(
-					themeDisplay.getCompanyId(), 0);
+			CTSettingsConfiguration ctSettingsConfiguration =
+				_getCTSettingsConfiguration(themeDisplay.getCompanyId());
 
-			if (ctPreferences != null) {
+			if (ctSettingsConfiguration.enabled()) {
 				SessionErrors.add(actionRequest, "publicationsEnabled");
 
 				return;
@@ -293,6 +300,13 @@ public class StagingConfigurationPortlet extends MVCPortlet {
 		sendRedirect(actionRequest, actionResponse);
 	}
 
+	@Activate
+	@Modified
+	protected void activate(Map<String, Object> properties) {
+		_defaultCTSettingsConfiguration = ConfigurableUtil.createConfigurable(
+			CTSettingsConfiguration.class, properties);
+	}
+
 	@Override
 	protected boolean isSessionErrorException(Throwable throwable) {
 		if (throwable instanceof LocaleException) {
@@ -329,6 +343,20 @@ public class StagingConfigurationPortlet extends MVCPortlet {
 		_stagingLocalService = null;
 	}
 
+	private CTSettingsConfiguration _getCTSettingsConfiguration(
+		long companyId) {
+
+		try {
+			return _configurationProvider.getCompanyConfiguration(
+				CTSettingsConfiguration.class, companyId);
+		}
+		catch (ConfigurationException configurationException) {
+			_log.error(configurationException);
+		}
+
+		return _defaultCTSettingsConfiguration;
+	}
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		StagingConfigurationPortlet.class);
 
@@ -336,8 +364,9 @@ public class StagingConfigurationPortlet extends MVCPortlet {
 	private BackgroundTaskManager _backgroundTaskManager;
 
 	@Reference
-	private CTPreferencesLocalService _ctPreferencesLocalService;
+	private ConfigurationProvider _configurationProvider;
 
+	private volatile CTSettingsConfiguration _defaultCTSettingsConfiguration;
 	private GroupLocalService _groupLocalService;
 
 	@Reference

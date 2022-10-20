@@ -16,6 +16,7 @@ package com.liferay.taglib.aui;
 
 import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.frontend.icons.FrontendIconsUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
@@ -25,8 +26,6 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.taglib.aui.base.BaseIconTag;
 import com.liferay.taglib.ui.MessageTag;
 import com.liferay.taglib.util.InlineUtil;
-
-import java.util.Objects;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspWriter;
@@ -128,39 +127,32 @@ public class IconTag extends BaseIconTag {
 		JspWriter jspWriter = pageContext.getOut();
 
 		try {
-			if (Objects.equals(getMarkupView(), "lexicon")) {
-				jspWriter.write("<svg aria-hidden=\"true\" ");
-				jspWriter.write("class=\"lexicon-icon lexicon-icon-");
-				jspWriter.write(GetterUtil.getString(getImage()));
-				jspWriter.write("\" focusable=\"false\" ");
-				jspWriter.write(
-					InlineUtil.buildDynamicAttributes(getDynamicAttributes()));
-				jspWriter.write("><use href=\"");
+			jspWriter.write("<svg aria-hidden=\"true\" ");
+			jspWriter.write("class=\"lexicon-icon lexicon-icon-");
+			jspWriter.write(GetterUtil.getString(getImage()));
+			jspWriter.write("\" focusable=\"false\" ");
+			jspWriter.write(
+				InlineUtil.buildDynamicAttributes(getDynamicAttributes()));
+			jspWriter.write("><use href=\"");
 
-				String src = getSrc();
+			String src = getSrc();
 
-				if (src == null) {
-					HttpServletRequest httpServletRequest =
-						(HttpServletRequest)pageContext.getRequest();
+			if (src == null) {
+				HttpServletRequest httpServletRequest =
+					(HttpServletRequest)pageContext.getRequest();
 
-					ThemeDisplay themeDisplay =
-						(ThemeDisplay)httpServletRequest.getAttribute(
-							WebKeys.THEME_DISPLAY);
+				ThemeDisplay themeDisplay =
+					(ThemeDisplay)httpServletRequest.getAttribute(
+						WebKeys.THEME_DISPLAY);
 
-					src = themeDisplay.getPathThemeImages() + "/clay/icons.svg";
-				}
-
-				jspWriter.write(src);
-				jspWriter.write(StringPool.POUND);
-				jspWriter.write(GetterUtil.getString(getImage()));
-				jspWriter.write("\"></use>");
-				jspWriter.write("</svg>");
+				src = FrontendIconsUtil.getSpritemap(themeDisplay);
 			}
-			else {
-				jspWriter.write("<i class=\"icon-");
-				jspWriter.write(GetterUtil.getString(getImage()));
-				jspWriter.write("\"></i>");
-			}
+
+			jspWriter.write(src);
+			jspWriter.write(StringPool.POUND);
+			jspWriter.write(GetterUtil.getString(getImage()));
+			jspWriter.write("\"></use>");
+			jspWriter.write("</svg>");
 
 			String label = getLabel();
 

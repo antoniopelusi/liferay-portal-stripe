@@ -45,8 +45,10 @@ definition {
 			-d icon= \
 			-d previewFileEntryId=0 \
 			-d type=${type} \
+			-d typeOptions= \
 			-d status=${status}
 		''';
+
 		var fragmentEntryId = JSONCurlUtil.post("${curl}", "$..fragmentEntryId");
 
 		return "${fragmentEntryId}";
@@ -82,6 +84,7 @@ definition {
 			-d <CURL_DATA[end=-1]CURL_DATA> \
 			-d -orderByComparator=
 		''';
+
 		var collectionId = JSONCurlUtil.post("${curl}", "$.[?(@['name'] == '${collectionName}')]['fragmentCollectionId']");
 
 		if ("${collectionId}" == "") {
@@ -104,6 +107,7 @@ definition {
 			-d <CURL_DATA[end=-1]CURL_DATA> \
 			-d -orderByComparator=
 		''';
+
 		var collectionNameResult = JSONCurlUtil.post("${curl}", "$..[?(@['name'] == '${collectionName}')]");
 
 		return "${collectionNameResult}";
@@ -121,6 +125,7 @@ definition {
 			-d <CURL_DATA[start=-1]CURL_DATA> \
 			-d <CURL_DATA[end=-1]CURL_DATA>
 		''';
+
 		var fragmentNameResult = JSONCurlUtil.post("${curl}", "$..[?(@['name'] == '${fragmentName}')]");
 
 		return "${fragmentNameResult}";

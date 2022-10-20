@@ -38,6 +38,12 @@ html#{$cadmin-selector} {
 					border: 1px solid $cadmin-primary-l1;
 				}
 			}
+
+			.segmentation-disabled-alert {
+				line-height: inherit;
+				margin: inherit;
+				padding: 15px 16px;
+			}
 		}
 	}
 

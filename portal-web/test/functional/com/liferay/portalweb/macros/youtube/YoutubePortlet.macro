@@ -9,13 +9,31 @@ definition {
 	}
 
 	macro assertVideoTitle {
-		SelectFrame.selectFrameNoLoading(locator1 = "YoutubePortlet#VIDEO_IFRAME");
+		SelectFrame(locator1 = "YoutubePortlet#VIDEO_IFRAME");
 
 		AssertTextEquals.assertPartialText(
 			locator1 = "YoutubePortlet#VIDEO_TITLE",
 			value1 = "${videoTitle}");
 
 		SelectFrameTop();
+	}
+
+	macro playEmbeddedVideo {
+		SelectFrame(locator1 = "IFrame#EMBEDDED_VIDEO_IFRAME");
+
+		WaitForElementPresent(
+			key_value = "${progressBarInitialization}",
+			locator1 = "YoutubePortlet#VIDEO_PROGRESS_BAR");
+
+		Click(locator1 = "Button#YOUTUBE_PLAY");
+
+		MouseOver(
+			key_value = "${videoDuration}",
+			locator1 = "YoutubePortlet#VIDEO_PROGRESS_BAR");
+
+		WaitForElementPresent(
+			key_value = "${videoPlayNode}",
+			locator1 = "YoutubePortlet#VIDEO_PROGRESS_BAR");
 	}
 
 	macro viewPortletConfiguration {

@@ -1,0 +1,173 @@
+definition {
+
+	macro addAuthServer {
+		var jsonFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/openidconnect/dependencies";
+
+		var authServerMetadata = FileUtil.read("${jsonFileBaseDir}/${jsonFileName}");
+
+		LexiconEntry.gotoAdd();
+
+		FormFields.editTextMultiline(
+			fieldName = "metadataJSON",
+			fieldValue = "${authServerMetadata}");
+
+		PortletEntry.save();
+	}
+
+	macro addClient {
+		var jsonFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/openidconnect/dependencies";
+
+		var clientInfo = FileUtil.read("${jsonFileBaseDir}/${jsonFileName}");
+
+		LexiconEntry.gotoAdd();
+
+		if (!(isSet(wellknownURI))) {
+			var wellknownURI = "https://accounts.google.com/.well-known/openid-configuration";
+		}
+
+		FormFields.editText(
+			fieldName = "authServerWellKnownURI",
+			fieldValue = "${wellknownURI}");
+
+		FormFields.editTextMultiline(
+			fieldName = "infoJSON",
+			fieldValue = "${clientInfo}");
+
+		if (isSet(authRequestParametersJSON)) {
+			FormFields.editTextMultiline(
+				fieldName = "authRequestParametersJSON",
+				fieldValue = "${authRequestParametersJSON}");
+		}
+		else {
+			FormFields.editTextMultiline(
+				fieldName = "authRequestParametersJSON",
+				fieldValue = '''
+					{
+					    "response_type": "code",
+					    "scope": "openid email profile"
+					}
+				''');
+		}
+
+		if (isSet(tokenRequestParametersJSON)) {
+			FormFields.editTextMultiline(
+				fieldName = "tokenRequestParametersJSON",
+				fieldValue = "${tokenRequestParametersJSON}");
+		}
+		else {
+			FormFields.editTextMultiline(
+				fieldName = "tokenRequestParametersJSON",
+				fieldValue = '''
+					{
+					    "grant_type": "authorization_code",
+				    	"scope": "openid email profile"
+					}
+				''');
+		}
+
+		PortletEntry.save();
+	}
+
+	macro addInvalidAuthServer {
+		LexiconEntry.gotoAdd();
+
+		if (isSet(authServerMetadata)) {
+			FormFields.editTextMultiline(
+				fieldName = "metadataJSON",
+				fieldValue = "${authServerMetadata}");
+		}
+
+		ClickNoError(locator1 = "Button#SAVE");
+	}
+
+	macro addInvalidClient {
+		LexiconEntry.gotoAdd();
+
+		if (isSet(wellknownURI)) {
+			FormFields.editText(
+				fieldName = "authServerWellKnownURI",
+				fieldValue = "${wellknownURI}");
+		}
+
+		if (isSet(clientInfo)) {
+			FormFields.editTextMultiline(
+				fieldName = "infoJSON",
+				fieldValue = "${clientInfo}");
+		}
+
+		if (isSet(jsonFileName)) {
+			var jsonFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/openidconnect/dependencies";
+
+			var clientInfo = FileUtil.read("${jsonFileBaseDir}/${jsonFileName}");
+
+			FormFields.editTextMultiline(
+				fieldName = "infoJSON",
+				fieldValue = "${clientInfo}");
+		}
+
+		if (isSet(authRequestParametersJSON)) {
+			FormFields.editTextMultiline(
+				fieldName = "authRequestParametersJSON",
+				fieldValue = "${authRequestParametersJSON}");
+		}
+
+		if (isSet(tokenRequestParametersJSON)) {
+			FormFields.editTextMultiline(
+				fieldName = "tokenRequestParametersJSON",
+				fieldValue = "${tokenRequestParametersJSON}");
+		}
+
+		ClickNoError(locator1 = "Button#SAVE");
+	}
+
+	macro deleteClient {
+		Click(
+			key_rowIndexNumber = "${rowIndexNumber}",
+			locator1 = "Icon#ROW_VERTICAL_ELLIPSIS_N");
+
+		MenuItem.clickNoError(menuItem = "Delete");
+
+		AssertConfirm(value1 = "Are you sure you want to delete this? It will be deleted immediately.");
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro getWellKnownURI {
+		Click(locator1 = "OAuthClient#AUTH_SERVER_LOCAL_WELL_KNOWN_URI");
+
+		var wellknownURI = selenium.getAttribute("//input[contains(@id,'localWellKnownURI')]@value");
+
+		echo("Well-known URI: ${wellknownURI}");
+
+		return "${wellknownURI}";
+	}
+
+	macro openOAuthClientAdmin {
+		Variables.assertDefined(parameterList = "${navbar}");
+
+		if ("${navbar}" == "Auth Server Local Metadata") {
+			var navigationName = "oauth-client-as-local-metadata";
+		}
+
+		if ("${navbar}" == "Clients") {
+			var navigationName = "oauth-clients";
+		}
+
+		Navigator.openWithAppendToBaseURL(
+			baseURL = "${baseURL}",
+			urlAppend = "group/guest/~/control_panel/manage?p_p_id=com_liferay_oauth_client_admin_web_internal_portlet_OAuthClientAdminPortlet&_com_liferay_oauth_client_admin_web_internal_portlet_OAuthClientAdminPortlet_navigation=${navigationName}");
+
+		WaitForVisible(locator1 = "Button#PLUS");
+	}
+
+	macro viewOAuthClient {
+		OAuthClient.openOAuthClientAdmin(
+			baseURL = "${baseURL}",
+			navbar = "Clients");
+
+		while ((IsElementNotPresent(key_rowIndexNumber = "1", locator1 = "Icon#ROW_VERTICAL_ELLIPSIS_N")) && (maxIterations = "10")) {
+			Refresh();
+		}
+	}
+
+}

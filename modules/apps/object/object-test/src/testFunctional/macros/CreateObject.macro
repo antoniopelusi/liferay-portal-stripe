@@ -37,7 +37,7 @@ definition {
 	macro assertCanCollapseAndExpandEntryField {
 		WaitForSPARefresh();
 
-		if (IsVisible(key_closedOrOpen = "open", locator1 = "CreateObject#VIEW_COLLAPSE_ICON")) {
+		if (IsElementPresent(key_closedOrOpen = "open", locator1 = "CreateObject#VIEW_COLLAPSE_ICON")) {
 			Click(locator1 = "CreateObject#COLLAPSE_EXPAND_OBJECT_PORTLET_ENTRY_FIELD");
 
 			WaitForSPARefresh();
@@ -47,7 +47,7 @@ definition {
 				locator1 = "ObjectPortlet#VIEW_ENTRY_DETAILS_LABEL");
 		}
 
-		if (IsVisible(key_closedOrOpen = "closed", locator1 = "CreateObject#VIEW_COLLAPSE_ICON")) {
+		if (IsElementPresent(key_closedOrOpen = "closed", locator1 = "CreateObject#VIEW_COLLAPSE_ICON")) {
 			Click(locator1 = "CreateObject#COLLAPSE_EXPAND_OBJECT_PORTLET_ENTRY_FIELD");
 
 			WaitForSPARefresh();
@@ -219,10 +219,6 @@ definition {
 			locator1 = "CreateObject#VIEW_RELATED_OBJECT_ON_RELATIONSHIP_FIELD");
 	}
 
-	macro assertRequiredPicklistOnField {
-		AssertElementPresent(locator1 = "ObjectAdmin#SELECT_OBJECT_RELATIONSHIP_REQUIRED");
-	}
-
 	macro assertScopeFieldSelected {
 		AssertSelectedLabel(
 			locator1 = "ObjectAdmin#SELECT_OBJECT_SCOPE",
@@ -238,12 +234,10 @@ definition {
 	macro assertSelectedValueInDeletionType {
 		WaitForSPARefresh();
 
-		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
-
 		AssertElementPresent(
 			key_fieldLabel = "Deletion Type",
 			key_value = "${deletionType}",
-			locator1 = "CreateObject#ASSERT_SELECTED_VALUE");
+			locator1 = "CreateObject#ASSERT_DELETION_TYPE_VALUE");
 	}
 
 	macro assertTitleFieldIsSelected {
@@ -277,7 +271,7 @@ definition {
 	}
 
 	macro checkToggleActive {
-		Check.checkToggleSwitch(locator1 = "CreateObject#TOGGLE_ACTIVE");
+		Check.checkToggleSwitch(locator1 = "CreateObject#ACTIVE_TOGGLE");
 
 		WaitForSPARefresh();
 
@@ -293,23 +287,11 @@ definition {
 	}
 
 	macro checkToggleInactive {
-		Uncheck.uncheckToggleSwitch(locator1 = "CreateObject#TOGGLE_INACTIVE");
+		Uncheck.uncheckToggleSwitch(locator1 = "CreateObject#ACTIVE_TOGGLE");
 
 		WaitForSPARefresh();
 
 		WaitForPageLoad();
-	}
-
-	macro chooseEntryOnRelationshipField {
-		Click(locator1 = "ObjectPortlet#SEARCH_RELATIONSHIP_ENTRY");
-
-		KeyPress(
-			locator1 = "ObjectPortlet#SEARCH_RELATIONSHIP_ENTRY",
-			value1 = "\BACK_SPACE");
-
-		Click(
-			key_picklistOption = "${entryOption}",
-			locator1 = "ObjectAdmin#ENTRY_PICKLIST_OPTION");
 	}
 
 	macro deleteEntryInRelationshipTab {

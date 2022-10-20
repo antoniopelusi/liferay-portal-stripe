@@ -125,6 +125,9 @@ public interface DDMFormInstanceSettings {
 	)
 	public boolean autosaveEnabled();
 
+	@DDMFormField
+	public boolean convertedFromPolls();
+
 	@DDMFormField(
 		label = "%from-address",
 		validationErrorMessage = "%please-enter-a-valid-email-address",
@@ -204,8 +207,9 @@ public interface DDMFormInstanceSettings {
 	public boolean sendEmailNotification();
 
 	@DDMFormField(
-		label = "%show-partial-results-to-respondents",
-		tip = "%respondents-can-see-all-submitted-form-data", type = "checkbox"
+		label = "%show-forms-report-data-to-respondents",
+		tip = "%allow-respondents-to-see-the-current-forms-report-data",
+		type = "checkbox"
 	)
 	public boolean showPartialResultsToRespondents();
 

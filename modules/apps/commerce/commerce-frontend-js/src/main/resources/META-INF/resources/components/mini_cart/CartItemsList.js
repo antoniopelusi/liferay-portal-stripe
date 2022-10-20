@@ -24,6 +24,7 @@ function CartItemsList() {
 		cartState,
 		isUpdating,
 		labels,
+		setCartState,
 		summaryDataMapper,
 	} = useContext(MiniCartContext);
 
@@ -33,21 +34,41 @@ function CartItemsList() {
 		<div className="mini-cart-items-list">
 			<CartViews.ItemsListActions />
 
-			{cartItems.length > 0 ? (
+			{cartItems.length ? (
 				<>
 					<div className="mini-cart-cart-items">
-						{cartItems.map((cartItem) => (
-							<CartViews.Item key={cartItem.id} {...cartItem} />
-						))}
+						{cartItems.map((currentCartItem, index) => {
+							const updateCartItem = (callback) => {
+								const updatedCartItem = callback(
+									currentCartItem
+								);
+
+								setCartState((cartState) => ({
+									...cartState,
+									cartItems: cartItems.map((cartItem) =>
+										cartItem.id === currentCartItem.id
+											? updatedCartItem
+											: cartItem
+									),
+								}));
+							};
+
+							return (
+								<CartViews.Item
+									index={index}
+									key={currentCartItem.id}
+									updateCartItem={updateCartItem}
+									{...currentCartItem}
+								/>
+							);
+						})}
 					</div>
 
-					<>
-						<CartViews.Summary
-							dataMapper={summaryDataMapper}
-							isLoading={isUpdating}
-							summaryData={summary}
-						/>
-					</>
+					<CartViews.Summary
+						dataMapper={summaryDataMapper}
+						isLoading={isUpdating}
+						summaryData={summary}
+					/>
 				</>
 			) : (
 				<div className="empty-cart">

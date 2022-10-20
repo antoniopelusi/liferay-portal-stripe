@@ -102,7 +102,8 @@ public class AssetBrowserDisplayContext {
 
 		if (AssetBrowserWebConfigurationValues.SEARCH_WITH_DATABASE) {
 			long[] subtypeSelectionIds = ArrayUtil.filter(
-				new long[] {getSubtypeSelectionId()}, id -> id > 0);
+				new long[] {getSubtypeSelectionId()},
+				subtypeSelectionId -> subtypeSelectionId >= 0);
 
 			assetBrowserSearch.setResultsAndTotal(
 				() -> AssetEntryLocalServiceUtil.getEntries(
@@ -364,7 +365,7 @@ public class AssetBrowserDisplayContext {
 		}
 
 		_subtypeSelectionId = ParamUtil.getLong(
-			_httpServletRequest, "subtypeSelectionId");
+			_httpServletRequest, "subtypeSelectionId", -1);
 
 		return _subtypeSelectionId;
 	}
@@ -573,7 +574,6 @@ public class AssetBrowserDisplayContext {
 
 		breadcrumbEntry.setTitle(
 			LanguageUtil.get(_httpServletRequest, "sites-and-libraries"));
-
 		breadcrumbEntry.setURL(
 			PortletURLBuilder.create(
 				PortletURLUtil.clone(

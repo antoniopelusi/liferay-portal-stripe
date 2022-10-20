@@ -14,74 +14,50 @@
 
 import {Collapse} from '@liferay/layout-content-page-editor-web';
 import PropTypes from 'prop-types';
-import React, {useContext} from 'react';
+import React, {useCallback} from 'react';
 
-import {config} from '../style-book-editor/config';
-import {StyleBookContext} from './StyleBookContext';
 import {FRONTEND_TOKEN_TYPES} from './constants/frontendTokenTypes';
+import {
+	useFrontendTokensValues,
+	useSaveTokenValue,
+} from './contexts/StyleBookEditorContext';
 import BooleanFrontendToken from './frontend_tokens/BooleanFrontendToken';
 import ColorFrontendToken from './frontend_tokens/ColorFrontendToken';
+import LengthFrontendToken from './frontend_tokens/LengthFrontendToken';
 import SelectFrontendToken from './frontend_tokens/SelectFrontendToken';
 import TextFrontendToken from './frontend_tokens/TextFrontendToken';
 
-const getColorFrontendTokens = (
-	{frontendTokenCategories},
-	frontendTokensValues
-) => {
-	let tokens = {};
+export default function FrontendTokenSet({
+	frontendTokens,
+	label,
+	open,
+	tokenValues,
+}) {
+	const frontendTokensValues = useFrontendTokensValues();
+	const saveTokenValue = useSaveTokenValue();
 
-	for (const category of frontendTokenCategories) {
-		for (const tokenSet of category.frontendTokenSets) {
-			for (const token of tokenSet.frontendTokens) {
-				tokens = {
-					...tokens,
-					[token.name]: {
-						editorType: token.editorType,
-						label: token.label,
-						name: token.name,
-						tokenCategoryLabel: category.label,
-						tokenSetLabel: tokenSet.label,
-						value:
-							frontendTokensValues[token.name]?.value ||
-							token.defaultValue,
-						[token.mappings[0].type]: token.mappings[0].value,
+	const updateFrontendTokensValues = useCallback(
+		(frontendToken, value) => {
+			const {mappings = [], label, name} = frontendToken;
+
+			const cssVariableMapping = mappings.find(
+				(mapping) => mapping.type === 'cssVariable'
+			);
+
+			if (value) {
+				saveTokenValue({
+					label,
+					name,
+					value: {
+						cssVariableMapping: cssVariableMapping.value,
+						name: tokenValues[value]?.name,
+						value: tokenValues[value]?.value || value,
 					},
-				};
+				});
 			}
-		}
-	}
-
-	return tokens;
-};
-
-export default function FrontendTokenSet({frontendTokens, label, open}) {
-	const {frontendTokensValues = {}, setFrontendTokensValues} = useContext(
-		StyleBookContext
+		},
+		[saveTokenValue, tokenValues]
 	);
-
-	const tokenValues = getColorFrontendTokens(
-		config.frontendTokenDefinition,
-		frontendTokensValues
-	);
-
-	const updateFrontendTokensValues = (frontendToken, value) => {
-		const {mappings = [], name} = frontendToken;
-
-		const cssVariableMapping = mappings.find(
-			(mapping) => mapping.type === 'cssVariable'
-		);
-
-		if (value) {
-			setFrontendTokensValues({
-				...frontendTokensValues,
-				[name]: {
-					cssVariableMapping: cssVariableMapping.value,
-					name: tokenValues[value]?.name,
-					value: tokenValues[value]?.value || value,
-				},
-			});
-		}
-	};
 
 	return (
 		<Collapse label={label} open={open}>
@@ -90,26 +66,17 @@ export default function FrontendTokenSet({frontendTokens, label, open}) {
 					frontendToken
 				);
 
-				let props = {
+				const props = {
 					frontendToken,
+					frontendTokensValues,
 					onValueSelect: (value) =>
 						updateFrontendTokensValues(frontendToken, value),
+					tokenValues,
 					value:
 						frontendTokensValues[frontendToken.name]?.name ||
 						frontendTokensValues[frontendToken.name]?.value ||
 						frontendToken.defaultValue,
 				};
-
-				if (frontendToken.editorType === 'ColorPicker') {
-					props = {
-						...props,
-						frontendTokensValues,
-						onValueSelect: (_, value) => {
-							updateFrontendTokensValues(frontendToken, value);
-						},
-						tokenValues,
-					};
-				}
 
 				return (
 					<FrontendTokenComponent
@@ -125,6 +92,13 @@ export default function FrontendTokenSet({frontendTokens, label, open}) {
 function getFrontendTokenComponent(frontendToken) {
 	if (frontendToken.editorType === 'ColorPicker') {
 		return ColorFrontendToken;
+	}
+
+	if (
+		Liferay.FeatureFlags['LPS-143206'] &&
+		frontendToken.editorType === 'Length'
+	) {
+		return LengthFrontendToken;
 	}
 
 	if (frontendToken.validValues) {
@@ -144,5 +118,5 @@ FrontendTokenSet.propTypes = {
 			name: PropTypes.string.isRequired,
 		})
 	),
-	name: PropTypes.string.isRequired,
+	name: PropTypes.string,
 };

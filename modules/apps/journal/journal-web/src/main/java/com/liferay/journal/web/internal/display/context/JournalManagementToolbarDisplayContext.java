@@ -28,7 +28,6 @@ import com.liferay.frontend.taglib.clay.servlet.taglib.util.LabelItemListBuilder
 import com.liferay.journal.constants.JournalFolderConstants;
 import com.liferay.journal.constants.JournalPortletKeys;
 import com.liferay.journal.model.JournalArticle;
-import com.liferay.journal.web.internal.configuration.FFBulkTranslationConfiguration;
 import com.liferay.journal.web.internal.configuration.JournalWebConfiguration;
 import com.liferay.journal.web.internal.security.permission.resource.JournalFolderPermission;
 import com.liferay.journal.web.internal.util.JournalUtil;
@@ -96,9 +95,6 @@ public class JournalManagementToolbarDisplayContext
 		_journalDisplayContext = journalDisplayContext;
 		_trashHelper = trashHelper;
 
-		_ffBulkTranslationConfiguration =
-			(FFBulkTranslationConfiguration)httpServletRequest.getAttribute(
-				FFBulkTranslationConfiguration.class.getName());
 		_journalWebConfiguration =
 			(JournalWebConfiguration)httpServletRequest.getAttribute(
 				JournalWebConfiguration.class.getName());
@@ -137,7 +133,6 @@ public class JournalManagementToolbarDisplayContext
 							dropdownItem.setQuickAction(true);
 						}
 					).add(
-						_ffBulkTranslationConfiguration::bulkTranslationEnabled,
 						dropdownItem -> {
 							dropdownItem.putData("action", "exportTranslation");
 							dropdownItem.setIcon("upload");
@@ -156,20 +151,9 @@ public class JournalManagementToolbarDisplayContext
 					DropdownItemListBuilder.add(
 						dropdownItem -> {
 							dropdownItem.putData("action", "deleteEntries");
-
-							boolean trashEnabled = _isTrashEnabled();
-
 							dropdownItem.setIcon("trash");
-
-							String label = "delete";
-
-							if (trashEnabled) {
-								label = "recycle-bin";
-							}
-
 							dropdownItem.setLabel(
-								LanguageUtil.get(httpServletRequest, label));
-
+								LanguageUtil.get(httpServletRequest, "delete"));
 							dropdownItem.setQuickAction(true);
 						}
 					).build());
@@ -239,14 +223,7 @@ public class JournalManagementToolbarDisplayContext
 				LiferayWindowState.POP_UP
 			).buildString()
 		).put(
-			"selectEntityURL",
-			PortletURLBuilder.createRenderURL(
-				liferayPortletResponse
-			).setMVCPath(
-				"/select_ddm_structure.jsp"
-			).setWindowState(
-				LiferayWindowState.POP_UP
-			).buildString()
+			"selectEntityURL", _journalDisplayContext.getSelectDDMStructureURL()
 		).put(
 			"trashEnabled", _isTrashEnabled()
 		).put(
@@ -311,7 +288,7 @@ public class JournalManagementToolbarDisplayContext
 		).addGroup(
 			dropdownGroupItem -> {
 				dropdownGroupItem.setDropdownItems(
-					_getFilterStatusDropdownItems());
+					getFilterStatusDropdownItems());
 				dropdownGroupItem.setLabel(
 					LanguageUtil.get(httpServletRequest, "filter-by-status"));
 			}
@@ -518,6 +495,24 @@ public class JournalManagementToolbarDisplayContext
 		return filterNavigationDropdownItems;
 	}
 
+	protected List<DropdownItem> getFilterStatusDropdownItems() {
+		return new DropdownItemList() {
+			{
+				for (int status : _getStatuses()) {
+					add(
+						dropdownItem -> {
+							dropdownItem.setActive(
+								_journalDisplayContext.getStatus() == status);
+							dropdownItem.setHref(
+								getPortletURL(), "status",
+								String.valueOf(status));
+							dropdownItem.setLabel(_getStatusLabel(status));
+						});
+				}
+			}
+		};
+	}
+
 	@Override
 	protected String[] getNavigationKeys() {
 		return new String[] {"all", "mine", "recent"};
@@ -694,25 +689,6 @@ public class JournalManagementToolbarDisplayContext
 		return _ddmStructureOrderByType;
 	}
 
-	private List<DropdownItem> _getFilterStatusDropdownItems() {
-		return new DropdownItemList() {
-			{
-				for (int status : _getStatuses()) {
-					add(
-						dropdownItem -> {
-							dropdownItem.setActive(
-								_journalDisplayContext.getStatus() == status);
-							dropdownItem.setHref(
-								getPortletURL(), "status",
-								String.valueOf(status));
-
-							dropdownItem.setLabel(_getStatusLabel(status));
-						});
-				}
-			}
-		};
-	}
-
 	private List<Integer> _getStatuses() {
 		List<Integer> statuses = new ArrayList<>();
 
@@ -802,8 +778,6 @@ public class JournalManagementToolbarDisplayContext
 
 	private String _ddmStructureOrderByCol;
 	private String _ddmStructureOrderByType;
-	private final FFBulkTranslationConfiguration
-		_ffBulkTranslationConfiguration;
 	private final JournalDisplayContext _journalDisplayContext;
 	private final JournalWebConfiguration _journalWebConfiguration;
 	private final ThemeDisplay _themeDisplay;

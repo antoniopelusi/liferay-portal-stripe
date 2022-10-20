@@ -282,6 +282,78 @@ public class CommercePaymentMethodGroupRelUtil {
 	}
 
 	/**
+	 * Returns all the commerce payment method group rels that the user has permission to view where groupId = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @return the matching commerce payment method group rels that the user has permission to view
+	 */
+	public static List<CommercePaymentMethodGroupRel> filterFindByGroupId(
+		long groupId) {
+
+		return getPersistence().filterFindByGroupId(groupId);
+	}
+
+	/**
+	 * Returns a range of all the commerce payment method group rels that the user has permission to view where groupId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>CommercePaymentMethodGroupRelModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupId the group ID
+	 * @param start the lower bound of the range of commerce payment method group rels
+	 * @param end the upper bound of the range of commerce payment method group rels (not inclusive)
+	 * @return the range of matching commerce payment method group rels that the user has permission to view
+	 */
+	public static List<CommercePaymentMethodGroupRel> filterFindByGroupId(
+		long groupId, int start, int end) {
+
+		return getPersistence().filterFindByGroupId(groupId, start, end);
+	}
+
+	/**
+	 * Returns an ordered range of all the commerce payment method group rels that the user has permissions to view where groupId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>CommercePaymentMethodGroupRelModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupId the group ID
+	 * @param start the lower bound of the range of commerce payment method group rels
+	 * @param end the upper bound of the range of commerce payment method group rels (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching commerce payment method group rels that the user has permission to view
+	 */
+	public static List<CommercePaymentMethodGroupRel> filterFindByGroupId(
+		long groupId, int start, int end,
+		OrderByComparator<CommercePaymentMethodGroupRel> orderByComparator) {
+
+		return getPersistence().filterFindByGroupId(
+			groupId, start, end, orderByComparator);
+	}
+
+	/**
+	 * Returns the commerce payment method group rels before and after the current commerce payment method group rel in the ordered set of commerce payment method group rels that the user has permission to view where groupId = &#63;.
+	 *
+	 * @param commercePaymentMethodGroupRelId the primary key of the current commerce payment method group rel
+	 * @param groupId the group ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the previous, current, and next commerce payment method group rel
+	 * @throws NoSuchPaymentMethodGroupRelException if a commerce payment method group rel with the primary key could not be found
+	 */
+	public static CommercePaymentMethodGroupRel[]
+			filterFindByGroupId_PrevAndNext(
+				long commercePaymentMethodGroupRelId, long groupId,
+				OrderByComparator<CommercePaymentMethodGroupRel>
+					orderByComparator)
+		throws com.liferay.commerce.payment.exception.
+			NoSuchPaymentMethodGroupRelException {
+
+		return getPersistence().filterFindByGroupId_PrevAndNext(
+			commercePaymentMethodGroupRelId, groupId, orderByComparator);
+	}
+
+	/**
 	 * Removes all the commerce payment method group rels where groupId = &#63; from the database.
 	 *
 	 * @param groupId the group ID
@@ -298,6 +370,16 @@ public class CommercePaymentMethodGroupRelUtil {
 	 */
 	public static int countByGroupId(long groupId) {
 		return getPersistence().countByGroupId(groupId);
+	}
+
+	/**
+	 * Returns the number of commerce payment method group rels that the user has permission to view where groupId = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @return the number of matching commerce payment method group rels that the user has permission to view
+	 */
+	public static int filterCountByGroupId(long groupId) {
+		return getPersistence().filterCountByGroupId(groupId);
 	}
 
 	/**
@@ -539,6 +621,81 @@ public class CommercePaymentMethodGroupRelUtil {
 	}
 
 	/**
+	 * Returns all the commerce payment method group rels that the user has permission to view where groupId = &#63; and active = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param active the active
+	 * @return the matching commerce payment method group rels that the user has permission to view
+	 */
+	public static List<CommercePaymentMethodGroupRel> filterFindByG_A(
+		long groupId, boolean active) {
+
+		return getPersistence().filterFindByG_A(groupId, active);
+	}
+
+	/**
+	 * Returns a range of all the commerce payment method group rels that the user has permission to view where groupId = &#63; and active = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>CommercePaymentMethodGroupRelModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupId the group ID
+	 * @param active the active
+	 * @param start the lower bound of the range of commerce payment method group rels
+	 * @param end the upper bound of the range of commerce payment method group rels (not inclusive)
+	 * @return the range of matching commerce payment method group rels that the user has permission to view
+	 */
+	public static List<CommercePaymentMethodGroupRel> filterFindByG_A(
+		long groupId, boolean active, int start, int end) {
+
+		return getPersistence().filterFindByG_A(groupId, active, start, end);
+	}
+
+	/**
+	 * Returns an ordered range of all the commerce payment method group rels that the user has permissions to view where groupId = &#63; and active = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>CommercePaymentMethodGroupRelModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupId the group ID
+	 * @param active the active
+	 * @param start the lower bound of the range of commerce payment method group rels
+	 * @param end the upper bound of the range of commerce payment method group rels (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching commerce payment method group rels that the user has permission to view
+	 */
+	public static List<CommercePaymentMethodGroupRel> filterFindByG_A(
+		long groupId, boolean active, int start, int end,
+		OrderByComparator<CommercePaymentMethodGroupRel> orderByComparator) {
+
+		return getPersistence().filterFindByG_A(
+			groupId, active, start, end, orderByComparator);
+	}
+
+	/**
+	 * Returns the commerce payment method group rels before and after the current commerce payment method group rel in the ordered set of commerce payment method group rels that the user has permission to view where groupId = &#63; and active = &#63;.
+	 *
+	 * @param commercePaymentMethodGroupRelId the primary key of the current commerce payment method group rel
+	 * @param groupId the group ID
+	 * @param active the active
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the previous, current, and next commerce payment method group rel
+	 * @throws NoSuchPaymentMethodGroupRelException if a commerce payment method group rel with the primary key could not be found
+	 */
+	public static CommercePaymentMethodGroupRel[] filterFindByG_A_PrevAndNext(
+			long commercePaymentMethodGroupRelId, long groupId, boolean active,
+			OrderByComparator<CommercePaymentMethodGroupRel> orderByComparator)
+		throws com.liferay.commerce.payment.exception.
+			NoSuchPaymentMethodGroupRelException {
+
+		return getPersistence().filterFindByG_A_PrevAndNext(
+			commercePaymentMethodGroupRelId, groupId, active,
+			orderByComparator);
+	}
+
+	/**
 	 * Removes all the commerce payment method group rels where groupId = &#63; and active = &#63; from the database.
 	 *
 	 * @param groupId the group ID
@@ -557,6 +714,17 @@ public class CommercePaymentMethodGroupRelUtil {
 	 */
 	public static int countByG_A(long groupId, boolean active) {
 		return getPersistence().countByG_A(groupId, active);
+	}
+
+	/**
+	 * Returns the number of commerce payment method group rels that the user has permission to view where groupId = &#63; and active = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param active the active
+	 * @return the number of matching commerce payment method group rels that the user has permission to view
+	 */
+	public static int filterCountByG_A(long groupId, boolean active) {
+		return getPersistence().filterCountByG_A(groupId, active);
 	}
 
 	/**

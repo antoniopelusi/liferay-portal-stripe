@@ -1,8 +1,6 @@
 @component-name = "portal-liferay-online"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Masterclass";
@@ -33,10 +31,11 @@ definition {
 		}
 	}
 
-	@description = "This is a test for LPS-137508. Create a Site with the Masterclass Site initializer"
+	@description = "This is a test for LPS-137508 and LPS-143260. Create a Site with the Masterclass Site initializer"
 	@priority = "5"
 	test AddMasterclassSite {
 		property portal.acceptance = "true";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		task ("Go to Masterclass Site") {
 			ApplicationsMenu.gotoSite(site = "${testSiteName}");
@@ -47,11 +46,17 @@ definition {
 				key_title = "Welcome to Masterclass",
 				locator1 = "Masterclass#FRAGMENT_HERO_PRE");
 		}
+
+		task ("Assert the user icon is present") {
+			AssertElementPresent(locator1 = "Masterclass#USER_AVATAR_ICON");
+		}
 	}
 
 	@description = "This is a test for LPS-141573. Apply the Masterclass Modern Style Book to home pages"
 	@priority = "4"
 	test ApplyMasterclassModernStyleBook {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Go to Masterclass Stylebook and set Masterclass Moderns as Default") {
 			StyleBooksAdmin.openStyleBooksAdmin(siteURLKey = "${testSiteURL}");
 
@@ -77,6 +82,8 @@ definition {
 	@description = "This is a test for LPS-136183. Can use a Masterclass Border fragment"
 	@priority = "3"
 	test CanUseMasterclassBorder {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Create a new Page by Json") {
 			JSONLayout.addPublicLayout(
 				groupName = "${testSiteName}",
@@ -102,6 +109,8 @@ definition {
 	@description = "This is a test for LPS-136183. Can use a Masterclass button fragment"
 	@priority = "3"
 	test CanUseMasterclassButton {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Create a new Page by Json") {
 			JSONLayout.addPublicLayout(
 				groupName = "${testSiteName}",
@@ -127,6 +136,8 @@ definition {
 	@description = "This is a test for LPS-136183. Can use a Masterclass Classroom Header fragment"
 	@priority = "3"
 	test CanUseMasterclassClassroomHeader {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Create a new Page by Json") {
 			JSONLayout.addPublicLayout(
 				groupName = "${testSiteName}",
@@ -152,6 +163,8 @@ definition {
 	@description = "This is a test for LPS-136183. Can use a Masterclass Container fragment"
 	@priority = "3"
 	test CanUseMasterclassContainer {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Create a new Page by Json") {
 			JSONLayout.addPublicLayout(
 				groupName = "${testSiteName}",
@@ -177,6 +190,8 @@ definition {
 	@description = "This is a test for LPS-136183. Can use a Masterclass Cookie Banner fragment"
 	@priority = "3"
 	test CanUseMasterclassCookieBanner {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Create a new Page by Json") {
 			JSONLayout.addPublicLayout(
 				groupName = "${testSiteName}",
@@ -202,6 +217,8 @@ definition {
 	@description = "This is a test for LPS-136183. Can use a Masterclass Footer fragment"
 	@priority = "3"
 	test CanUseMasterclassFooter {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Create a new Page by Json") {
 			JSONLayout.addPublicLayout(
 				groupName = "${testSiteName}",
@@ -227,6 +244,8 @@ definition {
 	@description = "This is a test for LPS-136183. Can use a Masterclass Heading fragment"
 	@priority = "3"
 	test CanUseMasterclassHeading {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Create a new Page by Json") {
 			JSONLayout.addPublicLayout(
 				groupName = "${testSiteName}",
@@ -252,6 +271,8 @@ definition {
 	@description = "This is a test for LPS-136183. Can use a Masterclass Hero fragment"
 	@priority = "3"
 	test CanUseMasterclassHero {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Create a new Page by Json") {
 			JSONLayout.addPublicLayout(
 				groupName = "${testSiteName}",
@@ -277,6 +298,8 @@ definition {
 	@description = "This is a test for LPS-136183. Can use a Masterclass Image fragment"
 	@priority = "3"
 	test CanUseMasterclassImage {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Create a new Page by Json") {
 			JSONLayout.addPublicLayout(
 				groupName = "${testSiteName}",
@@ -302,6 +325,8 @@ definition {
 	@description = "This is a test for LPS-136183. Can use a Masterclass link fragment"
 	@priority = "3"
 	test CanUseMasterclassLink {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Create a new Page by Json") {
 			JSONLayout.addPublicLayout(
 				groupName = "${testSiteName}",
@@ -327,6 +352,8 @@ definition {
 	@description = "This is a test for LPS-136183. Can use a Masterclass Map Video fragment"
 	@priority = "3"
 	test CanUseMasterclassMapVideo {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Create a new Page by Json") {
 			JSONLayout.addPublicLayout(
 				groupName = "${testSiteName}",
@@ -352,6 +379,8 @@ definition {
 	@description = "This is a test for LPS-136183. Can use a Masterclass Navbar fragment"
 	@priority = "3"
 	test CanUseMasterclassNavbar {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Create a new Page by Json") {
 			JSONLayout.addPublicLayout(
 				groupName = "${testSiteName}",
@@ -377,6 +406,8 @@ definition {
 	@description = "This is a test for LPS-136183. Can use a Masterclass Private Header fragment"
 	@priority = "3"
 	test CanUseMasterclassPrivateHeader {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Create a new Page by Json") {
 			JSONLayout.addPublicLayout(
 				groupName = "${testSiteName}",
@@ -402,6 +433,8 @@ definition {
 	@description = "This is a test for LPS-136183. Can use a Masterclass Sign In fragment"
 	@priority = "3"
 	test CanUseMasterclassSignIn {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Create a new Page by Json") {
 			JSONLayout.addPublicLayout(
 				groupName = "${testSiteName}",
@@ -427,6 +460,8 @@ definition {
 	@description = "This is a test for LPS-136183. Can use a Masterclass Subscribe Form fragment"
 	@priority = "3"
 	test CanUseMasterclassSubscribeForm {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Create a new Page by Json") {
 			JSONLayout.addPublicLayout(
 				groupName = "${testSiteName}",
@@ -452,6 +487,8 @@ definition {
 	@description = "This is a test for LPS-136183. Can use a Masterclass Tabs fragment"
 	@priority = "3"
 	test CanUseMasterclassTabs {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Create a new Page by Json") {
 			JSONLayout.addPublicLayout(
 				groupName = "${testSiteName}",
@@ -477,6 +514,8 @@ definition {
 	@description = "This is a test for LPS-136183. Can use a Masterclass Text Block fragment"
 	@priority = "3"
 	test CanUseMasterclassTextBlock {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Create a new Page by Json") {
 			JSONLayout.addPublicLayout(
 				groupName = "${testSiteName}",
@@ -502,6 +541,8 @@ definition {
 	@description = "This is a test for LPS-136183. Can use a Masterclass Video fragment"
 	@priority = "3"
 	test CanUseMasterclassVideo {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Create a new Page by Json") {
 			JSONLayout.addPublicLayout(
 				groupName = "${testSiteName}",
@@ -533,6 +574,8 @@ definition {
 	@description = "This is a test for LPS-136183. Can use a Masterclass Video Player fragment"
 	@priority = "3"
 	test CanUseMasterclassVideoPlayer {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Create a new Page by Json") {
 			JSONLayout.addPublicLayout(
 				groupName = "${testSiteName}",
@@ -558,6 +601,8 @@ definition {
 	@description = "This is a test for LPS-141370. Can change the Number of Blogs in the List at Display Page Template of Blogs"
 	@priority = "4"
 	test ChangetheNumberofBlogsinBlogsListatDPT {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Go to Display Page Templates") {
 			ProductMenu.gotoPortlet(
 				category = "Design",
@@ -597,6 +642,7 @@ definition {
 	test CreateAccountInMasterclass {
 		property custom.properties = "jsonws.web.service.paths.excludes=";
 		property portal.acceptance = "true";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 		property test.name.skip.portal.instance = "Masterclass#CreateAccountInMasterclass";
 
 		task ("Disable Captcha to Create a New User") {
@@ -651,6 +697,7 @@ definition {
 	@priority = "4"
 	test ForgotPasswordInMasterclass {
 		property portal.acceptance = "true";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 		property test.name.skip.portal.instance = "Masterclass#ForgotPasswordInMasterclass";
 
 		task ("Disable Captcha to Create a New User") {
@@ -696,6 +743,8 @@ definition {
 	@description = "This is a test for LPS-140611. Masterclass Apply Page in Desktop size"
 	@priority = "3"
 	test MasterclassApplyinDesktopSize {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Go to Apply Page") {
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Apply",
@@ -721,6 +770,8 @@ definition {
 	@description = "This is a test for LPS-140611. Masterclass Apply Page in Mobile size"
 	@priority = "3"
 	test MasterclassApplyinMobileSize {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Go to Apply Page") {
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Apply",
@@ -746,6 +797,8 @@ definition {
 	@description = "This is a test for LPS-140611. Masterclass Apply Page in Tablet size"
 	@priority = "3"
 	test MasterclassApplyinTabletSize {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Go to Apply Page") {
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Apply",
@@ -771,6 +824,8 @@ definition {
 	@description = "This is a test for LPS-140611. Masterclass Blog Page in Desktop size"
 	@priority = "4"
 	test MasterclassBloginDesktopSize {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Go to Blog Page") {
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Blog",
@@ -796,6 +851,8 @@ definition {
 	@description = "This is a test for LPS-140611. Masterclass Blog Page in Mobile size"
 	@priority = "4"
 	test MasterclassBloginMobileSize {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Go to Blog Page") {
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Blog",
@@ -821,6 +878,8 @@ definition {
 	@description = "This is a test for LPS-140611. Masterclass Blog Page in Tablet size"
 	@priority = "4"
 	test MasterclassBloginTabletSize {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Go to Blog Page") {
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Blog",
@@ -846,6 +905,8 @@ definition {
 	@description = "This is a test for LPS-140611. Masterclass Home Page in Desktop size"
 	@priority = "4"
 	test MasterclassHomeinDesktopSize {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Go to Home Page") {
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Home",
@@ -871,6 +932,8 @@ definition {
 	@description = "This is a test for LPS-140611. Masterclass Home Page in Mobile size"
 	@priority = "4"
 	test MasterclassHomeinMobileSize {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Go to Home Page") {
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Home",
@@ -896,6 +959,8 @@ definition {
 	@description = "This is a test for LPS-140611. Masterclass Home Page in Tablet size"
 	@priority = "4"
 	test MasterclassHomeinTabletSize {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Go to Home Page") {
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Home",
@@ -921,6 +986,8 @@ definition {
 	@description = "This is a test for LPS-141572. 'Masterclass Modern' starts checked as the default Style Book in Masterclass Site"
 	@priority = "2"
 	test MasterclassModernDontStartAsDefaultStylebook {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Go to Style Books and Assert the Masterclass Classic Card") {
 			StyleBooksAdmin.openStyleBooksAdmin(siteURLKey = "${testSiteURL}");
 
@@ -937,6 +1004,8 @@ definition {
 	@description = "This is a test for LPS-140611. Masterclass My Learning Page in Desktop size"
 	@priority = "4"
 	test MasterclassMyLearninginDesktopSize {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Go to My Learning Page") {
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "My Learning",
@@ -962,6 +1031,8 @@ definition {
 	@description = "This is a test for LPS-140611. Masterclass My Learning Page in Mobile size"
 	@priority = "4"
 	test MasterclassMyLearninginMobileSize {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Go to My Learning Page") {
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "My Learning",
@@ -987,6 +1058,8 @@ definition {
 	@description = "This is a test for LPS-140611. Masterclass My Learning Page in Tablet size"
 	@priority = "4"
 	test MasterclassMyLearninginTabletSize {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Go to My Learning Page") {
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "My Learning",
@@ -1013,6 +1086,7 @@ definition {
 	@priority = "5"
 	test MasterclassSignIn {
 		property portal.acceptance = "true";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		task ("Go to Masterclass Site") {
 			ApplicationsMenu.gotoSite(site = "${testSiteName}");
@@ -1040,6 +1114,8 @@ definition {
 	@description = "This is a test for LPS-140611. Masterclass Sign In Page in Desktop size"
 	@priority = "4"
 	test MasterclassSignIninDesktopSize {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Go to Sign In Page") {
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Sign In",
@@ -1065,6 +1141,8 @@ definition {
 	@description = "This is a test for LPS-140611. Masterclass Sign In Page in Mobile size"
 	@priority = "4"
 	test MasterclassSignIninMobileSize {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Go to Sign In Page") {
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Sign In",
@@ -1090,6 +1168,8 @@ definition {
 	@description = "This is a test for LPS-140611. Masterclass Sign In Page in Tablet size"
 	@priority = "4"
 	test MasterclassSignIninTabletSize {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Go to Sign In Page") {
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Sign In",
@@ -1116,6 +1196,7 @@ definition {
 	@priority = "4"
 	test MasterclassSignOut {
 		property portal.acceptance = "true";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		task ("Go to Masterclass Site") {
 			ApplicationsMenu.gotoSite(site = "${testSiteName}");
@@ -1133,6 +1214,8 @@ definition {
 	@description = "This is a test for LPS-141768. View the READ MORE links of the three courses redirect to the course display page"
 	@priority = "4"
 	test ReadMoreLinksRedirectToCourseDisplayPage {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Go to Masterclass Site") {
 			ApplicationsMenu.gotoSite(site = "${testSiteName}");
 		}
@@ -1189,6 +1272,7 @@ definition {
 	@priority = "4"
 	test SetStudentPermission {
 		property portal.acceptance = "true";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		task ("Add Pages permissions to Student under the Site and Asset Library Administration tab") {
 			ApplicationsMenu.gotoPortlet(
@@ -1247,6 +1331,7 @@ definition {
 	@priority = "4"
 	test SetTeacherPermission {
 		property portal.acceptance = "true";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		task ("Add Pages permissions to Teacher under the Site and Asset Library Administration tab") {
 			ApplicationsMenu.gotoPortlet(
@@ -1304,6 +1389,8 @@ definition {
 	@description = "This is a test for LPS-148457. Masterclass create account and forgot password are not displayed in sign in page"
 	@priority = "3"
 	test SignInPageDoesNotDisplayCreateAndForgotPage {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Go to Masterclass Site") {
 			ApplicationsMenu.gotoSite(site = "${testSiteName}");
 		}
@@ -1358,6 +1445,8 @@ definition {
 	@description = "This is a test for LPS-141768. View the three available courses in Home content page"
 	@priority = "4"
 	test ViewAvailableCoursesinHomeCP {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Go to Masterclass Site") {
 			ApplicationsMenu.gotoSite(site = "${testSiteName}");
 		}
@@ -1390,6 +1479,8 @@ definition {
 	@description = "This is a test for LPS-141370. View a Blog Collection in Display Page Template of Blogs"
 	@priority = "4"
 	test ViewBlogCollectioninDPTofBlogs {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Go to Masterclass Site") {
 			ApplicationsMenu.gotoSite(site = "${testSiteName}");
 		}
@@ -1423,6 +1514,7 @@ definition {
 	@priority = "4"
 	test ViewBlogListinBlogDetailView {
 		property portal.acceptance = "true";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		task ("Go to Masterclass Site") {
 			ApplicationsMenu.gotoSite(site = "${testSiteName}");
@@ -1446,6 +1538,8 @@ definition {
 	@description = "This is a test for LPS-141768. View list to the three available courses pages"
 	@priority = "4"
 	test ViewListofAvailableCoursesPage {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Go to Masterclass Site") {
 			ApplicationsMenu.gotoSite(site = "${testSiteName}");
 		}
@@ -1484,6 +1578,8 @@ definition {
 	@description = "This is a test for LPS-137508. View the Masterclass Categories"
 	@priority = "3"
 	test ViewMasterclassCategories {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Go to Masterclass Categories") {
 			Category.openCategoriesAdmin(siteURLKey = "${testSiteURL}");
 		}
@@ -1501,6 +1597,7 @@ definition {
 	@priority = "5"
 	test ViewMasterclassClassicStylebook {
 		property portal.acceptance = "true";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		task ("Go to Masterclass Stylebook") {
 			StyleBooksAdmin.openStyleBooksAdmin(siteURLKey = "${testSiteURL}");
@@ -1517,6 +1614,7 @@ definition {
 	@priority = "4"
 	test ViewMasterclassCollections {
 		property portal.acceptance = "true";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		task ("Go to Masterclass Collections") {
 			ApplicationsMenu.gotoSite(site = "${testSiteName}");
@@ -1539,6 +1637,7 @@ definition {
 	@priority = "4"
 	test ViewMasterclassDocuments {
 		property portal.acceptance = "true";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		task ("Go to Masterclass Documents") {
 			DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "${testSiteURL}");
@@ -1558,6 +1657,8 @@ definition {
 	@description = "This is a test for LPS-137508. View the Masterclass Fragments Collections"
 	@priority = "3"
 	test ViewMasterclassFragmentsCollections {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Go to Masterclass Fragments Collections") {
 			FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = "${testSiteURL}");
 		}
@@ -1574,6 +1675,8 @@ definition {
 	@description = "This is a test for LPS-141573. View the Masterclass Modern Style Book in content pages"
 	@priority = "3"
 	test ViewMasterclassModernStyleBookonPage {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Go to Masterclass Stylebook and set Masterclass Moderns as Default") {
 			StyleBooksAdmin.openStyleBooksAdmin(siteURLKey = "${testSiteURL}");
 
@@ -1609,6 +1712,7 @@ definition {
 	@priority = "4"
 	test ViewMasterclassPages {
 		property portal.acceptance = "true";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		task ("Go to Masterclass Pages") {
 			PagesAdmin.openPagesAdmin(siteURLKey = "${testSiteURL}");
@@ -1627,6 +1731,7 @@ definition {
 	@priority = "4"
 	test ViewMasterclassPageTemplates {
 		property portal.acceptance = "true";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		task ("Go to Master Page Templates in Masterclass Site") {
 			MastersPageTemplatesAdmin.openMastersAdmin(siteURLKey = "${testSiteURL}");
@@ -1653,6 +1758,7 @@ definition {
 	@priority = "4"
 	test ViewMasterclassWebContent {
 		property portal.acceptance = "true";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		task ("Go to Masterclass Web Content") {
 			WebContentNavigator.openWebContentAdmin(siteURLKey = "${testSiteURL}");
@@ -1732,6 +1838,8 @@ definition {
 	@description = "This is a test for LPS-141768. View the names of the three courses redirect to the course display page"
 	@priority = "4"
 	test ViewNameofCoursesRedirectToCourseDisplayPage {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Go to Masterclass Site") {
 			ApplicationsMenu.gotoSite(site = "${testSiteName}");
 		}
@@ -1784,9 +1892,6 @@ definition {
 	@description = "This is a use case for LPS-140253. View no private page in style book on Masterclass site."
 	@priority = "4"
 	test ViewNoPrivatePageInStyleBooksOnMasterclassSite {
-		property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-		property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;&quot;]";
-
 		task ("Go to style books") {
 			StyleBooksAdmin.openStyleBooksAdmin(siteURLKey = "${testSiteURL}");
 
@@ -1816,6 +1921,7 @@ definition {
 	@priority = "5"
 	test ViewSignInPageElements {
 		property portal.acceptance = "true";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		task ("Go to Masterclass Site") {
 			ApplicationsMenu.gotoSite(site = "${testSiteName}");
@@ -1856,6 +1962,7 @@ definition {
 	@priority = "4"
 	test ViewStudentandTeacheronSiteRoles {
 		property portal.acceptance = "true";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		task ("Go to Site Roles") {
 			ApplicationsMenu.gotoPortlet(
@@ -1880,6 +1987,7 @@ definition {
 	@priority = "4"
 	test ViewStudentandTeacherPermissions {
 		property portal.acceptance = "true";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		task ("Go to Site Roles") {
 			ApplicationsMenu.gotoPortlet(

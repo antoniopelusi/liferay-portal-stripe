@@ -9,13 +9,16 @@
  * distribution rights of the Software.
  */
 
+import {useCustomerPortal} from '../../../../context';
 import ActivationKeysLayout from '../../../../layouts/ActivationKeysLayout';
 
-const EnterpriseSearch = ({accountKey, sessionId}) => {
+const EnterpriseSearch = () => {
+	const [{project, sessionId}] = useCustomerPortal();
+
 	return (
 		<ActivationKeysLayout>
 			<ActivationKeysLayout.Inputs
-				accountKey={accountKey}
+				accountKey={project?.accountKey}
 				productKey="enterprise-search"
 				productTitle="Enterprise Search"
 				sessionId={sessionId}

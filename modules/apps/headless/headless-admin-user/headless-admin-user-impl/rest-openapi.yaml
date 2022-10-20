@@ -494,6 +494,10 @@ components:
                         The address's ID.
                     format: int64
                     type: integer
+                name:
+                    description:
+                        The address's name.
+                    type: string
                 postalCode:
                     description:
                         The address's postal code (e.g., zip code).
@@ -708,6 +712,12 @@ components:
                     additionalProperties:
                         type: string
                     type: object
+                descriptiveName:
+                    type: string
+                descriptiveName_i18n:
+                    additionalProperties:
+                        type: string
+                    type: object
                 friendlyUrlPath:
                     type: string
                 id:
@@ -735,6 +745,16 @@ components:
             description:
                 Represents a site's basic information.
             properties:
+                descriptiveName:
+                    description:
+                        The site's descriptive name.
+                    readOnly: true
+                    type: string
+                descriptiveName_i18n:
+                    additionalProperties:
+                        type: string
+                    readOnly: true
+                    type: object
                 id:
                     description:
                         The site's ID.
@@ -806,6 +826,12 @@ components:
                         The user's date of birth, in ISO 8601 format.
                     format: date-time
                     type: string
+                currentPassword:
+                    description:
+                        The user's current password. Used to authenticate a user when they attempt to update their own
+                        password.
+                    type: string
+                    writeOnly: true
                 customFields:
                     items:
                         $ref: "#/components/schemas/CustomField"
@@ -1025,7 +1051,7 @@ components:
 info:
     description:
         "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID
-        'com.liferay.headless.admin.user.client', and version '4.0.26'."
+        'com.liferay.headless.admin.user.client', and version '4.0.30'."
     license:
         name: "Apache 2.0"
         url: "http://www.apache.org/licenses/LICENSE-2.0.html"
@@ -2099,6 +2125,32 @@ paths:
                         application/json: {}
                         application/xml: {}
             tags: ["Organization"]
+    "/accounts/{accountId}/postal-addresses":
+        get:
+            description:
+                Retrieves the account's postal addresses.
+            operationId: getAccountPostalAddressesPage
+            parameters:
+                - in: path
+                  name: accountId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/PostalAddress"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/PostalAddress"
+                                type: array
+            tags: ["PostalAddress"]
     "/accounts/{accountId}/user-accounts":
         get:
             # @review
@@ -2375,6 +2427,7 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/Site"
                                 type: array
+            tags: ["Site"]
     "/my-user-account/subscriptions":
         get:
             operationId: getMyUserAccountSubscriptionsPage
@@ -3658,6 +3711,7 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Site"
+            tags: ["Site"]
     "/sites/{siteId}":
         get:
             operationId: getSite
@@ -3677,6 +3731,7 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/Site"
+            tags: ["Site"]
     "/sites/{siteId}/segments":
         get:
             description:

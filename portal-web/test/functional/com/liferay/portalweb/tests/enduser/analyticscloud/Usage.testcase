@@ -1,6 +1,8 @@
 @component-name = "portal-analytics-cloud"
 definition {
 
+	property analytics.cloud.release = "true";
+	property analytics.cloud.upstream = "true";
 	property portal.release = "false";
 	property portal.upstream = "true";
 	property property.group = "analytics.cloud.profile";
@@ -23,6 +25,8 @@ definition {
 	tearDown {
 		var testPortalInstance = PropsUtil.get("test.portal.instance");
 
+		ACUtils.tearDownAC();
+
 		ACUtils.tearDownDXP();
 
 		if ("${testPortalInstance}" == "true") {
@@ -31,10 +35,6 @@ definition {
 		else {
 			JSONGroup.deleteGroupByName(groupName = "Site Name");
 		}
-
-		JSONUser.tearDownNonAdminUsers();
-
-		ACUtils.tearDownAC();
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8147 | Test Summary: Anonymous individuals are not counted towards usage"
@@ -235,7 +235,6 @@ definition {
 
 		task ("View the usage percentage on Individuals card") {
 			var percentage = ACSettings.getUsagePercentage(metricName = "Individuals");
-
 			var result = MathUtil.isGreaterThan("${current}", "550");
 
 			if ("${result}" == "true") {
@@ -268,7 +267,8 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8148 | Test Summary: Individuals usage update in real time"
 	@priority = "5"
 	test IndividualsUpdatesInRealTime {
-		property portal.acceptance = "true";
+		property analytics.cloud.upstream = "false";
+		property portal.acceptance = "false";
 
 		var usernameList = "user1,user2,user3";
 
@@ -398,7 +398,6 @@ definition {
 
 		task ("View the usage percentage on Page Views") {
 			var percentage = ACSettings.getUsagePercentage(metricName = "Page Views");
-
 			var result = MathUtil.isGreaterThan("${current}", "375,000");
 
 			if ("${result}" == "true") {
@@ -431,31 +430,36 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8150 | Test Summary: Page views update in real time"
 	@priority = "5"
 	test PageViewsUpdateInRealTime {
-		task ("Add a new site and page, connect ac to dxp") {
+		task ("Add a new site and page, then add a blog and connect ac to dxp") {
 			ACUtils.addSiteAndPage();
 
-			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+			ACUtils.createBlogsAndAddToPage();
+
+			ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
 		}
 
-		task ("Go to Usage, save the value of Page Views") {
+		task ("Go to Usage, save the value of Page Views at that moment and save the next value of page views") {
 			ACUtils.launchAC();
 
-			ACProperties.switchProperty(propertyName = "${propertyName}");
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 
 			ACNavigation.goToSettings();
 
 			ACSettings.goToUsage();
 
-			var currentPageViews = ACSettings.getCurrentNumber(metricName = "Page Views");
+			var oldPageViews = ACSettings.getCurrentNumber(metricName = "Page Views");
 
-			var pageViewsNumber = StringUtil.replace("${currentPageViews}", ",", "");
+			var pageViewsNumber = StringUtil.replace("${oldPageViews}", ",", "");
+
 			var sumPageViews = ${pageViewsNumber} + 1;
 		}
 
-		task ("Visit the site page and close sessions") {
+		task ("Visit the blog and close sessions") {
 			ACUtils.launchDXP();
 
 			ACUtils.navigateToSitePage(
+				actionType = "View Blog",
+				documentTitleList = "Blogs AC Title",
 				pageName = "AC Page",
 				siteName = "Site Name");
 
@@ -470,6 +474,12 @@ definition {
 			ACSettings.goToUsage();
 
 			var currentPageViews = ACSettings.getCurrentNumber(metricName = "Page Views");
+
+			while (("${currentPageViews}" == "${oldPageViews}") && (maxIterations = "15")) {
+				Refresh();
+
+				var currentPageViews = ACSettings.getCurrentNumber(metricName = "Page Views");
+			}
 
 			var newPageViewsNumber = StringUtil.replace("${currentPageViews}", ",", "");
 		}

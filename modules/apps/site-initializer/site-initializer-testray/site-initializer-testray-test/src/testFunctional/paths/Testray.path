@@ -12,12 +12,22 @@
 <tbody>
 <tr>
 	<td>ITEMS_PER_PAGE_BUTTON</td>
-	<td>//div[contains(@class, testray-page)]//div[contains(@class, 'pagination')]//button[contains(@class, 'dropdown')]</td>
+	<td>xpath=(//div[contains(@class, 'pagination')]//button[contains(@class, 'dropdown') and contains(.,'')])[3]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>ITEMS_PER_PAGE_BUTTON_DROPDOWN</td>
-	<td>//div[contains(@class, 'dropdown-menu')]//button[(text()='${key_itemValue}')]</td>
+	<td>ITEMS_PER_PAGE_BUTTON_2</td>
+	<td>xpath=(//div[contains(@class, 'pagination')]//button[contains(@class, 'dropdown') and contains(.,'')])[4]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ITEMS_PER_PAGE_BUTTON_ON_MODAL</td>
+	<td>xpath=(//div[contains(@class, 'pagination')]//button[contains(@class, 'dropdown') and contains(.,'')])[1]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ITEMS_PER_PAGE_VALUE_BUTTON</td>
+	<td>//div[contains(@class, testray-page)]//div[contains(@class, 'pagination')]//button[contains(text(), "${key_value} Items")]</td>
 	<td></td>
 </tr>
 <tr>
@@ -26,8 +36,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>ITEMS_PER_PAGE_VALUE_BUTTON</td>
-	<td>//div[contains(@class, testray-page)]//div[contains(@class, 'pagination')]//button[contains(text(), "${key_value} Items")]</td>
+	<td>ITEMS_PER_PAGE_SELECT</td>
+	<td>//div[contains(@class, 'dropdown-menu show')]//button[contains(text(), "${key_value} Items")]</td>
 	<td></td>
 </tr>
 <tr>
@@ -41,8 +51,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>PROJECT_NAME_BUTTON</td>
-	<td>//td[contains(@class, 'text-dark cursor-pointer') and contains(text(), "${key_projectName}")]</td>
+	<td>PROJECT_NAME</td>
+	<td>//section[contains(@class, 'testray-content')]//td[text()='${key_projectName}']</td>
 	<td></td>
 </tr>
 <tr>
@@ -56,18 +66,23 @@
 	<td></td>
 </tr>
 <tr>
+	<td>DESCRIPTION_PROJECT</td>
+	<td>//div[contains(@class ,'testray-body')]//td[contains(text(),'${key_value}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>NAME_TITLE</td>
 	<td>//h5[contains(text(),'${key_title}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ADD_PROJECT</td>
-	<td>//div[contains(@class, 'testray-page')]//li[contains(@class, 'nav-item')]//button[contains(@class, 'nav-btn')]</td>
+	<td>//li[contains(@class, 'nav-item ml-2')]//button[contains(@class, 'nav-btn') and contains(@type, 'button')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>RESULTS_SIDEBAR</td>
-	<td>//span[contains(text(),'Results')]</td>
+	<td>//div[contains(@class, 'testray-sidebar')]//a[contains(@class, 'testray-sidebar-item') and contains(., 'Results')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -83,6 +98,36 @@
 <tr>
 	<td>MODAL_BODY</td>
 	<td>//div[contains(@class,'modal-body')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>OVERVIEW_LAYOUT_VALUES</td>
+	<td>//th[contains(@class, 'small-heading') and contains(text(),'${key_rowValue}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>OVERVIEW_ROW_VALUES</td>
+	<td>xpath=(//table[contains(@class, 'qa w-100')]//td)[key_index]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>OVERVIEW_ROW_VALUES_RESULTS</td>
+	<td>//table[contains(@class, 'qa w-100')]//td[contains(text(),"${key_overviewValue}")]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ELEMENT_REMOTE</td>
+	<td>//div[(@class='dnd-tbody')]//div[contains(@class, 'dnd-td')and contains(., '${key_value}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NUMBER_MODAL_BUTTON</td>
+	<td>//div[contains(@class, 'modal-content')]//li[contains(@class, 'page-item') and contains(., '${key_pageDirection}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ORDER_BY_NAME</td>
+	<td>//p[contains(@class,'table-list-title') and contains(text(), 'Name')]//*[name()='svg']</td>
 	<td></td>
 </tr>
 </tbody>

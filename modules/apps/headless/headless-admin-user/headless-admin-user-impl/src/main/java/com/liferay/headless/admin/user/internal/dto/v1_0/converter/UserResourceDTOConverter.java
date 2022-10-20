@@ -41,7 +41,6 @@ import com.liferay.headless.admin.user.internal.dto.v1_0.util.PostalAddressUtil;
 import com.liferay.headless.admin.user.internal.dto.v1_0.util.ServiceBuilderListTypeUtil;
 import com.liferay.headless.admin.user.internal.dto.v1_0.util.WebUrlUtil;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Contact;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
@@ -242,7 +241,7 @@ public class UserResourceDTOConverter
 	private AccountBrief _toAccountBrief(
 			AccountEntryUserRel accountEntryUserRel,
 			DTOConverterContext dtoConverterContext, User user)
-		throws PortalException {
+		throws Exception {
 
 		if (accountEntryUserRel.getAccountEntryId() ==
 				AccountConstants.ACCOUNT_ENTRY_ID_DEFAULT) {
@@ -271,7 +270,7 @@ public class UserResourceDTOConverter
 	private OrganizationBrief _toOrganizationBrief(
 			DTOConverterContext dtoConverterContext, Organization organization,
 			User user)
-		throws PortalException {
+		throws Exception {
 
 		return new OrganizationBrief() {
 			{
@@ -288,7 +287,7 @@ public class UserResourceDTOConverter
 
 	private RoleBrief _toRoleBrief(
 			AccountRole accountRole, DTOConverterContext dtoConverterContext)
-		throws PortalException {
+		throws Exception {
 
 		Role role = accountRole.getRole();
 
@@ -318,10 +317,16 @@ public class UserResourceDTOConverter
 	}
 
 	private SiteBrief _toSiteBrief(
-		DTOConverterContext dtoConverterContext, Group group) {
+			DTOConverterContext dtoConverterContext, Group group)
+		throws Exception {
 
 		return new SiteBrief() {
 			{
+				descriptiveName = group.getDescriptiveName(
+					dtoConverterContext.getLocale());
+				descriptiveName_i18n = LocalizedMapUtil.getI18nMap(
+					dtoConverterContext.isAcceptAllLanguages(),
+					group.getDescriptiveNameMap());
 				id = group.getGroupId();
 				name = group.getName(dtoConverterContext.getLocale());
 				name_i18n = LocalizedMapUtil.getI18nMap(

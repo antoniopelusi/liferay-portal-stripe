@@ -37,13 +37,11 @@ public class SizeIsZeroCheck extends BaseCheck {
 			detailAST, "size");
 
 		for (DetailAST methodCallDetailAST : methodCallDetailASTList) {
-			_checkMethodCall(detailAST, methodCallDetailAST);
+			_checkMethodCall(methodCallDetailAST);
 		}
 	}
 
-	private void _checkMethodCall(
-		DetailAST detailAST, DetailAST methodCallDetailAST) {
-
+	private void _checkMethodCall(DetailAST methodCallDetailAST) {
 		DetailAST nextSiblingDetailAST = methodCallDetailAST.getNextSibling();
 
 		if ((nextSiblingDetailAST == null) ||
@@ -70,24 +68,13 @@ public class SizeIsZeroCheck extends BaseCheck {
 
 		String variableName = getName(methodCallDetailAST.getFirstChild());
 
-		List<DetailAST> definitionDetailASTList = getAllChildTokens(
-			detailAST, true, TokenTypes.PARAMETER_DEF, TokenTypes.VARIABLE_DEF);
+		String variableTypeName = getVariableTypeName(
+			methodCallDetailAST, variableName, false);
 
-		for (DetailAST definitionDetailAST : definitionDetailASTList) {
-			if (!variableName.equals(getName(definitionDetailAST))) {
-				continue;
-			}
-
-			DetailAST typeDetailAST = definitionDetailAST.findFirstToken(
-				TokenTypes.TYPE);
-
-			String typeName = getName(typeDetailAST);
-
-			if (typeName.matches(".*(Collection|List|Map|Set)")) {
-				log(
-					methodCallDetailAST, _MSG_USE_METHOD,
-					variableName + ".isEmpty()");
-			}
+		if (variableTypeName.matches("Collection|List|Map|Set")) {
+			log(
+				methodCallDetailAST, _MSG_USE_METHOD,
+				variableName + ".isEmpty()");
 		}
 	}
 

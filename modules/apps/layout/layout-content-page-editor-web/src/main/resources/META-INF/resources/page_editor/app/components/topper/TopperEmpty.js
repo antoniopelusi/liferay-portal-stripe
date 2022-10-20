@@ -19,7 +19,11 @@ import {getLayoutDataItemPropTypes} from '../../../prop-types/index';
 import {useSelector} from '../../contexts/StoreContext';
 import selectCanUpdatePageStructure from '../../selectors/selectCanUpdatePageStructure';
 import {TARGET_POSITIONS} from '../../utils/drag-and-drop/constants/targetPositions';
-import {useDropTarget} from '../../utils/drag-and-drop/useDragAndDrop';
+import {
+	useDropContainerId,
+	useDropTarget,
+	useIsDroppable,
+} from '../../utils/drag-and-drop/useDragAndDrop';
 
 export default function ({children, ...props}) {
 	const canUpdatePageStructure = useSelector(selectCanUpdatePageStructure);
@@ -39,6 +43,11 @@ function TopperEmpty({children, item}) {
 	const isFragment = children.type === React.Fragment;
 	const realChildren = isFragment ? children.props.children : children;
 
+	const dropContainerId = useDropContainerId();
+	const isDroppable = useIsDroppable();
+
+	const isValidDrop = isDroppable && isOverTarget;
+
 	return React.Children.map(realChildren, (child) => {
 		if (!child) {
 			return child;
@@ -50,14 +59,15 @@ function TopperEmpty({children, item}) {
 					...child.props,
 					className: classNames(child.props.className, {
 						'drag-over-bottom':
-							isOverTarget &&
+							isValidDrop &&
 							targetPosition === TARGET_POSITIONS.BOTTOM,
 						'drag-over-middle':
-							isOverTarget &&
+							isValidDrop &&
 							targetPosition === TARGET_POSITIONS.MIDDLE,
 						'drag-over-top':
-							isOverTarget &&
+							isValidDrop &&
 							targetPosition === TARGET_POSITIONS.TOP,
+						'drop-container': dropContainerId === item.itemId,
 						'page-editor__topper': true,
 					}),
 					ref: (node) => {

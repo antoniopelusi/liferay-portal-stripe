@@ -33,7 +33,7 @@ interface IProps {
 	editingLanguageId: Locale;
 	ffDecimalPlacesSettingsEnabled: boolean;
 	onBlur: FocusEventHandler<HTMLInputElement>;
-	onChange: FieldChangeEventHandler;
+	onChange: FieldChangeEventHandler<unknown>;
 	onFocus: FocusEventHandler<HTMLInputElement>;
 	readOnly: boolean;
 	thousandsSeparator?: ThousandsSeparator[];

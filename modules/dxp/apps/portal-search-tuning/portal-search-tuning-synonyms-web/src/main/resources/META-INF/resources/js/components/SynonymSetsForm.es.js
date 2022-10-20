@@ -73,7 +73,7 @@ class SynonymSetsForm extends Component {
 	constructor(props) {
 		super(props);
 
-		if (props.synonymSets.length > 0) {
+		if (props.synonymSets.length) {
 			props.synonymSets.split(',').forEach((synonym) => {
 				this.state.synonyms.push({
 					label: synonym,
@@ -135,10 +135,10 @@ class SynonymSetsForm extends Component {
 						<ClayInput.GroupItem>
 							<ClayMultiSelect
 								id="synonym-sets-input"
-								inputValue={inputValue}
 								items={synonyms}
 								onChange={this._handleInputChange}
 								onItemsChange={this._handleItemsChange}
+								value={inputValue}
 							/>
 
 							<ClayForm.FeedbackGroup>
@@ -154,7 +154,7 @@ class SynonymSetsForm extends Component {
 
 				<ClayLayout.SheetFooter>
 					<ClayButton
-						disabled={synonyms.length === 0}
+						disabled={!synonyms.length}
 						displayType="primary"
 						onClick={this._handleSubmit}
 						type="submit"

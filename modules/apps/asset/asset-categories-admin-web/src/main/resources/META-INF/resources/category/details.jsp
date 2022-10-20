@@ -44,8 +44,8 @@ else if (parentCategoryId > 0) {
 renderResponse.setTitle(title);
 %>
 
-<portlet:actionURL name="editCategory" var="editCategoryURL">
-	<portlet:param name="mvcPath" value="/edit_category.jsp" />
+<portlet:actionURL name="/asset_categories_admin/edit_asset_category" var="editCategoryURL">
+	<portlet:param name="mvcPath" value="/edit_asset_category.jsp" />
 	<portlet:param name="groupId" value="<%= String.valueOf(groupId) %>" />
 	<portlet:param name="vocabularyId" value="<%= String.valueOf(vocabularyId) %>" />
 </portlet:actionURL>
@@ -193,9 +193,9 @@ renderResponse.setTitle(title);
 			<liferay-frontend:edit-form-footer>
 				<aui:button disabled="<%= assetCategoriesDisplayContext.isSaveButtonDisabled() %>" type="submit" />
 
-				<aui:button cssClass="btn-secondary" disabled="<%= assetCategoriesDisplayContext.isSaveAndAddNewButtonDisabled() %>" onClick='<%= liferayPortletResponse.getNamespace() + "saveAndAddNew();" %>' value="save-and-add-a-new-one" />
+				<aui:button disabled="<%= assetCategoriesDisplayContext.isSaveAndAddNewButtonDisabled() %>" onClick='<%= liferayPortletResponse.getNamespace() + "saveAndAddNew();" %>' value="save-and-add-a-new-one" />
 
-				<aui:button cssClass="btn-secondary" href="<%= redirect %>" type="cancel" />
+				<aui:button href="<%= redirect %>" type="cancel" />
 			</liferay-frontend:edit-form-footer>
 		</c:when>
 		<c:otherwise>

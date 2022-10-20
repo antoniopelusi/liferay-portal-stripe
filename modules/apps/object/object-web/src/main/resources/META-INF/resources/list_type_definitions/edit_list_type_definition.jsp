@@ -24,7 +24,7 @@ ViewListTypeEntriesDisplayContext viewListTypeEntriesDisplayContext = (ViewListT
 <liferay-frontend:side-panel-content
 	title='<%= LanguageUtil.get(request, "picklist") %>'
 >
-	<form action="javascript:;" onSubmit="<%= liferayPortletResponse.getNamespace() + "saveListTypeDefinition();" %>">
+	<form action="javascript:void(0);" onSubmit="<%= liferayPortletResponse.getNamespace() + "saveListTypeDefinition();" %>">
 		<div class="side-panel-content">
 			<div class="side-panel-content__body">
 				<div class="sheet">
@@ -55,10 +55,6 @@ ViewListTypeEntriesDisplayContext viewListTypeEntriesDisplayContext = (ViewListT
 						fdsActionDropdownItems="<%= viewListTypeEntriesDisplayContext.getFDSActionDropdownItems() %>"
 						formName="fm"
 						id="<%= ListTypeFDSNames.LIST_TYPE_DEFINITION_ITEMS %>"
-						itemsPerPage="<%= 20 %>"
-						namespace="<%= liferayPortletResponse.getNamespace() %>"
-						pageNumber="<%= 1 %>"
-						portletURL="<%= liferayPortletResponse.createRenderURL() %>"
 						style="fluid"
 					/>
 				</div>
@@ -142,15 +138,17 @@ ViewListTypeEntriesDisplayContext viewListTypeEntriesDisplayContext = (ViewListT
 					window.location.reload();
 				}
 				else if (response.ok) {
-					Liferay.Util.openToast({
+					const parentWindow = Liferay.Util.getOpener();
+
+					parentWindow.Liferay.Util.openToast({
 						message:
 							'<%= LanguageUtil.get(request, "the-picklist-was-updated-successfully") %>',
 						type: 'success',
 					});
 
 					setTimeout(() => {
-						const parentWindow = Liferay.Util.getOpener();
 						parentWindow.Liferay.fire('close-side-panel');
+						parentWindow.location.reload();
 					}, 1500);
 				}
 				else {

@@ -30,6 +30,16 @@
 	<td>//*[contains(@class,'list-group')]//*[@class='list-group-card-item-text' and normalize-space(./text())='${key_itemName}']</td>
 	<td></td>
 </tr>
+<tr>
+	<td>SESSION_ACCESSED_URLS</td>
+	<td>//a[contains(@href,'sessionAccessedURLsPanelsContent')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ACCESSED_FRIENDLY_URLS</td>
+	<td>//div[contains(@aria-labelledby,'sessionAccessedURLsPanelsHeader') and contains(.,'${key_friendlyURL}')]</td>
+	<td></td>
+</tr>
 </tbody>
 </table>
 </body>

@@ -12,23 +12,32 @@
  * details.
  */
 
-import ClayButton from '@clayui/button';
 import ClayTabs from '@clayui/tabs';
-import {fetch} from 'frontend-js-web';
-import React, {useContext, useEffect, useState} from 'react';
+import {
+	API,
+	SidePanelContent,
+	invalidateRequired,
+	openToast,
+	saveAndReload,
+} from '@liferay/object-js-components-web';
+import React, {useEffect, useState} from 'react';
 
-import {invalidateRequired} from '../../hooks/useForm';
 import {TabsVisitor} from '../../utils/visitor';
-import SidePanelContent from '../SidePanelContent';
 import InfoScreen from './InfoScreen/InfoScreen';
 import LayoutScreen from './LayoutScreen/LayoutScreen';
-import LayoutContext, {LayoutContextProvider, TYPES} from './context';
+import {
+	LayoutContextProvider,
+	TYPES,
+	useLayoutContext,
+} from './objectLayoutContext';
 import {
 	TObjectField,
 	TObjectLayout,
 	TObjectLayoutTab,
 	TObjectRelationship,
 } from './types';
+
+const defaultLanguageId = Liferay.ThemeDisplay.getDefaultLanguageId();
 
 const TABS = [
 	{
@@ -40,13 +49,6 @@ const TABS = [
 		label: Liferay.Language.get('layout'),
 	},
 ];
-
-const HEADERS = new Headers({
-	'Accept': 'application/json',
-	'Content-Type': 'application/json',
-});
-
-const defaultLanguageId = Liferay.ThemeDisplay.getDefaultLanguageId();
 
 type TNormalizeObjectFields = ({
 	objectFields,
@@ -61,6 +63,7 @@ const normalizeObjectFields: TNormalizeObjectFields = ({
 	objectLayout,
 }) => {
 	const visitor = new TabsVisitor(objectLayout);
+
 	const objectFieldIds = objectFields.map(({id}) => id);
 
 	const normalizedObjectFields = [...objectFields];
@@ -108,52 +111,31 @@ const Layout: React.FC<React.HTMLAttributes<HTMLElement>> = () => {
 	const [
 		{isViewOnly, objectFields, objectLayout, objectLayoutId},
 		dispatch,
-	] = useContext(LayoutContext);
+	] = useLayoutContext();
 	const [activeIndex, setActiveIndex] = useState<number>(0);
 	const [loading, setLoading] = useState<boolean>(true);
 
-	const onCloseSidePanel = () => {
-		const parentWindow = Liferay.Util.getOpener();
-
-		parentWindow.Liferay.fire('close-side-panel');
-	};
-
 	useEffect(() => {
 		const makeFetch = async () => {
-			const objectLayoutResponse = await fetch(
-				`/o/object-admin/v1.0/object-layouts/${objectLayoutId}`,
-				{
-					headers: HEADERS,
-					method: 'GET',
-				}
-			);
-
 			const {
 				defaultObjectLayout,
 				name,
 				objectDefinitionId,
 				objectLayoutTabs,
-			} = (await objectLayoutResponse.json()) as any;
-
-			const objectFieldsResponse = await fetch(
-				`/o/object-admin/v1.0/object-definitions/${objectDefinitionId}/object-fields`,
-				{
-					headers: HEADERS,
-					method: 'GET',
-				}
+			} = await API.fetchJSON<TObjectLayout>(
+				`/o/object-admin/v1.0/object-layouts/${objectLayoutId}`
 			);
 
-			const objectRelationshipsResponse = await fetch(
-				`/o/object-admin/v1.0/object-definitions/${objectDefinitionId}/object-relationships`,
-				{
-					headers: HEADERS,
-					method: 'GET',
-				}
+			const objectFields = await API.getObjectFields(objectDefinitionId);
+
+			const objectRelationships = await API.getObjectRelationships(
+				objectDefinitionId
 			);
 
 			const objectLayout = {
 				defaultObjectLayout,
 				name,
+				objectDefinitionId,
 				objectLayoutTabs,
 			};
 
@@ -164,27 +146,19 @@ const Layout: React.FC<React.HTMLAttributes<HTMLElement>> = () => {
 				type: TYPES.ADD_OBJECT_LAYOUT,
 			});
 
-			const {
-				items: objectFields,
-			}: {
-				items: TObjectField[];
-			} = (await objectFieldsResponse.json()) as any;
+			const filteredObjectFields = objectFields.filter(
+				({system}) => !system
+			);
 
 			dispatch({
 				payload: {
 					objectFields: normalizeObjectFields({
-						objectFields,
+						objectFields: filteredObjectFields,
 						objectLayout,
 					}),
 				},
 				type: TYPES.ADD_OBJECT_FIELDS,
 			});
-
-			const {
-				items: objectRelationships,
-			}: {
-				items: TObjectRelationship[];
-			} = (await objectRelationshipsResponse.json()) as any;
 
 			dispatch({
 				payload: {
@@ -207,10 +181,8 @@ const Layout: React.FC<React.HTMLAttributes<HTMLElement>> = () => {
 			(objectField) => objectField.inLayout
 		);
 
-		const parentWindow = Liferay.Util.getOpener();
-
 		if (invalidateRequired(objectLayout.name[defaultLanguageId])) {
-			parentWindow.Liferay.Util.openToast({
+			openToast({
 				message: Liferay.Language.get('a-name-is-required'),
 				type: 'danger',
 			});
@@ -219,7 +191,7 @@ const Layout: React.FC<React.HTMLAttributes<HTMLElement>> = () => {
 		}
 
 		if (!hasFieldsInLayout) {
-			parentWindow.Liferay.Util.openToast({
+			openToast({
 				message: Liferay.Language.get('please-add-at-least-one-field'),
 				type: 'danger',
 			});
@@ -227,42 +199,40 @@ const Layout: React.FC<React.HTMLAttributes<HTMLElement>> = () => {
 			return;
 		}
 
-		const response = await fetch(
-			`/o/object-admin/v1.0/object-layouts/${objectLayoutId}`,
-			{
-				body: JSON.stringify(objectLayout),
-				headers: HEADERS,
-				method: 'PUT',
-			}
-		);
+		if (objectLayout.objectLayoutTabs[0].objectRelationshipId > 0) {
+			openToast({
+				message: Liferay.Language.get(
+					'the-layouts-first-tab-must-be-a-field-tab'
+				),
+				type: 'danger',
+			});
 
-		if (response.status === 401) {
-			window.location.reload();
+			return;
 		}
-		else if (response.ok) {
-			onCloseSidePanel();
 
-			parentWindow.Liferay.Util.openToast({
+		try {
+			await API.save(
+				`/o/object-admin/v1.0/object-layouts/${objectLayoutId}`,
+				objectLayout
+			);
+			saveAndReload();
+			openToast({
 				message: Liferay.Language.get(
 					'the-object-layout-was-updated-successfully'
 				),
-				type: 'success',
 			});
 		}
-		else {
-			const {
-				title = Liferay.Language.get('an-error-occurred'),
-			} = (await response.json()) as {title: any};
-
-			parentWindow.Liferay.Util.openToast({
-				message: title,
-				type: 'danger',
-			});
+		catch ({message}) {
+			openToast({message: message as string, type: 'danger'});
 		}
 	};
 
 	return (
-		<>
+		<SidePanelContent
+			onSave={saveObjectLayout}
+			readOnly={isViewOnly || loading}
+			title={Liferay.Language.get('layout')}
+		>
 			<ClayTabs className="side-panel-iframe__tabs">
 				{TABS.map(({label}, index) => (
 					<ClayTabs.Item
@@ -275,38 +245,14 @@ const Layout: React.FC<React.HTMLAttributes<HTMLElement>> = () => {
 				))}
 			</ClayTabs>
 
-			<SidePanelContent className="side-panel-content--layout">
-				<SidePanelContent.Body>
-					<ClayTabs.Content activeIndex={activeIndex} fade>
-						{TABS.map(({Component}, index) => (
-							<ClayTabs.TabPane key={index}>
-								{!loading && <Component />}
-							</ClayTabs.TabPane>
-						))}
-					</ClayTabs.Content>
-				</SidePanelContent.Body>
-
-				{!loading && (
-					<SidePanelContent.Footer>
-						<ClayButton.Group spaced>
-							<ClayButton
-								displayType="secondary"
-								onClick={onCloseSidePanel}
-							>
-								{Liferay.Language.get('cancel')}
-							</ClayButton>
-
-							<ClayButton
-								disabled={isViewOnly}
-								onClick={() => saveObjectLayout()}
-							>
-								{Liferay.Language.get('save')}
-							</ClayButton>
-						</ClayButton.Group>
-					</SidePanelContent.Footer>
-				)}
-			</SidePanelContent>
-		</>
+			<ClayTabs.Content activeIndex={activeIndex} fade>
+				{TABS.map(({Component}, index) => (
+					<ClayTabs.TabPane key={index}>
+						{!loading && <Component />}
+					</ClayTabs.TabPane>
+				))}
+			</ClayTabs.Content>
+		</SidePanelContent>
 	);
 };
 

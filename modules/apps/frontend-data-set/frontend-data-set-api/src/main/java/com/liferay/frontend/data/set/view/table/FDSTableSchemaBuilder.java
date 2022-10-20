@@ -14,28 +14,30 @@
 
 package com.liferay.frontend.data.set.view.table;
 
+import com.liferay.petra.function.UnsafeConsumer;
+
+import org.osgi.annotation.versioning.ProviderType;
+
 /**
  * @author Marco Leo
  */
+@ProviderType
 public interface FDSTableSchemaBuilder {
 
-	public <T extends FDSTableSchemaField> T addFDSTableSchemaField(
-		Class<T> clazz, String fieldName);
+	public FDSTableSchemaBuilder add(FDSTableSchemaField fdsTableSchemaField);
 
-	public <T extends FDSTableSchemaField> T addFDSTableSchemaField(
-		Class<T> clazz, String fieldName, String label);
+	public FDSTableSchemaBuilder add(String fieldName);
 
-	public void addFDSTableSchemaField(FDSTableSchemaField fdsTableSchemaField);
+	public FDSTableSchemaBuilder add(String fieldName, String label);
 
-	public FDSTableSchemaField addFDSTableSchemaField(String fieldName);
+	public FDSTableSchemaBuilder add(
+		String fieldName, String label,
+		UnsafeConsumer<FDSTableSchemaField, Throwable> unsafeConsumer);
 
-	public FDSTableSchemaField addFDSTableSchemaField(
-		String fieldName, String label);
+	public FDSTableSchemaBuilder add(
+		String fieldName,
+		UnsafeConsumer<FDSTableSchemaField, Throwable> unsafeConsumer);
 
 	public FDSTableSchema build();
-
-	public void removeFDSTableSchemaField(String fieldName);
-
-	public void setFDSTableSchema(FDSTableSchema fdsTableSchema);
 
 }

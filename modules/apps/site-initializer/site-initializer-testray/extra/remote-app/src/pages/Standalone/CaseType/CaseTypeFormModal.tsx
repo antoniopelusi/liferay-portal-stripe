@@ -12,16 +12,15 @@
  * details.
  */
 
-import ClayButton from '@clayui/button';
 import {useForm} from 'react-hook-form';
 
-import Input from '../../../components/Input';
+import Form from '../../../components/Form';
 import Modal from '../../../components/Modal';
-import {CreateCaseType, UpdateCaseType} from '../../../graphql/mutations';
 import {withVisibleContent} from '../../../hoc/withVisibleContent';
 import {FormModalOptions} from '../../../hooks/useFormModal';
 import i18n from '../../../i18n';
 import yupSchema, {yupResolver} from '../../../schema/yup';
+import {createCaseTypes, updateCaseTypes} from '../../../services/rest';
 
 type CaseTypeForm = {
 	id?: number;
@@ -33,7 +32,7 @@ type CaseTypeProps = {
 };
 
 const CaseTypeFormModal: React.FC<CaseTypeProps> = ({
-	modal: {modalState, observer, onClose, onSubmit},
+	modal: {modalState, observer, onClose, onError, onSave, onSubmit},
 }) => {
 	const {
 		formState: {errors},
@@ -48,10 +47,12 @@ const CaseTypeFormModal: React.FC<CaseTypeProps> = ({
 		onSubmit(
 			{id: form.id, name: form.name},
 			{
-				createMutation: CreateCaseType,
-				updateMutation: UpdateCaseType,
+				create: createCaseTypes,
+				update: updateCaseTypes,
 			}
-		);
+		)
+			.then(onSave)
+			.catch(onError);
 
 	const inputProps = {
 		errors,
@@ -62,18 +63,10 @@ const CaseTypeFormModal: React.FC<CaseTypeProps> = ({
 	return (
 		<Modal
 			last={
-				<ClayButton.Group spaced>
-					<ClayButton displayType="secondary" onClick={onClose}>
-						{i18n.translate('close')}
-					</ClayButton>
-
-					<ClayButton
-						displayType="primary"
-						onClick={handleSubmit(_onSubmit)}
-					>
-						{i18n.translate('save')}
-					</ClayButton>
-				</ClayButton.Group>
+				<Form.Footer
+					onClose={onClose}
+					onSubmit={handleSubmit(_onSubmit)}
+				/>
 			}
 			observer={observer}
 			size="lg"
@@ -82,7 +75,11 @@ const CaseTypeFormModal: React.FC<CaseTypeProps> = ({
 			)}
 			visible
 		>
-			<Input label={i18n.translate('name')} name="name" {...inputProps} />
+			<Form.Input
+				label={i18n.translate('name')}
+				name="name"
+				{...inputProps}
+			/>
 		</Modal>
 	);
 };

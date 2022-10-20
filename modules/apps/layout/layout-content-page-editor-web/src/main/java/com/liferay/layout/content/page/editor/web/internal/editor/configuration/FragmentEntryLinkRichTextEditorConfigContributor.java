@@ -26,10 +26,11 @@ import com.liferay.layout.item.selector.criterion.LayoutItemSelectorCriterion;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.editor.configuration.BaseEditorConfigContributor;
 import com.liferay.portal.kernel.editor.configuration.EditorConfigContributor;
+import com.liferay.portal.kernel.frontend.icons.FrontendIconsUtil;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactory;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Validator;
@@ -90,7 +91,7 @@ public class FragmentEntryLinkRichTextEditorConfigContributor
 		).put(
 			"skin", "moono-lisa"
 		).put(
-			"spritemap", themeDisplay.getPathThemeImages() + "/clay/icons.svg"
+			"spritemap", FrontendIconsUtil.getSpritemap(themeDisplay)
 		).put(
 			"toolbars", _getToolbarsJSONObject(themeDisplay.getLocale())
 		);
@@ -174,22 +175,22 @@ public class FragmentEntryLinkRichTextEditorConfigContributor
 	private JSONArray _getStyleFormatsJSONArray(Locale locale) {
 		return JSONUtil.putAll(
 			_getStyleFormatJSONObject(
-				LanguageUtil.get(locale, "small"), "span", "small",
+				_language.get(locale, "small"), "span", "small",
 				_CKEDITOR_STYLE_INLINE),
 			_getStyleFormatJSONObject(
-				LanguageUtil.get(locale, "lead"), "span", "lead",
+				_language.get(locale, "lead"), "span", "lead",
 				_CKEDITOR_STYLE_INLINE),
 			_getStyleFormatJSONObject(
-				LanguageUtil.format(locale, "heading-x", "1"), "h1", null,
+				_language.format(locale, "heading-x", "1"), "h1", null,
 				_CKEDITOR_STYLE_BLOCK),
 			_getStyleFormatJSONObject(
-				LanguageUtil.format(locale, "heading-x", "2"), "h2", null,
+				_language.format(locale, "heading-x", "2"), "h2", null,
 				_CKEDITOR_STYLE_BLOCK),
 			_getStyleFormatJSONObject(
-				LanguageUtil.format(locale, "heading-x", "3"), "h3", null,
+				_language.format(locale, "heading-x", "3"), "h3", null,
 				_CKEDITOR_STYLE_BLOCK),
 			_getStyleFormatJSONObject(
-				LanguageUtil.format(locale, "heading-x", "4"), "h4", null,
+				_language.format(locale, "heading-x", "4"), "h4", null,
 				_CKEDITOR_STYLE_BLOCK));
 	}
 
@@ -306,5 +307,8 @@ public class FragmentEntryLinkRichTextEditorConfigContributor
 
 	@Reference
 	private ItemSelector _itemSelector;
+
+	@Reference
+	private Language _language;
 
 }

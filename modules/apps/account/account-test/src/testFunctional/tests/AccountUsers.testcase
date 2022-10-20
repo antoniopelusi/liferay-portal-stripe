@@ -92,6 +92,8 @@ definition {
 			locator1 = "AccountUsers#SELECT_AN_ACCOUNT_CHOOSE_BUTTON",
 			value1 = "Choose");
 
+		SelectFrameTop();
+
 		Button.clickSave();
 
 		AccountUsers.openAccountUsersAdmin();
@@ -478,8 +480,6 @@ definition {
 			AccountUsers.openAccountUsersAdmin();
 
 			LexiconEntry.gotoAdd();
-
-			Pause(locator1 = "3000");
 
 			SelectFrame(locator1 = "IFrame#SELECT_ACCOUNT");
 		}

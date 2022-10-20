@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.4.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_4_0.dtd">
+
+<service-builder auto-import-default-references="false" auto-namespace-tables="false" dependency-injector="ds" mvcc-enabled="true" package-path="com.liferay.oauth.client.persistence" short-no-such-exception-enabled="false">
+	<namespace>OAuthClient</namespace>
+	<entity local-service="true" name="OAuthClientASLocalMetadata" remote-service="true">
+
+		<!-- PK fields -->
+
+		<column name="oAuthClientASLocalMetadataId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="localWellKnownURI" type="String" />
+		<column name="metadataJSON" type="String" />
+
+		<!-- Finder methods -->
+
+		<finder name="CompanyId" return-type="Collection">
+			<finder-column name="companyId" />
+		</finder>
+		<finder name="UserId" return-type="Collection">
+			<finder-column name="userId" />
+		</finder>
+		<finder name="LocalWellKnownURI" return-type="OAuthClientASLocalMetadata" unique="true">
+			<finder-column name="localWellKnownURI" />
+		</finder>
+	</entity>
+	<entity local-service="true" name="OAuthClientEntry" remote-service="true">
+
+		<!-- PK fields -->
+
+		<column name="oAuthClientEntryId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="authRequestParametersJSON" type="String" />
+		<column name="authServerWellKnownURI" type="String" />
+		<column name="clientId" type="String" />
+		<column name="infoJSON" type="String" />
+		<column name="tokenRequestParametersJSON" type="String" />
+
+		<!-- Finder methods -->
+
+		<finder name="CompanyId" return-type="Collection">
+			<finder-column name="companyId" />
+		</finder>
+		<finder name="UserId" return-type="Collection">
+			<finder-column name="userId" />
+		</finder>
+		<finder name="C_A" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="authServerWellKnownURI" />
+		</finder>
+		<finder name="C_A_C" return-type="OAuthClientEntry" unique="true">
+			<finder-column name="companyId" />
+			<finder-column name="authServerWellKnownURI" />
+			<finder-column name="clientId" />
+		</finder>
+	</entity>
+	<exceptions>
+		<exception>DuplicateOAuthClientASLocalMetadata</exception>
+		<exception>DuplicateOAuthClientEntry</exception>
+		<exception>OAuthClientASLocalMetadataJSON</exception>
+		<exception>OAuthClientASLocalMetadataLocalWellKnownURI</exception>
+		<exception>OAuthClientEntryAuthRequestParametersJSON</exception>
+		<exception>OAuthClientEntryAuthServerWellKnownURI</exception>
+		<exception>OAuthClientEntryInfoJSON</exception>
+		<exception>OAuthClientEntryTokenRequestParametersJSON</exception>
+	</exceptions>
+</service-builder>

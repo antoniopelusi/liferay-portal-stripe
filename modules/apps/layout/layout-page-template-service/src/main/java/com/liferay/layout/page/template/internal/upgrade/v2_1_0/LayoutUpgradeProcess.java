@@ -118,9 +118,9 @@ public class LayoutUpgradeProcess extends UpgradeProcess {
 					"LayoutPageTemplateEntry where plid is null or plid = 0"));
 			PreparedStatement preparedStatement =
 				AutoBatchPreparedStatementUtil.autoBatch(
-					connection.prepareStatement(
-						"update LayoutPageTemplateEntry set plid = ? where " +
-							"layoutPageTemplateEntryId = ?"))) {
+					connection,
+					"update LayoutPageTemplateEntry set plid = ? where " +
+						"layoutPageTemplateEntryId = ?")) {
 
 			while (resultSet.next()) {
 				long companyId = resultSet.getLong("companyId");
@@ -168,7 +168,8 @@ public class LayoutUpgradeProcess extends UpgradeProcess {
 						fragmentEntryLink.getHtml(), fragmentEntryLink.getJs(),
 						fragmentEntryLink.getConfiguration(),
 						fragmentEntryLink.getEditableValues(), StringPool.BLANK,
-						fragmentEntryLink.getPosition(), null, serviceContext);
+						fragmentEntryLink.getPosition(), null,
+						fragmentEntryLink.getType(), serviceContext);
 				}
 			}
 
@@ -177,9 +178,7 @@ public class LayoutUpgradeProcess extends UpgradeProcess {
 	}
 
 	private void _upgradeSchema() throws Exception {
-		if (!hasColumn("LayoutPageTemplateEntry", "plid")) {
-			alterTableAddColumn("LayoutPageTemplateEntry", "plid", "LONG");
-		}
+		alterTableAddColumn("LayoutPageTemplateEntry", "plid", "LONG");
 	}
 
 	private final FragmentEntryLinkLocalService _fragmentEntryLinkLocalService;

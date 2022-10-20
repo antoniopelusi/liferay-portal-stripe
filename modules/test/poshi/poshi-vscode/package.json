@@ -1,8 +1,38 @@
 {
+	"activationEvents": [
+		"onLanguage:poshi"
+	],
 	"categories": [
-		"Programming Languages"
+		"Programming Languages",
+		"Testing"
 	],
 	"contributes": {
+		"configuration": {
+			"properties": {
+				"poshi.completion.enabled": {
+					"default": false,
+					"description": "Specifies whether or not to enable auto-completion.",
+					"type": "boolean"
+				},
+				"poshi.goToDefinition.enabled": {
+					"default": true,
+					"description": "Specifies whether or not to enable go-to-definition.",
+					"type": "boolean"
+				},
+				"poshi.sourceFormatter.enabled": {
+					"default": false,
+					"description": "Specifies whether the to use Liferay's Source Formatter as the formatter for Poshi files.",
+					"type": "boolean"
+				},
+				"poshi.sourceFormatter.jarPath": {
+					"default": "",
+					"format": "uri",
+					"markdownDescription": "The path to the source-formatter-standalone jar. It will be invoked with `java -jar {}`.\nExample: `file:///Users/me/Documents/source-formatter-standalone.jar`",
+					"type": "string"
+				}
+			},
+			"title": "Poshi"
+		},
 		"grammars": [
 			{
 				"language": "poshi",
@@ -26,11 +56,47 @@
 			}
 		]
 	},
-	"description": "This extension provides language support for the functional testing tool, Poshi",
-	"displayName": "Poshi Language Support",
-	"engines": {
-		"vscode": "^1.63.0"
+	"dependencies": {
+		"@vscode/ripgrep": "^1.14.2",
+		"lodash": "^4.17.21"
 	},
-	"name": "@liferay/poshi-vscode",
-	"version": "0.0.1"
+	"description": "Language Features for Liferay's Poshi Language",
+	"devDependencies": {
+		"@types/glob": "^7.2.0",
+		"@types/lodash": "^4.14.178",
+		"@types/mocha": "^9.1.0",
+		"@types/node": "14.x",
+		"@types/vscode": "^1.64.0",
+		"@typescript-eslint/eslint-plugin": "^5.12.1",
+		"@typescript-eslint/parser": "^5.12.1",
+		"@vscode/test-electron": "^2.1.2",
+		"eslint": "^8.9.0",
+		"glob": "^7.2.0",
+		"mocha": "^9.2.1",
+		"typescript": "^4.5.5"
+	},
+	"displayName": "poshi-language-support",
+	"engines": {
+		"vscode": "^1.64.0"
+	},
+	"keywords": [
+		"liferay",
+		"poshi"
+	],
+	"main": "./out/extension.js",
+	"name": "poshi-language-support",
+	"publisher": "LiferayInc",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/drewbrokke/vscode-poshi-language-support"
+	},
+	"scripts": {
+		"compile": "tsc -p ./",
+		"lint": "eslint src --ext ts",
+		"pretest": "npm run compile && npm run lint",
+		"test": "node ./out/test/runTest.js",
+		"vscode:prepublish": "npm run compile",
+		"watch": "tsc -watch -p ./"
+	},
+	"version": "0.2.0"
 }

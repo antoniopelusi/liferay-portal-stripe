@@ -100,14 +100,20 @@ public class WikiNodeLocalServiceTest {
 
 		User user = TestPropsValues.getUser();
 
-		WikiNode wikiNode = WikiNodeLocalServiceUtil.addNode(
+		WikiNode wikiNode1 = WikiNodeLocalServiceUtil.addNode(
 			user.getUserId(), RandomTestUtil.randomString(),
 			RandomTestUtil.randomString(),
 			ServiceContextTestUtil.getServiceContext());
 
-		Assert.assertEquals(
-			wikiNode.getExternalReferenceCode(),
-			String.valueOf(wikiNode.getNodeId()));
+		String externalReferenceCode = wikiNode1.getExternalReferenceCode();
+
+		Assert.assertEquals(externalReferenceCode, wikiNode1.getUuid());
+
+		WikiNode wikiNode2 =
+			WikiNodeLocalServiceUtil.getWikiNodeByExternalReferenceCode(
+				TestPropsValues.getGroupId(), externalReferenceCode);
+
+		Assert.assertEquals(wikiNode1, wikiNode2);
 	}
 
 	@Test

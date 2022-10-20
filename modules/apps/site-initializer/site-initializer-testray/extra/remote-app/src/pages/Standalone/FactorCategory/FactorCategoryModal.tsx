@@ -12,8 +12,7 @@
  * details.
  */
 
-import ListView from '../../../components/ListView/ListView';
-import {getFactorCategories} from '../../../graphql/queries';
+import ListView from '../../../components/ListView';
 import FactorCategoryFormModal from './FactorCategoryFormModal';
 import useFactorCategoryActions from './useFactorCategoryActions';
 
@@ -24,18 +23,20 @@ const FactorCategoryModal = () => {
 		<>
 			<ListView
 				forceRefetch={formModal.forceRefetch}
-				managementToolbarProps={{addButton: formModal.modal.open}}
-				query={getFactorCategories}
+				managementToolbarProps={{
+					addButton: () => formModal.modal.open(),
+				}}
+				resource="/factorcategories?fields=actions,id,name"
 				tableProps={{
 					actions,
 					columns: [
 						{
 							key: 'name',
+							sorteable: true,
 							value: 'Name',
 						},
 					],
 				}}
-				transformData={(data) => data?.c?.factorCategories}
 			/>
 
 			<FactorCategoryFormModal modal={formModal.modal} />

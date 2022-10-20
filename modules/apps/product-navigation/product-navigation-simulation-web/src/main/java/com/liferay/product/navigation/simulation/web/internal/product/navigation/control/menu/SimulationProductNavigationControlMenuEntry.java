@@ -18,6 +18,7 @@ import com.liferay.application.list.PanelApp;
 import com.liferay.application.list.PanelAppRegistry;
 import com.liferay.application.list.PanelCategory;
 import com.liferay.application.list.constants.PanelCategoryKeys;
+import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.Language;
@@ -116,11 +117,15 @@ public class SimulationProductNavigationControlMenuEntry
 			HttpServletResponse httpServletResponse)
 		throws IOException {
 
-		PortletURL simulationPanelURL = _portletURLFactory.create(
-			httpServletRequest,
-			ProductNavigationSimulationPortletKeys.
-				PRODUCT_NAVIGATION_SIMULATION,
-			PortletRequest.RENDER_PHASE);
+		PortletURL simulationPanelURL = PortletURLBuilder.create(
+			_portletURLFactory.create(
+				httpServletRequest,
+				ProductNavigationSimulationPortletKeys.
+					PRODUCT_NAVIGATION_SIMULATION,
+				PortletRequest.RENDER_PHASE)
+		).setBackURL(
+			_portal.getCurrentCompleteURL(httpServletRequest)
+		).build();
 
 		try {
 			simulationPanelURL.setWindowState(LiferayWindowState.EXCLUSIVE);
@@ -135,7 +140,6 @@ public class SimulationProductNavigationControlMenuEntry
 
 		iconTag.setCssClass("icon-monospaced");
 		iconTag.setImage("simulation-menu-closed");
-		iconTag.setMarkupView("lexicon");
 
 		try {
 			values.put(
@@ -148,6 +152,10 @@ public class SimulationProductNavigationControlMenuEntry
 
 		values.put("portletNamespace", _portletNamespace);
 		values.put("simulationPanelURL", simulationPanelURL.toString());
+		values.put(
+			"skipLinkLabel",
+			_html.escape(
+				_language.get(httpServletRequest, "skip-to-simulation-panel")));
 		values.put(
 			"title",
 			_html.escape(_language.get(httpServletRequest, "simulation")));
@@ -238,8 +246,7 @@ public class SimulationProductNavigationControlMenuEntry
 					(HttpServletRequest)pageContext.getRequest(), "close"));
 			iconTag.setCssClass("close sidenav-close");
 			iconTag.setImage("times");
-			iconTag.setMarkupView("lexicon");
-			iconTag.setUrl("javascript:;");
+			iconTag.setUrl("javascript:void(0);");
 
 			values.put("sidebarIcon", iconTag.doTagAsString(pageContext));
 

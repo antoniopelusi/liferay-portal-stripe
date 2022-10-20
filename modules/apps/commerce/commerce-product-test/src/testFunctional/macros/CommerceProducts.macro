@@ -13,25 +13,477 @@ definition {
 		}
 
 		CommerceEntry.addProductsEntry(
+			compileDescription = "${compileDescription}",
 			productCatalog = "${productCatalog}",
 			productFullDescription = "${productFullDescription}",
 			productName = "${productName}",
-			productShortDescription = "${productShortDescription}");
+			productShortDescription = "${productShortDescription}",
+			publishProduct = "${publishProduct}");
+	}
+
+	macro addGroupedProductEntries {
+		Click(locator1 = "Button#PLUS");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
+
+		for (var productName : list "${productNames}") {
+			Check.checkToggleSwitch(
+				locator1 = "CommerceAccelerators#SELECT_PRODUCT_RELATIONS",
+				productName = "${productName}");
+		}
+
+		SelectFrame(value1 = "relative=top");
+
+		Button.clickAdd();
+
+		SelectFrameTop();
+	}
+
+	macro addProductWithStatusViaAPI {
+		if ("${productStatusCode}" == "0") {
+			var productName = "Approved Product";
+		}
+		else if ("${productStatusCode}" == "1") {
+			var productName = "Pending Product";
+		}
+		else if ("${productStatusCode}" == "2") {
+			var productName = "Draft Product";
+		}
+		else if ("${productStatusCode}" == "3") {
+			var productName = "Expired Product";
+		}
+		else if ("${productStatusCode}" == "4") {
+			var productName = "Denied Product";
+		}
+		else if ("${productStatusCode}" == "5") {
+			var productName = "Inactive Product";
+		}
+		else if ("${productStatusCode}" == "6") {
+			var productName = "Incomplete Product";
+		}
+		else if ("${productStatusCode}" == "7") {
+			var productName = "Scheduled Product";
+		}
+		else if ("${productStatusCode}" == "8") {
+			var productName = "In Recycle Bin Product";
+		}
+		else {
+			var productName = "Any Product";
+		}
+
+		CommerceJSONProductsAPI._addCommerceProduct(
+			catalogName = "${catalogName}",
+			productName = "${productName}",
+			productStatus = "${productStatusCode}",
+			productType = "${productType}");
+	}
+
+	macro approvePendingProduct {
+		UserBar.gotoDropdownItem(dropdownItem = "Notifications");
+
+		Click(
+			key_text = "${userFirstName} ${userLastName} sent you a Commerce Product for review in the workflow.",
+			locator1 = "Link#ANY");
+
+		Click(
+			key_itemName = "",
+			locator1 = "CommerceEntry#SPECIFIC_MENU_ITEM");
+
+		Click(
+			key_menuItem = "Assign to Me",
+			locator1 = "AssetLists#PERSONALIZATION_DROPDOWN_ITEM");
+
+		WaitForElementPresent(locator1 = "IFrame#MODAL_BODY");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
+
+		Button.click(button = "Done");
+
+		SelectFrameTop();
+
+		if (isSet(approveRequest) && ("${approveRequest}" == "true")) {
+			Click(
+				key_itemName = "",
+				locator1 = "CommerceEntry#SPECIFIC_MENU_ITEM");
+
+			Click(
+				key_menuItem = "Approve",
+				locator1 = "AssetLists#PERSONALIZATION_DROPDOWN_ITEM");
+
+			Button.click(button = "Done");
+		}
+	}
+
+	macro checkProductDescription {
+		for (var value : list "${list}") {
+			var productName = StringUtil.extractFirst("${value}", ":");
+
+			var value = StringUtil.replaceFirst("${value}", "${productName}:", "");
+
+			var status = StringUtil.extractFirst("${value}", ":");
+
+			var value = StringUtil.replaceFirst("${value}", "${status}:", "");
+
+			var productShortDescription = StringUtil.extractFirst("${value}", ":");
+
+			var value = StringUtil.replaceFirst("${value}", "${productShortDescription}:", "");
+
+			var productFullDescription = StringUtil.extractFirst("${value}", ":");
+
+			var value = StringUtil.replaceFirst("${value}", "${productFullDescription}:", "");
+
+			var row = "${value}";
+
+			AppBuilderAdmin.searchByItem(itemName = "${productName}");
+
+			if ("${row}" == "") {
+				Click(
+					key_productName = "${productName}",
+					key_status = "${status}",
+					locator1 = "CommerceEntry#PRODUCT_ENTRY_BASED_ON_STATUS");
+			}
+			else {
+				Click(
+					key_productName = "${productName}",
+					key_row = "${row}",
+					key_status = "${status}",
+					locator1 = "CommerceEntry#PRODUCT_ENTRY_BASED_ON_STATUS_WITH_ROW");
+			}
+
+			echo("--------------------------");
+
+			echo("productName: ${productName}");
+
+			echo("status: ${status}");
+
+			echo("productShortDescription: ${productShortDescription}");
+
+			echo("productFullDescription: ${productFullDescription}");
+
+			echo("row: ${row}");
+
+			echo("--------------------------");
+
+			AssertElementPresent(
+				locator1 = "CommerceEntry#SHORT_DESCRIPTION_FIELD",
+				value = "${productShortDescription}");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "CKEditor#BODY_FIELD_IFRAME");
+
+			AssertElementPresent(
+				locator1 = "RaylifeMobile#MESSAGE_MORE_INFO_INFORMATION",
+				value = "${productFullDescription}");
+
+			SelectFrameTop();
+
+			Navigator.gotoBack();
+		}
+	}
+
+	macro checkProductId {
+		for (var value : list "${list}") {
+			var productName = StringUtil.extractFirst("${value}", ":");
+
+			var value = StringUtil.replaceFirst("${value}", "${productName}:", "");
+
+			var status = StringUtil.extractFirst("${value}", ":");
+
+			var value = StringUtil.replaceFirst("${value}", "${status}:", "");
+
+			var productId = "${value}";
+
+			echo("--------------------------");
+
+			echo("productName: ${productName}");
+
+			echo("status: ${status}");
+
+			echo("productId: ${productId}");
+
+			echo("--------------------------");
+
+			Click(
+				key_productName = "${productName}",
+				key_status = "${status}",
+				locator1 = "CommerceEntry#PRODUCT_ENTRY_BASED_ON_STATUS");
+
+			CommerceProducts.checkProductIdsEqual(
+				firstProductId = "${productId}",
+				secondProductId = selenium.getText("CommerceEntry#PRODUCT_ID"),
+				status = "${status}");
+
+			Navigator.gotoBack();
+		}
+	}
+
+	macro checkProductIdsEqual {
+		var equals = CommerceProducts.isProductIdsEqual(
+			firstProductId = "${firstProductId}",
+			secondProductId = "${secondProductId}");
+
+		echo("equals = ${equals}");
+
+		if ("${equals}" == "false") {
+			fail("The product ID for the ${status} status with the ID ${secondProductId} is not correct, the expected ID is ${firstProductId}");
+		}
+
+		echo("The product ID for the ${status} status is the one with the ID ${secondProductId}");
+	}
+
+	macro checkProductIdsNotEqual {
+		var equals = CommerceProducts.isProductIdsEqual(
+			firstProductId = "${firstProductId}",
+			secondProductId = "${secondProductId}");
+
+		if ("${equals}" == "true") {
+			fail("A new version of the product has not been created because the first ID ${firstProductId} is the same of the second ID ${secondProductId}");
+		}
+
+		echo("The first version of the product ID is ${firstProductId}, the second version of the product ID is ${secondProductId}");
+	}
+
+	macro checkProductsNotPresent {
+		for (var value : list "${list}") {
+			var productName = StringUtil.extractFirst("${value}", ":");
+
+			var value = StringUtil.replaceFirst("${value}", "${productName}:", "");
+
+			var status = StringUtil.extractFirst("${value}", ":");
+
+			var value = StringUtil.replaceFirst("${value}", "${status}:", "");
+
+			if ("${status}" == "") {
+				var status = "${value}";
+				var row = "";
+			}
+			else {
+				var row = "${value}";
+			}
+
+			echo("--------------------------");
+
+			echo("productName: ${productName}");
+
+			echo("status: ${status}");
+
+			echo("row: ${row}");
+
+			echo("--------------------------");
+
+			if ("${row}" == "") {
+				AssertElementNotPresent(
+					key_productName = "${productName}",
+					key_status = "${status}",
+					locator1 = "CommerceEntry#PRODUCT_STATUS_BASED_ON_PRODUCT_NAME");
+			}
+			else {
+				AssertElementNotPresent(
+					key_productName = "${productName}",
+					key_row = "${row}",
+					key_status = "${status}",
+					locator1 = "CommerceEntry#PRODUCT_STATUS_BASED_ON_PRODUCT_NAME_WITH_ROW");
+			}
+		}
+	}
+
+	macro checkProductsPresent {
+		for (var value : list "${list}") {
+			var productName = StringUtil.extractFirst("${value}", ":");
+
+			var value = StringUtil.replaceFirst("${value}", "${productName}:", "");
+
+			var status = StringUtil.extractFirst("${value}", ":");
+
+			var value = StringUtil.replaceFirst("${value}", "${status}:", "");
+
+			if ("${status}" == "") {
+				var status = "${value}";
+				var row = "";
+			}
+			else {
+				var row = "${value}";
+			}
+
+			echo("--------------------------");
+
+			echo("productName: ${productName}");
+
+			echo("status: ${status}");
+
+			echo("row: ${row}");
+
+			echo("--------------------------");
+
+			if ("${row}" == "") {
+				AssertElementPresent(
+					key_productName = "${productName}",
+					key_status = "${status}",
+					locator1 = "CommerceEntry#PRODUCT_STATUS_BASED_ON_PRODUCT_NAME");
+			}
+			else {
+				AssertElementPresent(
+					key_productName = "${productName}",
+					key_row = "${row}",
+					key_status = "${status}",
+					locator1 = "CommerceEntry#PRODUCT_STATUS_BASED_ON_PRODUCT_NAME_WITH_ROW");
+			}
+		}
+	}
+
+	macro checkProductStatusAfterDuplicationAndConvertionToDraft {
+		AppBuilderAdmin.searchByItem(itemName = "${entryName}");
+
+		CommerceNavigator.gotoEntry(entryName = "${entryName}");
+
+		CommerceProducts.duplicateProduct(
+			productCatalog = "${productCatalog}",
+			productName = "${productName}",
+			status = "${status}");
+
+		Click(locator1 = "Icon#BACK");
+
+		AppBuilderAdmin.searchByItem(itemName = "${entryName}");
+
+		CommerceNavigator.gotoEntry(entryName = "${entryName}");
+
+		CommerceProducts.convertProductToDraft(status = "${status}");
+	}
+
+	macro configureSubscription {
+		if ("${subscriptionName}" == "Payment Subscription") {
+			var indexNumber = "1";
+		}
+		else {
+			var indexNumber = "2";
+		}
+
+		Check.checkToggleSwitch(
+			key_subscriptionName = "${subscriptionName}",
+			locator1 = "CommerceEntry#SUBSCRIPTION_TOGGLE");
+
+		if (isSet(subscriptionType)) {
+			Select(
+				key_subscriptionFieldLabel = "Subscription Type",
+				key_subscriptionName = "${subscriptionName}",
+				locator1 = "CommerceEntry#SUBSCRIPTION_FIELD_LABEL",
+				value1 = "${subscriptionType}");
+
+			if (isSet(subscriptionMode)) {
+				Select(
+					key_subscriptionFieldLabel = "Mode",
+					key_subscriptionName = "${subscriptionName}",
+					locator1 = "CommerceEntry#SUBSCRIPTION_FIELD_LABEL",
+					value1 = "${subscriptionMode}");
+
+				if ("${subscriptionMode}" == "Exact Day of Month") {
+					Type(
+						key_text = "On",
+						locator1 = "TextInput#ANY",
+						value1 = "${subscriptionExactDay}");
+				}
+
+				if ("${subscriptionMode}" == "Exact Day of Year") {
+					Select(
+						key_subscriptionFieldLabel = "Month",
+						key_subscriptionName = "${subscriptionName}",
+						locator1 = "CommerceEntry#SUBSCRIPTION_FIELD_LABEL",
+						value1 = "${subscriptionMonth}");
+
+					Type(
+						key_text = "Day",
+						locator1 = "TextInput#ANY",
+						value1 = "${subscriptionExactDay}");
+				}
+			}
+		}
+
+		if (isSet(subscriptionLength)) {
+			Type(
+				key_fieldLabel = "Subscription Length",
+				key_indexNumber = "${indexNumber}",
+				locator1 = "TextInput#GENERIC_TEXT_INPUT_N",
+				value1 = "${subscriptionLength}");
+		}
+
+		if (isSet(neverEnds)) {
+			Click(
+				key_buttonName = "Never Ends",
+				key_indexNumber = "${indexNumber}",
+				locator1 = "CommerceEntry#TOGGLE_SWITCH_BUTTON");
+
+			Type(
+				key_text = "Ends After",
+				locator1 = "TextInput#ANY",
+				value1 = "${subscriptionCycleValue}");
+		}
+
+		Button.clickPublish();
+	}
+
+	macro convertProductToDraft {
+		if ("${status}" == "Draft") {
+			AssertElementPresent(
+				key_text = "Save as Draft",
+				locator1 = "Button#ANY");
+
+			Click(
+				key_itemName = "",
+				locator1 = "CommerceEntry#SPECIFIC_MENU_ITEM");
+
+			AssertElementNotPresent(
+				key_optionValue = "Convert to Draft",
+				locator1 = "CommerceFrontStore#FS_PRODUCT_OPTION");
+		}
+		else {
+			AssertElementNotPresent(
+				key_text = "Save as Draft",
+				locator1 = "Button#ANY");
+
+			Click(
+				key_itemName = "",
+				locator1 = "CommerceEntry#SPECIFIC_MENU_ITEM");
+
+			ClickNoError(
+				key_optionValue = "Convert to Draft",
+				locator1 = "CommerceFrontStore#FS_PRODUCT_OPTION");
+
+			Confirm.dismissAlert();
+
+			Click(
+				key_itemName = "",
+				locator1 = "CommerceEntry#SPECIFIC_MENU_ITEM");
+
+			ClickNoError(
+				key_optionValue = "Convert to Draft",
+				locator1 = "CommerceFrontStore#FS_PRODUCT_OPTION");
+
+			AssertConfirm(value1 = "Converting the product status to draft will remove the product from the product catalog. Do you wish to proceed?");
+
+			AssertElementPresent(
+				key_text = "Save as Draft",
+				locator1 = "Button#ANY");
+
+			AssertElementPresent(
+				key_status = "Draft",
+				locator1 = "CommerceEntry#WORKFLOW_STATUS");
+		}
 	}
 
 	macro deleteEntries {
-		Click.clickNoMouseOverNoWaitForVisible(locator1 = "CommerceNavigation#SELECT_ALL_CHECKBOX");
-
-		if (IsElementPresent(locator1 = "Button#TRASH_ENABLED")) {
-			ClickNoError(locator1 = "Button#TRASH_ENABLED");
+		if (IsElementPresent(locator1 = "CommerceNavigation#SELECT_ALL_CHECKBOX")) {
+			Click.clickNoMouseOverNoWaitForVisible(locator1 = "CommerceNavigation#SELECT_ALL_CHECKBOX");
 		}
 		else {
-			ClickNoError(locator1 = "Button#DELETE");
+			Click.clickNoMouseOverNoWaitForVisible(locator1 = "AppBuilder#CHECKBOX");
 		}
+
+		ClickNoError(locator1 = "Button#TRASH_ENABLED");
 
 		if (isSet(deleteMessage)) {
 			Confirm(value1 = "${deleteMessage}");
 		}
+
+		AssertElementPresent(locator1 = "Message#SUCCESS");
 	}
 
 	macro deleteProductsEntry {
@@ -42,6 +494,83 @@ definition {
 		AssertElementPresent(locator1 = "Message#SUCCESS");
 
 		AssertElementNotPresent(locator1 = "Message#ERROR");
+	}
+
+	macro disableProductSingleApproverWorkflow {
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		CommerceEntry.gotoMenuTab(menuTab = "Configuration");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "No Workflow",
+			workflowResourceValue = "Commerce Product");
+	}
+
+	macro discontinueSKU {
+		CommerceEntry.gotoMenuTab(menuTab = "Details");
+
+		Check.checkToggleSwitch(locator1 = "CommerceEntry#SKU_DISCONTINUED_TOGGLE");
+	}
+
+	macro duplicateProduct {
+		AssertElementPresent(
+			key_status = "${status}",
+			locator1 = "CommerceEntry#WORKFLOW_STATUS");
+
+		if ("${status}" != "Draft") {
+			AssertElementNotPresent(
+				key_text = "Save as Draft",
+				locator1 = "Button#ANY");
+		}
+		else {
+			AssertElementPresent(
+				key_text = "Save as Draft",
+				locator1 = "Button#ANY");
+		}
+
+		Click(
+			key_itemName = "",
+			locator1 = "CommerceEntry#SPECIFIC_MENU_ITEM");
+
+		Click(
+			key_optionValue = "Duplicate",
+			locator1 = "CommerceFrontStore#FS_PRODUCT_OPTION");
+
+		CommerceEntry.addProductsEntry(
+			productCatalog = "${productCatalog}",
+			productFullDescription = "Full Description for ${productName}",
+			productName = "Copy of ${productName}",
+			productShortDescription = "Short Description for ${productName}",
+			publishProduct = "false");
+
+		AssertElementPresent(
+			key_status = "Draft",
+			locator1 = "CommerceEntry#WORKFLOW_STATUS");
+	}
+
+	macro enableProductSingleApproverWorkflow {
+		ApplicationsMenu.gotoPortlet(
+			category = "Workflow",
+			panel = "Applications",
+			portlet = "Process Builder");
+
+		CommerceEntry.gotoMenuTab(menuTab = "Configuration");
+
+		Workflow.configureWorkflow(
+			workflowDefinition = "Single Approver",
+			workflowResourceValue = "Commerce Product");
+	}
+
+	macro isProductIdsEqual {
+		if ("${firstProductId}" == "${secondProductId}") {
+			return "true";
+		}
+		else {
+			return "false";
+		}
 	}
 
 	macro moveCatalogEntriesToRecycleBin {
@@ -66,6 +595,113 @@ definition {
 		KeyPress(
 			locator1 = "CommerceNavigation#SEARCH_FIELD",
 			value1 = "\RETURN");
+	}
+
+	macro setReplacementSKU {
+		Type(
+			locator1 = "TextInput#REPLACEMENT",
+			value1 = "${replacementSKU}");
+
+		Button.clickPublish();
+	}
+
+	macro updateProductInventoryConfiguration {
+		if (isSet(displayAvailability)) {
+			if ("${displayAvailability}" == "true") {
+				Check.checkToggleSwitch(
+					key_toggleSwitchLabel = "Display Availability",
+					locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+			}
+			else {
+				Uncheck.uncheckToggleSwitch(
+					key_toggleSwitchLabel = "Display Availability",
+					locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+			}
+		}
+
+		if (isSet(allowBackOrders)) {
+			if ("${allowBackOrders}" == "true") {
+				Check.checkToggleSwitch(
+					key_toggleSwitchLabel = "Allow Back Order",
+					locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+			}
+			else {
+				Uncheck.uncheckToggleSwitch(
+					key_toggleSwitchLabel = "Allow Back Orders",
+					locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+			}
+		}
+
+		if (isSet(displayStockQuantity)) {
+			if ("${displayStockQuantity}" == "true") {
+				Check.checkToggleSwitch(
+					key_toggleSwitchLabel = "Display Stock Quantity",
+					locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+			}
+			else {
+				Uncheck.uncheckToggleSwitch(
+					key_toggleSwitchLabel = "Display Stock Quantity",
+					locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+			}
+		}
+
+		if (isSet(minOrderQuantity)) {
+			Type(
+				key_labelName = "Minimum Order Quantity",
+				locator1 = "TextInput#SPECIFIC_LABEL_TEXT_INPUT",
+				value1 = "${minOrderQuantity}");
+		}
+
+		Button.clickPublish();
+	}
+
+	macro updateProductVirtualConfiguration {
+		if (IsElementPresent(key_accordionTitle = "details", locator1 = "CommerceEntry#ACCORDION_COLLAPSED")) {
+			Click(
+				key_accordionTitle = "details",
+				locator1 = "CommerceEntry#ACCORDION_COLLAPSED");
+		}
+
+		if (isSet(virtualProductFile)) {
+			CommerceUtilities.uploadSingleFile(uploadFileName = "${virtualProductFile}");
+		}
+
+		if (isSet(enableSample) && isSet(sampleFileName)) {
+			CommerceProducts.uploadVirtualProductSample(
+				enableSample = "${enableSample}",
+				sampleFileName = "${sampleFileName}");
+		}
+
+		Button.clickSave();
+	}
+
+	macro uploadVirtualProductSample {
+		Variables.assertDefined(parameterList = "${enableSample},${sampleFileName}");
+
+		if (IsElementPresent(key_accordionTitle = "sample", locator1 = "CommerceEntry#ACCORDION_COLLAPSED")) {
+			Click(
+				key_accordionTitle = "sample",
+				locator1 = "CommerceEntry#ACCORDION_COLLAPSED");
+		}
+
+		if ("${enableSample}" == "true") {
+			Check.checkToggleSwitch(
+				key_toggleSwitchLabel = "Enable Sample",
+				locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+
+			CommerceUtilities.uploadSingleFile(
+				selectButtonName = "selectSampleFile",
+				uploadFileName = "${sampleFileName}");
+		}
+		else {
+			Uncheck.uncheckToggleSwitch(
+				key_toggleSwitchLabel = "Enable Sample",
+				locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+		}
+
+		if (isSet(publish) && ("${publish}" == "true")) {
+			Button.clickSave();
+		}
 	}
 
 }

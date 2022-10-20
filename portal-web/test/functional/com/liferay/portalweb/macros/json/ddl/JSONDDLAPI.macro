@@ -8,6 +8,7 @@ definition {
 			-u test@liferay.com:test \
 			-d recordSetId=${recordSetId}
 		''';
+
 		var recordId = JSONCurlUtil.post("${curl}", "$.[?(@['recordSetId'] == '${recordSetId}')]['recordId']");
 
 		if ("${recordId}" == "") {
@@ -21,7 +22,6 @@ definition {
 		Variables.assertDefined(parameterList = "${groupName},${ddlListName}");
 
 		var portalURL = JSONCompany.getPortalURL();
-
 		var groupId = JSONDDLSetter.setGroupId(groupName = "${groupName}");
 
 		var curl = '''
@@ -29,6 +29,7 @@ definition {
 			-u test@liferay.com:test \
 			-d groupIds=${groupId}
 		''';
+
 		var recordSetId = JSONCurlUtil.post("${curl}", "$.[?(@['nameCurrentValue'] == '${ddlListName}')]['recordSetId']");
 
 		if ("${recordSetId}" == "") {

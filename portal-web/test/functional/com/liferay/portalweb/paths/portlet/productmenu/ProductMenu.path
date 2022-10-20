@@ -116,11 +116,18 @@
 	<td></td>
 </tr>
 <tr>
+	<td>USER_SIGNOUT</td>
+	<td>//div[contains(@class,'list-group')]//a[contains(.,'Sign Out')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td></td>
 	<td></td>
 	<td></td>
 </tr>
+
 <!--PRODUCT_MENU_PANEL-->
+
 <tr>
 	<td>CHOOSE_A_SITE</td>
 	<td>//span[contains(@class,'site-name')][normalize-space(text())='Choose a Site']</td>

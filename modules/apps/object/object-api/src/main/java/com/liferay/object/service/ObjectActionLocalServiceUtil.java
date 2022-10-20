@@ -45,15 +45,17 @@ public class ObjectActionLocalServiceUtil {
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.object.service.impl.ObjectActionLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
 	 */
 	public static ObjectAction addObjectAction(
-			long userId, long objectDefinitionId, boolean active, String name,
+			long userId, long objectDefinitionId, boolean active,
+			String conditionExpression, String description, String name,
 			String objectActionExecutorKey, String objectActionTriggerKey,
 			com.liferay.portal.kernel.util.UnicodeProperties
 				parametersUnicodeProperties)
 		throws PortalException {
 
 		return getService().addObjectAction(
-			userId, objectDefinitionId, active, name, objectActionExecutorKey,
-			objectActionTriggerKey, parametersUnicodeProperties);
+			userId, objectDefinitionId, active, conditionExpression,
+			description, name, objectActionExecutorKey, objectActionTriggerKey,
+			parametersUnicodeProperties);
 	}
 
 	/**
@@ -119,6 +121,12 @@ public class ObjectActionLocalServiceUtil {
 	 */
 	public static ObjectAction deleteObjectAction(ObjectAction objectAction) {
 		return getService().deleteObjectAction(objectAction);
+	}
+
+	public static void deleteObjectActions(long objectDefinitionId)
+		throws PortalException {
+
+		getService().deleteObjectActions(objectDefinitionId);
 	}
 
 	/**
@@ -337,13 +345,17 @@ public class ObjectActionLocalServiceUtil {
 	}
 
 	public static ObjectAction updateObjectAction(
-			long objectActionId, boolean active, String name,
+			long objectActionId, boolean active, String conditionExpression,
+			String description, String name, String objectActionExecutorKey,
+			String objectActionTriggerKey,
 			com.liferay.portal.kernel.util.UnicodeProperties
 				parametersUnicodeProperties)
 		throws PortalException {
 
 		return getService().updateObjectAction(
-			objectActionId, active, name, parametersUnicodeProperties);
+			objectActionId, active, conditionExpression, description, name,
+			objectActionExecutorKey, objectActionTriggerKey,
+			parametersUnicodeProperties);
 	}
 
 	/**
@@ -358,6 +370,12 @@ public class ObjectActionLocalServiceUtil {
 	 */
 	public static ObjectAction updateObjectAction(ObjectAction objectAction) {
 		return getService().updateObjectAction(objectAction);
+	}
+
+	public static ObjectAction updateStatus(long objectActionId, int status)
+		throws PortalException {
+
+		return getService().updateStatus(objectActionId, status);
 	}
 
 	public static ObjectActionLocalService getService() {

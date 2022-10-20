@@ -18,6 +18,29 @@ definition {
 			locator1 = "Translation#DROPDOWN_MENU_ITEM");
 	}
 
+	macro configurationSEOCanonicalURL {
+		PortalSettings.openInstanceSettingsAdmin();
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "Pages",
+			configurationName = "SEO",
+			configurationScope = "Virtual Instance Scope");
+
+		SystemSettings.selectOptionSetting(
+			fieldName = "Canonical URL",
+			selectOption = "Use Localized URL");
+
+		if (IsElementPresent(locator1 = "Button#SAVE")) {
+			Click(locator1 = "Button#SAVE");
+		}
+
+		if (IsElementPresent(locator1 = "Button#UPDATE")) {
+			Click(locator1 = "Button#UPDATE");
+		}
+
+		Alert.viewSuccessMessage();
+	}
+
 	macro configurationTeardown {
 		PageAudit.goToGooglePageSpeedInsightsSystemSettingConfiguration();
 
@@ -196,27 +219,8 @@ definition {
 			configurationScope = "Site Scope");
 	}
 
-	macro openPanelAfterConfiguration {
+	macro openPageAuditSidebar {
 		if ((IsElementNotPresent(locator1 = "PageAudit#LAUNCH_PAGE_AUDIT_BUTTON")) && (IsElementNotPresent(locator1 = "PageAudit#RELAUNCH_PAGE_AUDIT_BUTTON"))) {
-			Click(locator1 = "PageAudit#PAGE_AUDIT_BUTTON");
-		}
-
-		if (IsElementNotPresent(locator1 = "PageAudit#LAUNCH_PAGE_AUDIT_BUTTON")) {
-			Click(locator1 = "PageAudit#RELAUNCH_PAGE_AUDIT_BUTTON");
-		}
-		else {
-			ClickNoError(locator1 = "PageAudit#LAUNCH_PAGE_AUDIT_BUTTON");
-		}
-
-		if (IsElementNotPresent(locator1 = "PageAudit#ERROR_WARNING_BOX")) {
-			AssertElementPresent(locator1 = "PageAudit#PROGRESS_BAR");
-		}
-
-		WaitForElementPresent(locator1 = "PageAudit#ALERT_BOX");
-	}
-
-	macro openPanelBeforeConfiguration {
-		if ((IsElementNotPresent(locator1 = "PageAudit#CONNECT_TO_GOOGLE_PAGESPEED_BUTTON")) && (IsElementNotPresent(locator1 = "PageAudit#ERROR_WARNING_TITLE"))) {
 			Click(locator1 = "PageAudit#PAGE_AUDIT_BUTTON");
 		}
 	}
@@ -227,6 +231,34 @@ definition {
 
 			MenuItem.clickNoError(menuItem = "Reset Default Values");
 		}
+	}
+
+	macro runPageAudit {
+		PageAudit.openPageAuditSidebar();
+
+		if (IsElementNotPresent(locator1 = "PageAudit#LAUNCH_PAGE_AUDIT_BUTTON")) {
+			Click(locator1 = "PageAudit#RELAUNCH_PAGE_AUDIT_BUTTON");
+		}
+		else {
+			ClickNoError(locator1 = "PageAudit#LAUNCH_PAGE_AUDIT_BUTTON");
+		}
+
+		AssertElementPresent(locator1 = "PageAudit#PROGRESS_BAR");
+
+		WaitForElementPresent(locator1 = "PageAudit#ALERT_BOX");
+	}
+
+	macro runPageAuditWithError {
+		PageAudit.openPageAuditSidebar();
+
+		if (IsElementNotPresent(locator1 = "PageAudit#LAUNCH_PAGE_AUDIT_BUTTON")) {
+			Click(locator1 = "PageAudit#RELAUNCH_PAGE_AUDIT_BUTTON");
+		}
+		else {
+			ClickNoError(locator1 = "PageAudit#LAUNCH_PAGE_AUDIT_BUTTON");
+		}
+
+		WaitForElementPresent(locator1 = "PageAudit#ERROR_WARNING_BOX");
 	}
 
 	macro setAPIViaInstanceSettings {

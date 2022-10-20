@@ -57,13 +57,14 @@ public class ObjectLayoutResourceTest extends BaseObjectLayoutResourceTestCase {
 				LocalizedMapUtil.getLocalizedMap(value), value, null, null,
 				LocalizedMapUtil.getLocalizedMap(value),
 				ObjectDefinitionConstants.SCOPE_COMPANY,
+				ObjectDefinitionConstants.STORAGE_TYPE_DEFAULT,
 				Collections.emptyList());
 
 		_objectField = _objectFieldLocalService.addCustomObjectField(
 			TestPropsValues.getUserId(), 0,
-			_objectDefinition.getObjectDefinitionId(), "Text", "String", false,
-			false, null, LocalizedMapUtil.getLocalizedMap("Able"), "able", true,
-			Collections.emptyList());
+			_objectDefinition.getObjectDefinitionId(), "Text", "String", null,
+			false, false, null, LocalizedMapUtil.getLocalizedMap("Able"),
+			"able", true, false, Collections.emptyList());
 	}
 
 	@After
@@ -154,6 +155,7 @@ public class ObjectLayoutResourceTest extends BaseObjectLayoutResourceTestCase {
 					_randomObjectLayoutRow()
 				};
 				priority = RandomTestUtil.randomInt();
+				type = Type.REGULAR;
 			}
 		};
 	}

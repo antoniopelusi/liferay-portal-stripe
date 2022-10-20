@@ -9,8 +9,6 @@ definition {
 	macro _gotoMail {
 		if ("${newTab}" == "true") {
 			Open.openInTheNewTab(locator1 = "http://localhost:8282");
-
-			SelectWindow.selectPopUp(locator1 = "null");
 		}
 		else {
 			Navigator.openSpecificURL(url = "http://localhost:8282");
@@ -25,7 +23,19 @@ definition {
 		var key_columnEntry = "${asset}";
 
 		if (isSet(recipient)) {
+			var counter = "0";
+
+			var key_counter = "${counter}";
 			var key_recipient = "${recipient}";
+			var maxRetries = "3";
+
+			while (("${counter}" != "${maxRetries}") && (IsTextNotEqual(locator1 = "MockMock#MOCKMOCK_SPECIFIC_RECIPIENT_SUBJECT_FIELD_LINK", value1 = "${asset}"))) {
+				var counter = ${counter} + 1;
+
+				MockMock._gotoMail();
+
+				Refresh();
+			}
 
 			AssertClick.assertPartialTextClickAt(
 				locator1 = "MockMock#MOCKMOCK_SPECIFIC_RECIPIENT_SUBJECT_FIELD_LINK",
@@ -133,15 +143,20 @@ definition {
 
 		if (isSet(enableOtp)) {
 			var bodyContent = selenium.getText("MockMock#MOCKMOCK_MESSAGE_BODY");
+
 			var bodyContent = StringUtil.extractLast("${bodyContent}", "${specificText}");
+
 			var bodySpecificText = StringUtil.extractFirst("${bodyContent}", "</pre>");
 
 			echo("Your one-time password is: ${bodySpecificText}");
 		}
 		else {
 			var bodyContent = selenium.getText("MockMock#MOCKMOCK_MESSAGE_BODY");
+
 			var bodyContent = StringUtil.extractLast("${bodyContent}", "${specificText}");
+
 			var bodySpecificText = StringUtil.extractFirst("${bodyContent}", "${extractFirstText}");
+
 			var bodySpecificText = StringUtil.trim("${bodySpecificText}");
 		}
 
@@ -188,7 +203,9 @@ definition {
 			subject = "${subject}");
 
 		var bodyContent = selenium.getText("MockMock#MOCKMOCK_MESSAGE_BODY");
+
 		var bodyContent = StringUtil.extractLast("${bodyContent}", " at ");
+
 		var bodyURL = StringUtil.extractFirst("${bodyContent}", ".<br />");
 
 		Navigator.openSpecificURL(url = "${bodyURL}");
@@ -206,7 +223,9 @@ definition {
 			subject = "${subject}");
 
 		var bodyContent = selenium.getText("MockMock#MOCKMOCK_MESSAGE_BODY");
+
 		var bodyContent = StringUtil.extractLast("${bodyContent}", "href=\"");
+
 		var bodyURL = StringUtil.extractFirst("${bodyContent}", "\"");
 
 		Navigator.openSpecificURL(url = "${bodyURL}");

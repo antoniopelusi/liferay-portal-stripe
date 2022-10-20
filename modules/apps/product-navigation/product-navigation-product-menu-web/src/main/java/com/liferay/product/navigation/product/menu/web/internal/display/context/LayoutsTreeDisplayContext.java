@@ -24,6 +24,7 @@ import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.frontend.icons.FrontendIconsUtil;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -289,12 +290,32 @@ public class LayoutsTreeDisplayContext {
 		).put(
 			"productMenuPortletURL", getProductMenuPortletURL()
 		).put(
-			"spritemap", _themeDisplay.getPathThemeImages() + "/clay/icons.svg"
+			"spritemap", FrontendIconsUtil.getSpritemap(_themeDisplay)
 		).build();
 	}
 
 	public String getNamespace() {
 		return _namespace;
+	}
+
+	public String getPagesTreeURL() throws WindowStateException {
+		return PortletURLBuilder.create(
+			PortletURLFactoryUtil.create(
+				_liferayPortletRequest,
+				ProductNavigationProductMenuPortletKeys.
+					PRODUCT_NAVIGATION_PRODUCT_MENU,
+				RenderRequest.RENDER_PHASE)
+		).setMVCPath(
+			"/portlet/pages_tree.jsp"
+		).setRedirect(
+			_getRedirect()
+		).setBackURL(
+			_getBackURL()
+		).setParameter(
+			"selPpid", this::getSelPlid
+		).setWindowState(
+			LiferayWindowState.EXCLUSIVE
+		).buildString();
 	}
 
 	public Map<String, Object> getPageTypeSelectorData() throws Exception {
@@ -313,6 +334,8 @@ public class LayoutsTreeDisplayContext {
 			}
 		).put(
 			"namespace", getNamespace()
+		).put(
+			"pagesTreeURL", getPagesTreeURL()
 		).put(
 			"pageTypeOptions", _getPageTypeOptionsJSONArray()
 		).put(
@@ -724,7 +747,7 @@ public class LayoutsTreeDisplayContext {
 					"GroupId: ", getGroupId(), " SiteNavigationMenuId: ",
 					_getSiteNavigationMenuId(),
 					" SiteNavigationMenuItemHierarchy: ",
-					_siteNavigationMenuItemsJSONArray.toJSONString()));
+					_siteNavigationMenuItemsJSONArray.toString()));
 		}
 
 		return _siteNavigationMenuItemsJSONArray;

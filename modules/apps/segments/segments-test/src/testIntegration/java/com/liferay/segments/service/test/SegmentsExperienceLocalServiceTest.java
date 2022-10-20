@@ -84,24 +84,20 @@ public class SegmentsExperienceLocalServiceTest {
 		Layout layout = LayoutTestUtil.addTypeContentLayout(_group);
 
 		_classPK = layout.getPlid();
-
-		_segmentsExperienceLocalService.deleteSegmentsExperiences(
-			_group.getGroupId(), _classNameId, _classPK);
 	}
 
 	@Test
-	public void testAddSegmentsExperience() throws Exception {
+	public void testAddSegmentsExperienceActive() throws Exception {
 		SegmentsEntry segmentsEntry = SegmentsTestUtil.addSegmentsEntry(
 			_group.getGroupId());
 		Map<Locale, String> nameMap = RandomTestUtil.randomLocaleStringMap();
 		int priority = RandomTestUtil.randomInt();
-		boolean active = RandomTestUtil.randomBoolean();
 
 		SegmentsExperience segmentsExperience =
 			_segmentsExperienceLocalService.addSegmentsExperience(
 				TestPropsValues.getUserId(), _group.getGroupId(),
 				segmentsEntry.getSegmentsEntryId(), _classNameId, _classPK,
-				nameMap, priority, active, new UnicodeProperties(true),
+				nameMap, priority, true, new UnicodeProperties(true),
 				ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
 		Assert.assertEquals(
@@ -110,14 +106,90 @@ public class SegmentsExperienceLocalServiceTest {
 		Assert.assertEquals(_classNameId, segmentsExperience.getClassNameId());
 		Assert.assertEquals(_classPK, segmentsExperience.getClassPK());
 		Assert.assertEquals(nameMap, segmentsExperience.getNameMap());
-		Assert.assertEquals(active, segmentsExperience.isActive());
+		Assert.assertTrue(segmentsExperience.isActive());
+		Assert.assertEquals(
+			StringPool.BLANK, segmentsExperience.getTypeSettings());
+
+		Assert.assertEquals(
+			2,
+			_segmentsExperienceLocalService.getSegmentsExperiencesCount(
+				_group.getGroupId(), _classNameId, _classPK, true));
+	}
+
+	@Test
+	public void testAddSegmentsExperienceActiveWithoutPriority()
+		throws Exception {
+
+		SegmentsEntry segmentsEntry = SegmentsTestUtil.addSegmentsEntry(
+			_group.getGroupId());
+
+		SegmentsExperience segmentsExperience =
+			_segmentsExperienceLocalService.addSegmentsExperience(
+				TestPropsValues.getUserId(), _group.getGroupId(),
+				segmentsEntry.getSegmentsEntryId(), _classNameId, _classPK,
+				RandomTestUtil.randomLocaleStringMap(), true,
+				new UnicodeProperties(true),
+				ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+		Assert.assertEquals(-1, segmentsExperience.getPriority());
+
+		Assert.assertEquals(
+			2,
+			_segmentsExperienceLocalService.getSegmentsExperiencesCount(
+				_group.getGroupId(), _classNameId, _classPK, true));
+	}
+
+	@Test
+	public void testAddSegmentsExperienceInactive() throws Exception {
+		SegmentsEntry segmentsEntry = SegmentsTestUtil.addSegmentsEntry(
+			_group.getGroupId());
+		Map<Locale, String> nameMap = RandomTestUtil.randomLocaleStringMap();
+		int priority = RandomTestUtil.randomInt();
+
+		SegmentsExperience segmentsExperience =
+			_segmentsExperienceLocalService.addSegmentsExperience(
+				TestPropsValues.getUserId(), _group.getGroupId(),
+				segmentsEntry.getSegmentsEntryId(), _classNameId, _classPK,
+				nameMap, priority, false, new UnicodeProperties(true),
+				ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+		Assert.assertEquals(
+			segmentsEntry.getSegmentsEntryId(),
+			segmentsExperience.getSegmentsEntryId());
+		Assert.assertEquals(_classNameId, segmentsExperience.getClassNameId());
+		Assert.assertEquals(_classPK, segmentsExperience.getClassPK());
+		Assert.assertEquals(nameMap, segmentsExperience.getNameMap());
+		Assert.assertFalse(segmentsExperience.isActive());
 		Assert.assertEquals(
 			StringPool.BLANK, segmentsExperience.getTypeSettings());
 
 		Assert.assertEquals(
 			1,
 			_segmentsExperienceLocalService.getSegmentsExperiencesCount(
-				_group.getGroupId(), _classNameId, _classPK, active));
+				_group.getGroupId(), _classNameId, _classPK, false));
+	}
+
+	@Test
+	public void testAddSegmentsExperienceInactiveWithoutPriority()
+		throws Exception {
+
+		SegmentsEntry segmentsEntry = SegmentsTestUtil.addSegmentsEntry(
+			_group.getGroupId());
+
+		SegmentsExperience segmentsExperience =
+			_segmentsExperienceLocalService.addSegmentsExperience(
+				TestPropsValues.getUserId(), _group.getGroupId(),
+				segmentsEntry.getSegmentsEntryId(), _classNameId, _classPK,
+				RandomTestUtil.randomLocaleStringMap(), false,
+				new UnicodeProperties(true),
+				ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+		Assert.assertEquals(-1, segmentsExperience.getPriority());
+
+		Assert.assertEquals(
+			1,
+			_segmentsExperienceLocalService.getSegmentsExperiencesCount(
+				_group.getGroupId(), _classNameId, _classPK, false));
 	}
 
 	@Test
@@ -140,7 +212,7 @@ public class SegmentsExperienceLocalServiceTest {
 				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 
 		Assert.assertEquals(
-			segmentsExperiences.toString(), 2, segmentsExperiences.size());
+			segmentsExperiences.toString(), 3, segmentsExperiences.size());
 	}
 
 	@Test(expected = SegmentsExperiencePriorityException.class)
@@ -173,30 +245,6 @@ public class SegmentsExperienceLocalServiceTest {
 			Collections.emptyMap(), RandomTestUtil.randomInt(),
 			RandomTestUtil.randomBoolean(), new UnicodeProperties(true),
 			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
-	}
-
-	@Test
-	public void testAddSegmentsExperienceWithoutPriority() throws Exception {
-		SegmentsEntry segmentsEntry = SegmentsTestUtil.addSegmentsEntry(
-			_group.getGroupId());
-		boolean active = RandomTestUtil.randomBoolean();
-
-		SegmentsExperience segmentsExperience =
-			_segmentsExperienceLocalService.addSegmentsExperience(
-				TestPropsValues.getUserId(), _group.getGroupId(),
-				segmentsEntry.getSegmentsEntryId(), _classNameId, _classPK,
-				RandomTestUtil.randomLocaleStringMap(), active,
-				new UnicodeProperties(true),
-				ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
-
-		Assert.assertEquals(
-			SegmentsExperienceConstants.PRIORITY_DEFAULT - 1,
-			segmentsExperience.getPriority());
-
-		Assert.assertEquals(
-			1,
-			_segmentsExperienceLocalService.getSegmentsExperiencesCount(
-				_group.getGroupId(), _classNameId, _classPK, active));
 	}
 
 	@Test
@@ -246,9 +294,7 @@ public class SegmentsExperienceLocalServiceTest {
 		Assert.assertEquals(_classPK, segmentsExperience.getClassPK());
 		Assert.assertEquals(nameMap, segmentsExperience.getNameMap());
 		Assert.assertEquals(active, segmentsExperience.isActive());
-		Assert.assertEquals(
-			SegmentsExperienceConstants.PRIORITY_DEFAULT + 1,
-			segmentsExperience.getPriority());
+		Assert.assertEquals(1, segmentsExperience.getPriority());
 		Assert.assertEquals(
 			StringPool.BLANK, segmentsExperience.getTypeSettings());
 	}
@@ -312,6 +358,43 @@ public class SegmentsExperienceLocalServiceTest {
 	}
 
 	@Test
+	public void testDeleteSegmentsExperienceWithHighestPriority()
+		throws Exception {
+
+		SegmentsEntry segmentsEntry = SegmentsTestUtil.addSegmentsEntry(
+			_group.getGroupId());
+
+		SegmentsExperience segmentsExperience1 =
+			_segmentsExperienceLocalService.appendSegmentsExperience(
+				TestPropsValues.getUserId(), _group.getGroupId(),
+				segmentsEntry.getSegmentsEntryId(), _classNameId, _classPK,
+				RandomTestUtil.randomLocaleStringMap(),
+				RandomTestUtil.randomBoolean(),
+				ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+		Assert.assertEquals(1, segmentsExperience1.getPriority());
+
+		SegmentsExperience segmentsExperience2 =
+			_segmentsExperienceLocalService.appendSegmentsExperience(
+				TestPropsValues.getUserId(), _group.getGroupId(),
+				segmentsEntry.getSegmentsEntryId(), _classNameId, _classPK,
+				RandomTestUtil.randomLocaleStringMap(),
+				RandomTestUtil.randomBoolean(),
+				ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+		Assert.assertEquals(2, segmentsExperience2.getPriority());
+
+		_segmentsExperienceLocalService.deleteSegmentsExperience(
+			segmentsExperience1.getSegmentsExperienceId());
+
+		segmentsExperience2 =
+			_segmentsExperienceLocalService.fetchSegmentsExperience(
+				segmentsExperience2.getSegmentsExperienceId());
+
+		Assert.assertEquals(1, segmentsExperience2.getPriority());
+	}
+
+	@Test
 	public void testDeleteSegmentsExperienceWithMidrangeNegativePriority()
 		throws Exception {
 
@@ -344,9 +427,7 @@ public class SegmentsExperienceLocalServiceTest {
 			_segmentsExperienceLocalService.fetchSegmentsExperience(
 				segmentsExperience1.getSegmentsExperienceId());
 
-		Assert.assertEquals(
-			SegmentsExperienceConstants.PRIORITY_DEFAULT - 1,
-			segmentsExperience1.getPriority());
+		Assert.assertEquals(-1, segmentsExperience1.getPriority());
 
 		segmentsExperience2 =
 			_segmentsExperienceLocalService.fetchSegmentsExperience(
@@ -358,9 +439,7 @@ public class SegmentsExperienceLocalServiceTest {
 			_segmentsExperienceLocalService.fetchSegmentsExperience(
 				segmentsExperience3.getSegmentsExperienceId());
 
-		Assert.assertEquals(
-			SegmentsExperienceConstants.PRIORITY_DEFAULT - 2,
-			segmentsExperience3.getPriority());
+		Assert.assertEquals(-2, segmentsExperience3.getPriority());
 	}
 
 	@Test
@@ -405,7 +484,7 @@ public class SegmentsExperienceLocalServiceTest {
 			_segmentsExperienceLocalService.fetchSegmentsExperience(
 				segmentsExperience1.getSegmentsExperienceId());
 
-		Assert.assertEquals(0, segmentsExperience1.getPriority());
+		Assert.assertEquals(1, segmentsExperience1.getPriority());
 
 		segmentsExperience2 =
 			_segmentsExperienceLocalService.fetchSegmentsExperience(
@@ -417,23 +496,30 @@ public class SegmentsExperienceLocalServiceTest {
 			_segmentsExperienceLocalService.fetchSegmentsExperience(
 				segmentsExperience3.getSegmentsExperienceId());
 
-		Assert.assertEquals(1, segmentsExperience3.getPriority());
+		Assert.assertEquals(2, segmentsExperience3.getPriority());
 
 		segmentsExperience4 =
 			_segmentsExperienceLocalService.fetchSegmentsExperience(
 				segmentsExperience4.getSegmentsExperienceId());
 
-		Assert.assertEquals(2, segmentsExperience4.getPriority());
+		Assert.assertEquals(3, segmentsExperience4.getPriority());
 
 		segmentsExperience5 =
 			_segmentsExperienceLocalService.fetchSegmentsExperience(
 				segmentsExperience5.getSegmentsExperienceId());
 
-		Assert.assertEquals(3, segmentsExperience5.getPriority());
+		Assert.assertEquals(4, segmentsExperience5.getPriority());
 	}
 
 	@Test
 	public void testFetchDefaultSegmentsExperienceId() throws PortalException {
+		long defaultSegmentsExperienceId =
+			_segmentsExperienceLocalService.fetchDefaultSegmentsExperienceId(
+				_classPK);
+
+		_segmentsExperienceLocalService.deleteSegmentsExperience(
+			defaultSegmentsExperienceId);
+
 		SegmentsExperience segmentsExperience =
 			_segmentsExperienceLocalService.addDefaultSegmentsExperience(
 				TestPropsValues.getUserId(), _classPK,
@@ -446,7 +532,16 @@ public class SegmentsExperienceLocalServiceTest {
 	}
 
 	@Test
-	public void testFetchDefaultSegmentsExperienceIdWithNonexistingDefaultExperience() {
+	public void testFetchDefaultSegmentsExperienceIdWithNonexistingDefaultExperience()
+		throws PortalException {
+
+		long defaultSegmentsExperienceId =
+			_segmentsExperienceLocalService.fetchDefaultSegmentsExperienceId(
+				_classPK);
+
+		_segmentsExperienceLocalService.deleteSegmentsExperience(
+			defaultSegmentsExperienceId);
+
 		Assert.assertEquals(
 			SegmentsExperienceConstants.ID_DEFAULT,
 			_segmentsExperienceLocalService.fetchDefaultSegmentsExperienceId(
@@ -454,7 +549,16 @@ public class SegmentsExperienceLocalServiceTest {
 	}
 
 	@Test
-	public void testFetchDefaultSegmentsExperienceIdWithNonexistingPlid() {
+	public void testFetchDefaultSegmentsExperienceIdWithNonexistingPlid()
+		throws PortalException {
+
+		long defaultSegmentsExperienceId =
+			_segmentsExperienceLocalService.fetchDefaultSegmentsExperienceId(
+				_classPK);
+
+		_segmentsExperienceLocalService.deleteSegmentsExperience(
+			defaultSegmentsExperienceId);
+
 		Assert.assertEquals(
 			SegmentsExperienceConstants.ID_DEFAULT,
 			_segmentsExperienceLocalService.fetchDefaultSegmentsExperienceId(
@@ -472,7 +576,7 @@ public class SegmentsExperienceLocalServiceTest {
 			_segmentsExperienceLocalService.fetchSegmentsExperience(
 				_group.getGroupId(), _classNameId, _classPK,
 				segmentsExperience.getPriority()));
-		Assert.assertNull(
+		Assert.assertNotNull(
 			_segmentsExperienceLocalService.fetchSegmentsExperience(
 				_group.getGroupId(), _classNameId, _classPK,
 				segmentsExperience.getPriority() + 1));
@@ -571,18 +675,13 @@ public class SegmentsExperienceLocalServiceTest {
 			SegmentsTestUtil.addSegmentsExperience(
 				_group.getGroupId(), _classNameId, _classPK);
 
-		Assert.assertEquals(
-			segmentsExperience.getPriority(),
-			SegmentsExperienceConstants.PRIORITY_DEFAULT - 1);
+		Assert.assertEquals(-1, segmentsExperience.getPriority());
 
 		segmentsExperience =
 			_segmentsExperienceLocalService.updateSegmentsExperiencePriority(
-				segmentsExperience.getSegmentsExperienceId(),
-				SegmentsExperienceConstants.PRIORITY_DEFAULT + 1);
+				segmentsExperience.getSegmentsExperienceId(), 1);
 
-		Assert.assertEquals(
-			SegmentsExperienceConstants.PRIORITY_DEFAULT + 1,
-			segmentsExperience.getPriority());
+		Assert.assertEquals(1, segmentsExperience.getPriority());
 	}
 
 	@Test
@@ -596,9 +695,7 @@ public class SegmentsExperienceLocalServiceTest {
 				RandomTestUtil.randomLocaleStringMap(), true,
 				ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
-		Assert.assertEquals(
-			segmentsExperience1.getPriority(),
-			SegmentsExperienceConstants.PRIORITY_DEFAULT + 1);
+		Assert.assertEquals(1, segmentsExperience1.getPriority());
 
 		SegmentsExperience segmentsExperience2 =
 			_segmentsExperienceLocalService.appendSegmentsExperience(
@@ -607,9 +704,7 @@ public class SegmentsExperienceLocalServiceTest {
 				RandomTestUtil.randomLocaleStringMap(), true,
 				ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
-		Assert.assertEquals(
-			segmentsExperience2.getPriority(),
-			SegmentsExperienceConstants.PRIORITY_DEFAULT + 2);
+		Assert.assertEquals(2, segmentsExperience2.getPriority());
 
 		SegmentsExperience segmentsExperience3 =
 			_segmentsExperienceLocalService.addSegmentsExperience(
@@ -619,34 +714,26 @@ public class SegmentsExperienceLocalServiceTest {
 				new UnicodeProperties(true),
 				ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
-		Assert.assertEquals(
-			segmentsExperience3.getPriority(),
-			SegmentsExperienceConstants.PRIORITY_DEFAULT - 1);
+		Assert.assertEquals(segmentsExperience3.getPriority(), -1);
 
 		segmentsExperience3 =
 			_segmentsExperienceLocalService.updateSegmentsExperiencePriority(
 				segmentsExperience3.getSegmentsExperienceId(),
 				segmentsExperience3.getPriority() + 1);
 
-		Assert.assertEquals(
-			SegmentsExperienceConstants.PRIORITY_DEFAULT + 1,
-			segmentsExperience3.getPriority());
+		Assert.assertEquals(1, segmentsExperience3.getPriority());
 
 		segmentsExperience1 =
 			_segmentsExperienceLocalService.fetchSegmentsExperience(
 				segmentsExperience1.getSegmentsExperienceId());
 
-		Assert.assertEquals(
-			SegmentsExperienceConstants.PRIORITY_DEFAULT + 2,
-			segmentsExperience1.getPriority());
+		Assert.assertEquals(2, segmentsExperience1.getPriority());
 
 		segmentsExperience2 =
 			_segmentsExperienceLocalService.fetchSegmentsExperience(
 				segmentsExperience2.getSegmentsExperienceId());
 
-		Assert.assertEquals(
-			SegmentsExperienceConstants.PRIORITY_DEFAULT + 3,
-			segmentsExperience2.getPriority());
+		Assert.assertEquals(3, segmentsExperience2.getPriority());
 	}
 
 	@Test
@@ -657,34 +744,26 @@ public class SegmentsExperienceLocalServiceTest {
 			SegmentsTestUtil.addSegmentsExperience(
 				_group.getGroupId(), _classNameId, _classPK);
 
-		Assert.assertEquals(
-			segmentsExperience1.getPriority(),
-			SegmentsExperienceConstants.PRIORITY_DEFAULT - 1);
+		Assert.assertEquals(-1, segmentsExperience1.getPriority());
 
 		SegmentsExperience segmentsExperience2 =
 			SegmentsTestUtil.addSegmentsExperience(
 				_group.getGroupId(), _classNameId, _classPK);
 
-		Assert.assertEquals(
-			segmentsExperience2.getPriority(),
-			SegmentsExperienceConstants.PRIORITY_DEFAULT - 2);
+		Assert.assertEquals(-2, segmentsExperience2.getPriority());
 
 		segmentsExperience1 =
 			_segmentsExperienceLocalService.updateSegmentsExperiencePriority(
 				segmentsExperience1.getSegmentsExperienceId(),
 				segmentsExperience1.getPriority() + 1);
 
-		Assert.assertEquals(
-			SegmentsExperienceConstants.PRIORITY_DEFAULT + 1,
-			segmentsExperience1.getPriority());
+		Assert.assertEquals(1, segmentsExperience1.getPriority());
 
 		segmentsExperience2 =
 			_segmentsExperienceLocalService.fetchSegmentsExperience(
 				segmentsExperience2.getSegmentsExperienceId());
 
-		Assert.assertEquals(
-			SegmentsExperienceConstants.PRIORITY_DEFAULT - 1,
-			segmentsExperience2.getPriority());
+		Assert.assertEquals(-1, segmentsExperience2.getPriority());
 	}
 
 	@Test
@@ -697,14 +776,14 @@ public class SegmentsExperienceLocalServiceTest {
 				new UnicodeProperties(true),
 				ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
+		Assert.assertEquals(-1, segmentsExperience1.getPriority());
+
 		segmentsExperience1 =
 			_segmentsExperienceLocalService.updateSegmentsExperiencePriority(
 				segmentsExperience1.getSegmentsExperienceId(),
 				segmentsExperience1.getPriority() + 1);
 
-		Assert.assertEquals(
-			SegmentsExperienceConstants.PRIORITY_DEFAULT + 1,
-			segmentsExperience1.getPriority());
+		Assert.assertEquals(1, segmentsExperience1.getPriority());
 	}
 
 	@Test
@@ -717,6 +796,9 @@ public class SegmentsExperienceLocalServiceTest {
 				SegmentsEntryConstants.ID_DEFAULT, _classNameId, _classPK,
 				RandomTestUtil.randomLocaleStringMap(), true,
 				ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+		Assert.assertEquals(1, segmentsExperience1.getPriority());
+
 		SegmentsExperience segmentsExperience2 =
 			_segmentsExperienceLocalService.appendSegmentsExperience(
 				TestPropsValues.getUserId(), _group.getGroupId(),
@@ -724,22 +806,20 @@ public class SegmentsExperienceLocalServiceTest {
 				RandomTestUtil.randomLocaleStringMap(), true,
 				ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
+		Assert.assertEquals(2, segmentsExperience2.getPriority());
+
 		segmentsExperience1 =
 			_segmentsExperienceLocalService.updateSegmentsExperiencePriority(
 				segmentsExperience1.getSegmentsExperienceId(),
 				segmentsExperience1.getPriority() - 1);
 
-		Assert.assertEquals(
-			SegmentsExperienceConstants.PRIORITY_DEFAULT - 1,
-			segmentsExperience1.getPriority());
+		Assert.assertEquals(-1, segmentsExperience1.getPriority());
 
 		segmentsExperience2 =
 			_segmentsExperienceLocalService.fetchSegmentsExperience(
 				segmentsExperience2.getSegmentsExperienceId());
 
-		Assert.assertEquals(
-			SegmentsExperienceConstants.PRIORITY_DEFAULT + 1,
-			segmentsExperience2.getPriority());
+		Assert.assertEquals(1, segmentsExperience2.getPriority());
 	}
 
 	@Test
@@ -752,6 +832,9 @@ public class SegmentsExperienceLocalServiceTest {
 				SegmentsEntryConstants.ID_DEFAULT, _classNameId, _classPK,
 				RandomTestUtil.randomLocaleStringMap(), true,
 				ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+		Assert.assertEquals(1, segmentsExperience1.getPriority());
+
 		SegmentsExperience segmentsExperience2 =
 			_segmentsExperienceLocalService.addSegmentsExperience(
 				TestPropsValues.getUserId(), _group.getGroupId(),
@@ -760,22 +843,20 @@ public class SegmentsExperienceLocalServiceTest {
 				new UnicodeProperties(true),
 				ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
+		Assert.assertEquals(-1, segmentsExperience2.getPriority());
+
 		segmentsExperience1 =
 			_segmentsExperienceLocalService.updateSegmentsExperiencePriority(
 				segmentsExperience1.getSegmentsExperienceId(),
 				segmentsExperience1.getPriority() - 1);
 
-		Assert.assertEquals(
-			SegmentsExperienceConstants.PRIORITY_DEFAULT - 1,
-			segmentsExperience1.getPriority());
+		Assert.assertEquals(-1, segmentsExperience1.getPriority());
 
 		segmentsExperience2 =
 			_segmentsExperienceLocalService.fetchSegmentsExperience(
 				segmentsExperience2.getSegmentsExperienceId());
 
-		Assert.assertEquals(
-			SegmentsExperienceConstants.PRIORITY_DEFAULT - 2,
-			segmentsExperience2.getPriority());
+		Assert.assertEquals(-2, segmentsExperience2.getPriority());
 	}
 
 	@Test

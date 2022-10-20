@@ -23,13 +23,10 @@ CommerceShipmentDisplayContext commerceShipmentDisplayContext = (CommerceShipmen
 <c:if test="<%= commerceShipmentDisplayContext.hasManageCommerceShipmentsPermission() %>">
 	<div class="row" id="<portlet:namespace />editShipmentContainer">
 		<div class="col-12">
-			<clay:data-set-display
-				dataProviderKey="<%= CommerceShipmentDataSetConstants.COMMERCE_DATA_SET_KEY_SHIPMENTS %>"
-				id="<%= CommerceShipmentDataSetConstants.COMMERCE_DATA_SET_KEY_SHIPMENTS %>"
+			<frontend-data-set:classic-display
+				dataProviderKey="<%= CommerceShipmentFDSNames.SHIPMENTS %>"
+				id="<%= CommerceShipmentFDSNames.SHIPMENTS %>"
 				itemsPerPage="<%= 10 %>"
-				namespace="<%= liferayPortletResponse.getNamespace() %>"
-				pageNumber="<%= 1 %>"
-				portletURL="<%= commerceShipmentDisplayContext.getPortletURL() %>"
 				style="fluid"
 			/>
 		</div>

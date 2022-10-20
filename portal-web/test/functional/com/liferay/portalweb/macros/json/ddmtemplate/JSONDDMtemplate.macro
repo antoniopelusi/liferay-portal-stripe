@@ -6,15 +6,11 @@ definition {
 		var groupId = JSONDDMtemplateSetter.setGroupId(
 			groupName = "${groupName}",
 			site = "${site}");
-
 		var globalGroupId = JSONDDMtemplateSetter.setGroupId(
 			groupName = "Global",
 			site = "true");
-
 		var classNameId = JSONDDMtemplateSetter.setClassNameId(itemType = "${itemType}");
-
 		var descriptionMap = JSONDDMtemplateSetter.setDescriptionMap(description = "${description}");
-
 		var nameMap = JSONDDMtemplateSetter.setNameMap(title = "${name}");
 
 		if (("${itemType}" == "Asset") || ("${itemType}" == "Blogs Entry") || ("${itemType}" == "Category") || ("${itemSubtype}" == "Basic Document")) {

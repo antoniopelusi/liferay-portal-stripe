@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.portlet.PortletResponseUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCResourceCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCResourceCommand;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.MimeTypesUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.util.PropsUtil;
 import com.liferay.product.navigation.applications.menu.web.internal.constants.ProductNavigationApplicationsMenuPortletKeys;
@@ -62,38 +63,27 @@ public class ApplicationsMenuLiferayLogoMVCResourceCommand
 			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
 		throws Exception {
 
-		InputStream inputStream =
-			_getApplicationsMenuDefaultLiferayLogoInputStream();
-
-		if (inputStream == null) {
-			return;
-		}
-
-		PortletResponseUtil.write(resourceResponse, inputStream);
-	}
-
-	private InputStream _getApplicationsMenuDefaultLiferayLogoInputStream() {
+		String applicationsMenuDefaultLiferayLogo =
+			_getApplicationsMenuDefaultLiferayLogo();
 		ClassLoader classLoader = ImageTool.class.getClassLoader();
+		InputStream inputStream = null;
 
 		try {
-			InputStream inputStream = null;
-
-			String imageDefaultLiferayLogo =
-				_getApplicationsMenuDefualtLiferayLogo();
-
-			int index = imageDefaultLiferayLogo.indexOf(CharPool.SEMICOLON);
+			int index = applicationsMenuDefaultLiferayLogo.indexOf(
+				CharPool.SEMICOLON);
 
 			if (index == -1) {
 				inputStream = classLoader.getResourceAsStream(
-					_getApplicationsMenuDefualtLiferayLogo());
+					applicationsMenuDefaultLiferayLogo);
 			}
 			else {
-				String bundleIdString = imageDefaultLiferayLogo.substring(
-					0, index);
+				String bundleIdString =
+					applicationsMenuDefaultLiferayLogo.substring(0, index);
 
 				int bundleId = GetterUtil.getInteger(bundleIdString, -1);
 
-				String name = imageDefaultLiferayLogo.substring(index + 1);
+				String name = applicationsMenuDefaultLiferayLogo.substring(
+					index + 1);
 
 				if (bundleId < 0) {
 					if (_log.isDebugEnabled()) {
@@ -114,27 +104,33 @@ public class ApplicationsMenuLiferayLogoMVCResourceCommand
 					}
 				}
 			}
-
-			if (inputStream == null) {
-				if (_log.isDebugEnabled()) {
-					_log.debug("Default Liferay logo is not available");
-				}
-			}
-
-			return inputStream;
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
 				_log.debug(
 					"Unable to configure the default Liferay logo: " +
 						exception.getMessage());
+
+				return;
 			}
 		}
 
-		return null;
+		if (inputStream == null) {
+			if (_log.isDebugEnabled()) {
+				_log.debug("Default Liferay logo is not available");
+			}
+
+			return;
+		}
+
+		resourceResponse.setContentType(
+			MimeTypesUtil.getExtensionContentType(
+				applicationsMenuDefaultLiferayLogo));
+
+		PortletResponseUtil.write(resourceResponse, inputStream);
 	}
 
-	private String _getApplicationsMenuDefualtLiferayLogo() {
+	private String _getApplicationsMenuDefaultLiferayLogo() {
 		return GetterUtil.getString(
 			PropsUtil.get(PropsKeys.APPLICATIONS_MENU_DEFAULT_LIFERAY_LOGO),
 			"com/liferay/portal/dependencies/liferay_logo.png");

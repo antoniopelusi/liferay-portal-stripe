@@ -881,8 +881,6 @@ public interface Portal {
 	public String getPortalURL(ThemeDisplay themeDisplay)
 		throws PortalException;
 
-	public String getPortalWebDir();
-
 	public PortletConfig getPortletConfig(
 			long companyId, String portletId, ServletContext servletContext)
 		throws PortletException;
@@ -1145,6 +1143,8 @@ public interface Portal {
 
 	public boolean isGroupAdmin(User user, long groupId) throws Exception;
 
+	public boolean isGroupControlPanelPath(String path);
+
 	public boolean isGroupFriendlyURL(
 		String fullURL, String groupFriendlyURL, String layoutFriendlyURL);
 
@@ -1183,6 +1183,8 @@ public interface Portal {
 	public boolean isSystemGroup(String groupName);
 
 	public boolean isSystemRole(String roleName);
+
+	public boolean isValidPortalDomain(long companyId, String domain);
 
 	public boolean isValidResourceId(String resourceId);
 

@@ -24,9 +24,9 @@ import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.SystemProperties;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.zip.ZipReader;
-import com.liferay.portal.kernel.zip.ZipReaderFactoryUtil;
+import com.liferay.portal.kernel.zip.ZipReaderFactory;
 import com.liferay.portal.kernel.zip.ZipWriter;
-import com.liferay.portal.kernel.zip.ZipWriterFactoryUtil;
+import com.liferay.portal.kernel.zip.ZipWriterFactory;
 import com.liferay.user.associated.data.display.UADDisplay;
 import com.liferay.user.associated.data.exporter.UADExporter;
 import com.liferay.user.associated.data.web.internal.export.background.task.UADExportBackgroundTaskStatusMessageSender;
@@ -79,8 +79,7 @@ public class UADApplicationExportController {
 
 			if (file.exists()) {
 				try {
-					ZipReader zipReader = ZipReaderFactoryUtil.getZipReader(
-						file);
+					ZipReader zipReader = _zipReaderFactory.getZipReader(file);
 
 					List<String> entries = zipReader.getEntries();
 
@@ -178,7 +177,7 @@ public class UADApplicationExportController {
 
 		String fileName = sb.toString();
 
-		return ZipWriterFactoryUtil.getZipWriter(
+		return _zipWriterFactory.getZipWriter(
 			new File(
 				SystemProperties.get(SystemProperties.TMP_DIR) +
 					StringPool.SLASH + fileName));
@@ -196,5 +195,11 @@ public class UADApplicationExportController {
 
 	@Reference
 	private UserLocalService _userLocalService;
+
+	@Reference
+	private ZipReaderFactory _zipReaderFactory;
+
+	@Reference
+	private ZipWriterFactory _zipWriterFactory;
 
 }

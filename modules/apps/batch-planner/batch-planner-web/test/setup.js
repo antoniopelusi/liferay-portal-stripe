@@ -24,24 +24,20 @@ window.Liferay.Language = {
 	},
 };
 
-window.Liferay.ThemeDisplay = {
-	getBCP47LanguageId: () => 'en-US',
-	getPathThemeImages: () => '/assets',
-};
-
-window.Liferay.detach = (name, fn) => {
-	window.removeEventListener(name, fn);
-};
 window.Liferay.fire = (name, payload) => {
-	var event = document.createEvent('CustomEvent');
+	const event = document.createEvent('CustomEvent');
+
 	event.initCustomEvent(name);
+
 	if (payload) {
 		Object.keys(payload).forEach((key) => {
 			event[key] = payload[key];
 		});
 	}
+
 	window.dispatchEvent(event);
 };
+
 window.Liferay.on = (name, fn) => {
 	window.addEventListener(name, fn);
 };

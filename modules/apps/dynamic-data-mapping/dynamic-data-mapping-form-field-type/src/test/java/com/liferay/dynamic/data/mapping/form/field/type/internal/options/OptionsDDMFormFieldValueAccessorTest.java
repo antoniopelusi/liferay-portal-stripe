@@ -33,7 +33,6 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 /**
@@ -49,6 +48,9 @@ public class OptionsDDMFormFieldValueAccessorTest {
 	@BeforeClass
 	public static void setUpClass() {
 		_setUpJSONFactory(new JSONFactoryImpl());
+
+		_setUpLanguage();
+
 		_setUpLanguageUtil();
 	}
 
@@ -108,20 +110,24 @@ public class OptionsDDMFormFieldValueAccessorTest {
 			_optionsDDMFormFieldValueAccessor, "_jsonFactory", jsonFactory);
 	}
 
-	private static void _setUpLanguageUtil() {
-		LanguageUtil languageUtil = new LanguageUtil();
-
-		Language language = Mockito.mock(Language.class);
-
+	private static void _setUpLanguage() {
 		Mockito.when(
-			language.getLanguageId(Matchers.eq(LocaleUtil.US))
+			_language.getLanguageId(Mockito.eq(LocaleUtil.US))
 		).thenReturn(
 			"en_US"
 		);
 
-		languageUtil.setLanguage(language);
+		ReflectionTestUtil.setFieldValue(
+			_optionsDDMFormFieldValueAccessor, "_language", _language);
 	}
 
+	private static void _setUpLanguageUtil() {
+		LanguageUtil languageUtil = new LanguageUtil();
+
+		languageUtil.setLanguage(_language);
+	}
+
+	private static final Language _language = Mockito.mock(Language.class);
 	private static final OptionsDDMFormFieldValueAccessor
 		_optionsDDMFormFieldValueAccessor =
 			new OptionsDDMFormFieldValueAccessor();

@@ -17,6 +17,7 @@ package com.liferay.portal.workflow.kaleo.runtime.internal;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
+import com.liferay.portal.kernel.change.tracking.CTAware;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayInputStream;
 import com.liferay.portal.kernel.log.Log;
@@ -74,6 +75,7 @@ import org.osgi.service.component.annotations.Reference;
  * @author Michael C. Han
  */
 @Component(immediate = true, service = AopService.class)
+@CTAware
 @Transactional(
 	isolation = Isolation.PORTAL, propagation = Propagation.REQUIRED,
 	rollbackFor = Exception.class
@@ -347,15 +349,14 @@ public class DefaultWorkflowEngineImpl
 		throws WorkflowException {
 
 		try {
-			List<KaleoInstance> kaleoInstances =
+			return _toWorkflowInstances(
 				kaleoInstanceLocalService.getKaleoInstances(
 					userId, assetClassName, assetClassPK, completed, start, end,
 					KaleoInstanceOrderByComparator.getOrderByComparator(
 						orderByComparator, _kaleoWorkflowModelConverter,
 						serviceContext),
-					serviceContext);
-
-			return _toWorkflowInstances(kaleoInstances, serviceContext);
+					serviceContext),
+				serviceContext);
 		}
 		catch (WorkflowException workflowException) {
 			throw workflowException;
@@ -373,15 +374,14 @@ public class DefaultWorkflowEngineImpl
 		throws WorkflowException {
 
 		try {
-			List<KaleoInstance> kaleoInstances =
+			return _toWorkflowInstances(
 				kaleoInstanceLocalService.getKaleoInstances(
 					userId, assetClassNames, completed, start, end,
 					KaleoInstanceOrderByComparator.getOrderByComparator(
 						orderByComparator, _kaleoWorkflowModelConverter,
 						serviceContext),
-					serviceContext);
-
-			return _toWorkflowInstances(kaleoInstances, serviceContext);
+					serviceContext),
+				serviceContext);
 		}
 		catch (WorkflowException workflowException) {
 			throw workflowException;
@@ -400,16 +400,15 @@ public class DefaultWorkflowEngineImpl
 		throws WorkflowException {
 
 		try {
-			List<KaleoInstance> kaleoInstances =
+			return _toWorkflowInstances(
 				kaleoInstanceLocalService.getKaleoInstances(
 					workflowDefinitionName, workflowDefinitionVersion,
 					completed, start, end,
 					KaleoInstanceOrderByComparator.getOrderByComparator(
 						orderByComparator, _kaleoWorkflowModelConverter,
 						serviceContext),
-					serviceContext);
-
-			return _toWorkflowInstances(kaleoInstances, serviceContext);
+					serviceContext),
+				serviceContext);
 		}
 		catch (WorkflowException workflowException) {
 			throw workflowException;
@@ -428,11 +427,9 @@ public class DefaultWorkflowEngineImpl
 		try {
 			Definition definition = _getDefinition(bytes);
 
-			String definitionName = _getDefinitionName(
-				definition, name, serviceContext);
-
 			return _workflowDeployer.save(
-				title, definitionName, scope, definition, serviceContext);
+				title, _getDefinitionName(definition, name, serviceContext),
+				scope, definition, serviceContext);
 		}
 		catch (WorkflowException workflowException) {
 			throw workflowException;

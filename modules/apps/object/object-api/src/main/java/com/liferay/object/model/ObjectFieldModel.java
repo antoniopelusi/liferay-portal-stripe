@@ -209,6 +209,21 @@ public interface ObjectFieldModel
 	public void setModifiedDate(Date modifiedDate);
 
 	/**
+	 * Returns the external reference code of this object field.
+	 *
+	 * @return the external reference code of this object field
+	 */
+	@AutoEscape
+	public String getExternalReferenceCode();
+
+	/**
+	 * Sets the external reference code of this object field.
+	 *
+	 * @param externalReferenceCode the external reference code of this object field
+	 */
+	public void setExternalReferenceCode(String externalReferenceCode);
+
+	/**
 	 * Returns the list type definition ID of this object field.
 	 *
 	 * @return the list type definition ID of this object field
@@ -295,6 +310,21 @@ public interface ObjectFieldModel
 	 * @param dbType the db type of this object field
 	 */
 	public void setDBType(String dbType);
+
+	/**
+	 * Returns the default value of this object field.
+	 *
+	 * @return the default value of this object field
+	 */
+	@AutoEscape
+	public String getDefaultValue();
+
+	/**
+	 * Sets the default value of this object field.
+	 *
+	 * @param defaultValue the default value of this object field
+	 */
+	public void setDefaultValue(String defaultValue);
 
 	/**
 	 * Returns the indexed of this object field.
@@ -502,6 +532,48 @@ public interface ObjectFieldModel
 	 * @param required the required of this object field
 	 */
 	public void setRequired(boolean required);
+
+	/**
+	 * Returns the state of this object field.
+	 *
+	 * @return the state of this object field
+	 */
+	public boolean getState();
+
+	/**
+	 * Returns <code>true</code> if this object field is state.
+	 *
+	 * @return <code>true</code> if this object field is state; <code>false</code> otherwise
+	 */
+	public boolean isState();
+
+	/**
+	 * Sets whether this object field is state.
+	 *
+	 * @param state the state of this object field
+	 */
+	public void setState(boolean state);
+
+	/**
+	 * Returns the system of this object field.
+	 *
+	 * @return the system of this object field
+	 */
+	public boolean getSystem();
+
+	/**
+	 * Returns <code>true</code> if this object field is system.
+	 *
+	 * @return <code>true</code> if this object field is system; <code>false</code> otherwise
+	 */
+	public boolean isSystem();
+
+	/**
+	 * Sets whether this object field is system.
+	 *
+	 * @param system the system of this object field
+	 */
+	public void setSystem(boolean system);
 
 	@Override
 	public String[] getAvailableLanguageIds();

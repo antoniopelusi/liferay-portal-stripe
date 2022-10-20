@@ -1,0 +1,12 @@
+{
+	"cacheable": false,
+	"fragmentEntryKey": "captcha",
+	"icon": "reload",
+	"name": "captcha",
+	"type": "input",
+	"typeOptions": {
+		"fieldTypes": [
+			"captcha"
+		]
+	}
+}

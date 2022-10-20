@@ -37,8 +37,9 @@ public class MicroblogsEntryUpgradeProcess extends UpgradeProcess {
 				return;
 			}
 
-			runSQL("alter table MicroblogsEntry add creatorClassNameId LONG");
-			runSQL("alter table MicroblogsEntry add creatorClassPK LONG");
+			alterTableAddColumn(
+				"MicroblogsEntry", "creatorClassNameId", "LONG");
+			alterTableAddColumn("MicroblogsEntry", "creatorClassPK", "LONG");
 
 			runSQL(
 				"update MicroblogsEntry set creatorClassNameId = " +

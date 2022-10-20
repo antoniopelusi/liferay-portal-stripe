@@ -18,7 +18,7 @@ const menu = fragmentElement.querySelector('.dropdown-fragment-menu');
 const withinMasterLayout = fragmentElement.parentElement.classList.contains(
 	'page-editor__fragment-content--master'
 );
-const editMode = document.body.classList.contains('has-edit-mode-menu');
+const editMode = layoutMode === 'edit';
 
 let alignMenuInterval;
 
@@ -29,9 +29,9 @@ function menuHasChildren() {
 
 	return (
 		contentElement &&
-		Array.from(contentElement.firstElementChild.children).filter(
+		!!Array.from(contentElement.firstElementChild.children).filter(
 			(child) => child.tagName !== 'STYLE'
-		).length > 0
+		).length
 	);
 }
 

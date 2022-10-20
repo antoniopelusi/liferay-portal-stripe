@@ -145,7 +145,7 @@ public class FragmentEntryProcessorDropZoneTest {
 				fragmentCollection.getFragmentCollectionId(), "fragment-entry",
 				"Fragment Entry", null,
 				_readFileToString("drop_zone_fragment_entry.html"), null, false,
-				null, null, 0, FragmentConstants.TYPE_SECTION,
+				null, null, 0, FragmentConstants.TYPE_SECTION, null,
 				WorkflowConstants.STATUS_APPROVED, _serviceContext);
 
 		return _fragmentEntryLinkLocalService.addFragmentEntryLink(
@@ -153,7 +153,8 @@ public class FragmentEntryProcessorDropZoneTest {
 			fragmentEntry.getFragmentEntryId(), segmentsExperienceId,
 			_layout.getPlid(), fragmentEntry.getCss(), fragmentEntry.getHtml(),
 			fragmentEntry.getJs(), fragmentEntry.getConfiguration(),
-			StringPool.BLANK, StringPool.BLANK, 0, null, _serviceContext);
+			StringPool.BLANK, StringPool.BLANK, 0, null,
+			fragmentEntry.getType(), _serviceContext);
 	}
 
 	private String _getProcessedHTML(String fileName) throws Exception {

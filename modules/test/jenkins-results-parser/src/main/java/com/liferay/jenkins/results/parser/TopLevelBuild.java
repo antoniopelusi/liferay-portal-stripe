@@ -19,6 +19,7 @@ import com.liferay.jenkins.results.parser.failure.message.generator.CITestSuiteV
 import com.liferay.jenkins.results.parser.failure.message.generator.CompileFailureMessageGenerator;
 import com.liferay.jenkins.results.parser.failure.message.generator.DownstreamFailureMessageGenerator;
 import com.liferay.jenkins.results.parser.failure.message.generator.FailureMessageGenerator;
+import com.liferay.jenkins.results.parser.failure.message.generator.FormatFailureMessageGenerator;
 import com.liferay.jenkins.results.parser.failure.message.generator.GenericFailureMessageGenerator;
 import com.liferay.jenkins.results.parser.failure.message.generator.GitLPushFailureMessageGenerator;
 import com.liferay.jenkins.results.parser.failure.message.generator.GradleTaskFailureMessageGenerator;
@@ -29,6 +30,7 @@ import com.liferay.jenkins.results.parser.failure.message.generator.JenkinsSourc
 import com.liferay.jenkins.results.parser.failure.message.generator.PoshiTestFailureMessageGenerator;
 import com.liferay.jenkins.results.parser.failure.message.generator.PoshiValidationFailureMessageGenerator;
 import com.liferay.jenkins.results.parser.failure.message.generator.RebaseFailureMessageGenerator;
+import com.liferay.jenkins.results.parser.testray.TestrayBuild;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,6 +47,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
@@ -272,6 +275,7 @@ public abstract class TopLevelBuild extends BaseBuild {
 			}
 		}
 
+		buildResultsJSONObject.put("testSuiteName", getTestSuiteName());
 		buildResultsJSONObject.put("upstreamBranchSHA", getUpstreamBranchSHA());
 
 		return buildResultsJSONObject;
@@ -428,6 +432,38 @@ public abstract class TopLevelBuild extends BaseBuild {
 			downstreamBatchBuilds, new BaseBuild.BuildDisplayNameComparator());
 
 		return downstreamBatchBuilds;
+	}
+
+	public DownstreamBuild getDownstreamBuild(String axisName) {
+		for (Build downstreamBuild : getDownstreamBuilds(null)) {
+			String downstreamAxisName = downstreamBuild.getParameterValue(
+				"JOB_VARIANT");
+
+			if (JenkinsResultsParserUtil.isNullOrEmpty(downstreamAxisName)) {
+				continue;
+			}
+
+			String downstreamAxisVariable = downstreamBuild.getParameterValue(
+				"AXIS_VARIABLE");
+
+			if (JenkinsResultsParserUtil.isNullOrEmpty(
+					downstreamAxisVariable)) {
+
+				continue;
+			}
+
+			downstreamAxisName += "/" + downstreamAxisVariable;
+
+			if (!axisName.equals(downstreamAxisName) ||
+				!(downstreamBuild instanceof DownstreamBuild)) {
+
+				continue;
+			}
+
+			return (DownstreamBuild)downstreamBuild;
+		}
+
+		return null;
 	}
 
 	@Override
@@ -592,6 +628,26 @@ public abstract class TopLevelBuild extends BaseBuild {
 	@Override
 	public boolean isCompareToUpstream() {
 		return _compareToUpstream;
+	}
+
+	@Override
+	public boolean isFromCompletedBuild() {
+		Build parentBuild = getParentBuild();
+
+		if (parentBuild != null) {
+			return parentBuild.isFromCompletedBuild();
+		}
+
+		String consoleText = getConsoleText();
+
+		if (consoleText.contains("stop-current-job:") ||
+			consoleText.contains(
+				"com.liferay.jenkins.results.parser.BuildLauncher teardown")) {
+
+			return true;
+		}
+
+		return false;
 	}
 
 	@Override
@@ -1366,6 +1422,12 @@ public abstract class TopLevelBuild extends BaseBuild {
 		Element buildTimeElement = Dom4JUtil.getNewElement(
 			"th", null, "Build Time");
 
+		Element estimatedBuildTimeElement = Dom4JUtil.getNewElement(
+			"th", null, "Build Time (est)");
+
+		Element diffBuildTimeElement = Dom4JUtil.getNewElement(
+			"th", null, "Build Time (+/-)");
+
 		Element statusElement = Dom4JUtil.getNewElement("th", null, "Status");
 
 		Element resultElement = Dom4JUtil.getNewElement("th", null, "Result");
@@ -1375,7 +1437,8 @@ public abstract class TopLevelBuild extends BaseBuild {
 		Dom4JUtil.addToElement(
 			tableColumnHeaderElement, nameElement, consoleElement,
 			testReportElement, startTimeElement, buildTimeElement,
-			statusElement, resultElement);
+			estimatedBuildTimeElement, diffBuildTimeElement, statusElement,
+			resultElement);
 
 		return tableColumnHeaderElement;
 	}
@@ -1488,7 +1551,8 @@ public abstract class TopLevelBuild extends BaseBuild {
 	protected Element getJobSummaryListElement(
 		boolean success, List<String> jobVariants) {
 
-		Element jobSummaryListElement = Dom4JUtil.getNewElement("ul");
+		Element batchListElement = null;
+		String batchName = null;
 
 		List<Build> builds = new ArrayList<>();
 
@@ -1502,10 +1566,50 @@ public abstract class TopLevelBuild extends BaseBuild {
 			builds.addAll(getDownstreamBuilds(null));
 		}
 
+		int count = 0;
+		Element jobSummaryListElement = Dom4JUtil.getNewElement("ul");
+
 		for (Build build : builds) {
 			String result = build.getResult();
 
 			if (result.equals("SUCCESS") == success) {
+				count++;
+
+				if (count > _MAX_JOB_SUMMARY_LIST_SIZE) {
+					Element jobSummaryListItemElement = Dom4JUtil.getNewElement(
+						"li", jobSummaryListElement);
+
+					jobSummaryListItemElement.addText("...");
+
+					break;
+				}
+
+				if (build instanceof DownstreamBuild) {
+					DownstreamBuild downstreamBuild = (DownstreamBuild)build;
+
+					if (!Objects.equals(
+							batchName, downstreamBuild.getBatchName())) {
+
+						batchName = downstreamBuild.getBatchName();
+
+						Element batchListItemElement = Dom4JUtil.getNewElement(
+							"li", jobSummaryListElement);
+
+						batchListItemElement.addText(batchName);
+
+						batchListElement = Dom4JUtil.getNewElement(
+							"ul", batchListItemElement);
+					}
+
+					Element batchListItemElement = Dom4JUtil.getNewElement(
+						"li", batchListElement);
+
+					batchListItemElement.add(
+						build.getGitHubMessageBuildAnchorElement());
+
+					continue;
+				}
+
 				Element jobSummaryListItemElement = Dom4JUtil.getNewElement(
 					"li", jobSummaryListElement);
 
@@ -1523,9 +1627,8 @@ public abstract class TopLevelBuild extends BaseBuild {
 			Dom4JUtil.getNewAnchorElement(getJenkinsReportURL(), "here"), ".");
 	}
 
-	protected Element getReevaluationDetailsElement(int upstreamBuildNumber) {
-		String upstreamBuildURL =
-			getAcceptanceUpstreamJobURL() + "/" + upstreamBuildNumber;
+	protected Element getReevaluationDetailsElement(
+		TopLevelBuildReport upstreamTopLevelBuildReport) {
 
 		Element growURLElement = Dom4JUtil.getNewAnchorElement(
 			"https://grow.liferay.com/share" +
@@ -1541,7 +1644,9 @@ public abstract class TopLevelBuild extends BaseBuild {
 		return Dom4JUtil.getNewElement(
 			"p", null, "This pull is eligible for ", growURLElement,
 			". When this ",
-			Dom4JUtil.getNewAnchorElement(upstreamBuildURL, "upstream build"),
+			Dom4JUtil.getNewAnchorElement(
+				String.valueOf(upstreamTopLevelBuildReport.getBuildURL()),
+				"upstream build"),
 			" has completed, using the following CI command will compare ",
 			"this pull request result against a more recent upstream result:",
 			preElement);
@@ -1696,14 +1801,16 @@ public abstract class TopLevelBuild extends BaseBuild {
 
 			String upstreamBranchSHA = getUpstreamBranchSHA();
 
-			int buildNumber =
-				UpstreamFailureUtil.getUpstreamJobFailuresBuildNumber(
+			TopLevelBuildReport upstreamTopLevelBuildReport =
+				UpstreamFailureUtil.getUpstreamTopLevelBuildReport(
 					this, upstreamBranchSHA);
 
-			if (isEligibleForReevaluation(result, upstreamBranchSHA)) {
+			if ((upstreamTopLevelBuildReport != null) &&
+				isEligibleForReevaluation(result, upstreamBranchSHA)) {
+
 				Dom4JUtil.addToElement(
 					detailsElement, Dom4JUtil.getNewElement("br"),
-					getReevaluationDetailsElement(buildNumber));
+					getReevaluationDetailsElement(upstreamTopLevelBuildReport));
 			}
 		}
 
@@ -1759,20 +1866,14 @@ public abstract class TopLevelBuild extends BaseBuild {
 			Dom4JUtil.getNewAnchorElement(
 				upstreamCommitURL, upstreamJobFailuresSHA));
 
-		int buildNumber = UpstreamFailureUtil.getUpstreamJobFailuresBuildNumber(
+		TestrayBuild testrayBuild = UpstreamFailureUtil.getUpstreamTestrayBuild(
 			this);
-
-		String buildURL =
-			UpstreamFailureUtil.getUpstreamJobFailuresJobURL(this) + "/" +
-				buildNumber;
 
 		Dom4JUtil.addToElement(
 			upstreamComparisonDetailsElement, Dom4JUtil.getNewElement("br"),
 			"Jenkins Build URL: ",
 			Dom4JUtil.getNewAnchorElement(
-				buildURL,
-				"Acceptance Upstream DXP (" + getBranchName() + ") #" +
-					buildNumber));
+				String.valueOf(testrayBuild.getURL()), testrayBuild.getName()));
 
 		return upstreamComparisonDetailsElement;
 	}
@@ -2030,6 +2131,7 @@ public abstract class TopLevelBuild extends BaseBuild {
 		{
 			new CITestSuiteValidationFailureMessageGenerator(),
 			new CompileFailureMessageGenerator(),
+			new FormatFailureMessageGenerator(),
 			new GitLPushFailureMessageGenerator(),
 			new JenkinsRegenFailureMessageGenerator(),
 			new JenkinsSourceFormatFailureMessageGenerator(),
@@ -2048,6 +2150,8 @@ public abstract class TopLevelBuild extends BaseBuild {
 			//
 			new GenericFailureMessageGenerator()
 		};
+
+	private static final int _MAX_JOB_SUMMARY_LIST_SIZE = 500;
 
 	private static final long _MILLIS_DOWNSTREAM_BUILDS_LISTING_INTERVAL =
 		1000 * 60 * 5;

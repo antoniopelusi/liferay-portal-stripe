@@ -44,7 +44,7 @@ const SaveFragmentCompositionModal = ({onCloseModal}) => {
 	const [name, setName] = useState(undefined);
 	const [description, setDescription] = useState('');
 	const [fragmentCollectionId, setFragmentCollectionId] = useState(
-		collections.length > 0 ? collections[0].fragmentCollectionId : -1
+		collections.length ? collections[0].fragmentCollectionId : -1
 	);
 
 	const [saveInlineContent, setSaveInlineContent] = useState(false);
@@ -136,6 +136,9 @@ const SaveFragmentCompositionModal = ({onCloseModal}) => {
 							<ClayInput
 								autoFocus
 								id={nameInputId}
+								maxlength={
+									config.fragmentCompositionNameMaxLength
+								}
 								onChange={(event) =>
 									setName(event.target.value)
 								}
@@ -202,7 +205,9 @@ const SaveFragmentCompositionModal = ({onCloseModal}) => {
 
 							<ClayInput
 								component="textarea"
-								id={descriptionInputId}
+								maxlength={
+									config.fragmentCompositionDescriptionMaxLength
+								}
 								onChange={(event) =>
 									setDescription(event.target.value)
 								}
@@ -249,7 +254,7 @@ const SaveFragmentCompositionModal = ({onCloseModal}) => {
 						</ClayForm.Group>
 
 						<ClayForm.Group>
-							{collections.length > 0 ? (
+							{collections.length ? (
 								<>
 									<p className="sheet-tertiary-title">
 										{Liferay.Language.get(

@@ -27,6 +27,7 @@ taglib uri="http://liferay.com/tld/theme" prefix="liferay-theme" %><%@
 taglib uri="http://liferay.com/tld/ui" prefix="liferay-ui" %>
 
 <%@ page import="com.liferay.batch.planner.constants.BatchPlannerPlanConstants" %><%@
+page import="com.liferay.batch.planner.exception.BatchPlannerPlanInternalClassNameException" %><%@
 page import="com.liferay.batch.planner.model.BatchPlannerPlan" %><%@
 page import="com.liferay.batch.planner.web.internal.display.BatchPlannerPlanDisplay" %><%@
 page import="com.liferay.batch.planner.web.internal.display.context.BatchPlannerPlanDisplayContext" %><%@
@@ -35,7 +36,6 @@ page import="com.liferay.batch.planner.web.internal.display.context.BatchPlanner
 page import="com.liferay.batch.planner.web.internal.display.context.BatchPlannerPlanTemplateManagementToolbarDisplayContext" %><%@
 page import="com.liferay.batch.planner.web.internal.display.context.EditBatchPlannerPlanDisplayContext" %><%@
 page import="com.liferay.batch.planner.web.internal.security.permission.resource.BatchPlannerPlanPermission" %><%@
-page import="com.liferay.frontend.taglib.clay.servlet.taglib.util.SelectOption" %><%@
 page import="com.liferay.petra.portlet.url.builder.ActionURLBuilder" %><%@
 page import="com.liferay.petra.portlet.url.builder.PortletURLBuilder" %><%@
 page import="com.liferay.petra.portlet.url.builder.ResourceURLBuilder" %><%@
@@ -55,8 +55,6 @@ page import="com.liferay.portal.kernel.util.PortalUtil" %><%@
 page import="com.liferay.portal.kernel.util.WebKeys" %>
 
 <%@ page import="java.text.Format" %>
-
-<%@ page import="java.util.Arrays" %>
 
 <liferay-frontend:defineObjects />
 

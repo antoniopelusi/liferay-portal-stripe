@@ -16,28 +16,19 @@ import ClayAlert from '@clayui/alert';
 import ClayButton from '@clayui/button';
 import ClayForm from '@clayui/form';
 import ClayModal, {ClayModalProvider, useModal} from '@clayui/modal';
-import {fetch} from 'frontend-js-web';
+import {Observer} from '@clayui/modal/lib/types';
+import {
+	API,
+	FormError,
+	Input,
+	InputLocalized,
+	useForm,
+} from '@liferay/object-js-components-web';
 import React, {useEffect, useState} from 'react';
 
-import useForm from '../hooks/useForm';
-import {normalizeLanguageId, toCamelCase} from '../utils/string';
-import Input from './Form/Input';
-import InputLocalized from './Form/InputLocalized/InputLocalized';
+import {toCamelCase} from '../utils/string';
 
-const defaultLanguageId: string = normalizeLanguageId(
-	Liferay.ThemeDisplay.getDefaultLanguageId()
-);
-
-const availableLocales: TLocale[] = Object.keys(Liferay.Language.available).map(
-	(language) => {
-		const formattedLocales = language.replace('_', '-');
-
-		return {
-			label: language,
-			symbol: formattedLocales.toLowerCase(),
-		};
-	}
-);
+const defaultLanguageId = Liferay.ThemeDisplay.getDefaultLanguageId();
 
 const ModalAddListTypeEntry: React.FC<IProps> = ({
 	apiURL,
@@ -45,46 +36,50 @@ const ModalAddListTypeEntry: React.FC<IProps> = ({
 	onClose,
 }) => {
 	const [error, setError] = useState<string>('');
-	const [selectedLocale, setSelectedLocale] = useState<TLocale>(
-		availableLocales[0]
-	);
+	const [selectedLocale, setSelectedLocale] = useState({
+		label: defaultLanguageId,
+		symbol: defaultLanguageId.replace('_', '-').toLowerCase(),
+	});
 	const initialValues: TInitialValues = {
 		key: undefined,
 		name_i18n: {[defaultLanguageId]: ''},
 	};
 
+	const handleLocaleChange = (value: {label: Locale; symbol: string}) => {
+		setSelectedLocale(value);
+
+		const localeDropdown = document.querySelector('.dropdown-menu.show');
+
+		localeDropdown?.classList.add('hide');
+
+		const inputLocale = document.querySelector('#locale');
+
+		if (inputLocale instanceof HTMLElement) {
+			inputLocale.focus();
+		}
+	};
+
 	const onSubmit = async ({key, name_i18n}: TInitialValues) => {
-		const response = await fetch(apiURL, {
-			body: JSON.stringify({
-				key: key || toCamelCase(name_i18n[selectedLocale.label]),
-				name_i18n,
-			}),
-			headers: new Headers({
-				'Accept': 'application/json',
-				'Content-Type': 'application/json',
-			}),
-			method: 'POST',
-		});
+		try {
+			await API.save(
+				apiURL,
+				{
+					key: key || toCamelCase(name_i18n[selectedLocale.label]),
+					name_i18n,
+				},
+				'POST'
+			);
 
-		if (response.status === 401) {
-			window.location.reload();
-		}
-		else if (response.ok) {
 			onClose();
-
 			window.location.reload();
 		}
-		else {
-			const {
-				title = Liferay.Language.get('an-error-occurred'),
-			} = (await response.json()) as {title: string};
-
-			setError(title);
+		catch (error) {
+			setError((error as Error).message);
 		}
 	};
 
 	const validate = (values: TInitialValues) => {
-		const errors: any = {};
+		const errors: FormError<TInitialValues> = {};
 
 		if (!values.name_i18n[selectedLocale.label]) {
 			errors.name_i18n = Liferay.Language.get('required');
@@ -119,13 +114,12 @@ const ModalAddListTypeEntry: React.FC<IProps> = ({
 						error={errors.name_i18n}
 						id="locale"
 						label={Liferay.Language.get('name')}
-						locales={availableLocales}
-						onSelectedLocaleChange={setSelectedLocale}
-						onTranslationsChange={(value) =>
-							setValues({name_i18n: value})
-						}
+						onChange={(value, locale) => {
+							setValues({name_i18n: value});
+
+							handleLocaleChange(locale);
+						}}
 						required
-						selectedLocale={selectedLocale}
 						translations={values.name_i18n}
 					/>
 
@@ -172,14 +166,9 @@ type TTranslations = {
 
 interface IProps extends React.HTMLAttributes<HTMLElement> {
 	apiURL: string;
-	observer: any;
+	observer: Observer;
 	onClose: () => void;
 }
-
-type TLocale = {
-	label: string;
-	symbol: string;
-};
 
 type TInitialValues = {
 	key?: string;

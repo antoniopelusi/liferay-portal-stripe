@@ -22,6 +22,7 @@
 	</model>
 	<model name="com.liferay.dispatch.model.DispatchTrigger">
 		<field name="mvccVersion" type="long" />
+		<field name="uuid" type="String" />
 		<field name="externalReferenceCode" type="String" />
 		<field name="dispatchTriggerId" type="long" />
 		<field name="companyId" type="long" />
@@ -41,5 +42,6 @@
 		<field name="overlapAllowed" type="boolean" />
 		<field name="startDate" type="Date" />
 		<field name="system" type="boolean" />
+		<field name="timeZoneId" type="String" />
 	</model>
 </model-hints>

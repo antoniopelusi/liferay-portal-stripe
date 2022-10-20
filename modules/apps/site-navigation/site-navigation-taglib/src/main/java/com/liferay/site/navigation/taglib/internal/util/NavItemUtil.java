@@ -26,6 +26,7 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.site.navigation.model.SiteNavigationMenuItem;
+import com.liferay.site.navigation.service.SiteNavigationMenuItemLocalService;
 import com.liferay.site.navigation.service.SiteNavigationMenuItemService;
 import com.liferay.site.navigation.taglib.servlet.taglib.NavigationMenuMode;
 import com.liferay.site.navigation.type.SiteNavigationMenuItemType;
@@ -62,7 +63,7 @@ public class NavItemUtil {
 
 		if (layout.isRootLayout()) {
 			return Collections.singletonList(
-				new NavItem(httpServletRequest, themeDisplay, layout, null));
+				new NavItem(httpServletRequest, themeDisplay, layout));
 		}
 
 		List<Layout> ancestorLayouts = layout.getAncestors();
@@ -73,12 +74,10 @@ public class NavItemUtil {
 			Layout ancestorLayout = ancestorLayouts.get(i);
 
 			navItems.add(
-				new NavItem(
-					httpServletRequest, themeDisplay, ancestorLayout, null));
+				new NavItem(httpServletRequest, themeDisplay, ancestorLayout));
 		}
 
-		navItems.add(
-			new NavItem(httpServletRequest, themeDisplay, layout, null));
+		navItems.add(new NavItem(httpServletRequest, themeDisplay, layout));
 
 		return navItems;
 	}
@@ -92,19 +91,9 @@ public class NavItemUtil {
 				WebKeys.THEME_DISPLAY);
 
 		List<SiteNavigationMenuItem> siteNavigationMenuItems =
-			Collections.emptyList();
-
-		try {
-			siteNavigationMenuItems =
-				_siteNavigationMenuItemService.getSiteNavigationMenuItems(
-					siteNavigationMenuId, parentSiteNavigationMenuItemId);
-		}
-		catch (Exception exception) {
-			if (_log.isWarnEnabled()) {
-				_log.warn(
-					"Unable to get site navigation menu items", exception);
-			}
-		}
+			_getSiteNavigationMenuItems(
+				httpServletRequest, siteNavigationMenuId,
+				parentSiteNavigationMenuItemId);
 
 		List<NavItem> navItems = new ArrayList<>(
 			siteNavigationMenuItems.size());
@@ -126,14 +115,28 @@ public class NavItemUtil {
 					continue;
 				}
 
-				navItems.add(
-					new SiteNavigationMenuNavItem(
-						httpServletRequest, themeDisplay,
-						siteNavigationMenuItem));
+				if (!siteNavigationMenuItemType.isDynamic()) {
+					navItems.add(
+						new SiteNavigationMenuNavItem(
+							httpServletRequest, themeDisplay,
+							siteNavigationMenuItem));
+
+					continue;
+				}
+
+				for (SiteNavigationMenuItem dynamicSiteNavigationMenuItem :
+						siteNavigationMenuItemType.getSiteNavigationMenuItems(
+							httpServletRequest, siteNavigationMenuItem)) {
+
+					navItems.add(
+						new SiteNavigationMenuNavItem(
+							httpServletRequest, themeDisplay,
+							dynamicSiteNavigationMenuItem));
+				}
 			}
-			catch (PortalException portalException) {
+			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(portalException);
+					_log.debug(exception);
 				}
 			}
 		}
@@ -196,7 +199,7 @@ public class NavItemUtil {
 				}
 
 				rootNavItem = new NavItem(
-					httpServletRequest, themeDisplay, rootLayout, null);
+					httpServletRequest, themeDisplay, rootLayout);
 			}
 			else {
 				navItems = _fromLayouts(
@@ -228,6 +231,14 @@ public class NavItemUtil {
 	}
 
 	@Reference(unbind = "-")
+	protected void setSiteNavigationMenuItemLocalService(
+		SiteNavigationMenuItemLocalService siteNavigationMenuItemLocalService) {
+
+		_siteNavigationMenuItemLocalService =
+			siteNavigationMenuItemLocalService;
+	}
+
+	@Reference(unbind = "-")
 	protected void setSiteNavigationMenuItemService(
 		SiteNavigationMenuItemService siteNavigationMenuItemService) {
 
@@ -248,7 +259,7 @@ public class NavItemUtil {
 		throws Exception {
 
 		if (navigationMenuMode == NavigationMenuMode.DEFAULT) {
-			return NavItem.fromLayouts(httpServletRequest, themeDisplay, null);
+			return themeDisplay.getNavItems();
 		}
 
 		boolean privateLayout = false;
@@ -262,13 +273,54 @@ public class NavItemUtil {
 			_layoutLocalService.getLayouts(
 				themeDisplay.getScopeGroupId(), privateLayout,
 				LayoutConstants.DEFAULT_PARENT_LAYOUT_ID),
-			themeDisplay, null);
+			themeDisplay);
+	}
+
+	private static List<SiteNavigationMenuItem> _getSiteNavigationMenuItems(
+		HttpServletRequest httpServletRequest, long siteNavigationMenuId,
+		long parentSiteNavigationMenuItemId) {
+
+		try {
+			if (parentSiteNavigationMenuItemId == 0) {
+				return _siteNavigationMenuItemService.
+					getSiteNavigationMenuItems(
+						siteNavigationMenuId, parentSiteNavigationMenuItemId);
+			}
+
+			SiteNavigationMenuItem parentSiteNavigationMenuItem =
+				_siteNavigationMenuItemLocalService.getSiteNavigationMenuItem(
+					parentSiteNavigationMenuItemId);
+
+			SiteNavigationMenuItemType siteNavigationMenuItemType =
+				_siteNavigationMenuItemTypeRegistry.
+					getSiteNavigationMenuItemType(
+						parentSiteNavigationMenuItem.getType());
+
+			if (siteNavigationMenuItemType.isDynamic()) {
+				return siteNavigationMenuItemType.
+					getChildrenSiteNavigationMenuItems(
+						httpServletRequest, parentSiteNavigationMenuItem);
+			}
+
+			return _siteNavigationMenuItemService.getSiteNavigationMenuItems(
+				siteNavigationMenuId, parentSiteNavigationMenuItemId);
+		}
+		catch (Exception exception) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					"Unable to get site navigation menu items", exception);
+			}
+		}
+
+		return Collections.emptyList();
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(NavItemUtil.class);
 
 	private static LayoutLocalService _layoutLocalService;
 	private static Portal _portal;
+	private static SiteNavigationMenuItemLocalService
+		_siteNavigationMenuItemLocalService;
 	private static SiteNavigationMenuItemService _siteNavigationMenuItemService;
 	private static SiteNavigationMenuItemTypeRegistry
 		_siteNavigationMenuItemTypeRegistry;

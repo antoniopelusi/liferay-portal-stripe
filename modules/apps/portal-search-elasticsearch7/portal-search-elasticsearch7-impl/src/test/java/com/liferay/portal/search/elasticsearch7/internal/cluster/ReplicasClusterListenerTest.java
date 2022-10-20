@@ -30,9 +30,7 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 
 /**
  * @author André de Oliveira
@@ -46,8 +44,6 @@ public class ReplicasClusterListenerTest {
 
 	@Before
 	public void setUp() {
-		MockitoAnnotations.initMocks(this);
-
 		_setEmbeddedCluster(true);
 		_setMasterExecutor(true);
 
@@ -137,7 +133,7 @@ public class ReplicasClusterListenerTest {
 		).when(
 			_replicasManager
 		).updateNumberOfReplicas(
-			Mockito.anyInt(), (String[])Mockito.anyVararg()
+			Mockito.anyInt(), Mockito.any()
 		);
 
 		try (LogCapture logCapture = LoggerTestUtil.configureJDKLogger(
@@ -181,7 +177,7 @@ public class ReplicasClusterListenerTest {
 		Mockito.verify(
 			_replicasManager, Mockito.never()
 		).updateNumberOfReplicas(
-			Mockito.anyInt(), (String[])Mockito.anyVararg()
+			Mockito.anyInt(), Mockito.any()
 		);
 	}
 
@@ -207,12 +203,10 @@ public class ReplicasClusterListenerTest {
 
 	private static final int _REPLICAS = RandomTestUtil.randomInt() - 1;
 
-	@Mock
-	private ReplicasClusterContext _replicasClusterContext;
-
+	private final ReplicasClusterContext _replicasClusterContext = Mockito.mock(
+		ReplicasClusterContext.class);
 	private ReplicasClusterListener _replicasClusterListener;
-
-	@Mock
-	private ReplicasManager _replicasManager;
+	private final ReplicasManager _replicasManager = Mockito.mock(
+		ReplicasManager.class);
 
 }

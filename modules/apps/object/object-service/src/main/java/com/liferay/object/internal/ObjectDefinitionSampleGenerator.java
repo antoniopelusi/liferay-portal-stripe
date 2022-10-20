@@ -91,6 +91,7 @@ public class ObjectDefinitionSampleGenerator {
 				PanelCategoryKeys.CONTROL_PANEL_SITES,
 				LocalizedMapUtil.getLocalizedMap("Sample Object Definitions"),
 				ObjectDefinitionConstants.SCOPE_COMPANY,
+				ObjectDefinitionConstants.STORAGE_TYPE_DEFAULT,
 				Arrays.asList(
 					ObjectFieldUtil.createObjectField(
 						"LongInteger", "Long", true, false, null, "Able",
@@ -106,13 +107,13 @@ public class ObjectDefinitionSampleGenerator {
 						false),
 					ObjectFieldUtil.createObjectField(
 						0, "Text", null, "String", true, true, null, "Easy",
-						"easy", false),
+						"easy", false, false),
 					ObjectFieldUtil.createObjectField(
 						0, "Text", null, "String", true, false, "en_US", "Fox",
-						"fox", false),
+						"fox", false, false),
 					ObjectFieldUtil.createObjectField(
 						0, "Text", null, "String", false, false, null, "George",
-						"george", false),
+						"george", false, false),
 					ObjectFieldUtil.createObjectField(
 						"Decimal", "Double", true, false, null, "How", "how",
 						false),

@@ -14,6 +14,8 @@
 
 package com.liferay.frontend.icons.web.internal.model;
 
+import com.liferay.portal.kernel.util.StringUtil;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -29,14 +31,14 @@ public class FrontendIconsResourcePack {
 
 	public FrontendIconsResourcePack(boolean editable, String name) {
 		_editable = editable;
-		_name = name;
+		_name = StringUtil.toUpperCase(name);
 	}
 
 	public FrontendIconsResourcePack(String name) {
 		this(true, name);
 	}
 
-	public void addFrontendIconResource(
+	public void addFrontendIconsResource(
 		FrontendIconsResource frontendIconsResource) {
 
 		_frontendIconsResources.put(
@@ -46,7 +48,7 @@ public class FrontendIconsResourcePack {
 	public void addFrontendIconsResources(
 		List<FrontendIconsResource> frontendIconsResources) {
 
-		frontendIconsResources.forEach(this::addFrontendIconResource);
+		frontendIconsResources.forEach(this::addFrontendIconsResource);
 	}
 
 	public void deleteFrontendIconsResource(String name) {

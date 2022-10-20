@@ -1,6 +1,8 @@
 @component-name = "portal-analytics-cloud"
 definition {
 
+	property analytics.cloud.release = "true";
+	property analytics.cloud.upstream = "true";
 	property custom.properties = "jsonws.web.service.paths.excludes=";
 	property portal.release = "false";
 	property portal.upstream = "true";
@@ -55,6 +57,8 @@ definition {
 	tearDown {
 		var testPortalInstance = PropsUtil.get("test.portal.instance");
 
+		ACUtils.tearDownAC();
+
 		ACUtils.tearDownDXP();
 
 		if ("${testPortalInstance}" == "true") {
@@ -63,15 +67,14 @@ definition {
 		else {
 			JSONGroup.deleteGroupByName(groupName = "Site Name");
 		}
-
-		JSONUser.tearDownNonAdminUsers();
-
-		ACUtils.tearDownAC();
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8523 | Test Summary: Assert segment membership list shows all known individuals"
 	@priority = "4"
 	test AssertSegmentMembershipListShowsAllKnownIndividuals {
+		property analytics.cloud.upstream = "false";
+		property test.name.skip.portal.instance = "SegmentsMembership#AssertSegmentMembershipListShowsAllKnownIndividuals";
+
 		var emailList = "user1@liferay.com,user2@liferay.com,user3@liferay.com";
 		var nameList = "user1 user1,user2 user2,user3 user3";
 
@@ -122,6 +125,9 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8512 | Test Summary: Segment membership list is searchable"
 	@priority = "5"
 	test CanSearchMembershipList {
+		property analytics.cloud.upstream = "false";
+		property test.name.skip.portal.instance = "SegmentsMembership#CanSearchMembershipList";
+
 		var emailList = "user1@liferay.com,user2@liferay.com,user3@liferay.com";
 		var nameList = "user1 user1,user2 user2,user3 user3";
 
@@ -176,6 +182,9 @@ definition {
 	@description = "Bug: LRAC-8091 | Automation ID: LRAC-10582 | Test Summary: Dynamic segment is updating membership number"
 	@priority = "4"
 	test CanUpdateNumberOfMembersForDynamicSegment {
+		property analytics.cloud.upstream = "false";
+		property test.name.skip.portal.instance = "SegmentsMembership#CanUpdateNumberOfMembersForDynamicSegment";
+
 		var nameList1 = "user2 user2,user3 user3";
 		var nameList2 = "user1 user1,user2 user2";
 		var emailList = "user2@liferay.com,user3@liferay.com";
@@ -335,6 +344,9 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8513 | Test Summary: Order the Segment Profile Membership List"
 	@priority = "3"
 	test OrderSegmentProfileMembershipList {
+		property analytics.cloud.upstream = "false";
+		property test.name.skip.portal.instance = "SegmentsMembership#OrderSegmentProfileMembershipList";
+
 		var emailList = "user1@liferay.com,user2@liferay.com,user3@liferay.com";
 		var nameList = "user1 user1,user2 user2,user3 user3";
 
@@ -415,6 +427,9 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8519 | Test Summary: Search a Dynamic Segment's Membership Preview Modal"
 	@priority = "3"
 	test SearchDynamicSegmentsMembershipPreviewModal {
+		property analytics.cloud.upstream = "false";
+		property test.name.skip.portal.instance = "SegmentsMembership#SearchDynamicSegmentsMembershipPreviewModal";
+
 		var emailList = "user1@liferay.com,user2@liferay.com,user3@liferay.com";
 		var nameList = "user1 user1,user2 user2,user3 user3";
 

@@ -32,6 +32,7 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.servlet.taglib.util.OutputData;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.template.react.renderer.ComponentDescriptor;
@@ -108,7 +109,8 @@ public class FragmentEntryFragmentRendererReact implements FragmentRenderer {
 					_fragmentEntryConfigurationParser.
 						getConfigurationJSONObject(
 							fragmentEntryLink.getConfiguration(),
-							fragmentEntryLink.getEditableValues());
+							fragmentEntryLink.getEditableValues(),
+							LocaleUtil.getMostRelevantLocale());
 			}
 
 			printWriter.write(
@@ -153,6 +155,7 @@ public class FragmentEntryFragmentRendererReact implements FragmentRenderer {
 			fragmentEntryLink.setCss(fragmentEntry.getCss());
 			fragmentEntryLink.setHtml(fragmentEntry.getHtml());
 			fragmentEntryLink.setJs(fragmentEntry.getJs());
+			fragmentEntryLink.setType(fragmentEntry.getType());
 		}
 
 		return fragmentEntryLink;

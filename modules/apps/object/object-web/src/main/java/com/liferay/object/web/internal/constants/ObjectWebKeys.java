@@ -19,6 +19,9 @@ package com.liferay.object.web.internal.constants;
  */
 public class ObjectWebKeys {
 
+	public static final String EXTERNAL_REFERENCE_CODE =
+		"EXTERNAL_REFERENCE_CODE";
+
 	public static final String LIST_TYPE_DEFINITION = "LIST_TYPE_DEFINITION";
 
 	public static final String LIST_TYPE_ENTRY = "LIST_TYPE_ENTRY";
@@ -38,6 +41,8 @@ public class ObjectWebKeys {
 	public static final String OBJECT_LAYOUT = "OBJECT_LAYOUT";
 
 	public static final String OBJECT_RELATIONSHIP = "OBJECT_RELATIONSHIP";
+
+	public static final String OBJECT_VALIDATION = "OBJECT_VALIDATION";
 
 	public static final String OBJECT_VIEW = "OBJECT_VIEW";
 

@@ -4,11 +4,8 @@ definition {
 		Variables.assertDefined(parameterList = "${userEmailAddress},${userFirstName},${userLastName},${userScreenName}");
 
 		var locale = JSONUserSetter.setLocale(locale = "${preferredLocale}");
-
 		var userFirstName = JSONUserSetter.setUserFirstName(userFirstName = "${userFirstName}");
-
 		var userLastName = JSONUserSetter.setUserLastName(userLastName = "${userLastName}");
-
 		var serviceContext = JSONUserSetter.setServiceContext(
 			assetCategoryIds = "${assetCategoryIds}",
 			assetTagNames = "${assetTagNames}",
@@ -136,7 +133,6 @@ definition {
 		var depotId = JSONUserSetter.setGroupId(
 			groupName = "${depotName}",
 			site = "false");
-
 		var userId = JSONUserSetter.setUserId(userEmailAddress = "${userEmailAddress}");
 
 		JSONUserAPI._addUserToSite(
@@ -148,7 +144,6 @@ definition {
 		Variables.assertDefined(parameterList = "${groupName},${userEmailAddress}");
 
 		var groupId = JSONUserSetter.setGroupId(groupName = "${groupName}");
-
 		var userId = JSONUserSetter.setUserId(userEmailAddress = "${userEmailAddress}");
 
 		JSONUserAPI._addUserToSite(
@@ -160,12 +155,28 @@ definition {
 		Variables.assertDefined(parameterList = "${userGroupName},${userEmailAddress}");
 
 		var userGroupId = JSONUserGroupSetter.setUserGroupId(userGroupName = "${userGroupName}");
-
 		var userId = JSONUserSetter.setUserId(userEmailAddress = "${userEmailAddress}");
 
 		JSONUserAPI._addUserToUserGroup(
 			userGroupId = "${userGroupId}",
 			userId = "${userId}");
+	}
+
+	macro addUserWithRole {
+		JSONUser.addUser(
+			userEmailAddress = "${userEmailAddress}",
+			userFirstName = "${userFirstName}",
+			userLastName = "${userLastName}",
+			userScreenName = "${userScreenName}");
+
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "${userEmailAddress}");
+
+		JSONRole.assignRoleToUser(
+			roleTitle = "${roleTitle}",
+			userEmailAddress = "${userEmailAddress}");
 	}
 
 	macro agreeToTermsAndAnswerReminderQuery {
@@ -213,7 +224,6 @@ definition {
 		Variables.assertDefined(parameterList = "${userGroupName},${userEmailAddress}");
 
 		var userGroupId = JSONUserGroupSetter.setUserGroupId(userGroupName = "${userGroupName}");
-
 		var userId = JSONUserSetter.setUserId(userEmailAddress = "${userEmailAddress}");
 
 		JSONUserAPI._removeUserFromUserGroup(
@@ -228,9 +238,7 @@ definition {
 		Variables.assertDefined(parameterList = "${userEmailAddress}");
 
 		var newPassword = JSONUserSetter.setNewPassword(newPassword = "${newPassword}");
-
 		var requireReset = JSONUserSetter.setRequireReset(requireReset = "${requireReset}");
-
 		var userId = JSONUserSetter.setUserId(userEmailAddress = "${userEmailAddress}");
 
 		JSONUserAPI._updatePassword(
@@ -281,7 +289,6 @@ definition {
 		Variables.assertDefined(parameterList = "${userEmailAddress}");
 
 		var userIds = JSONUserAPI._getUserIdByEmailAddress(userEmailAddress = "${userEmailAddress}");
-
 		var status = JSONUserSetter.setStatus(userStatus = "${userStatus}");
 
 		for (var userId : list "${userIds}") {
@@ -298,9 +305,7 @@ definition {
 			creatorEmailAddress = "${creatorEmailAddress}",
 			creatorPassword = "${creatorPassword}",
 			userEmailAddress = "${userEmailAddress}");
-
 		var userFirstName = JSONUserSetter.setUserFirstName(userFirstName = "${userFirstName}");
-
 		var userLastName = JSONUserSetter.setUserLastName(userLastName = "${userLastName}");
 
 		if (!(isSet(birthdayDay))) {

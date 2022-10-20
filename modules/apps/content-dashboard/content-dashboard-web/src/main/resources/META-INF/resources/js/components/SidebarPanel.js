@@ -147,7 +147,11 @@ const SidebarPanel = React.forwardRef(
 		}));
 
 		return (
-			<Sidebar onClose={onCloseHandle} open={state.isOpen}>
+			<Sidebar
+				fetchData={() => getData(fetchURL)}
+				onClose={onCloseHandle}
+				open={state.isOpen}
+			>
 				{state?.loading ? (
 					<div className="align-items-center d-flex loading-indicator-wrapper">
 						<ClayLoadingIndicator small />

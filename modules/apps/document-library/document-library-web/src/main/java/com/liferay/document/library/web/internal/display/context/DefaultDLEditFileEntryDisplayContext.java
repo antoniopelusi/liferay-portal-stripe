@@ -41,11 +41,14 @@ import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.upload.UploadServletRequestConfigurationHelperUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.util.RepositoryUtil;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
@@ -83,6 +86,21 @@ public class DefaultDLEditFileEntryDisplayContext
 		throws StorageException {
 
 		return _storageEngine.getDDMFormValues(classPK);
+	}
+
+	@Override
+	public String getDLFileEntryTypeLanguageId(
+		DDMStructure ddmStructure, Locale locale) {
+
+		String languageId = LocaleUtil.toLanguageId(locale);
+
+		if (!ArrayUtil.contains(
+				ddmStructure.getAvailableLanguageIds(), languageId)) {
+
+			return ddmStructure.getDefaultLanguageId();
+		}
+
+		return languageId;
 	}
 
 	@Override

@@ -271,7 +271,7 @@ exports[`SegmentEdit renders with edit buttons if the user has update permission
 exports[`SegmentEdit renders with given values 1`] = `
 <DocumentFragment>
   <div
-    class="segment-edit-page-root"
+    class="segment-edit-page-root segment-edit-page-root--with-warning"
   >
     <input
       name="active"
@@ -438,10 +438,71 @@ exports[`SegmentEdit renders with given values 1`] = `
       class="form-body"
     >
       <div
+        class="mx-0 alert alert-dismissible alert-fluid alert-warning"
+        role="alert"
+      >
+        <div
+          class="container"
+        >
+          <div
+            class="alert-autofit-row autofit-row"
+          >
+            <div
+              class="autofit-col"
+            >
+              <div
+                class="autofit-section"
+              >
+                <span
+                  class="alert-indicator"
+                >
+                  <svg
+                    class="lexicon-icon lexicon-icon-warning-full"
+                    role="presentation"
+                  >
+                    <use
+                      xlink:href="#warning-full"
+                    />
+                  </svg>
+                </span>
+              </div>
+            </div>
+            <div
+              class="autofit-col autofit-col-expand"
+            >
+              <div
+                class="autofit-section"
+              >
+                <strong
+                  class="lead"
+                >
+                  segmentation-is-disabled
+                </strong>
+                contact-your-system-administrator-to-enable-it
+              </div>
+            </div>
+          </div>
+          <button
+            aria-label="Close"
+            class="close"
+            type="button"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-times"
+              role="presentation"
+            >
+              <use
+                xlink:href="#times"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div
         class="contributor-builder-root editing"
       >
         <div
-          class="criteria-builder-section-sidebar"
+          class="criteria-builder-section-sidebar criteria-builder-section-sidebar--with-warning"
         >
           <div
             class="criteria-sidebar-root"

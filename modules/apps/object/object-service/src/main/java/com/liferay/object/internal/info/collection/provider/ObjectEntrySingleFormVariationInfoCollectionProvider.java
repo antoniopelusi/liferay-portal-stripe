@@ -14,32 +14,52 @@
 
 package com.liferay.object.internal.info.collection.provider;
 
+import com.liferay.asset.kernel.model.AssetCategory;
+import com.liferay.asset.kernel.model.AssetCategoryConstants;
+import com.liferay.asset.kernel.model.AssetTag;
+import com.liferay.asset.kernel.model.AssetVocabulary;
+import com.liferay.asset.kernel.service.AssetCategoryLocalService;
+import com.liferay.asset.kernel.service.AssetTagLocalService;
+import com.liferay.asset.kernel.service.AssetVocabularyLocalService;
+import com.liferay.depot.util.SiteConnectedGroupGroupProviderUtil;
 import com.liferay.info.collection.provider.CollectionQuery;
 import com.liferay.info.collection.provider.ConfigurableInfoCollectionProvider;
 import com.liferay.info.collection.provider.FilteredInfoCollectionProvider;
 import com.liferay.info.collection.provider.SingleFormVariationInfoCollectionProvider;
 import com.liferay.info.field.InfoField;
 import com.liferay.info.field.InfoFieldSet;
+import com.liferay.info.field.InfoFieldSetEntry;
 import com.liferay.info.field.type.SelectInfoFieldType;
 import com.liferay.info.filter.InfoFilter;
 import com.liferay.info.filter.KeywordsInfoFilter;
 import com.liferay.info.form.InfoForm;
 import com.liferay.info.localized.InfoLocalizedValue;
+import com.liferay.info.localized.SingleValueInfoLocalizedValue;
+import com.liferay.info.localized.bundle.FunctionInfoLocalizedValue;
+import com.liferay.info.localized.bundle.ResourceBundleInfoLocalizedValue;
 import com.liferay.info.pagination.InfoPage;
 import com.liferay.info.pagination.Pagination;
 import com.liferay.list.type.service.ListTypeEntryLocalService;
+import com.liferay.object.constants.ObjectDefinitionConstants;
+import com.liferay.object.constants.ObjectFieldConstants;
+import com.liferay.object.constants.ObjectLayoutBoxConstants;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.model.ObjectField;
+import com.liferay.object.model.ObjectLayout;
+import com.liferay.object.model.ObjectLayoutTab;
 import com.liferay.object.scope.ObjectScopeProvider;
 import com.liferay.object.scope.ObjectScopeProviderRegistry;
 import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.service.ObjectFieldLocalService;
+import com.liferay.object.service.ObjectLayoutLocalService;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.search.BooleanClause;
 import com.liferay.portal.kernel.search.BooleanClauseFactoryUtil;
 import com.liferay.portal.kernel.search.BooleanClauseOccur;
@@ -55,11 +75,18 @@ import com.liferay.portal.kernel.search.generic.BooleanQueryImpl;
 import com.liferay.portal.kernel.search.generic.NestedQuery;
 import com.liferay.portal.kernel.search.generic.TermQueryImpl;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.vulcan.util.TransformUtil;
+import com.liferay.portlet.asset.util.comparator.AssetTagNameComparator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -80,16 +107,26 @@ public class ObjectEntrySingleFormVariationInfoCollectionProvider
 			   SingleFormVariationInfoCollectionProvider<ObjectEntry> {
 
 	public ObjectEntrySingleFormVariationInfoCollectionProvider(
+		AssetCategoryLocalService assetCategoryLocalService,
+		AssetTagLocalService assetTagLocalService,
+		AssetVocabularyLocalService assetVocabularyLocalService,
+		GroupLocalService groupLocalService,
 		ListTypeEntryLocalService listTypeEntryLocalService,
 		ObjectDefinition objectDefinition,
 		ObjectEntryLocalService objectEntryLocalService,
 		ObjectFieldLocalService objectFieldLocalService,
+		ObjectLayoutLocalService objectLayoutLocalService,
 		ObjectScopeProviderRegistry objectScopeProviderRegistry) {
 
+		_assetCategoryLocalService = assetCategoryLocalService;
+		_assetTagLocalService = assetTagLocalService;
+		_assetVocabularyLocalService = assetVocabularyLocalService;
+		_groupLocalService = groupLocalService;
 		_listTypeEntryLocalService = listTypeEntryLocalService;
 		_objectDefinition = objectDefinition;
 		_objectEntryLocalService = objectEntryLocalService;
 		_objectFieldLocalService = objectFieldLocalService;
+		_objectLayoutLocalService = objectLayoutLocalService;
 		_objectScopeProviderRegistry = objectScopeProviderRegistry;
 	}
 
@@ -131,6 +168,10 @@ public class ObjectEntrySingleFormVariationInfoCollectionProvider
 	@Override
 	public InfoForm getConfigurationInfoForm() {
 		return InfoForm.builder(
+		).infoFieldSetEntries(
+			_getInfoFieldSetEntries()
+		).infoFieldSetEntry(
+			_getInfoField()
 		).infoFieldSetEntry(
 			InfoFieldSet.builder(
 			).infoFieldSetEntry(
@@ -140,9 +181,11 @@ public class ObjectEntrySingleFormVariationInfoCollectionProvider
 								_objectDefinition.getObjectDefinitionId())) {
 
 						if (!(Objects.equals(
-								objectField.getDBType(), "Boolean") ||
+								objectField.getDBType(),
+								ObjectFieldConstants.DB_TYPE_BOOLEAN) ||
 							  (Objects.equals(
-								  objectField.getDBType(), "String") &&
+								  objectField.getDBType(),
+								  ObjectFieldConstants.DB_TYPE_STRING) &&
 							   (objectField.getListTypeDefinitionId() != 0))) ||
 							!objectField.isIndexed()) {
 
@@ -212,15 +255,46 @@ public class ObjectEntrySingleFormVariationInfoCollectionProvider
 
 		SearchContext searchContext = new SearchContext();
 
+		List<String> assetCategoryIds = new ArrayList<>();
+
+		Optional<Map<String, String[]>> configurationOptional =
+			collectionQuery.getConfigurationOptional();
+
+		Map<String, String[]> configuration = configurationOptional.orElse(
+			Collections.emptyMap());
+
+		ServiceContext serviceContext =
+			ServiceContextThreadLocal.getServiceContext();
+
+		for (AssetVocabulary assetVocabulary :
+				_getAssetVocabularies(serviceContext)) {
+
+			String[] assetCategoryIdsArray = configuration.get(
+				String.valueOf(assetVocabulary.getVocabularyId()));
+
+			if ((assetCategoryIdsArray != null) &&
+				!StringUtil.equals(assetCategoryIdsArray[0], "null")) {
+
+				Collections.addAll(assetCategoryIds, assetCategoryIdsArray);
+			}
+		}
+
+		searchContext.setAssetCategoryIds(
+			ListUtil.toLongArray(assetCategoryIds, Long::parseLong));
+
+		String[] assetTagNames = configuration.get(Field.ASSET_TAG_NAMES);
+
+		if (ArrayUtil.isNotEmpty(assetTagNames) &&
+			Validator.isNotNull(assetTagNames[0])) {
+
+			searchContext.setAssetTagNames(assetTagNames);
+		}
+
 		searchContext.setAttribute(
 			Field.STATUS, WorkflowConstants.STATUS_APPROVED);
 		searchContext.setAttribute(
 			"objectDefinitionId", _objectDefinition.getObjectDefinitionId());
 		searchContext.setBooleanClauses(_getBooleanClauses(collectionQuery));
-
-		ServiceContext serviceContext =
-			ServiceContextThreadLocal.getServiceContext();
-
 		searchContext.setCompanyId(serviceContext.getCompanyId());
 
 		Pagination pagination = collectionQuery.getPagination();
@@ -247,6 +321,30 @@ public class ObjectEntrySingleFormVariationInfoCollectionProvider
 		queryConfig.setScoreEnabled(false);
 
 		return searchContext;
+	}
+
+	private List<AssetVocabulary> _getAssetVocabularies(
+		ServiceContext serviceContext) {
+
+		try {
+			return ListUtil.filter(
+				_assetVocabularyLocalService.getGroupVocabularies(
+					SiteConnectedGroupGroupProviderUtil.
+						getCurrentAndAncestorSiteAndDepotGroupIds(
+							serviceContext.getScopeGroupId())),
+				assetVocabulary ->
+					assetVocabulary.isAssociatedToClassNameIdAndClassTypePK(
+						PortalUtil.getClassNameId(
+							_objectDefinition.getClassName()),
+						AssetCategoryConstants.ALL_CLASS_TYPE_PK));
+		}
+		catch (PortalException portalException) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(portalException);
+			}
+
+			return Collections.emptyList();
+		}
 	}
 
 	private BooleanClause[] _getBooleanClauses(CollectionQuery collectionQuery)
@@ -283,7 +381,8 @@ public class ObjectEntrySingleFormVariationInfoCollectionProvider
 			BooleanQuery nestedBooleanQuery = new BooleanQueryImpl();
 
 			nestedBooleanQuery.add(
-				new TermQueryImpl(_getField(objectField), entry.getValue()[0]),
+				new TermQueryImpl(
+					_getFieldName(objectField), entry.getValue()[0]),
 				BooleanClauseOccur.MUST);
 			nestedBooleanQuery.add(
 				new TermQueryImpl("nestedFieldArray.fieldName", entry.getKey()),
@@ -300,11 +399,17 @@ public class ObjectEntrySingleFormVariationInfoCollectionProvider
 		};
 	}
 
-	private String _getField(ObjectField objectField) {
-		if (Objects.equals(objectField.getDBType(), "Boolean")) {
+	private String _getFieldName(ObjectField objectField) {
+		if (Objects.equals(
+				objectField.getDBType(),
+				ObjectFieldConstants.DB_TYPE_BOOLEAN)) {
+
 			return "nestedFieldArray.value_boolean";
 		}
-		else if (Objects.equals(objectField.getDBType(), "String")) {
+		else if (Objects.equals(
+					objectField.getDBType(),
+					ObjectFieldConstants.DB_TYPE_STRING)) {
+
 			return "nestedFieldArray.value_keyword_lowercase";
 		}
 
@@ -326,6 +431,129 @@ public class ObjectEntrySingleFormVariationInfoCollectionProvider
 		return objectScopeProvider.getGroupId(serviceContext.getRequest());
 	}
 
+	private InfoField<?> _getInfoField() {
+		if (!StringUtil.equals(
+				_objectDefinition.getStorageType(),
+				ObjectDefinitionConstants.STORAGE_TYPE_DEFAULT) ||
+			!_hasCategorizationObjectLayoutBox()) {
+
+			return null;
+		}
+
+		long groupId = 0;
+
+		if (StringUtil.equals(
+				_objectDefinition.getScope(),
+				ObjectDefinitionConstants.SCOPE_COMPANY)) {
+
+			try {
+				Group group = _groupLocalService.getCompanyGroup(
+					_objectDefinition.getCompanyId());
+
+				groupId = group.getGroupId();
+			}
+			catch (PortalException portalException) {
+				_log.error(portalException);
+			}
+		}
+		else {
+			ServiceContext serviceContext =
+				ServiceContextThreadLocal.getServiceContext();
+
+			groupId = serviceContext.getScopeGroupId();
+		}
+
+		List<AssetTag> assetTags = new ArrayList<>(
+			_assetTagLocalService.getGroupTags(groupId));
+
+		assetTags.sort(new AssetTagNameComparator(true));
+
+		List<SelectInfoFieldType.Option> options = new ArrayList<>();
+
+		for (AssetTag assetTag : assetTags) {
+			options.add(
+				new SelectInfoFieldType.Option(
+					new SingleValueInfoLocalizedValue<>(assetTag.getName()),
+					assetTag.getName()));
+		}
+
+		InfoField.FinalStep<?> finalStep = InfoField.builder(
+		).infoFieldType(
+			SelectInfoFieldType.INSTANCE
+		).namespace(
+			StringPool.BLANK
+		).name(
+			Field.ASSET_TAG_NAMES
+		).attribute(
+			SelectInfoFieldType.MULTIPLE, true
+		).attribute(
+			SelectInfoFieldType.OPTIONS, options
+		).labelInfoLocalizedValue(
+			InfoLocalizedValue.localize(getClass(), "tag")
+		).localizable(
+			true
+		);
+
+		return finalStep.build();
+	}
+
+	private List<InfoFieldSetEntry> _getInfoFieldSetEntries() {
+		if (!StringUtil.equals(
+				_objectDefinition.getStorageType(),
+				ObjectDefinitionConstants.STORAGE_TYPE_DEFAULT) ||
+			!_hasCategorizationObjectLayoutBox()) {
+
+			return Collections.emptyList();
+		}
+
+		List<InfoFieldSetEntry> fieldSetEntries = new ArrayList<>();
+
+		ServiceContext serviceContext =
+			ServiceContextThreadLocal.getServiceContext();
+
+		for (AssetVocabulary assetVocabulary :
+				_getAssetVocabularies(serviceContext)) {
+
+			List<SelectInfoFieldType.Option> options = new ArrayList<>();
+
+			for (AssetCategory assetCategory :
+					_assetCategoryLocalService.getVocabularyCategories(
+						assetVocabulary.getVocabularyId(), QueryUtil.ALL_POS,
+						QueryUtil.ALL_POS, null)) {
+
+				options.add(
+					new SelectInfoFieldType.Option(
+						new SingleValueInfoLocalizedValue<>(
+							assetCategory.getName()),
+						String.valueOf(assetCategory.getCategoryId())));
+			}
+
+			if (!options.isEmpty()) {
+				fieldSetEntries.add(
+					InfoField.builder(
+					).infoFieldType(
+						SelectInfoFieldType.INSTANCE
+					).namespace(
+						StringPool.BLANK
+					).name(
+						String.valueOf(assetVocabulary.getVocabularyId())
+					).attribute(
+						SelectInfoFieldType.MULTIPLE, true
+					).attribute(
+						SelectInfoFieldType.OPTIONS, options
+					).labelInfoLocalizedValue(
+						InfoLocalizedValue.singleValue(
+							assetVocabulary.getTitle(
+								serviceContext.getLocale()))
+					).localizable(
+						true
+					).build());
+			}
+		}
+
+		return fieldSetEntries;
+	}
+
 	private ObjectField _getObjectField(
 		String name, List<ObjectField> objectFields) {
 
@@ -343,23 +571,23 @@ public class ObjectEntrySingleFormVariationInfoCollectionProvider
 
 		List<SelectInfoFieldType.Option> options = new ArrayList<>();
 
-		ServiceContext serviceContext =
-			ServiceContextThreadLocal.getServiceContext();
-
 		options.add(
 			new SelectInfoFieldType.Option(
-				LanguageUtil.get(
-					serviceContext.getLocale(), "choose-an-option"),
+				new ResourceBundleInfoLocalizedValue(
+					getClass(), "choose-an-option"),
 				""));
 
-		if (Objects.equals(objectField.getDBType(), "Boolean")) {
+		if (Objects.equals(
+				objectField.getDBType(),
+				ObjectFieldConstants.DB_TYPE_BOOLEAN)) {
+
 			options.add(
 				new SelectInfoFieldType.Option(
-					LanguageUtil.get(serviceContext.getLocale(), "true"),
+					new ResourceBundleInfoLocalizedValue(getClass(), "true"),
 					"true"));
 			options.add(
 				new SelectInfoFieldType.Option(
-					LanguageUtil.get(serviceContext.getLocale(), "false"),
+					new ResourceBundleInfoLocalizedValue(getClass(), "false"),
 					"false"));
 		}
 		else if (objectField.getListTypeDefinitionId() != 0) {
@@ -369,17 +597,55 @@ public class ObjectEntrySingleFormVariationInfoCollectionProvider
 						objectField.getListTypeDefinitionId(),
 						QueryUtil.ALL_POS, QueryUtil.ALL_POS),
 					listTypeEntry -> new SelectInfoFieldType.Option(
-						listTypeEntry.getName(serviceContext.getLocale()),
+						new FunctionInfoLocalizedValue<>(
+							listTypeEntry::getName),
 						listTypeEntry.getKey())));
 		}
 
 		return options;
 	}
 
+	private boolean _hasCategorizationObjectLayoutBox() {
+		ObjectLayout objectLayout = null;
+
+		try {
+			objectLayout = _objectLayoutLocalService.getDefaultObjectLayout(
+				_objectDefinition.getObjectDefinitionId());
+		}
+		catch (PortalException portalException) {
+			_log.error(portalException);
+
+			return false;
+		}
+
+		for (ObjectLayoutTab objectLayoutTab :
+				objectLayout.getObjectLayoutTabs()) {
+
+			if (ListUtil.exists(
+					objectLayoutTab.getObjectLayoutBoxes(),
+					objectLayoutBox -> StringUtil.equals(
+						objectLayoutBox.getType(),
+						ObjectLayoutBoxConstants.TYPE_CATEGORIZATION))) {
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		ObjectEntrySingleFormVariationInfoCollectionProvider.class);
+
+	private final AssetCategoryLocalService _assetCategoryLocalService;
+	private final AssetTagLocalService _assetTagLocalService;
+	private final AssetVocabularyLocalService _assetVocabularyLocalService;
+	private final GroupLocalService _groupLocalService;
 	private final ListTypeEntryLocalService _listTypeEntryLocalService;
 	private final ObjectDefinition _objectDefinition;
 	private final ObjectEntryLocalService _objectEntryLocalService;
 	private final ObjectFieldLocalService _objectFieldLocalService;
+	private final ObjectLayoutLocalService _objectLayoutLocalService;
 	private final ObjectScopeProviderRegistry _objectScopeProviderRegistry;
 
 }

@@ -15,8 +15,10 @@
 package com.liferay.source.formatter.check;
 
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.StringUtil;
 
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -143,51 +145,99 @@ public class JavaStylingCheck extends BaseStylingCheck {
 		while (matcher.find()) {
 			String commentContent = matcher.group(1);
 
-			if (commentContent.contains(StringPool.SEMICOLON) ||
-				commentContent.endsWith(StringPool.COMMA) ||
-				commentContent.endsWith("||") ||
-				commentContent.endsWith("&&")) {
-
-				continue;
-			}
-
-			int level = getLevel(
-				commentContent,
-				new String[] {
-					StringPool.OPEN_BRACKET, StringPool.OPEN_CURLY_BRACE,
-					StringPool.OPEN_PARENTHESIS
-				},
-				new String[] {
-					StringPool.CLOSE_BRACKET, StringPool.CLOSE_CURLY_BRACE,
-					StringPool.CLOSE_PARENTHESIS
-				});
-
-			if ((level != 0) || commentContent.matches(".+\\..+") ||
-				commentContent.matches(".+=.+")) {
-
+			if (_isCommentedOutCode(commentContent)) {
 				continue;
 			}
 
 			if (commentContent.startsWith(StringPool.SLASH) ||
-				commentContent.startsWith("\tTODO")) {
+				commentContent.matches("\t[A-Z].*")) {
 
 				return StringUtil.replaceFirst(
 					content, commentContent, commentContent.substring(1),
 					matcher.start(1));
 			}
 
-			return StringUtil.insert(
-				content, StringPool.SPACE, matcher.start(1));
+			if (!commentContent.startsWith(StringPool.SPACE)) {
+				return StringUtil.insert(
+					content, StringPool.SPACE, matcher.start(1));
+			}
+
+			for (Map.Entry<String, String[]> entry :
+					_incorrectWordsMap.entrySet()) {
+
+				for (String incorrectWord : entry.getValue()) {
+					Pattern pattern = Pattern.compile(
+						".*(\\b" + incorrectWord + "\\b).*",
+						Pattern.CASE_INSENSITIVE);
+
+					String correctWord = entry.getKey();
+
+					Matcher incorrectWordMatcher = pattern.matcher(
+						commentContent);
+
+					while (incorrectWordMatcher.find()) {
+						String matchedWord = incorrectWordMatcher.group(1);
+
+						if (matchedWord.equals(correctWord)) {
+							continue;
+						}
+
+						if (Character.isUpperCase(matchedWord.charAt(0))) {
+							correctWord = StringUtil.upperCaseFirstLetter(
+								correctWord);
+						}
+
+						return StringUtil.replaceFirst(
+							content, matchedWord, correctWord,
+							matcher.start(1));
+					}
+				}
+			}
 		}
 
 		return content;
+	}
+
+	private boolean _isCommentedOutCode(String commentContent) {
+		if (commentContent.contains(StringPool.SEMICOLON) ||
+			commentContent.endsWith(StringPool.COMMA) ||
+			commentContent.endsWith("||") || commentContent.endsWith("&&")) {
+
+			return true;
+		}
+
+		int level = getLevel(
+			commentContent,
+			new String[] {
+				StringPool.OPEN_BRACKET, StringPool.OPEN_CURLY_BRACE,
+				StringPool.OPEN_PARENTHESIS
+			},
+			new String[] {
+				StringPool.CLOSE_BRACKET, StringPool.CLOSE_CURLY_BRACE,
+				StringPool.CLOSE_PARENTHESIS
+			});
+
+		if ((level != 0) || commentContent.matches(".+\\..+") ||
+			commentContent.matches(".+=.+")) {
+
+			return true;
+		}
+
+		return false;
 	}
 
 	private static final Pattern _incorrectJavadocPattern = Pattern.compile(
 		"(\n([\t ]*)/\\*)(\n\\2 \\*)");
 	private static final Pattern _incorrectSynchronizedPattern =
 		Pattern.compile("([\n\t])(synchronized) (private|public|protected)");
+	private static final Map<String, String[]> _incorrectWordsMap =
+		HashMapBuilder.put(
+			"nonexistent",
+			new String[] {"nonexisting", "non-existent", "non-existing"}
+		).put(
+			"TODO", new String[] {"todo", "to-do"}
+		).build();
 	private static final Pattern _singleLineCommentPattern = Pattern.compile(
-		"\n\t*//(?! )(.+)");
+		"\n\t*//(.+)");
 
 }

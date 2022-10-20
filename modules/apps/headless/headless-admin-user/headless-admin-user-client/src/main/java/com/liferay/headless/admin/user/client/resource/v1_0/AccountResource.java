@@ -211,6 +211,12 @@ public interface AccountResource {
 			return new AccountResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -256,6 +262,7 @@ public interface AccountResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -361,7 +368,8 @@ public interface AccountResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port + "/o/headless-admin-user/v1.0/accounts");
+					_builder._port + _builder._contextPath +
+						"/o/headless-admin-user/v1.0/accounts");
 
 			httpInvoker.userNameAndPassword(
 				_builder._login + ":" + _builder._password);
@@ -438,7 +446,8 @@ public interface AccountResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port + "/o/headless-admin-user/v1.0/accounts");
+					_builder._port + _builder._contextPath +
+						"/o/headless-admin-user/v1.0/accounts");
 
 			httpInvoker.userNameAndPassword(
 				_builder._login + ":" + _builder._password);
@@ -512,7 +521,7 @@ public interface AccountResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/accounts/batch");
 
 			httpInvoker.userNameAndPassword(
@@ -594,7 +603,7 @@ public interface AccountResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/accounts/by-external-reference-code/{externalReferenceCode}");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -678,7 +687,7 @@ public interface AccountResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/accounts/by-external-reference-code/{externalReferenceCode}");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -764,7 +773,7 @@ public interface AccountResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/accounts/by-external-reference-code/{externalReferenceCode}");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -850,7 +859,7 @@ public interface AccountResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/accounts/by-external-reference-code/{externalReferenceCode}");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -929,7 +938,7 @@ public interface AccountResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/accounts/{accountId}");
 
 			httpInvoker.path("accountId", accountId);
@@ -1006,7 +1015,7 @@ public interface AccountResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/accounts/batch");
 
 			httpInvoker.userNameAndPassword(
@@ -1082,7 +1091,7 @@ public interface AccountResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/accounts/{accountId}");
 
 			httpInvoker.path("accountId", accountId);
@@ -1165,7 +1174,7 @@ public interface AccountResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/accounts/{accountId}");
 
 			httpInvoker.path("accountId", accountId);
@@ -1248,7 +1257,7 @@ public interface AccountResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/accounts/{accountId}");
 
 			httpInvoker.path("accountId", accountId);
@@ -1325,7 +1334,7 @@ public interface AccountResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/accounts/batch");
 
 			httpInvoker.userNameAndPassword(
@@ -1419,7 +1428,7 @@ public interface AccountResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/organizations/move-accounts/{sourceOrganizationId}/{targetOrganizationId}");
 
 			httpInvoker.path("sourceOrganizationId", sourceOrganizationId);
@@ -1516,7 +1525,7 @@ public interface AccountResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/organizations/move-accounts/{sourceOrganizationId}/{targetOrganizationId}/by-external-reference-code");
 
 			httpInvoker.path("sourceOrganizationId", sourceOrganizationId);
@@ -1609,7 +1618,7 @@ public interface AccountResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/organizations/{organizationId}/accounts");
 
 			httpInvoker.path("organizationId", organizationId);
@@ -1714,7 +1723,7 @@ public interface AccountResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/organizations/{organizationId}/accounts");
 
 			httpInvoker.path("organizationId", organizationId);
@@ -1805,7 +1814,7 @@ public interface AccountResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/organizations/{organizationId}/accounts");
 
 			httpInvoker.path("organizationId", organizationId);
@@ -1899,7 +1908,7 @@ public interface AccountResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/organizations/{organizationId}/accounts/by-external-reference-code");
 
 			httpInvoker.path("organizationId", organizationId);
@@ -1993,7 +2002,7 @@ public interface AccountResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/organizations/{organizationId}/accounts/by-external-reference-code");
 
 			httpInvoker.path("organizationId", organizationId);

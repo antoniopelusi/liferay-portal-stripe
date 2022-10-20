@@ -12,14 +12,104 @@
  * details.
  */
 
-import {useParams} from 'react-router-dom';
+import {useLocation, useNavigate, useParams} from 'react-router-dom';
 
 import Container from '../../../components/Layout/Container';
-import ListView from '../../../components/ListView/ListView';
-import {getCases} from '../../../graphql/queries';
+import ListView, {ListViewProps} from '../../../components/ListView';
+import {TableProps} from '../../../components/Table';
+import {FormModal} from '../../../hooks/useFormModal';
 import i18n from '../../../i18n';
-import CaseModal from './CaseModal';
+import {filters} from '../../../schema/filter';
+import {testrayCaseRest} from '../../../services/rest';
+import {Action} from '../../../types';
+import dayjs from '../../../util/date';
+import {searchUtil} from '../../../util/search';
 import useCaseActions from './useCaseActions';
+
+type CaseListViewProps = {
+	actions?: Action[];
+	formModal?: FormModal;
+	projectId?: number | string;
+	variables?: any;
+} & {
+	listViewProps?: Partial<ListViewProps> & {initialContext?: any};
+	tableProps?: Partial<TableProps>;
+};
+
+const CaseListView: React.FC<CaseListViewProps> = ({
+	actions,
+	formModal,
+	listViewProps,
+	tableProps,
+	variables,
+}) => {
+	const {pathname} = useLocation();
+	const navigate = useNavigate();
+
+	return (
+		<ListView
+			forceRefetch={formModal?.forceRefetch}
+			managementToolbarProps={{
+				addButton: () => navigate('create', {state: {back: pathname}}),
+				filterFields: filters.case as any,
+				title: i18n.translate('cases'),
+			}}
+			resource={testrayCaseRest.resource}
+			tableProps={{
+				actions,
+				columns: [
+					{
+						key: 'dateCreated',
+						render: (dateCreated) =>
+							dayjs(dateCreated).format('lll'),
+						value: i18n.translate('create-date'),
+					},
+					{
+						key: 'dateModified',
+						render: (dateModified) =>
+							dayjs(dateModified).format('lll'),
+						value: i18n.translate('modified-date'),
+					},
+					{
+						key: 'priority',
+						sorteable: true,
+						value: i18n.translate('priority'),
+					},
+					{
+						key: 'caseType',
+						render: (caseType) => caseType?.name,
+						value: i18n.translate('case-type'),
+					},
+					{
+						clickable: true,
+						key: 'name',
+						size: 'md',
+						sorteable: true,
+						value: i18n.translate('case-name'),
+					},
+					{
+						key: 'team',
+						render: (_, {component}) => component?.team?.name,
+						value: i18n.translate('team'),
+					},
+					{
+						key: 'component',
+						render: (component) => component?.name,
+						value: i18n.translate('component'),
+					},
+					{key: 'issues', value: i18n.translate('issues')},
+				],
+				navigateTo: ({id}) => id?.toString(),
+				...tableProps,
+			}}
+			transformData={(response) =>
+				testrayCaseRest.transformDataFromList(response)
+			}
+			variables={variables}
+			{...listViewProps}
+		/>
+	);
+};
 
 const Cases = () => {
 	const {projectId} = useParams();
@@ -27,77 +117,29 @@ const Cases = () => {
 	const {actions, formModal} = useCaseActions();
 
 	return (
-		<>
-			<Container title={i18n.translate('cases')}>
-				<ListView
-					forceRefetch={formModal.forceRefetch}
-					initialContext={{
-						filters: {
-							columns: {
-								caseType: false,
-								dateCreated: false,
-								dateModified: false,
-								issues: false,
-								team: false,
-							},
+		<Container>
+			<CaseListView
+				actions={actions}
+				formModal={formModal}
+				listViewProps={{
+					initialContext: {
+						columns: {
+							caseType: false,
+							dateCreated: false,
+							dateModified: false,
+							issues: false,
+							team: false,
 						},
-					}}
-					managementToolbarProps={{
-						addButton: formModal.modal.open,
-						visible: true,
-					}}
-					query={getCases}
-					tableProps={{
-						actions,
-						columns: [
-							{
-								key: 'dateCreated',
-								value: i18n.translate('create-date'),
-							},
-							{
-								key: 'dateModified',
-								value: i18n.translate('modified-date'),
-							},
-							{
-								key: 'priority',
-								sorteable: true,
-								value: i18n.translate('priority'),
-							},
-							{
-								key: 'caseType',
-								render: (caseType) => caseType?.name,
-								value: i18n.translate('case-type'),
-							},
-							{
-								clickable: true,
-								key: 'name',
-								size: 'md',
-								sorteable: true,
-								value: i18n.translate('case-name'),
-							},
-							{
-								key: 'team',
-								render: (_, {component}) =>
-									component?.team?.name,
-								value: i18n.translate('team'),
-							},
-							{
-								key: 'component',
-								render: (component) => component?.name,
-								value: i18n.translate('component'),
-							},
-							{key: 'issues', value: i18n.translate('issues')},
-						],
-						navigateTo: ({id}) => id?.toString(),
-					}}
-					transformData={(data) => data?.cases}
-					variables={{filter: `projectId eq ${projectId}`}}
-				/>
-			</Container>
-
-			<CaseModal modal={formModal.modal} projectId={Number(projectId)} />
-		</>
+					},
+				}}
+				variables={{
+					filter: searchUtil.eq('projectId', projectId as string),
+				}}
+			/>
+		</Container>
 	);
 };
+
+export {CaseListView};
 
 export default Cases;

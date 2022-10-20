@@ -385,6 +385,10 @@ public interface Http {
 			return false;
 		}
 
+		public boolean isNormalizeURI() {
+			return _normalizeURI;
+		}
+
 		public boolean isPatch() {
 			if (_method == Method.PATCH) {
 				return true;
@@ -488,6 +492,10 @@ public interface Http {
 			}
 		}
 
+		public void setNormalizeURI(boolean normalizeURI) {
+			_normalizeURI = normalizeURI;
+		}
+
 		public void setParts(Map<String, String> parts) {
 			_parts = parts;
 		}
@@ -536,6 +544,7 @@ public interface Http {
 		private List<InputStreamPart> _inputStreamParts;
 		private String _location;
 		private Method _method = Method.GET;
+		private boolean _normalizeURI = true;
 		private Map<String, String> _parts;
 		private Response _response = new Response();
 		private int _timeout;

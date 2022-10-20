@@ -52,7 +52,6 @@ definition {
 
 		task ("Assert the fragment editor has autocomplete for lfr-editable tags") {
 			var fragmentHtml = '''<lfr-editable id="" type="image">''';
-
 			var htmlSnippet = '''<lfr-''';
 
 			FragmentsEditor.autocompleteFragmentHTML(
@@ -63,7 +62,6 @@ definition {
 
 		task ("Assert the fragment editor has autocomplete for lfr-widget tags") {
 			var fragmentHtml = '''<lfr-widget-asset-list>''';
-
 			var htmlSnippet = '''<lfr-''';
 
 			FragmentsEditor.autocompleteFragmentHTML(
@@ -74,7 +72,6 @@ definition {
 
 		task ("Assert the fragment editor has autocomplete for variables") {
 			var fragmentHtml = '''${portalUtil''';
-
 			var htmlSnippet = '''${''';
 
 			FragmentsEditor.autocompleteFragmentHTML(
@@ -85,7 +82,6 @@ definition {
 
 		task ("Assert the fragment editor has autocomplete for variables") {
 			var fragmentHtml = '''[@liferay_editor''';
-
 			var htmlSnippet = '''[@''';
 
 			FragmentsEditor.autocompleteFragmentHTML(
@@ -149,7 +145,6 @@ definition {
 				item = "Edit");
 
 			var htmlSnippet = '''[resources:''';
-
 			var fragmentHtml = '''[resources:Document_1.jpg''';
 
 			FragmentsEditor.typeHtmlEditor(content = "");

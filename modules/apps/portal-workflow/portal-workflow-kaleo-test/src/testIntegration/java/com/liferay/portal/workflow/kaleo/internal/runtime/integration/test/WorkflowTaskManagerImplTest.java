@@ -901,11 +901,10 @@ public class WorkflowTaskManagerImplTest extends BaseWorkflowManagerTestCase {
 		FileEntry fileEntry = _dlTrashService.moveFileEntryToTrash(
 			fileVersion.getFileEntryId());
 
-		WorkflowInstanceLink workflowInstanceLink = _fetchWorkflowInstanceLink(
-			DLFileEntryConstants.getClassName(),
-			fileVersion.getFileVersionId());
-
-		Assert.assertNull(workflowInstanceLink);
+		Assert.assertNull(
+			_fetchWorkflowInstanceLink(
+				DLFileEntryConstants.getClassName(),
+				fileVersion.getFileVersionId()));
 
 		_dlTrashService.restoreFileEntryFromTrash(fileVersion.getFileEntryId());
 
@@ -1380,7 +1379,7 @@ public class WorkflowTaskManagerImplTest extends BaseWorkflowManagerTestCase {
 
 	private JournalFolder _addJournalFolder() throws Exception {
 		return _journalFolderLocalService.addFolder(
-			_adminUser.getUserId(), _group.getGroupId(),
+			null, _adminUser.getUserId(), _group.getGroupId(),
 			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
 			_serviceContext);

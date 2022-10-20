@@ -172,7 +172,7 @@ public class SegmentsExperimentServiceTest {
 	public void testGetSegmentsExperimentsWithoutViewPermission()
 		throws Exception {
 
-		Layout layout = LayoutTestUtil.addTypePortletLayout(_group);
+		Layout layout = LayoutTestUtil.addTypeContentLayout(_group);
 
 		SegmentsExperiment segmentsExperiment1 = _addSegmentsExperiment(layout);
 		SegmentsExperiment segmentsExperiment2 = _addSegmentsExperiment(layout);
@@ -216,7 +216,7 @@ public class SegmentsExperimentServiceTest {
 	public void testGetSegmentsExperimentsWithViewPermission()
 		throws Exception {
 
-		Layout layout = LayoutTestUtil.addTypePortletLayout(_group);
+		Layout layout = LayoutTestUtil.addTypeContentLayout(_group);
 
 		SegmentsExperiment segmentsExperiment1 = _addSegmentsExperiment(layout);
 		SegmentsExperiment segmentsExperiment2 = _addSegmentsExperiment(layout);
@@ -280,33 +280,29 @@ public class SegmentsExperimentServiceTest {
 	}
 
 	private SegmentsExperiment _addSegmentsExperiment() throws Exception {
-		ServiceContext serviceContext =
+		return _addSegmentsExperiment(
 			ServiceContextTestUtil.getServiceContext(
-				_group.getGroupId(), TestPropsValues.getUserId());
-
-		return _addSegmentsExperiment(serviceContext);
+				_group.getGroupId(), TestPropsValues.getUserId()));
 	}
 
 	private SegmentsExperiment _addSegmentsExperiment(Layout layout)
 		throws Exception {
 
-		ServiceContext serviceContext =
+		return _addSegmentsExperiment(
+			layout,
 			ServiceContextTestUtil.getServiceContext(
-				_group.getGroupId(), TestPropsValues.getUserId());
-
-		return _addSegmentsExperiment(layout, serviceContext);
+				_group.getGroupId(), TestPropsValues.getUserId()));
 	}
 
 	private SegmentsExperiment _addSegmentsExperiment(
 			Layout layout, ServiceContext serviceContext)
 		throws Exception {
 
-		long classNameId = _classNameLocalService.getClassNameId(
-			Layout.class.getName());
-
 		SegmentsExperience segmentsExperience =
 			SegmentsTestUtil.addSegmentsExperience(
-				_group.getGroupId(), classNameId, layout.getPlid());
+				_group.getGroupId(),
+				_classNameLocalService.getClassNameId(Layout.class.getName()),
+				layout.getPlid());
 
 		return _segmentsExperimentService.addSegmentsExperiment(
 			segmentsExperience.getSegmentsExperienceId(),
@@ -321,7 +317,7 @@ public class SegmentsExperimentServiceTest {
 			ServiceContext serviceContext)
 		throws Exception {
 
-		Layout layout = LayoutTestUtil.addTypePortletLayout(_group);
+		Layout layout = LayoutTestUtil.addTypeContentLayout(_group);
 
 		return _addSegmentsExperiment(layout, serviceContext);
 	}

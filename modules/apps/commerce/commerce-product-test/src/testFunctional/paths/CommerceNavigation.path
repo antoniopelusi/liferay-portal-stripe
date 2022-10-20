@@ -11,6 +11,11 @@
 
 <tbody>
 <tr>
+	<td>BACK</td>
+	<td>//li[contains(@class,'control-menu-nav-item')]//a[span//*[name()='svg'][contains(@class,'icon-angle-left')]]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>CPOPTIONS_STATUS</td>
 	<td>//table[contains (@data-searchcontainerid,'cpOptions')]/tbody//td[contains (@class,'${key_cpOption}') and contains (.,'${key_cpOptionStatus}')] | //table[contains (@data-searchcontainerid,'cpInstances')]/tbody//td[contains (@class,'${key_cpOption}') and contains (.,'${key_cpOptionStatus}')]</td>
 	<td></td>
@@ -47,7 +52,7 @@
 </tr>
 <tr>
 	<td>SEARCH_FIELD</td>
-	<td>//input[contains(@aria-label,'Search')] | //input[contains(@name,'Keywords')]</td>
+	<td>//input[contains(@aria-label,'Search')] | //input[contains(@name,'Keywords') or contains(@name,'keywords')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -108,6 +113,21 @@
 <tr>
 	<td>PAGINATION_ANY_PAGE</td>
 	<td>//ul[contains(@class,'pagination')]//li[contains(@class,'page-item')]//*[(contains(@class,'page-link')) and (contains(.,'${key_pageNumber}'))]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TD_ANY_ENTRY_NAME</td>
+	<td>//td//div[contains(.,'${key_entry}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VALIDATE_CONVERT_TO_DRAFT_MODAL_MESSAGE</td>
+	<td>//div[@class='liferay-modal-body'][contains(text(),'Converting the product status to draft will remove the product from the product catalog. Do you wish to proceed?')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VALIDATE_SAVE_AS_DRAFT_MODAL_MESSAGE_WITH_VALIDATION</td>
+	<td>//div[@class='liferay-modal-body'][contains(text(),'There is already a draft version of this product. Continuing will replace that draft version with this draft version. Do you wish to proceed?')]</td>
 	<td></td>
 </tr>
 </tbody>

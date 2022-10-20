@@ -14,20 +14,16 @@
 
 package com.liferay.fragment.internal.renderer;
 
-import com.liferay.fragment.constants.FragmentConstants;
 import com.liferay.fragment.constants.FragmentEntryLinkConstants;
 import com.liferay.fragment.contributor.FragmentCollectionContributorTracker;
 import com.liferay.fragment.exception.FragmentEntryContentException;
-import com.liferay.fragment.model.FragmentEntry;
 import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.renderer.FragmentRenderer;
 import com.liferay.fragment.renderer.FragmentRendererContext;
 import com.liferay.fragment.renderer.FragmentRendererController;
 import com.liferay.fragment.renderer.FragmentRendererTracker;
 import com.liferay.fragment.renderer.constants.FragmentRendererConstants;
-import com.liferay.fragment.service.FragmentEntryLocalService;
 import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
-import com.liferay.fragment.validator.FragmentEntryValidator;
 import com.liferay.layout.adaptive.media.LayoutAdaptiveMediaProcessor;
 import com.liferay.petra.io.unsync.UnsyncStringWriter;
 import com.liferay.petra.string.StringBundler;
@@ -35,7 +31,7 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.resource.bundle.AggregateResourceBundleLoader;
@@ -173,7 +169,7 @@ public class FragmentRendererControllerImpl
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-		String localizedErrorMessage = LanguageUtil.get(
+		String localizedErrorMessage = _language.get(
 			themeDisplay.getLocale(), errorMessage);
 
 		sb.append(localizedErrorMessage.replaceAll("\\n", "<br>"));
@@ -193,18 +189,10 @@ public class FragmentRendererControllerImpl
 				fragmentEntryLink.getRendererKey());
 		}
 
-		if (fragmentRenderer == null) {
-			FragmentEntry fragmentEntry =
-				_fragmentEntryLocalService.fetchFragmentEntry(
-					fragmentEntryLink.getFragmentEntryId());
-
-			if ((fragmentEntry != null) &&
-				(fragmentEntry.getType() == FragmentConstants.TYPE_REACT)) {
-
-				fragmentRenderer = _fragmentRendererTracker.getFragmentRenderer(
-					FragmentRendererConstants.
-						FRAGMENT_ENTRY_FRAGMENT_RENDERER_KEY_REACT);
-			}
+		if ((fragmentRenderer == null) && fragmentEntryLink.isTypeReact()) {
+			fragmentRenderer = _fragmentRendererTracker.getFragmentRenderer(
+				FragmentRendererConstants.
+					FRAGMENT_ENTRY_FRAGMENT_RENDERER_KEY_REACT);
 		}
 
 		if (fragmentRenderer == null) {
@@ -242,13 +230,10 @@ public class FragmentRendererControllerImpl
 	private FragmentEntryConfigurationParser _fragmentEntryConfigurationParser;
 
 	@Reference
-	private FragmentEntryLocalService _fragmentEntryLocalService;
-
-	@Reference
-	private FragmentEntryValidator _fragmentEntryValidator;
-
-	@Reference
 	private FragmentRendererTracker _fragmentRendererTracker;
+
+	@Reference
+	private Language _language;
 
 	@Reference
 	private LayoutAdaptiveMediaProcessor _layoutAdaptiveMediaProcessor;

@@ -75,9 +75,12 @@ export function FormBuilder() {
 				);
 			}
 
-			const groupFieldSetsPromise = getItem(
-				`/o/data-engine/v2.0/data-definitions/by-content-type/${contentType}`
-			);
+			const groupFieldSetsPromise =
+				groupId === themeDisplay.getCompanyGroupId()
+					? Promise.resolve({})
+					: getItem(
+							`/o/data-engine/v2.0/data-definitions/by-content-type/${contentType}`
+					  );
 
 			const fetchFieldSets = async () => {
 				try {
@@ -130,7 +133,7 @@ export function FormBuilder() {
 	 * Opens the sidebar whenever a field is focused
 	 */
 	useEffect(() => {
-		const hasFocusedField = Object.keys(focusedField).length > 0;
+		const hasFocusedField = !!Object.keys(focusedField).length;
 
 		if (hasFocusedField) {
 			setSidebarState(({sidebarPanelId}) => ({

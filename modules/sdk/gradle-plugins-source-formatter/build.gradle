@@ -1,4 +1,4 @@
-import com.liferay.gradle.plugins.defaults.tasks.ReplaceRegexTask
+import com.liferay.gradle.plugins.defaults.task.ReplaceRegexTask
 
 apply plugin: "com.gradle.plugin-publish"
 apply plugin: "org.ysb33r.gradletest"
@@ -18,10 +18,10 @@ copyGradleTestDependencies {
 }
 
 dependencies {
-	compile group: "com.liferay", name: "com.liferay.gradle.util", version: "1.0.46"
+	compile group: "com.liferay", name: "com.liferay.gradle.util", version: "1.0.47"
 
 	compileOnly fileTree(builtBy: [rootProject.tasks.getByName("extractGradleApi" + gradleVersion.replace(".", ""))], dir: new File(rootProject.buildDir, "gradle-${gradleVersion}"))
-	compileOnly group: "com.liferay", name: "com.liferay.source.formatter", version: "1.0.1217"
+	compileOnly group: "com.liferay", name: "com.liferay.source.formatter", version: "1.0.1250"
 }
 
 gradleTest {

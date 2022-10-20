@@ -77,12 +77,14 @@ public class SXPElementCacheModel
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(33);
+		StringBundler sb = new StringBundler(37);
 
 		sb.append("{mvccVersion=");
 		sb.append(mvccVersion);
 		sb.append(", uuid=");
 		sb.append(uuid);
+		sb.append(", externalReferenceCode=");
+		sb.append(externalReferenceCode);
 		sb.append(", sxpElementId=");
 		sb.append(sxpElementId);
 		sb.append(", companyId=");
@@ -109,6 +111,8 @@ public class SXPElementCacheModel
 		sb.append(title);
 		sb.append(", type=");
 		sb.append(type);
+		sb.append(", version=");
+		sb.append(version);
 		sb.append(", status=");
 		sb.append(status);
 		sb.append("}");
@@ -127,6 +131,13 @@ public class SXPElementCacheModel
 		}
 		else {
 			sxpElementImpl.setUuid(uuid);
+		}
+
+		if (externalReferenceCode == null) {
+			sxpElementImpl.setExternalReferenceCode("");
+		}
+		else {
+			sxpElementImpl.setExternalReferenceCode(externalReferenceCode);
 		}
 
 		sxpElementImpl.setSXPElementId(sxpElementId);
@@ -186,6 +197,14 @@ public class SXPElementCacheModel
 		}
 
 		sxpElementImpl.setType(type);
+
+		if (version == null) {
+			sxpElementImpl.setVersion("");
+		}
+		else {
+			sxpElementImpl.setVersion(version);
+		}
+
 		sxpElementImpl.setStatus(status);
 
 		sxpElementImpl.resetOriginalValues();
@@ -199,6 +218,7 @@ public class SXPElementCacheModel
 
 		mvccVersion = objectInput.readLong();
 		uuid = objectInput.readUTF();
+		externalReferenceCode = objectInput.readUTF();
 
 		sxpElementId = objectInput.readLong();
 
@@ -218,6 +238,7 @@ public class SXPElementCacheModel
 		title = objectInput.readUTF();
 
 		type = objectInput.readInt();
+		version = objectInput.readUTF();
 
 		status = objectInput.readInt();
 	}
@@ -231,6 +252,13 @@ public class SXPElementCacheModel
 		}
 		else {
 			objectOutput.writeUTF(uuid);
+		}
+
+		if (externalReferenceCode == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(externalReferenceCode);
 		}
 
 		objectOutput.writeLong(sxpElementId);
@@ -283,11 +311,19 @@ public class SXPElementCacheModel
 
 		objectOutput.writeInt(type);
 
+		if (version == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(version);
+		}
+
 		objectOutput.writeInt(status);
 	}
 
 	public long mvccVersion;
 	public String uuid;
+	public String externalReferenceCode;
 	public long sxpElementId;
 	public long companyId;
 	public long userId;
@@ -301,6 +337,7 @@ public class SXPElementCacheModel
 	public String schemaVersion;
 	public String title;
 	public int type;
+	public String version;
 	public int status;
 
 }

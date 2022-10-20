@@ -2,7 +2,7 @@ definition {
 
 	macro _deleteAllQuestions {
 		while (IsElementPresent(locator1 = "Icon#BODY_VERTICAL_ELLIPSIS")) {
-			LexiconEntry.gotoEllipsisMenuItemNoError(menuItem = "Move to Recycle Bin");
+			LexiconEntry.gotoEllipsisMenuItemNoError(menuItem = "Delete");
 
 			Alert.viewSuccessMessage();
 		}
@@ -108,11 +108,11 @@ definition {
 		}
 
 		if (isSet(anonymousUser)) {
-			Type.typePause(
+			Type(
 				locator1 = "TextInput#EMAIL_ADDRESS",
 				value1 = "${userEmailAddress}");
 
-			Type.typePause(
+			Type(
 				locator1 = "TextInput#PASSWORD",
 				value1 = "${password}");
 
@@ -155,6 +155,8 @@ definition {
 			}
 		}
 
+		SelectFrameTop();
+
 		Click(locator1 = "Questions#ASK_QUESTION_POST_YOUR_QUESTION_BUTTON");
 
 		if ("${invalidCharacters}" == "Tag") {
@@ -164,11 +166,12 @@ definition {
 
 	macro assertCanonicalURL {
 		var html = '''<link href="''';
-
 		var html2 = '''" rel="canonical" data-react-helmet="true">''';
 		var portalURL = "${portalURL}/web/guest";
 		var pageName = StringUtil.lowerCase("${pageName}");
+
 		var pageNameURL = StringUtil.replace("${pageName}", " ", "-");
+
 		var pageSource = StringUtil.add("${html}", "${portalURL}/${pageNameURL}/questions/${category}/${title}${html2}", "");
 
 		AssertHTMLSourceTextPresent(value1 = "${pageSource}");
@@ -394,6 +397,15 @@ definition {
 				key_questionTitle = "${questionTitle}",
 				locator1 = "Questions#QUESTIONS_DETAILS_TITLE",
 				value1 = "${questionTitle}");
+		}
+		else if (isSet(deleteInActivity)) {
+			Click(
+				key_text = "Delete",
+				locator1 = "Questions#MODAL_ITEM_BUTTON");
+
+			AssertElementPresent(
+				key_emptyInfo = "The topic is not found.",
+				locator1 = "Questions#EMPTY_STATE_MESSAGE");
 		}
 		else {
 			Click(
@@ -622,8 +634,9 @@ definition {
 
 	macro replyToComment {
 		AssertClick(
-			locator1 = "Button#REPLY",
-			value1 = "Reply");
+			key_text = "Add Comment",
+			locator1 = "Button#ANY",
+			value1 = "Add Comment");
 
 		SelectFrame.selectFrameNoLoading(locator1 = "CKEditor#BODY_FIELD_IFRAME");
 
@@ -634,8 +647,9 @@ definition {
 		SelectFrame(value1 = "relative=top");
 
 		AssertClick(
-			locator1 = "Button#REPLY_LAST",
-			value1 = "Reply");
+			key_text = "Add Comment",
+			locator1 = "Button#ANY_LAST",
+			value1 = "Add Comment");
 
 		if (isSet(repliedLabel)) {
 			AssertElementPresent(
@@ -1065,9 +1079,7 @@ definition {
 
 		AssertVisible(locator1 = "Button#EDIT");
 
-		AssertVisible(locator1 = "Button#REPLY");
-
-		for (var text : list "Delete,Mark as answer") {
+		for (var text : list "Add Comment,Delete,Mark as Answer") {
 			AssertVisible(
 				key_text = "${text}",
 				locator1 = "Button#ANY");

@@ -28,7 +28,7 @@ export function getMinQuantity(minQuantity = 1, multipleQuantity = 1) {
 
 export function getProductMaxQuantity(maxQuantity, multipleQuantity = 1) {
 	if (!maxQuantity) {
-		return null;
+		return '';
 	}
 
 	if (multipleQuantity <= 1) {

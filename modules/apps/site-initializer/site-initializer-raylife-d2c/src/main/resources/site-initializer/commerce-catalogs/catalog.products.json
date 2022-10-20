@@ -3,7 +3,16 @@
 		"availabilityEstimate": "3-5 days",
 		"backOrders": true,
 		"categories": [
-			"Business Owners Policy"
+			"Business"
+		],
+		"customFields": [
+			{
+				"customValue": {
+					"data": 0.02
+				},
+				"dataType": "Decimal",
+				"name": "Commission Rate"
+			}
 		],
 		"description": "Covers cost for property damage claims against your business, medical expenses if someone gets injured at your company and safeguards your business if you are sued.",
 		"displayAvailability": true,
@@ -28,7 +37,7 @@
 		"availabilityEstimate": "3-5 days",
 		"backOrders": true,
 		"categories": [
-			"Business Owners Policy"
+			"Business"
 		],
 		"description": "Coverage to help protect your business against negligence and other claims from your clients.",
 		"displayAvailability": true,
@@ -53,7 +62,7 @@
 		"availabilityEstimate": "3-5 days",
 		"backOrders": true,
 		"categories": [
-			"Business Owners Policy"
+			"Business"
 		],
 		"description": "Provides benefits to employees who experience a work-related injury or illness.",
 		"displayAvailability": true,
@@ -78,7 +87,7 @@
 		"availabilityEstimate": "3-5 days",
 		"backOrders": true,
 		"categories": [
-			"Business Owners Policy"
+			"Business"
 		],
 		"description": "Combines coverage for all major property and liability risks into one insurance policy.",
 		"displayAvailability": true,

@@ -1,0 +1,4 @@
+Bundle-Name: Liferay Client Extension UAD
+Bundle-SymbolicName: com.liferay.client.extension.uad
+Bundle-Version: 1.0.4
+-dsannotations-options: inherit

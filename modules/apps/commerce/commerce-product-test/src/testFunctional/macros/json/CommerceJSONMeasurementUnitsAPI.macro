@@ -29,7 +29,6 @@ definition {
 
 	macro _getCommerceAvailableMeasurementUnitsCount {
 		var availableMeasurementUnits = "0";
-
 		var commerceMeasurementUnitsIds = CommerceJSONMeasurementUnitsAPI._getCommerceMeasurementUnits();
 
 		for (var commerceMeasurementUnitsId : list "${commerceMeasurementUnitsIds}") {

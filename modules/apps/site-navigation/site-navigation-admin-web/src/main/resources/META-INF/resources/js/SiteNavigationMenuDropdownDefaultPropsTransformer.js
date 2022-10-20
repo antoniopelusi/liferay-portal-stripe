@@ -12,27 +12,40 @@
  * details.
  */
 
-import {openModal, openSimpleInputModal} from 'frontend-js-web';
+import {
+	openConfirmModal,
+	openModal,
+	openSimpleInputModal,
+} from 'frontend-js-web';
+
+import openDeleteSiteNavigationMenuModal from './openDeleteSiteNavigationMenuModal';
 
 const ACTIONS = {
 	deleteSiteNavigationMenu(itemData) {
-		if (
-			confirm(
-				Liferay.Language.get('are-you-sure-you-want-to-delete-this')
-			)
-		) {
-			submitForm(document.hrefFm, itemData.deleteSiteNavigationMenuURL);
-		}
+		openDeleteSiteNavigationMenuModal({
+			onDelete: () => {
+				submitForm(
+					document.hrefFm,
+					itemData.deleteSiteNavigationMenuURL
+				);
+			},
+		});
 	},
 
 	markAsPrimary(itemData) {
-		if (
-			itemData.confirmationMessage &&
-			!confirm(itemData.confirmationMessage)
-		) {
-			return;
+		if (itemData.confirmationMessage) {
+			openConfirmModal({
+				message: itemData.confirmationMessage,
+				onConfirm: (isConfirmed) => {
+					if (isConfirmed) {
+						submitForm(document.hrefFm, itemData.markAsPrimaryURL);
+					}
+				},
+			});
 		}
-		submitForm(document.hrefFm, itemData.markAsPrimaryURL);
+		else {
+			submitForm(document.hrefFm, itemData.markAsPrimaryURL);
+		}
 	},
 
 	markAsSecondary(itemData) {

@@ -91,7 +91,6 @@ definition {
 				return false;
 			}
 		''';
-
 		var message = '''Event "${eventName}" with attribute "${attributeName}" and value "${attributeValue}" not fired.''';
 
 		selenium.waitForJavaScriptNoError("${javascript}", "${message}", "");

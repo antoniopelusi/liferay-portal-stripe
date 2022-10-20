@@ -11,8 +11,9 @@
 
 import {useCallback} from 'react';
 import {useNavigate} from 'react-router-dom';
+import i18n from '../../../../../../common/I18n';
 import {Button, ButtonDropDown} from '../../../../../../common/components';
-import {useApplicationProvider} from '../../../../../../common/context/AppPropertiesProvider';
+import {useAppPropertiesContext} from '../../../../../../common/contexts/AppPropertiesContext';
 import {ALERT_DOWNLOAD_TYPE} from '../../../../utils/constants';
 import {getActivationKeyDownload} from '../../utils/getActivationKeyDownload';
 import {getActivationKeysActionsItems} from '../../utils/getActivationKeysActionsItems';
@@ -27,14 +28,25 @@ const ActionButton = ({
 	sessionId,
 	setStatus,
 }) => {
-	const {licenseKeyDownloadURL} = useApplicationProvider();
+	const {provisioningServerAPI} = useAppPropertiesContext();
 	const navigate = useNavigate();
 
 	const handleAlertStatus = useCallback(
 		(hasSuccessfullyDownloadedKeys) =>
 			setStatus((previousStatus) => ({
 				...previousStatus,
-				download: hasSuccessfullyDownloadedKeys
+				downloadAggregated: hasSuccessfullyDownloadedKeys
+					? ALERT_DOWNLOAD_TYPE.success
+					: ALERT_DOWNLOAD_TYPE.danger,
+			})),
+		[setStatus]
+	);
+
+	const handleMultipleAlertStatus = useCallback(
+		(hasSuccessfullyDownloadedKeys) =>
+			setStatus((previousStatus) => ({
+				...previousStatus,
+				downloadMultiple: hasSuccessfullyDownloadedKeys
 					? ALERT_DOWNLOAD_TYPE.success
 					: ALERT_DOWNLOAD_TYPE.danger,
 			})),
@@ -45,8 +57,9 @@ const ActionButton = ({
 		const activationKeysDownloadItems = getActivationKeysDownloadItems(
 			isAbleToDownloadAggregateKeys,
 			filterCheckedActivationKeys,
-			licenseKeyDownloadURL,
+			provisioningServerAPI,
 			sessionId,
+			handleMultipleAlertStatus,
 			handleAlertStatus,
 			activationKeysByStatusPaginatedChecked,
 			project.name
@@ -55,9 +68,9 @@ const ActionButton = ({
 		return (
 			<ButtonDropDown
 				items={activationKeysDownloadItems}
-				label="Download"
+				label={i18n.translate('download')}
 				menuElementAttrs={{
-					className: 'p-0',
+					className: 'p-0 cp-drop-down-action-button',
 				}}
 			/>
 		);
@@ -69,7 +82,7 @@ const ActionButton = ({
 				className="btn btn-primary"
 				onClick={async () =>
 					getActivationKeyDownload(
-						licenseKeyDownloadURL,
+						provisioningServerAPI,
 						sessionId,
 						handleAlertStatus,
 						activationKeysByStatusPaginatedChecked[0],
@@ -77,25 +90,28 @@ const ActionButton = ({
 					)
 				}
 			>
-				Download
+				{i18n.translate('download')}
 			</Button>
 		);
 	}
 
 	const handleRedirectPage = () => navigate('new');
+	const handleDeactivatePage = () => navigate('deactivate');
+
 	const activationKeysActionsItems = getActivationKeysActionsItems(
 		project?.accountKey,
-		licenseKeyDownloadURL,
+		provisioningServerAPI,
 		sessionId,
 		handleAlertStatus,
 		handleRedirectPage,
+		handleDeactivatePage,
 		productName
 	);
 
 	return (
 		<ButtonDropDown
 			items={activationKeysActionsItems}
-			label="Actions"
+			label={i18n.translate('actions')}
 			menuElementAttrs={{
 				className: 'p-0',
 			}}

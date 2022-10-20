@@ -1,5 +1,40 @@
 definition {
 
+	macro addAccountGroups {
+		Click(
+			key_name = "Account Groups",
+			locator1 = "ToggleSwitch#ENABLE_SPECIFIC_TOGGLE_SWITCH");
+
+		ClickNoError.clickNoMouseOver(
+			key_webContentTitle = "Add Account Group Relation to ${productName}",
+			locator1 = "Button#BUTTON_PLUS_PRODUCT_VISIBILITY");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
+
+		if (isSet(selectAll)) {
+			Click(locator1 = "Checkbox#SELECT_ALL");
+		}
+		else {
+			for (var accountGroupName : list "${accountGroupNames}") {
+				Check(
+					key_checkboxName = "${accountGroupName}",
+					locator1 = "Checkbox#ENABLE_CHECKBOX");
+			}
+		}
+
+		SelectFrameTop();
+
+		Button.click(button = "Add");
+
+		SelectFrameTop();
+
+		AssertElementPresent(locator1 = "Message#SUCCESS");
+
+		Button.clickPublish();
+
+		Alert.viewSuccessMessage();
+	}
+
 	macro addPin {
 		var key_pinNumber = "${pinNumber}";
 
@@ -74,6 +109,18 @@ definition {
 			locator1 = "CommerceDiagrams#DIAGRAM_SETTINGS_SELECTED_TYPE");
 	}
 
+	macro assertPinSize {
+		if ("${pinSize}" == "Small") {
+			AssertElementPresent(locator1 = "CommerceDiagrams#DIAGRAM_PIN_SIZE_SMALL");
+		}
+		else if ("${pinSize}" == "Medium") {
+			AssertElementPresent(locator1 = "CommerceDiagrams#DIAGRAM_PIN_SIZE_MEDIUM");
+		}
+		else if ("${pinSize}" == "Large") {
+			AssertElementPresent(locator1 = "CommerceDiagrams#DIAGRAM_PIN_SIZE_LARGE");
+		}
+	}
+
 	macro assertPinToolTipInfo {
 		AssertElementPresent(
 			key_positionValue = "${pinNumber}",
@@ -101,6 +148,32 @@ definition {
 
 		if (isSet(key_inputItem)) {
 			AssertElementPresent(locator1 = "CommerceDiagrams#DIAGRAM_ADMIN_TOOLTIP_INPUT_GROUP_ITEM");
+		}
+	}
+
+	macro assertPinToolTipInfoInProduct {
+		if ("${selectedType}" == "Linked to a SKU") {
+			AssertElementPresent(
+				key_sku = "${sku}",
+				locator1 = "CommerceDiagrams#DIAGRAM_PRODUCT_TOOLTIP_LINKED_SKU");
+
+			AssertElementPresent(
+				key_productName = "${productName}",
+				locator1 = "CommerceDiagrams#DIAGRAM_PRODUCT_TOOLTIP_LINKED_PRODUCT_NAME");
+
+			AssertElementPresent(locator1 = "CommerceDiagrams#DIAGRAM_PRODUCT_TOOLTIP_QUANTITY");
+		}
+		else if ("${selectedType}" == "Linked to a Diagram") {
+			AssertElementPresent(
+				key_sku = "${productName}",
+				locator1 = "CommerceDiagrams#DIAGRAM_PRODUCT_TOOLTIP_LINKED_SKU");
+		}
+		else if ("${selectedType}" == "Not Linked to a Catalog") {
+			AssertElementPresent(
+				key_productName = "${productName}",
+				locator1 = "CommerceDiagrams#DIAGRAM_PRODUCT_TOOLTIP_UNLINKED_PRODUCT_NAME");
+
+			AssertElementPresent(locator1 = "CommerceDiagrams#DIAGRAM_PRODUCT_TOOLTIP_QUANTITY");
 		}
 	}
 
@@ -163,7 +236,12 @@ definition {
 				locator1 = "MenuItem#DROPDOWN_MENU_ITEM");
 		}
 
-		Button.clickUpdate();
+		if (IsElementPresent(locator1 = "Button#UPDATE")) {
+			Button.clickUpdate();
+		}
+		else if (IsElementPresent(locator1 = "Button#SAVE")) {
+			Button.clickSave();
+		}
 
 		Refresh();
 
@@ -182,21 +260,63 @@ definition {
 		Alert.viewSuccessMessage();
 	}
 
+	macro clickExpand {
+		Click(locator1 = "CommerceDiagrams#DIAGRAM_EXPAND");
+	}
+
+	macro selectPinSize {
+		Click(locator1 = "CommerceDiagrams#DIAGRAM_PIN_SIZE_BUTTON");
+
+		AssertClick(
+			key_pinSize = "${pinSize}",
+			locator1 = "CommerceDiagrams#DIAGRAM_PIN_SIZE_DROPDOWN",
+			value1 = "${pinSize}");
+	}
+
+	macro setVisibility {
+		CommerceEntry.gotoMenuTab(menuTab = "Visibility");
+
+		Click(
+			key_name = "${name}",
+			locator1 = "ToggleSwitch#ENABLE_SPECIFIC_TOGGLE_SWITCH");
+
+		if ("${name}" == "Account Groups") {
+			ClickNoError.clickNoMouseOver(
+				key_webContentTitle = "${webContentTitle}",
+				locator1 = "Button#BUTTON_PLUS_PRODUCT_VISIBILITY");
+		}
+		else {
+			Click(locator1 = "Button#PLUS");
+		}
+
+		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
+
+		Check(
+			key_checkboxName = "${checkboxName}",
+			locator1 = "Checkbox#ENABLE_CHECKBOX");
+
+		SelectFrameTop();
+
+		Button.click(button = "Add");
+
+		Alert.viewSuccessMessage();
+	}
+
 	macro useDragOnBackground {
 
 		// Verify the postion after mouse drag
 
-		CommerceDiagram.useResetZoom();
+		WaitForElementPresent(locator1 = "CommerceDiagrams#CHECK_DIAGRAM_IMAGE_FOR_DRAG");
 
-		var first_position = selenium.getAttribute("//div[contains(@class,'diagram-pins-container')]//*[name()='svg']//*[name()='g']@transform");
+		var first_position = selenium.getAttribute("//div[contains(@class,'shop-by-diagram')]//*[name()='svg']//*[name()='g' and @class='zoom-handler']@transform");
 
 		DragAndDrop.dragAndDropReorganizeObjects(
 			key_image = "${image_name}",
-			locator1 = "CommerceEntry#VERIFY_IMAGE",
-			locator2 = "CommerceEntry#VERIFY_IMAGE",
+			locator1 = "CommerceDiagrams#DIAGRAM_IMAGE_SPECIFIC",
+			locator2 = "CommerceDiagrams#DIAGRAM_IMAGE_SPECIFIC",
 			position = "${position}");
 
-		var second_position = selenium.getAttribute("//div[contains(@class,'diagram-pins-container')]//*[name()='svg']//*[name()='g']@transform");
+		var second_position = selenium.getAttribute("//div[contains(@class,'shop-by-diagram')]//*[name()='svg']//*[name()='g' and @class='zoom-handler']@transform");
 
 		if ("${first_position}" != "${second_position}") {
 			echo("The position after the drag is correct");
@@ -263,8 +383,6 @@ definition {
 			key_text = "Reset Zoom",
 			locator1 = "Button#ANY");
 
-		Pause(locator1 = "2000");
-
 		var actual_position = selenium.getAttribute("//div[contains(@class,'diagram-pins-container')]//*[name()='svg']//*[name()='g']@transform");
 
 		if (("${actual_position}" == "translate(0,0) scale(1)") || ("${actual_position}" == "translate(0, 0) scale(1,1)")) {
@@ -275,12 +393,27 @@ definition {
 		}
 	}
 
+	macro viewMappedProducts {
+		AssertElementPresent(
+			key_pinNumber = "${pinNumber}",
+			key_productName = "${productName}",
+			locator1 = "CommerceDiagrams#DIAGRAM_MAPPED_PRODUCTS_CONTENT_SPECIFIC");
+	}
+
 	macro viewPin {
 		Click(
 			key_pinNumber = "${pinNumber}",
 			locator1 = "CommerceDiagrams#DIAGRAM_PIN");
 
 		WaitForElementPresent(locator1 = "CommerceDiagrams#DIAGRAM_ADMIN_TOOLTIP");
+	}
+
+	macro viewPinInProduct {
+		Click(
+			key_pinNumber = "${pinNumber}",
+			locator1 = "CommerceDiagrams#DIAGRAM_PIN");
+
+		WaitForElementPresent(locator1 = "CommerceDiagrams#DIAGRAM_PRODUCT_TOOLTIP");
 	}
 
 }

@@ -14,11 +14,10 @@
 
 package com.liferay.portal.kernel.servlet;
 
-import com.liferay.portal.kernel.util.SetUtil;
-import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.cookies.constants.CookiesConstants;
 import com.liferay.portal.kernel.util.SystemProperties;
 
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.servlet.http.Cookie;
@@ -62,27 +61,29 @@ public class HttpOnlyCookieServletResponse extends HttpServletResponseWrapper {
 
 	@Override
 	public void addCookie(Cookie cookie) {
-		if (!_cookieHttpOnlyCookieNamesExcludes.contains(cookie.getName())) {
+		if (!_httpOnlyCookieNames.contains(cookie.getName())) {
 			cookie.setHttpOnly(true);
 		}
 
 		super.addCookie(cookie);
 	}
 
-	private static final Set<String> _cookieHttpOnlyCookieNamesExcludes;
+	private static final Set<String> _httpOnlyCookieNames =
+		new HashSet<String>() {
+			{
+				add(CookiesConstants.NAME_CONSENT_TYPE_FUNCTIONAL);
+				add(CookiesConstants.NAME_CONSENT_TYPE_NECESSARY);
+				add(CookiesConstants.NAME_CONSENT_TYPE_PERFORMANCE);
+				add(CookiesConstants.NAME_CONSENT_TYPE_PERSONALIZATION);
+				add(CookiesConstants.NAME_USER_CONSENT_CONFIGURED);
 
-	static {
-		Set<String> cookieHttpOnlyCookieNamesExcludes = SetUtil.fromArray(
-			StringUtil.split(
-				SystemProperties.get("cookie.http.only.names.excludes")));
+				for (String cookieName :
+						SystemProperties.getArray(
+							"cookie.http.only.names.excludes")) {
 
-		if (cookieHttpOnlyCookieNamesExcludes.isEmpty()) {
-			_cookieHttpOnlyCookieNamesExcludes = Collections.emptySet();
-		}
-		else {
-			_cookieHttpOnlyCookieNamesExcludes =
-				cookieHttpOnlyCookieNamesExcludes;
-		}
-	}
+					add(cookieName);
+				}
+			}
+		};
 
 }

@@ -43,12 +43,12 @@ int mergeFailCount = SitesUtil.getMergeFailCount(layoutSetPrototype);
 
 		if (resetButton) {
 			resetButton.addEventListener('click', (event) => {
-				<portlet:actionURL name="/site_admin/reset_merge_fail_count_and_merge" var="portletURL">
+				<liferay-portlet:actionURL name="/site_admin/reset_merge_fail_count_and_merge" portletName="<%= SiteAdminPortletKeys.SITE_ADMIN %>" var="portletURL">
 					<portlet:param name="redirect" value="<%= redirect %>" />
 					<portlet:param name="layoutSetPrototypeId" value="<%= String.valueOf(layoutSetPrototype.getLayoutSetPrototypeId()) %>" />
 					<portlet:param name="groupId" value="<%= String.valueOf(groupId) %>" />
 					<portlet:param name="privateLayoutSet" value="<%= String.valueOf(layoutSet.isPrivateLayout()) %>" />
-				</portlet:actionURL>
+				</liferay-portlet:actionURL>
 
 				submitForm(document.hrefFm, '<%= portletURL.toString() %>');
 			});

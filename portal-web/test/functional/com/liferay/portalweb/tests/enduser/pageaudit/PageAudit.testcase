@@ -17,6 +17,10 @@ definition {
 				groupName = "Test Site Name",
 				layoutName = "Content Page",
 				type = "content");
+
+			JSONLayout.publishLayout(
+				groupName = "Test Site Name",
+				layoutName = "Content Page");
 		}
 	}
 
@@ -52,7 +56,7 @@ definition {
 		task ("Run Page Audit") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 		}
 
 		task ("Check if proper failures are displayed at Accessibility section") {
@@ -84,6 +88,10 @@ definition {
 			PageAudit.setAPIViaSiteSettings(apiKey = "AIzaSyAq-oKsvIhlYHdk1UXCFy63h74ECIgbgbE");
 		}
 
+		task ("Configure canonical URL") {
+			PageAudit.configurationSEOCanonicalURL();
+		}
+
 		task ("Add a translation for that page") {
 			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
 
@@ -100,7 +108,7 @@ definition {
 		task ("Open Page Audit panel and run it") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelBeforeConfiguration();
+			PageAudit.openPageAuditSidebar();
 
 			AssertTextPresent(
 				locator1 = "PageAudit#PANEL_PAGE_TITLE",
@@ -125,16 +133,22 @@ definition {
 	Then the URL for that language shows and is consulted"
 	@priority = "4"
 	test AssertPageAuditLocaleInContentPage {
+		property portal.acceptance = "true";
+
 		task ("Set Google PageSpeed API") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
 			PageAudit.setAPIViaSiteSettings(apiKey = "AIzaSyAq-oKsvIhlYHdk1UXCFy63h74ECIgbgbE");
 		}
 
+		task ("Configure canonical URL") {
+			PageAudit.configurationSEOCanonicalURL();
+		}
+
 		task ("Open Page Audit panel and change locale/language") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelBeforeConfiguration();
+			PageAudit.openPageAuditSidebar();
 
 			PageAudit.changeLocale(locale = "Finnish");
 
@@ -149,6 +163,8 @@ definition {
 	Then the URL for that language shows and is consulted"
 	@priority = "4"
 	test AssertPageAuditLocaleInDisplayPage {
+		property portal.acceptance = "true";
+
 		task ("Create a content page") {
 			JSONLayout.addPublicLayout(
 				groupName = "Test Site Name",
@@ -169,28 +185,28 @@ definition {
 				title = "Web Content Title");
 		}
 
-		task ("Add Display Page and mark it as default") {
+		task ("Create a default Display Page Template") {
 			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 				contentType = "Web Content Article",
 				displayPageTemplateEntryName = "Display Page Name",
 				groupName = "Test Site Name",
+				statusKey = "APPROVED",
 				subType = "Basic Web Content");
 
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
-
-			Button.clickPublish();
-
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+			JSONLayoutpagetemplate.setLayoutPageTemplateEntryAsDefault(
+				groupName = "Test Site Name",
+				layoutPageTemplateEntryName = "Display Page Name",
+				type = "Display Page Template");
 		}
 
 		task ("Set Google PageSpeed API") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page-2");
 
 			PageAudit.setAPIViaSiteSettings(apiKey = "AIzaSyAq-oKsvIhlYHdk1UXCFy63h74ECIgbgbE");
+		}
+
+		task ("Configure canonical URL") {
+			PageAudit.configurationSEOCanonicalURL();
 		}
 
 		task ("Go to display page") {
@@ -200,7 +216,7 @@ definition {
 		}
 
 		task ("Open Page Audit panel and change locale/language") {
-			PageAudit.openPanelBeforeConfiguration();
+			PageAudit.openPageAuditSidebar();
 
 			PageAudit.changeLocale(locale = "Portuguese");
 
@@ -215,6 +231,8 @@ definition {
 	Then the URL for that language shows and is consulted"
 	@priority = "4"
 	test AssertPageAuditLocaleInWidgetPage {
+		property portal.acceptance = "true";
+
 		task ("Create Widget Page") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name");
 
@@ -229,10 +247,14 @@ definition {
 			PageAudit.setAPIViaSiteSettings(apiKey = "AIzaSyAq-oKsvIhlYHdk1UXCFy63h74ECIgbgbE");
 		}
 
+		task ("Configure canonical URL") {
+			PageAudit.configurationSEOCanonicalURL();
+		}
+
 		task ("Open Page Audit panel and change locale/language") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/3");
 
-			PageAudit.openPanelBeforeConfiguration();
+			PageAudit.openPageAuditSidebar();
 
 			PageAudit.changeLocale(locale = "Hungarian");
 
@@ -265,11 +287,64 @@ definition {
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
 		task ("Open Page Audit panel and assert the progress bar") {
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 		}
 
 		task ("Reset Google PageSpeed API to default at System Settings") {
 			PageAudit.configurationTeardown();
+		}
+	}
+
+	@description = "LPS-130621 Given the page audit panel
+	When the panel is showing cached data
+	Then there's an alert informing about the date and the hour when it was last updated"
+	@priority = "3"
+	test CachedDataAlert {
+		task ("Create second content page") {
+			task ("Create content page") {
+				JSONLayout.addPublicLayout(
+					groupName = "Test Site Name",
+					layoutName = "Second Page",
+					type = "content");
+			}
+		}
+
+		task ("Set a custom page as canonical URL to have data already loaded") {
+			PageAudit.setSEOcanonicalURL(url = "https://liferay-tango.github.io/liferay-portal/page-audit-test");
+		}
+
+		task ("Set Google PageSpeed API") {
+			PageAudit.setAPIViaSiteSettings(
+				apiKey = "AIzaSyAq-oKsvIhlYHdk1UXCFy63h74ECIgbgbE",
+				preferredStrategy = "Mobile");
+		}
+
+		task ("Open Page Audit panel and run it") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
+
+			PageAudit.runPageAudit(pageName = "Content Page");
+		}
+
+		task ("Navigate to second page") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/second-page");
+		}
+
+		task ("Navigate back to audited page") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
+		}
+
+		task ("Assert if warning is displayed") {
+			PageAudit.openPageAuditSidebar();
+
+			var currentDate = DateUtil.getFormattedCurrentDate("MMM d, yyyy");
+
+			AssertTextEquals.assertPartialText(
+				locator1 = "PageAudit#CACHE_ALERT",
+				value1 = "Showing data from ");
+
+			AssertTextEquals.assertPartialText(
+				locator1 = "PageAudit#CACHE_ALERT",
+				value1 = "Relaunch to update data.");
 		}
 	}
 
@@ -278,6 +353,8 @@ definition {
 	Then the matching canonical URL shows and is consulted"
 	@priority = "4"
 	test CanonicalUrlLocaleInContentPage {
+		property portal.acceptance = "true";
+
 		task ("Set Google PageSpeed API") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
@@ -293,7 +370,7 @@ definition {
 		task ("Open Page Audit panel and change locale/language") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelBeforeConfiguration();
+			PageAudit.openPageAuditSidebar();
 
 			PageAudit.changeLocale(locale = "French");
 
@@ -303,7 +380,7 @@ definition {
 		}
 
 		task ("Run Page Audit") {
-			PageAudit.openPanelAfterConfiguration();
+			PageAudit.runPageAudit();
 		}
 
 		task ("Check if Page Audit returned expected failures") {
@@ -319,6 +396,8 @@ definition {
 	Then the matching canonical URL shows and is consulted"
 	@priority = "4"
 	test CanonicalUrlLocaleInWidgetPage {
+		property portal.acceptance = "true";
+
 		task ("Create Widget Page") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name");
 
@@ -344,7 +423,7 @@ definition {
 		task ("Open Page Audit panel and change locale/language") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/3");
 
-			PageAudit.openPanelBeforeConfiguration();
+			PageAudit.openPageAuditSidebar();
 
 			PageAudit.changeLocale(locale = "Dutch");
 
@@ -354,7 +433,7 @@ definition {
 		}
 
 		task ("Run Page Audit") {
-			PageAudit.openPanelAfterConfiguration();
+			PageAudit.runPageAudit();
 		}
 
 		task ("Check if Page Audit returned expected failures") {
@@ -387,9 +466,9 @@ definition {
 		task ("Open Page Audit panel and assert 'Show details' link") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAuditWithError();
 
-			WaitForElementPresent(
+			AssertElementPresent(
 				errorTitle = "The API key is invalid.",
 				locator1 = "PageAudit#ERROR_WARNING_TITLE");
 
@@ -431,7 +510,7 @@ definition {
 		task ("Open Page Audit panel and navigate to the second level of an issue") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 
 			PageAudit.goToDetailView(failingCheckName = "Illegible Font Sizes");
 
@@ -467,7 +546,7 @@ definition {
 		task ("Open Page Audit panel and navigate to the second level of an issue") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 
 			PageAudit.goToDetailView(failingCheckName = "Incorrect Image Aspect Ratios");
 
@@ -515,7 +594,7 @@ definition {
 		task ("Open Page Audit panel and navigate to the second level of an issue") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 
 			PageAudit.goToDetailView(failingCheckName = "Invalid Canonical URL");
 
@@ -571,20 +650,6 @@ definition {
 			PageAudit.setAPIViaSiteSettings(apiKey = "AIzaSyAq-oKsvIhlYHdk1UXCFy63h74ECIgbgbE");
 		}
 
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
-		}
-
 		task ("Login with new user") {
 			User.logoutAndLoginPG(
 				userLoginEmailAddress = "userea@liferay.com",
@@ -594,7 +659,7 @@ definition {
 		task ("Open Page Audit panel and run it") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 		}
 
 		task ("Open detailed view and check text") {
@@ -640,7 +705,7 @@ definition {
 		task ("Open Page Audit panel and navigate to the second level of an issue") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 
 			PageAudit.goToDetailView(failingCheckName = "Invalid Hreflang");
 
@@ -680,7 +745,7 @@ definition {
 		task ("Open Page Audit panel and navigate to the second level of an issue") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 
 			PageAudit.goToDetailView(failingCheckName = "Not All Links Are Crawlable");
 
@@ -720,7 +785,7 @@ definition {
 		task ("Open Page Audit panel and navigate to the second level of an issue") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 
 			PageAudit.goToDetailView(failingCheckName = "Link Texts");
 
@@ -764,7 +829,7 @@ definition {
 		task ("Open Page Audit panel and navigate to the second level of an issue") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 
 			PageAudit.goToDetailView(failingCheckName = "Low Contrast Ratio");
 
@@ -804,7 +869,7 @@ definition {
 		task ("Open Page Audit panel and navigate to the second level of an issue") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 
 			PageAudit.goToDetailView(failingCheckName = "Missing Img ALT Attributes");
 
@@ -844,7 +909,7 @@ definition {
 		task ("Open Page Audit panel and navigate to the second level of an issue") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 
 			PageAudit.goToDetailView(failingCheckName = "Missing Input ALT Attributes");
 
@@ -884,7 +949,7 @@ definition {
 		task ("Open Page Audit panel and navigate to the second level of an issue") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 
 			PageAudit.goToDetailView(failingCheckName = "Missing Meta Description");
 
@@ -944,20 +1009,6 @@ definition {
 			PageAudit.setAPIViaSiteSettings(apiKey = "AIzaSyAq-oKsvIhlYHdk1UXCFy63h74ECIgbgbE");
 		}
 
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
-		}
-
 		task ("Login with new user") {
 			User.logoutAndLoginPG(
 				userLoginEmailAddress = "userea@liferay.com",
@@ -967,7 +1018,7 @@ definition {
 		task ("Open Page Audit panel and run it") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 		}
 
 		task ("Open detailed view and check text") {
@@ -1013,7 +1064,7 @@ definition {
 		task ("Open Page Audit panel and navigate to the second level of an issue") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 
 			PageAudit.goToDetailView(failingCheckName = "Missing <title> Element");
 
@@ -1031,8 +1082,7 @@ definition {
 	Then the reload button won't be visible."
 	@priority = "3"
 	test CheckNotVisibleReloadbButtonInPrivatePage {
-		property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-		property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		task ("Create a Private Page") {
 			JSONLayout.addPrivateLayout(
@@ -1047,11 +1097,11 @@ definition {
 		}
 
 		task ("Open Page Audit tab and Assert reload button id not present") {
-			PageAudit.openPanelBeforeConfiguration();
+			PageAudit.openPageAuditSidebar();
 
-			IsElementPresent(locator1 = "PageAudit#ERROR_WARNING_BOX");
+			AssertVisible(locator1 = "PageAudit#ERROR_WARNING_BOX");
 
-			IsElementNotPresent(locator1 = "PageAudit#RELAUNCH_PAGE_AUDIT_BUTTON");
+			AssertElementNotPresent(locator1 = "PageAudit#RELAUNCH_PAGE_AUDIT_BUTTON");
 		}
 	}
 
@@ -1061,11 +1111,9 @@ definition {
 	@priority = "3"
 	test CheckPageAuditClosedAfterLogout {
 		task ("Open Content Performance panel") {
-			PageAudit.openPanelBeforeConfiguration();
+			PageAudit.openPageAuditSidebar();
 
-			AssertVisible(
-				key_text = "Configure",
-				locator1 = "Button#ANY");
+			AssertVisible(locator1 = "PageAudit#SIDEBAR");
 		}
 
 		task ("Logout and login") {
@@ -1075,13 +1123,15 @@ definition {
 		}
 
 		task ("Check if panel is closed") {
-			AssertNotVisible(locator1 = "PageAudit#CONNECT_TO_GOOGLE_PAGESPEED_BUTTON");
+			AssertNotVisible(locator1 = "PageAudit#SIDEBAR");
 		}
 	}
 
 	@description = "LPS-137227 Given a content page	When a user with permissions to edit blogs visits the page Then the issue icon for displaying the page audit panel shows"
 	@priority = "4"
 	test CheckPageAuditIconInContentPageWithEditBlogsPermission {
+		property portal.acceptance = "true";
+
 		task ("Create user") {
 			JSONUser.addUser(
 				userEmailAddress = "userea@liferay.com",
@@ -1110,20 +1160,6 @@ definition {
 				userEmailAddress = "userea@liferay.com");
 		}
 
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
-		}
-
 		task ("Login with new user") {
 			User.logoutAndLoginPG(
 				userLoginEmailAddress = "userea@liferay.com",
@@ -1144,6 +1180,8 @@ definition {
 	@description = "LPS-137227 Given a content page When a user with permissions to edit documents visits the page Then the issue icon for displaying the page audit panel shows"
 	@priority = "4"
 	test CheckPageAuditIconInContentPageWithEditDocumentsPermission {
+		property portal.acceptance = "true";
+
 		task ("Create user") {
 			JSONUser.addUser(
 				userEmailAddress = "userea@liferay.com",
@@ -1172,20 +1210,6 @@ definition {
 				userEmailAddress = "userea@liferay.com");
 		}
 
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
-		}
-
 		task ("Login with new user") {
 			User.logoutAndLoginPG(
 				userLoginEmailAddress = "userea@liferay.com",
@@ -1206,6 +1230,8 @@ definition {
 	@description = "LPS-137227 Given a content page When the user with permissions to edit pages visits the view mode	Then the issue icon for displaying the page audit panel shows"
 	@priority = "4"
 	test CheckPageAuditIconInContentPageWithEditPagesPermission {
+		property portal.acceptance = "true";
+
 		task ("Create user") {
 			JSONUser.addUser(
 				userEmailAddress = "userea@liferay.com",
@@ -1234,20 +1260,6 @@ definition {
 				userEmailAddress = "userea@liferay.com");
 		}
 
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
-		}
-
 		task ("Login with new user") {
 			User.logoutAndLoginPG(
 				userLoginEmailAddress = "userea@liferay.com",
@@ -1268,6 +1280,8 @@ definition {
 	@description = "LPS-137227 Given a content page	When a user with permissions to edit web content visits the page Then the issue icon for displaying the page audit panel shows"
 	@priority = "4"
 	test CheckPageAuditIconInContentPageWithEditWebContentPermission {
+		property portal.acceptance = "true";
+
 		task ("Create user") {
 			JSONUser.addUser(
 				userEmailAddress = "userea@liferay.com",
@@ -1294,20 +1308,6 @@ definition {
 			JSONRole.assignRoleToUser(
 				roleTitle = "WebContentEditorRole Name",
 				userEmailAddress = "userea@liferay.com");
-		}
-
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
 		}
 
 		task ("Login with new user") {
@@ -1353,20 +1353,6 @@ definition {
 				userEmailAddress = "userea@liferay.com");
 		}
 
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
-		}
-
 		task ("Login with new user") {
 			User.logoutAndLoginPG(
 				userLoginEmailAddress = "userea@liferay.com",
@@ -1408,20 +1394,6 @@ definition {
 			JSONRole.assignRoleToUser(
 				roleTitle = "DocumentRole Name",
 				userEmailAddress = "userea@liferay.com");
-		}
-
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
 		}
 
 		task ("Login with new user") {
@@ -1467,20 +1439,6 @@ definition {
 				userEmailAddress = "userea@liferay.com");
 		}
 
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
-		}
-
 		task ("Login with new user") {
 			User.logoutAndLoginPG(
 				userLoginEmailAddress = "userea@liferay.com",
@@ -1524,20 +1482,6 @@ definition {
 				userEmailAddress = "userea@liferay.com");
 		}
 
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
-		}
-
 		task ("Login with new user") {
 			User.logoutAndLoginPG(
 				userLoginEmailAddress = "userea@liferay.com",
@@ -1558,6 +1502,8 @@ definition {
 	@description = "LPS-137227 Given a display page	When a user with permissions to edit blogs visits the page Then the issue icon for displaying the page audit panel shows"
 	@priority = "4"
 	test CheckPageAuditIconInDisplayPageWithEditBlogsPermission {
+		property portal.acceptance = "true";
+
 		task ("Create user") {
 			JSONUser.addUser(
 				userEmailAddress = "userea@liferay.com",
@@ -1588,35 +1534,17 @@ definition {
 				userEmailAddress = "userea@liferay.com");
 		}
 
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
-		}
-
-		task ("Add Display Page and mark it as default") {
+		task ("Create a default Display Page Template") {
 			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 				contentType = "Blogs Entry",
 				displayPageTemplateEntryName = "Display Page Name",
-				groupName = "Test Site Name");
+				groupName = "Test Site Name",
+				statusKey = "APPROVED");
 
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
-
-			Button.clickPublish();
-
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+			JSONLayoutpagetemplate.setLayoutPageTemplateEntryAsDefault(
+				groupName = "Test Site Name",
+				layoutPageTemplateEntryName = "Display Page Name",
+				type = "Display Page Template");
 		}
 
 		task ("Create a Blog Entry") {
@@ -1659,6 +1587,8 @@ definition {
 	@description = "LPS-137227 Given a display page	When a user with permissions to edit documents visits the page Then the issue icon for displaying the page audit panel shows"
 	@priority = "4"
 	test CheckPageAuditIconInDisplayPageWithEditDocumentsPermission {
+		property portal.acceptance = "true";
+
 		task ("Create user") {
 			JSONUser.addUser(
 				userEmailAddress = "userea@liferay.com",
@@ -1689,36 +1619,18 @@ definition {
 				userEmailAddress = "userea@liferay.com");
 		}
 
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
-		}
-
-		task ("Add Display Page and mark it as default") {
+		task ("Create a default Display Page Template") {
 			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 				contentType = "Document",
 				displayPageTemplateEntryName = "Display Page Name",
 				groupName = "Test Site Name",
+				statusKey = "APPROVED",
 				subType = "Basic Document");
 
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
-
-			Button.clickPublish();
-
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+			JSONLayoutpagetemplate.setLayoutPageTemplateEntryAsDefault(
+				groupName = "Test Site Name",
+				layoutPageTemplateEntryName = "Display Page Name",
+				type = "Display Page Template");
 		}
 
 		task ("Create a Document") {
@@ -1761,6 +1673,8 @@ definition {
 	@description = "LPS-137227 Given a display page	When the user with permissions to edit pages visits the view mode Then the issue icon for displaying the page audit panel shows"
 	@priority = "4"
 	test CheckPageAuditIconInDisplayPageWithEditPagesPermission {
+		property portal.acceptance = "true";
+
 		task ("Create user") {
 			JSONUser.addUser(
 				userEmailAddress = "userea@liferay.com",
@@ -1789,35 +1703,17 @@ definition {
 				userEmailAddress = "userea@liferay.com");
 		}
 
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
-		}
-
-		task ("Add Display Page and mark it as default") {
+		task ("Create a default Display Page Template") {
 			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 				contentType = "Blogs Entry",
 				displayPageTemplateEntryName = "Display Page Name",
-				groupName = "Test Site Name");
+				groupName = "Test Site Name",
+				statusKey = "APPROVED");
 
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
-
-			Button.clickPublish();
-
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+			JSONLayoutpagetemplate.setLayoutPageTemplateEntryAsDefault(
+				groupName = "Test Site Name",
+				layoutPageTemplateEntryName = "Display Page Name",
+				type = "Display Page Template");
 		}
 
 		task ("Create a Blog Entry") {
@@ -1860,6 +1756,8 @@ definition {
 	@description = "LPS-137227 Given a display page	When a user with permissions to edit web content visits the page Then the issue icon for displaying the page audit panel shows"
 	@priority = "4"
 	test CheckPageAuditIconInDisplayPageWithEditWebContentPermission {
+		property portal.acceptance = "true";
+
 		task ("Create user") {
 			JSONUser.addUser(
 				userEmailAddress = "userea@liferay.com",
@@ -1888,36 +1786,18 @@ definition {
 				userEmailAddress = "userea@liferay.com");
 		}
 
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
-		}
-
-		task ("Add Display Page and mark it as default") {
+		task ("Create a default Display Page Template") {
 			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 				contentType = "Web Content Article",
 				displayPageTemplateEntryName = "Display Page Name",
 				groupName = "Test Site Name",
+				statusKey = "APPROVED",
 				subType = "Basic Web Content");
 
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
-
-			Button.clickPublish();
-
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+			JSONLayoutpagetemplate.setLayoutPageTemplateEntryAsDefault(
+				groupName = "Test Site Name",
+				layoutPageTemplateEntryName = "Display Page Name",
+				type = "Display Page Template");
 		}
 
 		task ("Create a Web Content") {
@@ -1983,35 +1863,17 @@ definition {
 				userEmailAddress = "userea@liferay.com");
 		}
 
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
-		}
-
-		task ("Add Display Page and mark it as default") {
+		task ("Create a default Display Page Template") {
 			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 				contentType = "Blogs Entry",
 				displayPageTemplateEntryName = "Display Page Name",
-				groupName = "Test Site Name");
+				groupName = "Test Site Name",
+				statusKey = "APPROVED");
 
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
-
-			Button.clickPublish();
-
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+			JSONLayoutpagetemplate.setLayoutPageTemplateEntryAsDefault(
+				groupName = "Test Site Name",
+				layoutPageTemplateEntryName = "Display Page Name",
+				type = "Display Page Template");
 		}
 
 		task ("Create a Blog Entry") {
@@ -2082,36 +1944,18 @@ definition {
 				userEmailAddress = "userea@liferay.com");
 		}
 
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
-		}
-
-		task ("Add Display Page and mark it as default") {
+		task ("Create a default Display Page Template") {
 			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 				contentType = "Document",
 				displayPageTemplateEntryName = "Display Page Name",
 				groupName = "Test Site Name",
+				statusKey = "APPROVED",
 				subType = "Basic Document");
 
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
-
-			Button.clickPublish();
-
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+			JSONLayoutpagetemplate.setLayoutPageTemplateEntryAsDefault(
+				groupName = "Test Site Name",
+				layoutPageTemplateEntryName = "Display Page Name",
+				type = "Display Page Template");
 		}
 
 		task ("Create a Document") {
@@ -2177,35 +2021,17 @@ definition {
 				userEmailAddress = "userea@liferay.com");
 		}
 
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
-		}
-
-		task ("Add Display Page and mark it as default") {
+		task ("Create a default Display Page Template") {
 			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 				contentType = "Blogs Entry",
 				displayPageTemplateEntryName = "Display Page Name",
-				groupName = "Test Site Name");
+				groupName = "Test Site Name",
+				statusKey = "APPROVED");
 
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
-
-			Button.clickPublish();
-
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+			JSONLayoutpagetemplate.setLayoutPageTemplateEntryAsDefault(
+				groupName = "Test Site Name",
+				layoutPageTemplateEntryName = "Display Page Name",
+				type = "Display Page Template");
 		}
 
 		task ("Create a Blog Entry") {
@@ -2271,36 +2097,18 @@ definition {
 				userEmailAddress = "userea@liferay.com");
 		}
 
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
-		}
-
-		task ("Add Display Page and mark it as default") {
+		task ("Create a default Display Page Template") {
 			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 				contentType = "Web Content Article",
 				displayPageTemplateEntryName = "Display Page Name",
 				groupName = "Test Site Name",
+				statusKey = "APPROVED",
 				subType = "Basic Web Content");
 
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
-
-			Button.clickPublish();
-
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+			JSONLayoutpagetemplate.setLayoutPageTemplateEntryAsDefault(
+				groupName = "Test Site Name",
+				layoutPageTemplateEntryName = "Display Page Name",
+				type = "Display Page Template");
 		}
 
 		task ("Create a Web Content") {
@@ -2343,6 +2151,8 @@ definition {
 	@description = "Given a widget page When a user with permissions to edit blogs visits the page Then the issue icon for displaying the page audit panel shows"
 	@priority = "4"
 	test CheckPageAuditIconInWidgetPageWithEditBlogsPermission {
+		property portal.acceptance = "true";
+
 		task ("Create user") {
 			JSONUser.addUser(
 				userEmailAddress = "userea@liferay.com",
@@ -2382,20 +2192,6 @@ definition {
 				widgetName = "Asset Publisher");
 		}
 
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
-		}
-
 		task ("Login with user") {
 			User.logoutAndLoginPG(
 				userLoginEmailAddress = "userea@liferay.com",
@@ -2406,8 +2202,6 @@ definition {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/test-widget-page-name");
 
 			AssertElementPresent(locator1 = "PageAudit#PAGE_AUDIT_BUTTON");
-
-			Pause(locator1 = "5000");
 		}
 
 		task ("Delete Role created") {
@@ -2418,6 +2212,8 @@ definition {
 	@description = "LPS-137227 Given a widget page When a user with permissions to edit documents visits the page Then the issue icon for displaying the page audit panel shows"
 	@priority = "4"
 	test CheckPageAuditIconInWidgetPageWithEditDocumentsPermission {
+		property portal.acceptance = "true";
+
 		task ("Create user") {
 			JSONUser.addUser(
 				userEmailAddress = "userea@liferay.com",
@@ -2457,20 +2253,6 @@ definition {
 				widgetName = "Asset Publisher");
 		}
 
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
-		}
-
 		task ("Login with user") {
 			User.logoutAndLoginPG(
 				userLoginEmailAddress = "userea@liferay.com",
@@ -2481,8 +2263,6 @@ definition {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/test-widget-page-name");
 
 			AssertElementPresent(locator1 = "PageAudit#PAGE_AUDIT_BUTTON");
-
-			Pause(locator1 = "5000");
 		}
 
 		task ("Delete Role created") {
@@ -2493,6 +2273,8 @@ definition {
 	@description = "LPS-137227 Given a widget page When the user with permissions to edit pages visits the view mode Then the issue icon for displaying the page audit panel shows"
 	@priority = "4"
 	test CheckPageAuditIconInWidgetPageWithEditPagesPermission {
+		property portal.acceptance = "true";
+
 		task ("Create user") {
 			JSONUser.addUser(
 				userEmailAddress = "userea@liferay.com",
@@ -2532,20 +2314,6 @@ definition {
 				widgetName = "Asset Publisher");
 		}
 
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
-		}
-
 		task ("Login with user") {
 			User.logoutAndLoginPG(
 				userLoginEmailAddress = "userea@liferay.com",
@@ -2556,8 +2324,6 @@ definition {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/test-widget-page-name");
 
 			AssertElementPresent(locator1 = "PageAudit#PAGE_AUDIT_BUTTON");
-
-			Pause(locator1 = "5000");
 		}
 
 		task ("Delete Role created") {
@@ -2568,6 +2334,8 @@ definition {
 	@description = "LPS-137227 Given a widget page When a user with permissions to edit web content visits the page Then the issue icon for displaying the page audit panel shows"
 	@priority = "4"
 	test CheckPageAuditIconInWidgetPageWithEditWebContentPermission {
+		property portal.acceptance = "true";
+
 		task ("Create user") {
 			JSONUser.addUser(
 				userEmailAddress = "userea@liferay.com",
@@ -2607,20 +2375,6 @@ definition {
 				widgetName = "Asset Publisher");
 		}
 
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
-		}
-
 		task ("Login with user") {
 			User.logoutAndLoginPG(
 				userLoginEmailAddress = "userea@liferay.com",
@@ -2631,8 +2385,6 @@ definition {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/test-widget-page-name");
 
 			AssertElementPresent(locator1 = "PageAudit#PAGE_AUDIT_BUTTON");
-
-			Pause(locator1 = "5000");
 		}
 
 		task ("Delete Role created") {
@@ -2677,20 +2429,6 @@ definition {
 				widgetName = "Asset Publisher");
 		}
 
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
-		}
-
 		task ("Login with user") {
 			User.logoutAndLoginPG(
 				userLoginEmailAddress = "userea@liferay.com",
@@ -2701,8 +2439,6 @@ definition {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/test-widget-page-name");
 
 			AssertElementNotPresent(locator1 = "PageAudit#PAGE_AUDIT_BUTTON");
-
-			Pause(locator1 = "5000");
 		}
 
 		task ("Delete Role created") {
@@ -2747,20 +2483,6 @@ definition {
 				widgetName = "Asset Publisher");
 		}
 
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
-		}
-
 		task ("Login with user") {
 			User.logoutAndLoginPG(
 				userLoginEmailAddress = "userea@liferay.com",
@@ -2771,8 +2493,6 @@ definition {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/test-widget-page-name");
 
 			AssertElementNotPresent(locator1 = "PageAudit#PAGE_AUDIT_BUTTON");
-
-			Pause(locator1 = "5000");
 		}
 
 		task ("Delete Role created") {
@@ -2815,20 +2535,6 @@ definition {
 				groupName = "Test Site Name",
 				layoutName = "Test Widget Page Name",
 				widgetName = "Asset Publisher");
-		}
-
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
 		}
 
 		task ("Login with user") {
@@ -2885,20 +2591,6 @@ definition {
 				widgetName = "Asset Publisher");
 		}
 
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
-		}
-
 		task ("Login with user") {
 			User.logoutAndLoginPG(
 				userLoginEmailAddress = "userea@liferay.com",
@@ -2909,8 +2601,6 @@ definition {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/test-widget-page-name");
 
 			AssertElementNotPresent(locator1 = "PageAudit#PAGE_AUDIT_BUTTON");
-
-			Pause(locator1 = "5000");
 		}
 
 		task ("Delete Role created") {
@@ -2924,7 +2614,7 @@ definition {
 	@priority = "3"
 	test CheckPageAuditOpenAfterNavigation {
 		task ("Open Content Performance panel") {
-			PageAudit.openPanelBeforeConfiguration();
+			PageAudit.openPageAuditSidebar();
 
 			PageAudit.connectToGooglePageAudit();
 		}
@@ -2964,7 +2654,7 @@ definition {
 		task ("Open Page Audit panel and navigate to the second level of an issue") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 
 			PageAudit.goToDetailView(failingCheckName = "Page Blocked from Indexing");
 
@@ -3024,20 +2714,6 @@ definition {
 			PageAudit.setAPIViaSiteSettings(apiKey = "AIzaSyAq-oKsvIhlYHdk1UXCFy63h74ECIgbgbE");
 		}
 
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
-		}
-
 		task ("Login with new user") {
 			User.logoutAndLoginPG(
 				userLoginEmailAddress = "userea@liferay.com",
@@ -3047,7 +2723,7 @@ definition {
 		task ("Open Page Audit panel and run it") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 		}
 
 		task ("Open detailed view and check text") {
@@ -3093,7 +2769,7 @@ definition {
 		task ("Open Page Audit panel and navigate to the second level of an issue") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 
 			PageAudit.goToDetailView(failingCheckName = "Small Tap Targets");
 
@@ -3128,7 +2804,7 @@ definition {
 		task ("Open Page Audit panel and run it") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 		}
 
 		task ("Assert if a mobile failure is not shown") {
@@ -3176,7 +2852,7 @@ definition {
 		task ("Open Page Audit panel and run it") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 		}
 
 		task ("Assert if a mobile failure is not shown") {
@@ -3211,7 +2887,7 @@ definition {
 		task ("Open Page Audit panel and run it") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 		}
 
 		task ("Assert if a mobile failure is not shown") {
@@ -3249,7 +2925,7 @@ definition {
 		task ("Open Page Audit panel and run it") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 		}
 
 		task ("Assert if mobile failure are shown") {
@@ -3284,7 +2960,7 @@ definition {
 		task ("Open Page Audit panel and run it") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 		}
 
 		task ("Assert if a mobile failure is not shown") {
@@ -3323,7 +2999,7 @@ definition {
 		task ("Run Page Audit") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 		}
 
 		task ("Check the number of failures and view more fails") {
@@ -3413,9 +3089,9 @@ definition {
 		task ("Open Page Audit panel and run it") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAuditWithError();
 
-			WaitForElementPresent(
+			AssertVisible(
 				errorTitle = "The API key is invalid.",
 				locator1 = "PageAudit#ERROR_WARNING_TITLE");
 		}
@@ -3423,7 +3099,7 @@ definition {
 		task ("Navigate to Site Settings") {
 			Button.click(button = "Set API Key");
 
-			AssertElementPresent(
+			AssertVisible(
 				key_breadcrumbName = "Site Settings",
 				locator1 = "Breadcrumb#BREADCRUMB_ENTRY");
 
@@ -3460,7 +3136,7 @@ definition {
 		task ("Open Page Audit panel and run it") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 		}
 
 		task ("Navigate to second page") {
@@ -3472,9 +3148,46 @@ definition {
 		}
 
 		task ("Assert if cached data is displayed") {
+			PageAudit.openPageAuditSidebar();
+
 			AssertElementPresent(
 				failingCheckName = "Small Tap Targets",
 				locator1 = "PageAudit#FAILING_CHECK_NAME");
+		}
+	}
+
+	@description = "Given the page audit panel
+	When the user clicks the launch button, either the one on the header or the one in the panel
+	Then the API is called and the data is retrieved"
+	@priority = "4"
+	test LaunchPageAudit {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "PageAudit#CheckIllegibleFontSizes";
+
+		task ("Set a custom page as canonical URL to have data already loaded") {
+			PageAudit.setSEOcanonicalURL(url = "https://liferay-tango.github.io/liferay-portal/page-audit-test");
+		}
+
+		task ("Set Google PageSpeed API") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
+
+			PageAudit.setAPIViaSiteSettings(apiKey = "AIzaSyAq-oKsvIhlYHdk1UXCFy63h74ECIgbgbE");
+		}
+
+		task ("Run Page Audit") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
+
+			PageAudit.runPageAudit(pageName = "Content Page");
+		}
+
+		task ("Check that data is retrieved") {
+			AssertVisible(
+				failureType = "Accessibility",
+				locator1 = "PageAudit#FAILURE_TYPE");
+
+			AssertVisible(
+				failureType = "SEO",
+				locator1 = "PageAudit#FAILURE_TYPE");
 		}
 	}
 
@@ -3499,7 +3212,7 @@ definition {
 		task ("Open Page Audit panel and run it") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 		}
 
 		task ("Assert if a mobile failure is not shown") {
@@ -3547,7 +3260,7 @@ definition {
 		task ("Open Page Audit panel and run it") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 		}
 
 		task ("Assert if mobile failure are shown") {
@@ -3582,7 +3295,7 @@ definition {
 		task ("Open Page Audit panel and run it") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 		}
 
 		task ("Assert if mobile failure are shown") {
@@ -3626,7 +3339,7 @@ definition {
 		task ("Open Page Audit panel and navigate to the second level of an issue") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 
 			PageAudit.goToDetailView(failingCheckName = "Low Contrast Ratio");
 
@@ -3663,7 +3376,7 @@ definition {
 		task ("Open Page Audit panel") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelBeforeConfiguration();
+			PageAudit.openPageAuditSidebar();
 
 			AssertTextPresent(
 				locator1 = "PageAudit#CHECK_ISSUES_TEXT",
@@ -3687,6 +3400,65 @@ definition {
 		}
 	}
 
+	@description = "LPS-130621 Given the page audit panel
+	When there is a language version of the page that has no cached data and another one that does have
+	Then the first one shows the Launch a Page Audit... message, and the other one shows the cached data"
+	@priority = "4"
+	test OtherLanguageCacheData {
+		property portal.acceptance = "true";
+
+		task ("Create second content page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Second Page",
+				type = "content");
+		}
+
+		task ("Set a custom page as canonical URL for first language") {
+			PageAudit.setSEOcanonicalURL(url = "https://liferay-tango.github.io/liferay-portal/page-audit-test");
+		}
+
+		task ("Set a custom page as canonical URL for second language") {
+			PageAudit.setSEOcanonicalURL(
+				canonicalLocale = "pt-BR",
+				url = "https://liferay-tango.github.io/liferay-portal/page-audit-test-no-issues");
+		}
+
+		task ("Set Google PageSpeed API to first page") {
+			PageAudit.setAPIViaSiteSettings(apiKey = "AIzaSyAq-oKsvIhlYHdk1UXCFy63h74ECIgbgbE");
+		}
+
+		task ("Run Page Audit for first language") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
+
+			PageAudit.runPageAudit(pageName = "Content Page");
+		}
+
+		task ("Navigate to second page") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/second-page");
+		}
+
+		task ("Navigate back to audited page") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
+		}
+
+		task ("Check that language has cache data") {
+			PageAudit.openPageAuditSidebar();
+
+			AssertVisible(
+				failingCheckName = "Small Tap Targets",
+				locator1 = "PageAudit#FAILING_CHECK_NAME");
+		}
+
+		task ("Change page audit for second language") {
+			PageAudit.changeLocale(locale = "Portuguese");
+		}
+
+		task ("Check that language has no cache data") {
+			AssertVisible(locator1 = "PageAudit#LAUNCH_PAGE_AUDIT_BUTTON");
+		}
+	}
+
 	@description = "LPS-119068: When the user, after s/he has clicked on the Connect with Page Speed (button) and being led to Site Settings > Pages > Google PageSpeed, clicks on Back button, s/he is led to the page view again"
 	@priority = "3"
 	test PageAuditBackButton {
@@ -3707,7 +3479,7 @@ definition {
 		}
 
 		task ("Open Page Audit panel") {
-			PageAudit.openPanelBeforeConfiguration();
+			PageAudit.openPageAuditSidebar();
 
 			AssertTextPresent(
 				locator1 = "PageAudit#CHECK_ISSUES_TEXT",
@@ -3751,7 +3523,7 @@ definition {
 		}
 
 		task ("Open Page Audit panel") {
-			PageAudit.openPanelBeforeConfiguration();
+			PageAudit.openPageAuditSidebar();
 
 			AssertTextPresent(
 				locator1 = "PageAudit#CHECK_ISSUES_TEXT",
@@ -3795,7 +3567,7 @@ definition {
 		}
 
 		task ("Open Page Audit panel") {
-			PageAudit.openPanelBeforeConfiguration();
+			PageAudit.openPageAuditSidebar();
 
 			AssertTextPresent(
 				locator1 = "PageAudit#CHECK_ISSUES_TEXT",
@@ -3845,22 +3617,18 @@ definition {
 			PageAudit.enableGooglePageSpeed();
 		}
 
-		task ("Add Display Page and mark it as default") {
+		task ("Create a default Display Page Template") {
 			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 				contentType = "Web Content Article",
 				displayPageTemplateEntryName = "Display Page Name",
 				groupName = "Test Site Name",
+				statusKey = "APPROVED",
 				subType = "Basic Web Content");
 
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
-
-			Button.clickPublish();
-
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+			JSONLayoutpagetemplate.setLayoutPageTemplateEntryAsDefault(
+				groupName = "Test Site Name",
+				layoutPageTemplateEntryName = "Display Page Name",
+				type = "Display Page Template");
 		}
 
 		task ("Add Web Content and check it in its display page") {
@@ -3880,7 +3648,7 @@ definition {
 		}
 
 		task ("Open Page Audit panel") {
-			PageAudit.openPanelBeforeConfiguration();
+			PageAudit.openPageAuditSidebar();
 
 			AssertTextPresent(
 				locator1 = "PageAudit#CHECK_ISSUES_TEXT",
@@ -3906,22 +3674,18 @@ definition {
 			PageAudit.disableGooglePageSpeed();
 		}
 
-		task ("Add Display Page and mark it as default") {
+		task ("Create a default Display Page Template") {
 			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 				contentType = "Web Content Article",
 				displayPageTemplateEntryName = "Display Page Name",
 				groupName = "Test Site Name",
+				statusKey = "APPROVED",
 				subType = "Basic Web Content");
 
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
-
-			Button.clickPublish();
-
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+			JSONLayoutpagetemplate.setLayoutPageTemplateEntryAsDefault(
+				groupName = "Test Site Name",
+				layoutPageTemplateEntryName = "Display Page Name",
+				type = "Display Page Template");
 		}
 
 		task ("Add Web Content and check it in its display page") {
@@ -3988,7 +3752,7 @@ definition {
 		}
 
 		task ("Open Page Audit panel") {
-			PageAudit.openPanelBeforeConfiguration();
+			PageAudit.openPageAuditSidebar();
 
 			AssertTextPresent(
 				locator1 = "PageAudit#CHECK_ISSUES_TEXT",
@@ -4051,9 +3815,9 @@ definition {
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
 		task ("Open Page Audit panel and assert there are no issues") {
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 
-			AssertElementPresent(locator1 = "PageAudit#SUCCESS_IMAGE");
+			AssertElementPresent(locator1 = "PageAudit#IMAGE_SUCCESS");
 
 			AssertTextPresent(
 				locator1 = "PageAudit#NO_ISSUES_MESSAGE",
@@ -4062,6 +3826,37 @@ definition {
 
 		task ("Reset Google PageSpeed API to default at System Settings") {
 			PageAudit.configurationTeardown();
+		}
+	}
+
+	@description = "LPS-130621 Given the page audit panel
+	When the panel is showing no data because the audit has never been launched for that page / language combination
+	Then there's an image, a help texts and a button: Launch a Page Audit to check issues that impact on your page’s accessibility and SEO. + Button: Launch Page Audit, and the user is able to launch the audit by the means of clicking the button"
+	@priority = "5"
+	@uitest
+	test PanelInfo {
+		property portal.acceptance = "true";
+
+		task ("Set Google PageSpeed API") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
+
+			PageAudit.setAPIViaSiteSettings(apiKey = "AIzaSyAq-oKsvIhlYHdk1UXCFy63h74ECIgbgbE");
+		}
+
+		task ("Open Page Audit sidebar") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
+
+			PageAudit.openPageAuditSidebar();
+		}
+
+		task ("Check that sidebar has an image, a help texts and a button") {
+			AssertVisible(locator1 = "PageAudit#IMAGE_DEFAULT");
+
+			AssertTextEquals(
+				locator1 = "PageAudit#HELP_TEXT",
+				value1 = "Launch a page audit to check issues that impact on your page's accessibility and SEO.");
+
+			AssertVisible(locator1 = "PageAudit#LAUNCH_PAGE_AUDIT_BUTTON");
 		}
 	}
 
@@ -4086,7 +3881,7 @@ definition {
 		task ("Run Page Audit") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 		}
 
 		task ("Check if proper failures are displayed at Accessibility section") {
@@ -4161,7 +3956,7 @@ definition {
 		task ("Open Page Audit panel and run it") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 		}
 
 		task ("Assert if mobile failures are checked") {
@@ -4218,7 +4013,7 @@ definition {
 		task ("Open Page Audit panel and run it") {
 			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
 
-			PageAudit.openPanelAfterConfiguration(pageName = "Content Page");
+			PageAudit.runPageAudit(pageName = "Content Page");
 		}
 
 		task ("Assert if mobile failures are checked") {
@@ -4585,7 +4380,7 @@ definition {
 		}
 
 		task ("Check if Google PageSpeed Insights tab isn't visible in the 'VIRTUAL INSTANCE SCOPE' section") {
-			AssertElementPresent(
+			AssertElementNotPresent(
 				key_configurationName = "Google PageSpeed Insights",
 				key_configurationScope = "Site Scope",
 				locator1 = "SystemSettings#SCOPED_CONFIGURATION_NAME");
@@ -4595,6 +4390,10 @@ definition {
 			Click.javaScriptClick(
 				checkboxName = "Enable",
 				locator1 = "Checkbox#ANY_CHECKBOX");
+
+			Click(locator1 = "Button#UPDATE");
+
+			Alert.viewSuccessMessage();
 		}
 
 		task ("Check if Google PageSpeed Insights tab is visible in the 'VIRTUAL INSTANCE SCOPE' section") {

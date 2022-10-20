@@ -14,48 +14,93 @@
 
 package com.liferay.object.web.internal.object.definitions.display.context;
 
+import com.liferay.account.model.AccountEntry;
 import com.liferay.application.list.PanelCategory;
 import com.liferay.application.list.PanelCategoryRegistry;
 import com.liferay.application.list.constants.PanelCategoryKeys;
 import com.liferay.object.constants.ObjectActionKeys;
+import com.liferay.object.constants.ObjectRelationshipConstants;
 import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.model.ObjectField;
+import com.liferay.object.model.ObjectRelationship;
 import com.liferay.object.scope.ObjectScopeProvider;
 import com.liferay.object.scope.ObjectScopeProviderRegistry;
+import com.liferay.object.service.ObjectDefinitionLocalService;
+import com.liferay.object.service.ObjectRelationshipLocalService;
 import com.liferay.object.web.internal.constants.ObjectWebKeys;
-import com.liferay.object.web.internal.display.context.helper.ObjectRequestHelper;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.KeyValuePair;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PropsUtil;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author Marco Leo
  */
-public class ObjectDefinitionsDetailsDisplayContext {
+public class ObjectDefinitionsDetailsDisplayContext
+	extends BaseObjectDefinitionsDisplayContext {
 
 	public ObjectDefinitionsDetailsDisplayContext(
 		HttpServletRequest httpServletRequest,
+		ObjectDefinitionLocalService objectDefinitionLocalService,
 		ModelResourcePermission<ObjectDefinition>
 			objectDefinitionModelResourcePermission,
+		ObjectRelationshipLocalService objectRelationshipLocalService,
 		ObjectScopeProviderRegistry objectScopeProviderRegistry,
 		PanelCategoryRegistry panelCategoryRegistry) {
 
-		_objectDefinitionModelResourcePermission =
-			objectDefinitionModelResourcePermission;
+		super(httpServletRequest, objectDefinitionModelResourcePermission);
+
+		_objectDefinitionLocalService = objectDefinitionLocalService;
+		_objectRelationshipLocalService = objectRelationshipLocalService;
 		_objectScopeProviderRegistry = objectScopeProviderRegistry;
 		_panelCategoryRegistry = panelCategoryRegistry;
+	}
 
-		_objectRequestHelper = new ObjectRequestHelper(httpServletRequest);
+	public List<ObjectField> getAccountEntryRelationshipObjectFields()
+		throws PortalException {
+
+		ObjectDefinition accountEntryObjectDefinition =
+			_objectDefinitionLocalService.fetchObjectDefinitionByClassName(
+				objectRequestHelper.getCompanyId(),
+				AccountEntry.class.getName());
+
+		Map<Long, ObjectField> objectFieldsMap = Stream.of(
+			getObjectFields()
+		).flatMap(
+			List::stream
+		).collect(
+			Collectors.toMap(
+				ObjectField::getObjectFieldId, objectField -> objectField)
+		);
+
+		return Stream.of(
+			_objectRelationshipLocalService.getObjectRelationships(
+				accountEntryObjectDefinition.getObjectDefinitionId(),
+				getObjectDefinitionId(),
+				ObjectRelationshipConstants.TYPE_ONE_TO_MANY)
+		).flatMap(
+			List::stream
+		).map(
+			ObjectRelationship::getObjectFieldId2
+		).map(
+			objectFieldsMap::get
+		).collect(
+			Collectors.toList()
+		);
 	}
 
 	public List<KeyValuePair> getKeyValuePairs() {
@@ -64,7 +109,7 @@ public class ObjectDefinitionsDetailsDisplayContext {
 		ObjectDefinition objectDefinition = getObjectDefinition();
 
 		String scope = ParamUtil.getString(
-			_objectRequestHelper.getRequest(), "scope",
+			objectRequestHelper.getRequest(), "scope",
 			objectDefinition.getScope());
 
 		ObjectScopeProvider objectScopeProvider =
@@ -93,22 +138,36 @@ public class ObjectDefinitionsDetailsDisplayContext {
 						childPanelCategory.getKey(),
 						StringBundler.concat(
 							panelCategory.getLabel(
-								_objectRequestHelper.getLocale()),
+								objectRequestHelper.getLocale()),
 							" > ",
 							childPanelCategory.getLabel(
-								_objectRequestHelper.getLocale()))));
+								objectRequestHelper.getLocale()))));
 			}
 		}
 
 		return keyValuePairs;
 	}
 
+	public List<ObjectField> getNonrelationshipObjectFields() {
+		return ListUtil.filter(
+			getObjectFields(),
+			objectField -> Validator.isNull(objectField.getRelationshipType()));
+	}
+
 	public ObjectDefinition getObjectDefinition() {
 		HttpServletRequest httpServletRequest =
-			_objectRequestHelper.getRequest();
+			objectRequestHelper.getRequest();
 
 		return (ObjectDefinition)httpServletRequest.getAttribute(
 			ObjectWebKeys.OBJECT_DEFINITION);
+	}
+
+	public List<ObjectField> getObjectFields() {
+		HttpServletRequest httpServletRequest =
+			objectRequestHelper.getRequest();
+
+		return (List<ObjectField>)httpServletRequest.getAttribute(
+			ObjectWebKeys.OBJECT_FIELDS);
 	}
 
 	public List<ObjectScopeProvider> getObjectScopeProviders() {
@@ -119,33 +178,23 @@ public class ObjectDefinitionsDetailsDisplayContext {
 		ObjectDefinition objectDefinition = getObjectDefinition();
 
 		return ParamUtil.getString(
-			_objectRequestHelper.getRequest(), "scope",
+			objectRequestHelper.getRequest(), "scope",
 			objectDefinition.getScope());
 	}
 
 	public boolean hasPublishObjectPermission() {
 		PortletResourcePermission portletResourcePermission =
-			_objectDefinitionModelResourcePermission.
+			objectDefinitionModelResourcePermission.
 				getPortletResourcePermission();
 
 		return portletResourcePermission.contains(
-			_objectRequestHelper.getPermissionChecker(), null,
+			objectRequestHelper.getPermissionChecker(), null,
 			ObjectActionKeys.PUBLISH_OBJECT_DEFINITION);
 	}
 
-	public boolean hasUpdateObjectDefinitionPermission()
-		throws PortalException {
-
-		ObjectDefinition objectDefinition = getObjectDefinition();
-
-		return _objectDefinitionModelResourcePermission.contains(
-			_objectRequestHelper.getPermissionChecker(),
-			objectDefinition.getObjectDefinitionId(), ActionKeys.UPDATE);
-	}
-
-	private final ModelResourcePermission<ObjectDefinition>
-		_objectDefinitionModelResourcePermission;
-	private final ObjectRequestHelper _objectRequestHelper;
+	private final ObjectDefinitionLocalService _objectDefinitionLocalService;
+	private final ObjectRelationshipLocalService
+		_objectRelationshipLocalService;
 	private final ObjectScopeProviderRegistry _objectScopeProviderRegistry;
 	private final PanelCategoryRegistry _panelCategoryRegistry;
 

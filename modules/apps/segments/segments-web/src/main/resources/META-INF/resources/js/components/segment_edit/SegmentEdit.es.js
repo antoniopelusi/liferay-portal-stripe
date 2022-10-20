@@ -12,11 +12,19 @@
  * details.
  */
 
+import ClayAlert from '@clayui/alert';
 import ClayButton from '@clayui/button';
 import ClayLayout from '@clayui/layout';
+import ClayLink from '@clayui/link';
 import classNames from 'classnames';
 import {FieldArray, withFormik} from 'formik';
-import {debounce, fetch, openModal} from 'frontend-js-web';
+import {
+	debounce,
+	fetch,
+	openConfirmModal,
+	openModal,
+	openToast,
+} from 'frontend-js-web';
 import PropTypes from 'prop-types';
 import React, {Component} from 'react';
 
@@ -53,12 +61,14 @@ class SegmentEdit extends Component {
 		initialMembersCount: PropTypes.number,
 		initialSegmentActive: PropTypes.bool,
 		initialSegmentName: PropTypes.object,
+		isSegmentationEnabled: PropTypes.bool,
 		locale: PropTypes.string.isRequired,
 		portletNamespace: PropTypes.string,
 		previewMembersURL: PropTypes.string,
 		propertyGroups: PropTypes.array,
 		redirect: PropTypes.string.isRequired,
 		requestMembersCountURL: PropTypes.string,
+		segmentsConfigurationURL: PropTypes.string,
 		setFieldValue: PropTypes.func,
 		setValues: PropTypes.func,
 		showInEditMode: PropTypes.bool,
@@ -97,6 +107,7 @@ class SegmentEdit extends Component {
 			disabledSave: this._isQueryEmpty(contributors),
 			editing: showInEditMode,
 			hasChanged: false,
+			isSegmentationDisabledAlertDismissed: false,
 			membersCount: initialMembersCount,
 			queryHasEmptyValues: false,
 			validTitle: !!values.name[props.defaultLanguageId],
@@ -141,7 +152,7 @@ class SegmentEdit extends Component {
 			.catch(() => {
 				this.setState({membersCountLoading: false});
 
-				Liferay.Util.openToast({
+				openToast({
 					message: Liferay.Language.get(
 						'an-unexpected-error-occurred'
 					),
@@ -265,6 +276,10 @@ class SegmentEdit extends Component {
 				contributors={contributors}
 				editing={editing}
 				emptyContributors={emptyContributors}
+				isSegmentationDisabledAlertDismissed={
+					this.state.isSegmentationDisabledAlertDismissed
+				}
+				isSegmentationEnabled={this.props.isSegmentationEnabled}
 				membersCount={membersCount}
 				membersCountLoading={membersCountLoading}
 				onAlertClose={this._handleAlertClose}
@@ -291,13 +306,16 @@ class SegmentEdit extends Component {
 		const {hasChanged} = this.state;
 
 		if (hasChanged) {
-			const confirmed = confirm(
-				Liferay.Language.get('criteria-cancel-confirmation-message')
-			);
-
-			if (confirmed) {
-				this._redirect();
-			}
+			openConfirmModal({
+				message: Liferay.Language.get(
+					'criteria-cancel-confirmation-message'
+				),
+				onConfirm: (isConfirmed) => {
+					if (isConfirmed) {
+						this._redirect();
+					}
+				},
+			});
 		}
 		else {
 			this._redirect();
@@ -372,7 +390,7 @@ class SegmentEdit extends Component {
 				event.preventDefault();
 
 				errorMessages.forEach((message) => {
-					Liferay.Util.openToast({
+					openToast({
 						message,
 						type: 'danger',
 					});
@@ -438,6 +456,7 @@ class SegmentEdit extends Component {
 			availableLocales,
 			defaultLanguageId,
 			hasUpdatePermission,
+			isSegmentationEnabled,
 			portletNamespace,
 			values,
 		} = this.props;
@@ -446,6 +465,7 @@ class SegmentEdit extends Component {
 			contributors,
 			disabledSave,
 			editing,
+			isSegmentationDisabledAlertDismissed,
 			queryHasEmptyValues,
 			validTitle,
 		} = this.state;
@@ -454,10 +474,14 @@ class SegmentEdit extends Component {
 
 		const placeholder = Liferay.Language.get('untitled-segment');
 
+		const showDisabledSegmentationAlert =
+			!isSegmentationEnabled && !isSegmentationDisabledAlertDismissed;
+
 		return (
 			<div
 				className={classNames('segment-edit-page-root', {
 					'segment-edit-page-root--has-alert': queryHasEmptyValues,
+					'segment-edit-page-root--with-warning': showDisabledSegmentationAlert,
 				})}
 			>
 				<input
@@ -534,6 +558,39 @@ class SegmentEdit extends Component {
 				</div>
 
 				<div className="form-body">
+					{showDisabledSegmentationAlert && (
+						<ClayAlert
+							className="mx-0"
+							displayType="warning"
+							onClose={() =>
+								this.setState({
+									isSegmentationDisabledAlertDismissed: true,
+								})
+							}
+							variant="stripe"
+						>
+							<strong className="lead">
+								{Liferay.Language.get(
+									'segmentation-is-disabled'
+								)}
+							</strong>
+
+							{this.props.segmentsConfigurationURL ? (
+								<ClayLink
+									href={this.props.segmentsConfigurationURL}
+								>
+									{Liferay.Language.get(
+										'to-enable,-go-to-instance-settings'
+									)}
+								</ClayLink>
+							) : (
+								Liferay.Language.get(
+									'contact-your-system-administrator-to-enable-it'
+								)
+							)}
+						</ClayAlert>
+					)}
+
 					<FieldArray
 						name="contributors"
 						render={this._renderContributors}

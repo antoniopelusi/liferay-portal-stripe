@@ -12,7 +12,6 @@
  * details.
  */
 
-import {useQuery} from '@apollo/client';
 import {useEffect} from 'react';
 import {
 	Outlet,
@@ -21,29 +20,39 @@ import {
 	useParams,
 } from 'react-router-dom';
 
-import {CType, TestrayRoutine, getRoutine} from '../../../graphql/queries';
+import {useFetch} from '../../../hooks/useFetch';
 import useHeader from '../../../hooks/useHeader';
 import i18n from '../../../i18n';
+import {TestrayProject, TestrayRoutine} from '../../../services/rest';
+import useRoutineActions from './useRoutineActions';
 
 const RoutineOutlet = () => {
+	const {actions} = useRoutineActions({isHeaderActions: true});
 	const {pathname} = useLocation();
 	const {projectId, routineId, ...otherParams} = useParams();
-	const {testrayProject}: any = useOutletContext();
-	const {data} = useQuery<CType<'routine', TestrayRoutine>>(getRoutine, {
-		variables: {
-			routineId,
-		},
-	});
+	const {
+		testrayProject,
+	}: {testrayProject: TestrayProject} = useOutletContext();
 
-	const testrayRoutine = data?.c?.routine;
-
-	const basePath = `/project/${projectId}/routines/${routineId}`;
+	const {data: testrayRoutine, mutate} = useFetch<TestrayRoutine>(
+		`/routines/${routineId}`
+	);
 
 	const hasOtherParams = !!Object.values(otherParams).length;
 
-	const {setHeading} = useHeader({
-		shouldUpdate: true,
-		useTabs: [
+	const {setHeaderActions, setHeading, setTabs} = useHeader({
+		shouldUpdate: !hasOtherParams,
+		timeout: 100,
+	});
+
+	useEffect(() => {
+		setHeaderActions({actions, item: testrayRoutine, mutate});
+	}, [actions, mutate, setHeaderActions, testrayRoutine]);
+
+	const basePath = `/project/${projectId}/routines/${routineId}`;
+
+	useEffect(() => {
+		setTabs([
 			{
 				active: pathname === basePath,
 				path: basePath,
@@ -54,8 +63,8 @@ const RoutineOutlet = () => {
 				path: `${basePath}/archived`,
 				title: i18n.translate('archived'),
 			},
-		],
-	});
+		]);
+	}, [basePath, pathname, setTabs]);
 
 	useEffect(() => {
 		if (testrayProject && testrayRoutine) {
@@ -72,10 +81,18 @@ const RoutineOutlet = () => {
 				},
 			]);
 		}
-	}, [setHeading, testrayProject, testrayRoutine, hasOtherParams]);
+	}, [setHeading, testrayProject, testrayRoutine]);
 
 	if (testrayProject && testrayRoutine) {
-		return <Outlet context={{testrayProject, testrayRoutine}} />;
+		return (
+			<Outlet
+				context={{
+					mutateTestrayRoutine: mutate,
+					testrayProject,
+					testrayRoutine,
+				}}
+			/>
+		);
 	}
 
 	return null;

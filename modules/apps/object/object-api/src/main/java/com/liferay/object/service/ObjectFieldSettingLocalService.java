@@ -15,6 +15,7 @@
 package com.liferay.object.service;
 
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
+import com.liferay.object.model.ObjectField;
 import com.liferay.object.model.ObjectFieldSetting;
 import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
@@ -95,6 +96,9 @@ public interface ObjectFieldSettingLocalService
 	 * @throws PortalException
 	 */
 	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException;
+
+	public void deleteObjectFieldObjectFieldSetting(ObjectField objectField)
 		throws PortalException;
 
 	/**
@@ -235,6 +239,10 @@ public interface ObjectFieldSettingLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public IndexableActionableDynamicQuery getIndexableActionableDynamicQuery();
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<ObjectFieldSetting> getObjectFieldObjectFieldSettings(
+		long objectFieldId);
+
 	/**
 	 * Returns the object field setting with the primary key.
 	 *
@@ -272,9 +280,6 @@ public interface ObjectFieldSettingLocalService
 	 */
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<ObjectFieldSetting> getObjectFieldSettings(int start, int end);
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<ObjectFieldSetting> getObjectFieldSettings(long objectFieldId);
 
 	/**
 	 * Returns the number of object field settings.

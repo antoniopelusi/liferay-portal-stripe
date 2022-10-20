@@ -12,7 +12,12 @@
  * details.
  */
 
-import {openSelectionModal, postForm} from 'frontend-js-web';
+import {
+	getCheckedCheckboxes,
+	openSelectionModal,
+	postForm,
+	sub,
+} from 'frontend-js-web';
 
 export default function propsTransformer({
 	additionalProps: {
@@ -40,10 +45,7 @@ export default function propsTransformer({
 				}
 			},
 			selectEventName: `${portletNamespace}selectUsers`,
-			title: Liferay.Util.sub(
-				Liferay.Language.get('add-users-to-x'),
-				userGroupName
-			),
+			title: sub(Liferay.Language.get('add-users-to-x'), userGroupName),
 			url: selectUsersURL,
 		});
 	};
@@ -55,7 +57,7 @@ export default function propsTransformer({
 			postForm(form, {
 				data: {
 					redirect: portletURL,
-					removeUserIds: Liferay.Util.listCheckedExcept(
+					removeUserIds: getCheckedCheckboxes(
 						form,
 						`${portletNamespace}allRowIds`
 					),

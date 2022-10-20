@@ -43,6 +43,9 @@ String xRequestWith = request.getHeader(HttpHeaders.X_REQUESTED_WITH);
 %>
 
 <c:choose>
+	<c:when test="<%= GetterUtil.getBoolean(request.getAttribute(WebKeys.UNKNOWN_VIRTUAL_HOST)) %>">
+		<liferay-ui:message key="unknown-virtual-hostname" />: <%= PortalUtil.getHost(request) %>
+	</c:when>
 	<c:when test="<%= !Validator.isBlank(dynamicIncludeKey) %>">
 		<liferay-util:dynamic-include key="<%= dynamicIncludeKey %>" />
 	</c:when>
@@ -74,7 +77,7 @@ String xRequestWith = request.getHeader(HttpHeaders.X_REQUESTED_WITH);
 				<meta content="1; url=<%= HtmlUtil.escapeAttribute(redirect) %>" http-equiv="refresh" />
 			</head>
 
-			<body onload="javascript:location.replace('<%= HtmlUtil.escapeJS(redirect) %>')">
+			<body onload="javascript:location.replace('<%= HtmlUtil.escapeJS(redirect) %>');">
 
 				<!--
 				The numbers below are used to fill up space so that this works properly in IE.

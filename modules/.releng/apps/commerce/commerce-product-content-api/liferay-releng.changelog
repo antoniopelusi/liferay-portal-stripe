@@ -37,3 +37,8 @@ c109f92222238361d7bf8b9a48c3e5f8cefbf961^..723f6cd70da31686476be17f307a5d071a093
 # Bundle Version 7.0.0
 #
 67ea2882e3bb95a53041dcf493d5bfa4dc398ad5^..c7cce83e374facc66d37f7aff1b1f3c7eab29be6=COMMERCE-7830
+
+#
+# Bundle Version 8.0.0
+#
+c7cce83e374facc66d37f7aff1b1f3c7eab29be6^..6c500c4a53d32b3dc1bf790031303dfefc74d3c0=COMMERCE-9006

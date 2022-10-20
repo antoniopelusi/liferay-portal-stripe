@@ -223,8 +223,6 @@ definition {
 			subTopicDescription = "SubTopicA Description",
 			subTopicName = "SubTopicA");
 
-		Questions.changeTopic(gotoParentTopic = "Questions Test Category");
-
 		Questions.changeTopic(
 			parentTopicName = "Questions Test Category",
 			subTopicName = "SubTopicA");
@@ -530,9 +528,7 @@ definition {
 
 		Questions.gotoDetails(questionTitle = "MB Thread Message Subject");
 
-		Questions.deleteQuestion();
-
-		Questions.viewTopicDefault();
+		Questions.deleteQuestion(deleteInActivity = "true");
 	}
 
 	@description = "Validate if the user can delete a topic, it also covers LPS-128699."
@@ -780,7 +776,7 @@ definition {
 			topicName = "questions-test-category");
 
 		Questions.search(
-			resultsInfo = '''1 Results for "questions title 5"''',
+			resultsInfo = '''1 Result for "questions title 5"''',
 			searchKey = "Questions Title 5");
 
 		Questions.viewSearchResults(questionsList = "Questions Title 5");
@@ -794,7 +790,7 @@ definition {
 		Questions.viewSearchResults(questionsList = "Question1,Question2,Question3,Question4");
 
 		Questions.search(
-			resultsInfo = '''1 Results for "question4"''',
+			resultsInfo = '''1 Result for "question4"''',
 			searchKey = "Question4");
 
 		Questions.viewSearchResults(questionsList = "Question4");
@@ -802,7 +798,7 @@ definition {
 		Questions.viewNoSearchResults(questionsList = "Question1,Question2,Question3");
 
 		Questions.search(
-			resultsInfo = '''1 Results for "content2"''',
+			resultsInfo = '''1 Result for "content2"''',
 			searchKey = "Content2");
 
 		Questions.viewSearchResults(questionsList = "Question2");
@@ -810,7 +806,7 @@ definition {
 		Questions.viewNoSearchResults(questionsList = "Question1,Question3,Question4");
 
 		Questions.search(
-			resultsInfo = '''1 Results for "new"''',
+			resultsInfo = '''1 Result for "new"''',
 			searchKey = "New");
 
 		Questions.viewSearchResults(questionsList = "Question1");
@@ -1571,8 +1567,6 @@ definition {
 			siteURLKey = "guest",
 			topicName = "questions-test-category");
 
-		Questions.viewNoTopicDropdownToggle(topicName = "Questions Test Category");
-
 		for (var num : list "1,2") {
 			var parentCategoryId = JSONMBMessage.getCategoryIdByName(
 				categoryName = "Questions Test Category",
@@ -1617,7 +1611,9 @@ definition {
 			listedQuestions = "Question 2",
 			unlistedQuestions = "Question 1,Question 3");
 
-		Questions.changeTopic(gotoParentTopic = "Questions Test Category");
+		Questions.changeTopic(
+			parentTopicName = "Questions Subcategory2",
+			subTopicName = "Questions Test Category");
 
 		Questions.viewList(listedQuestions = "Question 1,Question 2,Question 3");
 	}

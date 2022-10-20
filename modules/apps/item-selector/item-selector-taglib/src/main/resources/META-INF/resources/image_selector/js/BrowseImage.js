@@ -12,6 +12,8 @@
  * details.
  */
 
+import classNames from 'classnames';
+import {sub} from 'frontend-js-web';
 import PropTypes from 'prop-types';
 import React from 'react';
 
@@ -25,56 +27,60 @@ const BrowseImage = ({
 	itemSelectorURL,
 	maxFileSize,
 	validExtensions,
-}) => (
-	<div className="browse-image-controls">
-		<div
-			className="drag-drop-label"
-			onClick={(event) => {
-				if (event.target.tagName === 'BUTTON') {
-					handleClick(event);
-				}
-			}}
-		>
-			{itemSelectorEventName && itemSelectorURL ? (
-				Liferay.Browser.isMobile() ? (
-					SELECT_FILE_BUTTON
-				) : (
+}) => {
+	const isMobile = Liferay.Browser.isMobile();
+
+	return (
+		<div className="browse-image-controls">
+			<div
+				className="drag-drop-label"
+				onClick={(event) => {
+					if (event.target.tagName === 'BUTTON') {
+						handleClick(event);
+					}
+				}}
+			>
+				{itemSelectorEventName && itemSelectorURL ? (
 					<span
-						className="pr-1"
+						className={classNames({
+							'pr-1': !isMobile,
+						})}
 						dangerouslySetInnerHTML={{
-							__html: Liferay.Util.sub(
-								Liferay.Language.get(
-									'drag-and-drop-to-upload-or-x'
-								),
-								SELECT_FILE_BUTTON
+							__html: isMobile
+								? SELECT_FILE_BUTTON
+								: sub(
+										Liferay.Language.get(
+											'drag-and-drop-to-upload-or-x'
+										),
+										SELECT_FILE_BUTTON
+								  ),
+						}}
+					></span>
+				) : (
+					Liferay.Language.get('drag-and-drop-to-upload')
+				)}
+			</div>
+
+			<div className="file-validation-info">
+				{validExtensions && <strong>{validExtensions}</strong>}
+
+				{Number(maxFileSize) !== 0 && (
+					<span
+						className="pl-1"
+						dangerouslySetInnerHTML={{
+							__html: sub(
+								Liferay.Language.get('maximum-size-x'),
+								Liferay.Util.formatStorage(
+									parseInt(maxFileSize, 10)
+								)
 							),
 						}}
 					></span>
-				)
-			) : (
-				Liferay.Language.get('drag-and-drop-to-upload')
-			)}
+				)}
+			</div>
 		</div>
-
-		<div className="file-validation-info">
-			{validExtensions && <strong>{validExtensions}</strong>}
-
-			{Number(maxFileSize) !== 0 && (
-				<span
-					className="pl-1"
-					dangerouslySetInnerHTML={{
-						__html: Liferay.Util.sub(
-							Liferay.Language.get('maximum-size-x'),
-							Liferay.Util.formatStorage(
-								parseInt(maxFileSize, 10)
-							)
-						),
-					}}
-				></span>
-			)}
-		</div>
-	</div>
-);
+	);
+};
 
 BrowseImage.propTypes = {
 	handleClick: PropTypes.func,

@@ -143,7 +143,7 @@ definition {
 				id = "link",
 				text = "去某地");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Content Page Name",
@@ -196,7 +196,7 @@ definition {
 		if (IsTextEqual.isPartialText(key_fieldName = "element-text", locator1 = "Message#SUCCESS_SPECIFIC_FORM_FIELD_REQUIRED", value1 = "Field Translated")) {
 			Translations.viewTargetFields(
 				contentPageName = "Content Page Name",
-				elementText = "Üerschrift");
+				elementText = "Überschrift");
 
 			PortletEntry.publish();
 
@@ -209,11 +209,11 @@ definition {
 				locale = "de-DE");
 
 			PageEditor.viewFragmentEditableText(
-				editableText = "Üerschrift",
+				editableText = "Überschrift",
 				fragmentName = "Heading",
 				id = "element-text");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Content Page Name",
@@ -226,7 +226,7 @@ definition {
 			ContentPages.viewFragmentText(
 				fragmentName = "heading",
 				id = "element-text",
-				text = "Üerschrift");
+				text = "Überschrift");
 		}
 		else if (IsTextEqual.isPartialText(key_fieldName = "element-text", locator1 = "Message#SUCCESS_SPECIFIC_FORM_FIELD_REQUIRED", value1 = "There is a problem with the translation service. Please contact your administrator.")) {
 			echo("There is a Google network issue. Ending test.");
@@ -401,13 +401,13 @@ definition {
 		if (IsTextEqual.isPartialText(key_fieldName = "Title", locator1 = "Message#SUCCESS_SPECIFIC_FORM_FIELD_REQUIRED", value1 = "Field Translated")) {
 			Translations.viewTargetFields(
 				webContentSourceHtml = "This is the content of the rich text field",
-				webContentTitle = "これはリッチテキストフィールドのタイトルです");
+				webContentTitle = "これはリッチ テキスト フィールドのタイトルです");
 
 			Translations.translateSpecificField(fieldName = "Rich Text");
 
 			Translations.viewTargetFields(
-				webContentSourceHtml = "これはリッチテキストフィールドの内容です",
-				webContentTitle = "これはリッチテキストフィールドのタイトルです");
+				webContentSourceHtml = "これはリッチ テキスト フィールドの内容です",
+				webContentTitle = "これはリッチ テキスト フィールドのタイトルです");
 
 			PortletEntry.publish();
 
@@ -419,8 +419,8 @@ definition {
 				webContentTitle = "This is the title of the rich text field");
 
 			Translations.viewTargetFields(
-				webContentSourceHtml = "これはリッチテキストフィールドの内容です",
-				webContentTitle = "これはリッチテキストフィールドのタイトルです");
+				webContentSourceHtml = "これはリッチ テキスト フィールドの内容です",
+				webContentTitle = "これはリッチ テキスト フィールドのタイトルです");
 		}
 		else if (IsTextEqual.isPartialText(key_fieldName = "Title", locator1 = "Message#SUCCESS_SPECIFIC_FORM_FIELD_REQUIRED", value1 = "There is a problem with the translation service. Please contact your administrator.")) {
 			echo("There is a Google network issue. Ending test.");
@@ -431,10 +431,6 @@ definition {
 	@priority = "5"
 	test CanTranslateTextBoxFieldIndependently {
 		property test.name.skip.portal.instance = "AutoTranslationGoogle#CanTranslateTextBoxFieldIndependently";
-
-		JSONWebcontent.deleteWebContent(
-			groupName = "Site Name",
-			title = "This is the title of a web article");
 
 		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
 
@@ -459,7 +455,7 @@ definition {
 			fieldType = "Multiple Lines",
 			webContentText = "This is the content of the text box field",
 			webContentTextFieldLabel = "Text Box",
-			webContentTitle = "This is the title of a web article");
+			webContentTitle = "WC title");
 
 		PortletEntry.publish();
 
@@ -468,7 +464,7 @@ definition {
 			siteURLKey = "site-name",
 			sourceLanguageId = "en_US",
 			targetLanguageId = "ja_JP",
-			webContentTitle = "This is the title of a web article");
+			webContentTitle = "WC title");
 
 		// End the test if the Google refresh token limit is exceeded.
 
@@ -477,13 +473,13 @@ definition {
 		if (IsTextEqual.isPartialText(key_fieldName = "Title", locator1 = "Message#SUCCESS_SPECIFIC_FORM_FIELD_REQUIRED", value1 = "Field Translated")) {
 			Translations.viewTargetFields(
 				webContentTextBox = "This is the content of the text box field",
-				webContentTitle = "これはウェブ記事のタイトルです");
+				webContentTitle = "WCタイトル");
 
 			Translations.translateSpecificField(fieldName = "Text Box");
 
 			Translations.viewTargetFields(
 				webContentTextBox = "これはテキストボックスフィールドの内容です",
-				webContentTitle = "これはウェブ記事のタイトルです");
+				webContentTitle = "WCタイトル");
 
 			PortletEntry.publish();
 
@@ -492,11 +488,11 @@ definition {
 				siteURLKey = "site-name",
 				sourceLanguageId = "en_US",
 				targetLanguageId = "ja_JP",
-				webContentTitle = "This is the title of a web article");
+				webContentTitle = "WC title");
 
 			Translations.viewTargetFields(
 				webContentTextBox = "これはテキストボックスフィールドの内容です",
-				webContentTitle = "これはウェブ記事のタイトルです");
+				webContentTitle = "WCタイトル");
 		}
 		else if (IsTextEqual.isPartialText(key_fieldName = "Title", locator1 = "Message#SUCCESS_SPECIFIC_FORM_FIELD_REQUIRED", value1 = "There is a problem with the translation service. Please contact your administrator.")) {
 			echo("There is a Google network issue. Ending test.");
@@ -507,10 +503,6 @@ definition {
 	@priority = "5"
 	test CanTranslateTextFieldIndependently {
 		property test.name.skip.portal.instance = "AutoTranslationGoogle#CanTranslateTextFieldIndependently";
-
-		JSONWebcontent.deleteWebContent(
-			groupName = "Site Name",
-			title = "This is the title of a web article");
 
 		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
 
@@ -531,8 +523,8 @@ definition {
 		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Name");
 
 		WebContent.addWithStructureCP(
-			webContentText = "This is the content of the text field",
-			webContentTitle = "This is the title of a web article");
+			webContentText = "Test text",
+			webContentTitle = "WC title");
 
 		PortletEntry.publish();
 
@@ -541,7 +533,7 @@ definition {
 			siteURLKey = "site-name",
 			sourceLanguageId = "en_US",
 			targetLanguageId = "ja_JP",
-			webContentTitle = "This is the title of a web article");
+			webContentTitle = "WC title");
 
 		// End the test if the Google refresh token limit is exceeded.
 
@@ -549,14 +541,14 @@ definition {
 
 		if (IsTextEqual.isPartialText(key_fieldName = "Title", locator1 = "Message#SUCCESS_SPECIFIC_FORM_FIELD_REQUIRED", value1 = "Field Translated")) {
 			Translations.viewTargetFields(
-				webContentText = "This is the content of the text field",
-				webContentTitle = "これはウェブ記事のタイトルです");
+				webContentText = "Test text",
+				webContentTitle = "WCタイトル");
 
 			Translations.translateSpecificField(fieldName = "Text");
 
 			Translations.viewTargetFields(
-				webContentText = "これはテキストフィールドの内容です",
-				webContentTitle = "これはウェブ記事のタイトルです");
+				webContentText = "テストテキスト",
+				webContentTitle = "WCタイトル");
 
 			PortletEntry.publish();
 
@@ -565,11 +557,11 @@ definition {
 				siteURLKey = "site-name",
 				sourceLanguageId = "en_US",
 				targetLanguageId = "ja_JP",
-				webContentTitle = "This is the title of a web article");
+				webContentTitle = "WC title");
 
 			Translations.viewTargetFields(
-				webContentText = "これはテキストフィールドの内容です",
-				webContentTitle = "これはウェブ記事のタイトルです");
+				webContentText = "テストテキスト",
+				webContentTitle = "WCタイトル");
 		}
 		else if (IsTextEqual.isPartialText(key_fieldName = "Title", locator1 = "Message#SUCCESS_SPECIFIC_FORM_FIELD_REQUIRED", value1 = "There is a problem with the translation service. Please contact your administrator.")) {
 			echo("There is a Google network issue. Ending test.");
@@ -581,12 +573,18 @@ definition {
 	test CanTranslateTitleFieldIndependently {
 		property test.name.skip.portal.instance = "AutoTranslationGoogle#CanTranslateTitleFieldIndependently";
 
+		JSONWebcontent.addWebContent(
+			content = "This is the content of a web article",
+			description = "This is the description of a web article",
+			groupName = "Site Name",
+			title = "WC title");
+
 		Translations.openToTranslateEntry(
 			groupName = "Site Name",
 			siteURLKey = "site-name",
 			sourceLanguageId = "en_US",
 			targetLanguageId = "ja_JP",
-			webContentTitle = "This is the title of a web article");
+			webContentTitle = "WC title");
 
 		// End the test if the Google refresh token limit is exceeded.
 
@@ -596,7 +594,7 @@ definition {
 			Translations.viewTargetFields(
 				webContentContent = "This is the content of a web article",
 				webContentDescription = "This is the description of a web article",
-				webContentTitle = "これはウェブ記事のタイトルです");
+				webContentTitle = "WCタイトル");
 
 			PortletEntry.publish();
 
@@ -605,12 +603,12 @@ definition {
 				siteURLKey = "site-name",
 				sourceLanguageId = "en_US",
 				targetLanguageId = "ja_JP",
-				webContentTitle = "This is the title of a web article");
+				webContentTitle = "WC title");
 
 			Translations.viewTargetFields(
 				webContentContent = "This is the content of a web article",
 				webContentDescription = "This is the description of a web article",
-				webContentTitle = "これはウェブ記事のタイトルです");
+				webContentTitle = "WCタイトル");
 		}
 		else if (IsTextEqual.isPartialText(key_fieldName = "Title", locator1 = "Message#SUCCESS_SPECIFIC_FORM_FIELD_REQUIRED", value1 = "There is a problem with the translation service. Please contact your administrator.")) {
 			echo("There is a Google network issue. Ending test.");

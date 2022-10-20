@@ -17,6 +17,7 @@ package com.liferay.exportimport.internal.content.processor.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.document.library.kernel.model.DLFileEntryConstants;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
+import com.liferay.document.library.kernel.model.DLVersionNumberIncrease;
 import com.liferay.document.library.kernel.service.DLAppHelperLocalServiceUtil;
 import com.liferay.document.library.kernel.service.DLAppLocalServiceUtil;
 import com.liferay.exportimport.content.processor.ExportImportContentProcessor;
@@ -74,6 +75,7 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Time;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
@@ -273,6 +275,65 @@ public class DefaultExportImportContentProcessorTest {
 							"$,$include-uuid=false$]") ||
 					content.contains(
 						"[$dl-reference=" + entry + "$,$include-uuid=true$]"));
+
+				count++;
+			}
+		}
+
+		Assert.assertTrue(
+			"There should be at least one file entry reference", count > 0);
+	}
+
+	@Test
+	public void testExportDLReferencesFriendlyURL() throws Exception {
+		_portletDataContextExport.setZipWriter(new TestReaderWriter());
+
+		_fileEntry = DLAppLocalServiceUtil.updateFileEntry(
+			TestPropsValues.getUserId(), _fileEntry.getFileEntryId(),
+			RandomTestUtil.randomString(), ContentTypes.TEXT_PLAIN,
+			_fileEntry.getTitle(), _fileEntry.getTitle(), StringPool.BLANK,
+			StringPool.BLANK, DLVersionNumberIncrease.AUTOMATIC,
+			TestDataConstants.TEST_BYTE_ARRAY, null, null,
+			ServiceContextTestUtil.getServiceContext(
+				_stagingGroup.getGroupId(), TestPropsValues.getUserId()));
+
+		String content = _replaceParameters(
+			_getContent("dl_references_file_friendly_urls.txt"), _fileEntry);
+
+		_exportImportContentProcessor.validateContentReferences(
+			_stagingGroup.getGroupId(), content);
+
+		List<String> urls = _getURLs(content);
+
+		content = _exportImportContentProcessor.replaceExportContentReferences(
+			_portletDataContextExport, _referrerStagedModel, content, true,
+			true);
+
+		for (String url : urls) {
+			Assert.assertFalse(
+				url + " must not be in :" + content, content.contains(url));
+		}
+
+		TestReaderWriter testReaderWriter =
+			(TestReaderWriter)_portletDataContextExport.getZipWriter();
+
+		_assertContainsReference(
+			testReaderWriter.getEntries(), DLFileEntryConstants.getClassName(),
+			_fileEntry.getFileEntryId());
+
+		_assertContainsBinary(
+			testReaderWriter.getBinaryEntries(),
+			DLFileEntryConstants.getClassName(), _fileEntry.getFileEntryId());
+
+		int count = 0;
+
+		for (String entry : testReaderWriter.getEntries()) {
+			if (entry.contains(DLFileEntryConstants.getClassName())) {
+				Assert.assertTrue(
+					content,
+					content.contains(
+						"[$dl-reference=" + entry +
+							"$,$include-friendly-url=true$]"));
 
 				count++;
 			}
@@ -553,6 +614,20 @@ public class DefaultExportImportContentProcessorTest {
 			TestPropsValues.getUserId(), _fileEntry);
 
 		_testImportDLReferences(true);
+	}
+
+	@Test
+	public void testImportDLReferencesFriendlyURLDeletingBefore()
+		throws Exception {
+
+		_testImportDLReferencesFriendlyURL(true);
+	}
+
+	@Test
+	public void testImportDLReferencesFriendlyURLWithoutDeletingBefore()
+		throws Exception {
+
+		_testImportDLReferencesFriendlyURL(false);
 	}
 
 	@Test
@@ -932,6 +1007,19 @@ public class DefaultExportImportContentProcessorTest {
 			exportImportConfiguration, larFile);
 	}
 
+	private String _extractValidContent(String content) {
+		List<String> lines = ListUtil.fromArray(StringUtil.splitLines(content));
+		List<String> validLines = new ArrayList<>();
+
+		for (String line : lines) {
+			if (Validator.isNotNull(line) && !line.endsWith(StringPool.COLON)) {
+				validLines.add(line);
+			}
+		}
+
+		return StringUtil.merge(validLines, StringPool.NEW_LINE);
+	}
+
 	private String _getContent(String fileName) throws Exception {
 		Class<?> clazz = getClass();
 
@@ -1056,8 +1144,9 @@ public class DefaultExportImportContentProcessorTest {
 				"[$EXTERNAL_GROUP_FRIENDLY_URL$]",
 				"[$EXTERNAL_PRIVATE_LAYOUT_FRIENDLY_URL$]",
 				"[$EXTERNAL_PUBLIC_LAYOUT_FRIENDLY_URL$]",
-				"[$FRIENDLY_URL_SEPARATOR$]", "[$GROUP_FRIENDLY_URL$]",
-				"[$GROUP_ID$]", "[$GROUP_PRIVATE_PAGES_VIRTUAL_HOST$]",
+				"[$FILE_ENTRY_FRIENDLY_URL$]", "[$FRIENDLY_URL_SEPARATOR$]",
+				"[$GROUP_FRIENDLY_URL$]", "[$GROUP_ID$]", "[$GROUP_NAME$]",
+				"[$GROUP_PRIVATE_PAGES_VIRTUAL_HOST$]",
 				"[$GROUP_PUBLIC_PAGES_VIRTUAL_HOST$]", "[$IMAGE_ID$]",
 				"[$LIVE_GROUP_FRIENDLY_URL$]", "[$LIVE_GROUP_ID$]",
 				"[$LIVE_PUBLIC_LAYOUT_FRIENDLY_URL$]",
@@ -1082,8 +1171,12 @@ public class DefaultExportImportContentProcessorTest {
 				_externalGroup.getFriendlyURL(),
 				_externalPrivateLayout.getFriendlyURL(),
 				_externalPublicLayout.getFriendlyURL(),
+				FriendlyURLNormalizerUtil.normalizeWithPeriodsAndSlashes(
+					fileEntry.getTitle()),
 				Portal.FRIENDLY_URL_SEPARATOR, _stagingGroup.getFriendlyURL(),
 				String.valueOf(fileEntry.getGroupId()),
+				StringUtil.removeFirst(
+					_stagingGroup.getFriendlyURL(), StringPool.SLASH),
 				stagingPrivateVirtualHostnames.firstKey(),
 				stagingPublicVirtualHostnames.firstKey(),
 				String.valueOf(fileEntry.getFileEntryId()),
@@ -1107,7 +1200,7 @@ public class DefaultExportImportContentProcessorTest {
 			});
 
 		if (!content.contains("[$TIMESTAMP")) {
-			return content;
+			return _extractValidContent(content);
 		}
 
 		return _replaceTimestampParameters(content);
@@ -1128,7 +1221,11 @@ public class DefaultExportImportContentProcessorTest {
 		List<String> outURLs = new ArrayList<>();
 
 		for (String url : urls) {
-			if (!url.contains("[$TIMESTAMP")) {
+			if (Validator.isNotNull(url) && !url.contains("[$TIMESTAMP") &&
+				!url.endsWith(StringPool.COLON)) {
+
+				outURLs.add(url);
+
 				continue;
 			}
 
@@ -1181,6 +1278,48 @@ public class DefaultExportImportContentProcessorTest {
 
 		String content = _replaceParameters(
 			_getContent("dl_references.txt"), _fileEntry);
+
+		content = _exportImportContentProcessor.replaceExportContentReferences(
+			_portletDataContextExport, _referrerStagedModel, content, true,
+			true);
+
+		_portletDataContextImport.setScopeGroupId(_fileEntry.getGroupId());
+
+		if (deleteFileEntryBeforeImport) {
+			DLAppLocalServiceUtil.deleteFileEntry(_fileEntry.getFileEntryId());
+		}
+
+		content = _exportImportContentProcessor.replaceImportContentReferences(
+			_portletDataContextImport, _referrerStagedModel, content);
+
+		Assert.assertFalse(content, content.contains("[$dl-reference="));
+	}
+
+	private void _testImportDLReferencesFriendlyURL(
+			boolean deleteFileEntryBeforeImport)
+		throws Exception {
+
+		_fileEntry = DLAppLocalServiceUtil.updateFileEntry(
+			TestPropsValues.getUserId(), _fileEntry.getFileEntryId(),
+			RandomTestUtil.randomString(), ContentTypes.TEXT_PLAIN,
+			_fileEntry.getTitle(), _fileEntry.getTitle(), StringPool.BLANK,
+			StringPool.BLANK, DLVersionNumberIncrease.AUTOMATIC,
+			TestDataConstants.TEST_BYTE_ARRAY, null, null,
+			ServiceContextTestUtil.getServiceContext(
+				_stagingGroup.getGroupId(), TestPropsValues.getUserId()));
+
+		Element referrerStagedModelElement =
+			_portletDataContextExport.getExportDataElement(
+				_referrerStagedModel);
+
+		String referrerStagedModelPath = ExportImportPathUtil.getModelPath(
+			_referrerStagedModel);
+
+		referrerStagedModelElement.addAttribute(
+			"path", referrerStagedModelPath);
+
+		String content = _replaceParameters(
+			_getContent("dl_references_file_friendly_urls.txt"), _fileEntry);
 
 		content = _exportImportContentProcessor.replaceExportContentReferences(
 			_portletDataContextExport, _referrerStagedModel, content, true,

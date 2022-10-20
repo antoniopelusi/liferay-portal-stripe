@@ -14,7 +14,10 @@
 
 package com.liferay.journal.web.internal.display.context;
 
+import com.liferay.dynamic.data.mapping.form.renderer.constants.DDMFormRendererConstants;
 import com.liferay.dynamic.data.mapping.form.values.factory.DDMFormValuesFactory;
+import com.liferay.dynamic.data.mapping.item.selector.DDMTemplateItemSelectorReturnType;
+import com.liferay.dynamic.data.mapping.item.selector.criterion.DDMTemplateItemSelectorCriterion;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.model.DDMTemplate;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalServiceUtil;
@@ -24,6 +27,7 @@ import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.dynamic.data.mapping.storage.Fields;
 import com.liferay.dynamic.data.mapping.util.DDMFormValuesToMapConverter;
 import com.liferay.dynamic.data.mapping.util.FieldsToDDMFormValuesConverter;
+import com.liferay.item.selector.ItemSelector;
 import com.liferay.journal.constants.JournalArticleConstants;
 import com.liferay.journal.constants.JournalFolderConstants;
 import com.liferay.journal.constants.JournalWebKeys;
@@ -47,6 +51,8 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
+import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactory;
+import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactoryUtil;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalServiceUtil;
 import com.liferay.portal.kernel.theme.PortletDisplay;
@@ -63,6 +69,7 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -93,6 +100,8 @@ public class JournalEditArticleDisplayContext {
 			(FFJournalAutoSaveDraftConfiguration)
 				_httpServletRequest.getAttribute(
 					FFJournalAutoSaveDraftConfiguration.class.getName());
+		_itemSelector = (ItemSelector)_httpServletRequest.getAttribute(
+			ItemSelector.class.getName());
 
 		_themeDisplay = (ThemeDisplay)_httpServletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
@@ -227,7 +236,7 @@ public class JournalEditArticleDisplayContext {
 			return _ddmFormValues;
 		}
 
-		if (_article == null) {
+		if (_isDDMFormValuesEdited() || (_article == null)) {
 			DDMFormValuesFactory ddmFormValuesFactory =
 				_getDDMFormValuesFactory();
 
@@ -678,15 +687,29 @@ public class JournalEditArticleDisplayContext {
 			).buildString()
 		).put(
 			"selectDDMTemplateURL",
-			() -> PortletURLBuilder.createRenderURL(
-				_liferayPortletResponse
-			).setMVCPath(
-				"/select_ddm_template.jsp"
-			).setParameter(
-				"ddmStructureId", _ddmStructure.getStructureId()
-			).setWindowState(
-				LiferayWindowState.POP_UP
-			).buildString()
+			() -> {
+				RequestBackedPortletURLFactory requestBackedPortletURLFactory =
+					RequestBackedPortletURLFactoryUtil.create(
+						_httpServletRequest);
+
+				DDMTemplateItemSelectorCriterion
+					ddmTemplateItemSelectorCriterion =
+						new DDMTemplateItemSelectorCriterion();
+
+				ddmTemplateItemSelectorCriterion.setClassNameId(
+					PortalUtil.getClassNameId(JournalArticle.class.getName()));
+				ddmTemplateItemSelectorCriterion.setDDMStructureId(
+					_ddmStructure.getStructureId());
+
+				ddmTemplateItemSelectorCriterion.
+					setDesiredItemSelectorReturnTypes(
+						new DDMTemplateItemSelectorReturnType());
+
+				return String.valueOf(
+					_itemSelector.getItemSelectorURL(
+						requestBackedPortletURLFactory, "selectDDMTemplate",
+						ddmTemplateItemSelectorCriterion));
+			}
 		).build();
 	}
 
@@ -869,6 +892,27 @@ public class JournalEditArticleDisplayContext {
 		return false;
 	}
 
+	private boolean _isDDMFormValuesEdited() {
+		Enumeration<String> enumeration =
+			_httpServletRequest.getParameterNames();
+
+		while (enumeration.hasMoreElements()) {
+			String parameterName = enumeration.nextElement();
+
+			if (StringUtil.startsWith(
+					parameterName,
+					DDMFormRendererConstants.DDM_FORM_FIELD_NAME_PREFIX) &&
+				StringUtil.endsWith(parameterName, "_edited") &&
+				GetterUtil.getBoolean(
+					_httpServletRequest.getParameter(parameterName))) {
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	private boolean _isShowHeader() {
 		if (_showHeader != null) {
 			return _showHeader;
@@ -968,6 +1012,7 @@ public class JournalEditArticleDisplayContext {
 	private Long _groupId;
 	private final HttpServletRequest _httpServletRequest;
 	private Long _inheritedWorkflowDDMStructuresFolderId;
+	private final ItemSelector _itemSelector;
 	private final LiferayPortletResponse _liferayPortletResponse;
 	private Boolean _neverExpire;
 	private Boolean _neverReview;

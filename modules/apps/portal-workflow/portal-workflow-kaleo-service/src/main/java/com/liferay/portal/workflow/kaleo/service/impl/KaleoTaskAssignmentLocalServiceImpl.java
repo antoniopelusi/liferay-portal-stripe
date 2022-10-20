@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.workflow.kaleo.definition.Assignment;
 import com.liferay.portal.workflow.kaleo.definition.AssignmentType;
@@ -57,7 +58,8 @@ public class KaleoTaskAssignmentLocalServiceImpl
 			ServiceContext serviceContext)
 		throws PortalException {
 
-		User user = userLocalService.getUser(serviceContext.getGuestOrUserId());
+		User user = _userLocalService.getUser(
+			serviceContext.getGuestOrUserId());
 		Date date = new Date();
 
 		long kaleoTaskAssignmentId = counterLocalService.increment();
@@ -157,11 +159,9 @@ public class KaleoTaskAssignmentLocalServiceImpl
 			Role role = null;
 
 			if (Validator.isNotNull(roleAssignment.getRoleName())) {
-				int roleType = RoleUtil.getRoleType(
-					roleAssignment.getRoleType());
-
 				role = RoleUtil.getRole(
-					roleAssignment.getRoleName(), roleType,
+					roleAssignment.getRoleName(),
+					RoleUtil.getRoleType(roleAssignment.getRoleType()),
 					roleAssignment.isAutoCreate(), serviceContext);
 			}
 			else {
@@ -195,15 +195,15 @@ public class KaleoTaskAssignmentLocalServiceImpl
 			User user = null;
 
 			if (userAssignment.getUserId() > 0) {
-				user = userLocalService.getUser(userAssignment.getUserId());
+				user = _userLocalService.getUser(userAssignment.getUserId());
 			}
 			else if (Validator.isNotNull(userAssignment.getEmailAddress())) {
-				user = userLocalService.getUserByEmailAddress(
+				user = _userLocalService.getUserByEmailAddress(
 					serviceContext.getCompanyId(),
 					userAssignment.getEmailAddress());
 			}
 			else if (Validator.isNotNull(userAssignment.getScreenName())) {
-				user = userLocalService.getUserByScreenName(
+				user = _userLocalService.getUserByScreenName(
 					serviceContext.getCompanyId(),
 					userAssignment.getScreenName());
 			}
@@ -219,5 +219,8 @@ public class KaleoTaskAssignmentLocalServiceImpl
 
 	@Reference
 	private RoleLocalService _roleLocalService;
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

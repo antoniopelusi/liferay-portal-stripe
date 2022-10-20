@@ -91,6 +91,11 @@
 		<td></td>
 	</tr>
 	<tr>
+		<td>INPUT_NAME</td>
+		<td>//input[contains(@id,'_com_liferay_document_library_web_portlet_DLAdminPortlet_name')]</td>
+		<td></td>
+	</tr>
+	<tr>
 		<td>OBJECT_PORTLET_HEADER</td>
 		<td>//span[@data-qa-id='headerTitle' and contains (text(),'${key_objectLabel}')]</td>
 		<td></td>
@@ -121,11 +126,6 @@
 		<td></td>
 	</tr>
 	<tr>
-		<td>SEARCH_RESULT_RELATIONSHIP_ENTRY</td>
-		<td>//button[contains(@class,'dropdown-item')]//span[contains(text(),'${key_entry}')]</td>
-		<td></td>
-	</tr>
-	<tr>
 		<td>SEARCH_ENTRY_ON_RELATIONSHIP_FIELD_LABEL_SPECIFIC</td>
 		<td>//label[contains(text(),'${key_relationshipFieldLabel}')]/..//input[contains(@placeholder,'Search')]</td>
 		<td></td>
@@ -136,9 +136,19 @@
 		<td></td>
 	</tr>
 	<tr>
-	<td>SORT_FIELD</td>
-	<td>//button[@class='btn-sorting inline-item text-nowrap text-truncate-inline btn btn-sm btn-unstyled' and contains(text(), '${key_sortFieldName}')]</td>
-	<td></td>
+		<td>SELECT_OBJECT</td>
+		<td>//div[(@class='table-list-title')]//a[text()= '${label}']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>SELECT_SYSTEM_OBJECT</td>
+		<td>//div[(@class='table-list-title') and contains (.,'${key_label}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>SORT_FIELD</td>
+		<td>//button[@class='btn-sorting inline-item text-nowrap text-truncate-inline btn btn-sm btn-unstyled' and contains(text(), '${key_sortFieldName}')]</td>
+		<td></td>
 	</tr>
 	<tr>
 		<td>VIEW_ENTRY_BUTTON</td>

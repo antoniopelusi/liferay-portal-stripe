@@ -1071,13 +1071,16 @@ public class Query {
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {priceListByExternalReferenceCodePriceEntries(externalReferenceCode: ___, page: ___, pageSize: ___){items {__}, page, pageSize, totalCount}}"}' -u 'test@liferay.com:test'
+	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {priceListByExternalReferenceCodePriceEntries(externalReferenceCode: ___, filter: ___, page: ___, pageSize: ___, search: ___, sorts: ___){items {__}, page, pageSize, totalCount}}"}' -u 'test@liferay.com:test'
 	 */
 	@GraphQLField
 	public PriceEntryPage priceListByExternalReferenceCodePriceEntries(
 			@GraphQLName("externalReferenceCode") String externalReferenceCode,
+			@GraphQLName("search") String search,
+			@GraphQLName("filter") String filterString,
 			@GraphQLName("pageSize") int pageSize,
-			@GraphQLName("page") int page)
+			@GraphQLName("page") int page,
+			@GraphQLName("sort") String sortsString)
 		throws Exception {
 
 		return _applyComponentServiceObjects(
@@ -1086,7 +1089,12 @@ public class Query {
 			priceEntryResource -> new PriceEntryPage(
 				priceEntryResource.
 					getPriceListByExternalReferenceCodePriceEntriesPage(
-						externalReferenceCode, Pagination.of(page, pageSize))));
+						externalReferenceCode, search,
+						_filterBiFunction.apply(
+							priceEntryResource, filterString),
+						Pagination.of(page, pageSize),
+						_sortsBiFunction.apply(
+							priceEntryResource, sortsString))));
 	}
 
 	/**
@@ -2550,8 +2558,11 @@ public class Query {
 
 		@GraphQLField
 		public PriceEntryPage priceListByExternalReferenceCodePriceEntries(
+				@GraphQLName("search") String search,
+				@GraphQLName("filter") String filterString,
 				@GraphQLName("pageSize") int pageSize,
-				@GraphQLName("page") int page)
+				@GraphQLName("page") int page,
+				@GraphQLName("sort") String sortsString)
 			throws Exception {
 
 			return _applyComponentServiceObjects(
@@ -2560,8 +2571,12 @@ public class Query {
 				priceEntryResource -> new PriceEntryPage(
 					priceEntryResource.
 						getPriceListByExternalReferenceCodePriceEntriesPage(
-							_discount.getExternalReferenceCode(),
-							Pagination.of(page, pageSize))));
+							_discount.getExternalReferenceCode(), search,
+							_filterBiFunction.apply(
+								priceEntryResource, filterString),
+							Pagination.of(page, pageSize),
+							_sortsBiFunction.apply(
+								priceEntryResource, sortsString))));
 		}
 
 		private Discount _discount;

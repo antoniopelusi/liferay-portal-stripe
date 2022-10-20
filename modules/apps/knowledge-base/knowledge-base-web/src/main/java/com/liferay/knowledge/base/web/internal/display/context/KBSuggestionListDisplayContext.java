@@ -33,11 +33,9 @@ import javax.servlet.http.HttpServletRequest;
 public class KBSuggestionListDisplayContext {
 
 	public KBSuggestionListDisplayContext(
-		HttpServletRequest httpServletRequest, String templatePath,
-		KBArticle kbArticle) {
+		HttpServletRequest httpServletRequest, KBArticle kbArticle) {
 
 		_httpServletRequest = httpServletRequest;
-		_templatePath = templatePath;
 		_kbArticle = kbArticle;
 
 		_groupId = kbArticle.getGroupId();
@@ -46,11 +44,9 @@ public class KBSuggestionListDisplayContext {
 	}
 
 	public KBSuggestionListDisplayContext(
-		HttpServletRequest httpServletRequest, String templatePath,
-		long groupId) {
+		HttpServletRequest httpServletRequest, long groupId) {
 
 		_httpServletRequest = httpServletRequest;
-		_templatePath = templatePath;
 		_groupId = groupId;
 
 		_navigation = ParamUtil.getString(
@@ -65,10 +61,12 @@ public class KBSuggestionListDisplayContext {
 		if (_navigation.equals("new")) {
 			return "there-are-no-new-suggestions";
 		}
-		else if (_navigation.equals("in-progress")) {
+
+		if (_navigation.equals("in-progress")) {
 			return "there-are-no-suggestions-in-progress";
 		}
-		else if (_navigation.equals("resolved")) {
+
+		if (_navigation.equals("resolved")) {
 			return "there-are-no-resolved-suggestions";
 		}
 
@@ -165,10 +163,12 @@ public class KBSuggestionListDisplayContext {
 		if (_navigation.equals("new")) {
 			return KBCommentConstants.STATUS_NEW;
 		}
-		else if (_navigation.equals("in-progress")) {
+
+		if (_navigation.equals("in-progress")) {
 			return KBCommentConstants.STATUS_IN_PROGRESS;
 		}
-		else if (_navigation.equals("resolved")) {
+
+		if (_navigation.equals("resolved")) {
 			return KBCommentConstants.STATUS_COMPLETED;
 		}
 
@@ -179,6 +179,5 @@ public class KBSuggestionListDisplayContext {
 	private final HttpServletRequest _httpServletRequest;
 	private KBArticle _kbArticle;
 	private final String _navigation;
-	private final String _templatePath;
 
 }

@@ -131,6 +131,8 @@ public class KaleoDefinitionVersionPersistenceTest {
 
 		newKaleoDefinitionVersion.setMvccVersion(RandomTestUtil.nextLong());
 
+		newKaleoDefinitionVersion.setCtCollectionId(RandomTestUtil.nextLong());
+
 		newKaleoDefinitionVersion.setGroupId(RandomTestUtil.nextLong());
 
 		newKaleoDefinitionVersion.setCompanyId(RandomTestUtil.nextLong());
@@ -138,13 +140,6 @@ public class KaleoDefinitionVersionPersistenceTest {
 		newKaleoDefinitionVersion.setUserId(RandomTestUtil.nextLong());
 
 		newKaleoDefinitionVersion.setUserName(RandomTestUtil.randomString());
-
-		newKaleoDefinitionVersion.setStatusByUserId(RandomTestUtil.nextLong());
-
-		newKaleoDefinitionVersion.setStatusByUserName(
-			RandomTestUtil.randomString());
-
-		newKaleoDefinitionVersion.setStatusDate(RandomTestUtil.nextDate());
 
 		newKaleoDefinitionVersion.setCreateDate(RandomTestUtil.nextDate());
 
@@ -168,6 +163,13 @@ public class KaleoDefinitionVersionPersistenceTest {
 
 		newKaleoDefinitionVersion.setStatus(RandomTestUtil.nextInt());
 
+		newKaleoDefinitionVersion.setStatusByUserId(RandomTestUtil.nextLong());
+
+		newKaleoDefinitionVersion.setStatusByUserName(
+			RandomTestUtil.randomString());
+
+		newKaleoDefinitionVersion.setStatusDate(RandomTestUtil.nextDate());
+
 		_kaleoDefinitionVersions.add(
 			_persistence.update(newKaleoDefinitionVersion));
 
@@ -178,6 +180,9 @@ public class KaleoDefinitionVersionPersistenceTest {
 		Assert.assertEquals(
 			existingKaleoDefinitionVersion.getMvccVersion(),
 			newKaleoDefinitionVersion.getMvccVersion());
+		Assert.assertEquals(
+			existingKaleoDefinitionVersion.getCtCollectionId(),
+			newKaleoDefinitionVersion.getCtCollectionId());
 		Assert.assertEquals(
 			existingKaleoDefinitionVersion.getKaleoDefinitionVersionId(),
 			newKaleoDefinitionVersion.getKaleoDefinitionVersionId());
@@ -193,16 +198,6 @@ public class KaleoDefinitionVersionPersistenceTest {
 		Assert.assertEquals(
 			existingKaleoDefinitionVersion.getUserName(),
 			newKaleoDefinitionVersion.getUserName());
-		Assert.assertEquals(
-			existingKaleoDefinitionVersion.getStatusByUserId(),
-			newKaleoDefinitionVersion.getStatusByUserId());
-		Assert.assertEquals(
-			existingKaleoDefinitionVersion.getStatusByUserName(),
-			newKaleoDefinitionVersion.getStatusByUserName());
-		Assert.assertEquals(
-			Time.getShortTimestamp(
-				existingKaleoDefinitionVersion.getStatusDate()),
-			Time.getShortTimestamp(newKaleoDefinitionVersion.getStatusDate()));
 		Assert.assertEquals(
 			Time.getShortTimestamp(
 				existingKaleoDefinitionVersion.getCreateDate()),
@@ -236,6 +231,16 @@ public class KaleoDefinitionVersionPersistenceTest {
 		Assert.assertEquals(
 			existingKaleoDefinitionVersion.getStatus(),
 			newKaleoDefinitionVersion.getStatus());
+		Assert.assertEquals(
+			existingKaleoDefinitionVersion.getStatusByUserId(),
+			newKaleoDefinitionVersion.getStatusByUserId());
+		Assert.assertEquals(
+			existingKaleoDefinitionVersion.getStatusByUserName(),
+			newKaleoDefinitionVersion.getStatusByUserName());
+		Assert.assertEquals(
+			Time.getShortTimestamp(
+				existingKaleoDefinitionVersion.getStatusDate()),
+			Time.getShortTimestamp(newKaleoDefinitionVersion.getStatusDate()));
 	}
 
 	@Test
@@ -291,13 +296,13 @@ public class KaleoDefinitionVersionPersistenceTest {
 
 	protected OrderByComparator<KaleoDefinitionVersion> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create(
-			"KaleoDefinitionVersion", "mvccVersion", true,
-			"kaleoDefinitionVersionId", true, "groupId", true, "companyId",
-			true, "userId", true, "userName", true, "statusByUserId", true,
-			"statusByUserName", true, "statusDate", true, "createDate", true,
-			"modifiedDate", true, "kaleoDefinitionId", true, "name", true,
+			"KaleoDefinitionVersion", "mvccVersion", true, "ctCollectionId",
+			true, "kaleoDefinitionVersionId", true, "groupId", true,
+			"companyId", true, "userId", true, "userName", true, "createDate",
+			true, "modifiedDate", true, "kaleoDefinitionId", true, "name", true,
 			"title", true, "description", true, "version", true,
-			"startKaleoNodeId", true, "status", true);
+			"startKaleoNodeId", true, "status", true, "statusByUserId", true,
+			"statusByUserName", true, "statusDate", true);
 	}
 
 	@Test
@@ -619,6 +624,8 @@ public class KaleoDefinitionVersionPersistenceTest {
 
 		kaleoDefinitionVersion.setMvccVersion(RandomTestUtil.nextLong());
 
+		kaleoDefinitionVersion.setCtCollectionId(RandomTestUtil.nextLong());
+
 		kaleoDefinitionVersion.setGroupId(RandomTestUtil.nextLong());
 
 		kaleoDefinitionVersion.setCompanyId(RandomTestUtil.nextLong());
@@ -626,13 +633,6 @@ public class KaleoDefinitionVersionPersistenceTest {
 		kaleoDefinitionVersion.setUserId(RandomTestUtil.nextLong());
 
 		kaleoDefinitionVersion.setUserName(RandomTestUtil.randomString());
-
-		kaleoDefinitionVersion.setStatusByUserId(RandomTestUtil.nextLong());
-
-		kaleoDefinitionVersion.setStatusByUserName(
-			RandomTestUtil.randomString());
-
-		kaleoDefinitionVersion.setStatusDate(RandomTestUtil.nextDate());
 
 		kaleoDefinitionVersion.setCreateDate(RandomTestUtil.nextDate());
 
@@ -653,6 +653,13 @@ public class KaleoDefinitionVersionPersistenceTest {
 		kaleoDefinitionVersion.setStartKaleoNodeId(RandomTestUtil.nextLong());
 
 		kaleoDefinitionVersion.setStatus(RandomTestUtil.nextInt());
+
+		kaleoDefinitionVersion.setStatusByUserId(RandomTestUtil.nextLong());
+
+		kaleoDefinitionVersion.setStatusByUserName(
+			RandomTestUtil.randomString());
+
+		kaleoDefinitionVersion.setStatusDate(RandomTestUtil.nextDate());
 
 		_kaleoDefinitionVersions.add(
 			_persistence.update(kaleoDefinitionVersion));

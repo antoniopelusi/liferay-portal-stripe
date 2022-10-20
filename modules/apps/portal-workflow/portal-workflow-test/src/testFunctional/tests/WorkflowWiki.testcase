@@ -63,7 +63,7 @@ definition {
 
 	@priority = "5"
 	test ApproveFrontPageUserEdit {
-		property portal.acceptance = "true";
+		property portal.acceptance = "false";
 		property portal.upstream = "quarantine";
 
 		ApplicationsMenu.gotoPortlet(
@@ -284,6 +284,8 @@ definition {
 
 	@priority = "4"
 	test RejectFrontPageUserEdit {
+		property portal.upstream = "quarantine";
+
 		ApplicationsMenu.gotoPortlet(
 			category = "Users",
 			panel = "Control Panel",

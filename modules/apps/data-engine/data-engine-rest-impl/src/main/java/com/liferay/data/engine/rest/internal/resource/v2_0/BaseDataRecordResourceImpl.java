@@ -30,6 +30,7 @@ import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.odata.filter.ExpressionConvert;
 import com.liferay.portal.odata.filter.FilterParser;
@@ -49,12 +50,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Generated;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import javax.ws.rs.NotSupportedException;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -636,10 +639,37 @@ public abstract class BaseDataRecordResourceImpl
 			Map<String, Serializable> parameters)
 		throws Exception {
 
-		UnsafeConsumer<DataRecord, Exception> dataRecordUnsafeConsumer =
-			dataRecord -> postDataDefinitionDataRecord(
-				Long.parseLong((String)parameters.get("dataDefinitionId")),
-				dataRecord);
+		UnsafeConsumer<DataRecord, Exception> dataRecordUnsafeConsumer = null;
+
+		String createStrategy = (String)parameters.getOrDefault(
+			"createStrategy", "INSERT");
+
+		if ("INSERT".equalsIgnoreCase(createStrategy)) {
+			if (parameters.containsKey("dataDefinitionId")) {
+				dataRecordUnsafeConsumer =
+					dataRecord -> postDataDefinitionDataRecord(
+						Long.parseLong(
+							(String)parameters.get("dataDefinitionId")),
+						dataRecord);
+			}
+			else if (parameters.containsKey("dataRecordCollectionId")) {
+				dataRecordUnsafeConsumer =
+					dataRecord -> postDataRecordCollectionDataRecord(
+						Long.parseLong(
+							(String)parameters.get("dataRecordCollectionId")),
+						dataRecord);
+			}
+			else {
+				throw new NotSupportedException(
+					"One of the following parameters must be specified: [dataDefinitionId, dataRecordCollectionId]");
+			}
+		}
+
+		if (dataRecordUnsafeConsumer == null) {
+			throw new NotSupportedException(
+				"Create strategy \"" + createStrategy +
+					"\" is not supported for DataRecord");
+		}
 
 		if (contextBatchUnsafeConsumer != null) {
 			contextBatchUnsafeConsumer.accept(
@@ -661,6 +691,14 @@ public abstract class BaseDataRecordResourceImpl
 		for (DataRecord dataRecord : dataRecords) {
 			deleteDataRecord(dataRecord.getId());
 		}
+	}
+
+	public Set<String> getAvailableCreateStrategies() {
+		return SetUtil.fromArray("INSERT");
+	}
+
+	public Set<String> getAvailableUpdateStrategies() {
+		return SetUtil.fromArray("PARTIAL_UPDATE", "UPDATE");
 	}
 
 	@Override
@@ -688,10 +726,23 @@ public abstract class BaseDataRecordResourceImpl
 			Map<String, Serializable> parameters, String search)
 		throws Exception {
 
-		return getDataDefinitionDataRecordsPage(
-			Long.parseLong((String)parameters.get("dataDefinitionId")),
-			Long.parseLong((String)parameters.get("dataListViewId")),
-			(String)parameters.get("keywords"), pagination, sorts);
+		if (parameters.containsKey("dataDefinitionId")) {
+			return getDataDefinitionDataRecordsPage(
+				Long.parseLong((String)parameters.get("dataDefinitionId")),
+				Long.parseLong((String)parameters.get("dataListViewId")),
+				(String)parameters.get("keywords"), pagination, sorts);
+		}
+		else if (parameters.containsKey("dataRecordCollectionId")) {
+			return getDataRecordCollectionDataRecordsPage(
+				Long.parseLong(
+					(String)parameters.get("dataRecordCollectionId")),
+				Long.parseLong((String)parameters.get("dataListViewId")),
+				(String)parameters.get("keywords"), pagination, sorts);
+		}
+		else {
+			throw new NotSupportedException(
+				"One of the following parameters must be specified: [dataDefinitionId, dataRecordCollectionId]");
+		}
 	}
 
 	@Override
@@ -722,11 +773,39 @@ public abstract class BaseDataRecordResourceImpl
 			Map<String, Serializable> parameters)
 		throws Exception {
 
-		for (DataRecord dataRecord : dataRecords) {
-			putDataRecord(
+		UnsafeConsumer<DataRecord, Exception> dataRecordUnsafeConsumer = null;
+
+		String updateStrategy = (String)parameters.getOrDefault(
+			"updateStrategy", "UPDATE");
+
+		if ("PARTIAL_UPDATE".equalsIgnoreCase(updateStrategy)) {
+			dataRecordUnsafeConsumer = dataRecord -> patchDataRecord(
 				dataRecord.getId() != null ? dataRecord.getId() :
 					Long.parseLong((String)parameters.get("dataRecordId")),
 				dataRecord);
+		}
+
+		if ("UPDATE".equalsIgnoreCase(updateStrategy)) {
+			dataRecordUnsafeConsumer = dataRecord -> putDataRecord(
+				dataRecord.getId() != null ? dataRecord.getId() :
+					Long.parseLong((String)parameters.get("dataRecordId")),
+				dataRecord);
+		}
+
+		if (dataRecordUnsafeConsumer == null) {
+			throw new NotSupportedException(
+				"Update strategy \"" + updateStrategy +
+					"\" is not supported for DataRecord");
+		}
+
+		if (contextBatchUnsafeConsumer != null) {
+			contextBatchUnsafeConsumer.accept(
+				dataRecords, dataRecordUnsafeConsumer);
+		}
+		else {
+			for (DataRecord dataRecord : dataRecords) {
+				dataRecordUnsafeConsumer.accept(dataRecord);
+			}
 		}
 	}
 
@@ -874,32 +953,62 @@ public abstract class BaseDataRecordResourceImpl
 		DataRecord dataRecord, DataRecord existingDataRecord) {
 	}
 
-	protected <T, R> List<R> transform(
+	protected <T, R, E extends Throwable> List<R> transform(
 		java.util.Collection<T> collection,
-		UnsafeFunction<T, R, Exception> unsafeFunction) {
+		UnsafeFunction<T, R, E> unsafeFunction) {
 
 		return TransformUtil.transform(collection, unsafeFunction);
 	}
 
-	protected <T, R> R[] transform(
-		T[] array, UnsafeFunction<T, R, Exception> unsafeFunction,
-		Class<?> clazz) {
+	protected <T, R, E extends Throwable> R[] transform(
+		T[] array, UnsafeFunction<T, R, E> unsafeFunction, Class<?> clazz) {
 
 		return TransformUtil.transform(array, unsafeFunction, clazz);
 	}
 
-	protected <T, R> R[] transformToArray(
+	protected <T, R, E extends Throwable> R[] transformToArray(
 		java.util.Collection<T> collection,
-		UnsafeFunction<T, R, Exception> unsafeFunction, Class<?> clazz) {
+		UnsafeFunction<T, R, E> unsafeFunction, Class<?> clazz) {
 
 		return TransformUtil.transformToArray(
 			collection, unsafeFunction, clazz);
 	}
 
-	protected <T, R> List<R> transformToList(
-		T[] array, UnsafeFunction<T, R, Exception> unsafeFunction) {
+	protected <T, R, E extends Throwable> List<R> transformToList(
+		T[] array, UnsafeFunction<T, R, E> unsafeFunction) {
 
 		return TransformUtil.transformToList(array, unsafeFunction);
+	}
+
+	protected <T, R, E extends Throwable> List<R> unsafeTransform(
+			java.util.Collection<T> collection,
+			UnsafeFunction<T, R, E> unsafeFunction)
+		throws E {
+
+		return TransformUtil.unsafeTransform(collection, unsafeFunction);
+	}
+
+	protected <T, R, E extends Throwable> R[] unsafeTransform(
+			T[] array, UnsafeFunction<T, R, E> unsafeFunction, Class<?> clazz)
+		throws E {
+
+		return TransformUtil.unsafeTransform(array, unsafeFunction, clazz);
+	}
+
+	protected <T, R, E extends Throwable> R[] unsafeTransformToArray(
+			java.util.Collection<T> collection,
+			UnsafeFunction<T, R, E> unsafeFunction, Class<?> clazz)
+		throws E {
+
+		return TransformUtil.unsafeTransformToArray(
+			collection, unsafeFunction, clazz);
+	}
+
+	protected <T, R, E extends Throwable> List<R> unsafeTransformToList(
+			T[] array, UnsafeFunction<T, R, E> unsafeFunction)
+		throws E {
+
+		return TransformUtil.unsafeTransformToList(array, unsafeFunction);
 	}
 
 	protected AcceptLanguage contextAcceptLanguage;

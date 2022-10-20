@@ -17,7 +17,7 @@ package com.liferay.gradle.plugins;
 import com.liferay.gradle.plugins.internal.util.FileUtil;
 import com.liferay.gradle.plugins.internal.util.GradleUtil;
 import com.liferay.gradle.plugins.node.NodePlugin;
-import com.liferay.gradle.plugins.node.tasks.NpmInstallTask;
+import com.liferay.gradle.plugins.node.task.NpmInstallTask;
 
 import groovy.lang.Closure;
 

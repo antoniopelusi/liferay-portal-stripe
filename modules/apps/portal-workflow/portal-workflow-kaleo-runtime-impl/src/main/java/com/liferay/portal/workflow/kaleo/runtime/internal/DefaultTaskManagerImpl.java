@@ -17,6 +17,7 @@ package com.liferay.portal.workflow.kaleo.runtime.internal;
 import com.liferay.osgi.util.ServiceTrackerFactory;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.aop.AopService;
+import com.liferay.portal.kernel.change.tracking.CTAware;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -63,6 +64,7 @@ import org.osgi.util.tracker.ServiceTracker;
  * @author Michael C. Han
  */
 @Component(immediate = true, service = AopService.class)
+@CTAware
 @Transactional(
 	isolation = Isolation.PORTAL, propagation = Propagation.REQUIRED,
 	rollbackFor = Exception.class
@@ -344,19 +346,9 @@ public class DefaultTaskManagerImpl
 			KaleoNode.class.getName(), kaleoTask.getKaleoNodeId(),
 			ExecutionType.ON_ASSIGNMENT, executionContext);
 
-		boolean selfAssignment = false;
-
-		if (assigneeClassName.equals(User.class.getName()) &&
-			(assigneeClassPK == serviceContext.getUserId())) {
-
-			selfAssignment = true;
-		}
-
-		if (!selfAssignment) {
-			_notificationHelper.sendKaleoNotifications(
-				KaleoNode.class.getName(), kaleoTask.getKaleoNodeId(),
-				ExecutionType.ON_ASSIGNMENT, executionContext);
-		}
+		_notificationHelper.sendKaleoNotifications(
+			KaleoNode.class.getName(), kaleoTask.getKaleoNodeId(),
+			ExecutionType.ON_ASSIGNMENT, executionContext);
 
 		kaleoLogLocalService.addTaskAssignmentKaleoLogs(
 			previousTaskAssignmentInstances, kaleoTaskInstanceToken, comment,

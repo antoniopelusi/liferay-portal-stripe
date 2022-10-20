@@ -61,7 +61,6 @@ definition {
 	@uitest
 	test AddVocabularyWhenExistingStructureAndDocumentTypeWithXSSName {
 		var documentName = '''<script>alert(123)</script>''';
-
 		var structureName = '''<script>alert(456)</script>''';
 
 		task ("Add a document type with XSS name") {
@@ -122,7 +121,7 @@ definition {
 		task ("Select the new category") {
 			Click(locator1 = "Button#SELECT_CATEGORIES");
 
-			AssetCategorization.selectCategory(categoryName = '''><img src=x onerror=alert()>''');
+			AssetCategorization.selectCategories(categoryNameList = '''><img src=x onerror=alert()>''');
 		}
 
 		task ("View the selected category in Account Settings") {
@@ -175,7 +174,7 @@ definition {
 				key_vocabularyName = "Topic",
 				locator1 = "AssetCategorization#CATEGORY_SELECT");
 
-			AssetCategorization.selectCategory(categoryName = "${categoryName}");
+			AssetCategorization.selectCategories(categoryNameList = "${categoryName}");
 		}
 
 		task ("View the alert not shown") {

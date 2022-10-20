@@ -18,6 +18,7 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Summary;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.search.spi.model.result.contributor.ModelSummaryContributor;
 
@@ -39,6 +40,9 @@ public class DLFileEntryModelSummaryContributor
 	public Summary getSummary(
 		Document document, Locale locale, String snippet) {
 
+		Locale defaultLocale = LocaleUtil.fromLanguageId(
+			document.get(Field.DEFAULT_LANGUAGE_ID));
+
 		String prefix = Field.SNIPPET + StringPool.UNDERLINE;
 
 		String content = document.get(
@@ -47,9 +51,20 @@ public class DLFileEntryModelSummaryContributor
 		if (Validator.isNull(content)) {
 			content = document.get(
 				locale, prefix + Field.DESCRIPTION, Field.DESCRIPTION);
+
+			if (Validator.isNull(content) && !locale.equals(defaultLocale)) {
+				content = document.get(
+					defaultLocale, prefix + Field.DESCRIPTION,
+					Field.DESCRIPTION);
+			}
 		}
 
 		String title = document.get(locale, prefix + Field.TITLE, Field.TITLE);
+
+		if (Validator.isNull(title) && !locale.equals(defaultLocale)) {
+			title = document.get(
+				defaultLocale, prefix + Field.TITLE, Field.TITLE);
+		}
 
 		Summary summary = new Summary(title, content);
 

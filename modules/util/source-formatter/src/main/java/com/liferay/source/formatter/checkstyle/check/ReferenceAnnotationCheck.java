@@ -109,6 +109,34 @@ public class ReferenceAnnotationCheck extends BaseCheck {
 		}
 	}
 
+	private void _checkDynamicOption(
+		DetailAST annotationDetailAST, String policyName) {
+
+		if (policyName.endsWith(_POLICY_DYNAMIC)) {
+			return;
+		}
+
+		String cardinalityName = _getAnnotationMemberValue(
+			annotationDetailAST, "cardinality", null);
+
+		if ((cardinalityName == null) ||
+			!cardinalityName.endsWith(_CARDINALITY_OPTIONAL)) {
+
+			return;
+		}
+
+		String policyOptionName = _getAnnotationMemberValue(
+			annotationDetailAST, "policyOption", null);
+
+		if ((policyOptionName == null) ||
+			!policyOptionName.endsWith(_POLICY_OPTION_GREEDY)) {
+
+			return;
+		}
+
+		log(annotationDetailAST, _MSG_MISSING_DYNAMIC_POLICY);
+	}
+
 	private void _checkReferenceAnnotation(DetailAST detailAST) {
 		DetailAST annotationDetailAST = AnnotationUtil.getAnnotation(
 			detailAST, "Reference");
@@ -119,6 +147,8 @@ public class ReferenceAnnotationCheck extends BaseCheck {
 
 		String policyName = _getAnnotationMemberValue(
 			annotationDetailAST, "policy", _POLICY_STATIC);
+
+		_checkDynamicOption(annotationDetailAST, policyName);
 
 		if (detailAST.getType() == TokenTypes.VARIABLE_DEF) {
 			_checkVolatileVariable(detailAST, policyName);
@@ -304,11 +334,16 @@ public class ReferenceAnnotationCheck extends BaseCheck {
 
 	private static final String _ALLOWED_FILE_NAMES = "allowedFileNames";
 
+	private static final String _CARDINALITY_OPTIONAL = "OPTIONAL";
+
 	private static final String _FORBIDDEN_REFERENCE_TARGET_VALUES =
 		"forbiddenReferenceTargetValues";
 
 	private static final String _MSG_INCORRECT_TARGET_VALUE =
 		"target.value.incorrect";
+
+	private static final String _MSG_MISSING_DYNAMIC_POLICY =
+		"dynamic.policy.missing";
 
 	private static final String _MSG_MISSING_DYNAMIC_POLICY_UNBIND =
 		"unbind.dynamic.policy.missing";
@@ -326,6 +361,8 @@ public class ReferenceAnnotationCheck extends BaseCheck {
 	private static final String _NO_UNBIND = "\"-\"";
 
 	private static final String _POLICY_DYNAMIC = "DYNAMIC";
+
+	private static final String _POLICY_OPTION_GREEDY = "GREEDY";
 
 	private static final String _POLICY_STATIC = "STATIC";
 

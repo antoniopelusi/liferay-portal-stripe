@@ -130,6 +130,7 @@ String orderByType = ParamUtil.getString(request, "orderByType", "asc");
 									<hr class="separator" />
 
 									<liferay-ui:search-iterator
+										markupView="lexicon"
 										searchResultCssClass="show-quick-actions-on-hover table table-autofit"
 									/>
 								</liferay-ui:search-container>

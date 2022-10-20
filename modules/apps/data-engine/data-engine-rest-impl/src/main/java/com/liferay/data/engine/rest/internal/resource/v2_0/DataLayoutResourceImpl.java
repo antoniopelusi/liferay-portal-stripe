@@ -56,9 +56,10 @@ import com.liferay.portal.events.ServicePreAction;
 import com.liferay.portal.events.ThemeServicePreAction;
 import com.liferay.portal.kernel.change.tracking.CTAware;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.frontend.icons.FrontendIconsUtil;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
@@ -78,7 +79,6 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
-import com.liferay.portal.vulcan.resource.EntityModelResource;
 import com.liferay.portal.vulcan.util.SearchUtil;
 import com.liferay.portal.vulcan.util.TransformUtil;
 
@@ -106,8 +106,7 @@ import org.osgi.service.component.annotations.ServiceScope;
 	scope = ServiceScope.PROTOTYPE, service = DataLayoutResource.class
 )
 @CTAware
-public class DataLayoutResourceImpl
-	extends BaseDataLayoutResourceImpl implements EntityModelResource {
+public class DataLayoutResourceImpl extends BaseDataLayoutResourceImpl {
 
 	@Override
 	public void deleteDataDefinitionDataLayout(Long dataDefinitionId)
@@ -280,10 +279,14 @@ public class DataLayoutResourceImpl
 				ddmFormRenderingContext);
 
 		ddmFormTemplateContext.put("editable", false);
+
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)contextHttpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
 		ddmFormTemplateContext.put(
-			"spritemap",
-			dataLayoutRenderingContext.getPathThemeImages() +
-				"/clay/icons.svg");
+			"spritemap", FrontendIconsUtil.getSpritemap(themeDisplay));
+
 		ddmFormTemplateContext.remove("fieldTypes");
 
 		return Response.ok(
@@ -426,8 +429,7 @@ public class DataLayoutResourceImpl
 
 		if (pagination.getPageSize() > 250) {
 			throw new ValidationException(
-				LanguageUtil.format(
-					locale, "page-size-is-greater-than-x", 250));
+				_language.format(locale, "page-size-is-greater-than-x", 250));
 		}
 
 		if (ArrayUtil.isEmpty(sorts)) {
@@ -715,6 +717,9 @@ public class DataLayoutResourceImpl
 	@Reference
 	private DEDataDefinitionFieldLinkLocalService
 		_deDataDefinitionFieldLinkLocalService;
+
+	@Reference
+	private Language _language;
 
 	@Reference
 	private Portal _portal;

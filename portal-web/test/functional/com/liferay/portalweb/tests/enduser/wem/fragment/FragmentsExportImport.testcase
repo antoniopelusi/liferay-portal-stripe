@@ -53,7 +53,7 @@ definition {
 		}
 
 		task ("Assert the form validator displays an error that the file is not a zip file") {
-			Pause(locator1 = "10000");
+			WaitForElementPresent(locator1 = "Message#ERROR_FORM_VALIDATION");
 
 			AssertTextEquals(
 				locator1 = "Message#ERROR_FORM_VALIDATION",
@@ -196,7 +196,7 @@ definition {
 				collectionName = "Collection Name",
 				fragmentName = "New Fragment Name");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Export the fragment collection") {
@@ -356,7 +356,7 @@ definition {
 			PageEditor.gotoStyle(fragmentName = "Heading");
 
 			PageEditor.configureFragment(
-				alignment = "Center",
+				alignment = "Align Center",
 				textColor = "Danger");
 
 			PageEditor.gotoConfiguration(fragmentName = "Heading");
@@ -405,13 +405,13 @@ definition {
 		task ("View the background image of Container") {
 			PageEditor.viewFragment(fragmentName = "Container");
 
-			ContentPages.viewFragmentBackgroundImage(image = "Document_1.jpg");
+			ContentPages.viewFragmentBackgroundImage(image = "document_1-jpg");
 		}
 
 		task ("View the styles of Heading") {
 			PageEditor.viewFragmentStyle(
 				alignment = "center",
-				fragmentName = "heading",
+				fragmentName = "Heading",
 				headingLevel = "H2",
 				textColor = "danger");
 		}
@@ -663,7 +663,7 @@ definition {
 
 			AssertElementPresent(
 				key_columnNumber = "2",
-				key_elementHeader = "//div[contains(@class,'page-editor')]//img[contains(@src,'Document_1.png')]",
+				key_elementHeader = "//div[contains(@class,'page-editor')]//img[contains(@src,'document_1-png')]",
 				key_position = "1",
 				locator1 = "PageEditor#GRID_COLUMN_NESTED_ELEMENT");
 
@@ -1031,7 +1031,7 @@ definition {
 
 			AssertElementNotPresent(
 				key_columnNumber = "2",
-				key_elementHeader = "//div[contains(@class,'page-editor')]//img[contains(@src,'Document_1.png')]",
+				key_elementHeader = "//div[contains(@class,'page-editor')]//img[contains(@src,'document_1-png')]",
 				key_position = "1",
 				locator1 = "PageEditor#GRID_COLUMN_NESTED_ELEMENT");
 
@@ -1156,14 +1156,13 @@ definition {
 		task ("Add a fragment in global fragment collection") {
 			var newLine = '''
 ''';
-
 			var htmlSnippet = '''
 <${configuration.headingLevel} class="component-heading mb-0 text-break" data-lfr-editable-id="element-text" data-lfr-editable-type="text">
 	Heading Example
 </${configuration.headingLevel}>
 			''';
-			var htmlSnippet = StringUtil.regexReplaceAll("${htmlSnippet}", "${newLine}", "");
 
+			var htmlSnippet = StringUtil.regexReplaceAll("${htmlSnippet}", "${newLine}", "");
 			var jsonSnippet = '''
 {
 	"fieldSets": [
@@ -1203,6 +1202,7 @@ definition {
 	]
 }
 			''';
+
 			var jsonSnippet = StringUtil.regexReplaceAll("${jsonSnippet}", "${newLine}", "");
 
 			JSONFragment.addSection(
@@ -1255,14 +1255,13 @@ definition {
 		task ("Add a fragment in global fragment collection") {
 			var newLine = '''
 ''';
-
 			var htmlSnippet = '''
 <${configuration.headingLevel} class="component-heading mb-0 text-break" data-lfr-editable-id="element-text" data-lfr-editable-type="text">
 	Heading Example
 </${configuration.headingLevel}>
 			''';
-			var htmlSnippet = StringUtil.regexReplaceAll("${htmlSnippet}", "${newLine}", "");
 
+			var htmlSnippet = StringUtil.regexReplaceAll("${htmlSnippet}", "${newLine}", "");
 			var jsonSnippet = '''
 {
 	"fieldSets": [
@@ -1302,6 +1301,7 @@ definition {
 	]
 }
 			''';
+
 			var jsonSnippet = StringUtil.regexReplaceAll("${jsonSnippet}", "${newLine}", "");
 
 			JSONFragment.addSection(
@@ -1357,7 +1357,6 @@ definition {
 
 		task ("Add a new fragment in each collection") {
 			var htmlSnippet = FragmentsAPI.getFragmentFileContent(fileName = "checkbox_configuration.html");
-
 			var jsonSnippet = FragmentsAPI.getFragmentFileContent(fileName = "checkbox_configuration.json");
 
 			JSONFragment.addSection(
@@ -1369,7 +1368,6 @@ definition {
 				name = "Checkbox Fragment Example");
 
 			var htmlSnippet = FragmentsAPI.getFragmentFileContent(fileName = "colorPalette_configuration.html");
-
 			var jsonSnippet = FragmentsAPI.getFragmentFileContent(fileName = "colorPalette_configuration.json");
 
 			JSONFragment.addSection(
@@ -1381,7 +1379,6 @@ definition {
 				name = "ColorPalette Fragment Example");
 
 			var htmlSnippet = FragmentsAPI.getFragmentFileContent(fileName = "text_configuration.html");
-
 			var jsonSnippet = FragmentsAPI.getFragmentFileContent(fileName = "placeholder_configuration.json");
 
 			JSONFragment.addSection(
@@ -1422,8 +1419,6 @@ definition {
 					workflowStatus = "Approved");
 
 				var n = ${n} + 1;
-
-				Pause(locator1 = "3000");
 			}
 		}
 	}
@@ -1478,6 +1473,55 @@ definition {
 				locator1 = "Button#ANY");
 
 			AssertConfirm(value1 = "Here we go");
+		}
+	}
+
+	@description = "This is a test case for LPS-151013. Old Fragment resources are removed during import."
+	@priority = "4"
+	test ReImportFragmentCollectionWithDifferentFragmentResource {
+		task ("Given an imported fragment on content page") {
+			task ("Import a fragment collection") {
+				FragmentsAdmin.importCollectionFromDependenciesFolder(collectionZipFile = "fragments-objects.zip");
+			}
+
+			task ("Add the imported fragment to content page and publish") {
+				JSONLayout.addPublicLayout(
+					groupName = "Test Site Name",
+					layoutName = "Test Page Name",
+					type = "content");
+
+				ContentPagesNavigator.openEditContentPage(
+					pageName = "Test Page Name",
+					siteName = "Test Site Name");
+
+				PageEditor.addFragment(
+					collectionName = "Sample",
+					fragmentName = "Sample");
+
+				PageEditor.publish();
+			}
+
+			task ("View the image displayed on content page") {
+				AssertVisible(locator1 = "//img[contains(@src,'image-jpg')]");
+			}
+		}
+
+		task ("When import fragment collection again with different Fragment resource") {
+			task ("Import fragment collection again with different Fragment resource") {
+				FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = "test-site-name");
+
+				FragmentsAdmin.importCollectionFromDependenciesFolder(collectionZipFile = "fragments-plant.zip");
+			}
+		}
+
+		task ("Then the old frgment resource in content does not change") {
+			task ("View the image in fragment does not change on content page") {
+				ContentPagesNavigator.openViewContentPage(
+					pageName = "Test Page Name",
+					siteName = "Test Site Name");
+
+				AssertVisible(locator1 = "//img[contains(@src,'image-jpg')]");
+			}
 		}
 	}
 
@@ -1608,7 +1652,7 @@ definition {
 				fragmentName = "Tabs (Copy)",
 				id = "title5");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Navigate to Fragments admin") {

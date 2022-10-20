@@ -15,7 +15,7 @@
 package com.liferay.object.service.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
-import com.liferay.object.constants.ObjectDefinitionConstants;
+import com.liferay.object.constants.ObjectFieldConstants;
 import com.liferay.object.constants.ObjectValidationRuleConstants;
 import com.liferay.object.exception.NoSuchObjectValidationRuleException;
 import com.liferay.object.exception.ObjectValidationRuleEngineException;
@@ -25,8 +25,11 @@ import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectValidationRule;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectValidationRuleLocalService;
+import com.liferay.object.service.test.util.ObjectDefinitionTestUtil;
 import com.liferay.object.util.LocalizedMapUtil;
 import com.liferay.object.util.ObjectFieldUtil;
+import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -36,6 +39,8 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
 import java.util.Arrays;
+import java.util.Locale;
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -57,122 +62,51 @@ public class ObjectValidationRuleLocalServiceTest {
 
 	@Before
 	public void setUp() throws Exception {
-		_objectDefinition =
-			_objectDefinitionLocalService.addCustomObjectDefinition(
-				TestPropsValues.getUserId(),
-				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
-				"A" + RandomTestUtil.randomString(), null, null,
-				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
-				ObjectDefinitionConstants.SCOPE_COMPANY,
-				Arrays.asList(
-					ObjectFieldUtil.createObjectField(
-						"Text", "String", RandomTestUtil.randomString(),
-						"textField")));
+		_objectDefinition = ObjectDefinitionTestUtil.addObjectDefinition(
+			_objectDefinitionLocalService,
+			Arrays.asList(
+				ObjectFieldUtil.createObjectField(
+					ObjectFieldConstants.BUSINESS_TYPE_TEXT,
+					ObjectFieldConstants.DB_TYPE_STRING,
+					RandomTestUtil.randomString(), "textField")));
 	}
 
 	@Test
 	public void testAddObjectValidationRule() throws Exception {
-
-		// Engine "abcdefghijklmnopqrstuvwxyz" does not exist
-
-		try {
-			_testAddObjectValidationRule(
-				"abcdefghijklmnopqrstuvwxyz", "Test",
-				"isEmailAddress(textField)");
-
-			Assert.fail();
-		}
-		catch (ObjectValidationRuleEngineException
-					objectValidationRuleEngineException) {
-
-			Assert.assertEquals(
-				"Engine \"abcdefghijklmnopqrstuvwxyz\" does not exist",
-				objectValidationRuleEngineException.getMessage());
-		}
-
-		// Engine is null
-
-		try {
-			_testAddObjectValidationRule(
-				"", "Test", "isEmailAddress(textField)");
-
-			Assert.fail();
-		}
-		catch (ObjectValidationRuleEngineException
-					objectValidationRuleEngineException) {
-
-			Assert.assertEquals(
-				"Engine is null",
-				objectValidationRuleEngineException.getMessage());
-		}
-
-		// Name is null
-
-		try {
-			_testAddObjectValidationRule(
-				ObjectValidationRuleConstants.ENGINE_TYPE_DDM, "",
-				"isEmailAddress(textField)");
-
-			Assert.fail();
-		}
-		catch (ObjectValidationRuleNameException
-					objectValidationRuleNameException) {
-
-			Assert.assertEquals(
-				"Name is null for locale " + LocaleUtil.US.getDisplayName(),
-				objectValidationRuleNameException.getMessage());
-		}
-
-		// Script is null
-
-		try {
-			_testAddObjectValidationRule(
-				ObjectValidationRuleConstants.ENGINE_TYPE_DDM, "Test", "");
-
-			Assert.fail();
-		}
-		catch (ObjectValidationRuleScriptException
-					objectValidationRuleScriptException) {
-
-			Assert.assertEquals(
-				"Script is null",
-				objectValidationRuleScriptException.getMessage());
-		}
-
-		ObjectValidationRule objectValidationRule =
-			_objectValidationRuleLocalService.addObjectValidationRule(
-				TestPropsValues.getUserId(),
-				_objectDefinition.getObjectDefinitionId(), true,
-				ObjectValidationRuleConstants.ENGINE_TYPE_DDM,
-				LocalizedMapUtil.getLocalizedMap(
-					"Field must be an email address"),
-				LocalizedMapUtil.getLocalizedMap("Email Address Validation"),
-				"isEmailAddress(textField)");
-
-		Assert.assertTrue(objectValidationRule.isActive());
-		Assert.assertEquals(
+		_testAddObjectValidationRuleFailure(
+			"abcdefghijklmnopqrstuvwxyz",
+			ObjectValidationRuleEngineException.class,
+			"Engine \"abcdefghijklmnopqrstuvwxyz\" does not exist",
+			RandomTestUtil.randomString(), _VALID_DDM_SCRIPT);
+		_testAddObjectValidationRuleFailure(
 			ObjectValidationRuleConstants.ENGINE_TYPE_DDM,
-			objectValidationRule.getEngine());
-		Assert.assertEquals(
-			LocalizedMapUtil.getLocalizedMap("Field must be an email address"),
-			objectValidationRule.getErrorLabelMap());
-		Assert.assertEquals(
-			LocalizedMapUtil.getLocalizedMap("Email Address Validation"),
-			objectValidationRule.getNameMap());
-		Assert.assertEquals(
-			"isEmailAddress(textField)", objectValidationRule.getScript());
+			ObjectValidationRuleNameException.class,
+			"Name is null for locale " + LocaleUtil.US.getDisplayName(),
+			StringPool.BLANK, _VALID_DDM_SCRIPT);
+		_testAddObjectValidationRuleFailure(
+			ObjectValidationRuleConstants.ENGINE_TYPE_DDM,
+			ObjectValidationRuleScriptException.class, "required",
+			RandomTestUtil.randomString(), StringPool.BLANK);
+		_testAddObjectValidationRuleFailure(
+			ObjectValidationRuleConstants.ENGINE_TYPE_GROOVY,
+			ObjectValidationRuleScriptException.class, "syntax-error",
+			RandomTestUtil.randomString(), "import;\ninvalidFields = false;");
+		_testAddObjectValidationRuleFailure(
+			StringPool.BLANK, ObjectValidationRuleEngineException.class,
+			"Engine is null", RandomTestUtil.randomString(), _VALID_DDM_SCRIPT);
+
+		_testAddObjectValidationRuleSuccess(
+			ObjectValidationRuleConstants.ENGINE_TYPE_DDM, _VALID_DDM_SCRIPT);
+		_testAddObjectValidationRuleSuccess(
+			ObjectValidationRuleConstants.ENGINE_TYPE_GROOVY,
+			"import com.liferay.commerce.service.CommerceOrderLocalService;\n" +
+				"invalidFields = false;");
 	}
 
 	@Test
 	public void testDeleteObjectValidationRule() throws Exception {
-		ObjectValidationRule objectValidationRule =
-			_objectValidationRuleLocalService.addObjectValidationRule(
-				TestPropsValues.getUserId(),
-				_objectDefinition.getObjectDefinitionId(), true,
-				ObjectValidationRuleConstants.ENGINE_TYPE_DDM,
-				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
-				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
-				"isEmailAddress(textField)");
+		ObjectValidationRule objectValidationRule = _addObjectValidationRule(
+			ObjectValidationRuleConstants.ENGINE_TYPE_DDM, _VALID_DDM_SCRIPT);
 
 		objectValidationRule =
 			_objectValidationRuleLocalService.fetchObjectValidationRule(
@@ -192,28 +126,8 @@ public class ObjectValidationRuleLocalServiceTest {
 
 	@Test
 	public void testUpdateObjectValidationRule() throws Exception {
-		ObjectValidationRule objectValidationRule =
-			_objectValidationRuleLocalService.addObjectValidationRule(
-				TestPropsValues.getUserId(),
-				_objectDefinition.getObjectDefinitionId(), true,
-				ObjectValidationRuleConstants.ENGINE_TYPE_DDM,
-				LocalizedMapUtil.getLocalizedMap(
-					"Field must be an email address"),
-				LocalizedMapUtil.getLocalizedMap("Email Address Validation"),
-				"isEmailAddress(textField)");
-
-		Assert.assertTrue(objectValidationRule.isActive());
-		Assert.assertEquals(
-			ObjectValidationRuleConstants.ENGINE_TYPE_DDM,
-			objectValidationRule.getEngine());
-		Assert.assertEquals(
-			LocalizedMapUtil.getLocalizedMap("Field must be an email address"),
-			objectValidationRule.getErrorLabelMap());
-		Assert.assertEquals(
-			LocalizedMapUtil.getLocalizedMap("Email Address Validation"),
-			objectValidationRule.getNameMap());
-		Assert.assertEquals(
-			"isEmailAddress(textField)", objectValidationRule.getScript());
+		ObjectValidationRule objectValidationRule = _addObjectValidationRule(
+			ObjectValidationRuleConstants.ENGINE_TYPE_DDM, _VALID_DDM_SCRIPT);
 
 		try {
 			objectValidationRule =
@@ -224,7 +138,7 @@ public class ObjectValidationRuleLocalServiceTest {
 						RandomTestUtil.randomString()),
 					LocalizedMapUtil.getLocalizedMap(
 						RandomTestUtil.randomString()),
-					"isEmailAddress(textField)");
+					_VALID_DDM_SCRIPT);
 
 			Assert.fail();
 		}
@@ -256,28 +170,78 @@ public class ObjectValidationRuleLocalServiceTest {
 			"isURL(textField)", objectValidationRule.getScript());
 	}
 
-	private void _testAddObjectValidationRule(
-			String engine, String name, String script)
+	private ObjectValidationRule _addObjectValidationRule(
+			String engine, String script)
 		throws Exception {
 
-		ObjectValidationRule objectValidationRule = null;
+		return _objectValidationRuleLocalService.addObjectValidationRule(
+			TestPropsValues.getUserId(),
+			_objectDefinition.getObjectDefinitionId(), true, engine,
+			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+			script);
+	}
+
+	private void _testAddObjectValidationRuleFailure(
+		String engine, Class<?> expectedExceptionClass, String expectedMessage,
+		String name, String script) {
 
 		try {
-			objectValidationRule =
-				_objectValidationRuleLocalService.addObjectValidationRule(
-					TestPropsValues.getUserId(),
-					_objectDefinition.getObjectDefinitionId(), true, engine,
-					LocalizedMapUtil.getLocalizedMap(
-						RandomTestUtil.randomString()),
-					LocalizedMapUtil.getLocalizedMap(name), script);
+			_objectValidationRuleLocalService.addObjectValidationRule(
+				TestPropsValues.getUserId(),
+				_objectDefinition.getObjectDefinitionId(), true, engine,
+				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+				LocalizedMapUtil.getLocalizedMap(name), script);
+
+			Assert.fail();
 		}
-		finally {
-			if (objectValidationRule != null) {
-				_objectValidationRuleLocalService.deleteObjectValidationRule(
-					objectValidationRule);
+		catch (PortalException portalException) {
+			Assert.assertTrue(
+				expectedExceptionClass.isInstance(portalException));
+
+			String actualMessage = portalException.getMessage();
+
+			if (portalException instanceof
+					ObjectValidationRuleScriptException) {
+
+				ObjectValidationRuleScriptException
+					objectValidationRuleScriptException =
+						(ObjectValidationRuleScriptException)portalException;
+
+				actualMessage =
+					objectValidationRuleScriptException.getMessageKey();
 			}
+
+			Assert.assertEquals(expectedMessage, actualMessage);
 		}
 	}
+
+	private ObjectValidationRule _testAddObjectValidationRuleSuccess(
+			String engine, String script)
+		throws Exception {
+
+		Map<Locale, String> errorLabelMap = LocalizedMapUtil.getLocalizedMap(
+			RandomTestUtil.randomString());
+		Map<Locale, String> nameLabelMap = LocalizedMapUtil.getLocalizedMap(
+			RandomTestUtil.randomString());
+
+		ObjectValidationRule objectValidationRule =
+			_objectValidationRuleLocalService.addObjectValidationRule(
+				TestPropsValues.getUserId(),
+				_objectDefinition.getObjectDefinitionId(), true, engine,
+				errorLabelMap, nameLabelMap, script);
+
+		Assert.assertTrue(objectValidationRule.isActive());
+		Assert.assertEquals(engine, objectValidationRule.getEngine());
+		Assert.assertEquals(
+			errorLabelMap, objectValidationRule.getErrorLabelMap());
+		Assert.assertEquals(nameLabelMap, objectValidationRule.getNameMap());
+		Assert.assertEquals(script, objectValidationRule.getScript());
+
+		return objectValidationRule;
+	}
+
+	private static final String _VALID_DDM_SCRIPT = "isEmailAddress(textField)";
 
 	@DeleteAfterTestRun
 	private ObjectDefinition _objectDefinition;

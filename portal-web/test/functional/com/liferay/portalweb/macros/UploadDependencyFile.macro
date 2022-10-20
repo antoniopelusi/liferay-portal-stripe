@@ -2,12 +2,7 @@ definition {
 
 	macro uploadArchiveFile {
 		var tempDir = PropsUtil.get("output.dir.name");
-
 		var dependencyFilePath = TestCase.getDependenciesDirPath(fileName = "${fileName}");
-
-		ArchiveUtil.archive("${dependencyFilePath}", "${tempDir}/${fileName}");
-
-		var dependencyFilePath = "${tempDir}/${fileName}";
 
 		UploadFile(
 			locator1 = "TextInput#FILE",

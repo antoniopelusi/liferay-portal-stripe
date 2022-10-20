@@ -33,6 +33,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Enumeration;
 import java.util.List;
@@ -42,11 +43,6 @@ import java.util.Properties;
  * @author Alan Huang
  */
 public class PropertiesArchivedModulesCheck extends BaseFileCheck {
-
-	@Override
-	public boolean isLiferaySourceCheck() {
-		return true;
-	}
 
 	@Override
 	protected String doProcess(
@@ -59,6 +55,10 @@ public class PropertiesArchivedModulesCheck extends BaseFileCheck {
 
 		List<String> archivedModuleDirectoryNames =
 			_getArchivedModuleDirectoryNames();
+
+		if (archivedModuleDirectoryNames.isEmpty()) {
+			return content;
+		}
 
 		Properties properties = new Properties();
 
@@ -84,17 +84,21 @@ public class PropertiesArchivedModulesCheck extends BaseFileCheck {
 				value, StringPool.COMMA);
 
 			for (String propertyValue : propertyValues) {
-				if (!propertyValue.startsWith("**/")) {
-					continue;
+				String moduleName = StringPool.BLANK;
+
+				if (propertyValue.startsWith("**/")) {
+					int x = propertyValue.indexOf(CharPool.SLASH, 3);
+
+					if (x == -1) {
+						continue;
+					}
+
+					moduleName = propertyValue.substring(3, x);
 				}
-
-				int x = propertyValue.indexOf(CharPool.SLASH, 3);
-
-				if (x == -1) {
-					continue;
+				else if (propertyValue.startsWith("apps/archived/")) {
+					moduleName = propertyValue.replaceFirst(
+						"apps/archived/(.+?)/.*", "$1");
 				}
-
-				String moduleName = propertyValue.substring(3, x);
 
 				if (archivedModuleDirectoryNames.contains(moduleName)) {
 					addMessage(
@@ -119,7 +123,11 @@ public class PropertiesArchivedModulesCheck extends BaseFileCheck {
 
 		_archivedModuleDirectoryNames = new ArrayList<>();
 
-		File modulesDir = new File(getPortalDir(), "modules");
+		File modulesDir = new File(getPortalDir(), "modules/apps/archived");
+
+		if (!modulesDir.exists()) {
+			return Collections.emptyList();
+		}
 
 		Files.walkFileTree(
 			modulesDir.toPath(), EnumSet.noneOf(FileVisitOption.class), 15,

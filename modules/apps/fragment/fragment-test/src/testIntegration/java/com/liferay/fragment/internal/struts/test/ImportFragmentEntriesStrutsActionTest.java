@@ -20,6 +20,8 @@ import com.liferay.fragment.service.FragmentCollectionLocalService;
 import com.liferay.fragment.service.FragmentCompositionService;
 import com.liferay.fragment.service.FragmentEntryLocalService;
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalService;
+import com.liferay.petra.memory.DeleteFileFinalizeAction;
+import com.liferay.petra.memory.FinalizeManager;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.events.EventsProcessorUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
@@ -37,21 +39,23 @@ import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ProgressTracker;
 import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.zip.ZipWriter;
 import com.liferay.portal.kernel.zip.ZipWriterFactoryUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
-import com.liferay.portal.upload.LiferayFileItem;
-import com.liferay.portal.upload.LiferayFileItemFactory;
 import com.liferay.portal.upload.UploadPortletRequestImpl;
 import com.liferay.portal.upload.UploadServletRequestImpl;
 import com.liferay.portal.util.PropsValues;
 
-import java.io.OutputStream;
+import java.io.File;
 
 import java.net.URL;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import java.util.Collections;
 import java.util.Enumeration;
@@ -144,7 +148,7 @@ public class ImportFragmentEntriesStrutsActionTest {
 		FragmentCollection fragmentCollection = fragmentCollections.get(0);
 
 		Assert.assertEquals(
-			4,
+			5,
 			_fragmentEntryLocalService.getFragmentEntriesCount(
 				fragmentCollection.getFragmentCollectionId()));
 
@@ -160,6 +164,45 @@ public class ImportFragmentEntriesStrutsActionTest {
 		Assert.assertNotNull(
 			_layoutPageTemplateEntryLocalService.fetchLayoutPageTemplateEntry(
 				_group.getGroupId(), "page-template"));
+	}
+
+	private FileItem _createFileItem(byte[] bytes) throws Exception {
+		Path tempFilePath = Files.createTempFile(null, null);
+
+		Files.write(tempFilePath, bytes);
+
+		File tempFile = tempFilePath.toFile();
+
+		FinalizeManager.register(
+			tempFile, new DeleteFileFinalizeAction(tempFile.getAbsolutePath()),
+			FinalizeManager.PHANTOM_REFERENCE_FACTORY);
+
+		return ProxyUtil.newDelegateProxyInstance(
+			FileItem.class.getClassLoader(), FileItem.class,
+			new Object() {
+
+				public String getFileName() {
+					return tempFile.getName();
+				}
+
+				public long getSize() {
+					return bytes.length;
+				}
+
+				public int getSizeThreshold() {
+					return 1024;
+				}
+
+				public File getStoreLocation() {
+					return tempFile;
+				}
+
+				public boolean isInMemory() {
+					return false;
+				}
+
+			},
+			null);
 	}
 
 	private byte[] _getFileBytes() throws Exception {
@@ -188,25 +231,7 @@ public class ImportFragmentEntriesStrutsActionTest {
 		throws Exception {
 
 		return HashMapBuilder.<String, FileItem[]>put(
-			namespace,
-			() -> {
-				LiferayFileItemFactory fileItemFactory =
-					new LiferayFileItemFactory(
-						UploadServletRequestImpl.getTempDir());
-
-				LiferayFileItem liferayFileItem = fileItemFactory.createItem(
-					RandomTestUtil.randomString(),
-					RandomTestUtil.randomString(), true,
-					RandomTestUtil.randomString());
-
-				try (OutputStream outputStream =
-						liferayFileItem.getOutputStream()) {
-
-					outputStream.write(bytes);
-				}
-
-				return new FileItem[] {liferayFileItem};
-			}
+			namespace, new FileItem[] {_createFileItem(bytes)}
 		).build();
 	}
 

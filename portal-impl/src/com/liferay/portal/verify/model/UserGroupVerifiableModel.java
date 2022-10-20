@@ -15,12 +15,21 @@
 package com.liferay.portal.verify.model;
 
 import com.liferay.portal.kernel.model.UserGroup;
+import com.liferay.portal.kernel.verify.model.VerifiableAuditedModel;
 import com.liferay.portal.kernel.verify.model.VerifiableResourcedModel;
+import com.liferay.portal.kernel.verify.model.VerifiableUUIDModel;
 
 /**
  * @author Miguel Pastor
  */
-public class UserGroupVerifiableModel implements VerifiableResourcedModel {
+public class UserGroupVerifiableModel
+	implements VerifiableAuditedModel, VerifiableResourcedModel,
+			   VerifiableUUIDModel {
+
+	@Override
+	public String getJoinByTableName() {
+		return null;
+	}
 
 	@Override
 	public String getModelName() {
@@ -33,6 +42,16 @@ public class UserGroupVerifiableModel implements VerifiableResourcedModel {
 	}
 
 	@Override
+	public String getRelatedModelName() {
+		return null;
+	}
+
+	@Override
+	public String getRelatedPKColumnName() {
+		return null;
+	}
+
+	@Override
 	public String getTableName() {
 		return "UserGroup";
 	}
@@ -40,6 +59,16 @@ public class UserGroupVerifiableModel implements VerifiableResourcedModel {
 	@Override
 	public String getUserIdColumnName() {
 		return "userId";
+	}
+
+	@Override
+	public boolean isAnonymousUserAllowed() {
+		return false;
+	}
+
+	@Override
+	public boolean isUpdateDates() {
+		return true;
 	}
 
 }

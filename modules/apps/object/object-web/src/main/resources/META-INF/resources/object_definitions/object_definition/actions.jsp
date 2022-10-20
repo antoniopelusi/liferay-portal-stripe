@@ -35,24 +35,23 @@ renderResponse.setTitle(objectDefinition.getLabel(locale, true));
 	fdsActionDropdownItems="<%= objectDefinitionsActionsDisplayContext.getFDSActionDropdownItems() %>"
 	formName="fm"
 	id="<%= ObjectDefinitionsFDSNames.OBJECT_ACTIONS %>"
-	itemsPerPage="<%= 20 %>"
-	namespace="<%= liferayPortletResponse.getNamespace() %>"
-	pageNumber="<%= 1 %>"
-	portletURL="<%= liferayPortletResponse.createRenderURL() %>"
+	propsTransformer="js/ObjectDefinitionsActionsFDSPropsTransformer"
 	style="fluid"
 />
 
-<div id="<portlet:namespace />AddObjectAction">
+<div>
 	<react:component
-		module="js/components/ModalAddObjectAction"
+		module="js/components/ObjectAction/ExpressionBuilderModal"
 		props='<%=
 			HashMapBuilder.<String, Object>put(
-				"apiURL", objectDefinitionsActionsDisplayContext.getAPIURL()
-			).put(
-				"objectActionExecutors", objectDefinitionsActionsDisplayContext.getObjectActionExecutorsJSONArray()
-			).put(
-				"objectActionTriggers", objectDefinitionsActionsDisplayContext.getObjectActionTriggersJSONArray()
+				"sidebarElements", objectDefinitionsActionsDisplayContext.getObjectActionCodeEditorElements()
 			).build()
 		%>'
+	/>
+</div>
+
+<div>
+	<react:component
+		module="js/components/ModalAddColumns"
 	/>
 </div>

@@ -22,21 +22,34 @@ definition {
 		var testBaseDir = PropsUtil.get("test.base.dir.name");
 		var testDependenciesDir = PropsUtil.get("test.dependencies.dir.name");
 		var testName = selenium.getTestName();
+
 		var testName = StringUtil.extractLast("${testName}", ".");
+
 		var testName = StringUtil.extractFirst("${testName}", "#");
 
 		var testFileName = StringUtil.split("**/${testName}.testcase");
+
 		var testFilePaths = FileUtil.getIncludedResourceURLs("${testFileName}", "${projectDir}/portal-web");
+
 		var testFilePaths = StringUtil.valueOf("${testFilePaths}");
 
 		if ("${testFilePaths}" == "[]") {
 			var testFilePaths = FileUtil.getIncludedResourceURLs("${testFileName}", "${projectDir}/modules");
+
 			var testFilePaths = StringUtil.valueOf("${testFilePaths}");
 		}
 
 		var testFilePath = RegexUtil.replace("${testFilePaths}", "\[(.*)\]", "1");
+
 		var testFilePath = StringUtil.extractLast("${testFilePath}", "file:");
+		var os = OSDetector.isWindows();
+
+		if (("${os}" == "true") && contains("${testFilePath}", ":")) {
+			var testFilePath = StringUtil.replaceFirst("${testFilePath}", "/", "");
+		}
+
 		var testFileParentDir = StringUtil.extractFirst("${testFilePath}", "${testName}.testcase");
+
 		var dependenciesDir = "${testFileParentDir}${testDependenciesDir}";
 
 		if (isSet(filePath)) {
@@ -44,10 +57,12 @@ definition {
 		}
 
 		var dependencyFilePath = "${dependenciesDir}/${fileName}";
+
 		var fileExists = FileUtil.exists("${dependencyFilePath}");
 
 		if ("${fileExists}" == "false") {
 			var dependencyFilePath = "${testBaseDir}${testDependenciesDir}/${fileName}";
+
 			var globalFileExists = FileUtil.exists("${dependencyFilePath}");
 
 			if ("${globalFileExists}" == "false") {
@@ -60,12 +75,16 @@ definition {
 
 	macro getDownloadedTempFileName {
 		var tempDir = PropsUtil.get("output.dir.name");
-
 		var pattern = StringUtil.split("**/${fileNamePattern}");
+
 		var filePath = FileUtil.getIncludedResourceURLs("${pattern}", "${tempDir}");
+
 		var filePath = StringUtil.valueOf("${filePath}");
+
 		var filePath = RegexUtil.replace("${filePath}", "\[(.*)\]", "1");
+
 		var filePath = StringUtil.replace("${filePath}", "file:/", "");
+
 		var fileName = FileUtil.getFileName("${filePath}");
 
 		return "${fileName}";
@@ -86,7 +105,9 @@ definition {
 		if (("${siteName}" == "Liferay") || !(isSet(siteName))) {
 			if (("${testPortalInstance}" == "true") && !(IsTestName(locator1 = "", value1 = "${testNameSkipPortalInstance}"))) {
 				var portalURL = PropsUtil.get("portal.url");
+
 				var portalURL = StringUtil.replace("${portalURL}", "http://", "");
+
 				var portalURL = StringUtil.replace("${portalURL}", ":8080", "");
 
 				return "${portalURL}";
@@ -109,7 +130,9 @@ definition {
 
 	macro getTempFileContent {
 		var tempDir = PropsUtil.get("output.dir.name");
+
 		var tempFile = "${tempDir}/${fileName}";
+
 		var tempFileExists = FileUtil.exists("${tempFile}");
 
 		if ("${tempFileExists}" == "true") {
@@ -126,6 +149,7 @@ definition {
 
 	macro getTestName {
 		var testName = PropsUtil.get("test.name");
+
 		var testName = RegexUtil.replace("${testName}", "[^\.]*\.(.*)", "1");
 
 		return "${testName}";
@@ -141,6 +165,16 @@ definition {
 			if ("${testPortalInstance}" == "true") {
 				SignIn.signInPortalInstanceSetUp();
 			}
+		}
+	}
+
+	macro setUpPortalInstanceNoSelenium {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		HeadlessPortalInstanceAPI.cleanAllPortalInstances(authenticationMethod = "${authenticationMethod}");
+
+		if ("${testPortalInstance}" == "true") {
+			SignIn.signInPortalInstanceSetUp();
 		}
 	}
 

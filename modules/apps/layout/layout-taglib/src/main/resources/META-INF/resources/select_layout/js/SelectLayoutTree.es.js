@@ -13,46 +13,30 @@
  */
 
 import {TreeView as ClayTreeView} from '@clayui/core';
+import ClayEmptyState from '@clayui/empty-state';
 import {ClayCheckbox} from '@clayui/form';
 import ClayIcon from '@clayui/icon';
+import {getOpener} from 'frontend-js-web';
 import React, {useMemo, useRef, useState} from 'react';
 
-function performFilter(value, tree) {
-	const getItems = (previous, item) => {
-		if (!item.vocabulary && item.name.toLowerCase().indexOf(value) !== -1) {
-			const immutableItem = {...item};
-
-			if (Array.isArray(immutableItem.children)) {
-				immutableItem.children = immutableItem.children.reduce(
-					getItems,
-					[]
-				);
-			}
-
-			previous.push(immutableItem);
-
-			return previous;
+const nodeByName = (items, name) => {
+	return items.reduce(function reducer(acc, item) {
+		if (item.name?.toLowerCase().includes(name.toLowerCase())) {
+			acc.push(item);
+		}
+		else if (item.children) {
+			acc.concat(item.children.reduce(reducer, acc));
 		}
 
-		if (Array.isArray(item.children)) {
-			const children = item.children.reduce(getItems, []);
-
-			if (children.length) {
-				previous.push({...item, children});
-			}
-		}
-
-		return previous;
-	};
-
-	return tree.reduce(getItems, []);
-}
+		return acc;
+	}, []);
+};
 
 export function SelectLayoutTree({
 	filter,
 	followURLOnTitleClick,
 	itemSelectorSaveEvent,
-	items: initialItems,
+	items: initialItems = [],
 	multiSelection,
 	selectedLayoutIds,
 }) {
@@ -67,12 +51,14 @@ export function SelectLayoutTree({
 			return items;
 		}
 
-		return performFilter(filter.toLowerCase(), [...items]);
+		return nodeByName(items, filter);
 	}, [items, filter]);
 
 	const selectedItemsRef = useRef(new Map());
 
-	const handleMultipleSelectionChange = (selection, item) => {
+	const handleMultipleSelectionChange = (item, selection) => {
+		selection.toggle(item.id);
+
 		if (!selection.has(item.id)) {
 			selectedItemsRef.current.set(item.id, {
 				groupId: item.groupId,
@@ -94,7 +80,7 @@ export function SelectLayoutTree({
 		}
 
 		if (followURLOnTitleClick) {
-			Liferay.Util.getOpener().document.location.href = item.url;
+			getOpener().document.location.href = item.url;
 		}
 		else {
 			const data = Array.from(selectedItemsRef.current.values());
@@ -103,15 +89,13 @@ export function SelectLayoutTree({
 				data,
 			});
 
-			Liferay.Util.getOpener().Liferay.fire(itemSelectorSaveEvent, {
+			getOpener().Liferay.fire(itemSelectorSaveEvent, {
 				data,
 			});
 		}
 	};
 
-	const handleSingleSelectionChange = (event, item) => {
-		event.preventDefault();
-
+	const handleSingleSelection = (item, selection) => {
 		const data = {
 			groupId: item.groupId,
 			id: item.id,
@@ -123,23 +107,56 @@ export function SelectLayoutTree({
 			value: item.payload,
 		};
 
-		setSelectionChange(new Set([item.id]));
+		Liferay.fire(itemSelectorSaveEvent, {
+			data,
+		});
+
+		getOpener().Liferay.fire(itemSelectorSaveEvent, {
+			data,
+		});
+
+		requestAnimationFrame(() => {
+			selection.toggle(item.id);
+		});
+	};
+
+	const onClick = (event, item, selection, expand) => {
+		event.preventDefault();
 
 		if (followURLOnTitleClick) {
-			Liferay.Util.getOpener().document.location.href = item.url;
+			getOpener().document.location.href = item.url;
+
+			return;
+		}
+
+		if (item.disabled) {
+			expand.toggle(item.id);
+
+			return;
+		}
+
+		if (multiSelection) {
+			handleMultipleSelectionChange(item, selection);
 		}
 		else {
-			Liferay.fire(itemSelectorSaveEvent, {
-				data,
-			});
-
-			Liferay.Util.getOpener().Liferay.fire(itemSelectorSaveEvent, {
-				data,
-			});
+			handleSingleSelection(item, selection);
 		}
 	};
 
-	return (
+	const onKeyDown = (event, item, selection) => {
+		if (event.key === ' ' || event.key === 'Enter') {
+			event.stopPropagation();
+
+			if (multiSelection) {
+				handleMultipleSelectionChange(item, selection);
+			}
+			else {
+				handleSingleSelection(item, selection);
+			}
+		}
+	};
+
+	return filteredItems.length ? (
 		<ClayTreeView
 			items={filteredItems}
 			onItemsChange={(items) => setItems(items)}
@@ -148,23 +165,24 @@ export function SelectLayoutTree({
 			selectionMode={multiSelection ? 'multiple' : 'single'}
 			showExpanderOnHover={false}
 		>
-			{(item, selection) => (
-				<ClayTreeView.Item>
+			{(item, selection, expand) => (
+				<ClayTreeView.Item active={false}>
 					<ClayTreeView.ItemStack
+						active={false}
 						onClick={(event) =>
-							!multiSelection &&
-							!item.disabled &&
-							handleSingleSelectionChange(event, item)
+							onClick(event, item, selection, expand)
 						}
+						onKeyDown={(event) => onKeyDown(event, item, selection)}
 					>
 						{multiSelection && !item.disabled && (
 							<ClayCheckbox
 								onChange={() =>
 									handleMultipleSelectionChange(
-										selection,
-										item
+										item,
+										selection
 									)
 								}
+								tabIndex="-1"
 							/>
 						)}
 
@@ -176,20 +194,24 @@ export function SelectLayoutTree({
 					<ClayTreeView.Group items={item.children}>
 						{(item) => (
 							<ClayTreeView.Item
+								disabled={item.disabled}
+								expanderDisabled={false}
 								onClick={(event) =>
-									!multiSelection &&
-									!item.disabled &&
-									handleSingleSelectionChange(event, item)
+									onClick(event, item, selection)
+								}
+								onKeyDown={(event) =>
+									onKeyDown(event, item, selection)
 								}
 							>
 								{multiSelection && !item.disabled && (
 									<ClayCheckbox
 										onChange={() =>
 											handleMultipleSelectionChange(
-												selection,
-												item
+												item,
+												selection
 											)
 										}
+										tabIndex="-1"
 									/>
 								)}
 
@@ -202,5 +224,14 @@ export function SelectLayoutTree({
 				</ClayTreeView.Item>
 			)}
 		</ClayTreeView>
+	) : (
+		<ClayEmptyState
+			description={Liferay.Language.get(
+				'try-again-with-a-different-search'
+			)}
+			imgSrc={`${themeDisplay.getPathThemeImages()}/states/search_state.gif`}
+			small
+			title={Liferay.Language.get('no-results-found')}
+		/>
 	);
 }

@@ -15,10 +15,14 @@
 package com.liferay.portal.layoutconfiguration.util;
 
 import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.portlet.PortletContainerException;
 import com.liferay.portal.kernel.portlet.PortletContainerUtil;
+import com.liferay.portal.kernel.portlet.render.PortletRenderParts;
+import com.liferay.portal.kernel.portlet.render.PortletRenderUtil;
 import com.liferay.portal.kernel.servlet.BufferCacheServletResponse;
+import com.liferay.portal.kernel.util.WebKeys;
 
 import java.io.IOException;
 
@@ -146,13 +150,34 @@ public class PortletRenderer {
 			new BufferCacheServletResponse(httpServletResponse);
 
 		try {
+			PortletRenderParts portletRenderParts = null;
+
+			if (_columnId == null) {
+				httpServletRequest.setAttribute(
+					WebKeys.RENDER_PORTLET_RESOURCE, Boolean.TRUE);
+
+				portletRenderParts = PortletRenderUtil.getPortletRenderParts(
+					httpServletRequest, StringPool.BLANK, _portlet);
+
+				PortletRenderUtil.writeHeaderPaths(
+					bufferCacheServletResponse, portletRenderParts);
+			}
+
 			PortletContainerUtil.render(
 				httpServletRequest, bufferCacheServletResponse, _portlet);
+
+			if (portletRenderParts != null) {
+				PortletRenderUtil.writeFooterPaths(
+					bufferCacheServletResponse, portletRenderParts);
+			}
 
 			return bufferCacheServletResponse.getStringBundler();
 		}
 		catch (IOException ioException) {
 			throw new PortletContainerException(ioException);
+		}
+		finally {
+			httpServletRequest.removeAttribute(WebKeys.RENDER_PORTLET_RESOURCE);
 		}
 	}
 

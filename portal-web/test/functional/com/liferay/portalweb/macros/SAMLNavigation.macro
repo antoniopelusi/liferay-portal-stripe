@@ -21,9 +21,7 @@ definition {
 	}
 
 	macro viewConsoleValue {
-		Pause(locator1 = "5000");
-
-		AssertConsoleTextPresent(value1 = "${consoleValue}");
+		WaitForConsoleTextPresent(value1 = "${consoleValue}");
 	}
 
 }

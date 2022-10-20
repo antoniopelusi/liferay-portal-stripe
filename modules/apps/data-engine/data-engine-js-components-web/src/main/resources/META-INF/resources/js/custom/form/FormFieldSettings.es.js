@@ -27,7 +27,7 @@ import {
 	pagesStructureReducer,
 } from '../../core/reducers/index.es';
 import {parseProps} from '../../utils/parseProps.es';
-import {EVENT_TYPES} from './eventTypes.es';
+import {EVENT_TYPES} from './eventTypes';
 import {
 	formBuilderReducer,
 	objectFieldsReducer,
@@ -74,7 +74,7 @@ const StateSync = ({
 	useEffect(() => {
 		dispatch({
 			payload: {objectFields},
-			type: EVENT_TYPES.OBJECT_FIELDS.ADD,
+			type: EVENT_TYPES.OBJECT.FIELDS_CHANGE,
 		});
 	}, [dispatch, objectFields]);
 

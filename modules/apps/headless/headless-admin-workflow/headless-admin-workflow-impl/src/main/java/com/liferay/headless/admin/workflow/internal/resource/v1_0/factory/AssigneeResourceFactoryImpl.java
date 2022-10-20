@@ -14,6 +14,7 @@
 
 package com.liferay.headless.admin.workflow.internal.resource.v1_0.factory;
 
+import com.liferay.headless.admin.workflow.internal.security.permission.LiberalPermissionChecker;
 import com.liferay.headless.admin.workflow.resource.v1_0.AssigneeResource;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.User;
@@ -191,7 +192,7 @@ public class AssigneeResourceFactoryImpl implements AssigneeResource.Factory {
 		}
 		else {
 			PermissionThreadLocal.setPermissionChecker(
-				_liberalPermissionCheckerFactory.create(user));
+				new LiberalPermissionChecker(user));
 		}
 
 		AssigneeResource assigneeResource =
@@ -253,9 +254,6 @@ public class AssigneeResourceFactoryImpl implements AssigneeResource.Factory {
 
 	@Reference
 	private GroupLocalService _groupLocalService;
-
-	@Reference(target = "(permission.checker.type=liberal)")
-	private PermissionCheckerFactory _liberalPermissionCheckerFactory;
 
 	@Reference
 	private ResourceActionLocalService _resourceActionLocalService;

@@ -357,6 +357,15 @@ public class ListTypeEntryLocalServiceWrapper
 		return _listTypeEntryLocalService.getListTypeEntry(listTypeEntryId);
 	}
 
+	@Override
+	public com.liferay.list.type.model.ListTypeEntry getListTypeEntry(
+			long listTypeDefinitionId, String key)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _listTypeEntryLocalService.getListTypeEntry(
+			listTypeDefinitionId, key);
+	}
+
 	/**
 	 * Returns the list type entry with the matching UUID and company.
 	 *

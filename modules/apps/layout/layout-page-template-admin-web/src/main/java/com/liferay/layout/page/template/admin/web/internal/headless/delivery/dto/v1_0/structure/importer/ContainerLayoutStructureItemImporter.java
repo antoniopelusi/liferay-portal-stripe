@@ -19,6 +19,7 @@ import com.liferay.headless.delivery.dto.v1_0.PageElement;
 import com.liferay.layout.page.template.util.AlignConverter;
 import com.liferay.layout.page.template.util.BorderRadiusConverter;
 import com.liferay.layout.page.template.util.ContentDisplayConverter;
+import com.liferay.layout.page.template.util.ContentVisibilityConverter;
 import com.liferay.layout.page.template.util.FlexWrapConverter;
 import com.liferay.layout.page.template.util.HtmlTagConverter;
 import com.liferay.layout.page.template.util.JustifyConverter;
@@ -37,6 +38,7 @@ import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -106,6 +108,40 @@ public class ContainerLayoutStructureItemImporter
 			}
 
 			stylesJSONObject.put("backgroundImage", jsonObject);
+		}
+
+		String contentVisibility = String.valueOf(
+			definitionMap.getOrDefault("contentVisibility", StringPool.BLANK));
+
+		if (Validator.isNotNull(contentVisibility)) {
+			containerStyledLayoutStructureItem.setContentVisibility(
+				ContentVisibilityConverter.convertToInternalValue(
+					contentVisibility));
+		}
+
+		if (definitionMap.containsKey("cssClasses")) {
+			List<String> cssClasses = (List<String>)definitionMap.get(
+				"cssClasses");
+
+			containerStyledLayoutStructureItem.setCssClasses(
+				new HashSet<>(cssClasses));
+		}
+
+		if (definitionMap.containsKey("customCSS")) {
+			containerStyledLayoutStructureItem.setCustomCSS(
+				String.valueOf(definitionMap.get("customCSS")));
+		}
+
+		if (definitionMap.containsKey("customCSSViewports")) {
+			List<Map<String, Object>> customCSSViewports =
+				(List<Map<String, Object>>)definitionMap.get(
+					"customCSSViewports");
+
+			for (Map<String, Object> customCSSViewport : customCSSViewports) {
+				containerStyledLayoutStructureItem.setCustomCSSViewport(
+					(String)customCSSViewport.get("id"),
+					(String)customCSSViewport.get("customCSS"));
+			}
 		}
 
 		Map<String, Object> containerHtmlProperties =
@@ -353,6 +389,11 @@ public class ContainerLayoutStructureItemImporter
 		if (definitionMap.containsKey("indexed")) {
 			containerStyledLayoutStructureItem.setIndexed(
 				GetterUtil.getBoolean(definitionMap.get("indexed")));
+		}
+
+		if (definitionMap.containsKey("name")) {
+			containerStyledLayoutStructureItem.setName(
+				GetterUtil.getString(definitionMap.get("name")));
 		}
 
 		return containerStyledLayoutStructureItem;

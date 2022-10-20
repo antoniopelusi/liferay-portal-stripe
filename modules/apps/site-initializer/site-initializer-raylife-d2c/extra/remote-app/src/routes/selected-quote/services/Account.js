@@ -16,12 +16,31 @@ import {axios} from '../../../common/services/liferay/api';
 
 const DeliveryAPI = 'o/headless-admin-user';
 
-export function createAccount(name) {
-	const payload = {
-		name,
+export async function createAccount(
+	firstName,
+	lastName,
+	emailAddress,
+	password,
+	captcha
+) {
+	const userPayload = {
+		alternateName: `${emailAddress.split('@')[0]}`,
+		emailAddress,
+		familyName: lastName,
+		givenName: firstName,
+		password,
+	};
+
+	const accountPayload = {
+		name: `${firstName} ${lastName}`,
 		status: 0,
 		type: 'business',
 	};
 
-	return axios.post(`${DeliveryAPI}/v1.0/accounts`, payload);
+	await axios.post(
+		`${DeliveryAPI}/v1.0/user-accounts?captchaText=${captcha}`,
+		userPayload
+	);
+
+	return axios.post(`${DeliveryAPI}/v1.0/accounts`, accountPayload);
 }

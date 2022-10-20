@@ -119,6 +119,12 @@ public interface ListTypeEntryResource {
 			return new ListTypeEntryResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -164,6 +170,7 @@ public interface ListTypeEntryResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -275,7 +282,7 @@ public interface ListTypeEntryResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-list-type/v1.0/list-type-definitions/{listTypeDefinitionId}/list-type-entries");
 
 			httpInvoker.path("listTypeDefinitionId", listTypeDefinitionId);
@@ -361,7 +368,7 @@ public interface ListTypeEntryResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-list-type/v1.0/list-type-definitions/{listTypeDefinitionId}/list-type-entries");
 
 			httpInvoker.path("listTypeDefinitionId", listTypeDefinitionId);
@@ -442,7 +449,7 @@ public interface ListTypeEntryResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-list-type/v1.0/list-type-definitions/{listTypeDefinitionId}/list-type-entries/batch");
 
 			httpInvoker.path("listTypeDefinitionId", listTypeDefinitionId);
@@ -521,7 +528,7 @@ public interface ListTypeEntryResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-list-type/v1.0/list-type-entries/{listTypeEntryId}");
 
 			httpInvoker.path("listTypeEntryId", listTypeEntryId);
@@ -598,7 +605,7 @@ public interface ListTypeEntryResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-list-type/v1.0/list-type-entries/batch");
 
 			httpInvoker.userNameAndPassword(
@@ -677,7 +684,7 @@ public interface ListTypeEntryResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-list-type/v1.0/list-type-entries/{listTypeEntryId}");
 
 			httpInvoker.path("listTypeEntryId", listTypeEntryId);
@@ -761,7 +768,7 @@ public interface ListTypeEntryResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-list-type/v1.0/list-type-entries/{listTypeEntryId}");
 
 			httpInvoker.path("listTypeEntryId", listTypeEntryId);
@@ -838,7 +845,7 @@ public interface ListTypeEntryResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-list-type/v1.0/list-type-entries/batch");
 
 			httpInvoker.userNameAndPassword(

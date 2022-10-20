@@ -10,7 +10,6 @@
 					"indexed": true,
 					"layout": {
 						"borderWidth": 0,
-						"htmlTag": "Div",
 						"marginBottom": 0,
 						"marginLeft": 0,
 						"marginRight": 0,
@@ -69,8 +68,9 @@
 											},
 											"indexed": true,
 											"layout": {
+												"align": "Center",
 												"borderWidth": 0,
-												"htmlTag": "Div",
+												"contentDisplay": "FlexColumn",
 												"marginBottom": 0,
 												"marginLeft": 0,
 												"marginRight": 0,
@@ -79,7 +79,7 @@
 												"paddingLeft": 0,
 												"paddingRight": 0,
 												"paddingTop": 2,
-												"widthType": "Fixed"
+												"widthType": "Fluid"
 											}
 										},
 										"pageElements": [
@@ -87,12 +87,13 @@
 												"definition": {
 													"fragmentStyle": {
 														"borderWidth": "0",
-														"textAlign": ""
+														"maxWidth": "1500px",
+														"textAlign": "",
+														"width": "100%"
 													},
 													"indexed": true,
 													"layout": {
 														"borderWidth": 0,
-														"htmlTag": "Div",
 														"marginBottom": 0,
 														"marginLeft": 0,
 														"marginRight": 0,
@@ -111,6 +112,15 @@
 																"borderWidth": "0",
 																"textAlign": ""
 															},
+															"fragmentViewports": [
+																{
+																	"fragmentViewportStyle": {
+																		"marginLeft": "0",
+																		"marginRight": "0"
+																	},
+																	"id": "tablet"
+																}
+															],
 															"gutters": true,
 															"indexed": true,
 															"modulesPerRow": 2,
@@ -130,6 +140,7 @@
 																{
 																	"id": "tablet",
 																	"rowViewportDefinition": {
+																		"modulesPerRow": 1
 																	}
 																}
 															],
@@ -151,15 +162,26 @@
 																		},
 																		{
 																			"columnViewportDefinition": {
+																				"size": 12
 																			},
 																			"id": "tablet"
 																		}
 																	],
-																	"size": 3
+																	"size": 4
 																},
 																"pageElements": [
 																	{
 																		"definition": {
+																			"fragmentViewports": [
+																				{
+																					"fragmentViewportStyle": {
+																						"marginBottom": "4",
+																						"marginLeft": "0",
+																						"marginRight": "0"
+																					},
+																					"id": "tablet"
+																				}
+																			],
 																			"gutters": true,
 																			"indexed": true,
 																			"modulesPerRow": 1,
@@ -216,7 +238,6 @@
 																							"indexed": true,
 																							"layout": {
 																								"borderWidth": 0,
-																								"htmlTag": "Div",
 																								"marginBottom": 0,
 																								"marginLeft": 0,
 																								"marginRight": 0,
@@ -247,11 +268,10 @@
 																											{
 																												"definition": {
 																													"fragment": {
-																														"key": "fake-content"
+																														"key": "dashboard-tasks"
 																													},
 																													"fragmentConfig": {
-																														"fakeContentId": "fake content",
-																														"height": "464px"
+																														"textColor": ""
 																													},
 																													"fragmentFields": [
 																													],
@@ -315,11 +335,10 @@
 																									{
 																										"definition": {
 																											"fragment": {
-																												"key": "fake-content"
+																												"key": "dashboard-whats-new"
 																											},
 																											"fragmentConfig": {
-																												"fakeContentId": "fake content",
-																												"height": "269px"
+																												"textColor": ""
 																											},
 																											"fragmentFields": [
 																											],
@@ -357,11 +376,12 @@
 																		},
 																		{
 																			"columnViewportDefinition": {
+																				"size": 12
 																			},
 																			"id": "tablet"
 																		}
 																	],
-																	"size": 9
+																	"size": 8
 																},
 																"pageElements": [
 																	{
@@ -379,6 +399,7 @@
 																				{
 																					"id": "landscapeMobile",
 																					"rowViewportDefinition": {
+																						"modulesPerRow": 1
 																					}
 																				},
 																				{
@@ -400,6 +421,7 @@
 																					"columnViewports": [
 																						{
 																							"columnViewportDefinition": {
+																								"size": 12
 																							},
 																							"id": "landscapeMobile"
 																						},
@@ -435,11 +457,10 @@
 																									{
 																										"definition": {
 																											"fragment": {
-																												"key": "fake-content"
+																												"key": "dashboard-sales"
 																											},
 																											"fragmentConfig": {
-																												"fakeContentId": "fake content",
-																												"height": "257px"
+																												"textColor": ""
 																											},
 																											"fragmentFields": [
 																											],
@@ -461,6 +482,7 @@
 																					"columnViewports": [
 																						{
 																							"columnViewportDefinition": {
+																								"size": 12
 																							},
 																							"id": "landscapeMobile"
 																						},
@@ -496,11 +518,10 @@
 																									{
 																										"definition": {
 																											"fragment": {
-																												"key": "fake-content"
+																												"key": "dashboard-commission"
 																											},
 																											"fragmentConfig": {
-																												"fakeContentId": "fake content",
-																												"height": "257px"
+																												"textColor": ""
 																											},
 																											"fragmentFields": [
 																											],
@@ -531,7 +552,6 @@
 																			"indexed": true,
 																			"layout": {
 																				"borderWidth": 0,
-																				"htmlTag": "Div",
 																				"marginBottom": 0,
 																				"marginLeft": 0,
 																				"marginRight": 0,
@@ -561,18 +581,14 @@
 																						"pageElements": [
 																							{
 																								"definition": {
-																									"fragment": {
-																										"key": "fake-content"
-																									},
-																									"fragmentConfig": {
-																										"fakeContentId": "fake content",
-																										"height": "562px"
-																									},
-																									"fragmentFields": [
-																									],
-																									"indexed": true
+																									"widgetInstance": {
+																										"widgetConfig": {
+																											"properties": "route=product-performance"
+																										},
+																										"widgetName": "com_liferay_client_extension_web_internal_portlet_ClientExtensionEntryPortlet_RAYLIFEAGENTPORTAL001"
+																									}
 																								},
-																								"type": "Fragment"
+																								"type": "Widget"
 																							}
 																						],
 																						"type": "FragmentDropZone"
@@ -597,12 +613,22 @@
 													"fragmentStyle": {
 														"borderWidth": "0",
 														"marginTop": "4",
-														"textAlign": ""
+														"maxWidth": "1500px",
+														"textAlign": "",
+														"width": "100%"
 													},
+													"fragmentViewports": [
+														{
+															"fragmentViewportStyle": {
+																"marginLeft": "0",
+																"marginRight": "0"
+															},
+															"id": "tablet"
+														}
+													],
 													"indexed": true,
 													"layout": {
 														"borderWidth": 0,
-														"htmlTag": "Div",
 														"marginBottom": 0,
 														"marginLeft": 0,
 														"marginRight": 0,
@@ -636,6 +662,7 @@
 																{
 																	"id": "tablet",
 																	"rowViewportDefinition": {
+																		"modulesPerRow": 1
 																	}
 																}
 															],
@@ -657,11 +684,12 @@
 																		},
 																		{
 																			"columnViewportDefinition": {
+																				"size": 12
 																			},
 																			"id": "tablet"
 																		}
 																	],
-																	"size": 9
+																	"size": 8
 																},
 																"pageElements": [
 																	{
@@ -674,6 +702,14 @@
 																			},
 																			"fragmentFields": [
 																			],
+																			"fragmentViewports": [
+																				{
+																					"fragmentViewportStyle": {
+																						"marginBottom": "4"
+																					},
+																					"id": "tablet"
+																				}
+																			],
 																			"indexed": true
 																		},
 																		"pageElements": [
@@ -681,18 +717,14 @@
 																				"pageElements": [
 																					{
 																						"definition": {
-																							"fragment": {
-																								"key": "fake-content"
-																							},
-																							"fragmentConfig": {
-																								"fakeContentId": "fake content",
-																								"height": "642px"
-																							},
-																							"fragmentFields": [
-																							],
-																							"indexed": true
+																							"widgetInstance": {
+																								"widgetConfig": {
+																									"properties": "route=recent-applications"
+																								},
+																								"widgetName": "com_liferay_client_extension_web_internal_portlet_ClientExtensionEntryPortlet_RAYLIFEAGENTPORTAL001"
+																							}
 																						},
-																						"type": "Fragment"
+																						"type": "Widget"
 																					}
 																				],
 																				"type": "FragmentDropZone"
@@ -718,11 +750,12 @@
 																		},
 																		{
 																			"columnViewportDefinition": {
+																				"size": 12
 																			},
 																			"id": "tablet"
 																		}
 																	],
-																	"size": 3
+																	"size": 4
 																},
 																"pageElements": [
 																	{
@@ -743,11 +776,10 @@
 																					{
 																						"definition": {
 																							"fragment": {
-																								"key": "fake-content"
+																								"key": "dashboard-active-claims"
 																							},
 																							"fragmentConfig": {
-																								"fakeContentId": "fake content",
-																								"height": "499px"
+																								"textColor": ""
 																							},
 																							"fragmentFields": [
 																							],

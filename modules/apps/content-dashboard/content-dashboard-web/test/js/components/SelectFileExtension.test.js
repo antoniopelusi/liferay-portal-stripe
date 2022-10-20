@@ -91,7 +91,9 @@ describe('SelectFileExtension', () => {
 		);
 
 		const {className} = getByRole('tree');
-		expect(className).toContain('lfr-treeview-node-list');
+		expect(className).toContain(
+			'treeview show-quick-actions-on-hover treeview-light'
+		);
 
 		expect(
 			getByText('Audio (5 items)', {exact: false})

@@ -12,7 +12,6 @@
  * details.
  */
 
-import {useQuery} from '@apollo/client';
 import {useEffect} from 'react';
 import {
 	Outlet,
@@ -21,59 +20,63 @@ import {
 	useParams,
 } from 'react-router-dom';
 
-import {TestrayCase, getCase} from '../../../graphql/queries';
+import {useFetch} from '../../../hooks/useFetch';
 import useHeader from '../../../hooks/useHeader';
 import i18n from '../../../i18n';
+import {testrayCaseRest} from '../../../services/rest';
+import {isIncludingFormPage} from '../../../util';
 
 const CaseOutlet = () => {
 	const {testrayProject}: any = useOutletContext();
 	const {caseId, projectId} = useParams();
 	const {pathname} = useLocation();
 	const basePath = `/project/${projectId}/cases/${caseId}`;
+	const isFormPage = isIncludingFormPage(pathname);
 
-	const {setHeading} = useHeader({
-		useTabs: [
-			{
-				active: pathname === basePath,
-				path: basePath,
-				title: i18n.translate('case-details'),
-			},
-			{
-				active: pathname === `${basePath}/requirements`,
-				path: `${basePath}/requirements`,
-				title: i18n.translate('requirements'),
-			},
-		],
-	});
+	const {setHeading, setTabs} = useHeader({timeout: 100});
 
-	const {data} = useQuery<{case: TestrayCase}>(getCase, {
-		variables: {
-			caseId,
-		},
-	});
-
-	const testrayCase = data?.case;
+	const {
+		data: testrayCase,
+		mutate: mutateCase,
+	} = useFetch(testrayCaseRest.getResource(caseId as string), (response) =>
+		testrayCaseRest.transformDataFromList(response)
+	);
 
 	useEffect(() => {
 		if (testrayCase && testrayProject) {
-			setTimeout(() => {
-				setHeading([
-					{
-						category: i18n.translate('project').toUpperCase(),
-						path: `/project/${testrayProject.id}/cases`,
-						title: testrayProject.name,
-					},
-					{
-						category: i18n.translate('case').toUpperCase(),
-						title: testrayCase.name,
-					},
-				]);
-			}, 0);
+			setHeading([
+				{
+					category: i18n.translate('project').toUpperCase(),
+					path: `/project/${testrayProject.id}/cases`,
+					title: testrayProject.name,
+				},
+				{
+					category: i18n.translate('case').toUpperCase(),
+					title: testrayCase.name,
+				},
+			]);
 		}
 	}, [testrayProject, testrayCase, setHeading]);
 
+	useEffect(() => {
+		if (!isFormPage) {
+			setTabs([
+				{
+					active: pathname === basePath,
+					path: basePath,
+					title: i18n.translate('case-details'),
+				},
+				{
+					active: pathname === `${basePath}/requirements`,
+					path: `${basePath}/requirements`,
+					title: i18n.translate('requirements'),
+				},
+			]);
+		}
+	}, [basePath, isFormPage, pathname, setTabs]);
+
 	if (testrayCase) {
-		return <Outlet context={{testrayCase}} />;
+		return <Outlet context={{mutateCase, projectId, testrayCase}} />;
 	}
 
 	return null;

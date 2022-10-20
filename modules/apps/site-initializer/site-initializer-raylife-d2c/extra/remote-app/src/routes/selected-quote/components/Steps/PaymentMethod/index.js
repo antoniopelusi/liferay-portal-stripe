@@ -16,6 +16,7 @@ import ClayButton from '@clayui/button';
 import {ClayCheckbox} from '@clayui/form';
 import classNames from 'classnames';
 import {useContext, useEffect, useState} from 'react';
+import {setItem} from '../../../../../common/services/liferay/storage';
 import {getLiferaySiteName} from '../../../../../common/utils/liferay';
 import {getWebDavUrl} from '../../../../../common/utils/webdav';
 import {
@@ -28,6 +29,10 @@ import {
 	getPaymentMethods,
 } from '../../../services/Cart';
 import {createOrder, updateOrder} from '../../../services/Order';
+import {
+	updateQuoteBillingOption,
+	updateQuoteOrder,
+} from '../../../services/Quote';
 import {SKU} from '../../../utils/constants';
 import RadioButton from './RadioButton';
 
@@ -41,11 +46,12 @@ const PaymentMethod = () => {
 			accountId,
 			commerce: {channel, skus},
 			orderId,
-			product,
+			product: {dataJSON},
 		},
 		dispatch,
 	] = useContext(SelectedQuoteContext);
 
+	const product = JSON.parse(dataJSON);
 	const productPrice = Number(product.price);
 	const productPriceParcel = productPrice / 2;
 	const promoPrice = productPrice * PRODUCT_DISCOUNT;
@@ -122,12 +128,15 @@ const PaymentMethod = () => {
 
 	useEffect(() => {
 		if (!orderId) {
-			createOrder(accountId, channel.id, skus[0].id).then((response) =>
+			createOrder(accountId, channel.id, skus[0].id).then((response) => {
+				const orderId = response.data.id;
+				updateQuoteOrder(orderId);
+				setItem('orderId', orderId);
 				dispatch({
-					payload: response.data.id,
+					payload: orderId,
 					type: ACTIONS.SET_ORDER_ID,
-				})
-			);
+				});
+			});
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [orderId]);
@@ -161,7 +170,9 @@ const PaymentMethod = () => {
 	};
 
 	const onClickPayNow = async (method) => {
-		const {orderItem} = method.options.find(({checked}) => checked);
+		const {id, orderItem} = method.options.find(({checked}) => checked);
+
+		updateQuoteBillingOption(id);
 
 		await updateOrder(method.value, orderItem, orderId);
 

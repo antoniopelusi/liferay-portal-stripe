@@ -26,10 +26,7 @@ ViewObjectDefinitionsDisplayContext viewObjectDefinitionsDisplayContext = (ViewO
 	fdsActionDropdownItems="<%= viewObjectDefinitionsDisplayContext.getFDSActionDropdownItems() %>"
 	formName="fm"
 	id="<%= ObjectDefinitionsFDSNames.OBJECT_DEFINITIONS %>"
-	itemsPerPage="<%= 20 %>"
-	namespace="<%= liferayPortletResponse.getNamespace() %>"
-	pageNumber="<%= 1 %>"
-	portletURL="<%= liferayPortletResponse.createRenderURL() %>"
+	propsTransformer="js/ObjectDefinitionsFDSPropsTransformer"
 	style="fluid"
 />
 
@@ -39,6 +36,21 @@ ViewObjectDefinitionsDisplayContext viewObjectDefinitionsDisplayContext = (ViewO
 		props='<%=
 			HashMapBuilder.<String, Object>put(
 				"apiURL", viewObjectDefinitionsDisplayContext.getAPIURL()
+			).put(
+				"storageTypes", viewObjectDefinitionsDisplayContext.getStorageTypes()
+			).build()
+		%>'
+	/>
+</div>
+
+<liferay-portlet:resourceURL copyCurrentRenderParameters="<%= false %>" var="baseResourceURL" />
+
+<div id="<portlet:namespace />deleteObjectDefinition">
+	<react:component
+		module="js/components/ModalDeleteObjectDefinition"
+		props='<%=
+			HashMapBuilder.<String, Object>put(
+				"baseResourceURL", String.valueOf(baseResourceURL)
 			).build()
 		%>'
 	/>

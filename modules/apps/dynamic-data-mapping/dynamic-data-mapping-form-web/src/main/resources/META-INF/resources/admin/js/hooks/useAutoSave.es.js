@@ -23,6 +23,7 @@ import {
 } from 'data-engine-js-components-web';
 import objectHash from 'object-hash';
 import React, {useCallback, useContext, useEffect, useRef} from 'react';
+import {withRouter} from 'react-router-dom';
 
 import {useStateSync} from './useStateSync.es';
 import {useValidateFormWithObjects} from './useValidateFormWithObjects';
@@ -179,7 +180,7 @@ export function AutoSaveProvider({children, interval, location, url}) {
 		getCurrentStateHash,
 		lastKnownHashRef,
 		localizedName,
-		location.pathname,
+		location,
 		pendingRequestRef,
 		portletNamespace,
 		url,
@@ -191,7 +192,7 @@ export function AutoSaveProvider({children, interval, location, url}) {
 	}, [lastKnownHashRef, getCurrentStateHash]);
 
 	const performSave = useCallback(() => {
-		if (isMounted) {
+		if (isMounted()) {
 			if (pendingRequestRef.current) {
 				pendingRequestRef.current
 					.then(() => performSave())
@@ -243,6 +244,8 @@ export function AutoSaveProvider({children, interval, location, url}) {
 		</AutoSaveContext.Provider>
 	);
 }
+
+export default withRouter(AutoSaveProvider);
 
 export function useAutoSave() {
 	return useContext(AutoSaveContext);

@@ -35,6 +35,7 @@ import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Time;
@@ -255,6 +256,13 @@ public class DDMFormReportDataUtil {
 	}
 
 	private static String _getValue(Value value) {
+		Set<Locale> availableLocales = value.getAvailableLocales();
+		Locale locale = LocaleThreadLocal.getThemeDisplayLocale();
+
+		if (availableLocales.contains(locale)) {
+			return value.getString(locale);
+		}
+
 		return value.getString(value.getDefaultLocale());
 	}
 

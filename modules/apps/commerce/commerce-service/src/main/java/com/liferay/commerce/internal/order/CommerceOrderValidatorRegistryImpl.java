@@ -87,7 +87,7 @@ public class CommerceOrderValidatorRegistryImpl
 		}
 
 		Map<Long, List<CommerceOrderValidatorResult>>
-			commerceOrderValidatorResultMap = new HashMap<>();
+			commerceOrderValidatorResultsMap = new HashMap<>();
 
 		List<CommerceOrderItem> commerceOrderItems =
 			commerceOrder.getCommerceOrderItems();
@@ -113,12 +113,12 @@ public class CommerceOrderValidatorRegistryImpl
 				}
 			}
 
-			commerceOrderValidatorResultMap.put(
+			commerceOrderValidatorResultsMap.put(
 				commerceOrderItem.getCommerceOrderItemId(),
 				filteredCommerceOrderValidatorResults);
 		}
 
-		return commerceOrderValidatorResultMap;
+		return commerceOrderValidatorResultsMap;
 	}
 
 	@Override

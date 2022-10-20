@@ -4,7 +4,7 @@
 <routes>
 	<route>
 		<pattern></pattern>
-		<implicit-parameter name="mvcPath">/section/view.jsp</implicit-parameter>
+		<implicit-parameter name="mvcRenderCommandName">/knowledge_base/view</implicit-parameter>
 	</route>
 	<route>
 		<pattern>/{userIdAndInstanceId}/rss</pattern>
@@ -16,28 +16,28 @@
 	</route>
 	<route>
 		<pattern>/{userIdAndInstanceId}/{resourcePrimKey:\d+}</pattern>
-		<implicit-parameter name="mvcPath">/section/view_article.jsp</implicit-parameter>
+		<implicit-parameter name="mvcRenderCommand">/knowledge_base/view_article</implicit-parameter>
 		<implicit-parameter name="p_p_state">normal</implicit-parameter>
 	</route>
 	<route>
 		<pattern>/{userIdAndInstanceId}/{urlTitle}</pattern>
-		<implicit-parameter name="mvcPath">/section/view_article.jsp</implicit-parameter>
+		<implicit-parameter name="mvcRenderCommand">/knowledge_base/view_article</implicit-parameter>
 	</route>
 	<route>
 		<pattern>/{userIdAndInstanceId}/{resourcePrimKey:\d+}/{p_p_state}</pattern>
-		<implicit-parameter name="mvcPath">/section/view_article.jsp</implicit-parameter>
+		<implicit-parameter name="mvcRenderCommand">/knowledge_base/view_article</implicit-parameter>
 	</route>
 	<route>
 		<pattern>/{userIdAndInstanceId}/{kbFolderUrlTitle}/{urlTitle}</pattern>
-		<implicit-parameter name="mvcPath">/section/view_article.jsp</implicit-parameter>
+		<implicit-parameter name="mvcRenderCommand">/knowledge_base/view_article</implicit-parameter>
 	</route>
 	<route>
 		<pattern>/{userIdAndInstanceId}/{resourcePrimKey:\d+}/{status:-?\d+}/history</pattern>
-		<implicit-parameter name="mvcPath">/section/history.jsp</implicit-parameter>
+		<implicit-parameter name="mvcPath">/admin/common/kb_history.jsp</implicit-parameter>
 		<implicit-parameter name="p_p_state">normal</implicit-parameter>
 	</route>
 	<route>
 		<pattern>/{userIdAndInstanceId}/{resourcePrimKey:\d+}/{status:-?\d+}/history/{p_p_state}</pattern>
-		<implicit-parameter name="mvcPath">/section/history.jsp</implicit-parameter>
+		<implicit-parameter name="mvcPath">/admin/common/kb_history.jsp</implicit-parameter>
 	</route>
 </routes>

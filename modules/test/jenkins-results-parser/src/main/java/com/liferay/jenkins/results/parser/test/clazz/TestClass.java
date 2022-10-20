@@ -25,6 +25,10 @@ import org.json.JSONObject;
  */
 public interface TestClass extends Comparable<TestClass> {
 
+	public long getAverageDuration();
+
+	public long getAverageOverheadDuration();
+
 	public JSONObject getJSONObject();
 
 	public String getName();

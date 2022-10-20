@@ -24,9 +24,6 @@ public class DLOpenerFileEntryReferenceUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		alterTableAddColumn(
-			"DLOpenerFileEntryReference", "referenceType", "VARCHAR(75) null");
-
 		runSQL(
 			"update " + DLOpenerFileEntryReferenceTable.TABLE_NAME +
 				" set referenceType = 'GoogleDrive'");

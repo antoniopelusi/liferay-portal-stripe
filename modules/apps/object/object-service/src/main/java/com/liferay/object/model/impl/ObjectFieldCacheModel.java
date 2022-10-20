@@ -77,7 +77,7 @@ public class ObjectFieldCacheModel
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(43);
+		StringBundler sb = new StringBundler(51);
 
 		sb.append("{mvccVersion=");
 		sb.append(mvccVersion);
@@ -95,6 +95,8 @@ public class ObjectFieldCacheModel
 		sb.append(createDate);
 		sb.append(", modifiedDate=");
 		sb.append(modifiedDate);
+		sb.append(", externalReferenceCode=");
+		sb.append(externalReferenceCode);
 		sb.append(", listTypeDefinitionId=");
 		sb.append(listTypeDefinitionId);
 		sb.append(", objectDefinitionId=");
@@ -107,6 +109,8 @@ public class ObjectFieldCacheModel
 		sb.append(dbTableName);
 		sb.append(", dbType=");
 		sb.append(dbType);
+		sb.append(", defaultValue=");
+		sb.append(defaultValue);
 		sb.append(", indexed=");
 		sb.append(indexed);
 		sb.append(", indexedAsKeyword=");
@@ -121,6 +125,10 @@ public class ObjectFieldCacheModel
 		sb.append(relationshipType);
 		sb.append(", required=");
 		sb.append(required);
+		sb.append(", state=");
+		sb.append(state);
+		sb.append(", system=");
+		sb.append(system);
 		sb.append("}");
 
 		return sb.toString();
@@ -164,6 +172,13 @@ public class ObjectFieldCacheModel
 			objectFieldImpl.setModifiedDate(new Date(modifiedDate));
 		}
 
+		if (externalReferenceCode == null) {
+			objectFieldImpl.setExternalReferenceCode("");
+		}
+		else {
+			objectFieldImpl.setExternalReferenceCode(externalReferenceCode);
+		}
+
 		objectFieldImpl.setListTypeDefinitionId(listTypeDefinitionId);
 		objectFieldImpl.setObjectDefinitionId(objectDefinitionId);
 
@@ -193,6 +208,13 @@ public class ObjectFieldCacheModel
 		}
 		else {
 			objectFieldImpl.setDBType(dbType);
+		}
+
+		if (defaultValue == null) {
+			objectFieldImpl.setDefaultValue("");
+		}
+		else {
+			objectFieldImpl.setDefaultValue(defaultValue);
 		}
 
 		objectFieldImpl.setIndexed(indexed);
@@ -227,6 +249,8 @@ public class ObjectFieldCacheModel
 		}
 
 		objectFieldImpl.setRequired(required);
+		objectFieldImpl.setState(state);
+		objectFieldImpl.setSystem(system);
 
 		objectFieldImpl.resetOriginalValues();
 
@@ -246,6 +270,7 @@ public class ObjectFieldCacheModel
 		userName = objectInput.readUTF();
 		createDate = objectInput.readLong();
 		modifiedDate = objectInput.readLong();
+		externalReferenceCode = objectInput.readUTF();
 
 		listTypeDefinitionId = objectInput.readLong();
 
@@ -254,6 +279,7 @@ public class ObjectFieldCacheModel
 		dbColumnName = objectInput.readUTF();
 		dbTableName = objectInput.readUTF();
 		dbType = objectInput.readUTF();
+		defaultValue = objectInput.readUTF();
 
 		indexed = objectInput.readBoolean();
 
@@ -264,6 +290,10 @@ public class ObjectFieldCacheModel
 		relationshipType = objectInput.readUTF();
 
 		required = objectInput.readBoolean();
+
+		state = objectInput.readBoolean();
+
+		system = objectInput.readBoolean();
 	}
 
 	@Override
@@ -292,6 +322,13 @@ public class ObjectFieldCacheModel
 
 		objectOutput.writeLong(createDate);
 		objectOutput.writeLong(modifiedDate);
+
+		if (externalReferenceCode == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(externalReferenceCode);
+		}
 
 		objectOutput.writeLong(listTypeDefinitionId);
 
@@ -323,6 +360,13 @@ public class ObjectFieldCacheModel
 		}
 		else {
 			objectOutput.writeUTF(dbType);
+		}
+
+		if (defaultValue == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(defaultValue);
 		}
 
 		objectOutput.writeBoolean(indexed);
@@ -358,6 +402,10 @@ public class ObjectFieldCacheModel
 		}
 
 		objectOutput.writeBoolean(required);
+
+		objectOutput.writeBoolean(state);
+
+		objectOutput.writeBoolean(system);
 	}
 
 	public long mvccVersion;
@@ -368,12 +416,14 @@ public class ObjectFieldCacheModel
 	public String userName;
 	public long createDate;
 	public long modifiedDate;
+	public String externalReferenceCode;
 	public long listTypeDefinitionId;
 	public long objectDefinitionId;
 	public String businessType;
 	public String dbColumnName;
 	public String dbTableName;
 	public String dbType;
+	public String defaultValue;
 	public boolean indexed;
 	public boolean indexedAsKeyword;
 	public String indexedLanguageId;
@@ -381,5 +431,7 @@ public class ObjectFieldCacheModel
 	public String name;
 	public String relationshipType;
 	public boolean required;
+	public boolean state;
+	public boolean system;
 
 }

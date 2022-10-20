@@ -1,0 +1,1059 @@
+@component-name = "portal-commerce"
+definition {
+
+	property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false${line.separator}feature.flag.COMMERCE-5898=true";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+	property testray.main.component.name = "Shopping Experience";
+
+	setUp {
+		CommerceConfiguration.commerceSetUp(minium = "true");
+
+		task ("Setup: Create an account with a buyer user") {
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
+		}
+	}
+
+	tearDown {
+		CommerceConfiguration.commerceTearDown();
+	}
+
+	@description = "COMMERCE-9509 Verify that the Collection Display fragment with the product specifications can be deployed and that the buyer can see the specifications inside the Collection Display on the storefront"
+	@priority = "4"
+	test CanAddProductSpecificationsCollectionDisplay {
+		task ("When a new Commerce Product type Display Page Template is created") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Commerce Product",
+				displayPageTemplateEntryName = "Test Commerce Product Display Page Template",
+				groupName = "Minium");
+		}
+
+		task ("And the Collection Display fragment is deployed on the page") {
+			DisplayPageTemplate.addFragment(
+				collectionName = "Content Display",
+				displayPageName = "Test Commerce Product Display Page Template",
+				fragmentName = "Collection Display",
+				publish = "false",
+				siteURLKey = "minium");
+		}
+
+		task ("And Product Specifications is selected, Style Display is set to Bordered List") {
+			PageEditor.editCollectionDisplay(
+				fragmentName = "Collection Display",
+				infoItemRelatedListProviderName = "Product Specifications",
+				styleDisplay = "Bordered List");
+		}
+
+		task ("And the template is published and Marked as Default") {
+			Button.clickPublish();
+
+			Alert.viewSuccessMessage();
+
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Mark as Default",
+				rowEntry = "Test Commerce Product Display Page Template");
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("Then the buyer logs in") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+		}
+
+		task ("And after the buyer navigates to U-Joint the product's specifications are shown in the collection display") {
+			CommerceAcceleratorsInitializer.gotoMiniumProductDetailsPage(productName = "U-Joint");
+
+			CommerceDisplayPageTemplates.checkCollectionDisplayProductSpecificationsPresent(product = "U-Joint");
+
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/minium");
+		}
+
+		task ("And after the buyer navigates to Transmission Cooler Line Assembly the product's specifications are shown in the collection display") {
+			CommerceAcceleratorsInitializer.gotoMiniumProductDetailsPage(productName = "Transmission Cooler Line Assembly");
+
+			CommerceDisplayPageTemplates.checkCollectionDisplayProductSpecificationsPresent(product = "Transmission Cooler Line Assembly");
+		}
+	}
+
+	@description = "Verify a product's availability can be viewed via an availability fragment deployed on a default Commerce Product Display Page Template."
+	@priority = "3"
+	test CanAssertProductAvailabilityUsingAvailabilityFragment {
+		task ("Given a new default Commerce Product type display page template") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Commerce Product",
+				displayPageTemplateEntryName = "Test Commerce Product Display Page Template",
+				groupName = "Minium");
+		}
+
+		task ("And given an availability fragment is deployed on the page") {
+			DisplayPageTemplate.addFragment(
+				collectionName = "Product",
+				displayPageName = "Test Commerce Product Display Page Template",
+				fragmentName = "Availability",
+				publish = "false",
+				siteURLKey = "minium");
+		}
+
+		task ("And given the fragment contains 'The availability component will be shown here.'") {
+			PageEditor.viewFragmentMessageInfo(
+				fragmentName = "Availability",
+				messageInfo = "The availability component will be shown here.");
+		}
+
+		task ("And given the page is published") {
+			Button.clickPublish();
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("And given the page is marked as Default") {
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Mark as Default",
+				rowEntry = "Test Commerce Product Display Page Template");
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("When the buyer logs in and clicks on the U-Joint product") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			Click(
+				key_productName = "u-joint",
+				locator1 = "CommerceFrontStore#PRODUCT_CARD_IMAGE");
+		}
+
+		task ("Then the Availability fragment is present with the Available tag") {
+			AssertElementPresent(
+				key_availability = "Available",
+				locator1 = "CommerceFrontStore#FS_PRODUCT_AVAILABILITY");
+		}
+
+		task ("When the buyer clicks on the Power Steering Pump product") {
+			GoBack();
+
+			CommerceNavigator.searchEntry(entryName = "Power Steering Pump");
+
+			Click(
+				key_productName = "power-steering-pump",
+				locator1 = "CommerceFrontStore#PRODUCT_CARD_IMAGE");
+		}
+
+		task ("Then the Availability fragment is present with the Unavailable tag") {
+			AssertElementPresent(
+				key_availability = "Unavailable",
+				locator1 = "CommerceFrontStore#FS_PRODUCT_AVAILABILITY");
+		}
+	}
+
+	@description = "Verify an Override Default Product Display Page overrides a Commerce Product Display Page Template marked as default."
+	@priority = "4"
+	test CanDefaultCommerceProductDPTBeOverriddenByOverrideDefaultProductDisplayPageSet {
+		task ("Given a new Commerce Product type display page template marked as default") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Commerce Product",
+				displayPageTemplateEntryName = "Test Commerce Product Display Page Template",
+				groupName = "Minium");
+
+			DisplayPageTemplate.addFragment(
+				collectionName = "Basic Components",
+				displayPageName = "Test Commerce Product Display Page Template",
+				fragmentName = "Heading",
+				publish = "false",
+				siteURLKey = "minium");
+
+			PageEditor.editFragmentText(
+				fragmentName = "Heading",
+				id = "element-text",
+				text = "Commerce Product Display Page Template");
+
+			Button.clickPublish();
+
+			Alert.viewSuccessMessage();
+
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Mark as Default",
+				rowEntry = "Test Commerce Product Display Page Template");
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("And given an Override Default Product Display Page is set for U-Joint") {
+			JSONLayout.addPublicLayout(
+				groupName = "Minium",
+				layoutName = "Test Public Widget Page");
+
+			JSONLayout.addWidgetToPublicLayout(
+				groupName = "Minium",
+				layoutName = "Test Public Widget Page",
+				widgetName = "Product Details");
+
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			CommerceEntry.gotoMenuTab(menuTab = "Product Display Pages");
+
+			CommerceChannels.overrideProductDisplayPage(
+				pageName = "Test Public Widget Page",
+				pageType = "Public",
+				product = "U-Joint");
+
+			CommerceEntry.assertDisplayPageOverride(
+				entryName = "U-Joint",
+				layout = "Test Public Widget Page");
+		}
+
+		task ("When the buyer logs in and clicks on the U-Joint product") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			Click(
+				key_productName = "u-joint",
+				locator1 = "CommerceFrontStore#PRODUCT_CARD_IMAGE");
+		}
+
+		task ("Then the Override Product Display Page is shown") {
+			FrontStore.assertProductDetails(
+				productListPrice = "24.00",
+				productName = "U-Joint",
+				productSKU = "MIN55861");
+		}
+
+		task ("And not the Commerce Product Display Page Template") {
+			AssertElementNotPresent(
+				fragmentName = "heading",
+				id = "element-text",
+				index = "1",
+				locator1 = "Fragment#CONTRIBUTED_FRAGMENT_TEXT");
+		}
+	}
+
+	@description = "Verify a Commerce Product Display Page Template marked as default overrides the Default Product Display Page."
+	@priority = "4"
+	test CanDefaultCommerceProductDPTOverrideDefaultProductDisplayPageSet {
+		task ("Given a new Commerce Product type display page template marked as default") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Commerce Product",
+				displayPageTemplateEntryName = "Test Commerce Product Display Page Template",
+				groupName = "Minium");
+
+			DisplayPageTemplate.addFragment(
+				collectionName = "Basic Components",
+				displayPageName = "Test Commerce Product Display Page Template",
+				fragmentName = "Heading",
+				publish = "false",
+				siteURLKey = "minium");
+
+			PageEditor.editFragmentText(
+				fragmentName = "Heading",
+				id = "element-text",
+				text = "Commerce Product Display Page Template");
+
+			Button.clickPublish();
+
+			Alert.viewSuccessMessage();
+
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Mark as Default",
+				rowEntry = "Test Commerce Product Display Page Template");
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("And given a Default Product Display Page is set") {
+			JSONLayout.addPublicLayout(
+				groupName = "Minium",
+				layoutName = "Test Public Widget Page");
+
+			JSONLayout.addWidgetToPublicLayout(
+				groupName = "Minium",
+				layoutName = "Test Public Widget Page",
+				widgetName = "Product Details");
+
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			CommerceEntry.gotoMenuTab(menuTab = "Product Display Pages");
+
+			CommerceChannels.chooseDefaultDisplayPage(
+				pageName = "Test Public Widget Page",
+				pageType = "Public");
+
+			CommerceEntry.assertDefaultDisplayPage(
+				pageName = "Test Public Widget Page",
+				pageType = "Public");
+		}
+
+		task ("When the buyer logs in and clicks on a product") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			Click(
+				key_productName = "u-joint",
+				locator1 = "CommerceFrontStore#PRODUCT_CARD_IMAGE");
+		}
+
+		task ("Then the Commerce Product Display Page Template is shown") {
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Commerce Product Display Page Template");
+		}
+
+		task ("And not the Default Product Display Page") {
+			AssertElementNotPresent(
+				locator1 = "CommerceFrontStore#FS_PRODUCT_NAME",
+				value1 = "${productName}");
+		}
+	}
+
+	@description = "This is a test for COMMERCE-7277 Verify mapped Basic Information fields to fragments are visible in Store Front"
+	@priority = "3"
+	test CanMapBasicInformationFieldsToFragments {
+		property portal.acceptance = "false";
+
+		task ("Given a new Commerce Product type display page template with fragment created and mapped with the Basic Information fields") {
+			CommerceDisplayPageTemplates.addMappedDisplayPageTemplateEntry(
+				contentType = "Commerce Product",
+				displayPageName = "Test Commerce Product Display Page Template",
+				fieldsList = "Availability Status,Description,Final Price,Inventory,Name,Product Type,Short Description,SKU,Author Name",
+				fragmentName = "Heading",
+				groupName = "Minium",
+				menuItem = "Mark as Default",
+				siteURLKey = "minium");
+		}
+
+		task ("And a product updated") {
+			CommerceNavigator.gotoPortlet(
+				category = "Product Management",
+				portlet = "Products");
+
+			CommerceProducts.searchProduct(search = "U-Joint");
+
+			CommerceNavigator.gotoEntry(entryName = "U-Joint");
+
+			CommerceEntry.addProductDescription(
+				productFullDescription = "This is a Full Description",
+				productShortDescription = "This is a Short Description",
+				publishProduct = "true");
+		}
+
+		task ("When the buyer logs in and clicks on a product") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			Click(
+				key_productName = "u-joint",
+				locator1 = "CommerceFrontStore#PRODUCT_CARD_IMAGE");
+		}
+
+		task ("Then verifies the mapped fragments are visible") {
+			CommerceDisplayPageTemplates.viewMappedFragmentsText(fragmentsTextList = "available,This is a Full Description,$ 24.00,120,U-Joint,simple,This is a Short Description,MIN55861,Test Test");
+		}
+	}
+
+	@description = "This is a test for COMMERCE-9696. Verify user can see DPT mapping categories of selected vocabularies fields into the product details"
+	@priority = "3"
+	test CanMapCategoriesFromDifferentVocabularies {
+		property portal.acceptance = "false";
+
+		task ("Given a new vocabulary is added with some categories added inside of it (from the Global site administration panel)") {
+			Category.openCategoriesAdmin(siteURLKey = "global");
+
+			Vocabulary.addCP(
+				vocabularyDescription = "Test Vocabulary Description",
+				vocabularyName = "Test Vocabulary");
+
+			for (var categoryNum : list "1,2,3") {
+				Click(locator1 = "Button#PLUS");
+
+				Type(
+					locator1 = "Categories#CATEGORY_NAME_FIELD",
+					value1 = "Category ${categoryNum}");
+
+				Type(
+					locator1 = "CommerceEntry#DESCRIPTION_FIELD",
+					value1 = "Description ${categoryNum}");
+
+				Button.clickSave();
+			}
+		}
+
+		task ("And a category is added to Topic vocabulary") {
+			JSONCategory.addCategory(
+				groupName = "Global",
+				title = "Topic Category",
+				vocabularyName = "Topic");
+		}
+
+		task ("And some categories of the new vocabulary are selected inside a product (e.g. ABS Sensor)") {
+			CommerceNavigator.gotoPortlet(
+				category = "Product Management",
+				portlet = "Products");
+
+			Click(
+				key_entryName = "ABS Sensor",
+				locator1 = "CommerceEntry#TABLE_LIST_TITLE");
+
+			Click(
+				key_fieldName = "Test Vocabulary",
+				locator1 = "Button#SELECT_BUTTON");
+
+			AssetCategorization.selectCategories(categoryNameList = "Category 1,Category 2");
+		}
+
+		task ("And the category related to Topic is also selected inside the product") {
+			Click(
+				key_fieldName = "Topic",
+				locator1 = "Button#SELECT_BUTTON");
+
+			AssetCategorization.selectCategories(categoryNameList = "Topic Category");
+
+			Button.clickPublish();
+		}
+
+		task ("And a new Commerce Product type Display Page Template is created") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Commerce Product",
+				displayPageTemplateEntryName = "Test Commerce Product Display Page Template",
+				groupName = "Minium");
+		}
+
+		task ("When the Heading fragments are deployed on the page and the fields are mapped") {
+			CommerceDisplayPageTemplates.mapFragmentsToFields(
+				displayPageName = "Test Commerce Product Display Page Template",
+				fieldsList = "Minium,Topic,Test Vocabulary",
+				fragmentName = "Heading",
+				siteURLKey = "minium");
+		}
+
+		task ("And the template is published and Marked as Default") {
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Mark as Default",
+				rowEntry = "Test Commerce Product Display Page Template");
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("And the buyer logs in") {
+			ApplicationsMenu.gotoSite(site = "Minium");
+
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+		}
+
+		task ("Then in the product details, the buyer can see mapped all selected categories related to these 3 vocabularies") {
+			CommerceAcceleratorsInitializer.changeProductsSorting(sortingType = "Name Ascending");
+
+			Click(
+				key_productName = "ABS Sensor",
+				locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME");
+
+			CommerceDisplayPageTemplates.viewMappedFragmentsText(fragmentsTextList = "Category 1,Category 2,Topic Category,Brake System");
+		}
+	}
+
+	@description = "This is a test for COMMERCE-7277 Verify mapped Delivery Subscription related fields to fragments are visible in Store Fronts"
+	@priority = "3"
+	test CanMapDeliverySubscriptionFieldsToFragments {
+		property portal.acceptance = "false";
+
+		var productName = "U-Joint";
+
+		task ("Given a new Commerce Product type display page template with fragment created and mapped with the Delivery Subscription related fields") {
+			CommerceDisplayPageTemplates.addMappedDisplayPageTemplateEntry(
+				contentType = "Commerce Product",
+				displayPageName = "Test Commerce Product Display Page Template",
+				fieldsList = "Delivery Subscription Enabled,Delivery Subscription Length,Delivery Subscription Type,Delivery Subscription Type Settings",
+				fragmentName = "Heading",
+				groupName = "Minium",
+				menuItem = "Mark as Default",
+				siteURLKey = "minium");
+		}
+
+		task ("And a product with Delivery Subscription") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Product Management",
+				panel = "Commerce",
+				portlet = "Products");
+
+			CommerceNavigator.searchEntry(entryName = "${productName}");
+
+			CommerceNavigator.gotoEntry(entryName = "${productName}");
+
+			CommerceEntry.gotoMenuTab(menuTab = "Subscription");
+
+			CommerceProducts.configureSubscription(
+				subscriptionExactDay = "1",
+				subscriptionLength = "5",
+				subscriptionMode = "Exact Day of Month",
+				subscriptionName = "Delivery Subscription",
+				subscriptionType = "Month");
+		}
+
+		task ("When the buyer logs in and clicks on a product") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			Click(
+				key_productName = "u-joint",
+				locator1 = "CommerceFrontStore#PRODUCT_CARD_IMAGE");
+		}
+
+		task ("Then verifies the mapped fragments are visible") {
+			CommerceDisplayPageTemplates.viewMappedFragmentsText(fragmentsTextList = "true,5,monthly,deliveryMonthDay=1 deliveryMonthlyMode=1");
+		}
+	}
+
+	@description = "This is a test for COMMERCE-7277 Verify mapped Detailed Information fields to fragments are visible in Store Fronts"
+	@priority = "3"
+	test CanMapDetailedInformationFieldsToFragments {
+		property portal.acceptance = "false";
+
+		task ("Given a new product created") {
+			CommerceJSONProductsAPI._addCommerceProduct(
+				catalogName = "Minium",
+				neverExpire = "false",
+				price = "50",
+				productDescription = "Full Description",
+				productName = "Simple Product",
+				productType = "Simple",
+				shortDescription = "Short Description",
+				sku = "SKU1001");
+		}
+
+		task ("Given a new Commerce Product type display page template with fragment created and mapped with the Detailed Information fields") {
+			CommerceDisplayPageTemplates.addMappedDisplayPageTemplateEntry(
+				contentType = "Commerce Product",
+				displayPageName = "Test Commerce Product Display Page Template",
+				fieldsList = "Account Group Filter Enabled,Channel Filter Enabled,Create Date,Status,Tax Exempt,Telco or Electronics,Version",
+				fragmentName = "Heading",
+				groupName = "Minium",
+				menuItem = "Mark as Default",
+				siteURLKey = "minium");
+		}
+
+		task ("When the buyer logs in and clicks on the new product") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			Click(
+				key_productName = "Simple Product",
+				locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME");
+		}
+
+		task ("Then verifies the mapped fragments are visible") {
+			var productCreateDate = CommerceJSONProductsAPI._getProductCreateDate(productName = "Simple Product");
+
+			CommerceDisplayPageTemplates.viewMappedFragmentsText(fragmentsTextList = "false,false,${productCreateDate},0,false,false,1");
+		}
+	}
+
+	@description = "This is a test for COMMERCE-7277 Verify mapped Display Page and Schedule related fields to fragments are visible in Store Fronts"
+	@priority = "3"
+	test CanMapDisplayPageAndScheduleFieldsToFragments {
+		property portal.acceptance = "false";
+
+		task ("Given a new product created") {
+			CommerceJSONProductsAPI._addCommerceProduct(
+				catalogName = "Minium",
+				neverExpire = "false",
+				price = "50",
+				productDescription = "This is a Full Description",
+				productName = "Simple Product",
+				productType = "Simple",
+				shortDescription = "This is a Short Description",
+				sku = "SKU1001");
+		}
+
+		task ("Given a new Commerce Product type display page template with fragment created and mapped with the Display Page and Schedule related fields") {
+			CommerceDisplayPageTemplates.addMappedDisplayPageTemplateEntry(
+				contentType = "Commerce Product",
+				displayPageName = "Test Commerce Product Display Page Template",
+				fieldsList = "Display Page URL,Display Date,Expiration Date",
+				fragmentName = "Heading",
+				groupName = "Minium",
+				menuItem = "Mark as Default",
+				siteURLKey = "minium");
+		}
+
+		task ("When the buyer logs in and clicks on a product") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			Click(
+				key_productName = "Simple Product",
+				locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME");
+		}
+
+		task ("Then verifies the mapped fragments are visible") {
+			var baseURL = PropsUtil.get("portal.url");
+
+			CommerceDisplayPageTemplates.viewMappedFragmentsText(fragmentsTextList = "${baseURL}/web/minium/p/simple-product,1/1/22 1:01 AM,1/1/23 1:01 AM");
+		}
+	}
+
+	@description = "This is a test for COMMERCE-7277 Verify mapped Payment Subscription related fields to fragments are visible in Store Fronts"
+	@priority = "3"
+	test CanMapPaymentSubscriptionFieldsToFragments {
+		property portal.acceptance = "false";
+
+		var productName = "U-Joint";
+
+		task ("Given a new Commerce Product type display page template with fragment created and mapped with the Payment Subscription related fields") {
+			CommerceDisplayPageTemplates.addMappedDisplayPageTemplateEntry(
+				contentType = "Commerce Product",
+				displayPageName = "Test Commerce Product Display Page Template",
+				fieldsList = "Subscription Enabled,Subscription Length,Subscription Type,Subscription Type Settings",
+				fragmentName = "Heading",
+				groupName = "Minium",
+				menuItem = "Mark as Default",
+				siteURLKey = "minium");
+		}
+
+		task ("And a product with Payment Subscription") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Product Management",
+				panel = "Commerce",
+				portlet = "Products");
+
+			CommerceNavigator.searchEntry(entryName = "${productName}");
+
+			CommerceNavigator.gotoEntry(entryName = "${productName}");
+
+			CommerceEntry.gotoMenuTab(menuTab = "Subscription");
+
+			CommerceProducts.configureSubscription(
+				subscriptionExactDay = "15",
+				subscriptionLength = "10",
+				subscriptionMode = "Exact Day of Month",
+				subscriptionName = "Payment Subscription",
+				subscriptionType = "Month");
+		}
+
+		task ("When the buyer logs in and clicks on a product") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			Click(
+				key_productName = "u-joint",
+				locator1 = "CommerceFrontStore#PRODUCT_CARD_IMAGE");
+		}
+
+		task ("Then verifies the mapped fragments are visible") {
+			CommerceDisplayPageTemplates.viewMappedFragmentsText(fragmentsTextList = "true,10,monthly,monthDay=15 monthlyMode=1");
+		}
+	}
+
+	@description = "COMMERCE-9461 Verify that the Product Custom fields are available in the list of fields that can be mapped to fragment and that the buyer can see the Product Custom field inside the fragment on the storefront."
+	@priority = "4"
+	test CanMapProductCustomFieldsToFragments {
+
+		// Important note, this test need to be updated after the COMMERCE-9692 is fixed
+
+		var customField1Name = "Product Custom Field One";
+		var customField1Desc = "Custom Field One Text";
+		var customField2Name = "Product Custom Field Two";
+		var customField2Desc = "Custom Field Two Text";
+
+		task ("Given the admin already create the custom field 'Commerce Product' as text area") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Configuration",
+				panel = "Control Panel",
+				portlet = "Custom Fields");
+
+			CustomFields.addCP(
+				customFieldName = "${customField1Name}",
+				customFieldType = "Text Area",
+				resourceName = "Commerce Product");
+
+			ApplicationsMenu.gotoPortlet(
+				category = "Configuration",
+				panel = "Control Panel",
+				portlet = "Custom Fields");
+
+			CustomFields.addCP(
+				customFieldName = "${customField2Name}",
+				customFieldType = "Text Area",
+				resourceName = "Commerce Product");
+		}
+
+		task ("And add 'Test Commerce Product Custom Field' inside the text area for the custom field for ABS Sensor") {
+			CommerceNavigator.gotoPortlet(
+				category = "Product Management",
+				portlet = "Products");
+
+			Click(
+				key_entryName = "ABS Sensor",
+				locator1 = "CommerceEntry#TABLE_LIST_TITLE");
+
+			Type(
+				key_label = "${customField1Name}",
+				locator1 = "TextArea#ANY_LABELED",
+				value1 = "${customField1Desc}");
+
+			Type(
+				key_label = "${customField2Name}",
+				locator1 = "TextArea#ANY_LABELED",
+				value1 = "${customField2Desc}");
+
+			Button.clickPublish();
+		}
+
+		task ("When a new Commerce Product type Display Page Template is created") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Commerce Product",
+				displayPageTemplateEntryName = "Test Commerce Product Display Page Template",
+				groupName = "Minium");
+		}
+
+		task ("And the Heading fragments are deployed on the page and the fields are mapped") {
+			CommerceDisplayPageTemplates.mapFragmentsToFields(
+				displayPageName = "Test Commerce Product Display Page Template",
+				fieldsList = "product custom field one,product custom field two",
+				fragmentName = "Heading",
+				siteURLKey = "minium");
+		}
+
+		task ("And the template is published and Marked as Default") {
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Mark as Default",
+				rowEntry = "Test Commerce Product Display Page Template");
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("Then the buyer logs in on minium and opens ABS Sensor will see the custom field") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			CommerceAcceleratorsInitializer.gotoMiniumProductDetailsPage(productName = "ABS Sensor");
+
+			CommerceDisplayPageTemplates.viewMappedFragmentsText(fragmentsTextList = "${customField1Desc},${customField2Desc}");
+		}
+	}
+
+	@description = "This is a test for COMMERCE-7277 Verify mapped Shipping related fields to fragments are visible in Store Fronts"
+	@priority = "3"
+	test CanMapShippingFieldsToFragments {
+		property portal.acceptance = "false";
+
+		task ("Given a new Commerce Product type display page template with fragment created and mapped with the Shipping related fields") {
+			CommerceDisplayPageTemplates.addMappedDisplayPageTemplateEntry(
+				contentType = "Commerce Product",
+				displayPageName = "Test Commerce Product Display Page Template",
+				fieldsList = "Free Shipping,Shippable,Shipping Extra Price,Ship Separately,Depth,Height,Weight,Width",
+				fragmentName = "Heading",
+				groupName = "Minium",
+				menuItem = "Mark as Default",
+				siteURLKey = "minium");
+		}
+
+		task ("When the buyer logs in and clicks on a product") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			Click(
+				key_productName = "u-joint",
+				locator1 = "CommerceFrontStore#PRODUCT_CARD_IMAGE");
+		}
+
+		task ("Then verifies the mapped fragments are visible") {
+			CommerceDisplayPageTemplates.viewMappedFragmentsText(fragmentsTextList = "false,true,0.0,false,7.0,2.0,1.0,5.0");
+		}
+	}
+
+	@description = "Verify users can mark and unmark a commerce product display page template as the Default page so that the template can become the default page for the Product Details page."
+	@priority = "4"
+	test CanMarkAndUnmarkCommerceProductDPTAsDefault {
+		task ("Given a new Commerce Product type display page template is created") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Commerce Product",
+				displayPageTemplateEntryName = "Test Commerce Product Display Page Template",
+				groupName = "Minium");
+		}
+
+		task ("And given a heading fragment is deployed on the page") {
+			DisplayPageTemplate.addFragment(
+				collectionName = "Basic Components",
+				displayPageName = "Test Commerce Product Display Page Template",
+				fragmentName = "Heading",
+				publish = "false",
+				siteURLKey = "minium");
+		}
+
+		task ("And given the Heading text is set as Commerce Product Display Page Template") {
+			PageEditor.editFragmentText(
+				fragmentName = "Heading",
+				id = "element-text",
+				text = "Commerce Product Display Page Template");
+		}
+
+		task ("And given the page is published") {
+			Button.clickPublish();
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("And given the page is marked as Default") {
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Mark as Default",
+				rowEntry = "Test Commerce Product Display Page Template");
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("When the buyer logs in and clicks on a product") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			Click(
+				key_productName = "u-joint",
+				locator1 = "CommerceFrontStore#PRODUCT_CARD_IMAGE");
+		}
+
+		task ("Then the Commerce Product Display Page Template set is shown with the heading fragment") {
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Commerce Product Display Page Template");
+		}
+
+		task ("Given the template page is unmarked as Default") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "test@liferay.com",
+				userLoginFullName = "Test Test");
+
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "Minium");
+
+			LexiconEntry.gotoEntryMenuItemNoError(
+				menuItem = "Unmark as Default",
+				rowEntry = "Test Commerce Product Display Page Template");
+
+			AssertConfirm(value1 = "Some assets might be set to use the default display page. Are you sure you want to unmark this?");
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("When the buyer logs in and clicks on a product") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			Click(
+				key_productName = "u-joint",
+				locator1 = "CommerceFrontStore#PRODUCT_CARD_IMAGE");
+		}
+
+		task ("Then the Minium product detail page is shown") {
+			FrontStore.assertProductDetails(
+				productListPrice = "24.00",
+				productName = "U-Joint",
+				productSKU = "MIN55861");
+		}
+	}
+
+	@description = "Verify a product's images can be viewed via an Image Gallery fragment deployed on a default Commerce Product Display Page Template."
+	@priority = "3"
+	test CanViewProductImagesUsingImageGalleryFragment {
+		task ("Given a new default Commerce Product type display page template") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Commerce Product",
+				displayPageTemplateEntryName = "Test Commerce Product Display Page Template",
+				groupName = "Minium");
+		}
+
+		task ("And given an Image Gallery fragment is deployed on the page") {
+			DisplayPageTemplate.addFragment(
+				collectionName = "Product",
+				displayPageName = "Test Commerce Product Display Page Template",
+				fragmentName = "Image Gallery",
+				publish = "false",
+				siteURLKey = "minium");
+		}
+
+		task ("And given the fragment contains 'The gallery component will be shown here.'") {
+			PageEditor.viewFragmentMessageInfo(
+				fragmentName = "Image Gallery",
+				messageInfo = "The gallery component will be shown here.");
+		}
+
+		task ("And given the page is published") {
+			Button.clickPublish();
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("And given the page is marked as Default") {
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Mark as Default",
+				rowEntry = "Test Commerce Product Display Page Template");
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("And given a new image is added for the U-Joint product") {
+			CommerceProducts.openProductsAdmin();
+
+			CommerceNavigator.searchEntry(entryName = "U-Joint");
+
+			CommerceNavigator.gotoEntry(entryName = "U-Joint");
+
+			CommerceEntry.gotoMenuTab(menuTab = "Media");
+
+			CommerceProductImages.addProductImages(imageTitles = "Black");
+		}
+
+		task ("And given the new image has the highest priority") {
+			CommerceNavigator.gotoEntry(entryName = "Minium_ProductImage_64.png");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+			Type(
+				locator1 = "CommerceEntry#PRIORITY_FIELD",
+				value1 = "1");
+
+			CommerceEntry.publishProductImage();
+
+			Click(locator1 = "Icon#CLOSE");
+
+			IFrame.selectTopFrame();
+
+			Button.clickPublish();
+		}
+
+		task ("When the buyer logs in and clicks on the U-Joint product") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			CommerceNavigator.gotoProductDetails(productName = "U-Joint");
+		}
+
+		task ("Then the Image Gallery fragment is present") {
+			WaitForElementPresent(
+				key_fsProductImage = "Black",
+				locator1 = "CommerceFrontStore#FS_IMAGE_GALLERY_MAIN_IMAGE");
+		}
+
+		task ("And it is possible to use its functionalities(previous arrow, next arrow, select from the list of images, image overlay)") {
+			Click(
+				key_fsProductImage = "Black",
+				locator1 = "CommerceFrontStore#FS_IMAGE_GALLERY_MAIN_IMAGE");
+
+			AssertElementPresent(
+				key_fsProductImage = "Black",
+				locator1 = "CommerceFrontStore#FS_IMAGE_GALLERY_OVERLAY");
+
+			Click(
+				key_fsProductImage = "Black",
+				locator1 = "CommerceFrontStore#FS_IMAGE_GALLERY_OVERLAY");
+
+			AssertElementPresent(
+				key_fsProductImage = "Black",
+				locator1 = "CommerceFrontStore#FS_IMAGE_GALLERY_MAIN_IMAGE");
+
+			Click(locator1 = "CommerceFrontStore#FS_IMAGE_GALLERY_ARROW_NEXT");
+
+			AssertElementPresent(
+				key_fsProductImage = "Minium_ProductImage",
+				locator1 = "CommerceFrontStore#FS_IMAGE_GALLERY_MAIN_IMAGE");
+
+			Click(locator1 = "CommerceFrontStore#FS_IMAGE_GALLERY_ARROW_PREV");
+
+			AssertElementPresent(
+				key_fsProductImage = "Black",
+				locator1 = "CommerceFrontStore#FS_IMAGE_GALLERY_MAIN_IMAGE");
+
+			Click(
+				key_fsProductImage = "Minium_ProductImage",
+				locator1 = "CommerceFrontStore#FS_IMAGE_GALLERY_THUMBNAIL");
+
+			AssertElementPresent(
+				key_fsProductImage = "Minium_ProductImage",
+				locator1 = "CommerceFrontStore#FS_IMAGE_GALLERY_MAIN_IMAGE");
+
+			Click(
+				key_fsProductImage = "Black",
+				locator1 = "CommerceFrontStore#FS_IMAGE_GALLERY_THUMBNAIL");
+
+			AssertElementPresent(
+				key_fsProductImage = "Black",
+				locator1 = "CommerceFrontStore#FS_IMAGE_GALLERY_MAIN_IMAGE");
+		}
+	}
+
+}

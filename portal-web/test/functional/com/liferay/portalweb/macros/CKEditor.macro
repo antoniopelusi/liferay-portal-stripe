@@ -104,16 +104,19 @@ definition {
 			Navigator.gotoNavItem(navItem = "Documents and Media");
 
 			LexiconCard.clickCard(card = "${dmDocumentTitle}");
+
+			SelectFrameTop();
 		}
 		else if (isSet(pageName)) {
 			Navigator.gotoNavItem(navItem = "Pages");
 
 			Portlet.expandTree();
 
-			AssertClick.assertPartialTextClickAt(
+			Click(
 				key_nodeName = "${pageName}",
-				locator1 = "Treeview#NODE_UNSELECTED",
-				value1 = "${pageName}");
+				locator1 = "Treeview#NODE_UNSELECTED");
+
+			SelectFrameTop();
 		}
 
 		if (isSet(entryExternalURL)) {
@@ -139,9 +142,7 @@ definition {
 	macro assertSourceValue {
 		Click(locator1 = "CKEditor#TOOLBAR_SOURCE_BUTTON");
 
-		Click.clickAtNotVisible(locator1 = "CKEditor#BODY_FIELD_SOURCE_ON");
-
-		AssertTextEquals.assertValue(
+		AssertValue(
 			locator1 = "CKEditor#BODY_SOURCE_VALUE",
 			value1 = "${sourceValue}");
 	}

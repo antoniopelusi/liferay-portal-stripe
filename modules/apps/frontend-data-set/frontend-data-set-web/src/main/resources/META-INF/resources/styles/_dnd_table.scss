@@ -4,6 +4,17 @@
 
 .dnd-tbody {
 	display: table-row-group;
+
+	.dnd-tr {
+		&:hover,
+		&.selected {
+			background-color: $primary-l3;
+		}
+
+		&:nth-child(odd):not(:hover):not(.selected) {
+			background-color: $table-accent-bg;
+		}
+	}
 }
 
 .dnd-td,
@@ -44,10 +55,6 @@
 
 	.dnd-tbody &:last-child {
 		border-bottom: none;
-	}
-
-	&.with-bg {
-		background-color: $table-accent-bg;
 	}
 
 	&::before {
@@ -140,6 +147,7 @@
 
 	&.fixed {
 		display: block;
+		overflow: auto;
 	}
 
 	&.is-dragging {
@@ -150,6 +158,25 @@
 
 	.content-renderer-image {
 		width: 1%;
+	}
+
+	&.with-quick-actions {
+		.dnd-tr:hover:not(.nested):not(.selected) {
+			.item-actions {
+				overflow: visible;
+				position: relative;
+			}
+
+			.quick-action-menu {
+				background-color: inherit;
+				display: flex;
+				right: 48px;
+			}
+
+			.dnd-td:nth-last-child(2) {
+				visibility: hidden;
+			}
+		}
 	}
 }
 

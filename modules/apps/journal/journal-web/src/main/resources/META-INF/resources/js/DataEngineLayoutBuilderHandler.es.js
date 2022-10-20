@@ -12,6 +12,8 @@
  * details.
  */
 
+import {openToast, sub} from 'frontend-js-web';
+
 const isElementInnerSelector = (element, ...selectors) =>
 	!selectors.some((selector) => element.closest(selector));
 
@@ -80,8 +82,8 @@ export default function DataEngineLayoutBuilderHandler({namespace}) {
 		const description = getInputLocalizedValues('description');
 
 		if (!nameInput.value && !name[defaultLanguageId]) {
-			Liferay.Util.openToast({
-				message: Liferay.Util.sub(
+			openToast({
+				message: sub(
 					Liferay.Language.get(
 						'please-enter-a-valid-title-for-the-default-language-x'
 					),
@@ -137,7 +139,7 @@ export default function DataEngineLayoutBuilderHandler({namespace}) {
 		}
 	};
 
-	window.addEventListener('click', detectClickOutside, true);
+	window.addEventListener('mousedown', detectClickOutside, true);
 
 	// Update editing language id in the data engine side
 
@@ -161,7 +163,7 @@ export default function DataEngineLayoutBuilderHandler({namespace}) {
 	return {
 		dispose() {
 			form.removeEventListener('submit', saveDataEngineStructure);
-			window.removeEventListener('click', detectClickOutside, true);
+			window.removeEventListener('mousedown', detectClickOutside, true);
 		},
 	};
 }

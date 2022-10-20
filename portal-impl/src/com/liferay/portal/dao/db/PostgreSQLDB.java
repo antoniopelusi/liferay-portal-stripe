@@ -64,6 +64,13 @@ public class PostgreSQLDB extends BaseDB {
 
 	public PostgreSQLDB(int majorVersion, int minorVersion) {
 		super(DBType.POSTGRESQL, majorVersion, minorVersion);
+
+		if (majorVersion >= 13) {
+			_supportsNewUuidFunction = true;
+		}
+		else {
+			_supportsNewUuidFunction = false;
+		}
 	}
 
 	@Override
@@ -109,6 +116,11 @@ public class PostgreSQLDB extends BaseDB {
 	}
 
 	@Override
+	public String getNewUuidFunctionName() {
+		return "gen_random_uuid()";
+	}
+
+	@Override
 	public String getPopulateSQL(String databaseName, String sqlContent) {
 		return StringBundler.concat("\\c ", databaseName, ";\n\n", sqlContent);
 	}
@@ -118,6 +130,11 @@ public class PostgreSQLDB extends BaseDB {
 		return StringBundler.concat(
 			"drop database ", databaseName, ";\n", "create database ",
 			databaseName, " encoding = 'UNICODE';\n");
+	}
+
+	@Override
+	public boolean isSupportsNewUuidFunction() {
+		return _supportsNewUuidFunction;
 	}
 
 	@Override
@@ -191,7 +208,10 @@ public class PostgreSQLDB extends BaseDB {
 					String[] template = buildTableNameTokens(line);
 
 					line = StringUtil.replace(
-						"alter table @old-table@ rename to @new-table@;",
+						StringBundler.concat(
+							"alter table @old-table@ rename to @new-table@;",
+							"alter table @new-table@ rename constraint ",
+							"@old-table@_pkey to @new-table@_pkey;"),
 						RENAME_TABLE_TEMPLATE, template);
 				}
 				else if (line.startsWith(CREATE_TABLE)) {
@@ -249,5 +269,7 @@ public class PostgreSQLDB extends BaseDB {
 	};
 
 	private static final boolean _SUPPORTS_QUERYING_AFTER_EXCEPTION = false;
+
+	private final boolean _supportsNewUuidFunction;
 
 }

@@ -47,13 +47,13 @@ public class ObjectRelationshipLocalServiceUtil {
 	 */
 	public static ObjectRelationship addObjectRelationship(
 			long userId, long objectDefinitionId1, long objectDefinitionId2,
-			String deletionType, Map<java.util.Locale, String> labelMap,
-			String name, String type)
+			long parameterObjectFieldId, String deletionType,
+			Map<java.util.Locale, String> labelMap, String name, String type)
 		throws PortalException {
 
 		return getService().addObjectRelationship(
-			userId, objectDefinitionId1, objectDefinitionId2, deletionType,
-			labelMap, name, type);
+			userId, objectDefinitionId1, objectDefinitionId2,
+			parameterObjectFieldId, deletionType, labelMap, name, type);
 	}
 
 	/**
@@ -321,6 +321,13 @@ public class ObjectRelationshipLocalServiceUtil {
 		return getService().getObjectRelationship(objectRelationshipId);
 	}
 
+	public static ObjectRelationship getObjectRelationship(
+			long objectDefinitionId1, String name)
+		throws PortalException {
+
+		return getService().getObjectRelationship(objectDefinitionId1, name);
+	}
+
 	/**
 	 * Returns the object relationship with the matching UUID and company.
 	 *
@@ -367,6 +374,13 @@ public class ObjectRelationshipLocalServiceUtil {
 			objectDefinitionId1, start, end);
 	}
 
+	public static List<ObjectRelationship> getObjectRelationships(
+		long objectDefinitionId1, long objectDefinition2, String type) {
+
+		return getService().getObjectRelationships(
+			objectDefinitionId1, objectDefinition2, type);
+	}
+
 	/**
 	 * Returns the number of object relationships.
 	 *
@@ -395,12 +409,13 @@ public class ObjectRelationshipLocalServiceUtil {
 	}
 
 	public static ObjectRelationship updateObjectRelationship(
-			long objectRelationshipId, String deletionType,
-			Map<java.util.Locale, String> labelMap)
+			long objectRelationshipId, long parameterObjectFieldId,
+			String deletionType, Map<java.util.Locale, String> labelMap)
 		throws PortalException {
 
 		return getService().updateObjectRelationship(
-			objectRelationshipId, deletionType, labelMap);
+			objectRelationshipId, parameterObjectFieldId, deletionType,
+			labelMap);
 	}
 
 	/**

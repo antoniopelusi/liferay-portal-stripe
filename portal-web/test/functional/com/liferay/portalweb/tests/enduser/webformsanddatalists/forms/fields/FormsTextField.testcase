@@ -43,11 +43,7 @@ definition {
 
 		FormsAdminNavigator.enableLocalNetworkDataProvider();
 
-		Navigator.openURL();
-
-		ProductMenu.gotoPortlet(
-			category = "Content & Data",
-			portlet = "Forms");
+		FormsAdmin.openFormsAdmin(siteURLKey = "guest");
 
 		Navigator.gotoNavItem(navItem = "Data Providers");
 
@@ -1362,9 +1358,7 @@ definition {
 
 		FormPortlet.changeLocale(locale = "português-Brasil");
 
-		AssertClick(
-			locator1 = "Button#MAIN_CONTENT_SUBMIT",
-			value1 = "Submeter");
+		FormPortlet.submit();
 
 		FormPortlet.viewValidationErrorMessage(validationErrorMessage = "Essa é uma mensagem customizada para o português brasileiro");
 
@@ -1374,7 +1368,9 @@ definition {
 
 		FormPortlet.waitForValidationErrorNotPresent(validationErrorMessage = "Essa é uma mensagem customizada para o português brasileiro");
 
-		FormPortlet.submitLocalizedSuccessfully(buttonName = "Submeter");
+		FormPortlet.submit();
+
+		Alert.viewSuccessMessage();
 
 		FormsAdmin.openFormsAdmin(siteURLKey = "guest");
 
@@ -1411,6 +1407,8 @@ definition {
 		Form.gotoAutocompleteTab();
 
 		Form.enableAutocompleteConfiguration();
+
+		// Pausing 60 seconds due to LPS-159468
 
 		Pause(locator1 = "60000");
 

@@ -55,6 +55,11 @@ public class ObjectActionTable extends BaseTable<ObjectActionTable> {
 			Column.FLAG_DEFAULT);
 	public final Column<ObjectActionTable, Boolean> active = createColumn(
 		"active_", Boolean.class, Types.BOOLEAN, Column.FLAG_DEFAULT);
+	public final Column<ObjectActionTable, Clob> conditionExpression =
+		createColumn(
+			"conditionExpression", Clob.class, Types.CLOB, Column.FLAG_DEFAULT);
+	public final Column<ObjectActionTable, String> description = createColumn(
+		"description", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
 	public final Column<ObjectActionTable, String> name = createColumn(
 		"name", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
 	public final Column<ObjectActionTable, String> objectActionExecutorKey =
@@ -67,6 +72,8 @@ public class ObjectActionTable extends BaseTable<ObjectActionTable> {
 			Column.FLAG_DEFAULT);
 	public final Column<ObjectActionTable, Clob> parameters = createColumn(
 		"parameters", Clob.class, Types.CLOB, Column.FLAG_DEFAULT);
+	public final Column<ObjectActionTable, Integer> status = createColumn(
+		"status", Integer.class, Types.INTEGER, Column.FLAG_DEFAULT);
 
 	private ObjectActionTable() {
 		super("ObjectAction", ObjectActionTable::new);

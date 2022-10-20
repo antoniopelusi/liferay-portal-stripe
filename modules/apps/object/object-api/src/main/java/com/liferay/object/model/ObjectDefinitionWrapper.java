@@ -52,8 +52,12 @@ public class ObjectDefinitionWrapper
 		attributes.put("createDate", getCreateDate());
 		attributes.put("modifiedDate", getModifiedDate());
 		attributes.put(
+			"accountEntryRestrictedObjectFieldId",
+			getAccountEntryRestrictedObjectFieldId());
+		attributes.put(
 			"descriptionObjectFieldId", getDescriptionObjectFieldId());
 		attributes.put("titleObjectFieldId", getTitleObjectFieldId());
+		attributes.put("accountEntryRestricted", isAccountEntryRestricted());
 		attributes.put("active", isActive());
 		attributes.put("dbTableName", getDBTableName());
 		attributes.put("label", getLabel());
@@ -67,6 +71,7 @@ public class ObjectDefinitionWrapper
 		attributes.put("pluralLabel", getPluralLabel());
 		attributes.put("portlet", isPortlet());
 		attributes.put("scope", getScope());
+		attributes.put("storageType", getStorageType());
 		attributes.put("system", isSystem());
 		attributes.put("version", getVersion());
 		attributes.put("status", getStatus());
@@ -124,6 +129,14 @@ public class ObjectDefinitionWrapper
 			setModifiedDate(modifiedDate);
 		}
 
+		Long accountEntryRestrictedObjectFieldId = (Long)attributes.get(
+			"accountEntryRestrictedObjectFieldId");
+
+		if (accountEntryRestrictedObjectFieldId != null) {
+			setAccountEntryRestrictedObjectFieldId(
+				accountEntryRestrictedObjectFieldId);
+		}
+
 		Long descriptionObjectFieldId = (Long)attributes.get(
 			"descriptionObjectFieldId");
 
@@ -135,6 +148,13 @@ public class ObjectDefinitionWrapper
 
 		if (titleObjectFieldId != null) {
 			setTitleObjectFieldId(titleObjectFieldId);
+		}
+
+		Boolean accountEntryRestricted = (Boolean)attributes.get(
+			"accountEntryRestricted");
+
+		if (accountEntryRestricted != null) {
+			setAccountEntryRestricted(accountEntryRestricted);
 		}
 
 		Boolean active = (Boolean)attributes.get("active");
@@ -210,6 +230,12 @@ public class ObjectDefinitionWrapper
 			setScope(scope);
 		}
 
+		String storageType = (String)attributes.get("storageType");
+
+		if (storageType != null) {
+			setStorageType(storageType);
+		}
+
 		Boolean system = (Boolean)attributes.get("system");
 
 		if (system != null) {
@@ -232,6 +258,26 @@ public class ObjectDefinitionWrapper
 	@Override
 	public ObjectDefinition cloneWithOriginalValues() {
 		return wrap(model.cloneWithOriginalValues());
+	}
+
+	/**
+	 * Returns the account entry restricted of this object definition.
+	 *
+	 * @return the account entry restricted of this object definition
+	 */
+	@Override
+	public boolean getAccountEntryRestricted() {
+		return model.getAccountEntryRestricted();
+	}
+
+	/**
+	 * Returns the account entry restricted object field ID of this object definition.
+	 *
+	 * @return the account entry restricted object field ID of this object definition
+	 */
+	@Override
+	public long getAccountEntryRestrictedObjectFieldId() {
+		return model.getAccountEntryRestrictedObjectFieldId();
 	}
 
 	/**
@@ -607,6 +653,16 @@ public class ObjectDefinitionWrapper
 	}
 
 	/**
+	 * Returns the storage type of this object definition.
+	 *
+	 * @return the storage type of this object definition
+	 */
+	@Override
+	public String getStorageType() {
+		return model.getStorageType();
+	}
+
+	/**
 	 * Returns the system of this object definition.
 	 *
 	 * @return the system of this object definition
@@ -677,6 +733,16 @@ public class ObjectDefinitionWrapper
 	}
 
 	/**
+	 * Returns <code>true</code> if this object definition is account entry restricted.
+	 *
+	 * @return <code>true</code> if this object definition is account entry restricted; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isAccountEntryRestricted() {
+		return model.isAccountEntryRestricted();
+	}
+
+	/**
 	 * Returns <code>true</code> if this object definition is active.
 	 *
 	 * @return <code>true</code> if this object definition is active; <code>false</code> otherwise
@@ -689,6 +755,11 @@ public class ObjectDefinitionWrapper
 	@Override
 	public boolean isApproved() {
 		return model.isApproved();
+	}
+
+	@Override
+	public boolean isDefaultStorageType() {
+		return model.isDefaultStorageType();
 	}
 
 	/**
@@ -729,6 +800,29 @@ public class ObjectDefinitionWrapper
 		throws com.liferay.portal.kernel.exception.LocaleException {
 
 		model.prepareLocalizedFieldsForImport(defaultImportLocale);
+	}
+
+	/**
+	 * Sets whether this object definition is account entry restricted.
+	 *
+	 * @param accountEntryRestricted the account entry restricted of this object definition
+	 */
+	@Override
+	public void setAccountEntryRestricted(boolean accountEntryRestricted) {
+		model.setAccountEntryRestricted(accountEntryRestricted);
+	}
+
+	/**
+	 * Sets the account entry restricted object field ID of this object definition.
+	 *
+	 * @param accountEntryRestrictedObjectFieldId the account entry restricted object field ID of this object definition
+	 */
+	@Override
+	public void setAccountEntryRestrictedObjectFieldId(
+		long accountEntryRestrictedObjectFieldId) {
+
+		model.setAccountEntryRestrictedObjectFieldId(
+			accountEntryRestrictedObjectFieldId);
 	}
 
 	/**
@@ -1040,6 +1134,16 @@ public class ObjectDefinitionWrapper
 	@Override
 	public void setStatus(int status) {
 		model.setStatus(status);
+	}
+
+	/**
+	 * Sets the storage type of this object definition.
+	 *
+	 * @param storageType the storage type of this object definition
+	 */
+	@Override
+	public void setStorageType(String storageType) {
+		model.setStorageType(storageType);
 	}
 
 	/**

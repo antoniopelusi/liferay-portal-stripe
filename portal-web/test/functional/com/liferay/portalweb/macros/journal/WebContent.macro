@@ -24,7 +24,7 @@ definition {
 			else {
 				CKEditor.addContentInWebContent(
 					content = "${webContentContent}",
-					fieldLabel = "content");
+					fieldLabel = "Content");
 			}
 		}
 
@@ -39,48 +39,58 @@ definition {
 
 			ItemSelector.gotoItemSelectorViaCKEditor();
 
-			SelectFrame(locator1 = "ItemSelector#ITEM_SELECTOR_IFRAME");
+			if (isSet(uploadFileName)) {
+				ItemSelector.uploadFile(
+					navTab = "${navTab}",
+					uploadFileName = "${uploadFileName}");
 
-			AssertClick(
-				key_breadcrumbName = "Sites and Libraries",
-				locator1 = "Breadcrumb#BREADCRUMB_ENTRY",
-				value1 = "Sites and Libraries");
-
-			AssertClick(
-				key_siteName = "${siteName}",
-				locator1 = "ItemSelector#SITE_SELECTOR",
-				value1 = "${siteName}");
-
-			if (isSet(folderName)) {
-				LexiconCard.clickCard(card = "${folderName}");
-			}
-
-			if (isSet(pendingEntry)) {
-				AssertElementNotPresent(locator1 = "ItemSelector#SELECT_FILE_IMAGE_CARD");
+				SelectFrameTop();
 			}
 			else {
-				Click(locator1 = "ItemSelector#SELECT_FILE_IMAGE_CARD");
+				SelectFrame(locator1 = "ItemSelector#ITEM_SELECTOR_IFRAME");
+
+				AssertClick(
+					key_breadcrumbName = "Sites and Libraries",
+					locator1 = "Breadcrumb#BREADCRUMB_ENTRY",
+					value1 = "Sites and Libraries");
+
+				if (isSet(depotName)) {
+					AssertClick(
+						key_groupTab = "Asset Library",
+						locator1 = "ItemSelector#NAVIGATION_GROUP_TAB",
+						value1 = "Asset Library");
+
+					LexiconCard.clickCard(card = "${depotName}");
+				}
+				else {
+					LexiconCard.clickCard(card = "${siteName}");
+				}
+
+				if (isSet(folderName)) {
+					LexiconCard.clickCard(card = "${folderName}");
+				}
+
+				if (isSet(pendingEntry)) {
+					AssertElementNotPresent(locator1 = "ItemSelector#SELECT_FILE_IMAGE_CARD");
+				}
+				else {
+					Click(locator1 = "ItemSelector#SELECT_FILE_IMAGE_CARD");
+				}
 			}
+
+			SelectFrameTop();
 		}
 
 		if (isSet(embedVideo)) {
-			WaitForLiferayEvent.initializeLiferayEventLog();
+			WaitForPageLoad();
 
-			Click.pauseClickAt(locator1 = "CKEditor#TOOLBAR_VIDEO_BUTTON");
+			Click(locator1 = "CKEditor#TOOLBAR_VIDEO_BUTTON");
 
 			if ("${navTab}" == "Documents and Media") {
 				ItemSelector.addVideoFromDM(
 					depotName = "${depotName}",
 					navTab = "${navTab}",
 					videoShortcutTitle = "${videoShortcutTitle}");
-			}
-			else if (isSet(videoURL)) {
-				ItemSelector.addVideo(
-					extractedVideoShortcutTitle = "${extractedVideoShortcutTitle}",
-					videoShortcutDescription = "${videoShortcutDescription}",
-					videoShortcutPreview = "${videoShortcutPreview}",
-					videoShortcutTitle = "${videoShortcutTitle}",
-					videoURL = "${videoURL}");
 			}
 			else {
 				ItemSelector.addVideoFromURL(
@@ -134,8 +144,6 @@ definition {
 			assetType = "${assetType}",
 			scopeSite = "${scopeSite}");
 
-		Pause(locator1 = "3000");
-
 		SelectFrame(value1 = "relative=top");
 
 		var key_assetTitle = "${assetTitle}";
@@ -178,7 +186,7 @@ definition {
 
 		CKEditor.addContentInWebContent(
 			content = "Web Content Content",
-			fieldLabel = "content");
+			fieldLabel = "Content");
 
 		AssertClick(
 			locator1 = "Button#PUBLISH",
@@ -238,7 +246,7 @@ definition {
 		if (isSet(webContentContent)) {
 			CKEditor.addContentInWebContent(
 				content = "${webContentContent}",
-				fieldLabel = "content");
+				fieldLabel = "Content");
 		}
 
 		AssertClick(
@@ -261,7 +269,7 @@ definition {
 			locator1 = "Button#PUBLISH",
 			value1 = "Publish");
 
-		Pause(locator1 = "5000");
+		WaitForPageLoad();
 
 		var key_assetTitle = "${webContentTitle}";
 
@@ -291,7 +299,7 @@ definition {
 			locator1 = "Button#PUBLISH",
 			value1 = "Publish");
 
-		Pause(locator1 = "5000");
+		WaitForPageLoad();
 	}
 
 	macro addPriority {
@@ -309,7 +317,7 @@ definition {
 
 		CKEditor.addContentInWebContent(
 			content = "${webContentContent}",
-			fieldLabel = "content");
+			fieldLabel = "Content");
 	}
 
 	macro addWithCategoryCP {
@@ -326,7 +334,7 @@ definition {
 			webContentTitle = "${webContentTitle}");
 
 		WebContent.selectCategory(
-			categoryName = "${categoryName}",
+			categoryNameList = "${categoryName}",
 			userSegmentDetailTitle = "${userSegmentDetailTitle}",
 			vocabularyName = "${vocabularyName}");
 
@@ -345,8 +353,6 @@ definition {
 		var key_imageFileName = "${dmDocumentTitle}";
 		var key_imageFileName = StringUtil.replace("${dmDocumentTitle}", " ", "+");
 
-		Pause(locator1 = "1000");
-
 		if (isSet(siteName)) {
 			AssertClick(
 				key_breadcrumbName = "Sites and Libraries",
@@ -361,6 +367,8 @@ definition {
 
 		LexiconCard.clickCard(card = "${dmDocumentTitle}");
 
+		SelectFrameTop();
+
 		PortletEntry.publish();
 	}
 
@@ -371,7 +379,7 @@ definition {
 
 		Panel.expandPanel(panel = "Friendly URL");
 
-		Type.typePause(
+		Type(
 			inputFieldId = "friendlyURL",
 			locator1 = "TextInput#INPUT_ID",
 			value1 = "${friendlyURL}");
@@ -555,10 +563,9 @@ definition {
 
 			Portlet.expandTree();
 
-			AssertClick.assertPartialTextClickAt(
+			Click(
 				key_nodeName = "${webContentLinkToPage}",
-				locator1 = "Treeview#NODE_UNSELECTED",
-				value1 = "${webContentLinkToPage}");
+				locator1 = "Treeview#NODE_UNSELECTED");
 
 			SelectFrameTop();
 		}
@@ -760,6 +767,8 @@ definition {
 		}
 
 		if (isSet(templateName)) {
+			SelectFrameTop();
+
 			Panel.expandPanel(panel = "Default Template");
 
 			if (IsTextNotEqual(inputFieldId = "ddmTemplateName", locator1 = "TextInput#INPUT_ID", value1 = "${templateName}")) {
@@ -822,13 +831,16 @@ definition {
 			locator1 = "Button#SUBMIT_FOR_PUBLICATION",
 			value1 = "Submit for Publication");
 
-		Pause(locator1 = "5000");
-
 		SelectFrame();
 
-		AssertTextEquals(
-			locator1 = "Message#INFO",
-			value1 = "There are no results.");
+		if (IsElementPresent(locator1 = "Message#INFO")) {
+			AssertTextEquals(
+				locator1 = "Message#INFO",
+				value1 = "There are no results.");
+		}
+		else {
+			AssertTextNotPresent(value1 = "${webContentTitle}");
+		}
 	}
 
 	macro assertFieldOnWebContent {
@@ -854,22 +866,16 @@ definition {
 		MenuItem.click(menuItem = "${defaultLanguage}");
 	}
 
-	macro checkLanguage {
-		Click.clickNoMouseOver(locator1 = "ContentDashboard#ROW_PANEL_WC");
-
-		WaitForElementPresent(locator1 = "ContentDashboard#ICON_INFO_LISTED_MODIFIED_DATE");
-
-		Click(locator1 = "ContentDashboard#ICON_INFO_LISTED_MODIFIED_DATE");
-
-		Click(locator1 = "ContentDashboard#PANEL_INFO_VIEW");
-	}
-
 	macro clickMarginOfContentContainer {
 		var elementHeight = selenium.getElementHeight("WCEditWebContent#CONTENT_CONTAINER");
+
 		var offSetY = 50 * ${elementHeight};
+
 		var offSetY = ${offSetY} / 100;
 		var elementWidth = selenium.getElementWidth("WCEditWebContent#CONTENT_CONTAINER");
+
 		var offSetX = 2 * ${elementWidth};
+
 		var offSetX = ${offSetX} / 100;
 
 		Click.clickAt(
@@ -951,7 +957,13 @@ definition {
 			entry = "${entryTitle}",
 			menuItem = "Delete");
 
-		AssertConfirm(value1 = "Are you sure you want to delete this? It will be deleted immediately.");
+		AssertTextEquals(
+			locator1 = "Modal#BODY",
+			value1 = "Are you sure you want to delete this? It will be deleted immediately.");
+
+		Click(
+			key_text = "Delete",
+			locator1 = "Modal#MODAL_FOOTER_BUTTON");
 
 		Alert.viewSuccessMessage();
 	}
@@ -963,7 +975,7 @@ definition {
 			SelectFrame.selectFrameNoLoading(locator1 = "CKEditor#BODY_FIELD_IFRAME_2");
 
 			Type(
-				key_fieldLabel = "content",
+				key_fieldLabel = "Content",
 				locator1 = "CKEditor#BODY",
 				value1 = "${webContentContentEdit}");
 
@@ -1000,14 +1012,19 @@ definition {
 		}
 
 		if (isSet(webContentImage)) {
-			if (!(isSet(webContentImageFieldLabel))) {
-				var webContentImageFieldLabel = "Image";
+			if (isSet(selectViaCKEditor)) {
+				ItemSelector.gotoItemSelectorViaCKEditor();
 			}
+			else {
+				if (!(isSet(webContentImageFieldLabel))) {
+					var webContentImageFieldLabel = "Image";
+				}
 
-			Click(
-				fieldLabel = "${webContentImageFieldLabel}",
-				locator1 = "Button#BUTTON_LABEL",
-				text = "Select");
+				Click(
+					fieldLabel = "${webContentImageFieldLabel}",
+					locator1 = "Button#BUTTON_LABEL",
+					text = "Select");
+			}
 
 			if ("${navTab}" == "Documents and Media") {
 				if (isSet(depotName)) {
@@ -1043,9 +1060,9 @@ definition {
 		}
 
 		if (isSet(embedVideo)) {
-			WaitForLiferayEvent.initializeLiferayEventLog();
+			WaitForPageLoad();
 
-			Click.pauseClickAt(locator1 = "CKEditor#TOOLBAR_VIDEO_BUTTON");
+			Click(locator1 = "CKEditor#TOOLBAR_VIDEO_BUTTON");
 
 			if ("${navTab}" == "Documents and Media") {
 				ItemSelector.addVideoFromDM(
@@ -1073,9 +1090,11 @@ definition {
 
 			LexiconEntry.changeDisplayStyle(displayStyle = "list");
 
+			LexiconEntry.viewActiveDisplayStyle(displayStyle = "list");
+
 			var key_webContentTitle = "${webContentTitleEdit}";
 
-			AssertElementPresent.pauseAssertVisible(locator1 = "WC#ENTRY_LIST_THUMBNAIL");
+			AssertElementPresent(locator1 = "WC#ENTRY_LIST_THUMBNAIL");
 
 			AssertTextEquals.assertPartialText(
 				locator1 = "WC#ENTRY_LIST_TITLE",
@@ -1123,10 +1142,18 @@ definition {
 
 				Portlet.expandTree();
 
-				AssertClick.assertPartialTextClickAt(
+				Click(
 					key_nodeName = "${pageName}",
-					locator1 = "Treeview#NODE_UNSELECTED",
-					value1 = "${pageName}");
+					locator1 = "Treeview#NODE_UNSELECTED");
+			}
+			else if ("${pageType}" == "Pages") {
+				Navigator.gotoNavItem(navItem = "Pages");
+
+				Portlet.expandTree();
+
+				Click(
+					key_nodeName = "${pageName}",
+					locator1 = "Treeview#NODE_UNSELECTED");
 			}
 			else {
 				if (IsElementNotPresent(key_navItem = "${pageType}", locator1 = "NavBar#NAV_ITEM_LINK")) {
@@ -1138,6 +1165,8 @@ definition {
 					LexiconCard.clickCard(card = "${pageName}");
 				}
 			}
+
+			SelectFrameTop();
 
 			if ("${pageType}" == "Public Pages") {
 				AssertTextEquals(
@@ -1174,8 +1203,6 @@ definition {
 			pageName = "${displayPageName}",
 			pageType = "${pageType}");
 
-		Pause(locator1 = "3000");
-
 		SelectFrame(value1 = "relative=top");
 	}
 
@@ -1190,7 +1217,7 @@ definition {
 	macro editFriendlyURL {
 		Panel.expandPanel(panel = "Friendly URL");
 
-		Type.typePause(
+		Type(
 			inputFieldId = "friendlyURL",
 			locator1 = "TextInput#INPUT_ID",
 			value1 = "${webContentFriendlyURL}");
@@ -1233,7 +1260,7 @@ definition {
 		if (isSet(webContentContent)) {
 			CKEditor.addContentInWebContent(
 				content = "${webContentContent}",
-				fieldLabel = "content");
+				fieldLabel = "Content");
 		}
 
 		AssertClick(
@@ -1253,7 +1280,7 @@ definition {
 		if (isSet(webContentContentEdit)) {
 			CKEditor.addContentInWebContent(
 				content = "${webContentContentEdit}",
-				fieldLabel = "content");
+				fieldLabel = "Content");
 		}
 
 		if (isSet(webContentSelectWcFile)) {
@@ -1291,7 +1318,7 @@ definition {
 		SelectFrame.selectFrameNoLoading(locator1 = "CKEditor#BODY_FIELD_IFRAME_2");
 
 		Type(
-			key_fieldLabel = "content",
+			key_fieldLabel = "Content",
 			locator1 = "CKEditor#BODY",
 			value1 = "${webContentContentEdit}");
 
@@ -1359,7 +1386,9 @@ definition {
 				locator1 = "WC#ENTRY_LIST_CHECKBOX");
 		}
 
-		Click(locator1 = "Icon#EXPIRE");
+		Click(
+			key_text = "time",
+			locator1 = "ManagementBar#ANY_ICON");
 
 		Alert.viewSuccessMessage();
 	}
@@ -1382,7 +1411,9 @@ definition {
 				locator1 = "WCEditWebContent#VIEW_HISTORY_VERSION_CHECKBOX");
 		}
 
-		ClickNoError(locator1 = "Icon#EXPIRE");
+		ClickNoError(
+			key_text = "time",
+			locator1 = "ManagementBar#ANY_ICON");
 
 		AssertConfirm(value1 = "Are you sure you want to expire the selected version?");
 	}
@@ -1405,10 +1436,14 @@ definition {
 		var displayDate = selenium.getAttribute("//input[contains(@id,'displayDate')]@value");
 		var displayDateHour = selenium.getAttribute("//input[contains(@id,'displayDateHour')]@value");
 		var displayDateAmpm = selenium.getAttribute("//input[contains(@id,'displayDateAmPm')]@value");
+
 		var displayDateAmpm = StringUtil.replace("${displayDateAmpm}", "0", "AM");
+
 		var displayDateAmpm = StringUtil.replace("${displayDateAmpm}", "1", "PM");
 		var displayDateMinute = selenium.getAttribute("//input[contains(@id,'displayDateMinute')]@value");
+
 		var displayDateMinuteFuture = ${displayDateMinute} + ${minuteIncrease};
+
 		var displayTime = "${displayDateHour}:${displayDateMinuteFuture} ${displayDateAmpm}";
 
 		WebContent.editDisplayDate(
@@ -1432,8 +1467,6 @@ definition {
 		Click(locator1 = "Button#PARENT_FOLDER_SELECT");
 
 		SelectFrame(locator1 = "IFrame#MODAL_BODY");
-
-		Pause(locator1 = "3000");
 
 		WebContentFolder.selectFolderTreeNode(nodeName = "${folderName}");
 
@@ -1463,8 +1496,6 @@ definition {
 
 		SelectFrame(locator1 = "IFrame#MODAL_BODY");
 
-		Pause(locator1 = "3000");
-
 		WebContentFolder.selectFolderTreeNode(nodeName = "${folderName}");
 
 		SelectFrame(value1 = "relative=top");
@@ -1492,8 +1523,6 @@ definition {
 
 		SelectFrame(locator1 = "IFrame#MODAL_BODY");
 
-		Pause(locator1 = "3000");
-
 		WebContentFolder.selectFolderTreeNode(nodeName = "${folderName}");
 
 		SelectFrame(value1 = "relative=top");
@@ -1515,17 +1544,15 @@ definition {
 
 			WebContentNavigator.gotoEntryMenuItem(
 				entry = "${webContentTitleEscapeCharacter}",
-				menuItem = "Move to Recycle Bin");
+				menuItem = "Delete");
 		}
 		else {
 			var key_webContentTitle = "${webContentTitle}";
 
 			WebContentNavigator.gotoEntryMenuItem(
 				entry = "${webContentTitle}",
-				menuItem = "Move to Recycle Bin");
+				menuItem = "Delete");
 		}
-
-		AssertConfirm(value1 = "Are you sure you want to move this to the Recycle Bin?");
 
 		VerifyElementPresent(locator1 = "Message#SUCCESS");
 
@@ -1539,11 +1566,9 @@ definition {
 
 		PortletEntry.selectAll();
 
-		ClickNoError(locator1 = "Icon#MOVE_TO_RECYCLE_BIN");
+		Click(locator1 = "Icon#MOVE_TO_RECYCLE_BIN");
 
-		Confirm();
-
-		VerifyElementPresent(locator1 = "Message#SUCCESS");
+		Alert.viewSuccessMessage();
 	}
 
 	macro paginateRelatedAssets {
@@ -1586,8 +1611,6 @@ definition {
 			locator1 = "IFrame#MODAL_BODY",
 			value1 = "${webContentContent}");
 
-		Pause(locator1 = "3000");
-
 		takeScreenshot();
 
 		IFrame.closeFrame();
@@ -1607,7 +1630,7 @@ definition {
 
 		CKEditor.addContentInWebContent(
 			content = "Web Content Content",
-			fieldLabel = "content");
+			fieldLabel = "Content");
 
 		Click(locator1 = "Button#SAVE_AS_DRAFT");
 
@@ -1617,7 +1640,7 @@ definition {
 	macro saveAsDraftViaAP {
 		Button.clickSaveAsDraft();
 
-		Pause(locator1 = "5000");
+		Alert.viewSuccessMessage();
 
 		Refresh();
 
@@ -1663,9 +1686,12 @@ definition {
 				value1 = "${userSegmentDetailTitle}");
 		}
 
-		AssetCategorization.addCategory(
-			categoryName = "${categoryName}",
-			vocabularyName = "${vocabularyName}");
+		Click(
+			key_fieldLabel = "${vocabularyName}",
+			key_text = "Select",
+			locator1 = "Button#ANY_WITH_LABEL");
+
+		AssetCategorization.selectCategories(categoryNameList = "${categoryNameList}");
 	}
 
 	macro selectFolder {
@@ -1724,8 +1750,6 @@ definition {
 
 		Panel.expandPanel(panel = "Default Template");
 
-		Pause(locator1 = "3000");
-
 		Click(
 			buttonId = "selectDDMTemplate",
 			locator1 = "Button#BUTTON_ID");
@@ -1733,8 +1757,6 @@ definition {
 		IFrame.selectTopFrame();
 
 		SelectFrame(locator1 = "IFrame#MODAL_BODY");
-
-		Pause(locator1 = "3000");
 
 		if (isSet(confirm)) {
 			LexiconCard.clickCard(card = "${templateName}");
@@ -1748,9 +1770,6 @@ definition {
 		WaitForPageLoad();
 
 		Panel.expandPanel(panel = "Default Template");
-
-		var templateName = StringUtil.replace("${templateName}", "&lt;", "<");
-		var templateName = StringUtil.replace("${templateName}", "&gt;", ">");
 
 		AssertTextEquals(
 			inputFieldId = "ddmTemplateName",
@@ -1790,7 +1809,9 @@ definition {
 
 		LexiconEntry.changeDisplayStyle(displayStyle = "list");
 
-		if (IsElementPresent.pauseIsElementPresent(locator1 = "WC#ENTRY_LIST_THUMBNAIL_GENERIC")) {
+		LexiconEntry.viewActiveDisplayStyle(displayStyle = "list");
+
+		if (IsElementPresent(locator1 = "WC#ENTRY_LIST_THUMBNAIL_GENERIC")) {
 			PortletEntry.selectAll();
 
 			Click(locator1 = "Icon#MOVE_TO_RECYCLE_BIN");
@@ -1815,7 +1836,7 @@ definition {
 			navTab = "${navTab}");
 
 		SelectFrame.selectFrameNoLoading(
-			key_fieldLabel = "content",
+			key_fieldLabel = "Content",
 			locator1 = "CKEditor#BODY_FIELD_IFRAME_WEB_CONTENT_ARTICLE");
 
 		AssertElementPresent(locator1 = "CKEditor#CONTENT_AUDIO_LINK_IMAGE");
@@ -1839,7 +1860,7 @@ definition {
 		}
 
 		SelectFrame.selectFrameNoLoading(
-			key_fieldLabel = "content",
+			key_fieldLabel = "Content",
 			locator1 = "CKEditor#BODY_FIELD_IFRAME_WEB_CONTENT_ARTICLE");
 
 		AssertElementPresent(locator1 = "CKEditor#CONTENT_VIDEO_LINK_IMAGE");
@@ -1925,6 +1946,7 @@ definition {
 
 		for (var documentType : list "${documentTypes}") {
 			var documentTypeUppercase = StringUtil.upperCase("${documentType}");
+
 			var key_documentType = "${documentTypeUppercase}";
 
 			AssertTextEquals.assertPartialText(
@@ -1945,9 +1967,16 @@ definition {
 			locator1 = "TextInput#TITLE",
 			value1 = "${webContentTitle}");
 
-		SelectFrame.selectFrameNoLoading(
-			key_fieldLabel = "content",
-			locator1 = "CKEditor#BODY_FIELD_IFRAME_WEB_CONTENT_ARTICLE");
+		if ("${upgradedFieldLabel}" == "true") {
+			SelectFrame.selectFrameNoLoading(
+				key_fieldLabel = "content",
+				locator1 = "CKEditor#BODY_FIELD_IFRAME_WEB_CONTENT_ARTICLE");
+		}
+		else {
+			SelectFrame.selectFrameNoLoading(
+				key_fieldLabel = "Content",
+				locator1 = "CKEditor#BODY_FIELD_IFRAME_WEB_CONTENT_ARTICLE");
+		}
 
 		AssertTextEquals(
 			locator1 = "CKEditor#BODY",
@@ -1977,11 +2006,9 @@ definition {
 		if (isSet(displayPageTemplateDisabled)) {
 			Portlet.waitForForm();
 
-			var key_panel = "Display Page Template";
+			var key_panel = "Display Page";
 
-			AssertElementNotPresent(locator1 = "Panel#PANEL_COLLAPSED");
-
-			AssertElementNotPresent(locator1 = "Panel#PANEL_EXPANDED");
+			AssertElementNotPresent(locator1 = "Panel#PANEL");
 		}
 	}
 
@@ -2008,17 +2035,23 @@ definition {
 	macro viewDisplayStyleCP {
 		LexiconEntry.changeDisplayStyle(displayStyle = "cards");
 
-		AssertElementPresent.pauseAssertVisible(
+		LexiconEntry.viewActiveDisplayStyle(displayStyle = "cards");
+
+		AssertElementPresent(
 			key_webContentTitle = "${webContentTitle}",
 			locator1 = "WC#ENTRY_CARDS_THUMBNAIL");
 
 		LexiconEntry.changeDisplayStyle(displayStyle = "list");
 
-		AssertElementPresent.pauseAssertVisible(
+		LexiconEntry.viewActiveDisplayStyle(displayStyle = "list");
+
+		AssertElementPresent(
 			key_webContentTitle = "${webContentTitle}",
 			locator1 = "WC#ENTRY_LIST_THUMBNAIL");
 
 		LexiconEntry.changeDisplayStyle(displayStyle = "table");
+
+		LexiconEntry.viewActiveDisplayStyle(displayStyle = "table");
 
 		AssertElementPresent(
 			key_webContentTitle = "${webContentTitle}",
@@ -2089,8 +2122,6 @@ definition {
 
 	macro viewEntryListAuthor {
 		LexiconEntry.changeDisplayStyle(displayStyle = "list");
-
-		Pause(locator1 = "3000");
 
 		AssertTextEquals.assertPartialText(
 			key_entryAuthor = "${author}",
@@ -2333,7 +2364,7 @@ definition {
 			value1 = "${webContentTitle}");
 
 		SelectFrame.selectFrameNoLoading(
-			key_fieldLabel = "content",
+			key_fieldLabel = "Content",
 			locator1 = "CKEditor#BODY_FIELD_IFRAME_WEB_CONTENT_ARTICLE");
 
 		AssertTextEquals(
@@ -2450,9 +2481,9 @@ definition {
 
 	macro viewVideoPreview {
 		if (isSet(webContentTitle)) {
-			WebContentNavigator.gotoPreviewEntryCP(webContentTitle = "${webContentTitle}");
-
-			Pause(locator1 = "3000");
+			WebContentNavigator.gotoPreviewEntryCP(
+				liveSite = "${liveSite}",
+				webContentTitle = "${webContentTitle}");
 
 			SelectFrame(locator1 = "IFrame#MODAL_BODY");
 		}
@@ -2510,6 +2541,21 @@ definition {
 
 				SelectFrameTop(value1 = "relative=top");
 			}
+		}
+
+		if ("${webContentBoolean}" == "true") {
+			var webContentBooleanFieldLabel = "Boolean";
+
+			AssertChecked.assertCheckedNotVisible(
+				checkboxName = "${webContentBooleanFieldLabel}",
+				locator1 = "Checkbox#ANY_CHECKBOX");
+		}
+		else if ("${webContentBoolean}" == "false") {
+			var webContentBooleanFieldLabel = "Boolean";
+
+			AssertNotChecked.assertNotCheckedNotVisible(
+				checkboxName = "${webContentBooleanFieldLabel}",
+				locator1 = "Checkbox#ANY_CHECKBOX");
 		}
 
 		if (isSet(webContentColor)) {
@@ -2619,6 +2665,10 @@ definition {
 			if (!(isSet(webContentLinkToPageFieldLabel))) {
 				var webContentLinkToPageFieldLabel = "Link to Page";
 			}
+
+			WaitForEditable(
+				key_fieldFieldLabel = "${webContentLinkToPageFieldLabel}",
+				locator1 = "TextInput#SELECTOR_INPUT");
 
 			var selectedPage = selenium.getElementValue("//label[normalize-space(text())='${webContentLinkToPageFieldLabel}']/following-sibling::div//div[contains(@class,'input-group')]//input[contains(@type,'text')]");
 
@@ -2762,7 +2812,7 @@ definition {
 			value1 = "${webContentTitle}");
 
 		SelectFrame.selectFrameNoLoading(
-			key_fieldLabel = "content",
+			key_fieldLabel = "Content",
 			locator1 = "CKEditor#BODY_FIELD_IFRAME_WEB_CONTENT_ARTICLE");
 
 		AssertTextEquals(

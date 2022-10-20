@@ -13,6 +13,7 @@
  */
 
 import {cleanup, fireEvent, render} from '@testing-library/react';
+import {openConfirmModal, openToast} from 'frontend-js-web';
 import React from 'react';
 
 import '@testing-library/jest-dom/extend-expect';
@@ -30,6 +31,11 @@ import {
 const _getComponent = (props) => {
 	return <VariationsNav {...props} />;
 };
+
+jest.mock('frontend-js-web', () => ({
+		openConfirmModal: jest.fn(({message, onConfirm}) => onConfirm(true)),
+		openToast: jest.fn(),
+}));
 
 jest.mock(
 	'../../../src/main/resources/META-INF/resources/js/api/index.js',
@@ -53,6 +59,7 @@ describe('VariationsNav Initial State', () => {
 
 	afterEach(() => {
 		jest.restoreAllMocks();
+		jest.clearAllMocks();
 		cleanup();
 	});
 
@@ -118,12 +125,11 @@ describe('VariationsNav With segments', () => {
 		window['openSelectSegmentsEntryDialogMethod'] = jest.fn();
 		window.confirm = jest.fn(() => true);
 		window.submitForm = jest.fn();
-
-		window.Liferay.Util.openToast = jest.fn();
 	});
 
 	afterEach(() => {
 		jest.restoreAllMocks();
+		jest.clearAllMocks();
 		cleanup();
 	});
 
@@ -201,9 +207,12 @@ describe('VariationsNav With segments', () => {
 		expect(deleteButtons[1]).not.toBeDisabled();
 
 		fireEvent.click(deleteButtons[1]);
-		expect(window.confirm).toHaveBeenCalledWith(
-			'are-you-sure-you-want-to-delete-this'
-		);
+
+		expect(openConfirmModal).toHaveBeenCalledWith({
+			message: 'are-you-sure-you-want-to-delete-this',
+			onConfirm: expect.any(Function),
+		});
+
 		expect(window.submitForm).toHaveBeenCalledWith(
 			undefined,
 			'delete-asset-list-entry-url-1'
@@ -218,16 +227,12 @@ describe('VariationsNav With segments', () => {
 		expect(deleteButtons[0]).toBeDisabled();
 
 		fireEvent.click(deleteButtons[0]);
-		expect(window.confirm).not.toHaveBeenCalled();
+		expect(openConfirmModal).not.toHaveBeenCalled();
 		expect(window.submitForm).not.toHaveBeenCalledWith();
 	});
 });
 
 describe('VariationsNav', () => {
-	beforeEach(() => {
-		global.Liferay.Util.openToast = jest.fn();
-	});
-
 	afterEach(() => {
 		jest.restoreAllMocks();
 		cleanup();
@@ -253,7 +258,7 @@ describe('VariationsNav', () => {
 
 		expect(await saveVariationsListPriorityService).toHaveBeenCalled();
 
-		expect(global.Liferay.Util.openToast).toHaveBeenCalledWith({
+		expect(openToast).toHaveBeenCalledWith({
 			message: Liferay.Language.get(
 				'your-request-completed-successfully'
 			),
@@ -280,7 +285,7 @@ describe('VariationsNav', () => {
 
 		expect(await saveVariationsListPriorityService).toHaveBeenCalled();
 
-		expect(global.Liferay.Util.openToast).toHaveBeenCalledWith({
+		expect(openToast).toHaveBeenCalledWith({
 			message: Liferay.Language.get(
 				'your-request-completed-successfully'
 			),
@@ -312,7 +317,7 @@ describe('VariationsNav', () => {
 
 		expect(await saveVariationsListPriorityService).toHaveBeenCalled();
 
-		expect(global.Liferay.Util.openToast).toHaveBeenCalledWith({
+		expect(openToast).toHaveBeenCalledWith({
 			message: Liferay.Language.get('an-unexpected-error-occurred'),
 			type: 'danger',
 		});

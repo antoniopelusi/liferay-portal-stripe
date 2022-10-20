@@ -7,9 +7,9 @@ definition {
 			locator1 = "ProductMenu#PRODUCT_MENU_PANEL_SITE_ADMINISTRATION_SITE_NAME",
 			value1 = "${siteName}");
 
-		Pause(locator1 = "3000");
-
 		if (isSet(remoteStaging)) {
+			WaitForElementPresent(locator1 = "SiteSettingsStaging#STAGING_REMOTE_LIVE");
+
 			Check.checkHiddenToggleSwitch(locator1 = "SiteSettingsStaging#STAGING_REMOTE_LIVE");
 
 			Type(
@@ -26,6 +26,8 @@ definition {
 		}
 
 		if (!(isSet(remoteStaging))) {
+			WaitForElementPresent(locator1 = "SiteSettingsStaging#STAGING_LOCAL_LIVE");
+
 			Check.checkHiddenToggleSwitch(locator1 = "SiteSettingsStaging#STAGING_LOCAL_LIVE");
 		}
 
@@ -88,7 +90,7 @@ definition {
 	}
 
 	macro addCustomPublication {
-		Pause(locator1 = "3000");
+		WaitForElementPresent(locator1 = "Button#PLUS");
 
 		LexiconEntry.gotoAdd();
 
@@ -106,7 +108,7 @@ definition {
 	}
 
 	macro addPageVariationPG {
-		Pause(locator1 = "3000");
+		WaitForElementPresent(locator1 = "Icon#STAGING_BAR_VERTICAL_ELLIPSIS");
 
 		Click(locator1 = "Icon#STAGING_BAR_VERTICAL_ELLIPSIS");
 
@@ -136,7 +138,7 @@ definition {
 	macro addPublishTemplate {
 		LexiconEntry.gotoHeaderMenuItem(menuItem = "Publish Templates");
 
-		Pause(locator1 = "3000");
+		WaitForElementPresent(locator1 = "Button#PLUS");
 
 		LexiconEntry.gotoAdd();
 
@@ -394,8 +396,6 @@ definition {
 				key_contentName = "${mainContent}",
 				locator1 = "PagesConfiguration#CONTENT_CHOOSE_CONTENT_CONTENT_CHECKBOX");
 
-			Pause(locator1 = "3000");
-
 			ContentConfiguration.uncheckSubContent(
 				mainContent = "${mainContent}",
 				uncheckSubContent = "${uncheckSubContent}");
@@ -427,6 +427,7 @@ definition {
 		}
 
 		var displayDateHour = selenium.getAttribute("//input[contains(@id,'schedulerStartDateHour')]@value");
+
 		var displayDateHourLength = StringUtil.length("${displayDateHour}");
 
 		if ("${displayDateHourLength}" == "1") {
@@ -434,10 +435,14 @@ definition {
 		}
 
 		var displayDateAmpm = selenium.getAttribute("//input[contains(@id,'schedulerStartDateAmPm')]@value");
+
 		var displayDateAmpm = StringUtil.replace("${displayDateAmpm}", "0", "AM");
+
 		var displayDateAmpm = StringUtil.replace("${displayDateAmpm}", "1", "PM");
 		var displayDateMinute = selenium.getAttribute("//input[contains(@id,'schedulerStartDateMinute')]@value");
-		var displayDateMinuteFuture = ${displayDateMinute} + 3;
+
+		var displayDateMinuteFuture = ${displayDateMinute} + 5;
+
 		var displayDateMinuteFutureLength = StringUtil.length("${displayDateMinuteFuture}");
 
 		if ("${displayDateMinuteFutureLength}" == "1") {
@@ -466,7 +471,9 @@ definition {
 			}
 
 			var endByDateYear = selenium.getAttribute("//input[contains(@id,'schedulerEndDateYear')]@value");
+
 			var endByDateYearFuture = ${endByDateYear} + 5;
+
 			var endByDay = "${endByDateMonth}/${endByDateDay}/${endByDateYearFuture}";
 
 			Type(
@@ -484,7 +491,9 @@ definition {
 
 		ClickNoError(locator1 = "Staging#COPY_FROM_LIVE");
 
-		Pause(locator1 = "2000");
+		WaitForElementPresent(
+			locator1 = "Button#SUBMIT",
+			value1 = "Copy from Live");
 
 		AssertClickNoError.assertPartialTextClickAt(
 			locator1 = "Button#SUBMIT",
@@ -673,7 +682,7 @@ definition {
 
 		Button.clickSave();
 
-		Pause(locator1 = "5000");
+		Alert.viewSuccessMessage();
 	}
 
 	macro enablePageInSitePagesVariation {
@@ -786,7 +795,7 @@ definition {
 		LexiconEntry.gotoHeaderMenuItem(menuItem = "Publish Templates");
 
 		LexiconEntry.gotoEntryMenuItem(
-			menuItem = "Move to Recycle Bin",
+			menuItem = "Delete",
 			rowEntry = "${publishTemplateName}");
 
 		Alert.viewSuccessMessage();
@@ -887,7 +896,7 @@ definition {
 
 		Confirm(value1 = "Are you sure you want to publish to live and update the existing application data?");
 
-		Pause(locator1 = "5000");
+		WaitForElementPresent(locator1 = "Staging#STAGING_STATUS_PORTLET");
 
 		AssertTextEquals(
 			locator1 = "Staging#STAGING_STATUS_PORTLET",
@@ -909,7 +918,7 @@ definition {
 
 		AssertConfirm(value1 = "Are you sure you want to publish to live and update the existing application data?");
 
-		Pause(locator1 = "5000");
+		WaitForElementPresent(locator1 = "Staging#STAGING_STATUS_PORTLET");
 
 		AssertTextEquals(
 			locator1 = "Staging#STAGING_STATUS_PORTLET",
@@ -938,6 +947,9 @@ definition {
 			value1 = "Publish to Live");
 
 		while ((IsElementNotPresent(locator1 = "Staging#PROCESS_SUCCESSFUL")) && (IsElementNotPresent(locator1 = "Staging#LATEST_PROCESS_RESULT"))) {
+
+			// Set a minium pause to wait for the publication process completed.
+
 			Pause(locator1 = "1000");
 		}
 
@@ -987,7 +999,7 @@ definition {
 			locator1 = "Staging#STAGING_PUBLISH_TO_REMOTE_LIVE_BUTTON",
 			value1 = "Publish to Remote Live");
 
-		Pause(locator1 = "5000");
+		WaitForElementPresent(locator1 = "Staging#PROCESS_RESULT");
 
 		AssertTextEquals(
 			locator1 = "Staging#PROCESS_RESULT",
@@ -1037,7 +1049,6 @@ definition {
 		var siteId = JSONGroupSetter.setGroupId(
 			groupName = "Remote Site",
 			portalURL = "http://localhost:${remotePort}");
-
 		var siteURLKey = ContentPagesNavigator._convertNameToKey(name = "${siteName}");
 
 		Staging.openStagingAdmin(siteURLKey = "${siteURLKey}");
@@ -1094,6 +1105,9 @@ definition {
 			value1 = "Execute");
 
 		while (IsElementNotPresent(locator1 = "Message#SUCCESS_DISMISSIBLE")) {
+
+			// Set a long pause to wait for creating 400 web content articles.
+
 			Pause(locator1 = "4000");
 		}
 	}
@@ -1106,6 +1120,9 @@ definition {
 		AssertConfirm(value1 = "Are you sure you want to activate local staging for ${siteName}?");
 
 		while (IsElementNotPresent(locator1 = "Staging#PROCESS_SUCCESSFUL")) {
+
+			// Set a minium pause to wait for the publication process completed.
+
 			Pause(locator1 = "1000");
 		}
 
@@ -1136,6 +1153,9 @@ definition {
 		AssertConfirm(value1 = "Are you sure you want to activate remote staging for ${siteName}?");
 
 		while (IsElementNotPresent(locator1 = "Message#SUCCESS")) {
+
+			// This pause has been optimized. See details in LRQA-66660.
+
 			Pause(locator1 = "1000");
 		}
 
@@ -1156,10 +1176,10 @@ definition {
 		Click(locator1 = "StagingPublishToLive#SWITCH_TO_ADVANCED_PUBLICATION");
 
 		if (IsElementPresent(locator1 = "PagesConfiguration#PAGES_ALL_PAGES_CHECKBOX")) {
-			Check(locator1 = "PagesConfiguration#PAGES_ALL_PAGES_CHECKBOX");
+			Click(locator1 = "PagesConfiguration#PAGES_ALL_PAGES_CHECKBOX");
 		}
 		else {
-			Check(locator1 = "PagesConfiguration#PAGES_ALL_PUBLIC_PAGES_CHECKBOX");
+			Click(locator1 = "PagesConfiguration#PAGES_ALL_PUBLIC_PAGES_CHECKBOX");
 		}
 
 		Staging.configureScheduleTime(scheduleTitleName = "${scheduleTitleName}");
@@ -1186,13 +1206,13 @@ definition {
 
 		SelectFrameTop(value1 = "relative=top");
 
+		// We split a long pause which is a 5-minute scheduled event into smaller one and there is another 3-minute pause in testcases.
+
 		Pause(locator1 = "5000");
 	}
 
 	macro searchPublishTemplate {
 		LexiconEntry.gotoHeaderMenuItem(menuItem = "Publish Templates");
-
-		Pause(locator1 = "3000");
 
 		Search.searchCP(searchTerm = "${searchTerm}");
 
@@ -1207,7 +1227,9 @@ definition {
 		Click(locator1 = "StagingPublishToLive#DATE_SCHEDULE_START_DATE");
 
 		var daySelected = selenium.getText("CalendarEditEvent#MINI_CALENDAR_DAY_SELECTED");
+
 		var tomorrow = ${daySelected} + 1;
+
 		var key_daySpecific = "${tomorrow}";
 
 		if (IsElementPresent(locator1 = "CalendarEditEvent#MINI_CALENDAR_DAY_SPECIFIC")) {
@@ -1353,6 +1375,9 @@ definition {
 
 	macro viewProcessResult {
 		while (IsElementNotPresent(locator1 = "Staging#PROCESS_RESULT")) {
+
+			// This pause has been optimized. See details in LPS-135924.
+
 			Pause(locator1 = "1000");
 		}
 
@@ -1372,13 +1397,7 @@ definition {
 		else {
 			WaitForElementNotPresent(locator1 = "Staging#PROCESS_IN_PROGRESS");
 
-			WaitForElementNotPresent(
-				key_title = "Current",
-				locator1 = "Staging#PROCESS_GROUP_TITLE");
-
-			AssertTextEquals(
-				locator1 = "Staging#PROCESS_SUCCESSFUL",
-				value1 = "Successful");
+			Staging.viewSuccessResult();
 		}
 
 		if (isSet(validateErrorMessage)) {
@@ -1587,6 +1606,23 @@ definition {
 	macro viewStagingWorkflowStatusPG {
 		if ("${stagingWorkflowStatus}" == "Ready for Publication") {
 			AssertElementPresent(locator1 = "Staging#STAGING_MENU_READY_FOR_PUBLICATION");
+		}
+	}
+
+	macro viewSuccessResult {
+		if (IsElementPresent(locator1 = "ControlMenu#HEADING")) {
+			WaitForElementNotPresent(
+				key_title = "Current",
+				locator1 = "Staging#PROCESS_GROUP_TITLE");
+
+			AssertTextEquals(
+				locator1 = "Staging#LATEST_PROCESS_RESULT",
+				value1 = "Successful");
+		}
+		else {
+			AssertTextEquals(
+				locator1 = "Staging#PROCESS_RESULT",
+				value1 = "Successful");
 		}
 	}
 

@@ -162,7 +162,6 @@ definition {
 		var categoryId = JSONMBMessage.getCategoryIdByName(
 			categoryName = "${categoryName}",
 			groupName = "${groupName}");
-
 		var baseURL = "${baseURL}";
 
 		if (!(isSet(baseURL))) {
@@ -181,7 +180,6 @@ definition {
 		var categoryId = JSONMBMessage.getCategoryIdByName(
 			categoryName = "${categoryName}",
 			groupName = "${groupName}");
-
 		var baseURL = "${baseURL}";
 
 		if (!(isSet(baseURL))) {

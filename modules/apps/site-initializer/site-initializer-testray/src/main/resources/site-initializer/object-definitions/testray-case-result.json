@@ -16,19 +16,8 @@
 			"type": "Long"
 		},
 		{
-			"DBType": "Long",
-			"indexed": false,
-			"indexedAsKeyword": false,
-			"label": {
-				"en_US": "Assigned User Id"
-			},
-			"name": "assignedUserId",
-			"required": false,
-			"type": "Long"
-		},
-		{
 			"DBType": "Date",
-			"indexed": false,
+			"indexed": true,
 			"indexedAsKeyword": false,
 			"label": {
 				"en_US": "Start Date"
@@ -39,7 +28,7 @@
 		},
 		{
 			"DBType": "Date",
-			"indexed": false,
+			"indexed": true,
 			"indexedAsKeyword": false,
 			"label": {
 				"en_US": "Closed Date"
@@ -68,6 +57,28 @@
 			},
 			"name": "dueStatus",
 			"required": true,
+			"type": "Integer"
+		},
+		{
+			"DBType": "Clob",
+			"indexed": false,
+			"indexedAsKeyword": false,
+			"label": {
+				"en_US": "Attachments"
+			},
+			"name": "attachments",
+			"required": false,
+			"type": "Clob"
+		},
+		{
+			"DBType": "Integer",
+			"indexed": true,
+			"indexedAsKeyword": true,
+			"label": {
+				"en_US": "Warnings"
+			},
+			"name": "warnings",
+			"required": false,
 			"type": "Integer"
 		}
 	],

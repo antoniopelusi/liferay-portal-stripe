@@ -17,8 +17,8 @@ package com.liferay.content.dashboard.web.internal.servlet.taglib.util;
 import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.asset.kernel.model.AssetTag;
 import com.liferay.content.dashboard.item.action.ContentDashboardItemAction;
+import com.liferay.content.dashboard.item.type.ContentDashboardItemSubtype;
 import com.liferay.content.dashboard.web.internal.item.ContentDashboardItem;
-import com.liferay.content.dashboard.web.internal.item.type.ContentDashboardItemSubtype;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
 import com.liferay.info.item.InfoItemReference;
 import com.liferay.petra.string.StringPool;
@@ -85,10 +85,9 @@ public class ContentDashboardDropdownItemsProviderTest {
 			new MockLiferayPortletRenderRequest();
 
 		mockLiferayPortletRenderRequest.setAttribute(
-			"null-" + WebKeys.CURRENT_PORTLET_URL, new MockLiferayPortletURL());
-
-		mockLiferayPortletRenderRequest.setAttribute(
 			WebKeys.LOCALE, LocaleUtil.US);
+		mockLiferayPortletRenderRequest.setAttribute(
+			"null-" + WebKeys.CURRENT_PORTLET_URL, new MockLiferayPortletURL());
 
 		ContentDashboardDropdownItemsProvider
 			contentDashboardDropdownItemsProvider =
@@ -124,10 +123,9 @@ public class ContentDashboardDropdownItemsProviderTest {
 			new MockLiferayPortletRenderRequest();
 
 		mockLiferayPortletRenderRequest.setAttribute(
-			"null-" + WebKeys.CURRENT_PORTLET_URL, new MockLiferayPortletURL());
-
-		mockLiferayPortletRenderRequest.setAttribute(
 			WebKeys.LOCALE, LocaleUtil.US);
+		mockLiferayPortletRenderRequest.setAttribute(
+			"null-" + WebKeys.CURRENT_PORTLET_URL, new MockLiferayPortletURL());
 
 		ContentDashboardDropdownItemsProvider
 			contentDashboardDropdownItemsProvider =
@@ -167,10 +165,9 @@ public class ContentDashboardDropdownItemsProviderTest {
 			new MockLiferayPortletRenderRequest();
 
 		mockLiferayPortletRenderRequest.setAttribute(
-			"null-" + WebKeys.CURRENT_PORTLET_URL, new MockLiferayPortletURL());
-
-		mockLiferayPortletRenderRequest.setAttribute(
 			WebKeys.LOCALE, LocaleUtil.US);
+		mockLiferayPortletRenderRequest.setAttribute(
+			"null-" + WebKeys.CURRENT_PORTLET_URL, new MockLiferayPortletURL());
 
 		ContentDashboardDropdownItemsProvider
 			contentDashboardDropdownItemsProvider =

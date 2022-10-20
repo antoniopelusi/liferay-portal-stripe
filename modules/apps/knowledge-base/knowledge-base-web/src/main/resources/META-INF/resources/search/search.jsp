@@ -21,7 +21,7 @@
 </div>
 
 <liferay-portlet:renderURL varImpl="iteratorURL">
-	<portlet:param name="mvcPath" value="/search/search.jsp" />
+	<portlet:param name="mvcRenderCommandName" value="/knowledge_base/search" />
 	<portlet:param name="keywords" value='<%= ParamUtil.getString(request, "keywords") %>' />
 </liferay-portlet:renderURL>
 
@@ -37,7 +37,7 @@ KBSearchDisplayContext kbSearchDisplayContext = new KBSearchDisplayContext(reque
 		modelVar="tuple"
 	>
 		<liferay-portlet:renderURL varImpl="rowURL">
-			<portlet:param name="mvcPath" value="/search/view_article.jsp" />
+			<portlet:param name="mvcRenderCommandName" value="/knowledge_base/view_article" />
 			<portlet:param name="redirect" value="<%= currentURL %>" />
 			<portlet:param name="resourcePrimKey" value="<%= (String)tuple.getObject(0) %>" />
 		</liferay-portlet:renderURL>
@@ -101,5 +101,7 @@ KBSearchDisplayContext kbSearchDisplayContext = new KBSearchDisplayContext(reque
 		</c:if>
 	</liferay-ui:search-container-row>
 
-	<liferay-ui:search-iterator />
+	<liferay-ui:search-iterator
+		markupView="lexicon"
+	/>
 </liferay-ui:search-container>

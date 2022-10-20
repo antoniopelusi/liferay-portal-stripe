@@ -14,13 +14,12 @@
 
 import ClayEmptyState from '@clayui/empty-state';
 import {ClayCheckbox, ClayRadio} from '@clayui/form';
-import ClayLoadingIndicator from '@clayui/loading-indicator';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
-import React, {useContext, useMemo} from 'react';
+import React, {useContext, useRef} from 'react';
 
-import DataSetContext from '../../DataSetContext';
-import ActionsDropdownRenderer from '../../data_renderers/ActionsDropdownRenderer';
+import FrontendDataSetContext from '../../FrontendDataSetContext';
+import Actions from '../../actions/Actions';
 import {getValueDetailsFromItem} from '../../utils/index';
 import ViewsContext from '../ViewsContext';
 import TableCell from './TableCell';
@@ -70,7 +69,7 @@ export function getVisibleFields(fields, visibleFieldNames) {
 	return visibleFields.length ? visibleFields : fields;
 }
 
-function Table({dataLoading, items, itemsActions, schema, style}) {
+function Table({items, itemsActions, schema, style}) {
 	const {
 		highlightedItemsValue,
 		inlineAddingSettings,
@@ -84,195 +83,25 @@ function Table({dataLoading, items, itemsActions, schema, style}) {
 		selectionType,
 		sorting,
 		updateSorting,
-	} = useContext(DataSetContext);
-	const [{visibleFieldNames}] = useContext(ViewsContext);
+	} = useContext(FrontendDataSetContext);
+	const [
+		{
+			activeView: {quickActionsEnabled},
+			visibleFieldNames,
+		},
+	] = useContext(ViewsContext);
 
 	const visibleFields = getVisibleFields(schema.fields, visibleFieldNames);
 
-	const showActionItems = useMemo(() => {
-		return Boolean(
+	const actionExistsRef = useRef(
+		Boolean(
 			itemsActions?.length ||
-				items?.find((item) => item.actions || item.actionDropdownItems)
-		);
-	}, [items, itemsActions]);
+				items?.find((item) => item.actionDropdownItems?.length)
+		)
+	);
 
 	const SelectionComponent =
 		selectionType === 'multiple' ? ClayCheckbox : ClayRadio;
-
-	let viewContent;
-
-	if (dataLoading) {
-		viewContent = <ClayLoadingIndicator className="mt-7" />;
-	}
-	else {
-		let mainRowsCounter = 0;
-
-		viewContent = (
-			<>
-				{(inlineAddingSettings ||
-					(!inlineAddingSettings && !!items.length)) && (
-					<DndTable.Table
-						borderless
-						className={`table-style-${style}`}
-						hover={false}
-						responsive
-						striped
-					>
-						<TableHead
-							fields={visibleFields}
-							items={items}
-							schema={schema}
-							selectItems={selectItems}
-							selectable={selectable}
-							selectedItemsKey={selectedItemsKey}
-							selectedItemsValue={selectedItemsValue}
-							selectionType={selectionType}
-							sorting={sorting}
-							updateSorting={updateSorting}
-						/>
-
-						<DndTable.Body>
-							{inlineAddingSettings && (
-								<TableInlineAddingRow
-									fields={visibleFields}
-									selectable={selectable}
-								/>
-							)}
-
-							{!!items.length &&
-								items.map((item) => {
-									const itemId =
-										item[selectedItemsKey ?? 'id'];
-
-									const nestedItems =
-										nestedItemsReferenceKey &&
-										item[nestedItemsReferenceKey];
-
-									const hasBackground =
-										mainRowsCounter++ % 2 === 0;
-
-									return (
-										<React.Fragment key={itemId}>
-											<DndTable.Row
-												className={classNames(
-													highlightedItemsValue.includes(
-														itemId
-													) && 'active',
-													hasBackground && 'with-bg'
-												)}
-											>
-												{selectable && (
-													<DndTable.Cell
-														className="item-selector"
-														columnName="item-selector"
-													>
-														<SelectionComponent
-															checked={
-																!!selectedItemsValue.find(
-																	(element) =>
-																		String(
-																			element
-																		) ===
-																		String(
-																			itemId
-																		)
-																)
-															}
-															onChange={() =>
-																selectItems(
-																	itemId
-																)
-															}
-															value={itemId}
-														/>
-													</DndTable.Cell>
-												)}
-
-												{getItemFields(
-													item,
-													visibleFields,
-													itemId,
-													itemsActions,
-													itemsChanges[itemId]
-												)}
-
-												<DndTable.Cell
-													className="item-actions"
-													columnName="item-actions"
-												>
-													{(showActionItems ||
-														item.actions) && (
-														<ActionsDropdownRenderer
-															actions={
-																itemsActions ||
-																item.actions ||
-																item.actionDropdownItems
-															}
-															itemData={item}
-															itemId={itemId}
-														/>
-													)}
-												</DndTable.Cell>
-											</DndTable.Row>
-
-											{nestedItems &&
-												nestedItems.map(
-													(nestedItem, i) => (
-														<DndTable.Row
-															className={classNames(
-																'nested',
-																highlightedItemsValue.includes(
-																	nestedItem[
-																		nestedItemsKey
-																	]
-																) && 'active',
-																i ===
-																	nestedItems.length -
-																		1 &&
-																	'last'
-															)}
-															key={
-																nestedItem[
-																	nestedItemsKey
-																]
-															}
-															paddingLeftCells={
-																selectable && 1
-															}
-															paddingRightCells={
-																showActionItems &&
-																1
-															}
-														>
-															{getItemFields(
-																nestedItem,
-																visibleFields,
-																nestedItem[
-																	nestedItemsKey
-																],
-																itemsActions
-															)}
-														</DndTable.Row>
-													)
-												)}
-										</React.Fragment>
-									);
-								})}
-						</DndTable.Body>
-					</DndTable.Table>
-				)}
-				{!items.length && (
-					<ClayEmptyState
-						description={Liferay.Language.get(
-							'sorry,-no-results-were-found'
-						)}
-						imgSrc={`${themeDisplay.getPathThemeImages()}/states/search_state.gif`}
-						title={Liferay.Language.get('no-results-found')}
-					/>
-				)}
-			</>
-		);
-	}
 
 	const columnNames = [];
 
@@ -287,10 +116,169 @@ function Table({dataLoading, items, itemsActions, schema, style}) {
 
 	return (
 		<DndTable.ContextProvider columnNames={columnNames}>
-			{viewContent}
+			{(inlineAddingSettings ||
+				(!inlineAddingSettings && !!items.length)) && (
+				<DndTable.Table
+					borderless
+					className={classNames(`table-style-${style}`, {
+						'with-quick-actions': quickActionsEnabled,
+					})}
+					hover={false}
+					responsive
+					striped
+				>
+					<TableHead
+						fields={visibleFields}
+						items={items}
+						schema={schema}
+						selectItems={selectItems}
+						selectable={selectable}
+						selectedItemsKey={selectedItemsKey}
+						selectedItemsValue={selectedItemsValue}
+						selectionType={selectionType}
+						sorting={sorting}
+						updateSorting={updateSorting}
+					/>
+
+					<DndTable.Body>
+						{inlineAddingSettings && (
+							<TableInlineAddingRow
+								fields={visibleFields}
+								selectable={selectable}
+							/>
+						)}
+
+						{!!items.length &&
+							items.map((item) => {
+								const itemId = item[selectedItemsKey ?? 'id'];
+
+								const nestedItems =
+									nestedItemsReferenceKey &&
+									item[nestedItemsReferenceKey];
+
+								return (
+									<React.Fragment key={itemId}>
+										<DndTable.Row
+											className={classNames({
+												active: highlightedItemsValue.includes(
+													itemId
+												),
+												selected: selectedItemsValue.includes(
+													itemId
+												),
+											})}
+										>
+											{selectable && (
+												<DndTable.Cell
+													className="item-selector"
+													columnName="item-selector"
+												>
+													<SelectionComponent
+														checked={
+															!!selectedItemsValue.find(
+																(element) =>
+																	String(
+																		element
+																	) ===
+																	String(
+																		itemId
+																	)
+															)
+														}
+														onChange={() =>
+															selectItems(itemId)
+														}
+														value={itemId}
+													/>
+												</DndTable.Cell>
+											)}
+
+											{getItemFields(
+												item,
+												visibleFields,
+												itemId,
+												itemsActions,
+												itemsChanges[itemId]
+											)}
+
+											<ActionsCell
+												item={item}
+												itemId={itemId}
+												itemsActions={itemsActions}
+											/>
+										</DndTable.Row>
+
+										{nestedItems &&
+											nestedItems.map((nestedItem, i) => (
+												<DndTable.Row
+													className={classNames(
+														'nested',
+														highlightedItemsValue.includes(
+															nestedItem[
+																nestedItemsKey
+															]
+														) && 'active',
+														i ===
+															nestedItems.length -
+																1 && 'last'
+													)}
+													key={
+														nestedItem[
+															nestedItemsKey
+														]
+													}
+													paddingLeftCells={
+														selectable && 1
+													}
+													paddingRightCells={
+														actionExistsRef.current &&
+														1
+													}
+												>
+													{getItemFields(
+														nestedItem,
+														visibleFields,
+														nestedItem[
+															nestedItemsKey
+														],
+														itemsActions
+													)}
+												</DndTable.Row>
+											))}
+									</React.Fragment>
+								);
+							})}
+					</DndTable.Body>
+				</DndTable.Table>
+			)}
+
+			{!items.length && (
+				<ClayEmptyState
+					description={Liferay.Language.get(
+						'sorry,-no-results-were-found'
+					)}
+					imgSrc={`${themeDisplay.getPathThemeImages()}/states/search_state.gif`}
+					title={Liferay.Language.get('no-results-found')}
+				/>
+			)}
 		</DndTable.ContextProvider>
 	);
 }
+
+const ActionsCell = ({item, itemId, itemsActions}) => {
+	return (
+		<DndTable.Cell className="item-actions" columnName="item-actions">
+			{(itemsActions?.length > 0 ||
+				item.actionDropdownItems?.length > 0) && (
+				<Actions
+					actions={itemsActions || item.actionDropdownItems}
+					itemData={item}
+					itemId={itemId}
+				/>
+			)}
+		</DndTable.Cell>
+	);
+};
 
 Table.propTypes = {
 	items: PropTypes.arrayOf(PropTypes.object),

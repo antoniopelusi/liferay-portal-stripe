@@ -14,15 +14,18 @@
 
 import {useEffect} from 'react';
 
-import {Avatar} from '../../components/Avatar';
+import Avatar from '../../components/Avatar';
 import Code from '../../components/Code';
 import Container from '../../components/Layout/Container';
-import ListView from '../../components/ListView/ListView';
+import ListView from '../../components/ListView';
 import StatusBadge from '../../components/StatusBadge';
 import QATable from '../../components/Table/QATable';
-import {getCaseResults} from '../../graphql/queries';
 import useHeader from '../../hooks/useHeader';
 import i18n from '../../i18n';
+import {
+	caseResultsResource,
+	getCaseResultTransformData,
+} from '../../services/rest';
 import {getStatusLabel} from '../../util/constants';
 import {subtask} from '../../util/mock';
 
@@ -112,12 +115,12 @@ const Subtasks = () => {
 				</div>
 			</Container>
 
-			<Container className="mt-5" title="Tests">
+			<Container className="mt-5" title={i18n.translate('tests')}>
 				<ListView
 					managementToolbarProps={{
 						visible: false,
 					}}
-					query={getCaseResults}
+					resource={caseResultsResource}
 					tableProps={{
 						columns: [
 							{
@@ -164,9 +167,7 @@ const Subtasks = () => {
 								render: (dueStatus) => {
 									return (
 										<StatusBadge
-											type={getStatusLabel(
-												dueStatus
-											)?.toLowerCase()}
+											type={getStatusLabel(dueStatus)}
 										>
 											{getStatusLabel(dueStatus)}
 										</StatusBadge>
@@ -178,7 +179,7 @@ const Subtasks = () => {
 						navigateTo: ({build, id}) =>
 							`/project/routines/${build?.routine?.id}/build/${build?.id}/case-result/${id}`,
 					}}
-					transformData={(data) => data?.caseResults}
+					transformData={getCaseResultTransformData}
 				/>
 			</Container>
 		</>

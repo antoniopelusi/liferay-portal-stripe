@@ -50,6 +50,7 @@ definition {
 			}
 
 			var displayDateHour = selenium.getElementValue("AddTask#DUE_DATE_HOUR");
+
 			var displayDateHourLength = StringUtil.length("${displayDateHour}");
 
 			if ("${displayDateHourLength}" == "1") {
@@ -57,7 +58,9 @@ definition {
 			}
 
 			var displayDateMinute = selenium.getElementValue("AddTask#DUE_DATE_MINUTE");
+
 			var displayDateMinuteFuture = ${displayDateMinute} + 2;
+
 			var displayDateMinuteFutureLength = StringUtil.length("${displayDateMinuteFuture}");
 
 			if ("${displayDateMinuteFutureLength}" == "1") {
@@ -65,8 +68,11 @@ definition {
 			}
 
 			var displayDateMeridian = selenium.getElementValue("AddTask#DUE_DATE_MERIDIAN");
+
 			var displayDateMeridian = StringUtil.replace("${displayDateMeridian}", "0", "AM");
+
 			var displayDateMeridian = StringUtil.replace("${displayDateMeridian}", "1", "PM");
+
 			var displayDate = "${displayDateHour}:${displayDateMinuteFuture} ${displayDateMeridian}";
 
 			Type(

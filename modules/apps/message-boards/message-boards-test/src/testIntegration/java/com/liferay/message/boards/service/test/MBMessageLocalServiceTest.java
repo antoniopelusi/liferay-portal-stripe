@@ -227,15 +227,21 @@ public class MBMessageLocalServiceTest {
 	public void testAddMessageWithoutExternalReferenceCode() throws Exception {
 		User user = TestPropsValues.getUser();
 
-		MBMessage mbMessage = MBMessageLocalServiceUtil.addMessage(
+		MBMessage mbMessage1 = MBMessageLocalServiceUtil.addMessage(
 			user.getUserId(), user.getFullName(), _group.getGroupId(),
 			MBCategoryConstants.DEFAULT_PARENT_CATEGORY_ID,
 			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
 			ServiceContextTestUtil.getServiceContext());
 
-		Assert.assertEquals(
-			String.valueOf(mbMessage.getMessageId()),
-			mbMessage.getExternalReferenceCode());
+		String externalReferenceCode = mbMessage1.getExternalReferenceCode();
+
+		Assert.assertEquals(externalReferenceCode, mbMessage1.getUuid());
+
+		MBMessage mbMessage2 =
+			MBMessageLocalServiceUtil.getMBMessageByExternalReferenceCode(
+				_group.getGroupId(), externalReferenceCode);
+
+		Assert.assertEquals(mbMessage1, mbMessage2);
 	}
 
 	@Test

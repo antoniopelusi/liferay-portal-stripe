@@ -1,16 +1,14 @@
 @component-name = "portal-analytics-cloud"
 definition {
 
+	property analytics.cloud.release = "true";
+	property analytics.cloud.upstream = "true";
 	property portal.release = "false";
 	property portal.upstream = "true";
 	property property.group = "analytics.cloud.profile";
 	property testray.main.component.name = "Analytics Cloud";
 
 	setUp {
-		AntCommand(
-			locator1 = "build-test.xml",
-			value1 = "record-test-generated-properties");
-
 		task ("Copy the token from AC") {
 			ACUtils.launchAC();
 
@@ -26,6 +24,31 @@ definition {
 		task ("Add a new site with a public widget page") {
 			ACUtils.addSiteAndPage();
 		}
+
+		task ("Connect the DXP to AC") {
+			ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		}
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		ACUtils.tearDownAC();
+
+		ACUtils.tearDownDXP();
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Site Name");
+		}
+	}
+
+	@description = "Feature ID: Legacy | Automation ID: LRAC-8805 | Test Summary: Check pageDepthReached triggers ([depth] = 25) and check its properties (see reference document in comments)"
+	@priority = "5"
+	test CheckPageDepthReachedTo25 {
+		property proxy.server.enabled = "true";
 
 		task ("Add a Blogs widget to page") {
 			ACUtils.addWidgetToPage(
@@ -46,31 +69,6 @@ definition {
 			}
 		}
 
-		task ("Connect the DXP to AC") {
-			ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
-		}
-	}
-
-	tearDown {
-		var testPortalInstance = PropsUtil.get("test.portal.instance");
-
-		ACUtils.tearDownDXP();
-
-		if ("${testPortalInstance}" == "true") {
-			PortalInstances.tearDownCP();
-		}
-		else {
-			JSONGroup.deleteGroupByName(groupName = "Site Name");
-		}
-
-		ACUtils.tearDownAC();
-	}
-
-	@description = "Feature ID: Legacy | Automation ID: LRAC-8805 | Test Summary: Check pageDepthReached triggers ([depth] = 25) and check its properties (see reference document in comments)"
-	@priority = "5"
-	test CheckPageDepthReachedTo25 {
-		property proxy.server.enabled = "true";
-
 		task ("Get the Property ID in AC") {
 			ACUtils.launchAC();
 
@@ -81,6 +79,7 @@ definition {
 
 		task ("Get the DXP Instance ID in AC") {
 			var dataSourceName = StringUtil.extractFirst("${assignedPropertyName}", "Combined");
+
 			var dataSourceName = StringUtil.trim("${dataSourceName}");
 
 			var expectedDataSourceId = ACSettings.getDXPInstanceId(dataSourceName = "${dataSourceName}");
@@ -104,10 +103,8 @@ definition {
 			ScrollWebElementIntoView(
 				key_entryTitle = "Blogs Entry Title 7",
 				locator1 = "BlogsEntry#TITLE");
-		}
 
-		task ("Wait for sending requests") {
-			Pause(locator1 = "5000");
+			ACUtils.waitForScrollDown();
 		}
 
 		task ("View the depth of pageDepthReached event is 25") {
@@ -130,6 +127,25 @@ definition {
 	test CheckPageDepthReachedTo50 {
 		property proxy.server.enabled = "true";
 
+		task ("Add a Blogs widget to page") {
+			ACUtils.addWidgetToPage(
+				layoutName = "AC Page",
+				widgetName = "Blogs");
+		}
+
+		task ("Add 10 blogs entries with long content") {
+			var n = "0";
+
+			while ("${n}" != "10") {
+				var n = ${n} + 1;
+
+				ACUtils.createBlogsAndAddToPage(
+					entryContent = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce in lacus nunc. Etiam et volutpat est. Quisque quis mi erat. Donec maximus mauris augue, nec convallis metus aliquet vitae. Nullam venenatis a nisl in tincidunt. Aliquam venenatis, enim in venenatis aliquam, mauris erat blandit nulla, sit amet tincidunt elit enim sit amet dolor. Aliquam fringilla condimentum varius. Maecenas tincidunt elit eget lacinia aliquam. Proin congue diam lorem. Vestibulum tristique elit mi, non dapibus erat lobortis.",
+					entryTitle = "Blogs Entry Title ${n}",
+					groupName = "Site Name");
+			}
+		}
+
 		task ("Get the Property ID in AC") {
 			ACUtils.launchAC();
 
@@ -140,6 +156,7 @@ definition {
 
 		task ("Get the DXP Instance ID in AC") {
 			var dataSourceName = StringUtil.extractFirst("${assignedPropertyName}", "Combined");
+
 			var dataSourceName = StringUtil.trim("${dataSourceName}");
 
 			var expectedDataSourceId = ACSettings.getDXPInstanceId(dataSourceName = "${dataSourceName}");
@@ -163,10 +180,8 @@ definition {
 			ScrollWebElementIntoView(
 				key_entryTitle = "Blogs Entry Title 4",
 				locator1 = "BlogsEntry#TITLE");
-		}
 
-		task ("Wait for sending requests") {
-			Pause(locator1 = "5000");
+			ACUtils.waitForScrollDown();
 		}
 
 		task ("View the depth of pageDepthReached event is 50") {
@@ -189,6 +204,25 @@ definition {
 	test CheckPageDepthReachedTo75 {
 		property proxy.server.enabled = "true";
 
+		task ("Add a Blogs widget to page") {
+			ACUtils.addWidgetToPage(
+				layoutName = "AC Page",
+				widgetName = "Blogs");
+		}
+
+		task ("Add 10 blogs entries with long content") {
+			var n = "0";
+
+			while ("${n}" != "10") {
+				var n = ${n} + 1;
+
+				ACUtils.createBlogsAndAddToPage(
+					entryContent = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce in lacus nunc. Etiam et volutpat est. Quisque quis mi erat. Donec maximus mauris augue, nec convallis metus aliquet vitae. Nullam venenatis a nisl in tincidunt. Aliquam venenatis, enim in venenatis aliquam, mauris erat blandit nulla, sit amet tincidunt elit enim sit amet dolor. Aliquam fringilla condimentum varius. Maecenas tincidunt elit eget lacinia aliquam. Proin congue diam lorem. Vestibulum tristique elit mi, non dapibus erat lobortis.",
+					entryTitle = "Blogs Entry Title ${n}",
+					groupName = "Site Name");
+			}
+		}
+
 		task ("Get the Property ID in AC") {
 			ACUtils.launchAC();
 
@@ -199,6 +233,7 @@ definition {
 
 		task ("Get the DXP Instance ID in AC") {
 			var dataSourceName = StringUtil.extractFirst("${assignedPropertyName}", "Combined");
+
 			var dataSourceName = StringUtil.trim("${dataSourceName}");
 
 			var expectedDataSourceId = ACSettings.getDXPInstanceId(dataSourceName = "${dataSourceName}");
@@ -222,10 +257,8 @@ definition {
 			ScrollWebElementIntoView(
 				key_entryTitle = "Blogs Entry Title 2",
 				locator1 = "BlogsEntry#TITLE");
-		}
 
-		task ("Wait for sending requests") {
-			Pause(locator1 = "5000");
+			ACUtils.waitForScrollDown();
 		}
 
 		task ("View the depth of pageDepthReached event is 75") {
@@ -258,6 +291,7 @@ definition {
 
 		task ("Get the DXP Instance ID in AC") {
 			var dataSourceName = StringUtil.extractFirst("${assignedPropertyName}", "Combined");
+
 			var dataSourceName = StringUtil.trim("${dataSourceName}");
 
 			var expectedDataSourceId = ACSettings.getDXPInstanceId(dataSourceName = "${dataSourceName}");
@@ -282,7 +316,7 @@ definition {
 		}
 
 		task ("Wait for sending requests") {
-			Pause(locator1 = "10000");
+			ACUtils.waitForSendingRequest();
 		}
 
 		task ("View the depth of pageDepthReached event is 100") {
@@ -315,6 +349,7 @@ definition {
 
 		task ("Get the DXP Instance ID in AC") {
 			var dataSourceName = StringUtil.extractFirst("${assignedPropertyName}", "Combined");
+
 			var dataSourceName = StringUtil.trim("${dataSourceName}");
 
 			var expectedDataSourceId = ACSettings.getDXPInstanceId(dataSourceName = "${dataSourceName}");
@@ -341,7 +376,7 @@ definition {
 		}
 
 		task ("Wait for sending requests") {
-			Pause(locator1 = "10000");
+			ACUtils.waitForSendingRequest();
 		}
 
 		task ("View the depth of pageDepthReached event is 100") {
@@ -374,6 +409,7 @@ definition {
 
 		task ("Get the DXP Instance ID in AC") {
 			var dataSourceName = StringUtil.extractFirst("${assignedPropertyName}", "Combined");
+
 			var dataSourceName = StringUtil.trim("${dataSourceName}");
 
 			var expectedDataSourceId = ACSettings.getDXPInstanceId(dataSourceName = "${dataSourceName}");
@@ -389,10 +425,6 @@ definition {
 				siteName = "Site Name");
 		}
 
-		task ("Stay 5 seconds") {
-			Pause(locator1 = "5000");
-		}
-
 		task ("Start Har recording") {
 			ProxyUtil.startHarRecording("pageEvents");
 		}
@@ -402,7 +434,7 @@ definition {
 		}
 
 		task ("Wait for sending requests") {
-			Pause(locator1 = "10000");
+			ACUtils.waitForSendingRequest();
 		}
 
 		task ("View the pageUnloaded event triggered") {
@@ -461,6 +493,7 @@ definition {
 
 		task ("Get the DXP Instance ID in AC") {
 			var dataSourceName = StringUtil.extractFirst("${assignedPropertyName}", "Combined");
+
 			var dataSourceName = StringUtil.trim("${dataSourceName}");
 
 			var expectedDataSourceId = ACSettings.getDXPInstanceId(dataSourceName = "${dataSourceName}");
@@ -476,10 +509,6 @@ definition {
 				siteName = "Site Name");
 		}
 
-		task ("Stay 5 seconds") {
-			Pause(locator1 = "5000");
-		}
-
 		task ("Start Har recording") {
 			ProxyUtil.startHarRecording("pageEvents");
 		}
@@ -489,7 +518,7 @@ definition {
 		}
 
 		task ("Wait for sending requests") {
-			Pause(locator1 = "10000");
+			ACUtils.waitForSendingRequest();
 		}
 
 		task ("View the pageUnloaded event triggered") {
@@ -548,6 +577,7 @@ definition {
 
 		task ("Get the DXP Instance ID in AC") {
 			var dataSourceName = StringUtil.extractFirst("${assignedPropertyName}", "Combined");
+
 			var dataSourceName = StringUtil.trim("${dataSourceName}");
 
 			var expectedDataSourceId = ACSettings.getDXPInstanceId(dataSourceName = "${dataSourceName}");
@@ -568,7 +598,7 @@ definition {
 		}
 
 		task ("Wait for sending requests") {
-			Pause(locator1 = "5000");
+			ACUtils.waitForSendingRequest();
 		}
 
 		task ("View the pageLoadTime of pageLoaded event is greater than 0 ms") {
@@ -604,6 +634,7 @@ definition {
 
 		task ("Get the DXP Instance ID in AC") {
 			var dataSourceName = StringUtil.extractFirst("${assignedPropertyName}", "Combined");
+
 			var dataSourceName = StringUtil.trim("${dataSourceName}");
 
 			var expectedDataSourceId = ACSettings.getDXPInstanceId(dataSourceName = "${dataSourceName}");
@@ -624,7 +655,7 @@ definition {
 		}
 
 		task ("Wait for sending requests") {
-			Pause(locator1 = "5000");
+			ACUtils.waitForSendingRequest();
 		}
 
 		task ("View the pageUnloaded event not triggered") {
@@ -659,6 +690,7 @@ definition {
 
 		task ("Get the DXP Instance ID in AC") {
 			var dataSourceName = StringUtil.extractFirst("${assignedPropertyName}", "Combined");
+
 			var dataSourceName = StringUtil.trim("${dataSourceName}");
 
 			var expectedDataSourceId = ACSettings.getDXPInstanceId(dataSourceName = "${dataSourceName}");
@@ -674,10 +706,6 @@ definition {
 				siteName = "Site Name");
 		}
 
-		task ("Stay 5 seconds") {
-			Pause(locator1 = "5000");
-		}
-
 		task ("Start Har recording") {
 			ProxyUtil.startHarRecording("pageUnloaded");
 		}
@@ -687,7 +715,7 @@ definition {
 		}
 
 		task ("Wait for sending requests") {
-			Pause(locator1 = "5000");
+			ACUtils.waitForSendingRequest();
 		}
 
 		task ("View the viewDuration of pageUnloaded event is greater than 0 ms") {
@@ -723,6 +751,7 @@ definition {
 
 		task ("Get the DXP Instance ID in AC") {
 			var dataSourceName = StringUtil.extractFirst("${assignedPropertyName}", "Combined");
+
 			var dataSourceName = StringUtil.trim("${dataSourceName}");
 
 			var expectedDataSourceId = ACSettings.getDXPInstanceId(dataSourceName = "${dataSourceName}");
@@ -743,7 +772,7 @@ definition {
 		}
 
 		task ("Wait for sending requests") {
-			Pause(locator1 = "5000");
+			ACUtils.waitForSendingRequest();
 		}
 
 		task ("View the pageViewed event triggered") {
@@ -761,7 +790,7 @@ definition {
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8804 | Test Summary: Check tabBlurred fires whenever the user navigates to a different tab, window minimized or when the page is unloaded and check its properties (see reference document in comments)"
 	@priority = "5"
-	test CheckTabBlurredWhenComesFromADifferentTab {
+	test CheckTabBlurredOnlyTriggerIfChangeToUntrackedTab {
 		property proxy.server.enabled = "true";
 
 		task ("Get site assigned property name and get data source name") {
@@ -778,9 +807,24 @@ definition {
 
 		task ("Get the DXP Instance ID in AC") {
 			var dataSourceName = StringUtil.extractFirst("${assignedPropertyName}", "Combined");
+
 			var dataSourceName = StringUtil.trim("${dataSourceName}");
 
 			var expectedDataSourceId = ACSettings.getDXPInstanceId(dataSourceName = "${dataSourceName}");
+		}
+
+		task ("Add a new site with a public widget page") {
+			ACUtils.addPage(layoutName = "AC Page 2");
+		}
+
+		task ("Navigate to the site page") {
+			ACUtils.navigateToSitePage(
+				pageName = "AC Page 2",
+				siteName = "Site Name");
+		}
+
+		task ("Start Har recording") {
+			ProxyUtil.startHarRecording("tabBlurred");
 		}
 
 		task ("Navigate to the site page") {
@@ -789,11 +833,29 @@ definition {
 				siteName = "Site Name");
 		}
 
+		task ("Wait for sending requests") {
+			ACUtils.waitForSendingRequest();
+		}
+
+		task ("View the tabBlurred event not triggered") {
+			ACUtils.assertEventNotPresent(
+				applicationId = "Page",
+				eventId = "tabBlurred");
+		}
+
 		task ("Open the BBC home page in a new tab") {
 			Open.openInTheNewTab(locator1 = "https://www.bbc.com");
 		}
 
-		task ("Switch to the new tab") {
+		task ("Switch to the previous tab") {
+			SelectWindow(locator1 = "title=AC Page - Site Name - ${dataSource}");
+		}
+
+		task ("Hard refresh the page to clear the network") {
+			TestUtils.hardRefresh();
+		}
+
+		task ("Switch to the BCC tab") {
 			SelectWindow(locator1 = "title=BBC - Homepage");
 		}
 
@@ -806,7 +868,7 @@ definition {
 		}
 
 		task ("Wait for sending requests") {
-			Pause(locator1 = "5000");
+			ACUtils.waitForSendingRequest();
 		}
 
 		task ("View the tabBlurred event triggered") {
@@ -841,6 +903,7 @@ definition {
 
 		task ("Get the DXP Instance ID in AC") {
 			var dataSourceName = StringUtil.extractFirst("${assignedPropertyName}", "Combined");
+
 			var dataSourceName = StringUtil.trim("${dataSourceName}");
 
 			var expectedDataSourceId = ACSettings.getDXPInstanceId(dataSourceName = "${dataSourceName}");
@@ -856,7 +919,15 @@ definition {
 			Open.openInTheNewTab(locator1 = "https://www.bbc.com");
 		}
 
-		task ("Switch to the new tab") {
+		task ("Switch to the DXP tab") {
+			SelectWindow(locator1 = "title=AC Page - Site Name - ${dataSource}");
+		}
+
+		task ("Hard refresh the page to clear the network") {
+			TestUtils.hardRefresh();
+		}
+
+		task ("Switch to the BCC tab") {
 			SelectWindow(locator1 = "title=BBC - Homepage");
 		}
 
@@ -869,7 +940,7 @@ definition {
 		}
 
 		task ("Wait for sending requests") {
-			Pause(locator1 = "5000");
+			ACUtils.waitForSendingRequest();
 		}
 
 		task ("View the tabFocused event triggered") {

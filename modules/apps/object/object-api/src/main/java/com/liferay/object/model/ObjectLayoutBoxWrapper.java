@@ -55,6 +55,7 @@ public class ObjectLayoutBoxWrapper
 		attributes.put("collapsable", isCollapsable());
 		attributes.put("name", getName());
 		attributes.put("priority", getPriority());
+		attributes.put("type", getType());
 
 		return attributes;
 	}
@@ -131,6 +132,12 @@ public class ObjectLayoutBoxWrapper
 
 		if (priority != null) {
 			setPriority(priority);
+		}
+
+		String type = (String)attributes.get("type");
+
+		if (type != null) {
+			setType(type);
 		}
 	}
 
@@ -318,6 +325,16 @@ public class ObjectLayoutBoxWrapper
 	@Override
 	public int getPriority() {
 		return model.getPriority();
+	}
+
+	/**
+	 * Returns the type of this object layout box.
+	 *
+	 * @return the type of this object layout box
+	 */
+	@Override
+	public String getType() {
+		return model.getType();
 	}
 
 	/**
@@ -543,6 +560,16 @@ public class ObjectLayoutBoxWrapper
 	@Override
 	public void setPriority(int priority) {
 		model.setPriority(priority);
+	}
+
+	/**
+	 * Sets the type of this object layout box.
+	 *
+	 * @param type the type of this object layout box
+	 */
+	@Override
+	public void setType(String type) {
+		model.setType(type);
 	}
 
 	/**

@@ -35,7 +35,7 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.NoSuchClassNameException;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.ColorScheme;
@@ -679,8 +679,9 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 			draftLayout.getKeywordsMap(), draftLayout.getRobotsMap(),
 			draftLayout.getType(), draftLayout.isHidden(),
 			draftLayout.getFriendlyURLMap(), draftLayout.getIconImage(), null,
-			draftLayout.getMasterLayoutPlid(),
-			draftLayout.getStyleBookEntryId(), serviceContext);
+			draftLayout.getStyleBookEntryId(),
+			draftLayout.getFaviconFileEntryId(),
+			draftLayout.getMasterLayoutPlid(), serviceContext);
 
 		Layout layout = _layoutLocalService.getLayout(
 			layoutPageTemplateEntry.getPlid());
@@ -691,8 +692,8 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 			layout.getDescriptionMap(), layout.getKeywordsMap(),
 			layout.getRobotsMap(), layout.getType(), layout.isHidden(),
 			layout.getFriendlyURLMap(), layout.getIconImage(), null,
-			layout.getMasterLayoutPlid(), layout.getStyleBookEntryId(),
-			serviceContext);
+			layout.getStyleBookEntryId(), layout.getFaviconFileEntryId(),
+			layout.getMasterLayoutPlid(), serviceContext);
 
 		return layoutPageTemplateEntry;
 	}
@@ -982,7 +983,7 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 	private String _getUniqueCopyName(
 		long groupId, String sourceName, int type, Locale locale) {
 
-		String copy = LanguageUtil.get(locale, "copy");
+		String copy = _language.get(locale, "copy");
 
 		String name = StringUtil.appendParentheticalSuffix(sourceName, copy);
 
@@ -1022,6 +1023,9 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 
 	@Reference
 	private InfoItemServiceTracker _infoItemServiceTracker;
+
+	@Reference
+	private Language _language;
 
 	@Reference
 	private LayoutLocalService _layoutLocalService;

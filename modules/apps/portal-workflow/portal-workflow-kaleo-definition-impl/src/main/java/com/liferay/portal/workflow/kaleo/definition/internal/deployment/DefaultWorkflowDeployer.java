@@ -124,7 +124,7 @@ public class DefaultWorkflowDeployer implements WorkflowDeployer {
 
 				if (sourceKaleoNode == null) {
 					throw new KaleoDefinitionValidationException.
-						MustSetSourceNode(sourceNode.getName());
+						MustSetSourceNode(sourceNode.getDefaultLabel());
 				}
 
 				Node targetNode = transition.getTargetNode();
@@ -134,7 +134,7 @@ public class DefaultWorkflowDeployer implements WorkflowDeployer {
 
 				if (targetKaleoNode == null) {
 					throw new KaleoDefinitionValidationException.
-						MustSetTargetNode(targetNode.getName());
+						MustSetTargetNode(targetNode.getDefaultLabel());
 				}
 
 				_kaleoTransitionLocalService.addKaleoTransition(

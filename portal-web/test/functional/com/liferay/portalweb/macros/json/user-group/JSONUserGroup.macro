@@ -5,27 +5,22 @@ definition {
 		Variables.assertDefined(parameterList = "${userGroupName},${layoutName}");
 
 		var friendlyURL = JSONLayoutSetter.setFriendlyURL(friendlyURL = "${friendlyURL}");
-
 		var privateLayout = JSONLayoutSetter.setPrivateLayout(privateLayout = "${privateLayout}");
-
 		var userGroupId = JSONUserGroupAPI._getUserGroupIdByName(userGroupName = "${userGroupName}");
-
 		var companyId = JSONCompany.getCompanyId();
-
 		var portalURL = JSONCompany.getPortalURL();
 
 		var curl = '''
 			${portalURL}/api/jsonws/group/get-groups/company-id/${companyId}/parent-group-id/0/site/false \
 				-u test@liferay.com:test
 		''';
-		var groupId = JSONCurlUtil.get("${curl}", "$.[?(@['groupKey'] == '${userGroupId}')]['groupId']");
 
+		var groupId = JSONCurlUtil.get("${curl}", "$.[?(@['groupKey'] == '${userGroupId}')]['groupId']");
 		var serviceContext = JSONLayoutSetter.setServiceContext(
 			assetCategoryIds = "${assetCategoryIds}",
 			assetTagNames = "${assetTagNames}",
 			serviceContext = "${serviceContext}",
 			workflowAction = "${workflowAction}");
-
 		var type = JSONLayoutSetter.setType(type = "${type}");
 
 		JSONLayoutAPI._addLayout(
@@ -52,9 +47,7 @@ definition {
 		Variables.assertDefined(parameterList = "${groupName},${roleTitle},${userGroupName}");
 
 		var groupId = JSONGroupSetter.setGroupId(groupName = "${groupName}");
-
 		var roleId = JSONRoleAPI._getRoleIdByName(name = "${roleTitle}");
-
 		var userGroupId = JSONUserGroupAPI._getUserGroupIdByName(userGroupName = "${userGroupName}");
 
 		JSONUserGroupAPI._assignGroupRoleToUserGroup(

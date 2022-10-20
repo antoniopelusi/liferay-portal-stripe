@@ -11,9 +11,7 @@ definition {
 		var folderId = JSONBookmarksSetter.setFolderId(
 			folderName = "${folderName}",
 			groupId = "${groupId}");
-
 		var url = StringUtil.replace("${url}", ":", "%3A");
-
 		var serviceContext = JSONBookmarksSetter.setServiceContext(
 			assetCategoryIds = "${assetCategoryIds}",
 			assetTagNames = "${assetTagNames}",

@@ -3,12 +3,12 @@ definition {
 
 	property elasticsearch.ccr.enabled = "true";
 	property elasticsearch.multiple.connections = "true";
-	property environment.acceptance = "false";
 	property minimum.slave.ram = "24";
 	property portal.release = "true";
 	property portal.suite.search.engine = "elasticsearch7";
 	property portal.upstream = "true";
 	property remote.elasticsearch.enabled = "true";
+	property search.environment.suite.exclude = "true";
 	property test.run.environment = "EE";
 	property testray.main.component.name = "Elasticsearch Impl";
 
@@ -66,6 +66,38 @@ definition {
 		SearchResultPortlet.viewMultipleSearchResults(
 			resultsList = "Apple1/Document,Apple2/Document",
 			searchTerm = "Apple");
+	}
+
+	@priority = "3"
+	test AssertReplicationWithSynonyms {
+		property test.name.skip.portal.instance = "CrossClusterReplicationES7#AssertReplicationWithSynonyms";
+
+		CrossClusterReplication.setupCrossClusterReplication();
+
+		for (var title : list "banana,red apple") {
+			JSONWebcontent.addWebContent(
+				content = "WC Content",
+				groupName = "Guest",
+				title = "${title}");
+		}
+
+		SearchTuning.openSynonymsAdmin();
+
+		var ccrStatsInitial = CrossClusterReplication.getNumberOfSuccessfulWriteRequests(indexName = "search-tuning-synonyms");
+
+		SearchTuning.addSynonymSet(synonyms = "banana,red apple,fruit");
+
+		AssertElementPresent(
+			key_synonyms = "banana, red apple, fruit",
+			locator1 = "SearchTuning#SYNONYMS_ENTRY");
+
+		var ccrStatsCurrent = CrossClusterReplication.getNumberOfSuccessfulWriteRequests(indexName = "search-tuning-synonyms");
+
+		var ccrStatsIncrement = MathUtil.isGreaterThan("${ccrStatsCurrent}", "${ccrStatsInitial}");
+
+		if ("${ccrStatsIncrement}" == "false") {
+			fail("Synonyms index was not successfully replicated from write cluster to read cluster.");
+		}
 	}
 
 	@priority = "3"
@@ -435,10 +467,7 @@ definition {
 			groupName = "Guest",
 			title = "WC Title 3");
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Search Tuning",
-			panel = "Applications",
-			portlet = "Result Rankings");
+		SearchTuning.openResultRankingsAdmin();
 
 		SearchTuning.addResultRanking(searchQuery = "WC Title");
 
@@ -457,45 +486,6 @@ definition {
 		SearchResultPortlet.viewSearchResultNotPresent(
 			searchAssetTitle = "WC Title 2",
 			searchAssetType = "Web Content Article");
-	}
-
-	@priority = "3"
-	test SearchWithSynonyms {
-		property test.name.skip.portal.instance = "CrossClusterReplicationES7#SearchWithSynonyms";
-
-		CrossClusterReplication.setupCrossClusterReplication();
-
-		for (var title : list "banana,red apple") {
-			JSONWebcontent.addWebContent(
-				content = "WC Content",
-				groupName = "Guest",
-				title = "${title}");
-		}
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Search Tuning",
-			panel = "Applications",
-			portlet = "Synonyms");
-
-		SearchTuning.addSynonymSet(synonyms = "banana,red apple,fruit");
-
-		AssertElementPresent(
-			key_synonyms = "banana, red apple, fruit",
-			locator1 = "SearchTuning#SYNONYMS_ENTRY");
-
-		Navigator.openURL();
-
-		Pause(locator1 = "70000");
-
-		var searchTerms = "banana,red apple,fruit";
-
-		for (var searchTerm : list "${searchTerms}") {
-			SearchPortlets.searchEmbedded(searchTerm = "${searchTerm}");
-
-			SearchResultPortlet.viewMultipleSearchResults(
-				resultsList = "banana/Web Content Article,red apple/Web Content Article",
-				searchTerm = "${searchTerm}");
-		}
 	}
 
 	@priority = "3"

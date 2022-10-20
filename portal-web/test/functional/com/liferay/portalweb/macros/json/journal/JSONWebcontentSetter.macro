@@ -6,14 +6,16 @@ definition {
 		var groupId = JSONWebcontentSetter.setGroupId(
 			groupName = "${groupName}",
 			site = "${site}");
-
 		var urlTitle = StringUtil.replace("${title}", " ", "-");
+
 		var urlTitle = StringUtil.lowerCase("${urlTitle}");
 
 		var articleId = JSONWebcontentAPI._getArticleIdByURLTitle(
 			groupName = "${groupName}",
 			site = "${site}",
 			urlTitle = "${urlTitle}");
+
+		echo("## * Article Id: ${articleId}");
 
 		return "${articleId}";
 	}
@@ -92,7 +94,7 @@ definition {
 	macro setStatus {
 		Variables.assertDefined(parameterList = "${statusKey}");
 
-		if ("${statusKey}" == "APPROVE") {
+		if ("${statusKey}" == "APPROVED") {
 			var status = "0";
 		}
 

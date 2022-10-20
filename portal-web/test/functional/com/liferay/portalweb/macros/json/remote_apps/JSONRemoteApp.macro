@@ -3,31 +3,51 @@ definition {
 	macro addCustomElementRemoteAppEntry {
 		Variables.assertDefined(parameterList = "${customElementName},${customElementHtmlName},${customElementURL}");
 
-		var response = JSONRemoteAppAPI._addCustomElementRemoteAppEntry(
+		JSONRemoteAppAPI._addCustomElementRemoteAppEntry(
 			customElementCssurl = "${customElementCssurl}",
 			customElementHtmlName = "${customElementHtmlName}",
 			customElementName = "${customElementName}",
 			customElementProperties = "${customElementProperties}",
 			customElementURL = "${customElementURL}",
 			customElementUseESM = "${customElementUseESM}");
-
-		return "{response}";
 	}
 
 	macro addIFrameRemoteAppEntry {
 		Variables.assertDefined(parameterList = "${iFrameURL},${name}");
 
-		var response = JSONRemoteAppAPI._addIFrameRemoteAppEntry(
+		JSONRemoteAppAPI._addIFrameRemoteAppEntry(
 			iFrameURL = "${iFrameURL}",
 			name = "${name}");
+	}
 
-		return "${response}";
+	macro addRemoteAppEntry {
+		Variables.assertDefined(parameterList = "${name},${type}");
+
+		if (!(isSet(description))) {
+			var description = "";
+		}
+
+		if (!(isSet(properties))) {
+			var properties = "";
+		}
+
+		var nameMap = JSONRemoteAppSetter.setNameMap(name = "${name}");
+		var typeSettings = JSONRemoteAppSetter.setTypeSettings(
+			mainURL = "${mainURL}",
+			url = "${url}");
+
+		JSONRemoteAppAPI._addRemoteAppEntry(
+			description = "${description}",
+			nameMap = "${nameMap}",
+			properties = "${properties}",
+			type = "${type}",
+			typeSettings = "${typeSettings}");
 	}
 
 	macro deleteIFrameRemoteAppEntry {
-		Variables.assertDefined(parameterList = "${remoteAppEntryId}");
+		Variables.assertDefined(parameterList = "${externalReferenceCode}");
 
-		JSONRemoteAppAPI._deleteIFrameRemoteAppEntry(remoteAppEntryId = "${remoteAppEntryId}");
+		JSONRemoteAppAPI._deleteIFrameRemoteAppEntry(externalReferenceCode = "${externalReferenceCode}");
 	}
 
 }

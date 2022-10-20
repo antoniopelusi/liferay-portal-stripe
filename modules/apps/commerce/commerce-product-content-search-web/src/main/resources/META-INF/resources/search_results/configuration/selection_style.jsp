@@ -21,13 +21,11 @@ CPSearchResultsDisplayContext cpSearchResultsDisplayContext = (CPSearchResultsDi
 %>
 
 <aui:fieldset markupView="lexicon">
-	<aui:input checked="<%= cpSearchResultsDisplayContext.isSelectionStyleADT() %>" id="selectionStyleADT" label="use-adt" name="preferences--selectionStyle--" onChange='<%= liferayPortletResponse.getNamespace() + "chooseSelectionStyle();" %>' type="radio" value="adt" />
+	<aui:input checked="<%= cpSearchResultsDisplayContext.isSelectionStyleADT() %>" id="selectionStyleADT" label="use-adt" name="preferences--selectionStyle--" type="radio" value="adt" />
 
-	<aui:input checked="<%= cpSearchResultsDisplayContext.isSelectionStyleCustomRenderer() %>" id="selectionStyleCustomRenderer" label="use-custom-renderer" name="preferences--selectionStyle--" onChange='<%= liferayPortletResponse.getNamespace() + "chooseSelectionStyle();" %>' type="radio" value="custom" />
+	<aui:input checked="<%= cpSearchResultsDisplayContext.isSelectionStyleCustomRenderer() %>" label="use-custom-renderer" name="preferences--selectionStyle--" type="radio" value="custom" />
 </aui:fieldset>
 
-<aui:script>
-	function <portlet:namespace />chooseSelectionStyle() {
-		submitForm(document.<portlet:namespace />fm);
-	}
-</aui:script>
+<liferay-frontend:component
+	module="js/configuration/selection_style"
+/>

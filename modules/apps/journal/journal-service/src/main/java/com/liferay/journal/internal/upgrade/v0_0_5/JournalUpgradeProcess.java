@@ -25,6 +25,8 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.petra.xml.XMLUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.security.permission.ResourceActions;
@@ -38,6 +40,7 @@ import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.upgrade.util.UpgradeProcessUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -47,6 +50,7 @@ import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Document;
+import com.liferay.portal.kernel.xml.DocumentException;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
 
@@ -325,6 +329,57 @@ public class JournalUpgradeProcess extends UpgradeProcess {
 		return XMLUtil.formatXML(newDocument);
 	}
 
+	private String _fixStaticContent(
+			long id, String content, DocumentException documentException)
+		throws Exception {
+
+		// LPS-23332 and LPS-26009
+
+		if (_log.isWarnEnabled()) {
+			_log.warn("Detected invalid content in journal article " + id);
+		}
+
+		if (!content.contains("<static-content ") &&
+			!content.contains("</static-content>")) {
+
+			_log.error(
+				"Journal article " + id + " does not have static content");
+
+			throw documentException;
+		}
+
+		String message = documentException.getMessage();
+
+		if (!message.contains(
+				"The entity \"reg\" was referenced, but not declared.")) {
+
+			_log.error(
+				"Journal article " + id +
+					" does not have invalid content due to LPS-23332");
+
+			throw documentException;
+		}
+
+		content = HtmlUtil.unescape(content);
+
+		int index = content.indexOf("<static-content ");
+
+		index = content.indexOf(">", index);
+
+		content =
+			content.substring(0, index + 1) + "<![CDATA[" +
+				content.substring(index + 1);
+
+		content = StringUtil.replace(
+			content, "</static-content>", "]]></static-content>");
+
+		if (_log.isDebugEnabled()) {
+			_log.debug("Fixed static content: " + content);
+		}
+
+		return content;
+	}
+
 	private Set<String> _getArticleDynamicElements(Element rootElement) {
 		List<String> dynamicElementNames = new ArrayList<>();
 
@@ -590,7 +645,25 @@ public class JournalUpgradeProcess extends UpgradeProcess {
 				if (Validator.isNull(ddmStructureKey)) {
 					long groupId = resultSet.getLong("groupId");
 
-					content = _convertStaticContentToDynamic(groupId, content);
+					try {
+						content = _convertStaticContentToDynamic(
+							groupId, content);
+					}
+					catch (DocumentException documentException) {
+						content = _fixStaticContent(
+							id, content, documentException);
+
+						content = _convertStaticContentToDynamic(
+							groupId, content);
+					}
+					catch (Exception exception) {
+						_log.error(
+							StringBundler.concat(
+								"ID: ", id, "\nGroup ID: ", id, "\nContent: ",
+								content));
+
+						throw exception;
+					}
 
 					_updateJournalArticle(id, name, name, content);
 
@@ -614,6 +687,9 @@ public class JournalUpgradeProcess extends UpgradeProcess {
 		"([\\p{Punct}&&[^_]]|\\p{Space})+";
 
 	private static final String _TYPE_ATTRIBUTE_DDM_DATE = "type=\"ddm-date\"";
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		JournalUpgradeProcess.class);
 
 	private static final DateFormat _dateFormat =
 		DateFormatFactoryUtil.getSimpleDateFormat("yyyy-MM-dd");

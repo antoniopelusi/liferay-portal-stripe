@@ -43,12 +43,11 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.petra.string.StringUtil;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.json.JSONDeserializer;
 import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONSerializer;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
@@ -66,7 +65,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.stream.Stream;
 
 import org.osgi.service.component.annotations.Component;
@@ -528,8 +526,7 @@ public class DDMFieldLocalServiceImpl extends DDMFieldLocalServiceBaseImpl {
 				Map<Locale, String> values = value.getValues();
 
 				for (Map.Entry<Locale, String> entry : values.entrySet()) {
-					String languageId = LanguageUtil.getLanguageId(
-						entry.getKey());
+					String languageId = _language.getLanguageId(entry.getKey());
 
 					ddmFieldInfo._ddmFieldAttributeInfos.put(
 						languageId,
@@ -768,23 +765,18 @@ public class DDMFieldLocalServiceImpl extends DDMFieldLocalServiceBaseImpl {
 			}
 		}
 
-		Map<String, Object> map = new TreeMap<>();
-
-		JSONDeserializer<Object> jsonDeserializer =
-			_jsonFactory.createJSONDeserializer();
+		JSONObject jsonObject = _jsonFactory.createJSONObject();
 
 		for (DDMFieldAttributeInfo ddmFieldAttributeInfo :
 				ddmFieldAttributeInfos) {
 
-			map.put(
+			jsonObject.put(
 				ddmFieldAttributeInfo._attributeName,
-				jsonDeserializer.deserialize(
+				_jsonFactory.looseDeserialize(
 					ddmFieldAttributeInfo._attributeValue));
 		}
 
-		JSONSerializer jsonSerializer = _jsonFactory.createJSONSerializer();
-
-		return jsonSerializer.serialize(map);
+		return jsonObject.toString();
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
@@ -798,6 +790,9 @@ public class DDMFieldLocalServiceImpl extends DDMFieldLocalServiceBaseImpl {
 
 	@Reference
 	private JSONFactory _jsonFactory;
+
+	@Reference
+	private Language _language;
 
 	private static class DDMFieldAttributeInfo {
 

@@ -71,6 +71,7 @@ else {
 }
 %>
 
-<liferay-ui:menu
-	menu="<%= dlViewFileVersionDisplayContext.getMenu() %>"
+<clay:dropdown-actions
+	dropdownItems="<%= dlViewFileVersionDisplayContext.getActionDropdownItems() %>"
+	propsTransformer="document_library/js/DLFileEntryDropdownPropsTransformer"
 />

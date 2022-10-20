@@ -67,8 +67,10 @@ export class Tokenizer {
 			if (this.isDigit(char)) {
 				numberBuffer.push(char);
 			}
-			else if (char === '.') {
-				numberBuffer.push(char);
+			else if (this.isDot(char)) {
+				if (!numberBuffer.includes('.')) {
+					numberBuffer.push(char);
+				}
 			}
 			else if (this.isLeftBracket(char)) {
 				if (numberBuffer.length) {
@@ -142,7 +144,9 @@ export class Tokenizer {
 
 		return result;
 	}
-
+	static isDot(char) {
+		return char === '.';
+	}
 	static isDigit(char) {
 		return char !== undefined && /[0-9]/.test(char);
 	}

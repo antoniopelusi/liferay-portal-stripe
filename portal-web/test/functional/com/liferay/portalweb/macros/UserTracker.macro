@@ -1,0 +1,19 @@
+definition {
+
+	macro viewAccessedURL {
+		var key_friendlyURL = "${friendlyURL}";
+
+		Click(locator1 = "LexiconTable#TABLE_HITS_COUNT");
+
+		Click(
+			locator1 = "ListGroupItem#SESSION_ACCESSED_URLS",
+			value1 = "ACCESSED URLS");
+
+		ScrollWebElementIntoView(locator1 = "ListGroupItem#ACCESSED_FRIENDLY_URLS");
+
+		AssertTextEquals.assertPartialText(
+			locator1 = "ListGroupItem#ACCESSED_FRIENDLY_URLS",
+			value1 = "${friendlyURL}");
+	}
+
+}

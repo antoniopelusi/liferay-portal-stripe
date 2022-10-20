@@ -29,24 +29,33 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
 /**
  * @author Brian Wing Shun Chan
  */
-public class VerifyProperties extends VerifyProcess {
+public class VerifyProperties {
 
-	@Override
-	protected void doVerify() throws Exception {
+	public static void verify() throws Exception {
 		verifySystemProperties();
 
-		verifyPortalProperties();
+		List<String> keys = verifyPortalProperties();
 
 		verifyDocumentLibrary();
+
+		if (!keys.isEmpty()) {
+			_log.error(
+				"Stopping the server due to incorrect use of migrated portal " +
+					"properties " + keys);
+
+			System.exit(1);
+		}
 	}
 
-	protected InputStream getPropertiesResourceAsStream(String resourceName)
+	protected static InputStream getPropertiesResourceAsStream(
+			String resourceName)
 		throws FileNotFoundException {
 
 		File propertyFile = new File(resourceName);
@@ -70,7 +79,7 @@ public class VerifyProperties extends VerifyProcess {
 		}
 	}
 
-	protected Properties loadPortalProperties() {
+	protected static Properties loadPortalProperties() {
 		Properties properties = new Properties();
 
 		List<String> propertiesResourceNames = ListUtil.fromArray(
@@ -102,7 +111,7 @@ public class VerifyProperties extends VerifyProcess {
 		return properties;
 	}
 
-	protected void verifyDocumentLibrary() {
+	protected static void verifyDocumentLibrary() {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
 			StoreFactory storeFactory = StoreFactory.getInstance();
 
@@ -110,8 +119,9 @@ public class VerifyProperties extends VerifyProcess {
 		}
 	}
 
-	protected void verifyMigratedPortalProperty(
-			Properties portalProperties, String oldKey, String newKey)
+	protected static void verifyMigratedPortalProperty(
+			Properties portalProperties, String oldKey, String newKey,
+			List<String> unmigratedKeys)
 		throws Exception {
 
 		if (portalProperties.containsKey(oldKey)) {
@@ -119,10 +129,13 @@ public class VerifyProperties extends VerifyProcess {
 				StringBundler.concat(
 					"Portal property \"", oldKey,
 					"\" was migrated to the system property \"", newKey, "\""));
+
+			unmigratedKeys.add(oldKey);
 		}
 	}
 
-	protected void verifyMigratedSystemProperty(String oldKey, String newKey)
+	protected static void verifyMigratedSystemProperty(
+			String oldKey, String newKey)
 		throws Exception {
 
 		String value = SystemProperties.get(oldKey);
@@ -135,7 +148,7 @@ public class VerifyProperties extends VerifyProcess {
 		}
 	}
 
-	protected void verifyModularizedPortalProperty(
+	protected static void verifyModularizedPortalProperty(
 			Properties portalProperties, String oldKey, String newKey,
 			String moduleName)
 		throws Exception {
@@ -148,7 +161,7 @@ public class VerifyProperties extends VerifyProcess {
 		}
 	}
 
-	protected void verifyModularizedSystemProperty(
+	protected static void verifyModularizedSystemProperty(
 			Properties systemProperties, String oldKey, String newKey,
 			String moduleName)
 		throws Exception {
@@ -161,7 +174,7 @@ public class VerifyProperties extends VerifyProcess {
 		}
 	}
 
-	protected void verifyObsoletePortalProperty(
+	protected static void verifyObsoletePortalProperty(
 			Properties portalProperties, String key)
 		throws Exception {
 
@@ -170,7 +183,9 @@ public class VerifyProperties extends VerifyProcess {
 		}
 	}
 
-	protected void verifyObsoleteSystemProperty(String key) throws Exception {
+	protected static void verifyObsoleteSystemProperty(String key)
+		throws Exception {
+
 		String value = SystemProperties.get(key);
 
 		if (value != null) {
@@ -178,7 +193,9 @@ public class VerifyProperties extends VerifyProcess {
 		}
 	}
 
-	protected void verifyPortalProperties() throws Exception {
+	protected static List<String> verifyPortalProperties() throws Exception {
+		List<String> unmigratedKeys = new LinkedList<>();
+
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
 			Properties portalProperties = loadPortalProperties();
 
@@ -186,7 +203,8 @@ public class VerifyProperties extends VerifyProcess {
 				String oldKey = keys[0];
 				String newKey = keys[1];
 
-				verifyMigratedPortalProperty(portalProperties, oldKey, newKey);
+				verifyMigratedPortalProperty(
+					portalProperties, oldKey, newKey, unmigratedKeys);
 			}
 
 			for (String[] keys : _RENAMED_PORTAL_KEYS) {
@@ -209,9 +227,11 @@ public class VerifyProperties extends VerifyProcess {
 					portalProperties, oldKey, newKey, moduleName);
 			}
 		}
+
+		return unmigratedKeys;
 	}
 
-	protected void verifyRenamedPortalProperty(
+	protected static void verifyRenamedPortalProperty(
 			Properties portalProperties, String oldKey, String newKey)
 		throws Exception {
 
@@ -223,7 +243,8 @@ public class VerifyProperties extends VerifyProcess {
 		}
 	}
 
-	protected void verifyRenamedSystemProperty(String oldKey, String newKey)
+	protected static void verifyRenamedSystemProperty(
+			String oldKey, String newKey)
 		throws Exception {
 
 		String value = SystemProperties.get(oldKey);
@@ -236,7 +257,7 @@ public class VerifyProperties extends VerifyProcess {
 		}
 	}
 
-	protected void verifySystemProperties() throws Exception {
+	protected static void verifySystemProperties() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
 			for (String[] keys : _MIGRATED_SYSTEM_KEYS) {
 				String oldKey = keys[0];
@@ -329,6 +350,38 @@ public class VerifyProperties extends VerifyProcess {
 		{
 			"com.liferay.util.Http.timeout",
 			"com.liferay.portal.util.HttpImpl.timeout"
+		},
+		{
+			"com.liferay.portal.util.HttpImpl.max.connections.per.host",
+			"com.liferay.portal.kernel.util.Http.max.connections.per.host"
+		},
+		{
+			"com.liferay.portal.util.HttpImpl.max.total.connections",
+			"com.liferay.portal.kernel.util.Http.max.total.connections"
+		},
+		{
+			"com.liferay.portal.util.HttpImpl.proxy.auth.type",
+			"com.liferay.portal.kernel.util.Http.proxy.auth.type"
+		},
+		{
+			"com.liferay.portal.util.HttpImpl.proxy.ntlm.domain",
+			"com.liferay.portal.kernel.util.Http.proxy.ntlm.domain"
+		},
+		{
+			"com.liferay.portal.util.HttpImpl.proxy.ntlm.host",
+			"com.liferay.portal.kernel.util.Http.proxy.ntlm.host"
+		},
+		{
+			"com.liferay.portal.util.HttpImpl.proxy.password",
+			"com.liferay.portal.kernel.util.Http.proxy.password"
+		},
+		{
+			"com.liferay.portal.util.HttpImpl.proxy.username",
+			"com.liferay.portal.kernel.util.Http.proxy.username"
+		},
+		{
+			"com.liferay.portal.util.HttpImpl.timeout",
+			"com.liferay.portal.kernel.util.Http.timeout"
 		},
 		{
 			"com.liferay.util.format.PhoneNumberFormat",
@@ -1809,10 +1862,11 @@ public class VerifyProperties extends VerifyProcess {
 		"layout.view.page[control_panel]", "layout.view.page[embedded]",
 		"layout.view.page[link_to_layout]", "layout.view.page[panel]",
 		"layout.view.page[url]", "library.download.url.resin.jar",
-		"library.download.url.script-10.jar", "look.and.feel.modifiable",
-		"lucene.analyzer", "lucene.cluster.index.loading.sync.timeout",
-		"lucene.file.extractor", "lucene.file.extractor.regexp.strip",
-		"lucene.replicate.write", "lucene.store.jdbc.auto.clean.up",
+		"library.download.url.script-10.jar", "liferay.lib.global.shared.dir",
+		"liferay.web.portal.dir", "look.and.feel.modifiable", "lucene.analyzer",
+		"lucene.cluster.index.loading.sync.timeout", "lucene.file.extractor",
+		"lucene.file.extractor.regexp.strip", "lucene.replicate.write",
+		"lucene.store.jdbc.auto.clean.up",
 		"lucene.store.jdbc.auto.clean.up.enabled",
 		"lucene.store.jdbc.auto.clean.up.interval",
 		"lucene.store.jdbc.dialect.db2", "lucene.store.jdbc.dialect.derby",
@@ -1833,13 +1887,17 @@ public class VerifyProperties extends VerifyProcess {
 		"microsoft.translator.client.id", "microsoft.translator.client.secret",
 		"minifier.inline.content.cache.size",
 		"mobile.device.styling.wap.enabled", "module.framework.initial.bundles",
+		"module.framework.properties.ds.lock.timeout.milliseconds",
+		"module.framework.properties.ds.stop.timeout.milliseconds",
 		"module.framework.properties.felix.fileinstall.disableNio2",
 		"module.framework.properties.felix.fileinstall.log.level",
 		"module.framework.properties.file.install.disableNio2",
 		"module.framework.properties.file.install.log.level",
 		"module.framework.properties.file.install.optionalImportRefreshScope",
+		"module.framework.properties.lpkg.deployer.dir",
 		"module.framework.properties.lpkg.index.validator.enabled",
-		"module.framework.register.liferay.services", "msn.login",
+		"module.framework.register.liferay.services",
+		"module.framework.resolver.revision.batch.size", "msn.login",
 		"msn.password", "multicast.group.address[\"hibernate\"]",
 		"multicast.group.port[\"hibernate\"]", "my.sites.display.style",
 		"multi.value.map.com.liferay.portal.convert." +
@@ -1975,6 +2033,10 @@ public class VerifyProperties extends VerifyProcess {
 			"com.liferay.portal.url.rewrite.filter.internal.URLRewriteFilter"
 		},
 		{
+			"com.liferay.portal.upload.LiferayFileItem.threshold.size",
+			"com.liferay.portal.kernel.upload.FileItem.threshold.size"
+		},
+		{
 			"default.guest.friendly.url",
 			"default.guest.public.layout.friendly.url"
 		},
@@ -2045,6 +2107,15 @@ public class VerifyProperties extends VerifyProcess {
 			"velocity.engine.restricted.variables"
 		},
 		{
+			"module.framework.properties.dependency.manager.sync.timeout",
+			"dependency.manager.sync.timeout"
+		},
+		{
+			"module.framework.properties.dependency.manager.thread.pool." +
+				"enabled",
+			"dependency.manager.thread.pool.enabled"
+		},
+		{
 			"module.framework.properties.felix.fileinstall.bundles.new.start",
 			"module.framework.file.install.bundles.start.new"
 		},
@@ -2086,6 +2157,10 @@ public class VerifyProperties extends VerifyProcess {
 		{
 			"module.framework.properties.file.install.subdir.mode",
 			"module.framework.file.install.subdir.mode"
+		},
+		{
+			"module.framework.properties.initial.system.check.enabled",
+			"initial.system.check.enabled"
 		},
 		{
 			"passwords.passwordpolicytoolkit.charset.lowercase",

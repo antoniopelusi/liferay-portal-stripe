@@ -70,7 +70,13 @@ function appendXMLActions(
 	}
 
 	if (hasAction) {
-		const {description, executionType, priority, script} = actions;
+		const {
+			description,
+			executionType,
+			priority,
+			script,
+			scriptLanguage,
+		} = actions;
 
 		const xmlAction = XMLUtil.createObj(actionNodeName || 'action');
 
@@ -85,7 +91,12 @@ function appendXMLActions(
 				buffer.push(XMLUtil.create('script', cdata(script[index])));
 			}
 
-			buffer.push(XMLUtil.create('scriptLanguage', DEFAULT_LANGUAGE));
+			buffer.push(
+				XMLUtil.create(
+					'scriptLanguage',
+					scriptLanguage || DEFAULT_LANGUAGE
+				)
+			);
 
 			if (isValidValue(priority, index)) {
 				buffer.push(XMLUtil.create('priority', priority[index]));
@@ -214,13 +225,13 @@ function appendXMLAssignments(
 				'scriptedAssignment'
 			);
 
-			dataAssignments.script.forEach((item, index) => {
+			dataAssignments.script.forEach((item) => {
 				buffer.push(
 					xmlScriptedAssignment.open,
 					XMLUtil.create('script', cdata(item)),
 					XMLUtil.create(
 						'scriptLanguage',
-						dataAssignments.scriptLanguage[index]
+						dataAssignments.scriptLanguage
 					),
 					xmlScriptedAssignment.close
 				);
@@ -229,13 +240,13 @@ function appendXMLAssignments(
 		else if (assignmentType === 'scriptedRecipient') {
 			const xmlScriptedRecipient = XMLUtil.createObj('scriptedRecipient');
 
-			dataAssignments.script.forEach((item, index) => {
+			dataAssignments.script.forEach((item) => {
 				buffer.push(
 					xmlScriptedRecipient.open,
 					XMLUtil.create('script', cdata(item)),
 					XMLUtil.create(
 						'scriptLanguage',
-						dataAssignments.scriptLanguage[index]
+						dataAssignments.scriptLanguage
 					),
 					xmlScriptedRecipient.close
 				);
@@ -304,8 +315,7 @@ function appendXMLAssignments(
 		}
 		else if (
 			!dataAssignments.address ||
-			dataAssignments.address.filter((address) => address !== '')
-				.length === 0
+			!dataAssignments.address.filter((address) => address !== '').length
 		) {
 			buffer.push('<user />');
 		}
@@ -315,11 +325,12 @@ function appendXMLAssignments(
 }
 
 function appendXMLNotifications(buffer, notifications, nodeName, exporting) {
-	if (notifications && notifications.name && notifications.name.length > 0) {
+	if (notifications && notifications.name && !!notifications.name.length) {
 		const {
 			description,
 			executionType,
 			notificationTypes,
+			receptionType,
 			recipients,
 			template,
 			templateLanguage,
@@ -370,6 +381,10 @@ function appendXMLNotifications(buffer, notifications, nodeName, exporting) {
 				recipientsAttrs.receptionType = recipients[index].receptionType;
 			}
 
+			if (!recipientsAttrs.receptionType && receptionType?.[0]) {
+				recipientsAttrs.receptionType = receptionType[0];
+			}
+
 			recipients[index].roleType?.forEach((item, roleTypeIndex) => {
 				if (item === 'depot' || item === 'asset library') {
 					recipients[index].roleType[roleTypeIndex] = roleTypeName;
@@ -401,7 +416,7 @@ function appendXMLNotifications(buffer, notifications, nodeName, exporting) {
 }
 
 function appendXMLTaskTimers(buffer, taskTimers, exporting) {
-	if (taskTimers && taskTimers.name && taskTimers.name.length > 0) {
+	if (taskTimers && taskTimers.name && !!taskTimers.name.length) {
 		const xmlTaskTimers = XMLUtil.createObj('task-timers');
 
 		buffer.push(xmlTaskTimers.open);
@@ -552,6 +567,7 @@ function serializeDefinition(
 		const id = item.id;
 		const initial = item.type === 'start';
 		const script = item.data?.script;
+		const scriptLanguage = item.data?.scriptLanguage;
 		let xmlType = item.type;
 
 		if (xmlType === 'start' || xmlType === 'end') {
@@ -611,7 +627,12 @@ function serializeDefinition(
 		}
 
 		if (xmlType === 'condition') {
-			buffer.push(XMLUtil.create('scriptLanguage', DEFAULT_LANGUAGE));
+			buffer.push(
+				XMLUtil.create(
+					'scriptLanguage',
+					scriptLanguage || DEFAULT_LANGUAGE
+				)
+			);
 		}
 
 		const nodeTransitions = transitions.filter(

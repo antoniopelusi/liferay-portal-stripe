@@ -23,7 +23,9 @@ export default function selectCanUpdatePageStructure({
 }) {
 	return (
 		!permissions.LOCKED_SEGMENTS_EXPERIMENT &&
-		permissions.UPDATE &&
+		(permissions.UPDATE ||
+			permissions.UPDATE_LAYOUT_BASIC ||
+			permissions.UPDATE_LAYOUT_LIMITED) &&
 		selectedViewportSize === VIEWPORT_SIZES.desktop
 	);
 }

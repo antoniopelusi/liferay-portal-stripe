@@ -45,7 +45,9 @@ import com.liferay.asset.publisher.web.internal.helper.AssetPublisherWebHelper;
 import com.liferay.asset.publisher.web.internal.util.AssetPublisherCustomizer;
 import com.liferay.asset.util.AssetHelper;
 import com.liferay.asset.util.AssetPublisherAddItemHolder;
+import com.liferay.asset.util.LinkedAssetEntryIdsUtil;
 import com.liferay.document.library.kernel.document.conversion.DocumentConversionUtil;
+import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.info.collection.provider.CollectionQuery;
 import com.liferay.info.collection.provider.InfoCollectionProvider;
 import com.liferay.info.collection.provider.item.selector.criterion.InfoCollectionProviderItemSelectorCriterion;
@@ -76,6 +78,7 @@ import com.liferay.portal.kernel.portlet.PortletIdCodec;
 import com.liferay.portal.kernel.portlet.PortletProvider;
 import com.liferay.portal.kernel.portlet.PortletProviderUtil;
 import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactoryUtil;
+import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
@@ -717,7 +720,6 @@ public class AssetPublisherDisplayContext {
 				"selectedCategories", "{selectedCategories}");
 			portletURL.setParameter("singleSelect", "{singleSelect}");
 			portletURL.setParameter("vocabularyIds", "{vocabularyIds}");
-
 			portletURL.setWindowState(LiferayWindowState.POP_UP);
 
 			return portletURL.toString();
@@ -1038,6 +1040,18 @@ public class AssetPublisherDisplayContext {
 				"categoryId", String.valueOf(getAssetCategoryId()));
 		}
 
+		if (!isPaginationTypeNone()) {
+			String redirect = ParamUtil.getString(_portletRequest, "redirect");
+
+			if (Validator.isNull(redirect)) {
+				redirect = PortalUtil.getCurrentURL(_portletRequest);
+			}
+
+			if (Validator.isNotNull(redirect)) {
+				portletURL.setParameter("redirect", redirect);
+			}
+		}
+
 		return portletURL;
 	}
 
@@ -1244,9 +1258,26 @@ public class AssetPublisherDisplayContext {
 						return true;
 					}
 
+					if (classNameId == PortalUtil.getClassNameId(
+							FileEntry.class.getName())) {
+
+						classNameId = PortalUtil.getClassNameId(
+							DLFileEntry.class.getName());
+					}
+
 					AssetRendererFactory<?> assetRendererFactory =
 						AssetRendererFactoryRegistryUtil.
 							getAssetRendererFactoryByClassNameId(classNameId);
+
+					if (assetRendererFactory == null) {
+						if (_log.isDebugEnabled()) {
+							_log.debug(
+								"Unable to get asset renderer factory for " +
+									"class name ID " + classNameId);
+						}
+
+						continue;
+					}
 
 					if (assetRendererFactory.isSelectable()) {
 						return true;
@@ -1886,25 +1917,32 @@ public class AssetPublisherDisplayContext {
 	public void setLayoutAssetEntry(AssetEntry assetEntry)
 		throws PortalException {
 
-		if (_httpServletRequest.getAttribute(WebKeys.LAYOUT_ASSET_ENTRY) !=
-				null) {
-
-			return;
-		}
-
 		String defaultAssetPublisherPortletId =
 			_assetPublisherWebHelper.getDefaultAssetPublisherId(
 				_themeDisplay.getLayout());
 
-		if (isDefaultAssetPublisher() ||
-			Validator.isNull(defaultAssetPublisherPortletId) ||
-			!PortletPermissionUtil.contains(
+		if (!isDefaultAssetPublisher() &&
+			Validator.isNotNull(defaultAssetPublisherPortletId) &&
+			PortletPermissionUtil.contains(
 				_themeDisplay.getPermissionChecker(), _themeDisplay.getLayout(),
 				defaultAssetPublisherPortletId, ActionKeys.VIEW)) {
+
+			return;
+		}
+
+		if (_httpServletRequest.getAttribute(WebKeys.LAYOUT_ASSET_ENTRY) ==
+				null) {
 
 			_httpServletRequest.setAttribute(
 				WebKeys.LAYOUT_ASSET_ENTRY, assetEntry);
 		}
+
+		if (assetEntry == null) {
+			return;
+		}
+
+		LinkedAssetEntryIdsUtil.addLinkedAssetEntryId(
+			_httpServletRequest, assetEntry.getEntryId());
 	}
 
 	public void setPageKeywords() {

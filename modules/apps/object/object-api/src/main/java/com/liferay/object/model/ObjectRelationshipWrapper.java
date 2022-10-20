@@ -54,6 +54,7 @@ public class ObjectRelationshipWrapper
 		attributes.put("objectDefinitionId1", getObjectDefinitionId1());
 		attributes.put("objectDefinitionId2", getObjectDefinitionId2());
 		attributes.put("objectFieldId2", getObjectFieldId2());
+		attributes.put("parameterObjectFieldId", getParameterObjectFieldId());
 		attributes.put("deletionType", getDeletionType());
 		attributes.put("dbTableName", getDBTableName());
 		attributes.put("label", getLabel());
@@ -131,6 +132,13 @@ public class ObjectRelationshipWrapper
 
 		if (objectFieldId2 != null) {
 			setObjectFieldId2(objectFieldId2);
+		}
+
+		Long parameterObjectFieldId = (Long)attributes.get(
+			"parameterObjectFieldId");
+
+		if (parameterObjectFieldId != null) {
+			setParameterObjectFieldId(parameterObjectFieldId);
 		}
 
 		String deletionType = (String)attributes.get("deletionType");
@@ -369,6 +377,16 @@ public class ObjectRelationshipWrapper
 	@Override
 	public long getObjectRelationshipId() {
 		return model.getObjectRelationshipId();
+	}
+
+	/**
+	 * Returns the parameter object field ID of this object relationship.
+	 *
+	 * @return the parameter object field ID of this object relationship
+	 */
+	@Override
+	public long getParameterObjectFieldId() {
+		return model.getParameterObjectFieldId();
 	}
 
 	/**
@@ -643,6 +661,16 @@ public class ObjectRelationshipWrapper
 	@Override
 	public void setObjectRelationshipId(long objectRelationshipId) {
 		model.setObjectRelationshipId(objectRelationshipId);
+	}
+
+	/**
+	 * Sets the parameter object field ID of this object relationship.
+	 *
+	 * @param parameterObjectFieldId the parameter object field ID of this object relationship
+	 */
+	@Override
+	public void setParameterObjectFieldId(long parameterObjectFieldId) {
+		model.setParameterObjectFieldId(parameterObjectFieldId);
 	}
 
 	/**

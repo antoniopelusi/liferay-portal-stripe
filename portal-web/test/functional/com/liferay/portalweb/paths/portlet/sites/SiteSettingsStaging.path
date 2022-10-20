@@ -10,7 +10,9 @@
 </thead>
 
 <tbody>
+
 <!--STAGING-->
+
 <tr>
 	<td>NONE_RADIO</td>
 	<td>//span[contains(.,'None')]</td>
@@ -37,6 +39,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ENABLED_ON_REMOTE_LIVE_CHECKBOX</td>
+	<td>//label[contains(.,'Remote Live')]/input[@checked]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>CONTENT_CHECKBOX</td>
 	<td>//div[contains(@id,'stagingConfigurationControls')]//span[contains(.,'${key_contentName}')]</td>
 	<td></td>
@@ -51,7 +58,9 @@
 	<td></td>
 	<td></td>
 </tr>
+
 <!--REMOTE_STAGING-->
+
 <tr>
 	<td>REMOTE_STAGING_IP</td>
 	<td>//input[contains(@id,'remoteAddress')]</td>

@@ -18,6 +18,8 @@ import com.liferay.document.library.kernel.model.DLFileEntryMetadata;
 import com.liferay.document.library.kernel.util.DLUtil;
 import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
+import com.liferay.portal.kernel.upgrade.UpgradeProcessFactory;
+import com.liferay.portal.kernel.upgrade.UpgradeStep;
 import com.liferay.portal.kernel.util.PortalUtil;
 
 import java.sql.PreparedStatement;
@@ -30,9 +32,15 @@ public class UpgradeDLFileEntryType extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		_upgradeSchema();
-
 		_populateFields();
+	}
+
+	@Override
+	protected UpgradeStep[] getPreUpgradeSteps() {
+		return new UpgradeStep[] {
+			UpgradeProcessFactory.addColumns(
+				"DLFileEntryType", "dataDefinitionId LONG")
+		};
 	}
 
 	private void _populateFields() throws Exception {
@@ -46,9 +54,9 @@ public class UpgradeDLFileEntryType extends UpgradeProcess {
 						"? OR structureKey = ? ) ");
 			PreparedStatement preparedStatement3 =
 				AutoBatchPreparedStatementUtil.autoBatch(
-					connection.prepareStatement(
-						"update DLFileEntryType set dataDefinitionId = ? " +
-							"where fileEntryTypeId = ? "));
+					connection,
+					"update DLFileEntryType set dataDefinitionId = ? where " +
+						"fileEntryTypeId = ? ");
 			ResultSet resultSet1 = preparedStatement1.executeQuery()) {
 
 			long classNameId = PortalUtil.getClassNameId(
@@ -75,12 +83,6 @@ public class UpgradeDLFileEntryType extends UpgradeProcess {
 			}
 
 			preparedStatement3.executeBatch();
-		}
-	}
-
-	private void _upgradeSchema() throws Exception {
-		if (!hasColumn("DLFileEntryType", "dataDefinitionId")) {
-			runSQL("alter table DLFileEntryType add dataDefinitionId LONG ");
 		}
 	}
 

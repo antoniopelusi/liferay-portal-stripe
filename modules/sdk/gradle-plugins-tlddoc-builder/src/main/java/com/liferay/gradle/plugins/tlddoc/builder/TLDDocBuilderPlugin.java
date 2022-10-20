@@ -14,8 +14,8 @@
 
 package com.liferay.gradle.plugins.tlddoc.builder;
 
-import com.liferay.gradle.plugins.tlddoc.builder.tasks.TLDDocTask;
-import com.liferay.gradle.plugins.tlddoc.builder.tasks.ValidateSchemaTask;
+import com.liferay.gradle.plugins.tlddoc.builder.task.TLDDocTask;
+import com.liferay.gradle.plugins.tlddoc.builder.task.ValidateSchemaTask;
 import com.liferay.gradle.util.GradleUtil;
 
 import java.io.File;

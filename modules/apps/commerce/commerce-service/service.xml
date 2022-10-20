@@ -186,36 +186,54 @@
 
 		<!-- Other fields -->
 
+		<column name="billingAddressId" type="long" />
 		<column name="commerceAccountId" type="long" />
 		<column name="commerceCurrencyId" type="long" />
 		<column name="commerceOrderTypeId" type="long" />
-		<column name="billingAddressId" type="long" />
-		<column name="shippingAddressId" type="long" />
-		<column name="commercePaymentMethodKey" type="String" />
-		<column name="transactionId" type="String" />
 		<column name="commerceShippingMethodId" type="long" />
-		<column name="shippingOptionName" type="String" />
-		<column name="purchaseOrderNumber" type="String" />
-		<column name="couponCode" type="String" />
-		<column name="lastPriceUpdateDate" type="Date" />
 		<column name="deliveryCommerceTermEntryId" type="long" />
+		<column name="paymentCommerceTermEntryId" type="long" />
+		<column name="shippingAddressId" type="long" />
+		<column name="advanceStatus" type="String" />
+		<column name="commercePaymentMethodKey" type="String" />
+		<column name="couponCode" type="String" />
 		<column db-name="deliveryCTermEntryDescription" name="deliveryCommerceTermEntryDescription" type="String" />
 		<column name="deliveryCommerceTermEntryName" type="String" />
-		<column name="paymentCommerceTermEntryId" type="long" />
+		<column name="lastPriceUpdateDate" type="Date" />
+		<column name="manuallyAdjusted" type="boolean" />
+		<column name="orderDate" type="Date" />
+		<column name="orderStatus" type="int" />
 		<column db-name="paymentCTermEntryDescription" name="paymentCommerceTermEntryDescription" type="String" />
 		<column name="paymentCommerceTermEntryName" type="String" />
-		<column name="subtotal" type="BigDecimal" />
-		<column name="subtotalDiscountAmount" type="BigDecimal" />
-		<column db-name="subtotalDiscountPercentLevel1" name="subtotalDiscountPercentageLevel1" type="BigDecimal" />
-		<column db-name="subtotalDiscountPercentLevel2" name="subtotalDiscountPercentageLevel2" type="BigDecimal" />
-		<column db-name="subtotalDiscountPercentLevel3" name="subtotalDiscountPercentageLevel3" type="BigDecimal" />
-		<column db-name="subtotalDiscountPercentLevel4" name="subtotalDiscountPercentageLevel4" type="BigDecimal" />
+		<column name="paymentStatus" type="int" />
+		<column name="printedNote" type="String" />
+		<column name="purchaseOrderNumber" type="String" />
+		<column name="requestedDeliveryDate" type="Date" />
 		<column name="shippingAmount" type="BigDecimal" />
 		<column name="shippingDiscountAmount" type="BigDecimal" />
 		<column db-name="shippingDiscountPercentLevel1" name="shippingDiscountPercentageLevel1" type="BigDecimal" />
 		<column db-name="shippingDiscountPercentLevel2" name="shippingDiscountPercentageLevel2" type="BigDecimal" />
 		<column db-name="shippingDiscountPercentLevel3" name="shippingDiscountPercentageLevel3" type="BigDecimal" />
 		<column db-name="shippingDiscountPercentLevel4" name="shippingDiscountPercentageLevel4" type="BigDecimal" />
+		<column db-name="shippingDiscountPctLev1WithTax" name="shippingDiscountPercentageLevel1WithTaxAmount" type="BigDecimal" />
+		<column db-name="shippingDiscountPctLev2WithTax" name="shippingDiscountPercentageLevel2WithTaxAmount" type="BigDecimal" />
+		<column db-name="shippingDiscountPctLev3WithTax" name="shippingDiscountPercentageLevel3WithTaxAmount" type="BigDecimal" />
+		<column db-name="shippingDiscountPctLev4WithTax" name="shippingDiscountPercentageLevel4WithTaxAmount" type="BigDecimal" />
+		<column name="shippingDiscountWithTaxAmount" type="BigDecimal" />
+		<column name="shippingOptionName" type="String" />
+		<column name="shippingWithTaxAmount" type="BigDecimal" />
+		<column name="subtotal" type="BigDecimal" />
+		<column name="subtotalDiscountAmount" type="BigDecimal" />
+		<column db-name="subtotalDiscountPercentLevel1" name="subtotalDiscountPercentageLevel1" type="BigDecimal" />
+		<column db-name="subtotalDiscountPercentLevel2" name="subtotalDiscountPercentageLevel2" type="BigDecimal" />
+		<column db-name="subtotalDiscountPercentLevel3" name="subtotalDiscountPercentageLevel3" type="BigDecimal" />
+		<column db-name="subtotalDiscountPercentLevel4" name="subtotalDiscountPercentageLevel4" type="BigDecimal" />
+		<column db-name="subtotalDiscountPctLev1WithTax" name="subtotalDiscountPercentageLevel1WithTaxAmount" type="BigDecimal" />
+		<column db-name="subtotalDiscountPctLev2WithTax" name="subtotalDiscountPercentageLevel2WithTaxAmount" type="BigDecimal" />
+		<column db-name="subtotalDiscountPctLev3WithTax" name="subtotalDiscountPercentageLevel3WithTaxAmount" type="BigDecimal" />
+		<column db-name="subtotalDiscountPctLev4WithTax" name="subtotalDiscountPercentageLevel4WithTaxAmount" type="BigDecimal" />
+		<column name="subtotalDiscountWithTaxAmount" type="BigDecimal" />
+		<column name="subtotalWithTaxAmount" type="BigDecimal" />
 		<column name="taxAmount" type="BigDecimal" />
 		<column name="total" type="BigDecimal" />
 		<column name="totalDiscountAmount" type="BigDecimal" />
@@ -223,31 +241,13 @@
 		<column name="totalDiscountPercentageLevel2" type="BigDecimal" />
 		<column name="totalDiscountPercentageLevel3" type="BigDecimal" />
 		<column name="totalDiscountPercentageLevel4" type="BigDecimal" />
-		<column name="subtotalWithTaxAmount" type="BigDecimal" />
-		<column name="subtotalDiscountWithTaxAmount" type="BigDecimal" />
-		<column db-name="subtotalDiscountPctLev1WithTax" name="subtotalDiscountPercentageLevel1WithTaxAmount" type="BigDecimal" />
-		<column db-name="subtotalDiscountPctLev2WithTax" name="subtotalDiscountPercentageLevel2WithTaxAmount" type="BigDecimal" />
-		<column db-name="subtotalDiscountPctLev3WithTax" name="subtotalDiscountPercentageLevel3WithTaxAmount" type="BigDecimal" />
-		<column db-name="subtotalDiscountPctLev4WithTax" name="subtotalDiscountPercentageLevel4WithTaxAmount" type="BigDecimal" />
-		<column name="shippingWithTaxAmount" type="BigDecimal" />
-		<column name="shippingDiscountWithTaxAmount" type="BigDecimal" />
-		<column db-name="shippingDiscountPctLev1WithTax" name="shippingDiscountPercentageLevel1WithTaxAmount" type="BigDecimal" />
-		<column db-name="shippingDiscountPctLev2WithTax" name="shippingDiscountPercentageLevel2WithTaxAmount" type="BigDecimal" />
-		<column db-name="shippingDiscountPctLev3WithTax" name="shippingDiscountPercentageLevel3WithTaxAmount" type="BigDecimal" />
-		<column db-name="shippingDiscountPctLev4WithTax" name="shippingDiscountPercentageLevel4WithTaxAmount" type="BigDecimal" />
-		<column name="totalWithTaxAmount" type="BigDecimal" />
-		<column name="totalDiscountWithTaxAmount" type="BigDecimal" />
 		<column db-name="totalDiscountPctLev1WithTax" name="totalDiscountPercentageLevel1WithTaxAmount" type="BigDecimal" />
 		<column db-name="totalDiscountPctLev2WithTax" name="totalDiscountPercentageLevel2WithTaxAmount" type="BigDecimal" />
 		<column db-name="totalDiscountPctLev3WithTax" name="totalDiscountPercentageLevel3WithTaxAmount" type="BigDecimal" />
 		<column db-name="totalDiscountPctLev4WithTax" name="totalDiscountPercentageLevel4WithTaxAmount" type="BigDecimal" />
-		<column name="advanceStatus" type="String" />
-		<column name="paymentStatus" type="int" />
-		<column name="orderDate" type="Date" />
-		<column name="orderStatus" type="int" />
-		<column name="printedNote" type="String" />
-		<column name="requestedDeliveryDate" type="Date" />
-		<column name="manuallyAdjusted" type="boolean" />
+		<column name="totalDiscountWithTaxAmount" type="BigDecimal" />
+		<column name="totalWithTaxAmount" type="BigDecimal" />
+		<column name="transactionId" type="String" />
 		<column name="status" type="int" />
 		<column name="statusByUserId" type="long" />
 		<column name="statusByUserName" type="String" />
@@ -267,11 +267,11 @@
 		<finder name="UserId" return-type="Collection">
 			<finder-column name="userId" />
 		</finder>
-		<finder name="CommerceAccountId" return-type="Collection">
-			<finder-column name="commerceAccountId" />
-		</finder>
 		<finder name="BillingAddressId" return-type="Collection">
 			<finder-column name="billingAddressId" />
+		</finder>
+		<finder name="CommerceAccountId" return-type="Collection">
+			<finder-column name="commerceAccountId" />
 		</finder>
 		<finder name="ShippingAddressId" return-type="Collection">
 			<finder-column name="shippingAddressId" />
@@ -305,7 +305,7 @@
 			<finder-column name="orderStatus" />
 		</finder>
 	</entity>
-	<entity external-reference-code="true" local-service="true" name="CommerceOrderItem" remote-service="true">
+	<entity external-reference-code="true" local-service="true" name="CommerceOrderItem" remote-service="true" uuid="true">
 
 		<!-- PK fields -->
 
@@ -332,6 +332,7 @@
 		<column name="CPMeasurementUnitId" type="long" />
 		<column name="CProductId" type="long" />
 		<column name="parentCommerceOrderItemId" type="long" />
+		<column name="shippingAddressId" type="long" />
 		<column name="decimalQuantity" type="BigDecimal" />
 		<column name="deliveryGroup" type="String" />
 		<column name="deliveryMaxSubscriptionCycles" type="long" />
@@ -362,7 +363,6 @@
 		<column name="promoPriceWithTaxAmount" type="BigDecimal" />
 		<column name="quantity" type="int" />
 		<column name="requestedDeliveryDate" type="Date" />
-		<column name="shippingAddressId" type="long" />
 		<column name="shipSeparately" type="boolean" />
 		<column name="shippable" type="boolean" />
 		<column name="shippedQuantity" type="int" />
@@ -409,7 +409,7 @@
 			<finder-column name="subscription" />
 		</finder>
 	</entity>
-	<entity external-reference-code="true" local-service="true" name="CommerceOrderNote" remote-service="true">
+	<entity external-reference-code="true" local-service="true" name="CommerceOrderNote" remote-service="true" uuid="true">
 
 		<!-- PK fields -->
 
@@ -486,7 +486,7 @@
 			<finder-column name="commerceOrderId" />
 		</finder>
 	</entity>
-	<entity external-reference-code="true" local-service="true" name="CommerceOrderType" remote-service="true">
+	<entity external-reference-code="true" local-service="true" name="CommerceOrderType" remote-service="true" uuid="true">
 
 		<!-- PK fields -->
 
@@ -538,7 +538,7 @@
 			<finder-column name="status" />
 		</finder>
 	</entity>
-	<entity external-reference-code="true" local-service="true" name="CommerceOrderTypeRel" remote-service="true">
+	<entity external-reference-code="true" local-service="true" name="CommerceOrderTypeRel" remote-service="true" uuid="true">
 
 		<!-- PK fields -->
 
@@ -579,7 +579,7 @@
 			<finder-column name="commerceOrderTypeId" />
 		</finder>
 	</entity>
-	<entity external-reference-code="true" local-service="true" name="CommerceShipment" remote-service="true">
+	<entity external-reference-code="true" local-service="true" name="CommerceShipment" remote-service="true" uuid="true">
 
 		<!-- PK fields -->
 
@@ -602,11 +602,12 @@
 		<column name="commerceAccountId" type="long" />
 		<column name="commerceAddressId" type="long" />
 		<column name="commerceShippingMethodId" type="long" />
-		<column name="shippingOptionName" type="String" />
 		<column name="carrier" type="String" />
-		<column name="trackingNumber" type="String" />
-		<column name="shippingDate" type="Date" />
 		<column name="expectedDate" type="Date" />
+		<column name="shippingDate" type="Date" />
+		<column name="shippingOptionName" type="String" />
+		<column name="trackingNumber" type="String" />
+		<column name="trackingURL" type="String" />
 		<column name="status" type="int" />
 
 		<!-- Order -->
@@ -629,7 +630,7 @@
 			<finder-column name="status" />
 		</finder>
 	</entity>
-	<entity external-reference-code="true" local-service="true" name="CommerceShipmentItem" remote-service="true">
+	<entity external-reference-code="true" local-service="true" name="CommerceShipmentItem" remote-service="true" uuid="true">
 
 		<!-- PK fields -->
 
@@ -703,10 +704,11 @@
 
 		<column localized="true" name="name" type="String" />
 		<column localized="true" name="description" type="String" />
-		<column name="imageId" type="long" />
-		<column name="engineKey" type="String" />
-		<column name="priority" type="double" />
 		<column name="active" type="boolean" />
+		<column name="engineKey" type="String" />
+		<column name="imageId" type="long" />
+		<column name="priority" type="double" />
+		<column name="trackingURL" type="String" />
 
 		<!-- Order -->
 
@@ -719,13 +721,13 @@
 		<finder name="GroupId" return-type="Collection">
 			<finder-column name="groupId" />
 		</finder>
-		<finder name="G_E" return-type="CommerceShippingMethod" unique="true">
-			<finder-column name="groupId" />
-			<finder-column name="engineKey" />
-		</finder>
 		<finder name="G_A" return-type="Collection">
 			<finder-column name="groupId" />
 			<finder-column name="active" />
+		</finder>
+		<finder name="G_E" return-type="CommerceShippingMethod" unique="true">
+			<finder-column name="groupId" />
+			<finder-column name="engineKey" />
 		</finder>
 	</entity>
 	<entity local-service="true" name="CommerceShippingOptionAccountEntryRel" remote-service="true" table="CSOptionAccountEntryRel">
@@ -950,6 +952,8 @@
 		<exception>CommerceSubscriptionType</exception>
 		<exception>DuplicateCommerceOrderNote</exception>
 		<exception>DuplicateCommerceOrderTypeRel</exception>
+		<exception>DuplicateCommerceShipment</exception>
+		<exception>DuplicateCommerceShipmentItem</exception>
 		<exception>DuplicateCommerceShippingOptionAccountEntryRel</exception>
 		<exception>GuestCartItemMaxAllowed</exception>
 		<exception>GuestCartMaxAllowed</exception>

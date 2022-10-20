@@ -58,11 +58,9 @@ definition {
 		if (isSet(displayPageTemplateDisabled)) {
 			Portlet.waitForForm();
 
-			var key_panel = "Display Page Template";
+			var key_panel = "Display Page";
 
-			AssertElementNotPresent(locator1 = "Panel#PANEL_COLLAPSED");
-
-			AssertElementNotPresent(locator1 = "Panel#PANEL_EXPANDED");
+			AssertElementNotPresent(locator1 = "Panel#PANEL");
 		}
 
 		if (isSet(vocabularyName)) {
@@ -125,6 +123,8 @@ definition {
 				key_dmDocumentTitle = "${documentsAndMediaField}",
 				locator1 = "WC#ICON_DOCUMENT_TITLE",
 				value1 = "${documentsAndMediaField}");
+
+			SelectFrameTop();
 		}
 
 		if (isSet(linkedPageName)) {
@@ -325,7 +325,7 @@ definition {
 		}
 
 		if (isSet(siteName)) {
-			LexiconCard.clickCardTitleLink(card = "${siteName}");
+			LexiconCard.clickCard(card = "${siteName}");
 		}
 
 		if (isSet(depotName)) {
@@ -359,7 +359,7 @@ definition {
 			value1 = "Sites and Libraries");
 
 		if (isSet(siteName)) {
-			LexiconCard.clickCardTitleLink(card = "${siteName}");
+			LexiconCard.clickCard(card = "${siteName}");
 		}
 
 		if (isSet(depotName)) {
@@ -558,11 +558,12 @@ definition {
 					value1 = "${validationError}");
 
 				var i = ${i} + 1;
+
 				var i = StringUtil.valueOf("${i}");
 			}
 		}
 		else {
-			AssertElementPresent.pauseAssertVisible(locator1 = "DocumentsAndMedia#BREADCRUMB_HOME");
+			AssertVisible(locator1 = "DocumentsAndMedia#BREADCRUMB_HOME");
 
 			VerifyElementPresent(locator1 = "Message#SUCCESS");
 		}
@@ -676,6 +677,19 @@ definition {
 			Select(
 				locator1 = "Select#PERMISSIONS",
 				value1 = "${viewableBy}");
+		}
+
+		if (isSet(textField)) {
+			if (isSet(fieldFieldLabel)) {
+				var key_fieldLabel = "${fieldFieldLabel}";
+			}
+			else {
+				var key_fieldLabel = "Text";
+			}
+
+			Type(
+				locator1 = "TextInput#GENERIC_TEXT_INPUT",
+				value1 = "${textField}");
 		}
 
 		AssertClick(
@@ -815,8 +829,33 @@ definition {
 		LexiconEntry.viewEntryName(rowEntry = "${dmDocumentTitle}");
 	}
 
+	macro assertDownloadedFileContent {
+		var fileContent = TestCase.getTempFileContent(fileName = "${fileName}");
+
+		if (contains("${fileContent}", "${downloadedContent}")) {
+			echo("The downloaded file content matches the expected file content.");
+		}
+		else {
+			fail("The downloaded file content does not match the expected file content.");
+		}
+	}
+
+	macro assertFileExtensionFromTempFolder {
+		var downloadedFile = TestCase.getDownloadedTempFileName(fileNamePattern = "${downloadedFile}");
+
+		echo("## downloadedFile: ${downloadedFile}");
+
+		if (contains("${downloadedFile}", "${fileExtension}")) {
+			echo("This is an expected file extension.");
+		}
+		else {
+			fail("FAIL!");
+		}
+	}
+
 	macro assertFileNameFromTempFolder {
 		var tempDir = PropsUtil.get("output.dir.name");
+
 		var downloadedFile = FileUtil.exists("${tempDir}/${fileName}");
 
 		if ("${downloadedFile}" == "true") {
@@ -829,6 +868,7 @@ definition {
 
 	macro assertNoFileNameFromTempFolder {
 		var tempDir = PropsUtil.get("output.dir.name");
+
 		var exportedFile = FileUtil.exists("${tempDir}/${fileName}");
 
 		if ("${exportedFile}" == "true") {
@@ -836,6 +876,22 @@ definition {
 		}
 		else {
 			echo("This is no file named ${fileName}.");
+		}
+	}
+
+	macro assertNoZipFileFromTempFolder {
+		var liferayHome = PropsUtil.get("liferay.home.dir.name");
+		var fileName = StringUtil.split("**/${fileNamePattern}");
+
+		var tempFile = "${liferayHome}/${appServer}/temp/${fileName}";
+
+		var tempFileExists = FileUtil.exists("${tempFile}");
+
+		if ("${tempFileExists}" == "false") {
+			echo("There are no temporary zip files");
+		}
+		else {
+			fail("There is a temporary zip file");
 		}
 	}
 
@@ -859,6 +915,8 @@ definition {
 				value1 = "You now have a lock on this document. No one else can edit this document until you unlock it. This lock will automatically expire in 1 day.");
 
 			DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+			WaitForPageLoad();
 
 			Click(locator1 = "DocumentsAndMedia#DESCRIPTIVE_LIST_DOCUMENT_VERTICAL_ELLIPSIS");
 
@@ -914,7 +972,7 @@ definition {
 	macro checkDocumentCheckboxPG {
 		var key_listEntry = "${dmDocumentTitle}";
 
-		Check(locator1 = "LexiconList#LIST_ENTRY_CHECKBOX");
+		Check.checkNotVisible(locator1 = "LexiconList#LIST_ENTRY_CHECKBOX");
 	}
 
 	macro checkinCP {
@@ -929,7 +987,9 @@ definition {
 				value1 = "You now have a lock on this document. No one else can edit this document until you unlock it. This lock will automatically expire in 1 day.");
 		}
 
-		LexiconEntry.gotoEllipsisMenuItem(menuItem = "Checkin");
+		Click(locator1 = "Icon#TOOLBAR_ELLIPSIS");
+
+		MenuItem.click(menuItem = "Checkin");
 
 		if (IsElementPresent(locator1 = "DocumentsAndMedia#CHECKIN_DIALOG_TITLE")) {
 			if ("${revision}" == "Major") {
@@ -1001,6 +1061,8 @@ definition {
 		AssertClick(
 			locator1 = "DocumentsAndMedia#DESCRIPTIVE_LIST_DOCUMENT_TITLE",
 			value1 = "${dmDocumentTitle}");
+
+		WaitForPageLoad();
 
 		AssertTextEquals(
 			locator1 = "Message#CHECKOUT_SUCCESS",
@@ -1091,6 +1153,14 @@ definition {
 			value1 = "You now have a lock on this document. No one else can edit this document until you unlock it. This lock will automatically expire in 1 day.");
 	}
 
+	macro checkoutViaManagementBar {
+		Click(locator1 = "Icon#TOOLBAR_ELLIPSIS");
+
+		MenuItem.click(menuItem = "Checkout");
+
+		Alert.viewSuccessMessage();
+	}
+
 	macro configureCacheControl {
 		if (isSet(systemSettingsInstanceScope)) {
 			DMNavigator.openToConfigInSystemSettings(portlet = "Cache Control");
@@ -1098,6 +1168,8 @@ definition {
 		else {
 			DMNavigator.openToConfigInInstanceSettings(portlet = "Cache Control");
 		}
+
+		WaitForPageLoad();
 
 		if (isSet(cacheControl)) {
 			AssertTextEquals(
@@ -1234,11 +1306,17 @@ definition {
 		}
 		else {
 			LexiconEntry.gotoEntryMenuItem(
-				menuItem = "Move to Recycle Bin",
+				menuItem = "Delete",
 				rowEntry = "${dmDocumentTitle}");
 
 			Alert.viewSuccessMessage();
 		}
+	}
+
+	macro deleteDocumentLibraryFolder {
+		var liferayHome = PropsUtil.get("liferay.home.dir.name");
+
+		FileUtil.delete("${liferayHome}/data/document_library");
 	}
 
 	macro deletePG {
@@ -1252,7 +1330,7 @@ definition {
 
 		AssertClick(
 			locator1 = "Button#MOVE_TO_RECYCLE_BIN",
-			value1 = "Move to Recycle Bin");
+			value1 = "Delete");
 
 		Alert.viewSuccessMessage();
 	}
@@ -1262,13 +1340,19 @@ definition {
 			key_rowEntry = "${mgDocumentTitle}",
 			locator1 = "Icon#ROW_VERTICAL_ELLIPSIS");
 
-		MenuItem.click(menuItem = "Move to Recycle Bin");
+		MenuItem.click(menuItem = "Delete");
 
 		VerifyElementPresent(locator1 = "Message#SUCCESS");
 
 		AssertElementNotPresent(
 			key_mgDocumentTitle = "${mgDocumentTitle}",
 			locator1 = "MediaGallery#IMAGE_TITLE");
+	}
+
+	macro deleteTempFolder {
+		var liferayHome = PropsUtil.get("liferay.home.dir.name");
+
+		FileUtil.delete("${liferayHome}/${appServer}/temp");
 	}
 
 	macro deleteVersion {
@@ -1280,7 +1364,7 @@ definition {
 
 		Click(locator1 = "DocumentsAndMedia#DOCUMENT_VERSION_VERTICAL_ELLIPSIS");
 
-		MenuItem.clickNoError(menuItem = "Delete Version");
+		MenuItem.clickNoError(menuItem = "Delete");
 
 		AssertConfirm(value1 = "Are you sure you want to delete this? It will be deleted immediately.");
 
@@ -1306,9 +1390,9 @@ definition {
 			key_rowEntry = "${dmDocumentTitle}",
 			locator1 = "Icon#ROW_VERTICAL_ELLIPSIS");
 
-		AssertClick.assertPartialTextClickAt(
-			locator1 = "MenuItem#DOWNLOAD",
-			value1 = "Download");
+		Click(
+			key_menuItem = "Download (${dmDocumentSize})",
+			locator1 = "MenuItem#DROPDOWN_MENU_ITEM");
 
 		DownloadTempFile();
 	}
@@ -1324,7 +1408,7 @@ definition {
 
 		Click(
 			key_text = "download",
-			locator1 = "Icon#ANY");
+			locator1 = "ManagementBar#ANY_ICON");
 
 		DownloadTempFile();
 	}
@@ -1341,6 +1425,19 @@ definition {
 		AssertClick.assertPartialTextClickAt(
 			locator1 = "Button#DOWNLOAD_SIDEBAR",
 			value1 = "Download");
+	}
+
+	macro downloadWithDirectoryIndexing {
+		var portalURL = PropsUtil.get("portal.url");
+
+		Navigator.openSpecificURL(url = "${portalURL}/documents/${siteURLKey}/");
+
+		AssertClick(
+			key_text = "${dmDocumentTitle}",
+			locator1 = "Link#ANY",
+			value1 = "${dmDocumentTitle}");
+
+		DownloadTempFile();
 	}
 
 	macro editCategoryTags {
@@ -1505,9 +1602,11 @@ definition {
 	}
 
 	macro editCP {
-		LexiconEntry.gotoEntryMenuItem(
-			menuItem = "Edit",
-			rowEntry = "${dmDocumentTitle}");
+		if (!(isSet(skipNavigation))) {
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Edit",
+				rowEntry = "${dmDocumentTitle}");
+		}
 
 		DMDocument.editCmd(
 			dmDocumentDescriptionEdit = "${dmDocumentDescriptionEdit}",
@@ -1544,11 +1643,9 @@ definition {
 		if (isSet(displayPageTemplateDisabled)) {
 			Portlet.waitForForm();
 
-			var key_panel = "Display Page Template";
+			var key_panel = "Display Page";
 
-			AssertElementNotPresent(locator1 = "Panel#PANEL_COLLAPSED");
-
-			AssertElementNotPresent(locator1 = "Panel#PANEL_EXPANDED");
+			AssertElementNotPresent(locator1 = "Panel#PANEL");
 		}
 
 		if (isSet(customFieldTextEdit)) {
@@ -1592,6 +1689,22 @@ definition {
 			}
 		}
 
+		if (isSet(updateAutoTags)) {
+			Panel.expandPanel(panel = "Categorization");
+
+			if ("${updateAutoTags}" == "disabled") {
+				FormFields.disableCheckbox(fieldName = "Update Auto Tags");
+			}
+			else if ("${updateAutoTags}" == "hidden") {
+				AssertElementNotPresent(
+					key_fieldName = "Update Auto Tags",
+					locator1 = "FormFields#CHECKBOX_LABEL");
+			}
+			else {
+				FormFields.enableCheckbox(fieldName = "Update Auto Tags");
+			}
+		}
+
 		if (isSet(checkedOut)) {
 			Click(locator1 = "Button#SAVE");
 		}
@@ -1619,7 +1732,7 @@ definition {
 			value1 = "Sites and Libraries");
 
 		if (isSet(siteName)) {
-			LexiconCard.clickCardTitleLink(card = "${siteName}");
+			LexiconCard.clickCard(card = "${siteName}");
 		}
 
 		if (isSet(depotName)) {
@@ -1665,6 +1778,17 @@ definition {
 		}
 	}
 
+	macro editFriendlyURL {
+		Panel.expandPanel(panel = "Friendly URL");
+
+		Type(
+			inputFieldId = "urlTitle",
+			locator1 = "TextInput#INPUT_ID",
+			value1 = "${friendlyURLEdit}");
+
+		PortletEntry.publish();
+	}
+
 	macro editPG {
 		var key_dmDocumentTitle = "${dmDocumentTitle}";
 
@@ -1682,6 +1806,8 @@ definition {
 
 			Click(locator1 = "Button#EDIT");
 		}
+
+		WaitForPageLoad();
 
 		DMDocument.editCmd(
 			dmDocumentDescriptionEdit = "${dmDocumentDescriptionEdit}",
@@ -1718,7 +1844,11 @@ definition {
 	}
 
 	macro editPGViaMG {
-		LexiconEntry.gotoEllipsisMenuItem(menuItem = "Edit");
+		Click.waitForMenuToggleJSClick(
+			key_card = "${mgDocumentTitle}",
+			locator1 = "Card#CARD_ELLIPSIS");
+
+		MenuItem.click(menuItem = "Edit");
 
 		PortletEntry.inputTitle(title = "${mgDocumentTitleEdit}");
 
@@ -1804,13 +1934,25 @@ definition {
 
 		SelectFrame.selectFrameNoLoading(locator1 = "DocumentsAndMedia#CONFIGURATION_IFRAME");
 
-		AssertElementPresent.pauseAssertVisible(locator1 = "Checkbox#SHOW_ACTIONS_CHECKBOX");
+		WaitForVisible(locator1 = "Checkbox#SHOW_ACTIONS_CHECKBOX");
 
 		Check(locator1 = "Checkbox#SHOW_ACTIONS_CHECKBOX");
 
 		PortletEntry.save();
 
 		IFrame.closeFrame();
+	}
+
+	macro enableDirectoryIndexing {
+		DMNavigator.openToConfigInSiteSettings(
+			portlet = "Documents and Media",
+			siteURLKey = "${siteURLKey}");
+
+		FormFields.enableSwitch(fieldName = "Enable Directory Indexing");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
 	}
 
 	macro expandInfo {
@@ -1850,6 +1992,7 @@ definition {
 
 		var portalURL = PropsUtil.get("portal.url");
 		var dmLatestVersionURL = selenium.getAttribute("//input[contains(@id,'urlInput')]@value");
+
 		var dmDocumentURL = StringUtil.extractLast("${dmLatestVersionURL}", "${portalURL}");
 
 		echo("## * Document URL: ${dmDocumentURL}");
@@ -1865,6 +2008,7 @@ definition {
 		var dmDocumentURL = selenium.getAttribute("//img[contains(@class,'preview-file-image') and contains(@src,'${dmDocumentFileName}')]@src");
 
 		var curl = '''${dmDocumentURL} -I''';
+
 		var responseHeader = JSONCurlUtil.post("${curl}");
 
 		return "${responseHeader}";
@@ -1887,7 +2031,7 @@ definition {
 	macro gotoMenuItemViaInfoPanel {
 		DMDocument.expandInfo();
 
-		Click(locator1 = "Icon#BODY_VERTICAL_ELLIPSIS");
+		Click(locator1 = "Icon#SIDEBAR_HEADER_ACTION_VERTICAL_ELLIPSIS_BUTTON");
 
 		if (isSet(menuItem)) {
 			Click(
@@ -2129,6 +2273,22 @@ definition {
 		Alert.viewSuccessMessageText(successMessage = "Changes Saved");
 	}
 
+	macro removeOldFriendlyURL {
+		MouseOver(
+			key_oldFriendlyURL = "${oldFriendlyURL}",
+			locator1 = "DocumentsAndMediaDocument#FRIENDLY_URL_HISTORY_ITEM");
+
+		Click(
+			key_oldFriendlyURL = "${oldFriendlyURL}",
+			locator1 = "Icon#FRIENDLY_URL_HISTORY_ITEM_DELETE");
+
+		AssertElementNotPresent(
+			key_oldFriendlyURL = "${oldFriendlyURL}",
+			locator1 = "DocumentsAndMediaDocument#FRIENDLY_URL_HISTORY_ITEM");
+
+		Click(locator1 = "Modal#CLOSE_BUTTON");
+	}
+
 	macro removeTag {
 		if (IsElementPresent(locator1 = "Button#EDIT")) {
 			Click(locator1 = "Button#EDIT");
@@ -2148,10 +2308,39 @@ definition {
 			value1 = "${removeTag}");
 	}
 
+	macro restoreOldFriendlyURL {
+		MouseOver(
+			key_oldFriendlyURL = "${oldFriendlyURL}",
+			locator1 = "DocumentsAndMediaDocument#FRIENDLY_URL_HISTORY_ITEM");
+
+		Click(locator1 = "Icon#FRIENDLY_URL_HISTORY_ITEM_RESTORE");
+
+		AssertVisible(
+			key_activeURL = "${restoredURL}",
+			locator1 = "DocumentsAndMediaDocument#FRIENDLY_URL_ACTIVE_URL");
+
+		AssertVisible(
+			key_oldFriendlyURL = "${activeURL}",
+			locator1 = "DocumentsAndMediaDocument#FRIENDLY_URL_HISTORY_ITEM");
+
+		Click(locator1 = "Modal#CLOSE_BUTTON");
+
+		AssertVisible(
+			inputFieldId = "urlTitle",
+			locator1 = "TextInput#INPUT_ID",
+			value1 = "${restoredURL}");
+	}
+
 	macro revertPG {
 		DMNavigator.gotoDocumentVersion();
 
-		var key_dmDocumentVersionNumber = "Version ${dmDocumentVersionNumber}";
+		var key_dmDocumentVersionNumber = "${dmDocumentVersionNumber}";
+		var documentCreationDate = DateUtil.getFormattedCurrentDate("M/d/yy");
+
+		AssertTextEquals.assertPartialText(
+			locator1 = "DocumentsAndMediaDocument#DOCUMENT_VERSIONS_CREATION_DATE",
+			value1 = "${documentCreationDate}",
+			versionNumber = "${key_dmDocumentVersionNumber}");
 
 		Click(locator1 = "DocumentsAndMedia#DOCUMENT_VERSION_VERTICAL_ELLIPSIS");
 
@@ -2446,6 +2635,8 @@ definition {
 	}
 
 	macro tearDownCP {
+		var key_dmDocumentTitle = "tree.png";
+
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
@@ -2455,11 +2646,17 @@ definition {
 		if (IsElementNotPresent(locator1 = "Message#EMPTY_INFO")) {
 			Click.clickNoMouseOverNoWaitForVisible(locator1 = "DocumentsAndMedia#TOOLBAR_SELECT_ALL_CHECKBOX");
 
-			Click(locator1 = "DocumentsAndMedia#TOOLBAR_ACTIONS");
+			if (IsElementPresent(locator1 = "DocumentsAndMedia#ICON_DOCUMENT_CHECKBOX")) {
+				Click.clickNoMouseOverNoWaitForVisible(locator1 = "DocumentsAndMedia#ICON_DOCUMENT_CHECKBOX");
+			}
 
-			MenuItem.viewPresent(menuItem = "Move to Recycle Bin");
+			if (IsElementPresent(locator1 = "DocumentsAndMedia#TOOLBAR_ACTIONS")) {
+				Click(locator1 = "DocumentsAndMedia#TOOLBAR_ACTIONS");
 
-			PortletEntry.clickMoveToRecycleBin();
+				MenuItem.viewPresent(menuItem = "Delete");
+
+				PortletEntry.clickMoveToRecycleBin();
+			}
 		}
 
 		JSONRecycleBin.emptyRecycleBin();
@@ -2495,10 +2692,23 @@ definition {
 			key_text = "fileExtensions",
 			locator1 = "TextArea#ANY");
 
-		Type(
-			key_text = "fileExtensions",
-			locator1 = "TextArea#ANY",
-			value1 = "${fieldValue}");
+		if ("${indexNumber}" == "2") {
+			Click(
+				key_label = "Add Duplicate Field File Extensions",
+				locator1 = "Button#DUPLICATE_SPECIFIC");
+
+			Type(
+				key_indexNumber = "${indexNumber}",
+				key_label = "File Extensions",
+				locator1 = "TextArea#ANY_LABELED_N",
+				value1 = "${fieldValue}");
+		}
+		else {
+			Type(
+				key_text = "fileExtensions",
+				locator1 = "TextArea#ANY",
+				value1 = "${fieldValue}");
+		}
 
 		SystemSettings.saveConfiguration();
 	}
@@ -2507,12 +2717,17 @@ definition {
 		if (isSet(instanceSettings)) {
 			DMNavigator.openToConfigInInstanceSettings(portlet = "Documents and Media Size Limits");
 		}
+		else if (isSet(siteSettings)) {
+			DMNavigator.openToConfigInSiteSettings(
+				portlet = "Documents and Media Size Limits",
+				siteURLKey = "${siteURLKey}");
+		}
 		else {
 			DMNavigator.openToConfigInSystemSettings(portlet = "Documents and Media Size Limits");
 		}
 
 		Type(
-			key_fieldLabel = "Maximum File Size",
+			key_fieldLabel = "File Max Size",
 			locator1 = "TextInput#GENERIC_TEXT_INPUT",
 			value1 = "${fieldValue}");
 
@@ -2531,28 +2746,76 @@ definition {
 	}
 
 	macro updateMimeTypeSizeLimit {
-		PortalSettings.gotoConfiguration(
-			configurationCategory = "Documents and Media",
-			configurationName = "Documents and Media Size Limits",
-			configurationScope = "Site Scope");
+		if (isSet(instanceSettings)) {
+			DMNavigator.openToConfigInInstanceSettings(portlet = "Documents and Media Size Limits");
+		}
+		else if (isSet(siteSettings)) {
+			DMNavigator.openToConfigInSiteSettings(
+				portlet = "Documents and Media Size Limits",
+				siteURLKey = "${siteURLKey}");
+		}
+		else if (isSet(depotName)) {
+			DepotNavigator.openDepotSettingsGeneral(depotName = "${depotName}");
+		}
+		else {
+			DMNavigator.openToConfigInSystemSettings(portlet = "Documents and Media Size Limits");
+		}
 
 		if ("${indexNumber}" == "2") {
 			Click(locator1 = "Button#DUPLICATE");
 
 			Type(
+				key_fieldLabel = "Mime Type",
 				key_indexNumber = "${indexNumber}",
-				key_label = "Mime Type Size Limit",
-				locator1 = "TextArea#ANY_LABELED_N",
-				value1 = "${fieldValue}");
+				locator1 = "TextInput#GENERIC_TEXT_INPUT_N",
+				value1 = "${mimeTypeValue}");
+
+			Type(
+				key_fieldLabel = "Maximum File Size",
+				key_indexNumber = "${indexNumber}",
+				locator1 = "TextInput#GENERIC_NUMBER_INPUT_N",
+				value1 = "${maximumFileSizeValue}");
 		}
 		else {
 			Type(
-				key_label = "Mime Type Size Limit",
-				locator1 = "TextArea#ANY_LABELED",
-				value1 = "${fieldValue}");
+				key_fieldLabel = "Mime Type",
+				locator1 = "TextInput#GENERIC_TEXT_INPUT",
+				value1 = "${mimeTypeValue}");
+
+			Type(
+				key_fieldLabel = "Maximum File Size",
+				locator1 = "TextInput#GENERIC_NUMBER_INPUT",
+				value1 = "${maximumFileSizeValue}");
+
+			if (isSet(validateInvalidsize)) {
+				FormPortlet.viewValidationErrorMessage(validationErrorMessage = "Error: Please enter a valid number.");
+			}
 		}
 
-		SystemSettings.saveConfiguration();
+		if (isSet(validateInvalidValue)) {
+			Button.clickSave();
+
+			AssertTextEquals.assertPartialText(
+				key_alertMessage = "Your request failed to complete.",
+				locator1 = "Message#ERROR_ENTER_A_VALID_VALUE",
+				value1 = "Your request failed to complete.");
+
+			if (isSet(viewErrorAlert)) {
+				AssertTextEquals.assertPartialText(
+					key_alertMessage = "Error:Mime type or size limit is not valid.",
+					locator1 = "Message#ERROR_ENTER_A_VALID_VALUE",
+					value1 = "Error:Mime type or size limit is not valid.");
+			}
+		}
+		else {
+			SystemSettings.saveConfiguration();
+		}
+	}
+
+	macro viewActiveURL {
+		AssertVisible(
+			key_activeURL = "${activeURL}",
+			locator1 = "DocumentsAndMediaDocument#FRIENDLY_URL_ACTIVE_URL");
 	}
 
 	macro viewAllPG {
@@ -2606,7 +2869,7 @@ definition {
 				value1 = "Generating preview will take a few minutes.");
 
 			while (IsElementPresent(locator1 = "Message#INFO")) {
-				Pause(locator1 = "1000");
+				WaitForElementPresent.waitForLastScript();
 
 				Refresh();
 			}
@@ -2614,6 +2877,8 @@ definition {
 	}
 
 	macro viewCacheControlConfigurationInConsole {
+		echo("${responseHeader}");
+
 		if (isSet(uncacheableMimeType)) {
 			if (contains("${responseHeader}", "Cache-Control: private, no-cache, no-store, must-revalidate")) {
 				echo("This file can not be cached");
@@ -2990,7 +3255,7 @@ definition {
 
 		AssertTextEquals(
 			locator1 = "Button#MOVE_TO_RECYCLE_BIN",
-			value1 = "Move to Recycle Bin");
+			value1 = "Delete");
 	}
 
 	macro viewDocumentTypePG {
@@ -3137,6 +3402,15 @@ definition {
 				locator1 = "TextInput#GENERIC_TEXT_INPUT",
 				value1 = "${dmDocumentFileName}");
 		}
+
+		if (isSet(friendlyURL)) {
+			Panel.expandPanel(panel = "Friendly URL");
+
+			AssertTextEquals.assertValue(
+				key_fieldLabel = "Friendly URL",
+				locator1 = "TextInput#GENERIC_TEXT_INPUT",
+				value1 = "${friendlyURL}");
+		}
 	}
 
 	macro viewFieldLabels {
@@ -3217,7 +3491,7 @@ definition {
 			var portalURL = StringUtil.replace("${portalURL}", ":8080", ":9080");
 		}
 
-		var latestVersionURL = "${portalURL}/documents/${siteId}/0/${dmDocumentFileName}";
+		var latestVersionURL = "${portalURL}/documents/d/${siteName}/${dmDocumentFileName}";
 
 		AssertElementPresent(
 			key_latestVersionURL = "${latestVersionURL}",
@@ -3315,10 +3589,6 @@ definition {
 	}
 
 	macro viewNoPermission {
-		Click(
-			key_rowEntry = "${rowEntry}",
-			locator1 = "Icon#ROW_VERTICAL_ELLIPSIS");
-
 		MenuItem.viewNotPresent(menuItem = "${menuItem}");
 	}
 
@@ -3617,6 +3887,8 @@ definition {
 				key_mgDocumentTitle = "${mgDocumentTitle}",
 				locator1 = "MediaGallery#ENTRY_THUMBNAIL");
 
+			WaitForVisible(locator1 = "IFrame#SELECT_MEDIA_GALLERY_VIDEO");
+
 			SelectFrame.selectFrameNoLoading(locator1 = "IFrame#SELECT_MEDIA_GALLERY_VIDEO");
 
 			AssertElementPresent(locator1 = "MediaGallery#ENTRY_VIDEO_PLAYED");
@@ -3683,7 +3955,7 @@ definition {
 		var key_dmRepositoryName = "${dmRepositoryName}";
 
 		if (isSet(dmRepositoryName)) {
-			AssertClick.assertTextClickAtAndPause(
+			AssertClick(
 				locator1 = "DocumentsAndMedia#SEARCH_REPOSITORY_TAB",
 				value1 = "${dmRepositoryName}");
 
@@ -3721,7 +3993,7 @@ definition {
 
 		MenuItem.viewPresent(menuItem = "Checkout");
 
-		MenuItem.viewPresent(menuItem = "Move to Recycle Bin");
+		MenuItem.viewPresent(menuItem = "Delete");
 	}
 
 	macro viewStagingDetailsPG {
@@ -3745,7 +4017,7 @@ definition {
 
 		Click(locator1 = "DocumentsAndMedia#DESCRIPTIVE_LIST_DOCUMENT_VERTICAL_ELLIPSIS");
 
-		AssertTextEquals.assertPartialText(
+		WaitForElementPresent(
 			locator1 = "MenuItem#DOWNLOAD",
 			value1 = "Download");
 
@@ -3757,7 +4029,7 @@ definition {
 
 		MenuItem.viewPresent(menuItem = "Permissions");
 
-		MenuItem.viewPresent(menuItem = "Move to Recycle Bin");
+		MenuItem.viewPresent(menuItem = "Delete");
 
 		Check(locator1 = "DocumentsAndMedia#DESCRIPTIVE_LIST_DOCUMENT_CHECKBOX");
 
@@ -3769,7 +4041,7 @@ definition {
 
 		MenuItem.viewPresent(menuItem = "Move");
 
-		MenuItem.viewPresent(menuItem = "Move to Recycle Bin");
+		MenuItem.viewPresent(menuItem = "Delete");
 
 		Navigator.gotoSitePage(
 			pageName = "Staging Test Page",
@@ -3781,11 +4053,11 @@ definition {
 
 		Click(locator1 = "DocumentsAndMedia#DESCRIPTIVE_LIST_DOCUMENT_VERTICAL_ELLIPSIS");
 
-		AssertTextEquals.assertPartialText(
+		WaitForElementPresent(
 			locator1 = "MenuItem#DOWNLOAD",
 			value1 = "Download");
 
-		MenuItem.viewPresent(menuItem = "Move to Recycle Bin");
+		MenuItem.viewPresent(menuItem = "Delete");
 
 		Click(locator1 = "DocumentsAndMedia#DESCRIPTIVE_LIST_DOCUMENT_CHECKBOX");
 
@@ -3818,6 +4090,7 @@ definition {
 
 		for (var tagName : list "${tagName}") {
 			var tagName = StringUtil.lowerCase("${tagName}");
+
 			var key_tagName = "${tagName}";
 
 			AssertTextEquals(
@@ -3855,7 +4128,7 @@ definition {
 				locator1 = "DocumentsAndMediaDocument#VIDEO_GENERATION_INFO");
 
 			while (IsElementPresent(key_text = "Generating video preview will take a few minutes.", locator1 = "DocumentsAndMediaDocument#VIDEO_GENERATION_INFO")) {
-				Pause(locator1 = "1000");
+				WaitForElementPresent.waitForLastScript();
 
 				Refresh();
 

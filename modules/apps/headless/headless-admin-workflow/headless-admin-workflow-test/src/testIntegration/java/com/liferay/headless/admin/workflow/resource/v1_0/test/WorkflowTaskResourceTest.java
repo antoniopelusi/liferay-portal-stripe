@@ -606,6 +606,21 @@ public class WorkflowTaskResourceTest extends BaseWorkflowTaskResourceTestCase {
 		WorkflowTask workflowTask1 = _workflowTasks.pop();
 
 		assertHttpResponseStatusCode(
+			403,
+			workflowTaskResource.patchWorkflowTaskChangeTransitionHttpResponse(
+				new ChangeTransition[] {
+					new ChangeTransition() {
+						{
+							transitionName = "join";
+							workflowTaskId = workflowTask1.getId();
+						}
+					}
+				}));
+
+		workflowTaskResource.postWorkflowTaskAssignToMe(
+			workflowTask1.getId(), new WorkflowTaskAssignToMe());
+
+		assertHttpResponseStatusCode(
 			204,
 			workflowTaskResource.patchWorkflowTaskChangeTransitionHttpResponse(
 				new ChangeTransition[] {
@@ -634,6 +649,9 @@ public class WorkflowTaskResourceTest extends BaseWorkflowTaskResourceTestCase {
 						}));
 
 			WorkflowTask workflowTask2 = _workflowTasks.pop();
+
+			workflowTaskResource.postWorkflowTaskAssignToMe(
+				workflowTask2.getId(), new WorkflowTaskAssignToMe());
 
 			assertHttpResponseStatusCode(
 				404,

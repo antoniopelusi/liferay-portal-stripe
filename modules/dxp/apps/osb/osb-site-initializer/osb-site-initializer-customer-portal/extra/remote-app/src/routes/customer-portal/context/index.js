@@ -10,8 +10,7 @@
  */
 
 import {createContext, useContext, useEffect, useReducer} from 'react';
-import client from '../../../apolloClient';
-import {useApplicationProvider} from '../../../common/context/AppPropertiesProvider';
+import {useAppPropertiesContext} from '../../../common/contexts/AppPropertiesContext';
 import {Liferay} from '../../../common/services/liferay';
 import {
 	getAccountByExternalReferenceCode,
@@ -29,13 +28,6 @@ import {CUSTOM_EVENT_TYPES} from '../utils/constants';
 import reducer, {actionTypes} from './reducer';
 
 const AppContext = createContext();
-
-const getCurrentPageName = () => {
-	const {pathname} = new URL(Liferay.ThemeDisplay.getCanonicalURL());
-	const pathSplit = pathname.split('/').filter(Boolean);
-
-	return pathSplit.length > 2 ? pathSplit[2] : '';
-};
 
 const EVENT_OPTION = {
 	async: true,
@@ -56,12 +48,10 @@ const eventKoroneikiAccounts = Liferay.publish(
 	}
 );
 
-const AppContextProvider = ({assetsPath, children, page}) => {
-	const {oktaSessionURL} = useApplicationProvider();
+const AppContextProvider = ({children}) => {
+	const {client, oktaSessionAPI} = useAppPropertiesContext();
 	const [state, dispatch] = useReducer(reducer, {
-		assetsPath,
 		isQuickLinksExpanded: true,
-		page,
 		project: undefined,
 		quickLinks: undefined,
 		sessionId: '',
@@ -124,6 +114,14 @@ const AppContextProvider = ({assetsPath, children, page}) => {
 						({name}) => name === ROLE_TYPES.admin.key
 					);
 
+				const isAccountProvisioning = !!data.userAccount?.accountBriefs
+					?.find(
+						({externalReferenceCode}) =>
+							externalReferenceCode ===
+							projectExternalReferenceCode
+					)
+					?.roleBriefs?.find(({name}) => name === 'Provisioning');
+
 				const isStaff = data.userAccount?.organizationBriefs?.some(
 					(organization) => organization.name === 'Liferay Staff'
 				);
@@ -131,6 +129,7 @@ const AppContextProvider = ({assetsPath, children, page}) => {
 				const userAccount = {
 					...data.userAccount,
 					isAdmin: isAccountAdministrator,
+					isProvisioning: isAccountProvisioning,
 					isStaff,
 				};
 
@@ -175,6 +174,7 @@ const AppContextProvider = ({assetsPath, children, page}) => {
 
 		const getSubscriptionGroups = async (accountKey) => {
 			const {data: dataSubscriptionGroups} = await client.query({
+				fetchPolicy: 'network-only',
 				query: getAccountSubscriptionGroups,
 				variables: {
 					filter: `accountKey eq '${accountKey}' and hasActivation eq true`,
@@ -192,7 +192,7 @@ const AppContextProvider = ({assetsPath, children, page}) => {
 		};
 
 		const getSessionId = async () => {
-			const session = await getCurrentSession(oktaSessionURL);
+			const session = await getCurrentSession(oktaSessionAPI);
 
 			if (session) {
 				dispatch({
@@ -226,21 +226,22 @@ const AppContextProvider = ({assetsPath, children, page}) => {
 
 			const user = await getUser(projectExternalReferenceCode);
 
-			if (user && getCurrentPageName() === ROUTE_TYPES.project) {
+			if (user) {
 				const isValid = await isValidPage(
+					client,
 					user,
 					projectExternalReferenceCode,
 					ROUTE_TYPES.project
 				);
 
 				if (isValid) {
-					const hasRoleBriefAdministrator = user?.roleBriefs?.some(
-						(role) => role.name === 'Administrator'
+					const isStaff = user?.organizationBriefs?.some(
+						(organization) => organization.name === 'Liferay Staff'
 					);
 
 					let accountBrief;
 
-					if (hasRoleBriefAdministrator) {
+					if (isStaff) {
 						const {data: dataAccount} = await client.query({
 							query: getAccountByExternalReferenceCode,
 							variables: {
@@ -271,7 +272,7 @@ const AppContextProvider = ({assetsPath, children, page}) => {
 
 		fetchData();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [oktaSessionURL]);
+	}, [oktaSessionAPI]);
 
 	return (
 		<AppContext.Provider value={[state, dispatch]}>

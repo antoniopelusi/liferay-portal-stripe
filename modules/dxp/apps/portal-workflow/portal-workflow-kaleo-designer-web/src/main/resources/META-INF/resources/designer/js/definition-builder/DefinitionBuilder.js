@@ -20,6 +20,7 @@ import UpperToolbar from './shared/components/toolbar/UpperToolbar';
 import SourceBuilder from './source-builder/SourceBuilder';
 
 export default function DefinitionBuilder(props) {
+	const [accountEntryId, setAccountEntryId] = useState(props.accountEntryId);
 	const [active, setActive] = useState(true);
 	const [alertMessage, setAlertMessage] = useState('');
 	const [alertType, setAlertType] = useState(null);
@@ -43,6 +44,7 @@ export default function DefinitionBuilder(props) {
 	const [version, setVersion] = useState(parseInt(props.version, 10));
 
 	const contextProps = {
+		accountEntryId,
 		active,
 		alertMessage,
 		alertType,
@@ -56,6 +58,7 @@ export default function DefinitionBuilder(props) {
 		deserialize,
 		elements,
 		selectedLanguageId,
+		setAccountEntryId,
 		setActive,
 		setAlertMessage,
 		setAlertType,

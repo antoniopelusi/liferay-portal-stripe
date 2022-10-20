@@ -28,7 +28,48 @@ definition {
 		}
 	}
 
-	@description = "This is a test for LPS-132422. The list of actions appear in right order for page templates."
+	@description = "This is a test for LPS-153367. The page creator could configure the content page template in a new tab."
+	@priority = "4"
+	test ConfigureContentPageTemplateInANewTab {
+		property custom.properties = "feature.flag.LPS-153452=true";
+
+		task ("Given a page creator has a content page template") {
+			JSONLayoutpagetemplate.addLayoutPageTemplateCollection(
+				groupName = "Test Site Name",
+				layoutPageTemplateCollectionName = "Page Template Collection");
+
+			JSONLayoutpagetemplate.addLayoutPageTemplateEntry(
+				groupName = "Test Site Name",
+				layoutPageTemplateCollectionName = "Page Template Collection",
+				layoutPageTemplateEntryName = "Page Template Name",
+				layoutPageTemplateStatus = "Draft",
+				layoutPageTemplateType = "Content Page Template");
+		}
+
+		task ("When the page creator accesses to the page editor of content page template") {
+			PageTemplatesAdmin.openPageTemplatesAdmin(siteURLKey = "test-site-name");
+
+			PageTemplatesAdmin.gotoPageTemplate(pageTemplateName = "Page Template Name");
+
+			PageEditor.assertFragmentSidebarLoaded();
+		}
+
+		task ("Then the page creator could configure content page template in a new tab") {
+			LexiconEntry.gotoHeaderMenuItem(menuItem = "Configure");
+
+			SelectWindow.selectPopUp(locator1 = "null");
+
+			AssertElementPresent(
+				key_title = "General",
+				locator1 = "Header#H2_TITLE");
+
+			AssertElementPresent(
+				key_sectionTitle = "Categorization",
+				locator1 = "PagesAdmin#SECTION_TITLE");
+		}
+	}
+
+	@description = "This is a test for LPS-132422 and LPS-154130. The list of actions appear in right order for page templates. The portlet is named Page Templates on a local site."
 	@priority = "3"
 	test ViewOrderOfPageTemplatesActions {
 		task ("Add a content page template") {
@@ -45,7 +86,13 @@ definition {
 		}
 
 		task ("Change template to draft") {
-			PageTemplatesAdmin.openPageTemplatesAdmin(siteURLKey = "test-site-name");
+			ApplicationsMenu.gotoSite(site = "Test Site Name");
+
+			ProductMenu.gotoPortlet(
+				category = "Design",
+				portlet = "Page Templates");
+
+			Navigator.gotoNavTab(navTab = "Page Templates");
 
 			Navigator.gotoNavNested(navNested = "Page Template Collection");
 
@@ -75,7 +122,7 @@ definition {
 		task ("Assert the actions order of a collection") {
 			Click.waitForMenuToggleJSClick(locator1 = "Icon#BODY_VERTICAL_ELLIPSIS");
 
-			MenuItem.viewOrder(menuItemList = "Edit,-,Permissions,-,Delete");
+			MenuItem.viewOrder(menuItemList = "Edit,Permissions,Delete");
 
 			Click.waitForMenuToggleJSClick(locator1 = "Icon#BODY_VERTICAL_ELLIPSIS");
 		}
@@ -83,7 +130,7 @@ definition {
 		task ("Assert the actions order of a page template") {
 			LexiconEntry.openEntryMenu(rowEntry = "Page Template Name");
 
-			MenuItem.viewOrder(menuItemList = "Edit,-,Move To,Change Thumbnail,Remove Thumbnail,Discard Draft,Rename,-,Export,-,Configure,Permissions,-,Delete");
+			MenuItem.viewOrder(menuItemList = "Edit,Move To,Change Thumbnail,Remove Thumbnail,Discard Draft,Rename,Export,Configure,Permissions,Delete");
 
 			LexiconEntry.openEntryMenu(rowEntry = "Page Template Name");
 		}

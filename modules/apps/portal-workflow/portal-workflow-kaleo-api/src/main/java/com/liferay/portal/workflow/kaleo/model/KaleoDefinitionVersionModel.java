@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.model.LocalizedModel;
 import com.liferay.portal.kernel.model.MVCCModel;
 import com.liferay.portal.kernel.model.ShardedModel;
 import com.liferay.portal.kernel.model.WorkflowedModel;
+import com.liferay.portal.kernel.model.change.tracking.CTModel;
 
 import java.util.Date;
 import java.util.Locale;
@@ -42,8 +43,9 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface KaleoDefinitionVersionModel
-	extends BaseModel<KaleoDefinitionVersion>, GroupedModel, LocalizedModel,
-			MVCCModel, ShardedModel, WorkflowedModel {
+	extends BaseModel<KaleoDefinitionVersion>, CTModel<KaleoDefinitionVersion>,
+			GroupedModel, LocalizedModel, MVCCModel, ShardedModel,
+			WorkflowedModel {
 
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -56,6 +58,7 @@ public interface KaleoDefinitionVersionModel
 	 *
 	 * @return the primary key of this kaleo definition version
 	 */
+	@Override
 	public long getPrimaryKey();
 
 	/**
@@ -63,6 +66,7 @@ public interface KaleoDefinitionVersionModel
 	 *
 	 * @param primaryKey the primary key of this kaleo definition version
 	 */
+	@Override
 	public void setPrimaryKey(long primaryKey);
 
 	/**
@@ -80,6 +84,22 @@ public interface KaleoDefinitionVersionModel
 	 */
 	@Override
 	public void setMvccVersion(long mvccVersion);
+
+	/**
+	 * Returns the ct collection ID of this kaleo definition version.
+	 *
+	 * @return the ct collection ID of this kaleo definition version
+	 */
+	@Override
+	public long getCtCollectionId();
+
+	/**
+	 * Sets the ct collection ID of this kaleo definition version.
+	 *
+	 * @param ctCollectionId the ct collection ID of this kaleo definition version
+	 */
+	@Override
+	public void setCtCollectionId(long ctCollectionId);
 
 	/**
 	 * Returns the kaleo definition version ID of this kaleo definition version.
@@ -175,71 +195,6 @@ public interface KaleoDefinitionVersionModel
 	 */
 	@Override
 	public void setUserName(String userName);
-
-	/**
-	 * Returns the status by user ID of this kaleo definition version.
-	 *
-	 * @return the status by user ID of this kaleo definition version
-	 */
-	@Override
-	public long getStatusByUserId();
-
-	/**
-	 * Sets the status by user ID of this kaleo definition version.
-	 *
-	 * @param statusByUserId the status by user ID of this kaleo definition version
-	 */
-	@Override
-	public void setStatusByUserId(long statusByUserId);
-
-	/**
-	 * Returns the status by user uuid of this kaleo definition version.
-	 *
-	 * @return the status by user uuid of this kaleo definition version
-	 */
-	@Override
-	public String getStatusByUserUuid();
-
-	/**
-	 * Sets the status by user uuid of this kaleo definition version.
-	 *
-	 * @param statusByUserUuid the status by user uuid of this kaleo definition version
-	 */
-	@Override
-	public void setStatusByUserUuid(String statusByUserUuid);
-
-	/**
-	 * Returns the status by user name of this kaleo definition version.
-	 *
-	 * @return the status by user name of this kaleo definition version
-	 */
-	@AutoEscape
-	@Override
-	public String getStatusByUserName();
-
-	/**
-	 * Sets the status by user name of this kaleo definition version.
-	 *
-	 * @param statusByUserName the status by user name of this kaleo definition version
-	 */
-	@Override
-	public void setStatusByUserName(String statusByUserName);
-
-	/**
-	 * Returns the status date of this kaleo definition version.
-	 *
-	 * @return the status date of this kaleo definition version
-	 */
-	@Override
-	public Date getStatusDate();
-
-	/**
-	 * Sets the status date of this kaleo definition version.
-	 *
-	 * @param statusDate the status date of this kaleo definition version
-	 */
-	@Override
-	public void setStatusDate(Date statusDate);
 
 	/**
 	 * Returns the create date of this kaleo definition version.
@@ -475,6 +430,71 @@ public interface KaleoDefinitionVersionModel
 	 */
 	@Override
 	public void setStatus(int status);
+
+	/**
+	 * Returns the status by user ID of this kaleo definition version.
+	 *
+	 * @return the status by user ID of this kaleo definition version
+	 */
+	@Override
+	public long getStatusByUserId();
+
+	/**
+	 * Sets the status by user ID of this kaleo definition version.
+	 *
+	 * @param statusByUserId the status by user ID of this kaleo definition version
+	 */
+	@Override
+	public void setStatusByUserId(long statusByUserId);
+
+	/**
+	 * Returns the status by user uuid of this kaleo definition version.
+	 *
+	 * @return the status by user uuid of this kaleo definition version
+	 */
+	@Override
+	public String getStatusByUserUuid();
+
+	/**
+	 * Sets the status by user uuid of this kaleo definition version.
+	 *
+	 * @param statusByUserUuid the status by user uuid of this kaleo definition version
+	 */
+	@Override
+	public void setStatusByUserUuid(String statusByUserUuid);
+
+	/**
+	 * Returns the status by user name of this kaleo definition version.
+	 *
+	 * @return the status by user name of this kaleo definition version
+	 */
+	@AutoEscape
+	@Override
+	public String getStatusByUserName();
+
+	/**
+	 * Sets the status by user name of this kaleo definition version.
+	 *
+	 * @param statusByUserName the status by user name of this kaleo definition version
+	 */
+	@Override
+	public void setStatusByUserName(String statusByUserName);
+
+	/**
+	 * Returns the status date of this kaleo definition version.
+	 *
+	 * @return the status date of this kaleo definition version
+	 */
+	@Override
+	public Date getStatusDate();
+
+	/**
+	 * Sets the status date of this kaleo definition version.
+	 *
+	 * @param statusDate the status date of this kaleo definition version
+	 */
+	@Override
+	public void setStatusDate(Date statusDate);
 
 	/**
 	 * Returns <code>true</code> if this kaleo definition version is approved.

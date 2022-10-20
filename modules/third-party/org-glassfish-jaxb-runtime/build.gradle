@@ -1,0 +1,38 @@
+import com.liferay.gradle.plugins.patcher.PatchTask
+
+apply plugin: "com.liferay.patcher"
+
+task deployJar(type: Copy)
+task patch(type: PatchTask)
+
+dependencies {
+	compileOnly group: "org.glassfish.jaxb", name: "jaxb-runtime", transitive: false, version: "2.3.1"
+}
+
+deploy {
+	finalizedBy deployJar
+}
+
+deployJar {
+
+	ext {
+		autoClean = false
+	}
+
+	from jar
+	into "../../../lib/portal"
+
+	rename {
+		"jaxb-runtime.jar"
+	}
+}
+
+patch {
+	ext {
+		autoClean = false
+	}
+
+	fileNames "com/sun/xml/bind/v2/model/nav/ReflectionNavigator.java"
+
+	originalLibModuleName = "jaxb-runtime"
+}

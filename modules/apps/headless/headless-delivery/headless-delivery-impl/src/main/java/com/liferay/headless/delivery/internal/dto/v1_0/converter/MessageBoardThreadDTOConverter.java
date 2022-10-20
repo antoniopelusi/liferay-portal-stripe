@@ -117,6 +117,7 @@ public class MessageBoardThreadDTOConverter
 						MBMessage.class.getName(), mbMessage.getMessageId()),
 					AssetTag.NAME_ACCESSOR);
 				locked = mbThread.isLocked();
+				messageBoardRootMessageId = mbThread.getRootMessageId();
 				messageBoardSectionId = mbMessage.getCategoryId();
 				numberOfMessageBoardAttachments =
 					mbMessage.getAttachmentsFileEntriesCount();

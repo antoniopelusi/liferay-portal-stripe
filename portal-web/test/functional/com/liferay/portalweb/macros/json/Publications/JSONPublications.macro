@@ -4,7 +4,6 @@ definition {
 		Variables.assertDefined(parameterList = "${publicationName}");
 
 		var publicationDescription = JSONPublicationsSetter.setPublicationDescription(publicationDescription = "${publicationDescription}");
-
 		var publicationName = JSONPublicationsSetter.setPublicationName(publicationName = "${publicationName}");
 
 		JSONPublicationsAPI._addPublication(

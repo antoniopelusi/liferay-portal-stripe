@@ -190,7 +190,6 @@ public class AccountEntryLocalServiceImpl
 		_validateType(type);
 
 		accountEntry.setType(type);
-
 		accountEntry.setStatus(status);
 
 		accountEntry = accountEntryPersistence.update(accountEntry);
@@ -236,7 +235,7 @@ public class AccountEntryLocalServiceImpl
 
 		User user = _userLocalService.getUser(userId);
 
-		AccountEntry accountEntry = fetchAccountEntryByReferenceCode(
+		AccountEntry accountEntry = fetchAccountEntryByExternalReferenceCode(
 			user.getCompanyId(), externalReferenceCode);
 
 		if (accountEntry != null) {
@@ -587,9 +586,8 @@ public class AccountEntryLocalServiceImpl
 
 		_validateName(name);
 
-		accountEntry.setName(name);
-
 		accountEntry.setDescription(description);
+		accountEntry.setName(name);
 
 		domains = _validateDomains(domains);
 

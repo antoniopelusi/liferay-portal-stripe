@@ -29,7 +29,6 @@ import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactory;
 import com.liferay.portal.kernel.service.permission.PortalPermissionUtil;
 import com.liferay.portal.kernel.util.HttpComponentsUtil;
-import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -55,6 +54,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -181,7 +182,7 @@ public class ViewDisplayContextFactory {
 			if (keyPLOEntriesMap.containsKey(key)) {
 				languageItemDisplay.setOverride(true);
 
-				List<String> overrideLanguageIds = new ArrayList<>();
+				Set<String> overrideLanguageIds = new TreeSet<>();
 
 				for (PLOEntry ploEntry : keyPLOEntriesMap.get(key)) {
 					overrideLanguageIds.add(ploEntry.getLanguageId());
@@ -214,15 +215,16 @@ public class ViewDisplayContextFactory {
 	}
 
 	private String _getLanguageIdsString(
-		List<String> languageIds, String selectedLanguageId) {
+		Set<String> overrideLanguageIds, String selectedLanguageId) {
 
-		if (ListUtil.isEmpty(languageIds)) {
+		if (overrideLanguageIds.isEmpty()) {
 			return StringPool.BLANK;
 		}
 
-		StringBundler sb = new StringBundler((2 * languageIds.size()) - 1);
+		StringBundler sb = new StringBundler(
+			(2 * overrideLanguageIds.size()) - 1);
 
-		Iterator<String> iterator = languageIds.iterator();
+		Iterator<String> iterator = overrideLanguageIds.iterator();
 
 		while (iterator.hasNext()) {
 			String overrideLanguageId = iterator.next();
@@ -297,7 +299,7 @@ public class ViewDisplayContextFactory {
 
 				languageItemDisplay.setOverride(true);
 
-				List<String> overrideLanguageIds = new ArrayList<>();
+				Set<String> overrideLanguageIds = new TreeSet<>();
 
 				for (PLOEntry ploEntry : entry.getValue()) {
 					overrideLanguageIds.add(ploEntry.getLanguageId());

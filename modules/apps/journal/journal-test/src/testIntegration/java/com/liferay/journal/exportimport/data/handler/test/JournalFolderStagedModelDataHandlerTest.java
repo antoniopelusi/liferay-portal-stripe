@@ -164,6 +164,9 @@ public class JournalFolderStagedModelDataHandlerTest
 		JournalFolder folder = (JournalFolder)stagedModel;
 		JournalFolder importedFolder = (JournalFolder)importedStagedModel;
 
+		Assert.assertEquals(
+			folder.getExternalReferenceCode(),
+			importedFolder.getExternalReferenceCode());
 		Assert.assertEquals(folder.getName(), importedFolder.getName());
 		Assert.assertEquals(
 			folder.getDescription(), importedFolder.getDescription());

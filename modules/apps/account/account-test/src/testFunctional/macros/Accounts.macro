@@ -19,19 +19,19 @@ definition {
 				value1 = "Billing and Shipping");
 		}
 
-		Type(
+		Type.type(
 			locator1 = "TextInput#STREET_1",
 			value1 = "${addressStreet1}");
 
 		if (isSet(addressStreet2)) {
-			Type(
+			Type.type(
 				key_streetNumber = "2",
 				locator1 = "TextInput#STREET_N",
 				value1 = "${addressStreet2}");
 		}
 
 		if (isSet(addressStreet3)) {
-			Type(
+			Type.type(
 				key_streetNumber = "3",
 				locator1 = "TextInput#STREET_N",
 				value1 = "${addressStreet3}");
@@ -84,6 +84,8 @@ definition {
 			text = "${domainNames}");
 
 		Button.clickSave();
+
+		SelectFrameTop();
 
 		for (var domainName : list "${domainNames}") {
 			AssertElementPresent(
@@ -267,6 +269,8 @@ definition {
 
 		PortletEntry.inputName(name = "${accountName}");
 
+		WaitForLiferayEvent.initializeLiferayEventLog();
+
 		AssertClick(
 			key_vocabularyName = "${vocabularyName}",
 			locator1 = "UsersAndOrganizationsEditUser#DETAILS_CATEGORY_SELECT",
@@ -276,7 +280,7 @@ definition {
 			locator1 = "Modal#HEADER",
 			value1 = "Select ${vocabularyName}");
 
-		AssetCategorization.selectCategory(categoryName = "${categoryName}");
+		AssetCategorization.selectCategories(categoryNameList = "${categoryName}");
 
 		PortletEntry.save();
 	}
@@ -335,13 +339,13 @@ definition {
 
 		LexiconEntry.gotoAdd();
 
-		Pause(locator1 = "3000");
-
 		SelectFrame(
 			key_title = "Assign Users to ${accountName}",
 			locator1 = "IFrame#MODAL_ANY");
 
 		LexiconEntry.gotoAdd();
+
+		SelectFrameTop();
 
 		Type(
 			locator1 = "UsersAndOrganizationsEditUser#DETAILS_SCREEN_NAME_FIELD",
@@ -420,8 +424,6 @@ definition {
 		Accounts.gotoAssigneeTab(assigneeTab = "Users");
 
 		LexiconEntry.gotoAdd();
-
-		Pause(locator1 = "3000");
 
 		SelectFrame(
 			key_title = "Assign Users to ${accountName}",
@@ -542,8 +544,6 @@ definition {
 
 		LexiconEntry.gotoAdd();
 
-		Pause(locator1 = "3000");
-
 		SelectFrame(
 			key_title = "Assign Organizations to ${accountName}",
 			locator1 = "IFrame#MODAL_ANY");
@@ -566,8 +566,6 @@ definition {
 
 		LexiconEntry.gotoAdd();
 
-		Pause(locator1 = "3000");
-
 		SelectFrame(
 			key_title = "Assign Organizations to ${accountName}",
 			locator1 = "IFrame#MODAL_ANY");
@@ -589,8 +587,6 @@ definition {
 		Accounts.gotoAssigneeTab(assigneeTab = "Users");
 
 		LexiconEntry.gotoAdd();
-
-		Pause(locator1 = "3000");
 
 		SelectFrame(
 			key_title = "Assign Users to ${accountName}",
@@ -930,12 +926,23 @@ definition {
 			value1 = "Edit ${accountName}");
 	}
 
+	macro grantUserAccessToAccountAdmin {
+		JSONRole.addRegularRole(roleTitle = "Access Account Permission");
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "ACCESS_IN_CONTROL_PANEL",
+			resourceName = "com_liferay_account_admin_web_internal_portlet_AccountEntriesAdminPortlet",
+			roleTitle = "Access Account Permission");
+
+		JSONRole.assignRoleToUser(
+			roleTitle = "Access Account Permission",
+			userEmailAddress = "${userEmailAddress}");
+	}
+
 	macro viewErrorWhenAddingUserWithBlockedDomain {
 		Accounts.gotoAssigneeTab(assigneeTab = "Users");
 
 		LexiconEntry.gotoAdd();
-
-		Pause(locator1 = "3000");
 
 		SelectFrame(
 			key_title = "Assign Users to ${accountName}",
@@ -995,6 +1002,22 @@ definition {
 		AssertTextEquals(
 			locator1 = "Account#DEFAULT_ACCOUNT_ADDRESSES_DEFAULT_BILLING_ADDRESS",
 			value1 = "Not Set");
+	}
+
+	macro removeDefaultDeliveryCommerceTerms {
+		Click(locator1 = "Account#DEFAULT_ACCOUNT_TERMS_AND_CONDITION_REMOVE_DEFAULT_DELIVERY");
+
+		AssertElementPresent(
+			locator1 = "Account#DEFAULT_ACCOUNT_TERMS_AND_CONDITION_DEFAULT_DELIVERY_USE_PRIORITY_SETTINGS",
+			value1 = "Use Priority Settings");
+	}
+
+	macro removeDefaultPaymentCommerceTerms {
+		Click(locator1 = "Account#DEFAULT_ACCOUNT_TERMS_AND_CONDITION_REMOVE_DEFAULT_PAYMENT");
+
+		AssertElementPresent(
+			locator1 = "Account#DEFAULT_ACCOUNT_TERMS_AND_CONDITION_DEFAULT_DELIVERY_USE_PRIORITY_SETTINGS",
+			value1 = "Use Priority Settings");
 	}
 
 	macro removeDefaultShippingAddress {
@@ -1129,8 +1152,6 @@ definition {
 			locator1 = "Account#DEFAULT_ACCOUNT_ADDRESSES_SET_DEFAULT_BILLING",
 			value1 = "Set Default Address");
 
-		Pause(locator1 = "3000");
-
 		SelectFrame(
 			key_title = "Set Default Billing Address",
 			locator1 = "IFrame#MODAL_ANY");
@@ -1228,8 +1249,6 @@ definition {
 		AssertClick(
 			locator1 = "Account#DEFAULT_ACCOUNT_ADDRESSES_SET_DEFAULT_SHIPPING",
 			value1 = "Set Default Address");
-
-		Pause(locator1 = "3000");
 
 		SelectFrame(
 			key_title = "Set Default Shipping Address",
@@ -1509,8 +1528,6 @@ definition {
 		Accounts.gotoAssigneeTab(assigneeTab = "Users");
 
 		LexiconEntry.gotoAdd();
-
-		Pause(locator1 = "3000");
 
 		SelectFrame(
 			key_title = "Assign Users to ${accountName}",

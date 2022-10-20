@@ -1,0 +1,4 @@
+Bundle-Name: Liferay Client Extension Client JS
+Bundle-SymbolicName: com.liferay.client.extension.client.js
+Bundle-Version: 1.0.4
+Web-ContextPath: /client-extension-client-js

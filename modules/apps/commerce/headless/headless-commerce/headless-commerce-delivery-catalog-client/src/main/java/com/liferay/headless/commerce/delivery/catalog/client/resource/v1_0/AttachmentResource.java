@@ -74,6 +74,12 @@ public interface AttachmentResource {
 			return new AttachmentResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -119,6 +125,7 @@ public interface AttachmentResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -218,7 +225,7 @@ public interface AttachmentResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-delivery-catalog/v1.0/channels/{channelId}/products/{productId}/attachments");
 
 			httpInvoker.path("channelId", channelId);
@@ -315,7 +322,7 @@ public interface AttachmentResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-delivery-catalog/v1.0/channels/{channelId}/products/{productId}/images");
 
 			httpInvoker.path("channelId", channelId);

@@ -1,7 +1,7 @@
 definition {
 
 	macro activateStaging {
-		Pause(locator1 = "3000");
+		Breadcrumb.viewActiveEntry(breadcrumbName = "Staging Configuration");
 
 		if ("${remoteStaging}" == "true") {
 			Check.checkHiddenToggleSwitch(locator1 = "SiteSettingsStaging#STAGING_REMOTE_LIVE");
@@ -36,9 +36,7 @@ definition {
 		if ("${remoteStaging}" == "true") {
 			AssertConfirm(value1 = "Are you sure you want to activate remote staging for ${depotName}?");
 
-			while (IsElementNotPresent(locator1 = "Staging#PROCESS_SUCCESSFUL")) {
-				Pause(locator1 = "1000");
-			}
+			WaitForVisible(locator1 = "Message#SUCCESS");
 
 			AssertTextEquals(
 				locator1 = "Staging#STAGING_INDICATOR_TITLE_DEPOT",
@@ -47,9 +45,7 @@ definition {
 		else {
 			AssertConfirm(value1 = "Are you sure you want to activate local staging for ${depotName}?");
 
-			while (IsElementNotPresent(locator1 = "Staging#PROCESS_SUCCESSFUL")) {
-				Pause(locator1 = "1000");
-			}
+			WaitForVisible(locator1 = "Staging#PROCESS_SUCCESSFUL");
 
 			AssertTextEquals(
 				locator1 = "Staging#PROCESS_RESULT",
@@ -101,6 +97,12 @@ definition {
 
 		SelectFrame(locator1 = "IFrame#MODAL_BODY");
 
+		if (isSet(checkAllRoles)) {
+			for (var roleName : list "${checkAllRoles}") {
+				LexiconEntry.viewEntryName(rowEntry = "${roleName}");
+			}
+		}
+
 		LexiconCard.checkCardCheckbox(card = "${roleTitle}");
 
 		SelectFrameTop();
@@ -148,10 +150,6 @@ definition {
 			SelectFrame(locator1 = "IFrame#ADD_USERS_TO_SITE");
 		}
 
-		Pause(locator1 = "3000");
-
-		LexiconEntry.changeDisplayStyle(displayStyle = "cards");
-
 		if (isSet(userMiddleName)) {
 			LexiconCard.checkCardCheckbox(card = "${userFirstName} ${userMiddleName} ${userLastName}");
 		}
@@ -169,13 +167,9 @@ definition {
 	macro assignUserGroupAsMember {
 		Navigator.gotoNavItem(navItem = "User Groups");
 
-		Pause(locator1 = "3000");
-
 		LexiconEntry.gotoAdd();
 
 		SelectFrame(locator1 = "IFrame#MODAL_BODY");
-
-		Pause(locator1 = "3000");
 
 		LexiconEntry.selectEntry(rowEntry = "${userGroupName}");
 
@@ -397,10 +391,6 @@ definition {
 		for (var siteName : list "${siteList}") {
 			Button.clickAdd();
 
-			SelectFrame(locator1 = "IFrame#SELECT_SITES");
-
-			Pause(locator1 = "3000");
-
 			Navigator.gotoNavItem(navItem = "All Sites");
 
 			if (isSet(parentSiteName)) {
@@ -443,8 +433,26 @@ definition {
 				locator1 = "Message#SUCCESS",
 				value1 = "Staging is successfully disabled.");
 		}
+		else if (IsElementPresent(locator1 = "SiteSettingsStaging#ENABLED_ON_REMOTE_LIVE_CHECKBOX")) {
+			Check.checkHiddenToggleSwitch(locator1 = "SiteSettingsStaging#NONE_RADIO");
 
-		AssertElementNotPresent(locator1 = "SiteSettingsStaging#ENABLED_ON_LOCAL_LIVE_CHECKBOX");
+			AssertClickNoError(
+				locator1 = "Button#SAVE",
+				value1 = "Save");
+
+			AssertConfirm(value1 = "Are you sure you want to deactivate staging for ${depotName}?");
+
+			AssertTextEquals.assertPartialText(
+				locator1 = "Message#SUCCESS",
+				value1 = "Staging is successfully disabled.");
+		}
+
+		if (isSet(remoteStaging)) {
+			AssertElementNotPresent(locator1 = "SiteSettingsStaging#ENABLED_ON_REMOTE_LIVE_CHECKBOX");
+		}
+		else {
+			AssertElementNotPresent(locator1 = "SiteSettingsStaging#ENABLED_ON_LOCAL_LIVE_CHECKBOX");
+		}
 	}
 
 	macro deleteContentViaBulkEditing {
@@ -469,10 +477,6 @@ definition {
 		else {
 			ClickNoError(locator1 = "Icon#MOVE_TO_RECYCLE_BIN");
 
-			if (isSet(webContent)) {
-				AssertConfirm(value1 = "Are you sure you want to move the selected entry to the Recycle Bin?");
-			}
-
 			Alert.viewSuccessMessage();
 		}
 	}
@@ -493,7 +497,9 @@ definition {
 	}
 
 	macro disableStagingDepot {
-		DepotNavigator.openDepotStagingConfiguration(depotName = "${depotName}");
+		DepotNavigator.openDepotStagingConfiguration(
+			depotName = "${depotName}",
+			remoteStaging = "${remoteStaging}");
 
 		Depot.deactivateStaging(depotName = "${depotName}");
 	}
@@ -984,7 +990,6 @@ definition {
 
 	macro viewDocumentInFTP {
 		var portalURL = PropsUtil.get("portal.url");
-
 		var depotId = JSONGroupAPI._getDepotIdByName(depotName = "${depotName}");
 
 		Navigator.openSpecificURL(url = "${portalURL}/documents/asset-library-${depotId}");
@@ -1125,7 +1130,6 @@ definition {
 
 	macro viewNoDocumentInFTP {
 		var portalURL = PropsUtil.get("portal.url");
-
 		var depotId = JSONGroupAPI._getDepotIdByName(depotName = "${depotName}");
 
 		Navigator.openSpecificURL(url = "${portalURL}/documents/asset-library-${depotId}");

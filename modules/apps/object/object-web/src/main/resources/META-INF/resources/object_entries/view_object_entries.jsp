@@ -28,6 +28,7 @@ ObjectDefinition objectDefinition = viewObjectEntriesDisplayContext.getObjectDef
 			apiURL="<%= viewObjectEntriesDisplayContext.getAPIURL() %>"
 			creationMenu="<%= viewObjectEntriesDisplayContext.getCreationMenu() %>"
 			fdsActionDropdownItems="<%= viewObjectEntriesDisplayContext.getFDSActionDropdownItems() %>"
+			fdsFilters="<%= viewObjectEntriesDisplayContext.getFDSFilters() %>"
 			fdsSortItemList="<%= viewObjectEntriesDisplayContext.getFDSSortItemList() %>"
 			formName="fm"
 			id="<%= viewObjectEntriesDisplayContext.getFDSId() %>"

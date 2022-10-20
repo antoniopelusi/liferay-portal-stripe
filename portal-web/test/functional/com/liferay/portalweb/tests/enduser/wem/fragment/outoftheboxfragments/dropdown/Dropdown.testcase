@@ -64,9 +64,7 @@ definition {
 				fragmentName = "Menu Display",
 				navTab = "Fragments");
 
-			Button.click(button = "Publish Master");
-
-			Alert.viewSuccessMessage();
+			MastersPageTemplates.publishMaster();
 		}
 
 		task ("Add a page based on custom master page") {
@@ -99,7 +97,7 @@ definition {
 				key_element = "//div[contains(@class,'alert-info')][normalize-space(text())='There are no menu items to display.']",
 				locator1 = "Fragment#DROPDOWN_FRAGMENT_MENU_CONTENT");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Assert the dropdown panel is collapsed in view mode") {
@@ -161,10 +159,10 @@ definition {
 				value1 = "true");
 
 			AssertVisible(
-				key_content = "Place fragments here.",
+				key_content = "Place fragments or widgets here.",
 				key_fragmentClass = "menu",
 				key_position = "1",
-				locator1 = "Fragment#NO_FRAGMENTS_MESSAGE");
+				locator1 = "Fragment#DROP_ZONE_NO_FRAGMENTS_MESSAGE");
 
 			Click.javaScriptClick(locator1 = "Fragment#DROPDOWN_FRAGMENT_TOGGLE");
 
@@ -174,14 +172,12 @@ definition {
 				value1 = "false");
 
 			AssertNotVisible(
-				key_content = "Place fragments here.",
+				key_content = "Place fragments or widgets here.",
 				key_fragmentClass = "menu",
 				key_position = "1",
-				locator1 = "Fragment#NO_FRAGMENTS_MESSAGE");
+				locator1 = "Fragment#DROP_ZONE_NO_FRAGMENTS_MESSAGE");
 
-			Button.click(button = "Publish Master");
-
-			Alert.viewSuccessMessage();
+			MastersPageTemplates.publishMaster();
 		}
 
 		task ("Add a page based on custom master page") {
@@ -222,10 +218,10 @@ definition {
 				value1 = "true");
 
 			AssertVisible(
-				key_content = "Place fragments here.",
+				key_content = "Place fragments or widgets here.",
 				key_fragmentClass = "menu",
 				key_position = "1",
-				locator1 = "Fragment#NO_FRAGMENTS_MESSAGE");
+				locator1 = "Fragment#DROP_ZONE_NO_FRAGMENTS_MESSAGE");
 
 			MouseOver(
 				key_sidebarButton = "Browser",
@@ -237,10 +233,10 @@ definition {
 				value1 = "false");
 
 			AssertNotVisible(
-				key_content = "Place fragments here.",
+				key_content = "Place fragments or widgets here.",
 				key_fragmentClass = "menu",
 				key_position = "1",
-				locator1 = "Fragment#NO_FRAGMENTS_MESSAGE");
+				locator1 = "Fragment#DROP_ZONE_NO_FRAGMENTS_MESSAGE");
 		}
 
 		task ("Define the Keep Panel Open in Edit Mode as displayed behavior") {
@@ -254,7 +250,7 @@ definition {
 					locator1 = "Checkbox#ANY_CHECKBOX");
 			}
 
-			Pause(locator1 = "3000");
+			PageEditor.waitForAutoSave();
 
 			AssertNotChecked.assertNotCheckedNotVisible(
 				checkboxName = "Display on Hover",
@@ -268,10 +264,10 @@ definition {
 				value1 = "true");
 
 			AssertVisible(
-				key_content = "Place fragments here.",
+				key_content = "Place fragments or widgets here.",
 				key_fragmentClass = "menu",
 				key_position = "1",
-				locator1 = "Fragment#NO_FRAGMENTS_MESSAGE");
+				locator1 = "Fragment#DROP_ZONE_NO_FRAGMENTS_MESSAGE");
 
 			PageEditor.clickManagementBar();
 
@@ -283,10 +279,10 @@ definition {
 				value1 = "true");
 
 			AssertVisible(
-				key_content = "Place fragments here.",
+				key_content = "Place fragments or widgets here.",
 				key_fragmentClass = "menu",
 				key_position = "1",
-				locator1 = "Fragment#NO_FRAGMENTS_MESSAGE");
+				locator1 = "Fragment#DROP_ZONE_NO_FRAGMENTS_MESSAGE");
 		}
 
 		task ("Define the Display on Hover and Keep Panel Open in Edit Mode as displayed behavior") {
@@ -302,10 +298,10 @@ definition {
 				value1 = "true");
 
 			AssertVisible(
-				key_content = "Place fragments here.",
+				key_content = "Place fragments or widgets here.",
 				key_fragmentClass = "menu",
 				key_position = "1",
-				locator1 = "Fragment#NO_FRAGMENTS_MESSAGE");
+				locator1 = "Fragment#DROP_ZONE_NO_FRAGMENTS_MESSAGE");
 
 			PageEditor.clickManagementBar();
 
@@ -317,10 +313,10 @@ definition {
 				value1 = "true");
 
 			AssertVisible(
-				key_content = "Place fragments here.",
+				key_content = "Place fragments or widgets here.",
 				key_fragmentClass = "menu",
 				key_position = "1",
-				locator1 = "Fragment#NO_FRAGMENTS_MESSAGE");
+				locator1 = "Fragment#DROP_ZONE_NO_FRAGMENTS_MESSAGE");
 		}
 	}
 
@@ -443,9 +439,7 @@ definition {
 				fragmentName = "Dropdown",
 				id = "dropdown-text");
 
-			Button.click(button = "Publish Master");
-
-			Alert.viewSuccessMessage();
+			MastersPageTemplates.publishMaster();
 		}
 
 		task ("Add a page based on custom master page") {

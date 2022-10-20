@@ -82,7 +82,8 @@ public interface PriceEntryResource {
 		throws Exception;
 
 	public Page<PriceEntry> getPriceListByExternalReferenceCodePriceEntriesPage(
-			String externalReferenceCode, Pagination pagination)
+			String externalReferenceCode, String search, Filter filter,
+			Pagination pagination, Sort[] sorts)
 		throws Exception;
 
 	public PriceEntry postPriceListByExternalReferenceCodePriceEntry(

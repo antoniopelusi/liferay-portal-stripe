@@ -1351,10 +1351,6 @@ public class PortalUtil {
 		return _portal.getPortalURL(themeDisplay);
 	}
 
-	public static String getPortalWebDir() {
-		return _portal.getPortalWebDir();
-	}
-
 	public static PortletConfig getPortletConfig(
 			long companyId, String portletId, ServletContext servletContext)
 		throws PortletException {
@@ -1866,6 +1862,10 @@ public class PortalUtil {
 		return _portal.isGroupAdmin(user, groupId);
 	}
 
+	public static boolean isGroupControlPanelPath(String path) {
+		return _portal.isGroupControlPanelPath(path);
+	}
+
 	public static boolean isGroupFriendlyURL(
 		String fullURL, String groupFriendlyURL, String layoutFriendlyURL) {
 
@@ -1947,6 +1947,10 @@ public class PortalUtil {
 
 	public static boolean isSystemRole(String roleName) {
 		return _portal.isSystemRole(roleName);
+	}
+
+	public static boolean isValidPortalDomain(long companyId, String domain) {
+		return _portal.isValidPortalDomain(companyId, domain);
 	}
 
 	public static boolean isValidResourceId(String resourceId) {

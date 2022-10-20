@@ -95,7 +95,7 @@ definition {
 				locator2 = "font-family",
 				value1 = "${fontFamily}");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Assert the style book applied to page in view mode") {
@@ -194,7 +194,7 @@ definition {
 			PageEditor.configureFragment(headingLevel = "H5");
 
 			PageEditor.viewFragmentStyle(
-				fragmentName = "heading",
+				fragmentName = "Heading",
 				headingLevel = "h5");
 		}
 
@@ -211,7 +211,7 @@ definition {
 			PageEditor.configureFragment(type = "Outline Secondary");
 
 			PageEditor.viewFragmentStyle(
-				fragmentName = "button",
+				fragmentName = "Button",
 				type = "outline-secondary");
 		}
 
@@ -220,10 +220,9 @@ definition {
 
 			Click(locator1 = "PageEditor#MORE_LINK");
 
-			AssertTextEquals(
+			AssertElementPresent(
 				key_styleBookName = "Styles from Theme",
-				locator1 = "PagesAdmin#STYLE_BOOK_NAME",
-				value1 = "Styles from Theme");
+				locator1 = "PagesAdmin#STYLE_BOOK_NAME");
 
 			AssertClick(
 				key_text = "Change Style Book",
@@ -232,10 +231,9 @@ definition {
 
 			StyleBooks.selectStyleBook(styleBookName = "Test Style Book Name");
 
-			AssertTextEquals(
+			AssertElementPresent(
 				key_styleBookName = "Test Style Book Name",
-				locator1 = "PagesAdmin#STYLE_BOOK_NAME",
-				value1 = "Test Style Book Name");
+				locator1 = "PagesAdmin#STYLE_BOOK_NAME");
 
 			Button.clickSave();
 
@@ -259,7 +257,7 @@ definition {
 				locator2 = "font-size",
 				value1 = "32px");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Assert the new style book is applied to content page in view mode") {
@@ -293,10 +291,9 @@ definition {
 
 			Click(locator1 = "PageEditor#MORE_LINK");
 
-			AssertTextEquals(
+			AssertElementPresent(
 				key_styleBookName = "Test Style Book Name",
-				locator1 = "PagesAdmin#STYLE_BOOK_NAME",
-				value1 = "Test Style Book Name");
+				locator1 = "PagesAdmin#STYLE_BOOK_NAME");
 
 			AssertClick(
 				key_text = "Change Style Book",
@@ -305,10 +302,9 @@ definition {
 
 			StyleBooks.selectStyleBook(styleBookName = "Styles from Theme");
 
-			AssertTextEquals(
+			AssertElementPresent(
 				key_styleBookName = "Styles from Theme",
-				locator1 = "PagesAdmin#STYLE_BOOK_NAME",
-				value1 = "Styles from Theme");
+				locator1 = "PagesAdmin#STYLE_BOOK_NAME");
 
 			Button.clickSave();
 
@@ -332,7 +328,7 @@ definition {
 				locator2 = "font-size",
 				value1 = "14px");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Assert the default style book is applied to content page in view mode") {
@@ -384,8 +380,6 @@ definition {
 
 			StyleBooks.waitForAutoSave();
 
-			Pause(locator1 = "3000");
-
 			StyleBooks.expandSection(sectionName = "Button Secondary");
 
 			Type(
@@ -423,10 +417,9 @@ definition {
 
 			Navigator.gotoNavTab(navTab = "Look and Feel");
 
-			AssertTextEquals(
+			AssertElementPresent(
 				key_styleBookName = "Styles from Theme",
-				locator1 = "PagesAdmin#STYLE_BOOK_NAME",
-				value1 = "Styles from Theme");
+				locator1 = "PagesAdmin#STYLE_BOOK_NAME");
 
 			AssertClick(
 				key_text = "Change Style Book",
@@ -435,10 +428,9 @@ definition {
 
 			StyleBooks.selectStyleBook(styleBookName = "Test Style Book Name");
 
-			AssertTextEquals(
+			AssertElementPresent(
 				key_styleBookName = "Test Style Book Name",
-				locator1 = "PagesAdmin#STYLE_BOOK_NAME",
-				value1 = "Test Style Book Name");
+				locator1 = "PagesAdmin#STYLE_BOOK_NAME");
 
 			Button.clickSave();
 
@@ -464,10 +456,9 @@ definition {
 
 			Navigator.gotoNavTab(navTab = "Look and Feel");
 
-			AssertTextEquals(
+			AssertElementPresent(
 				key_styleBookName = "Test Style Book Name",
-				locator1 = "PagesAdmin#STYLE_BOOK_NAME",
-				value1 = "Test Style Book Name");
+				locator1 = "PagesAdmin#STYLE_BOOK_NAME");
 
 			AssertClick(
 				key_text = "Change Style Book",
@@ -476,10 +467,9 @@ definition {
 
 			StyleBooks.selectStyleBook(styleBookName = "Styles from Theme");
 
-			AssertTextEquals(
+			AssertElementPresent(
 				key_styleBookName = "Styles from Theme",
-				locator1 = "PagesAdmin#STYLE_BOOK_NAME",
-				value1 = "Styles from Theme");
+				locator1 = "PagesAdmin#STYLE_BOOK_NAME");
 
 			Button.clickSave();
 
@@ -498,6 +488,92 @@ definition {
 				locator1 = "Button#ANY",
 				locator2 = "color",
 				value1 = "rgba(107, 108, 126, 1)");
+		}
+	}
+
+	@description = "This is a test for LPS-142050. In style books, selecting Custom in units could insert any type of character."
+	@priority = "3"
+	test ConfigureCustomUnit {
+		property custom.properties = "feature.flag.LPS-143206=true";
+
+		task ("Given a site designer has a style book") {
+			JSONStylebooks.addStyleBookEntry(
+				groupName = "Test Site Name",
+				styleBookEntryName = "Test Style Book Name");
+
+			StyleBooksAdmin.openStyleBooksAdmin(siteURLKey = "test-site-name");
+
+			StyleBooksAdmin.gotoStyleBookEllipsisItem(
+				item = "Edit",
+				styleBookName = "Test Style Book Name");
+		}
+
+		task ("When the site designer accesses to the Spacing form") {
+			StyleBooks.selectForm(formName = "Spacing");
+		}
+
+		task ("Then the site designer sees the default unit of Spacer 1 is REM") {
+			AssertTextEquals(
+				key_fieldLabel = "Spacer 1",
+				locator1 = "Dropdown#DROPDOWN_TOGGLE_BUTTON_WITH_LABEL",
+				value1 = "REM");
+		}
+
+		task ("When the site designer selects custom unit for Spacer 1") {
+			StyleBooks.configureUnit(
+				fieldLabel = "Spacer 1",
+				unit = "CUSTOM");
+		}
+
+		task ("Then the site designer could define a custom unit for Spacer 1") {
+			Type(
+				key_text = "Spacer 1",
+				locator1 = "TextInput#ANY",
+				value1 = "2px");
+
+			StyleBooks.clickManagementBar();
+
+			StyleBooks.waitForAutoSave();
+
+			AssertTextEquals(
+				key_fieldLabel = "Spacer 1",
+				locator1 = "Dropdown#DROPDOWN_TOGGLE_BUTTON_WITH_LABEL",
+				value1 = "PX");
+
+			AssertTextEquals(
+				key_text = "Spacer 1",
+				locator1 = "TextInput#ANY",
+				value1 = "2");
+		}
+	}
+
+	@description = "This is a test for LPS-147705. A warning message appears when users try to delete a style book."
+	@priority = "4"
+	test DeleteStyleBook {
+		task ("Given a site designer has a style book") {
+			JSONStylebooks.addStyleBookEntry(
+				groupName = "Test Site Name",
+				styleBookEntryName = "Test Style Book Name");
+		}
+
+		task ("When the site designer delete the style book") {
+			StyleBooksAdmin.openStyleBooksAdmin(siteURLKey = "test-site-name");
+
+			StyleBooksAdmin.gotoStyleBookEllipsisItem(
+				item = "Delete",
+				styleBookName = "Test Style Book Name");
+		}
+
+		task ("Then the site designer could see a warning message") {
+			AssertTextEquals(
+				locator1 = "Modal#BODY",
+				value1 = "Deleting a style book is an action impossible to revert. All Style Book tokens and values will be removed and it will not be possible to recover it. Watch out for a critical impact on the site's look and feel.");
+
+			Click(
+				key_text = "Delete",
+				locator1 = "Modal#MODAL_FOOTER_BUTTON");
+
+			Alert.viewSuccessMessage();
 		}
 	}
 
@@ -530,9 +606,8 @@ definition {
 	@description = "This is a test for LPS-140834. The user could select style book in master page when use public pages theme."
 	@priority = "4"
 	test SelectStyleBookInMasterPageWhenUsePublicPagesTheme {
-		property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-		property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 		property portal.release = "false";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		task ("Add a public page and change it's theme to Minium") {
 			JSONLayout.addPublicLayout(
@@ -620,6 +695,38 @@ definition {
 			AssertElementNotPresent(
 				key_card = "Blank",
 				locator1 = "Card#CARD_TITLE_LINK");
+		}
+	}
+
+	@description = "This is a test for LPS-145292. The user could view new icons on dropdown menu of style book."
+	@priority = "4"
+	test ViewDropdownMenuIconsInStyleBooksAdmin {
+		task ("Given a Style books designer has a new style book") {
+			JSONStylebooks.addStyleBookEntry(
+				groupName = "Test Site Name",
+				styleBookEntryName = "Test Style Book Name");
+		}
+
+		task ("When the Style books designer opens the dropdown menu of style book") {
+			StyleBooksAdmin.openStyleBooksAdmin(siteURLKey = "test-site-name");
+
+			Click.waitForMenuToggleJSClick(
+				key_card = "Test Style Book Name",
+				locator1 = "Card#CARD_ELLIPSIS");
+		}
+
+		task ("Then the Style books designer can see the new icons on the dropdown menu") {
+			DropdownMenuItem.viewIcon(iconList = "pencil,change,upload,copy,trash");
+		}
+
+		task ("When the Style books designer opens the dropdown menu of management toolbar after selecting the new style book") {
+			LexiconCard.checkCardCheckbox(card = "Test Style Book Name");
+
+			Click(locator1 = "ManagementBar#MORE_ACTIONS_ELLIPSIS");
+		}
+
+		task ("Then the Style books designer can see the new icons on the dropdown menu") {
+			DropdownMenuItem.viewIcon(iconList = "upload,copy,trash");
 		}
 	}
 

@@ -47,6 +47,7 @@ SearchContainer<Object> searchContainer = itemSelectorViewDescriptorRendererDisp
 	>
 		<liferay-ui:search-container-row
 			className="Object"
+			keyProperty="<%= itemSelectorViewDescriptor.getKeyProperty() %>"
 			modelVar="entry"
 		>
 
@@ -140,6 +141,12 @@ SearchContainer<Object> searchContainer = itemSelectorViewDescriptorRendererDisp
 						<p class="h6 text-default">
 							<%= itemDescriptor.getSubtitle(locale) %>
 						</p>
+
+						<c:if test="<%= itemDescriptor.getStatus() != null %>">
+							<span class="text-default">
+								<aui:workflow-status markupView="lexicon" showIcon="<%= false %>" showLabel="<%= false %>" status="<%= itemDescriptor.getStatus() %>" />
+							</span>
+						</c:if>
 					</liferay-ui:search-container-column-text>
 				</c:when>
 				<c:otherwise>
@@ -159,7 +166,7 @@ SearchContainer<Object> searchContainer = itemSelectorViewDescriptorRendererDisp
 					/>
 
 					<liferay-ui:search-container-column-text
-						cssClass="table-cell-expand-smaller table-cell-minw-150"
+						cssClass="table-cell-expand-smallest table-cell-ws-nowrap"
 						name="modified-date"
 					>
 						<c:if test="<%= Objects.nonNull(itemDescriptor.getModifiedDate()) %>">
@@ -169,10 +176,18 @@ SearchContainer<Object> searchContainer = itemSelectorViewDescriptorRendererDisp
 							%>
 
 							<span class="text-default">
-								<liferay-ui:message arguments="<%= LanguageUtil.getTimeDescription(request, System.currentTimeMillis() - modifiedDate.getTime(), true) %>" key="modified-x-ago" />
+								<liferay-ui:message arguments="<%= LanguageUtil.getTimeDescription(request, System.currentTimeMillis() - modifiedDate.getTime(), true) %>" key="x-ago" />
 							</span>
 						</c:if>
 					</liferay-ui:search-container-column-text>
+
+					<c:if test="<%= itemDescriptor.getStatus() != null %>">
+						<liferay-ui:search-container-column-status
+							cssClass="text-nowrap"
+							name="status"
+							status="<%= itemDescriptor.getStatus() %>"
+						/>
+					</c:if>
 				</c:otherwise>
 			</c:choose>
 		</liferay-ui:search-container-row>

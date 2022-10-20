@@ -1,0 +1,21 @@
+<html>
+<head>
+<title>FieldBase</title>
+</head>
+
+<body>
+<table border="1" cellpadding="1" cellspacing="1">
+<thead>
+<tr><td rowspan="1" colspan="3">FieldBase</td></tr>
+</thead>
+
+<tbody>
+	<tr>
+		<td>ERROR_MESSAGE_REQUIRED_FIELD</td>
+		<td>//label[contains(text(),'${key_fieldLabel}')]/../div[contains(@class, 'form-feedback-group') and contains(.,'Required')]</td>
+		<td></td>
+	</tr>
+</tbody>
+</table>
+</body>
+</html>

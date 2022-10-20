@@ -25,17 +25,13 @@ definition {
 	}
 
 	macro gotoAddCP {
-		Pause(locator1 = "3000");
-
 		LexiconEntry.gotoAdd();
 
 		MenuItem.click(menuItem = "Basic Web Content");
 
 		AssertVisible(locator1 = "TextInput#TITLE");
 
-		while (IsElementNotPresent(locator1 = "WCEditWebContent#SIDEBAR")) {
-			Pause(locator1 = "1000");
-		}
+		WaitForVisible(locator1 = "WCEditWebContent#SIDEBAR");
 	}
 
 	macro gotoAddWithStructureCP {
@@ -88,8 +84,6 @@ definition {
 	}
 
 	macro gotoEntryMenuItem {
-		Pause(locator1 = "3000");
-
 		Click.waitForMenuToggleJSClick(
 			key_webContentTitle = "${entry}",
 			locator1 = "WC#ENTRY_LIST_MENULIST_ICON");
@@ -133,7 +127,9 @@ definition {
 
 		LexiconEntry.changeDisplayStyle(displayStyle = "list");
 
-		AssertElementPresent.pauseAssertVisible(locator1 = "WC#ENTRY_LIST_THUMBNAIL");
+		LexiconEntry.viewActiveDisplayStyle(displayStyle = "list");
+
+		AssertElementPresent(locator1 = "WC#ENTRY_LIST_THUMBNAIL");
 
 		if ("${translationStatus}" == "true") {
 			AssertTextEquals(
@@ -203,7 +199,6 @@ definition {
 		var groupId = JSONWebcontentSetter.setGroupId(
 			groupName = "${groupName}",
 			site = "${site}");
-
 		var articleId = JSONWebcontentSetter.setArticleId(
 			groupName = "${groupName}",
 			site = "${site}",
@@ -246,6 +241,12 @@ definition {
 		Navigator.openWithAppendToBaseURL(
 			baseURL = "${baseURL}",
 			urlAppend = "group/${siteURLKey}/~/control_panel/manage?p_p_id=com_liferay_journal_web_portlet_JournalPortlet&_com_liferay_journal_web_portlet_JournalPortlet_mvcPath=%2Fview_ddm_structures.jsp&p_p_auth=sNIcMAzl");
+	}
+
+	macro openWebContentStructuresAdminInAssetLibrary {
+		Navigator.openWithAppendToBaseURL(
+			baseURL = "${baseURL}",
+			urlAppend = "group/asset-library-${depotId}/~/control_panel/manage?p_p_id=com_liferay_journal_web_portlet_JournalPortlet&_com_liferay_journal_web_portlet_JournalPortlet_mvcPath=%2Fview_ddm_structures.jsp");
 	}
 
 	macro openWebContentTemplatesAdmin {

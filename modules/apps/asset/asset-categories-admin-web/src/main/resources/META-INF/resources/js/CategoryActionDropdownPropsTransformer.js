@@ -12,26 +12,28 @@
  * details.
  */
 
-import {openModal, openSelectionModal, openToast} from 'frontend-js-web';
+import {openModal, openSelectionModal, openToast, sub} from 'frontend-js-web';
+
+import openDeleteCategoryModal from './openDeleteCategoryModal';
 
 const ACTIONS = {
 	deleteCategory({deleteCategoryURL}) {
-		if (
-			confirm(
-				Liferay.Language.get(
-					'this-category-might-be-being-used-in-some-contents'
-				)
-			)
-		) {
-			submitForm(document.hrefFm, deleteCategoryURL);
-		}
+		openDeleteCategoryModal({
+			message: Liferay.Language.get(
+				'this-category-might-be-being-used-in-some-contents'
+			),
+			onDelete: () => {
+				submitForm(document.hrefFm, deleteCategoryURL);
+			},
+		});
 	},
 
 	moveCategory(
-		{categoryId, categoryTitle, moveCategoryURL},
+		{categoryId, categoryTitle, selectParentCategoryURL},
 		portletNamespace
 	) {
 		openSelectionModal({
+			height: '70vh',
 			iframeBodyCssClass: '',
 			multiple: true,
 			onSelect: (selectedItems) => {
@@ -44,11 +46,11 @@ const ACTIONS = {
 				);
 
 				const parentCategoryId = item.categoryId || 0;
-				const vocabularyId = item.vocabularyId || 0;
+				const vocabularyId = item.vocabularyId;
 
 				if (categoryId === parentCategoryId) {
 					openToast({
-						message: Liferay.Util.sub(
+						message: sub(
 							Liferay.Language.get(
 								'unable-to-move-the-category-x-into-itself'
 							),
@@ -77,11 +79,9 @@ const ACTIONS = {
 				}
 			},
 			selectEventName: `${portletNamespace}selectCategory`,
-			title: Liferay.Util.sub(
-				Liferay.Language.get('move-x'),
-				categoryTitle
-			),
-			url: moveCategoryURL,
+			size: 'md',
+			title: sub(Liferay.Language.get('move-x'), categoryTitle),
+			url: selectParentCategoryURL,
 		});
 	},
 

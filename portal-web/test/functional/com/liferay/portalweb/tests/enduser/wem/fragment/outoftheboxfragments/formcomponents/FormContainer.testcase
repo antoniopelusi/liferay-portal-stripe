@@ -1,0 +1,1671 @@
+@component-name = "portal-wcm"
+definition {
+
+	property custom.properties = "feature.flag.LPS-150277=true";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Fragments";
+
+	setUp {
+		task ("Set up virtual instance and sign in") {
+			TestCase.setUpPortalInstance();
+
+			User.firstLoginPG();
+		}
+
+		task ("Add a new site") {
+			JSONGroup.addGroup(groupName = "Test Site Name");
+		}
+
+		task ("Add a company Object with a Text field") {
+			ObjectAdmin.addObjectViaAPI(
+				labelName = "Purchase Order",
+				objectName = "PurchaseOrder",
+				pluralLabelName = "Purchase Orders");
+
+			ObjectAdmin.addObjectFieldViaAPI(
+				fieldBusinessType = "Text",
+				fieldLabelName = "Region",
+				fieldName = "region",
+				fieldType = "String",
+				isRequired = "false",
+				objectName = "PurchaseOrder");
+
+			ObjectAdmin.publishObjectViaAPI(objectName = "PurchaseOrder");
+		}
+
+		task ("Enable Inputs Fragment collection in Gogo Shell") {
+			GogoShell.openGogoShellAdmin();
+
+			GogoShell.executeCommand(commandName = "scr:enable com.liferay.fragment.collection.contributor.inputs.InputsFragmentCollectionContributor");
+
+			GogoShell.viewOutput(outputContent = "true");
+		}
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			task ("Disable Inputs Fragment collection in Gogo Shell") {
+				GogoShell.openGogoShellAdmin();
+
+				GogoShell.executeCommand(commandName = "scr:disable com.liferay.fragment.collection.contributor.inputs.InputsFragmentCollectionContributor");
+
+				GogoShell.viewOutput(outputContent = "true");
+			}
+
+			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
+
+			ObjectAdmin.deleteObjectViaAPI(objectName = "PurchaseOrder");
+		}
+	}
+
+	@description = "This is a test for LPS-149984. The page editor cannot add fragment into Form Container without mapping entity."
+	@priority = "4"
+	test CannotAddFragmentToFormContainerWithoutMappingEntity {
+		property test.name.skip.portal.instance = "FormContainer#CannotAddFragmentToFormContainerWithoutMappingEntity";
+
+		task ("Given a page creator has a content page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Page Name",
+				type = "content");
+		}
+
+		task ("When the page creator adds a Form Container to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Form Components",
+				fragmentName = "Form Container");
+		}
+
+		task ("Then the page creator could see Select a content type to start creating the form message shown in Form Container") {
+			AssertVisible(
+				key_fragmentName = "Form Container",
+				key_messageInfo = "Select a content type to start creating the form.",
+				key_position = "1",
+				locator1 = "Fragment#NO_FRAGMENTS_MESSAGE");
+		}
+
+		task ("When the page creator tries to add a Heading fragment into Form Container") {
+			DragAndDrop.javaScriptDragAndDropToObject(
+				index = "1",
+				key_collectionName = "Basic Components",
+				key_fragmentName = "Heading",
+				key_targetFragmentName = "Form Container",
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_TAB_FRAGMENT",
+				locator2 = "PageEditor#ANY_FRAGMENT_DROP_TARGET");
+		}
+
+		task ("Then the page creator still see the Select a content type to start creating the form message shown in Form Container") {
+			Alert.viewErrorMessage(errorMessage = "Fragments cannot be placed inside an unmapped form container.");
+
+			AssertVisible(
+				key_fragmentName = "Form Container",
+				key_messageInfo = "Select a content type to start creating the form.",
+				key_position = "1",
+				locator1 = "Fragment#NO_FRAGMENTS_MESSAGE");
+
+			PageEditor.viewFragmentNotPresent(fragmentName = "Heading");
+		}
+
+		task ("When the page creator tries to add a Heading fragment into Form Container after mapping entity") {
+			PageEditor.editFormContainer(
+				contentType = "Purchase Order",
+				panel = "General");
+
+			PageEditor.gotoTab(tabName = "Fragments and Widgets");
+
+			DragAndDrop.javaScriptDragAndDropToObject(
+				index = "1",
+				key_collectionName = "Basic Components",
+				key_fragmentName = "Heading",
+				key_targetFragmentName = "Form Container",
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_TAB_FRAGMENT",
+				locator2 = "PageEditor#ANY_FRAGMENT_DROP_TARGET");
+
+			PageEditor.waitForAutoSave();
+		}
+
+		task ("Then the page creator could see the Heading is inside the Form Container") {
+			AssertVisible(
+				key_targetFragmentName = "Heading",
+				locator1 = "PageEditor#ANY_NESTED_FRAGMENT_DROP_TARGET");
+		}
+	}
+
+	@description = "This is a test for LPS-157740. The page creator can only drop Form fragments inside a mapped Form Container on content page."
+	@priority = "4"
+	test CannotAddFragmentToOutsideFormContainerOnContentPage {
+		property test.name.skip.portal.instance = "FormContainer#CannotAddFragmentToOutsideFormContainerOnContentPage";
+
+		task ("Given a page creator has a content page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Page Name",
+				type = "content");
+		}
+
+		task ("When the page creator tries to add a Text Input fragment on drop zone of content page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.expandFragmentCollection(collectionName = "Form Components");
+
+			DragAndDrop.javaScriptDragAndDropToObject(
+				key_collectionName = "Form Components",
+				key_fragmentName = "Text Input",
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_TAB_FRAGMENT",
+				locator2 = "PageEditor#FRAGMENT_DROP_TARGET");
+		}
+
+		task ("Then the page creator should see an error message") {
+			Alert.viewErrorMessage(errorMessage = "Form components can only be placed inside a mapped form container.");
+
+			PageEditor.viewFragmentNotPresent(fragmentName = "Text Input");
+		}
+	}
+
+	@description = "This is a test for LPS-157740. The page creator can only drop Form fragments inside a mapped Form Container on display page template."
+	@priority = "4"
+	test CannotAddFragmentToOutsideFormContainerOnDisplayPageTemplate {
+		property test.name.skip.portal.instance = "FormContainer#CannotAddFragmentToOutsideFormContainerOnDisplayPageTemplate";
+		property testray.component.names = "Display Pages,Fragments";
+
+		task ("Given a page creator has a display page template for Web Content Article and Basic Web Content") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Web Content Article",
+				displayPageTemplateEntryName = "Display Page Name",
+				groupName = "Test Site Name",
+				subType = "Basic Web Content");
+		}
+
+		task ("When the page creator tries to add a Select from List fragment to drop zone of display page template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+
+			PageEditor.expandFragmentCollection(collectionName = "Form Components");
+
+			DragAndDrop.javaScriptDragAndDropToObject(
+				key_collectionName = "Form Components",
+				key_fragmentName = "Select from List",
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_TAB_FRAGMENT",
+				locator2 = "PageEditor#FRAGMENT_DROP_TARGET");
+		}
+
+		task ("Then the page creator should see an error message") {
+			Alert.viewErrorMessage(errorMessage = "Form components can only be placed inside a mapped form container.");
+
+			PageEditor.viewFragmentNotPresent(fragmentName = "Select from List");
+		}
+	}
+
+	@description = "This is a test for LPS-151867 and LPS-149984. The page editor could add Form Container fragment from Form Components set to page. The page editor could map entity to Form Container in content page."
+	@priority = "5"
+	test MapEntityToFormContainerInContentPage {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "FormContainer#MapEntityToFormContainerInContentPage";
+
+		task ("Given a page creator has a content page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Page Name",
+				type = "content");
+		}
+
+		task ("When the page creator adds a Form Container to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Form Components",
+				fragmentName = "Form Container");
+		}
+
+		task ("Then the page creator could see the Form Container on page") {
+			PageEditor.viewFragment(fragmentName = "Form Container");
+		}
+
+		task ("When the page creator navigates to the General panel of Form Container") {
+			PageEditor.gotoConfiguration(fragmentName = "Form Container");
+		}
+
+		task ("Then the page creator could select the content type of Form Container") {
+			AssertSelectedLabel(
+				key_fieldLabel = "Content Type",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
+				value1 = "None");
+
+			Select(
+				key_fieldLabel = "Content Type",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
+				value1 = "Purchase Order");
+
+			PageEditor.waitForAutoSave();
+
+			AssertSelectedLabel(
+				key_fieldLabel = "Content Type",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
+				value1 = "Purchase Order");
+		}
+	}
+
+	@description = "This is a test for LPS-149984. The page editor could map entity to Form Container in display page template."
+	@priority = "5"
+	test MapEntityToFormContainerInDisplayPageTemplate {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "FormContainer#MapEntityToFormContainerInDisplayPageTemplate";
+		property testray.component.names = "Display Pages,Fragments";
+
+		task ("Given a page creator has a display page template for Web Content Article and Basic Web Content") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Web Content Article",
+				displayPageTemplateEntryName = "Display Page Name",
+				groupName = "Test Site Name",
+				subType = "Basic Web Content");
+		}
+
+		task ("When the page creator adds a Form Container to display page template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+
+			PageEditor.addFragment(
+				collectionName = "Form Components",
+				fragmentName = "Form Container");
+		}
+
+		task ("Then the page creator could see Select a content type to start creating the form message shown in Form Container") {
+			AssertVisible(
+				key_fragmentName = "Form Container",
+				key_messageInfo = "Select a content type to start creating the form.",
+				key_position = "1",
+				locator1 = "Fragment#NO_FRAGMENTS_MESSAGE");
+		}
+
+		task ("When the page creator navigates to the General panel of Form Container") {
+			PageEditor.gotoConfiguration(fragmentName = "Form Container");
+		}
+
+		task ("Then the page creator could select the content type of Form Container") {
+			AssertSelectedLabel(
+				key_fieldLabel = "Content Type",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
+				value1 = "None");
+
+			Select(
+				key_fieldLabel = "Content Type",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
+				value1 = "Purchase Order");
+
+			PageEditor.waitForAutoSave();
+
+			AssertSelectedLabel(
+				key_fieldLabel = "Content Type",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
+				value1 = "Purchase Order");
+		}
+	}
+
+	@description = "This is a test for LPS-157739. The page creator could map new field to new input fragment after mapping Form Container to object."
+	@priority = "4"
+	test MapNewFieldToNewInputFragmentInMappedFormContainer {
+		property custom.properties = "feature.flag.LPS-150277=true${line.separator}feature.flag.LPS-157738=true";
+		property test.name.skip.portal.instance = "FormContainer#MapNewFieldToNewInputFragmentInMappedFormContainer";
+
+		task ("Given a page creator has a mapped Form Container on a content page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Page Name",
+				type = "content");
+
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Form Components",
+				fragmentName = "Form Container");
+
+			PageEditor.mapFormContainerToObject(contentType = "Purchase Order");
+
+			PageEditor.waitForAutoSave();
+		}
+
+		task ("When the page creator add a new Date field to object") {
+			ObjectAdmin.addObjectFieldViaAPI(
+				fieldBusinessType = "Date",
+				fieldLabelName = "Purchase Date",
+				fieldName = "purchaseDate",
+				fieldType = "Date",
+				isRequired = "false",
+				objectName = "PurchaseOrder");
+		}
+
+		task ("Then the page creator could map the new field to a new input fragment in mapped Form Container") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragmentToFormContainer(
+				collectionName = "Form Components",
+				fragmentName = "Date",
+				targetFragmentName = "Text Input");
+
+			PageEditor.editInput(
+				field = "Purchase Date",
+				fragmentName = "Date");
+
+			PageEditor.viewInputStyle(
+				label = "Purchase Date",
+				showLabel = "true",
+				type = "date-input");
+		}
+	}
+
+	@description = "This is a test for LPS-157739. The page creator could remove automatically added input fragments and change mapping fields."
+	@priority = "4"
+	test RemoveAutomaticallyAddedInputFragmentsThenChangeMappingField {
+		property custom.properties = "feature.flag.LPS-150277=true${line.separator}feature.flag.LPS-157738=true";
+		property test.name.skip.portal.instance = "FormContainer#RemoveAutomaticallyAddedInputFragmentsThenChangeMappingField";
+
+		task ("Given a page creator has a Form Container on a content page") {
+			ObjectAdmin.addObjectFieldViaAPI(
+				fieldBusinessType = "LongText",
+				fieldLabelName = "Address",
+				fieldName = "address",
+				fieldType = "Clob",
+				isRequired = "false",
+				objectName = "PurchaseOrder");
+
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Page Name",
+				type = "content");
+
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Form Components",
+				fragmentName = "Form Container");
+		}
+
+		task ("When the page creator maps the Form Container to object") {
+			PageEditor.mapFormContainerToObject(contentType = "Purchase Order");
+
+			PageEditor.waitForAutoSave();
+
+			PageEditor.viewInputStyle(
+				label = "Address",
+				showLabel = "true",
+				type = "text-input");
+
+			PageEditor.viewInputStyle(
+				label = "Region",
+				position = "2",
+				showLabel = "true",
+				type = "text-input");
+
+			PageEditor.viewFragmentEditableText(
+				className = "button",
+				editableText = "Submit",
+				fragmentName = "Submit Button",
+				id = "submit-button");
+		}
+
+		task ("Then the page creator could remove automatically added input fragments") {
+			PageEditor.removeFragment(fragmentName = "Text Input");
+
+			PageEditor.removeFragment(fragmentName = "Text Input");
+
+			PageEditor.removeFragment(fragmentName = "Submit Button");
+
+			AssertVisible(
+				key_fragmentName = "Form Container",
+				key_messageInfo = "Place fragments here.",
+				key_position = "1",
+				locator1 = "Fragment#NO_FRAGMENTS_MESSAGE");
+		}
+
+		task ("When the page creator adds a Text Input fragment into Form Container") {
+			PageEditor.addFragmentToFormContainer(
+				collectionName = "Form Components",
+				fragmentName = "Text Input");
+		}
+
+		task ("Then the page creator could map the Text Input to the Text field") {
+			PageEditor.editInput(
+				field = "Region",
+				fragmentName = "Text Input");
+
+			PageEditor.viewInputStyle(
+				label = "Region",
+				showLabel = "true",
+				type = "text-input");
+		}
+	}
+
+	@description = "This is a test for LPS-155529. The page designer can submit a Form Container with embedded success message."
+	@priority = "5"
+	test SubmitFormContainerWithEmbeddedSuccessMessage {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "FormContainer#SubmitFormContainerWithEmbeddedSuccessMessage";
+
+		task ("Given a page designer has a Form Container on content page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Page Name",
+				type = "content");
+
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Form Components",
+				fragmentName = "Form Container");
+		}
+
+		task ("When the page designer maps the Form Container to new Object") {
+			PageEditor.editFormContainer(
+				contentType = "Purchase Order",
+				panel = "General");
+		}
+
+		task ("Then the page designer can see default fields on form options") {
+			AssertSelectedLabel(
+				key_fieldLabel = "Success Message",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
+				value1 = "Embedded");
+
+			AssertTextEquals(
+				key_text = "Success Text",
+				locator1 = "TextInput#ANY",
+				value1 = "Thank you. Your information was successfully received.");
+
+			AssertNotChecked.assertNotCheckedNotVisible(
+				key_toggleSwitchLabel = "Preview Success State",
+				locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+
+			AssertVisible(
+				key_fragmentName = "Form Container",
+				key_messageInfo = "Place fragments here.",
+				key_position = "1",
+				locator1 = "Fragment#NO_FRAGMENTS_MESSAGE");
+		}
+
+		task ("When the page designer previews success state") {
+			PageEditor.editFormContainer(
+				panel = "General",
+				previewSuccessState = "true",
+				successMessage = "Embedded");
+		}
+
+		task ("Then the page designer can see sucess text under Form Container") {
+			AssertTextPresent(value1 = "Thank you. Your information was successfully received.");
+		}
+
+		task ("When the page designer publishes the content page with mapped Form Container") {
+			PageEditor.addFragmentToFormContainer(
+				collectionName = "Form Components",
+				fragmentName = "Text Input");
+
+			PageEditor.editInput(
+				field = "Region",
+				fragmentName = "Text Input");
+
+			PageEditor.addFragmentToFormContainer(
+				collectionName = "Form Components",
+				fragmentName = "Submit Button",
+				targetFragmentName = "Text Input");
+
+			PageEditor.publish();
+		}
+
+		task ("Then the page designer can see success text after submit Form Container on content page at view mode") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			Type(
+				key_text = "Region",
+				locator1 = "TextInput#ANY",
+				value1 = "Brazil");
+
+			Button.clickSubmitButton();
+
+			AssertTextPresent(value1 = "Thank you. Your information was successfully received.");
+		}
+
+		task ("When the page designer previews success state on page editor after add custom success text") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.editFormContainer(
+				panel = "General",
+				previewSuccessState = "true",
+				successMessage = "Embedded",
+				successText = "We are glad to receive your Form!");
+		}
+
+		task ("Then the page designer can see custom sucess text under Form Container") {
+			AssertTextPresent(value1 = "We are glad to receive your Form!");
+		}
+
+		task ("When the page designer navigates to published content page at view mode") {
+			PageEditor.publish();
+
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+		}
+
+		task ("Then the page designer can see custom success text after submit Form Container") {
+			Type(
+				key_text = "Region",
+				locator1 = "TextInput#ANY",
+				value1 = "China");
+
+			Button.clickSubmitButton();
+
+			AssertTextPresent(value1 = "We are glad to receive your Form!");
+		}
+	}
+
+	@description = "This is a test for LPS-155529. The page designer can submit a Form Container with External URL success message."
+	@priority = "4"
+	test SubmitFormContainerWithExternalURLSuccessMessage {
+		property test.name.skip.portal.instance = "FormContainer#SubmitFormContainerWithExternalURLSuccessMessage";
+
+		task ("Given a page designer has mapped Form Container with URL as success message") {
+			task ("Add Form Container to content page") {
+				JSONLayout.addPublicLayout(
+					groupName = "Test Site Name",
+					layoutName = "Test Page Name",
+					type = "content");
+
+				ContentPagesNavigator.openEditContentPage(
+					pageName = "Test Page Name",
+					siteName = "Test Site Name");
+
+				PageEditor.addFragment(
+					collectionName = "Form Components",
+					fragmentName = "Form Container");
+			}
+
+			task ("Add External URL on success message") {
+				PageEditor.editFormContainer(
+					contentType = "Purchase Order",
+					panel = "General",
+					successMessage = "External URL",
+					url = "https://www.liferay.com");
+			}
+
+			task ("Add Text Input and Submit Button inside Form Container") {
+				PageEditor.addFragmentToFormContainer(
+					collectionName = "Form Components",
+					fragmentName = "Text Input");
+
+				PageEditor.editInput(
+					field = "Region",
+					fragmentName = "Text Input");
+
+				PageEditor.addFragmentToFormContainer(
+					collectionName = "Form Components",
+					fragmentName = "Submit Button",
+					targetFragmentName = "Text Input");
+
+				PageEditor.publish();
+			}
+		}
+
+		task ("When the page designer navigates to content page at view mode") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+		}
+
+		task ("Then the page designer is redirected to URL after submit Form Container") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			Type(
+				key_text = "Region",
+				locator1 = "TextInput#ANY",
+				value1 = "Spain");
+
+			Button.clickSubmitButton();
+
+			AssertLocation.assertPartialLocation(value1 = "https://www.liferay.com");
+		}
+	}
+
+	@description = "This is a test for LPS-155529. The page designer can submit a Form Container with page success message."
+	@priority = "4"
+	test SubmitFormContainerWithPageSuccessMessage {
+		property test.name.skip.portal.instance = "FormContainer#SubmitFormContainerWithPageSuccessMessage";
+
+		task ("Given a page designer has mapped Form Container with Page as success message") {
+			task ("Add two content pages") {
+				for (var pageName : list "Test Page Name,Thank you page") {
+					JSONLayout.addPublicLayout(
+						groupName = "Test Site Name",
+						layoutName = "${pageName}",
+						type = "content");
+
+					JSONLayout.publishLayout(
+						groupName = "Test Site Name",
+						layoutName = "${pageName}");
+				}
+			}
+
+			task ("Add Form Container to content page") {
+				ContentPagesNavigator.openEditContentPage(
+					pageName = "Test Page Name",
+					siteName = "Test Site Name");
+
+				PageEditor.addFragment(
+					collectionName = "Form Components",
+					fragmentName = "Form Container");
+			}
+
+			task ("Select second page of current site as success message") {
+				PageEditor.editFormContainer(
+					contentType = "Purchase Order",
+					pageName = "Thank you page",
+					panel = "General",
+					successMessage = "Page");
+
+				PageEditor.viewItemSelectorText(
+					fieldLabel = "Page",
+					text = "Thank you page");
+			}
+
+			task ("Add Text Input and Submit Button inside Form Container") {
+				PageEditor.addFragmentToFormContainer(
+					collectionName = "Form Components",
+					fragmentName = "Text Input");
+
+				PageEditor.editInput(
+					field = "Region",
+					fragmentName = "Text Input");
+
+				PageEditor.addFragmentToFormContainer(
+					collectionName = "Form Components",
+					fragmentName = "Submit Button",
+					targetFragmentName = "Text Input");
+
+				PageEditor.publish();
+			}
+		}
+
+		task ("When the page designer submits the Form Container on content page at view mode") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			Type(
+				key_text = "Region",
+				locator1 = "TextInput#ANY",
+				value1 = "Brazil");
+
+			Button.clickSubmitButton();
+		}
+
+		task ("Then the page designer is redirected to associated page on current site") {
+			ControlMenu.viewHeaderTitle(headerTitle = "Thank you page");
+
+			Page.viewCurrentPage(pageName = "Thank you page");
+
+			AssertTextEquals(
+				locator1 = "Home#SITE_NAME",
+				value1 = "Test Site Name");
+		}
+
+		task ("When the page designer deletes associated success message page") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			PagesAdmin.deletePage(pageName = "Thank you page");
+		}
+
+		task ("Then the page designer can see default success text after submit Form Container on content page at view mode") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			Type(
+				key_text = "Region",
+				locator1 = "TextInput#ANY",
+				value1 = "China");
+
+			Button.clickSubmitButton();
+
+			AssertTextPresent(value1 = "Thank you. Your information was successfully received.");
+		}
+
+		task ("When the page designer selects a page from another site as success message on page editor") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.editFormContainer(
+				changePage = "true",
+				pageName = "Home",
+				panel = "General",
+				siteName = "Liferay DXP",
+				successMessage = "Page");
+
+			PageEditor.viewItemSelectorText(
+				fieldLabel = "Page",
+				text = "Home");
+
+			PageEditor.publish();
+		}
+
+		task ("Then the page designer is redirected to associated page on second site after submit Form Container on content page at view mode") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			Type(
+				key_text = "Region",
+				locator1 = "TextInput#ANY",
+				value1 = "Spain");
+
+			Button.clickSubmitButton();
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Home");
+
+			Page.viewCurrentPage(pageName = "Home");
+
+			AssertTextEquals(
+				locator1 = "Home#SITE_NAME",
+				value1 = "Liferay DXP");
+		}
+	}
+
+	@description = "This is a test for LPS-155529. The pages designer can add custom translations on Thank you message."
+	@priority = "4"
+	test SubmitFormContainerWithTranslatedSuccessText {
+		property test.name.skip.portal.instance = "FormContainer#SubmitFormContainerWithTranslatedSuccessText";
+
+		task ("Given a page designer has a mapped Form Container  and Language Selector on content page") {
+			task ("Add Form Container and Language Selector to content page") {
+				JSONLayout.addPublicLayout(
+					groupName = "Test Site Name",
+					layoutName = "Test Page Name",
+					type = "content");
+
+				ContentPagesNavigator.openEditContentPage(
+					pageName = "Test Page Name",
+					siteName = "Test Site Name");
+
+				PageEditor.addFragment(
+					collectionName = "Form Components",
+					fragmentName = "Form Container");
+			}
+
+			task ("Map the Form Container to new Object") {
+				PageEditor.editFormContainer(
+					contentType = "Purchase Order",
+					panel = "General");
+			}
+
+			task ("Add Text Input and Submit Button inside Form Container") {
+				PageEditor.addFragmentToFormContainer(
+					collectionName = "Form Components",
+					fragmentName = "Text Input");
+
+				PageEditor.editInput(
+					field = "Region",
+					fragmentName = "Text Input");
+
+				PageEditor.addFragmentToFormContainer(
+					collectionName = "Form Components",
+					fragmentName = "Submit Button",
+					targetFragmentName = "Text Input");
+			}
+
+			task ("Add a Language Selector below Form Container") {
+				PageEditor.addWidget(
+					collectionName = "Tools",
+					portletName = "Language Selector",
+					targetFragmentName = "Form Container");
+			}
+		}
+
+		task ("When the page designer adds translation on success text") {
+			PageEditor.changeLocale(
+				currentLocale = "en-US",
+				locale = "es-ES");
+
+			PageEditor.editFormContainer(
+				panel = "General",
+				successMessage = "Embedded",
+				successText = "Estamos muy agradecidos de recibir su formulario.");
+
+			PageEditor.changeLocale(
+				currentLocale = "es-ES",
+				locale = "pt-BR");
+
+			PageEditor.editFormContainer(
+				panel = "General",
+				successMessage = "Embedded",
+				successText = "Obrigado por nos enviar seu formulario!");
+		}
+
+		task ("Then the page designer can see Portuguese translation on preview success state") {
+			PageEditor.editFormContainer(
+				panel = "General",
+				previewSuccessState = "true",
+				successMessage = "Embedded");
+
+			AssertTextPresent(value1 = "Obrigado por nos enviar seu formulario!");
+		}
+
+		task ("When the page designer changes user language to Spanish") {
+			PageEditor.changeLocale(
+				currentLocale = "pt-BR",
+				locale = "es-ES");
+		}
+
+		task ("Then the page designer can see Spanish translation on preview success state") {
+			AssertTextPresent(value1 = "Estamos muy agradecidos de recibir su formulario.");
+		}
+
+		task ("When the page designer changes user language to non translated") {
+			PageEditor.changeLocale(
+				currentLocale = "es-ES",
+				locale = "fr-FR");
+		}
+
+		task ("Then the page designer should see default translation in English") {
+			AssertTextPresent(value1 = "Thank you. Your information was successfully received.");
+
+			PageEditor.publish();
+		}
+
+		task ("When the page designer changes the user language to Spanish via Language selector at view mode") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			LanguagePortlet.selectLanguagePG(
+				locale = "es-ES",
+				textIcon = "español-España");
+		}
+
+		task ("Then the page designer can see custom Spanish translation on success text after submit form container") {
+			Type(
+				key_text = "Region",
+				locator1 = "TextInput#ANY",
+				value1 = "Spain");
+
+			Button.clickSubmitButton();
+
+			AssertTextPresent(value1 = "Estamos muy agradecidos de recibir su formulario.");
+		}
+
+		task ("When the page designer changes the user language to Portuguese via URL") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "/pt/web/test-site-name/test-page-name");
+		}
+
+		task ("Then the page designer can see custom Portuguese translation on success text after submit form container") {
+			Type(
+				key_text = "Region",
+				locator1 = "TextInput#ANY",
+				value1 = "Brazil");
+
+			Button.clickSubmitButton();
+
+			AssertTextPresent(value1 = "Obrigado por nos enviar seu formulario!");
+		}
+
+		task ("When the page designer changes the user language to non custom translated via URL") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "/fr/web/test-site-name/test-page-name");
+		}
+
+		task ("Then the page designer can see default language translation on success text after submit form container") {
+			Type(
+				key_text = "Region",
+				locator1 = "TextInput#ANY",
+				value1 = "France");
+
+			Button.clickSubmitButton();
+
+			AssertTextPresent(value1 = "Merci. Vos informations ont bien été reçues.");
+		}
+	}
+
+	@description = "This is a test for LPS-149984. The Form Container has all capabilities of Container."
+	@priority = "4"
+	test ViewCapabilitiesOfFormContainer {
+		property test.name.skip.portal.instance = "FormContainer#ViewCapabilitiesOfFormContainer";
+
+		task ("Given a page creator has a content page with a Form Container fragment") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Page Name",
+				type = "content");
+
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Form Components",
+				fragmentName = "Form Container");
+		}
+
+		task ("When the page creator navigates to the Styles panel of Form Container") {
+			PageEditor.gotoStyle(fragmentName = "Form Container");
+		}
+
+		task ("Then the page creator could see common styles section on Styles panel") {
+			for (var fieldSetLabel : list "Spacing,Text,Background,Borders,Effects") {
+				AssertElementPresent(
+					key_fieldSetLabel = "${fieldSetLabel}",
+					locator1 = "PageEditor#ITEM_CONFIGURATION_FIELDSET_LABEL");
+			}
+		}
+
+		task ("When the page creator navigates to the General panel of Form Container") {
+			Navigator.gotoNavTab(navTab = "General");
+		}
+
+		task ("Then the page creator could see the Frame section on General panel") {
+			AssertElementPresent(
+				key_fieldSetLabel = "Frame",
+				locator1 = "PageEditor#ITEM_CONFIGURATION_FIELDSET_LABEL");
+		}
+
+		task ("When the page creator navigates to the Advanced panel of Form Container") {
+			Navigator.gotoNavTab(navTab = "Advanced");
+		}
+
+		task ("Then the page creator could see the Hide from Site Search Results checkbox on General panel") {
+			AssertElementPresent(
+				checkboxName = "Hide from Site Search Results",
+				locator1 = "Checkbox#ANY_CHECKBOX");
+		}
+
+		task ("When the page creator opens the dropdown menu of Form Container topper") {
+			Click.waitForMenuToggleJSClick(
+				key_fragmentName = "Form Container",
+				locator1 = "Fragment#FRAGMENT_HEADER_ELLIPSIS");
+		}
+
+		task ("Then the page creator could see the Save Composition action on dropdown menu") {
+			MenuItem.viewPresent(menuItem = "Save Composition");
+		}
+	}
+
+	@description = "This is a test for LPS-157739. The page creator could receive an object entry after submitting form."
+	@priority = "5"
+	test ViewCreatedObjectEntryAfterSubmitForm {
+		property custom.properties = "feature.flag.LPS-150277=true${line.separator}feature.flag.LPS-157738=true";
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "FormContainer#ViewCreatedObjectEntryAfterSubmitForm";
+
+		task ("Given a page creator has a Form Container on a content page") {
+			task ("Add a picklist with two items") {
+				Picklist.addPicklistViaAPI(picklistName = "Ticket Type");
+
+				Picklist.addPicklistItemViaAPI(
+					itemKey = "firstClass",
+					itemName = "First Class",
+					picklistName = "Ticket Type");
+
+				Picklist.addPicklistItemViaAPI(
+					itemKey = "businessClass",
+					itemName = "Business Class",
+					picklistName = "Ticket Type");
+			}
+
+			task ("Add the second object then add relationship with the first object") {
+				ObjectAdmin.addObjectViaAPI(
+					labelName = "Preference",
+					objectName = "Preference",
+					pluralLabelName = "Preferences");
+
+				ObjectAdmin.addObjectFieldViaAPI(
+					fieldBusinessType = "Text",
+					fieldLabelName = "Food Preferences",
+					fieldName = "foodPreferences",
+					fieldType = "String",
+					isRequired = "false",
+					objectName = "Preference");
+
+				ObjectAdmin.publishObjectViaAPI(objectName = "Preference");
+
+				ObjectAdmin.addObjectRelationshipViaAPI(
+					objectName_1 = "Preference",
+					objectName_2 = "PurchaseOrder",
+					relationshipLabel = "Favorite Food",
+					relationshipName = "favoriteFood",
+					relationshipType = "oneToMany");
+
+				ObjectAdmin.openObjectAdmin();
+
+				ObjectPortlet.selectCustomObject(label = "Preference");
+
+				CreateObject.selectTitleField(fieldLabel = "Food Preferences");
+
+				CreateObject.saveObject();
+
+				for (var entryName : list "Fish,Salad,Rice") {
+					ObjectAdmin.addObjectSingleFieldEntryViaAPI(
+						fieldName = "foodPreferences",
+						objectName = "Preference",
+						value = "${entryName}");
+				}
+			}
+
+			task ("Add fields to the first object") {
+				ObjectAdmin.addObjectFieldViaAPI(
+					fieldBusinessType = "Picklist",
+					fieldLabelName = "Type",
+					fieldName = "type",
+					fieldType = "String",
+					isRequired = "false",
+					objectName = "PurchaseOrder",
+					picklistName = "Ticket Type");
+
+				ObjectAdmin.addObjectFieldViaAPI(
+					fieldBusinessType = "LongInteger",
+					fieldLabelName = "Amount",
+					fieldName = "amount",
+					fieldType = "Long",
+					isRequired = "false",
+					objectName = "PurchaseOrder");
+
+				ObjectAdmin.addObjectFieldViaAPI(
+					fieldBusinessType = "Integer",
+					fieldLabelName = "Age",
+					fieldName = "age",
+					fieldType = "Integer",
+					isRequired = "false",
+					objectName = "PurchaseOrder");
+
+				ObjectAdmin.addObjectFieldViaAPI(
+					fieldBusinessType = "PrecisionDecimal",
+					fieldLabelName = "Price",
+					fieldName = "price",
+					fieldType = "BigDecimal",
+					isRequired = "false",
+					objectName = "PurchaseOrder");
+
+				ObjectAdmin.addObjectFieldViaAPI(
+					fieldBusinessType = "Decimal",
+					fieldLabelName = "Tax",
+					fieldName = "tax",
+					fieldType = "Double",
+					isRequired = "false",
+					objectName = "PurchaseOrder");
+
+				ObjectAdmin.addObjectFieldViaAPI(
+					fieldBusinessType = "Date",
+					fieldLabelName = "Purchase Date",
+					fieldName = "purchaseDate",
+					fieldType = "Date",
+					isRequired = "false",
+					objectName = "PurchaseOrder");
+
+				ObjectAdmin.addObjectFieldViaAPI(
+					fieldBusinessType = "Attachment",
+					fieldLabelName = "Custom Attachment From Computer",
+					fieldName = "customAttachmentFromComputer",
+					fieldType = "Long",
+					fileSource = "userComputer",
+					isRequired = "false",
+					objectName = "PurchaseOrder");
+
+				ObjectAdmin.addObjectFieldViaAPI(
+					fieldBusinessType = "Attachment",
+					fieldLabelName = "Custom Attachment From DM",
+					fieldName = "customAttachmentFromDM",
+					fieldType = "Long",
+					fileSource = "documentsAndMedia",
+					isRequired = "false",
+					objectName = "PurchaseOrder");
+
+				ObjectAdmin.addObjectFieldViaAPI(
+					fieldBusinessType = "Boolean",
+					fieldLabelName = "I accept the terms of use and Privacy Policy",
+					fieldName = "iAcceptTheTermsOfUseAndPrivacyPolicy",
+					fieldType = "Boolean",
+					isRequired = "false",
+					objectName = "PurchaseOrder");
+
+				ObjectAdmin.addObjectFieldViaAPI(
+					fieldBusinessType = "LongText",
+					fieldLabelName = "Address",
+					fieldName = "address",
+					fieldType = "Clob",
+					isRequired = "false",
+					objectName = "PurchaseOrder");
+			}
+
+			task ("Add a Form Container to a content page then map to the first object") {
+				JSONLayout.addPublicLayout(
+					groupName = "Test Site Name",
+					layoutName = "Test Page Name",
+					type = "content");
+
+				ContentPagesNavigator.openEditContentPage(
+					pageName = "Test Page Name",
+					siteName = "Test Site Name");
+
+				PageEditor.addFragment(
+					collectionName = "Form Components",
+					fragmentName = "Form Container");
+
+				PageEditor.mapFormContainerToObject(contentType = "Purchase Order");
+
+				PageEditor.waitForAutoSave();
+
+				PageEditor.publish();
+			}
+		}
+
+		task ("When the page creator submits the form with data at view mode") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			Type(
+				key_text = "Address",
+				locator1 = "TextInput#ANY",
+				value1 = "Dalian");
+
+			Type(
+				key_text = "Age",
+				locator1 = "TextInput#ANY",
+				value1 = "30");
+
+			Type(
+				key_text = "Amount",
+				locator1 = "TextInput#ANY",
+				value1 = "100");
+
+			UploadDependencyFile.uploadFile(fileName = "Document_1.jpg");
+
+			Click(locator1 = "xpath=(//label[contains(.,'Select File')])[2]");
+
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+			UploadDependencyFile.uploadFile(fileName = "Document_2.jpg");
+
+			WaitForElementPresent(
+				key_text = "Add",
+				locator1 = "Button#ANY_ENABLED");
+
+			Button.clickAdd();
+
+			Check.checkNotVisible(
+				index = "1",
+				locator1 = "Fragment#INPUT_FIELD",
+				type = "checkbox");
+
+			Type(
+				key_text = "Price",
+				locator1 = "TextInput#ANY",
+				value1 = "3000");
+
+			Type.sendKeys(
+				key_text = "Purchase Date",
+				locator1 = "TextInput#ANY",
+				value1 = "08082020");
+
+			Click(
+				index = "1",
+				locator1 = "Fragment#INPUT_TOGGLE",
+				type = "select-from-list");
+
+			MenuItem.click(menuItem = "Fish");
+
+			Type(
+				key_text = "Region",
+				locator1 = "TextInput#ANY",
+				value1 = "China");
+
+			Type(
+				key_text = "Tax",
+				locator1 = "TextInput#ANY",
+				value1 = "3");
+
+			Click(
+				index = "2",
+				locator1 = "Fragment#INPUT_TOGGLE",
+				type = "select-from-list");
+
+			MenuItem.click(menuItem = "First Class");
+
+			Button.clickSubmitButton();
+
+			AssertTextPresent(value1 = "Thank you. Your information was successfully received.");
+		}
+
+		task ("Then the page creator could see the created object entry") {
+			ObjectAdmin.assertObjectEntryFieldValueViaAPI(
+				attribute = "address",
+				attributeValue = "Dalian",
+				expectedValue = "30",
+				fieldName = "age",
+				objectName = "PurchaseOrder");
+
+			ObjectAdmin.assertObjectEntryFieldValueViaAPI(
+				attribute = "address",
+				attributeValue = "Dalian",
+				expectedValue = "100",
+				fieldName = "amount",
+				objectName = "PurchaseOrder");
+
+			ObjectAdmin.assertObjectEntryFieldValueViaAPI(
+				attribute = "address",
+				attributeValue = "Dalian",
+				expectedValue = "Document_1.jpg",
+				fieldName = "customAttachmentFromComputer",
+				objectName = "PurchaseOrder",
+				type = "Attachment");
+
+			ObjectAdmin.assertObjectEntryFieldValueViaAPI(
+				attribute = "address",
+				attributeValue = "Dalian",
+				expectedValue = "Document_2.jpg",
+				fieldName = "customAttachmentFromDM",
+				objectName = "PurchaseOrder",
+				type = "Attachment");
+
+			ObjectAdmin.assertObjectEntryFieldValueViaAPI(
+				attribute = "address",
+				attributeValue = "Dalian",
+				expectedValue = "true",
+				fieldName = "iAcceptTheTermsOfUseAndPrivacyPolicy",
+				objectName = "PurchaseOrder");
+
+			ObjectAdmin.assertObjectEntryFieldValueViaAPI(
+				attribute = "address",
+				attributeValue = "Dalian",
+				expectedValue = "3000.0000000000000000",
+				fieldName = "price",
+				objectName = "PurchaseOrder");
+
+			var favoriteFoodPreferenceId = JSONObject.getObjectEntryId(
+				entryValue = "Fish",
+				fieldName = "foodPreferences",
+				objectName = "Preference");
+
+			ObjectAdmin.assertObjectEntryFieldValueViaAPI(
+				attribute = "address",
+				attributeValue = "Dalian",
+				expectedValue = "${favoriteFoodPreferenceId}",
+				fieldName = "r_favoriteFood_c_preferenceId",
+				objectName = "PurchaseOrder");
+
+			ObjectAdmin.assertObjectEntryFieldValueViaAPI(
+				attribute = "address",
+				attributeValue = "Dalian",
+				expectedValue = "2020-08-08T00:00:00Z",
+				fieldName = "purchaseDate",
+				objectName = "PurchaseOrder");
+
+			ObjectAdmin.assertObjectEntryFieldValueViaAPI(
+				attribute = "address",
+				attributeValue = "Dalian",
+				expectedValue = "China",
+				fieldName = "region",
+				objectName = "PurchaseOrder");
+
+			ObjectAdmin.assertObjectEntryFieldValueViaAPI(
+				attribute = "address",
+				attributeValue = "Dalian",
+				expectedValue = "3.0",
+				fieldName = "tax",
+				objectName = "PurchaseOrder");
+
+			ObjectAdmin.assertObjectEntryFieldValueViaAPI(
+				attribute = "address",
+				attributeValue = "Dalian",
+				expectedValue = "First Class",
+				fieldName = "type",
+				objectName = "PurchaseOrder",
+				type = "Picklist");
+		}
+	}
+
+	@description = "This is a test for LPS-158143. The page creator could see error message after mapping the Form Container to object when multiple OOTB input fragments are unavailable. The page creator could see error message after mapping the Form Container to object when some OOTB input fragments are disabled from master page."
+	@priority = "4"
+	test ViewErrorMessageAfterMappingFormContainerToEntityWhenMultipleInputFragmentsDisabledFromMasterPage {
+		property custom.properties = "feature.flag.LPS-150277=true${line.separator}feature.flag.LPS-157738=true";
+		property test.name.skip.portal.instance = "FormContainer#ViewErrorMessageAfterMappingFormContainerToEntityWhenMultipleInputFragmentsDisabledFromMasterPage";
+
+		task ("Given a page creator has a Form Container on a content page based on a master page") {
+			task ("Add Date and Integer fields to the object") {
+				ObjectAdmin.addObjectFieldViaAPI(
+					fieldBusinessType = "Integer",
+					fieldLabelName = "Age",
+					fieldName = "age",
+					fieldType = "Integer",
+					isRequired = "false",
+					objectName = "PurchaseOrder");
+
+				ObjectAdmin.addObjectFieldViaAPI(
+					fieldBusinessType = "Date",
+					fieldLabelName = "Purchase Date",
+					fieldName = "purchaseDate",
+					fieldType = "Date",
+					isRequired = "false",
+					objectName = "PurchaseOrder");
+			}
+
+			task ("Add a master page then remove Text Input, Numeric Input, Date and Submit Button fragments from allowed fragments") {
+				JSONLayoutpagetemplate.addMasterPageTemplateEntry(
+					groupName = "Test Site Name",
+					masterPageTemplateEntryName = "Custom Masters Page Template");
+
+				MastersPageTemplatesAdmin.openMastersAdmin(siteURLKey = "test-site-name");
+
+				MastersPageTemplatesAdmin.gotoMasters(masterLayoutName = "Custom Masters Page Template");
+
+				Click(locator1 = "Button#CONFIGURE_ALLOWED_FRAGMENTS");
+
+				MastersPageTemplates.deselectAllowedFragments(fragmentNameList = "Date,Numeric Input,Submit Button,Text Input");
+
+				MastersPageTemplates.publishMaster();
+			}
+
+			task ("Add a Form Container to a content page based on master page") {
+				PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+				ContentPages.addPage(
+					masterLayoutName = "Custom Masters Page Template",
+					pageName = "Test Page Name");
+
+				PageEditor.addFragment(
+					collectionName = "Form Components",
+					fragmentName = "Form Container");
+			}
+		}
+
+		task ("When the page creator maps the Form Container to object") {
+			PageEditor.mapFormContainerToObject(contentType = "Purchase Order");
+
+			PageEditor.waitForAutoSave();
+		}
+
+		task ("Then the page creator sees the following error message") {
+			Alert.viewErrorMessage(errorMessage = "Some fragments are missing. Date, Number, Submit Button and Text fields cannot have an associated fragment or cannot be available in master.");
+
+			AssertVisible(
+				key_fragmentName = "Form Container",
+				key_messageInfo = "Place fragments here.",
+				key_position = "1",
+				locator1 = "Fragment#NO_FRAGMENTS_MESSAGE");
+
+			PageEditor.gotoConfiguration(fragmentName = "Form Container");
+
+			AssertSelectedLabel(
+				key_fieldLabel = "Content Type",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
+				value1 = "Purchase Order");
+		}
+	}
+
+	@description = "This is a test for LPS-151402. The user could only see the first error message when multiple validation issues happen on submitting a form."
+	@priority = "4"
+	test ViewOnlyTheFirstErrorMessageShownWhenMultipleValidationIssuesHappen {
+		property test.name.skip.portal.instance = "FormContainer#ViewOnlyTheFirstErrorMessageShownWhenMultipleValidationIssuesHappen";
+
+		task ("Given a user has a content page where a required Checkbox, Date, Text Input and Submit Button fragments are inside a Form Container") {
+			task ("Change the Maximum Number of Characters of Region field to 20") {
+				ObjectAdmin.openObjectAdmin();
+
+				ObjectPortlet.selectCustomObject(label = "Purchase Order");
+
+				ObjectAdmin.goToFieldsTab();
+
+				ObjectAdmin.goToFieldsDetails(label = "Region");
+
+				ObjectField.checkLimitCharacters();
+
+				Type(
+					key_text = "Maximum Number of Characters",
+					locator1 = "TextInput#ANY",
+					value1 = "20");
+
+				ObjectField.save();
+			}
+
+			task ("Add a Boolean and Date fields to Object") {
+				ObjectAdmin.addObjectFieldViaAPI(
+					fieldBusinessType = "Boolean",
+					fieldLabelName = "I accept the terms of use and Privacy Policy",
+					fieldName = "iAcceptTheTermsOfUseAndPrivacyPolicy",
+					fieldType = "Boolean",
+					isRequired = "false",
+					objectName = "PurchaseOrder");
+
+				ObjectAdmin.addObjectFieldViaAPI(
+					fieldBusinessType = "Date",
+					fieldLabelName = "Purchase Date",
+					fieldName = "purchaseDate",
+					fieldType = "Date",
+					isRequired = "false",
+					objectName = "PurchaseOrder");
+			}
+
+			task ("Add a Form Container framgment to content page") {
+				JSONLayout.addPublicLayout(
+					groupName = "Test Site Name",
+					layoutName = "Test Page Name",
+					type = "content");
+
+				ContentPagesNavigator.openEditContentPage(
+					pageName = "Test Page Name",
+					siteName = "Test Site Name");
+
+				PageEditor.addFragment(
+					collectionName = "Form Components",
+					fragmentName = "Form Container");
+
+				PageEditor.editFormContainer(
+					contentType = "Purchase Order",
+					panel = "General");
+			}
+
+			task ("Add a Checkbox, Date, Text Input and Submit Button fragment into Form Container") {
+				PageEditor.addFragmentToFormContainer(
+					collectionName = "Form Components",
+					fragmentName = "Checkbox");
+
+				PageEditor.addFragmentToFormContainer(
+					collectionName = "Form Components",
+					fragmentName = "Date",
+					targetFragmentName = "Checkbox");
+
+				PageEditor.addFragmentToFormContainer(
+					collectionName = "Form Components",
+					fragmentName = "Text Input",
+					targetFragmentName = "Date");
+
+				PageEditor.addFragmentToFormContainer(
+					collectionName = "Form Components",
+					fragmentName = "Submit Button",
+					targetFragmentName = "Text Input");
+			}
+
+			task ("Map fragments to suitable fields") {
+				PageEditor.editInput(
+					field = "I accept the terms of use and Privacy Policy",
+					fragmentName = "Checkbox",
+					markAsRequired = "true");
+
+				PageEditor.editInput(
+					field = "Purchase Date",
+					fragmentName = "Date");
+
+				PageEditor.editInput(
+					field = "Region",
+					fragmentName = "Text Input");
+
+				PageEditor.publish();
+			}
+		}
+
+		task ("When the user submits form with blank Checkbox, invalid Date and value exceeding the length of Text Input") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			Type.sendKeys(
+				key_text = "Purchase Date",
+				locator1 = "TextInput#ANY",
+				value1 = "0101");
+
+			Type(
+				key_text = "Region",
+				locator1 = "TextInput#ANY",
+				value1 = "New Jersey, New York, Mississippi");
+
+			Button.clickSubmitButton();
+		}
+
+		task ("Then the user should only see one error message") {
+			AssertAttributeValue(
+				attribute1 = "required",
+				index = "1",
+				locator1 = "Fragment#INPUT_FIELD",
+				type = "checkbox",
+				value1 = "true");
+
+			AssertAttributeValue(
+				attribute1 = "validationMessage",
+				index = "1",
+				locator1 = "Fragment#INPUT_FIELD",
+				type = "checkbox",
+				value1 = "Please check this box if you want to proceed.");
+
+			AssertElementNotPresent(locator1 = "Message#ERROR");
+		}
+
+		task ("When the user submits form with checked Checkbox, invalid Date and value exceeding the length of Text Input") {
+			Check.checkNotVisible(
+				index = "1",
+				locator1 = "Fragment#INPUT_FIELD",
+				type = "checkbox");
+
+			Button.clickSubmitButton();
+		}
+
+		task ("Then the user should only see one error message") {
+			AssertAttributeValue(
+				attribute1 = "validationMessage",
+				index = "1",
+				locator1 = "Fragment#INPUT_FIELD",
+				type = "checkbox",
+				value1 = "");
+
+			AssertAttributeValue(
+				attribute1 = "validationMessage",
+				key_text = "Purchase Date",
+				locator1 = "TextInput#ANY",
+				value1 = "Please enter a valid value. The field is incomplete or has an invalid date.");
+
+			AssertElementNotPresent(locator1 = "Message#ERROR");
+		}
+
+		task ("When the user submits form with checked Checkbox, valid Date and value exceeding the length of Text Input") {
+			Type.sendKeys(
+				key_text = "Purchase Date",
+				locator1 = "TextInput#ANY",
+				value1 = "2020");
+
+			Button.clickSubmitButton();
+		}
+
+		task ("Then the user should only see one error message") {
+			Alert.viewErrorMessage(errorMessage = "Value exceeds maximum length of 20 for field Region.");
+
+			AssertAttributeValue(
+				attribute1 = "validationMessage",
+				index = "1",
+				locator1 = "Fragment#INPUT_FIELD",
+				type = "checkbox",
+				value1 = "");
+
+			AssertAttributeValue(
+				attribute1 = "validationMessage",
+				key_text = "Purchase Date",
+				locator1 = "TextInput#ANY",
+				value1 = "");
+		}
+	}
+
+	@description = "This is a test for LPS-158143. The page creator could see success message after mapping the Form Container to object when all OOTB input fragments are available."
+	@priority = "4"
+	test ViewSuccessMessageAfterMappingFormContainerToEntity {
+		property custom.properties = "feature.flag.LPS-150277=true${line.separator}feature.flag.LPS-157738=true";
+		property test.name.skip.portal.instance = "FormContainer#ViewSuccessMessageAfterMappingFormContainerToEntity";
+
+		task ("Given a page creator has a Form Container on a content page") {
+			task ("Add Date and Integer fields to the object") {
+				ObjectAdmin.addObjectFieldViaAPI(
+					fieldBusinessType = "Integer",
+					fieldLabelName = "Age",
+					fieldName = "age",
+					fieldType = "Integer",
+					isRequired = "false",
+					objectName = "PurchaseOrder");
+
+				ObjectAdmin.addObjectFieldViaAPI(
+					fieldBusinessType = "Date",
+					fieldLabelName = "Purchase Date",
+					fieldName = "purchaseDate",
+					fieldType = "Date",
+					isRequired = "false",
+					objectName = "PurchaseOrder");
+			}
+
+			task ("Add a Form Container to a content page") {
+				JSONLayout.addPublicLayout(
+					groupName = "Test Site Name",
+					layoutName = "Test Page Name",
+					type = "content");
+
+				ContentPagesNavigator.openEditContentPage(
+					pageName = "Test Page Name",
+					siteName = "Test Site Name");
+
+				PageEditor.addFragment(
+					collectionName = "Form Components",
+					fragmentName = "Form Container");
+			}
+		}
+
+		task ("When the page creator maps the Form Container to object") {
+			PageEditor.mapFormContainerToObject(contentType = "Purchase Order");
+
+			PageEditor.waitForAutoSave();
+		}
+
+		task ("Then the page creator sees the following success message") {
+			Alert.viewSuccessMessageText(successMessage = "Your form has been successfully loaded.");
+		}
+	}
+
+}

@@ -11,6 +11,9 @@ html#{$cadmin-selector} {
 			$paddingButtonWidth: 0.175 * $selectorWidth;
 			$horizontalSpacing: 0.02 * $selectorWidth;
 
+			$paddingHorizonalDropdownButton: 1px;
+			$paddingVerticalDropdownButton: 28px;
+
 			display: grid;
 			grid:
 				#{$marginButtonHeight} #{$verticalSpacing} #{$paddingButtonHeight} auto #{$paddingButtonHeight} #{$verticalSpacing} #{$marginButtonHeight} /
@@ -25,6 +28,7 @@ html#{$cadmin-selector} {
 
 			&__dropdown {
 				font-size: 10px;
+				overflow: hidden;
 
 				& > .page-editor__spacing-selector__button {
 					background: none;
@@ -75,6 +79,16 @@ html#{$cadmin-selector} {
 							#{$marginButtonWidth} #{$marginButtonHeight}
 						);
 					}
+
+					[data-position='top'],
+					[data-position='bottom'] {
+						padding: 0 $paddingVerticalDropdownButton;
+					}
+
+					[data-position='left'],
+					[data-position='right'] {
+						padding: 0 $paddingHorizonalDropdownButton;
+					}
 				}
 
 				&--padding {
@@ -121,6 +135,16 @@ html#{$cadmin-selector} {
 							calc(100% - #{$paddingButtonWidth}) #{$paddingButtonHeight},
 							#{$paddingButtonWidth} #{$paddingButtonHeight}
 						);
+					}
+
+					[data-position='top'],
+					[data-position='bottom'] {
+						padding: 0 $paddingVerticalDropdownButton;
+					}
+
+					[data-position='left'],
+					[data-position='right'] {
+						padding: 0 $paddingHorizonalDropdownButton;
 					}
 				}
 			}

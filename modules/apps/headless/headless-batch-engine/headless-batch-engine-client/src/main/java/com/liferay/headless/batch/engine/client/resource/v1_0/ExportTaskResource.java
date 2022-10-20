@@ -92,6 +92,12 @@ public interface ExportTaskResource {
 			return new ExportTaskResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -137,6 +143,7 @@ public interface ExportTaskResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -223,7 +230,7 @@ public interface ExportTaskResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-batch-engine/v1.0/export-task/by-external-reference-code/{externalReferenceCode}");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -296,7 +303,7 @@ public interface ExportTaskResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-batch-engine/v1.0/export-task/by-external-reference-code/{externalReferenceCode}/content");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -407,7 +414,7 @@ public interface ExportTaskResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-batch-engine/v1.0/export-task/{className}/{contentType}");
 
 			httpInvoker.path("className", className);
@@ -487,7 +494,7 @@ public interface ExportTaskResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-batch-engine/v1.0/export-task/{exportTaskId}");
 
 			httpInvoker.path("exportTaskId", exportTaskId);
@@ -555,7 +562,7 @@ public interface ExportTaskResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-batch-engine/v1.0/export-task/{exportTaskId}/content");
 
 			httpInvoker.path("exportTaskId", exportTaskId);

@@ -87,7 +87,7 @@
 
 		for (String propsValuesLanguageId : SetUtil.fromArray(PropsValues.LOCALES)) {
 			if (!ArrayUtil.contains(availableLanguageIds, propsValuesLanguageId)) {
-				Locale propsValuesLocale = LocaleUtil.fromLanguageId(propsValuesLanguageId, true, false);
+				Locale propsValuesLocale = LocaleUtil.fromLanguageId(propsValuesLanguageId, false);
 
 				if (propsValuesLocale != null) {
 					rightList.add(new KeyValuePair(propsValuesLanguageId, propsValuesLocale.getDisplayName(locale)));
@@ -137,7 +137,7 @@
 
 		if (currentLanguageIdsElement) {
 			Liferay.Util.setFormValues(form, {
-				<%= PropsKeys.LOCALES %>: Liferay.Util.listSelect(
+				<%= PropsKeys.LOCALES %>: Liferay.Util.getSelectedOptionValues(
 					currentLanguageIdsElement
 				),
 			});

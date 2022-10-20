@@ -17,19 +17,29 @@ package com.liferay.commerce.pricing.service.impl;
 import com.liferay.commerce.pricing.exception.DuplicateCommercePricingClassCPDefinitionRelException;
 import com.liferay.commerce.pricing.model.CommercePricingClassCPDefinitionRel;
 import com.liferay.commerce.pricing.service.base.CommercePricingClassCPDefinitionRelLocalServiceBaseImpl;
+import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 
 import java.util.List;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * @author Riccardo Alberti
  */
+@Component(
+	enabled = false,
+	property = "model.class.name=com.liferay.commerce.pricing.model.CommercePricingClassCPDefinitionRel",
+	service = AopService.class
+)
 public class CommercePricingClassCPDefinitionRelLocalServiceImpl
 	extends CommercePricingClassCPDefinitionRelLocalServiceBaseImpl {
 
@@ -42,7 +52,7 @@ public class CommercePricingClassCPDefinitionRelLocalServiceImpl
 
 		// Commerce pricing class cp definition rel
 
-		User user = userLocalService.getUser(serviceContext.getUserId());
+		User user = _userLocalService.getUser(serviceContext.getUserId());
 
 		validate(commercePricingClassId, cpDefinitionId);
 
@@ -198,5 +208,8 @@ public class CommercePricingClassCPDefinitionRelLocalServiceImpl
 			throw new DuplicateCommercePricingClassCPDefinitionRelException();
 		}
 	}
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

@@ -124,6 +124,14 @@ public class WikiNodeServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	public static WikiNode getWikiNodeByExternalReferenceCode(
+			long groupId, String externalReferenceCode)
+		throws PortalException {
+
+		return getService().getWikiNodeByExternalReferenceCode(
+			groupId, externalReferenceCode);
+	}
+
 	public static void importPages(
 			long nodeId, String importer, InputStream[] inputStreams,
 			Map<String, String[]> options)

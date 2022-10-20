@@ -12,7 +12,7 @@
  * details.
  */
 
-import ClayForm, {ClaySelect, ClaySelectWithOption} from '@clayui/form';
+import ClayForm, {ClaySelectWithOption} from '@clayui/form';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React, {useEffect, useState} from 'react';
@@ -29,10 +29,10 @@ import isMapped from '../../app/utils/editable-value/isMapped';
 import isMappedToInfoItem from '../../app/utils/editable-value/isMappedToInfoItem';
 import isMappedToStructure from '../../app/utils/editable-value/isMappedToStructure';
 import getMappingFieldsKey from '../../app/utils/getMappingFieldsKey';
-import getSelectedField from '../../app/utils/getSelectedField';
 import itemSelectorValueToInfoItem from '../../app/utils/item-selector-value/itemSelectorValueToInfoItem';
 import {useId} from '../../app/utils/useId';
 import ItemSelector from './ItemSelector';
+import MappingFieldSelector from './MappingFieldSelector';
 
 const COLLECTION_TYPE_DIVIDER = ' - ';
 
@@ -182,7 +182,7 @@ export default function MappingSelectorWrapper({
 					)}
 				>
 					<span className="mr-1">
-						{Liferay.Language.get('type')}:
+						{Liferay.Language.get('content-type')}:
 					</span>
 
 					{collectionTypeLabels.itemType}
@@ -199,7 +199,7 @@ export default function MappingSelectorWrapper({
 				</p>
 			)}
 
-			<MappingFieldSelect
+			<MappingFieldSelector
 				fieldType={fieldType}
 				fields={collectionFields}
 				onValueSelect={(event) => {
@@ -365,12 +365,11 @@ function MappingSelector({fieldType, mappedItem, onMappingSelect}) {
 		<>
 			{config.layoutType === LAYOUT_TYPES.display && (
 				<ClayForm.Group small>
-					<label htmlFor="mappingSelectorSourceSelect">
+					<label htmlFor={mappingSelectorSourceSelectId}>
 						{Liferay.Language.get('source')}
 					</label>
 
 					<ClaySelectWithOption
-						aria-label={Liferay.Language.get('source')}
 						className="pr-4 text-truncate"
 						id={mappingSelectorSourceSelectId}
 						onChange={(event) => {
@@ -420,7 +419,7 @@ function MappingSelector({fieldType, mappedItem, onMappingSelect}) {
 					)}
 				>
 					<span className="mr-1">
-						{Liferay.Language.get('type')}:
+						{Liferay.Language.get('content-type')}:
 					</span>
 
 					{typeLabel}
@@ -438,7 +437,7 @@ function MappingSelector({fieldType, mappedItem, onMappingSelect}) {
 			)}
 
 			<ClayForm.Group small>
-				<MappingFieldSelect
+				<MappingFieldSelector
 					fieldType={fieldType}
 					fields={itemFields}
 					onValueSelect={onFieldSelect}
@@ -446,87 +445,6 @@ function MappingSelector({fieldType, mappedItem, onMappingSelect}) {
 				/>
 			</ClayForm.Group>
 		</>
-	);
-}
-
-function MappingFieldSelect({fieldType, fields, onValueSelect, value}) {
-	const mappingSelectorFieldSelectId = useId();
-
-	const hasWarnings = fields && fields.length === 0;
-
-	const selectedField = getSelectedField({fields, value});
-
-	return (
-		<ClayForm.Group
-			className={classNames('mt-3', {'has-warning': hasWarnings})}
-			small
-		>
-			<label htmlFor="mappingSelectorFieldSelect">
-				{Liferay.Language.get('field')}
-			</label>
-
-			<ClaySelect
-				aria-label={Liferay.Language.get('field')}
-				disabled={!(fields && !!fields.length)}
-				id={mappingSelectorFieldSelectId}
-				onChange={onValueSelect}
-				value={selectedField?.key}
-			>
-				{fields && !!fields.length && (
-					<>
-						<ClaySelect.Option
-							label={UNMAPPED_OPTION.label}
-							value={UNMAPPED_OPTION.value}
-						/>
-
-						{fields.map((fieldSet, index) => {
-							const key = `${fieldSet.label || ''}${index}`;
-
-							const Wrapper = ({children, ...props}) =>
-								fieldSet.label ? (
-									<ClaySelect.OptGroup {...props}>
-										{children}
-									</ClaySelect.OptGroup>
-								) : (
-									<React.Fragment key={key}>
-										{children}
-									</React.Fragment>
-								);
-
-							return (
-								<Wrapper key={key} label={fieldSet.label}>
-									{fieldSet.fields.map((field) => (
-										<ClaySelect.Option
-											key={field.key}
-											label={field.label}
-											value={field.key}
-										/>
-									))}
-								</Wrapper>
-							);
-						})}
-					</>
-				)}
-			</ClaySelect>
-
-			{hasWarnings && (
-				<ClayForm.FeedbackGroup>
-					<ClayForm.FeedbackItem>
-						{Liferay.Util.sub(
-							Liferay.Language.get(
-								'no-fields-are-available-for-x-editable'
-							),
-							[
-								EDITABLE_TYPES.backgroundImage,
-								EDITABLE_TYPES.image,
-							].includes(fieldType)
-								? Liferay.Language.get('image')
-								: Liferay.Language.get('text')
-						)}
-					</ClayForm.FeedbackItem>
-				</ClayForm.FeedbackGroup>
-			)}
-		</ClayForm.Group>
 	);
 }
 

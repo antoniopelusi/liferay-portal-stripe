@@ -85,6 +85,29 @@ public class SVGUtil {
 			_SPRITEMAP_TMPL, "[$CONTENT$]", sb.toString());
 	}
 
+	public static String getSVGSpritemap(
+		List<FrontendIconsResourcePack> frontendIconsResourcePacks) {
+
+		StringBundler sb = new StringBundler();
+
+		for (FrontendIconsResourcePack frontendIconsResourcePack :
+				frontendIconsResourcePacks) {
+
+			if (frontendIconsResourcePack == null) {
+				continue;
+			}
+
+			for (FrontendIconsResource frontendIconsResource :
+					frontendIconsResourcePack.getFrontendIconsResources()) {
+
+				sb.append(frontendIconsResource.asSymbol());
+			}
+		}
+
+		return StringUtil.replace(
+			_SPRITEMAP_TMPL, "[$CONTENT$]", sb.toString());
+	}
+
 	private static String _getInnerSVG(Element rootElement) {
 		List<Element> elements = rootElement.elements();
 

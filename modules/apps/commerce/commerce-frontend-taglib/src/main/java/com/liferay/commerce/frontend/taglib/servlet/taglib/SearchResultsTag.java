@@ -22,6 +22,7 @@ import com.liferay.frontend.js.loader.modules.extender.npm.NPMResolver;
 import com.liferay.frontend.taglib.soy.servlet.taglib.ComponentRendererTag;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.frontend.icons.FrontendIconsUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -62,14 +63,13 @@ public class SearchResultsTag extends ComponentRendererTag {
 		putValue(
 			"searchAPI",
 			PortalUtil.getPortalURL(httpServletRequest) +
-				"/o/commerce-ui/search/");
+				PortalUtil.getPathContext() + "/o/commerce-ui/search/");
 
 		ThemeDisplay themeDisplay =
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-		putValue(
-			"spritemap", themeDisplay.getPathThemeImages() + "/clay/icons.svg");
+		putValue("spritemap", FrontendIconsUtil.getSpritemap(themeDisplay));
 
 		putValue("visible", false);
 

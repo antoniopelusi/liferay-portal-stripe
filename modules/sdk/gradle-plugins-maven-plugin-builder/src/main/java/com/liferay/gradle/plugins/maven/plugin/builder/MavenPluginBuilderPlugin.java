@@ -15,8 +15,8 @@
 package com.liferay.gradle.plugins.maven.plugin.builder;
 
 import com.liferay.gradle.plugins.maven.plugin.builder.internal.util.GradleUtil;
-import com.liferay.gradle.plugins.maven.plugin.builder.tasks.BuildPluginDescriptorTask;
-import com.liferay.gradle.plugins.maven.plugin.builder.tasks.WriteMavenSettingsTask;
+import com.liferay.gradle.plugins.maven.plugin.builder.task.BuildPluginDescriptorTask;
+import com.liferay.gradle.plugins.maven.plugin.builder.task.WriteMavenSettingsTask;
 import com.liferay.gradle.util.FileUtil;
 import com.liferay.gradle.util.OSGiUtil;
 import com.liferay.gradle.util.Validator;

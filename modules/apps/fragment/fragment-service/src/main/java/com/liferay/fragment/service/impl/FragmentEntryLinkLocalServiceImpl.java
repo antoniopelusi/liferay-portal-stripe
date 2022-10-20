@@ -16,6 +16,9 @@ package com.liferay.fragment.service.impl;
 
 import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.fragment.constants.FragmentEntryLinkConstants;
+import com.liferay.fragment.entry.processor.constants.FragmentEntryProcessorConstants;
+import com.liferay.fragment.listener.FragmentEntryLinkListener;
+import com.liferay.fragment.listener.FragmentEntryLinkListenerTracker;
 import com.liferay.fragment.model.FragmentCollection;
 import com.liferay.fragment.model.FragmentEntry;
 import com.liferay.fragment.model.FragmentEntryLink;
@@ -29,7 +32,6 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONException;
-import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
@@ -40,7 +42,6 @@ import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.portletfilerepository.PortletFileRepositoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
-import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
@@ -84,7 +85,7 @@ public class FragmentEntryLinkLocalServiceImpl
 			long fragmentEntryId, long segmentsExperienceId, long plid,
 			String css, String html, String js, String configuration,
 			String editableValues, String namespace, int position,
-			String rendererKey, ServiceContext serviceContext)
+			String rendererKey, int type, ServiceContext serviceContext)
 		throws PortalException {
 
 		User user = _userLocalService.getUser(userId);
@@ -127,12 +128,13 @@ public class FragmentEntryLinkLocalServiceImpl
 
 		fragmentEntryLink.setNamespace(namespace);
 
+		fragmentEntryLink.setRendererKey(rendererKey);
+		fragmentEntryLink.setType(type);
+
 		String processedHTML = html;
 
 		HttpServletRequest httpServletRequest = serviceContext.getRequest();
 		HttpServletResponse httpServletResponse = serviceContext.getResponse();
-
-		fragmentEntryLink.setRendererKey(rendererKey);
 
 		if ((httpServletRequest != null) && (httpServletResponse != null)) {
 			DefaultFragmentEntryProcessorContext
@@ -173,11 +175,6 @@ public class FragmentEntryLinkLocalServiceImpl
 		// Fragment entry link
 
 		fragmentEntryLinkPersistence.remove(fragmentEntryLink);
-
-		// Fragment entry processor registry
-
-		_fragmentEntryProcessorRegistry.deleteFragmentEntryLinkData(
-			fragmentEntryLink);
 
 		return fragmentEntryLink;
 	}
@@ -464,7 +461,7 @@ public class FragmentEntryLinkLocalServiceImpl
 			long userId, long fragmentEntryLinkId,
 			long originalFragmentEntryLinkId, long fragmentEntryId, long plid,
 			String css, String html, String js, String configuration,
-			String editableValues, String namespace, int position,
+			String editableValues, String namespace, int position, int type,
 			ServiceContext serviceContext)
 		throws PortalException {
 
@@ -494,6 +491,7 @@ public class FragmentEntryLinkLocalServiceImpl
 		}
 
 		fragmentEntryLink.setPosition(position);
+		fragmentEntryLink.setType(type);
 
 		return fragmentEntryLinkPersistence.update(fragmentEntryLink);
 	}
@@ -540,7 +538,9 @@ public class FragmentEntryLinkLocalServiceImpl
 			_fragmentEntryPersistence.findByPrimaryKey(
 				fragmentEntryLink.getFragmentEntryId());
 
-		fragmentEntryLink.setHtml(fragmentEntry.getHtml());
+		fragmentEntryLink.setHtml(
+			_replaceResources(
+				fragmentEntry.getFragmentEntryId(), fragmentEntry.getHtml()));
 
 		// LPS-132154 Set configuration before processing the HTML
 
@@ -561,12 +561,23 @@ public class FragmentEntryLinkLocalServiceImpl
 
 		fragmentEntryLink.setEditableValues(newEditableValues);
 
+		fragmentEntryLink.setType(fragmentEntry.getType());
 		fragmentEntryLink.setLastPropagationDate(new Date());
 
 		fragmentEntryLink = fragmentEntryLinkPersistence.update(
 			fragmentEntryLink);
 
 		_updateFragmentEntryLinkLayout(fragmentEntryLink);
+
+		List<FragmentEntryLinkListener> fragmentEntryLinkListeners =
+			_fragmentEntryLinkListenerTracker.getFragmentEntryLinkListeners();
+
+		for (FragmentEntryLinkListener fragmentEntryLinkListener :
+				fragmentEntryLinkListeners) {
+
+			fragmentEntryLinkListener.
+				onUpdateFragmentEntryLinkConfigurationValues(fragmentEntryLink);
+		}
 	}
 
 	private String _getProcessedHTML(
@@ -656,7 +667,7 @@ public class FragmentEntryLinkLocalServiceImpl
 					defaultEditableFragmentEntryProcessorJSONObject);
 			}
 
-			return editableValuesJSONObject.toJSONString();
+			return editableValuesJSONObject.toString();
 		}
 		catch (JSONException jsonException) {
 			if (_log.isDebugEnabled()) {
@@ -720,8 +731,7 @@ public class FragmentEntryLinkLocalServiceImpl
 	}
 
 	private static final String[] _FRAGMENT_ENTRY_PROCESSOR_KEYS = {
-		"com.liferay.fragment.entry.processor.editable." +
-			"EditableFragmentEntryProcessor"
+		FragmentEntryProcessorConstants.KEY_EDITABLE_FRAGMENT_ENTRY_PROCESSOR
 	};
 
 	private static final Log _log = LogFactoryUtil.getLog(
@@ -731,22 +741,19 @@ public class FragmentEntryLinkLocalServiceImpl
 		"\\[resources:(.+?)\\]");
 
 	@Reference
-	private ClassNameLocalService _classNameLocalService;
-
-	@Reference
 	private DLURLHelper _dlURLHelper;
 
 	@Reference
 	private FragmentCollectionPersistence _fragmentCollectionPersistence;
 
 	@Reference
+	private FragmentEntryLinkListenerTracker _fragmentEntryLinkListenerTracker;
+
+	@Reference
 	private FragmentEntryPersistence _fragmentEntryPersistence;
 
 	@Reference
 	private FragmentEntryProcessorRegistry _fragmentEntryProcessorRegistry;
-
-	@Reference
-	private JSONFactory _jsonFactory;
 
 	@Reference
 	private LayoutLocalService _layoutLocalService;

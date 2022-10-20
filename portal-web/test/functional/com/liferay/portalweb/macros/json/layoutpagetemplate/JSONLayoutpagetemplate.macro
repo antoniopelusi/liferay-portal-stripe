@@ -9,10 +9,9 @@ definition {
 			groupKey = "${groupName}",
 			parentGroupName = "${parentGroupName}",
 			site = "${site}");
-
 		var classNameId = JSONLayoutpagetemplateSetter.setClassNameId(contentType = "${contentType}");
 
-		if (("${subType}" == "Basic Document") || ("${contentType}" == "Blogs Entry") || ("${contentType}" == "Category")) {
+		if (("${subType}" == "Basic Document") || ("${contentType}" == "Blogs Entry") || ("${contentType}" == "Category") || ("${contentType}" == "Commerce Product")) {
 			var classTypeId = "0";
 		}
 		else {
@@ -90,6 +89,11 @@ definition {
 			var masterLayoutPlid = "0";
 		}
 
+		if (!(isSet(statusKey))) {
+			var statusKey = "DRAFT";
+		}
+
+		var status = JSONLayoutpagetemplateSetter.setStatus(statusKey = "${statusKey}");
 		var serviceContext = JSONLayoutpagetemplateSetter.setServiceContext(
 			addGuestPermissions = "true",
 			assetCategoryIds = "${assetCategoryIds}",
@@ -103,7 +107,8 @@ definition {
 			displayPageTemplateEntryName = "${displayPageTemplateEntryName}",
 			groupId = "${groupId}",
 			masterLayoutPlid = "${masterLayoutPlid}",
-			serviceContext = "${serviceContext}");
+			serviceContext = "${serviceContext}",
+			status = "${status}");
 	}
 
 	@summary = "Add a PageTemplateEntry to the Global site"
@@ -111,9 +116,7 @@ definition {
 		Variables.assertDefined(parameterList = "${pageTemplateEntryActive},${pageTemplateEntryName}");
 
 		var nameMap = JSONLayoutpagetemplateSetter.setNameMap(name = "${pageTemplateEntryName}");
-
 		var descriptionMap = JSONLayoutpagetemplateSetter.setDescriptionMap(description = "${pageTemplateEntryDescription}");
-
 		var serviceContext = JSONLayoutpagetemplateSetter.setServiceContext(
 			addGuestPermissions = "false",
 			assetCategoryIds = "${assetCategoryIds}",
@@ -193,9 +196,7 @@ definition {
 			assetTagNames = "${assetTagNames}",
 			serviceContext = "${serviceContext}",
 			workflowAction = "${workflowAction}");
-
 		var status = JSONLayoutpagetemplateUtil._getStatus(layoutPageTemplateStatus = "${layoutPageTemplateStatus}");
-
 		var type = JSONLayoutpagetemplateUtil._getType(layoutPageTemplateType = "${layoutPageTemplateType}");
 
 		JSONLayoutpagetemplateAPI._addLayoutPageTemplateEntry(
@@ -217,7 +218,6 @@ definition {
 			groupKey = "${groupName}",
 			parentGroupName = "${parentGroupName}",
 			site = "${site}");
-
 		var serviceContext = JSONLayoutpagetemplateSetter.setServiceContext(
 			addGuestPermissions = "true",
 			assetCategoryIds = "${assetCategoryIds}",
@@ -245,6 +245,22 @@ definition {
 			type = "${type}");
 
 		JSONLayoutpagetemplateAPI._deleteLayoutPageTemplateEntry(layoutPageTemplateEntryId = "${layoutPageTemplateEntryId}");
+	}
+
+	@summary = "Set a layoutPageTemplateEntry as default"
+	macro setLayoutPageTemplateEntryAsDefault {
+		Variables.assertDefined(parameterList = "${groupName},${layoutPageTemplateEntryName},${type}");
+
+		var groupId = JSONLayoutpagetemplateSetter.setGroupId(
+			groupKey = "${groupName}",
+			site = "${site}");
+
+		var layoutPageTemplateEntryId = JSONLayoutpagetemplateSetter.setLayoutPageTemplateEntryId(
+			groupId = "${groupId}",
+			layoutPageTemplateEntryName = "${layoutPageTemplateEntryName}",
+			type = "${type}");
+
+		JSONLayoutpagetemplateAPI._setLayoutPageTemplateEntryAsDefault(layoutPageTemplateEntryId = "${layoutPageTemplateEntryId}");
 	}
 
 }

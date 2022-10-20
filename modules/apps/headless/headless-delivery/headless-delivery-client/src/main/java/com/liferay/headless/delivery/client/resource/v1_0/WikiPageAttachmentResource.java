@@ -105,6 +105,12 @@ public interface WikiPageAttachmentResource {
 			return new WikiPageAttachmentResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -150,6 +156,7 @@ public interface WikiPageAttachmentResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -234,7 +241,7 @@ public interface WikiPageAttachmentResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-delivery/v1.0/wiki-page-attachments/{wikiPageAttachmentId}");
 
 			httpInvoker.path("wikiPageAttachmentId", wikiPageAttachmentId);
@@ -313,7 +320,7 @@ public interface WikiPageAttachmentResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-delivery/v1.0/wiki-page-attachments/batch");
 
 			httpInvoker.userNameAndPassword(
@@ -393,7 +400,7 @@ public interface WikiPageAttachmentResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-delivery/v1.0/wiki-page-attachments/{wikiPageAttachmentId}");
 
 			httpInvoker.path("wikiPageAttachmentId", wikiPageAttachmentId);
@@ -475,7 +482,7 @@ public interface WikiPageAttachmentResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-delivery/v1.0/wiki-pages/{wikiPageId}/wiki-page-attachments");
 
 			httpInvoker.path("wikiPageId", wikiPageId);
@@ -571,7 +578,7 @@ public interface WikiPageAttachmentResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-delivery/v1.0/wiki-pages/{wikiPageId}/wiki-page-attachments");
 
 			httpInvoker.path("wikiPageId", wikiPageId);
@@ -656,7 +663,7 @@ public interface WikiPageAttachmentResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-delivery/v1.0/wiki-pages/{wikiPageId}/wiki-page-attachments/batch");
 
 			httpInvoker.path("wikiPageId", wikiPageId);

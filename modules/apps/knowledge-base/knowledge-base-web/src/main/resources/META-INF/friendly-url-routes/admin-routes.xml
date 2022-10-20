@@ -4,37 +4,36 @@
 <routes>
 	<route>
 		<pattern></pattern>
-		<implicit-parameter name="mvcPath">/admin/view.jsp</implicit-parameter>
+		<implicit-parameter name="mvcRenderCommandName">/knowledge_base/view</implicit-parameter>
 		<implicit-parameter name="p_p_state">maximized</implicit-parameter>
 	</route>
 	<route>
 		<pattern>/articles</pattern>
-		<implicit-parameter name="mvcPath">/admin/view_articles.jsp</implicit-parameter>
+		<implicit-parameter name="mvcPath">/admin/view_kb_articles.jsp</implicit-parameter>
 		<implicit-parameter name="p_p_state">maximized</implicit-parameter>
 	</route>
 	<route>
 		<pattern>/folders</pattern>
-		<implicit-parameter name="mvcPath">/admin/view_folders.jsp</implicit-parameter>
+		<implicit-parameter name="mvcPath">/admin/view_kb_folders.jsp</implicit-parameter>
 		<implicit-parameter name="p_p_state">maximized</implicit-parameter>
 	</route>
 	<route>
 		<pattern>/templates</pattern>
-		<implicit-parameter name="mvcPath">/admin/view_templates.jsp</implicit-parameter>
+		<implicit-parameter name="mvcPath">/admin/view_kb_templates.jsp</implicit-parameter>
 		<implicit-parameter name="p_p_state">maximized</implicit-parameter>
 	</route>
 	<route>
 		<pattern>/suggestions</pattern>
-		<implicit-parameter name="mvcPath">/admin/view_suggestions.jsp</implicit-parameter>
+		<implicit-parameter name="mvcPath">/admin/view_kb_suggestions.jsp</implicit-parameter>
 		<implicit-parameter name="p_p_state">maximized</implicit-parameter>
 	</route>
 	<route>
 		<pattern>/article/{resourcePrimKey:\d+}/{p_p_state}</pattern>
-		<implicit-parameter name="mvcPath">/admin/view_article.jsp</implicit-parameter>
+		<implicit-parameter name="mvcRenderCommand">/knowledge_base/view_article</implicit-parameter>
 	</route>
 	<route>
 		<pattern>/article/{resourcePrimKey:\d+}/{p_p_state}</pattern>
-		<implicit-parameter name="mvcPath">/admin/view_article.jsp</implicit-parameter>
-	</route>
+		<implicit-parameter name="mvcRenderCommand">/knowledge_base/view_article</implicit-parameter>	</route>
 	<route>
 		<pattern>/template/{kbTemplateId:\d+}/{p_p_state}</pattern>
 		<implicit-parameter name="mvcPath">/admin/view_template.jsp</implicit-parameter>
@@ -45,11 +44,11 @@
 	</route>
 	<route>
 		<pattern>/article/{resourcePrimKey:\d+}/{status:-?\d+}/history</pattern>
-		<implicit-parameter name="mvcPath">/admin/history.jsp</implicit-parameter>
+		<implicit-parameter name="mvcPath">/admin/common/kb_history.jsp</implicit-parameter>
 		<implicit-parameter name="p_p_state">maximized</implicit-parameter>
 	</route>
 	<route>
 		<pattern>/article/{resourcePrimKey:\d+}/{status:-?\d+}/history/{p_p_state}</pattern>
-		<implicit-parameter name="mvcPath">/admin/history.jsp</implicit-parameter>
+		<implicit-parameter name="mvcPath">/admin/common/kb_history.jsp</implicit-parameter>
 	</route>
 </routes>

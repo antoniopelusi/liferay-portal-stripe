@@ -228,7 +228,12 @@ export async function loadData(
 	page = 1,
 	sorting = []
 ) {
-	const url = new URL(apiURL, themeDisplay.getPortalURL());
+	const fullUrl = apiURL.startsWith('/')
+		? themeDisplay.getPortalURL() + themeDisplay.getPathContext() + apiURL
+		: apiURL;
+
+	const url = new URL(fullUrl);
+
 	const providedFilters = url.searchParams.get('filter');
 
 	url.searchParams.delete('filter');
@@ -239,6 +244,10 @@ export async function loadData(
 			'filter',
 			getFiltersString(odataFiltersStrings, providedFilters)
 		);
+	}
+
+	if (themeDisplay.isImpersonated()) {
+		url.searchParams.append('doAsUserId', themeDisplay.getUserId());
 	}
 
 	url.searchParams.append('page', page);

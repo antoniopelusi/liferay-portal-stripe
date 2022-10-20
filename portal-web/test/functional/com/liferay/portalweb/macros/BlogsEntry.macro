@@ -25,6 +25,11 @@ definition {
 				imageFileName = "${imageFileName}",
 				navTab = "${navTab}");
 		}
+		else if (isSet(currentSiteImage)) {
+			ItemSelector.selectDMImage(
+				imageFileName = "${currentSiteImage}",
+				navTab = "${navTab}");
+		}
 		else {
 			ItemSelector.uploadFile(
 				navTab = "${navTab}",
@@ -96,7 +101,7 @@ definition {
 					videoShortcutTitle = "${videoShortcutTitle}");
 
 				if (isSet(viewInternalVideoPreview)) {
-					Pause(locator1 = "5000");
+					WaitForElementPresent(locator1 = "IFrame#EMBEDDED_VIDEO_IFRAME");
 
 					DMDocument.viewInternalVideoPreview(videoName = "${videoName}");
 				}
@@ -330,9 +335,41 @@ definition {
 
 			Click(locator1 = "AlloyEditor#CONTENT_ADD_MENUBAR_VIDEO");
 
-			ItemSelector.addVideoFromURL(
-				navTab = "URL",
-				videoSourceURL = "${embedVideo}");
+			if ("${navTab}" == "Documents and Media") {
+				ItemSelector.addVideoFromDM(
+					depotName = "${depotName}",
+					navTab = "${navTab}",
+					videoShortcutTitle = "${embedVideo}");
+			}
+			else {
+				ItemSelector.addVideoFromURL(
+					navTab = "URL",
+					videoSourceURL = "${embedVideo}");
+			}
+		}
+
+		if (isSet(dmImage)) {
+			ItemSelector.gotoItemSelectorViaAlloyEditor();
+
+			if ("${navTab}" == "Documents and Media") {
+				if (isSet(depotName)) {
+					ItemSelector.selectRepositoryImage(
+						depotName = "${depotName}",
+						folderName = "${folderName}",
+						imageFileName = "${dmImage}",
+						navTab = "${navTab}");
+				}
+				else if (isSet(uploadFileName)) {
+					ItemSelector.uploadFile(
+						navTab = "${navTab}",
+						uploadFileName = "${dmImage}");
+				}
+				else {
+					ItemSelector.selectDMImage(
+						imageFileName = "${dmImage}",
+						navTab = "${navTab}");
+				}
+			}
 		}
 	}
 
@@ -398,6 +435,7 @@ definition {
 		var displayDateDay = DateUtil.getCurrentDate();
 		var displayDateMonth = DateUtil.getCurrentMonth();
 		var displayDateYear = DateUtil.getCurrentYear();
+
 		var displayDate = "${displayDateMonth}/${displayDateDay}/${displayDateYear}";
 
 		Type(
@@ -406,6 +444,7 @@ definition {
 
 		var displayTimeHour = DateUtil.getCurrentHour();
 		var displayTimeMinute = "${displayTimeMinute}";
+
 		var displayTime = "${displayTimeHour}:${displayTimeMinute}";
 
 		Type(
@@ -417,7 +456,9 @@ definition {
 		var displayDateDay = selenium.getElementValue("TextInput#DISPLAY_DATE_DAY");
 		var displayDateMonth = selenium.getElementValue("TextInput#DISPLAY_DATE_MONTH");
 		var displayDateYear = DateUtil.getCurrentYear();
+
 		var displayDateYear = ${displayDateYear} + 1;
+
 		var displayDate = "${displayDateMonth}/${displayDateDay}/${displayDateYear}";
 
 		Type(
@@ -497,6 +538,37 @@ definition {
 		}
 	}
 
+	macro executePingbackViacURL {
+		var ip = "${ip}";
+		var portalURL = "${portalURL}";
+
+		var curl = '''
+			${portalURL}/xmlrpc/pingback \
+			-H 'Content-Type: text/xml' \
+			-u test@liferay.com:test \
+			-d '
+			<?xml version="1.0" encoding="iso-8859-1"?>
+			<methodCall>
+			<methodName>pingback.ping</methodName>
+			<params>
+			<param><value><string>http://${ip}</string></value></param>
+			<param><value><string>${portalURL}/web/guest/home/-/blogs/${entryTitle}</string></value></param>
+			</params>
+			</methodCall>'
+		''';
+
+		echo("${curl}");
+
+		var returnValue = JSONCurlUtil.post("${curl}");
+
+		if (contains("${returnValue}", "Access Denied")) {
+			echo("The return value is Access Denied");
+		}
+		else {
+			fail("FAIL!");
+		}
+	}
+
 	macro flagPG {
 		var key_entryTitle = "${entryTitle}";
 
@@ -541,7 +613,7 @@ definition {
 			locator1 = "LexiconList#LIST_ENTRY_ELLIPSIS");
 
 		ClickNoError(
-			key_menuItem = "Move to Recycle Bin",
+			key_menuItem = "Delete",
 			locator1 = "MenuItem#DROPDOWN_MENU_ITEM");
 
 		Alert.viewSuccessMessage();
@@ -561,7 +633,7 @@ definition {
 			locator1 = "LexiconList#LIST_ENTRY_ELLIPSIS");
 
 		ClickNoError(
-			key_menuItem = "Move to Recycle Bin",
+			key_menuItem = "Delete",
 			locator1 = "MenuItem#DROPDOWN_MENU_ITEM");
 
 		Alert.viewSuccessMessage();
@@ -587,7 +659,7 @@ definition {
 
 		Blogs.clickEllipsisItemPG(
 			entryTitle = "${entryTitle}",
-			item = "Move to Recycle Bin");
+			item = "Delete");
 
 		VerifyElementPresent(locator1 = "Message#SUCCESS");
 
@@ -685,6 +757,7 @@ definition {
 
 	macro removeViewPermissionsPG {
 		var key_roleTitle = StringUtil.replace("${roleTitle}", " ", "-");
+
 		var key_roleTitle = StringUtil.lowerCase("${key_roleTitle}");
 
 		Portlet.mouseOverPortletTitle(portletTitleName = "Blogs");
@@ -739,8 +812,10 @@ definition {
 
 		var displayDateDay = selenium.getElementValue("TextInput#DISPLAY_DATE_DAY");
 		var displayDateMonth = selenium.getElementValue("TextInput#DISPLAY_DATE_MONTH");
+
 		var displayDateMonth = ${displayDateMonth} + 1;
 		var displayDateYear = selenium.getElementValue("TextInput#DISPLAY_DATE_YEAR");
+
 		var displayDate = "${displayDateMonth}/${displayDateDay}/${displayDateYear}";
 
 		Type(
@@ -748,6 +823,7 @@ definition {
 			value1 = "${displayDate}");
 
 		var displayDateHour = selenium.getElementValue("TextInput#DISPLAY_DATE_HOUR");
+
 		var displayDateHourLength = StringUtil.length("${displayDateHour}");
 
 		if ("${displayDateHourLength}" == "1") {
@@ -755,7 +831,9 @@ definition {
 		}
 
 		var displayDateMinute = selenium.getElementValue("TextInput#DISPLAY_DATE_MINUTE");
+
 		var displayDateMinuteFuture = ${displayDateMinute} + 2;
+
 		var displayDateMinuteFutureLength = StringUtil.length("${displayDateMinuteFuture}");
 
 		if ("${displayDateMinuteFutureLength}" == "1") {
@@ -763,8 +841,11 @@ definition {
 		}
 
 		var displayDateMeridian = selenium.getElementValue("TextInput#DISPLAY_DATE_MERIDIAN");
+
 		var displayDateMeridian = StringUtil.replace("${displayDateMeridian}", "0", "AM");
+
 		var displayDateMeridian = StringUtil.replace("${displayDateMeridian}", "1", "PM");
+
 		var displayTime = "${displayDateHour}:${displayDateMinuteFuture} ${displayDateMeridian}";
 
 		Type(
@@ -900,6 +981,7 @@ definition {
 	macro viewAutoTag {
 		var key_entryTitle = "${entryTitle}";
 		var tagName = StringUtil.lowerCase("${tagName}");
+
 		var key_tagName = "${tagName}";
 
 		if (IsElementNotPresent(locator1 = "BlogsEntry#TAG")) {
@@ -956,9 +1038,6 @@ definition {
 		var key_entryContent = "${entryContent}";
 		var key_entrySubtitle = "${entrySubtitle}";
 		var key_entryTitle = "${entryTitle}";
-
-		Pause(locator1 = "3000");
-
 		var browserType = PropsUtil.get("browser.type");
 
 		if ("${browserType}" == "safari") {
@@ -998,6 +1077,19 @@ definition {
 			}
 		}
 
+		if (isSet(captionField)) {
+			if (isSet(captionFieldLink)) {
+				AssertTextEquals(
+					locator1 = "BlogsEntry#ENTRY_COVER_IMAGE_CAPTION_LINK",
+					value1 = "${captionFieldLink}");
+			}
+			else {
+				AssertTextEquals(
+					locator1 = "BlogsEntry#ENTRY_COVER_IMAGE_CAPTION",
+					value1 = "${entryCaption}");
+			}
+		}
+
 		if (isSet(entryContent)) {
 			AssertTextEquals(
 				locator1 = "BlogsEntry#CONTENT",
@@ -1027,14 +1119,22 @@ definition {
 		if (isSet(entryInlineImage)) {
 			BlogsEntry.viewInlineImage(uploadFileName = "${entryInlineImage}");
 		}
+
+		if (isSet(entrySmallImage)) {
+			Panel.expandPanel(panel = "Configuration");
+
+			AssertVisible(
+				key_smallImage = "${entrySmallImage}",
+				locator1 = "BlogsEntry#SMALL_IMAGE");
+		}
 	}
 
 	macro viewEntryEmbeddedImage {
-		Click.pauseClickAt(
+		Click.clickAt(
 			key_entryContent = "${entryContent}",
 			locator1 = "BlogsEntry#CONTENT_LINK");
 
-		AssertElementPresent.pauseAssertVisible(
+		WaitForVisible(
 			key_imageSourceURL = "${imageSourceURL}",
 			locator1 = "DocumentsAndMediaDocument#DOCUMENT_VIEWPORT_PREVIEW");
 	}
@@ -1117,6 +1217,12 @@ definition {
 				value1 = "${entryContentBold}");
 		}
 
+		if (isSet(entryContentCite)) {
+			AssertTextEquals.assertPartialText(
+				locator1 = "BlogsEntry#CONTENT_HTML_CITE",
+				value1 = "${entryContentCite}");
+		}
+
 		if (isSet(entryContentHtml)) {
 			AssertTextEquals.assertPartialText(
 				locator1 = "BlogsEntry#CONTENT_HTML_H2",
@@ -1178,7 +1284,14 @@ definition {
 	macro viewInlineImage {
 		var key_uploadFileName = "${uploadFileName}";
 
-		AssertVisible(locator1 = "BlogsEntry#CONTENT_INLINE_IMAGE");
+		if (isSet(entryContent)) {
+			AssertVisible(
+				key_entryContent = "${entryContent}",
+				locator1 = "BlogsEntry#CONTENT_INLINE_IMAGE_SPECIFIC");
+		}
+		else {
+			AssertVisible(locator1 = "BlogsEntry#CONTENT_INLINE_IMAGE");
+		}
 	}
 
 	macro viewNoAddPermissions {
@@ -1243,18 +1356,15 @@ definition {
 
 	macro viewNoTag {
 		var key_entryTitle = "${entryTitle}";
+		var key_tagName = "${tagName}";
 
-		if (isSet(tagNameList)) {
-			for (var tagName : list "${tagNameList}") {
-				AssertElementNotPresent(
-					key_tagName = "${tagName}",
-					locator1 = "BlogsEntry#TAG",
-					tagName = StringUtil.lowerCase("${tagName}"));
-			}
+		if (isSet(duplicate)) {
+			AssertElementNotPresent(
+				locator1 = "BlogsEntry#TAG_2",
+				tagName = StringUtil.lowerCase("${tagName}"));
 		}
 		else {
 			AssertElementNotPresent(
-				key_tagName = "${tagName}",
 				locator1 = "BlogsEntry#TAG",
 				tagName = StringUtil.lowerCase("${tagName}"));
 		}
@@ -1376,39 +1486,6 @@ definition {
 		AssertTextEquals(
 			locator1 = "BlogsEntry#RELATED_ASSETS_TITLE",
 			value1 = "${assetTitle}");
-	}
-
-	macro viewRSS {
-		var key_text = "RSS";
-
-		AssertClick(
-			locator1 = "Button#ANY",
-			value1 = "RSS");
-
-		Pause(locator1 = "3000");
-
-		SelectWindow.selectPopUp(locator1 = "null");
-
-		AssertLocation.assertPartialLocation(value1 = "blogs/rss");
-
-		AssertTextEquals(
-			locator1 = "RSS#FEED_TITLE",
-			value1 = "${siteName}");
-
-		AssertTextEquals(
-			locator1 = "RSS#FEED_SUBTITLE",
-			value1 = "${siteName}");
-
-		var key_entryContent = "${entryContent}";
-		var key_entryTitle = "${entryTitle}";
-
-		AssertTextEquals(
-			locator1 = "RSS#ENTRY_TITLE",
-			value1 = "${entryTitle}");
-
-		AssertTextEquals(
-			locator1 = "RSS#ENTRY_CONTENT",
-			value1 = "${entryContent}");
 	}
 
 	macro viewSharedAsset {
@@ -1557,6 +1634,7 @@ definition {
 		if (isSet(tagNameList)) {
 			for (var tagName : list "${tagNameList}") {
 				var tagName = StringUtil.lowerCase("${tagName}");
+
 				var key_tagName = "${tagName}";
 
 				BlogsNavigator.gotoEntryPG(
@@ -1619,7 +1697,9 @@ definition {
 		Navigator.gotoPage(pageName = "${pageName}");
 
 		var entryViewCount = selenium.getText("BlogsEntry#ENTRY_VIEW_COUNT");
+
 		var entryViewCount = StringUtil.extractLast("${entryViewCount}", "-");
+
 		var entryViewCount = StringUtil.extractDigits("${entryViewCount}");
 
 		if ("${entryViewCount}" == "1") {
@@ -1639,14 +1719,16 @@ definition {
 			locator1 = "BlogsEntry#TITLE_LINK",
 			value1 = "${entryTitle}");
 
-		Pause(locator1 = "3000");
+		WaitForVisible(locator1 = "BlogsEntry#TITLE");
 
 		AssertTextEquals(
 			locator1 = "BlogsEntry#TITLE",
 			value1 = "${entryTitle}");
 
 		var entryViewCount = selenium.getText("BlogsEntry#ENTRY_VIEW_COUNT");
+
 		var entryViewCount = StringUtil.extractLast("${entryViewCount}", "-");
+
 		var entryViewCount = StringUtil.extractDigits("${entryViewCount}");
 
 		if ("${entryViewCount}" == "1") {

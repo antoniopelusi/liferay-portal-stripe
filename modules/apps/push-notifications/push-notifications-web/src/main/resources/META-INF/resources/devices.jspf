@@ -15,60 +15,28 @@
 --%>
 
 <%
-String displayStyle = ParamUtil.getString(request, "displayStyle", "list");
-
 String orderByCol = ParamUtil.getString(request, "orderByCol", "platform");
 String orderByType = ParamUtil.getString(request, "orderByType", "asc");
 
-OrderByComparator<PushNotificationsDevice> orderByComparator = PushNotificationsUtil.getPushNotificationsDeviceOrderByComparator(orderByCol, orderByType);
+SearchContainer<PushNotificationsDevice> pushNotificationsDeviceSearchContainer = new SearchContainer<>(renderRequest, portletURL, null, "there-are-no-devices");
 
-int pushNotificationsDevicesCount = PushNotificationsDeviceLocalServiceUtil.getPushNotificationsDevicesCount();
+pushNotificationsDeviceSearchContainer.setOrderByCol(orderByCol);
+pushNotificationsDeviceSearchContainer.setOrderByComparator(PushNotificationsUtil.getPushNotificationsDeviceOrderByComparator(orderByCol, orderByType));
+pushNotificationsDeviceSearchContainer.setOrderByType(orderByType);
+
+pushNotificationsDeviceSearchContainer.setResultsAndTotal(() -> PushNotificationsDeviceLocalServiceUtil.getPushNotificationsDevices(pushNotificationsDeviceSearchContainer.getStart(), pushNotificationsDeviceSearchContainer.getEnd(), pushNotificationsDeviceSearchContainer.getOrderByComparator()), PushNotificationsDeviceLocalServiceUtil.getPushNotificationsDevicesCount());
 
 ResourceBundleLoaderProvider resourceBundleLoaderProvider = (ResourceBundleLoaderProvider)request.getAttribute(PushNotificationsWebKeys.RESOURCE_BUNDLE_LOADER_PROVIDER);
 %>
 
-<c:if test="<%= pushNotificationsDevicesCount > 0 %>">
-	<liferay-frontend:management-bar>
-		<liferay-frontend:management-bar-buttons>
-			<liferay-frontend:management-bar-display-buttons
-				displayViews='<%= new String[] {"list"} %>'
-				portletURL="<%= renderResponse.createRenderURL() %>"
-				selectedDisplayStyle="<%= displayStyle %>"
-			/>
-		</liferay-frontend:management-bar-buttons>
+<clay:management-toolbar
+	managementToolbarDisplayContext="<%= new PushNotificationsManagementToolbarDisplayContext(request, liferayPortletRequest, liferayPortletResponse, pushNotificationsDeviceSearchContainer) %>"
+/>
 
-		<liferay-frontend:management-bar-filters>
-			<liferay-frontend:management-bar-navigation
-				navigationKeys='<%= new String[] {"all"} %>'
-				portletURL="<%= renderResponse.createRenderURL() %>"
-			/>
-
-			<liferay-frontend:management-bar-sort
-				orderByCol="<%= orderByCol %>"
-				orderByType="<%= orderByType %>"
-				orderColumns='<%= new String[] {"platform"} %>'
-				portletURL='<%=
-					PortletURLBuilder.createRenderURL(
-						renderResponse
-					).setParameter(
-						"displayStyle", displayStyle
-					).buildPortletURL()
-				%>'
-			/>
-		</liferay-frontend:management-bar-filters>
-	</liferay-frontend:management-bar>
-</c:if>
-
-<div class="container-fluid container-fluid-max-xl">
+<clay:container-fluid>
 	<liferay-ui:search-container
-		emptyResultsMessage="there-are-no-devices"
-		iteratorURL="<%= portletURL %>"
-		total="<%= pushNotificationsDevicesCount %>"
+		searchContainer="<%= pushNotificationsDeviceSearchContainer %>"
 	>
-		<liferay-ui:search-container-results
-			results="<%= PushNotificationsDeviceLocalServiceUtil.getPushNotificationsDevices(searchContainer.getStart(), searchContainer.getEnd(), orderByComparator) %>"
-		/>
-
 		<liferay-ui:search-container-row
 			className="com.liferay.push.notifications.model.PushNotificationsDevice"
 			escapedModel="<%= true %>"
@@ -81,11 +49,13 @@ ResourceBundleLoaderProvider resourceBundleLoaderProvider = (ResourceBundleLoade
 			%>
 
 			<liferay-ui:search-container-column-text
+				cssClass="table-cell-expand table-title"
 				name="full-name"
 				value="<%= deviceUser.getFullName() %>"
 			/>
 
 			<liferay-ui:search-container-column-text
+				cssClass="table-cell-expand"
 				property="token"
 			/>
 
@@ -96,12 +66,12 @@ ResourceBundleLoaderProvider resourceBundleLoaderProvider = (ResourceBundleLoade
 			%>
 
 			<liferay-ui:search-container-column-text
+				cssClass="table-cell-expand"
 				name="platform"
 				value="<%= LanguageUtil.get(platformResourceBundle, pushNotificationsDevice.getPlatform()) %>"
 			/>
 
 			<liferay-ui:search-container-column-jsp
-				cssClass="autofit-col"
 				path="/push_notifications_device_action.jsp"
 			/>
 		</liferay-ui:search-container-row>
@@ -110,4 +80,4 @@ ResourceBundleLoaderProvider resourceBundleLoaderProvider = (ResourceBundleLoade
 			markupView="lexicon"
 		/>
 	</liferay-ui:search-container>
-</div>
+</clay:container-fluid>

@@ -34,15 +34,12 @@ definition {
 			var maliciousUrl1 = '''
 					http://localhost:8080/group/control_panel/manage?p_p_id=132&p_p_lifecycle=0&p_p_state=maximized&p_p_mode=view&_132_struts_action=%2Fplugins_admin%2Fedit_plugin&_132_pluginId=116&_132_pluginType=portlet&_132_title=Activities&_132_moduleId=%3Cscript%3Ealert(%22xss%22);%3C/script%3E
 				''';
-
 			var maliciousUrl2 = '''
 					http://localhost:8080/group/control_panel/manage?p_p_id=132&p_p_lifecycle=0&p_p_state=maximized&p_p_mode=view&_132_struts_action=%2Fplugins_admin%2Fedit_plugin&_132_pluginId=116&_132_pluginType=portlet&_132_title=Activities&_132_moduleId=%3Cscript%3Ealert(%22xss%22);%3C/script%3E&_2_backURL=%22%3E%3Cscript%3Ealert%28%27xss%27%29;%3C/script%3E
 				''';
-
 			var maliciousUrl3 = '''
 					http://localhost:8080/group/control_panel/manage?p_p_id=132&p_p_lifecycle=0&p_p_state=maximized&p_p_mode=view&_132_struts_action=%2Fplugins_admin%2Fedit_plugin&_132_pluginId=116&_132_pluginType=portlet&_132_title=Activities&_132_moduleId=%3Cscript%3Ealert(%22xss%22);%3C/script%3E&_2_backURL=alert%28%27xss%27%29
 				''';
-
 			var maliciousUrl4 = '''
 					http://localhost:8080/html/portal/progress_poller.jsp?ProgressId=a%3D1%3Balert(document.cookie)%3B%2F%2F
 				''';
@@ -72,19 +69,15 @@ definition {
 			var maliciousUrl1 = '''
 					${portalURL}/group/guest/home?p_p_id=82&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&p_p_col_id=column-1&p_p_col_pos=1&p_p_col_count=2&_82_struts_action=%2Flanguage%2Fview&languageId=&lt;/script&gt;&lt;script&gt;alert(document.domain)&lt;/script>
 				''';
-
 			var maliciousUrl2 = '''
 					${portalURL}/group/guest/home?p_p_id=82&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&p_p_col_id=column-1&p_p_col_pos=1&p_p_col_count=2&_82_struts_action=%2Flanguage%2Fview&languageId=&lt;/script&gt;&lt;script&gt;alert(document.domain)&lt;/script&gt;
 				''';
-
 			var maliciousUrl3 = '''
 					${portalURL}/group/guest/home?p_p_id=82&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&p_p_col_id=column-1&p_p_col_pos=1&p_p_col_count=2&_82_struts_action=%2Flanguage%2Fview&languageId=%3C/script%3E%3Cscript%3Ealert(document.domain)%3C/script%3E
 				''';
-
 			var maliciousUrl4 = '''
 					${portalURL}/group/guest/home?p_p_id=82&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&p_p_col_id=column-1&p_p_col_pos=1&p_p_col_count=2&_82_struts_action=%2Flanguage%2Fview&languageId=</script><script>alert(document.domain)</script>
 				''';
-
 			var maliciousUrl5 = '''
 					${portalURL}/web/guest/search?p_p_id=113&p_p_lifecycle=0&p_p_state=maximized&p_p_mode=view&_113_tabs1=background-styles
 				''';
@@ -188,7 +181,6 @@ definition {
 	@priority = "5"
 	test NoXSSVulnerabilityInForms {
 		var formDescription = '''<script>alert(222)</script>''';
-
 		var formName = '''<script>alert(111)</script>''';
 
 		task ("Add a form") {
@@ -200,7 +192,7 @@ definition {
 
 			Form.addTextField(fieldPositionNumber = "0");
 
-			Form.save();
+			Form.publishForm();
 		}
 
 		task ("Add Form page") {
@@ -234,7 +226,6 @@ definition {
 
 		task ("Assert correct HTML source text") {
 			var actualDescriptionScript = '''<script>alert(222)</script>''';
-
 			var escapedDescriptionScript = '''&lt;script&gt;alert(222)&lt;/script&gt;''';
 
 			AssertHTMLSourceTextNotPresent(value1 = "${actualDescriptionScript}");
@@ -242,7 +233,6 @@ definition {
 			AssertHTMLSourceTextPresent(value1 = "${escapedDescriptionScript}");
 
 			var actualNameScript = '''<script>alert(111)</script>''';
-
 			var escapedNameScript = '''&lt;script&gt;alert(111)&lt;/script&gt;''';
 
 			AssertHTMLSourceTextNotPresent(value1 = "${actualNameScript}");
@@ -293,7 +283,6 @@ definition {
 
 		task ("Assert right script present in HTML source text") {
 			var actualScript = '''<script>alert(123);</script>''';
-
 			var escapedScript = '''&lt;script&gt;alert(123);&lt;/script&gt;''';
 
 			AssertHTMLSourceTextNotPresent(value1 = "${actualScript}");
@@ -365,7 +354,6 @@ definition {
 
 		task ("Assert correct HTML source text") {
 			var actualScript = '''<script>alert(123);</script>''';
-
 			var escapedScript = '''&lt;script&gt;alert(123);&lt;/script&gt;''';
 
 			AssertHTMLSourceTextNotPresent(value1 = "${actualScript}");
@@ -374,19 +362,19 @@ definition {
 		}
 	}
 
-	@description = "This is a use case for LPS-123822, LPS-127611 and LPS-133261. View Piwik."
+	@description = "This is a use case for LPS-123822, LPS-127611 and LPS-133261. View Matomo."
 	@priority = "3"
-	test NoXSSVulnerabilityInPiwik {
-		property test.name.skip.portal.instance = "XSS#ViewPiwik";
+	test NoXSSVulnerabilityInMatomo {
+		property test.name.skip.portal.instance = "XSS#ViewMatomo";
 
-		task ("Edit piwik CP") {
+		task ("Edit matomo CP") {
 			var portalURL = PropsUtil.get("portal.url");
 
 			Site.openSiteSettingsAdmin(siteURLKey = "guest");
 
-			Site.editPiwikCP(
+			Site.editMatomoCP(
 				confirmationText = "123",
-				piwik = '''<script>alert(123);</script>''');
+				matomo = '''<script>alert(123);</script>''');
 		}
 
 		task ("Assert confirm 123") {
@@ -428,7 +416,6 @@ definition {
 
 		task ("Assert correct HTML source text") {
 			var actualScript = '''<script>alert(123);</script>''';
-
 			var escapedScript = '''&lt;script&gt;alert(123);&lt;/script&gt;''';
 
 			AssertHTMLSourceTextNotPresent(value1 = "${actualScript}");
@@ -470,8 +457,7 @@ definition {
 		}
 
 		task ("Assert correct HTML source text") {
-			var actualScript = '''<script>alert(123);</script>''';
-
+			var actualScript = ''' <script>alert(123);</script>''';
 			var escapedScript = '''&lt;script&gt;alert(123);&lt;/script&gt;''';
 
 			AssertHTMLSourceTextNotPresent(value1 = "${actualScript}");
@@ -505,7 +491,6 @@ definition {
 
 		task ("Assert correct HTML source text") {
 			var actualScript = '''<script>alert(123);</script>''';
-
 			var escapedScript = '''&lt;script&gt;alert(123);&lt;/script&gt;''';
 
 			AssertHTMLSourceTextNotPresent(value1 = "${actualScript}");
@@ -609,7 +594,6 @@ definition {
 
 		task ("Assert correct HTML source text") {
 			var actualScript = '''<script>alert(123);</script>''';
-
 			var escapedScript = '''&lt;script&gt;alert(123);&lt;/script&gt;''';
 
 			AssertHTMLSourceTextNotPresent(value1 = "${actualScript}");

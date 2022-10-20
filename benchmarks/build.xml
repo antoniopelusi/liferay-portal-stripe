@@ -3,10 +3,10 @@
 <project basedir="." default="run" name="benchmarks">
 	<import file="../build-common.xml" />
 
-	<target name="build-sample-sql">
+	<target depends="clean" name="build-sample-sql">
 		<gradle-execute dir="../modules/util/portal-tools-sample-sql-builder" task="jar" />
 
-		<property name="sample.sql.properties.file" value="${basedir}/benchmarks.properties" />
+		<echoproperties destfile="benchmarks-actual.properties" prefix="sample.sql." />
 
 		<java
 			classname="com.liferay.portal.tools.sample.sql.builder.SampleSQLBuilderLauncher"
@@ -21,15 +21,25 @@
 				<path refid="project.classpath" />
 			</classpath>
 			<sysproperty key="external-properties" value="com/liferay/portal/tools/dependencies/portal-tools.properties" />
-			<sysproperty key="sample-sql-properties" value="${sample.sql.properties.file}" />
+			<sysproperty key="sample-sql-properties" value="${basedir}/benchmarks-actual.properties" />
 		</java>
+
+		<if>
+			<istrue value="${sample.sql.output.merge}" />
+			<then>
+				<echo>Use ${basedir}/sample-${sample.sql.db.type}.sql to load the database.</echo>
+			</then>
+			<else>
+				<echo>Use SQL files in ${basedir}/output to load the database.</echo>
+			</else>
+		</if>
 	</target>
 
 	<target name="clean">
 		<delete includeemptydirs="true">
 			<fileset
 				dir="."
-				includes="*.csv,*.sql,benchmarks-actual.properties,output/**,temp/**"
+				includes="*.csv,*.sql,benchmarks-actual.properties,liferay/**,output/**,temp/**"
 			/>
 		</delete>
 	</target>

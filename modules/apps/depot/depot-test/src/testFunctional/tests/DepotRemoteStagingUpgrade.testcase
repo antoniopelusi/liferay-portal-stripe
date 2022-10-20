@@ -1,0 +1,165 @@
+@component-name = "portal-upgrades"
+definition {
+
+	property custom.properties = "tunneling.servlet.shared.secret=1234567890123456${line.separator}auth.verifier.TunnelAuthVerifier.hosts.allowed=";
+	property database.types = "db2,mariadb,mysql,oracle,postgresql,sqlserver,sybase";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property test.assert.warning.exceptions = "true";
+	property testray.component.names = "Depot";
+	property testray.main.component.name = "Upgrades Lima";
+
+	setUp {
+		SignIn.signIn();
+
+		var portalURL = PropsUtil.get("portal.url");
+
+		AssertLocation.assertPartialLocation(value1 = "${portalURL}/web/guest");
+
+		SearchAdministration.executeReindex();
+	}
+
+	@description = "This test covers LPS-154493. It ensures that a blog small image can be published and rendered correctly after upgrading from 7.3.10.1."
+	@priority = "5"
+	test CanPublishBlogSmallImageAfterUpgradeFrom73101Archive {
+		property data.archive.type = "data-archive-depot-remote-staging-with-image";
+		property portal.version = "7.3.10.1";
+		property test.name.skip.portal.instance = "DepotRemoteStagingUpgrade#CanPublishBlogSmallImageAfterUpgradeFrom73101Archive";
+
+		DepotNavigator.openDepotDocumentsAndMediaAdmin(depotName = "Test Depot Name");
+
+		DepotNavigator.switchStagingStatus(stagingItem = "Publish to Live");
+
+		Staging.publishToLive(remoteStaging = "true");
+
+		BlogsNavigator.openToAddEntry(siteURLKey = "site-name");
+
+		BlogsEntry.addEntryContent(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title");
+
+		BlogsEntry.addSmallImage(
+			depotName = "Test Depot Name",
+			imageFileName = "Document_1.jpg",
+			navTab = "Documents and Media");
+
+		PortletEntry.publish();
+
+		Navigator.openSitePage(
+			pageName = "Test Page DM",
+			siteName = "Site Name");
+
+		Portlet.addPG(portletName = "Blogs");
+
+		Staging.gotoPublishToLive();
+
+		Staging.publishToLive(remoteStaging = "true");
+
+		Navigator.openSitePage(
+			pageName = "Test Page DM",
+			siteName = "Remote Site");
+
+		BlogsEntry.viewSmallImage(uploadFileName = "Document_1");
+	}
+
+	@description = "This test covers LPS-154489. It ensures that an image from an asset library can be published in a blog content field and correctly rendered after upgrading from 7.3.10.1."
+	@priority = "5"
+	test CanPublishImageInBlogContentFieldAfterUpgradeFrom73101Archive {
+		property data.archive.type = "data-archive-depot-remote-staging-with-image";
+		property portal.version = "7.3.10.1";
+		property test.name.skip.portal.instance = "DepotRemoteStagingUpgrade#CanPublishImageInBlogContentFieldAfterUpgradeFrom73101Archive";
+
+		DepotNavigator.openDepotDocumentsAndMediaAdmin(depotName = "Test Depot Name");
+
+		DepotNavigator.switchStagingStatus(stagingItem = "Publish to Live");
+
+		Staging.publishToLive(remoteStaging = "true");
+
+		BlogsNavigator.openToAddEntry(siteURLKey = "site-name");
+
+		BlogsEntry.addTitle(entryTitle = "Blogs Entry Title");
+
+		BlogsEntry.addContentWithInlineImage(
+			depotName = "Test Depot Name",
+			entryContent = "Blogs Entry Content",
+			imageFileName = "Document_1.jpg",
+			navTab = "Documents and Media");
+
+		PortletEntry.publish();
+
+		Navigator.openSitePage(
+			pageName = "Test Page DM",
+			siteName = "Site Name");
+
+		Portlet.addPG(portletName = "Blogs");
+
+		Staging.gotoPublishToLive();
+
+		Staging.publishToLive(remoteStaging = "true");
+
+		Navigator.openSitePage(
+			pageName = "Test Page DM",
+			siteName = "Remote Site");
+
+		BlogsNavigator.gotoEntryPG(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title");
+
+		BlogsEntry.viewInlineImage(uploadFileName = "Document_1.jpg");
+	}
+
+	@description = "This test covers LPS-154497. It ensures that an image from an asset library can be rendered correctly in a Media Gallery widget after upgrading from 7.3.10.1."
+	@priority = "5"
+	test CanPublishImageInMGAfterUpgradeFrom73101Archive {
+		property data.archive.type = "data-archive-depot-remote-staging-with-image";
+		property portal.version = "7.3.10.1";
+		property test.name.skip.portal.instance = "DepotRemoteStagingUpgrade#CanPublishImageInMGAfterUpgradeFrom73101Archive";
+
+		DepotNavigator.openDepotDocumentsAndMediaAdmin(depotName = "Test Depot Name");
+
+		DepotNavigator.switchStagingStatus(stagingItem = "Publish to Live");
+
+		Staging.publishToLive(remoteStaging = "true");
+
+		Navigator.openSitePage(
+			pageName = "Test Page DM",
+			siteName = "Site Name");
+
+		Portlet.addPG(portletName = "Media Gallery");
+
+		MGPortlet.setRootFolder(
+			depotName = "Test Depot Name",
+			selectRootFolder = "true");
+
+		Navigator.openSitePage(
+			pageName = "Test Page DM",
+			siteName = "Site Name");
+
+		Staging.gotoPublishToLive();
+
+		Staging.publishToLive(remoteStaging = "true");
+
+		Navigator.openSitePage(
+			pageName = "Test Page DM",
+			siteName = "Remote Site");
+
+		DMDocument.viewPGViaMG(
+			mgDocumentTitle = "Document_1.jpg",
+			staging = "true");
+	}
+
+	@priority = "5"
+	@refactordone
+	test ViewDepotRemoteStagingArchive73101 {
+		property data.archive.type = "data-archive-depot-remote-staging";
+		property portal.version = "7.3.10.1";
+		property test.name.skip.portal.instance = "DepotRemoteStagingUpgrade#ViewDepotRemoteStagingArchive73101";
+
+		Upgrade.publishDMsInRemoteStagingDepot();
+
+		Upgrade.publishWCsInRemoteStagingDepot();
+
+		Upgrade.publishCollectionsInRemoteStagingDepot();
+	}
+
+}

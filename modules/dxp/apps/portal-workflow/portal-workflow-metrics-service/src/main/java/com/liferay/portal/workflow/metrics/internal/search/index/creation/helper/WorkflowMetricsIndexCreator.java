@@ -23,18 +23,16 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.transaction.TransactionCommitCallbackUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.search.engine.adapter.SearchEngineAdapter;
+import com.liferay.portal.search.engine.adapter.search.CountSearchRequest;
+import com.liferay.portal.search.engine.adapter.search.CountSearchResponse;
+import com.liferay.portal.search.query.Queries;
 import com.liferay.portal.workflow.metrics.internal.background.task.WorkflowMetricsReindexBackgroundTaskExecutor;
 import com.liferay.portal.workflow.metrics.internal.search.index.WorkflowMetricsIndex;
 
 import java.io.Serializable;
 
-import java.util.Objects;
-
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.osgi.service.component.annotations.ReferencePolicy;
-import org.osgi.service.component.annotations.ReferencePolicyOption;
 
 /**
  * @author Inácio Nery
@@ -43,11 +41,13 @@ import org.osgi.service.component.annotations.ReferencePolicyOption;
 public class WorkflowMetricsIndexCreator {
 
 	public void createIndex(Company company) throws PortalException {
-		if (Objects.isNull(_searchEngineAdapter)) {
+		boolean indexCreated = _instanceWorkflowMetricsIndex.createIndex(
+			company.getCompanyId());
+
+		if (!indexCreated) {
 			return;
 		}
 
-		_instanceWorkflowMetricsIndex.createIndex(company.getCompanyId());
 		_nodeWorkflowMetricsIndex.createIndex(company.getCompanyId());
 		_processWorkflowMetricsIndex.createIndex(company.getCompanyId());
 		_slaInstanceResultWorkflowMetricsIndex.createIndex(
@@ -55,17 +55,25 @@ public class WorkflowMetricsIndexCreator {
 		_slaTaskResultWorkflowMetricsIndex.createIndex(company.getCompanyId());
 		_taskWorkflowMetricsIndex.createIndex(company.getCompanyId());
 		_transitionWorkflowMetricsIndex.createIndex(company.getCompanyId());
+	}
 
+	public void reindex(Company company) {
 		TransactionCommitCallbackUtil.registerCallback(
 			() -> {
-				int count = _backgroundTaskLocalService.getBackgroundTasksCount(
-					company.getGroupId(),
-					WorkflowMetricsIndexCreator.class.getSimpleName(),
-					WorkflowMetricsReindexBackgroundTaskExecutor.class.
-						getName(),
-					false);
+				CountSearchRequest countSearchRequest =
+					new CountSearchRequest();
 
-				if (count > 0) {
+				countSearchRequest.setIndexNames(
+					_processWorkflowMetricsIndex.getIndexName(
+						company.getCompanyId()));
+				countSearchRequest.setQuery(_queries.booleanQuery());
+				countSearchRequest.setTypes(
+					_processWorkflowMetricsIndex.getIndexType());
+
+				CountSearchResponse countSearchResponse =
+					_searchEngineAdapter.execute(countSearchRequest);
+
+				if (countSearchResponse.getCount() > 0) {
 					return null;
 				}
 
@@ -94,11 +102,13 @@ public class WorkflowMetricsIndexCreator {
 	}
 
 	public void removeIndex(Company company) throws PortalException {
-		if (Objects.isNull(_searchEngineAdapter)) {
+		boolean indexRemoved = _instanceWorkflowMetricsIndex.removeIndex(
+			company.getCompanyId());
+
+		if (!indexRemoved) {
 			return;
 		}
 
-		_instanceWorkflowMetricsIndex.removeIndex(company.getCompanyId());
 		_nodeWorkflowMetricsIndex.removeIndex(company.getCompanyId());
 		_processWorkflowMetricsIndex.removeIndex(company.getCompanyId());
 		_slaInstanceResultWorkflowMetricsIndex.removeIndex(
@@ -120,12 +130,10 @@ public class WorkflowMetricsIndexCreator {
 	@Reference(target = "(workflow.metrics.index.entity.name=process)")
 	private WorkflowMetricsIndex _processWorkflowMetricsIndex;
 
-	@Reference(
-		cardinality = ReferenceCardinality.OPTIONAL,
-		policy = ReferencePolicy.DYNAMIC,
-		policyOption = ReferencePolicyOption.GREEDY,
-		target = "(search.engine.impl=Elasticsearch)"
-	)
+	@Reference
+	private Queries _queries;
+
+	@Reference(target = "(search.engine.impl=Elasticsearch)")
 	private volatile SearchEngineAdapter _searchEngineAdapter;
 
 	@Reference(

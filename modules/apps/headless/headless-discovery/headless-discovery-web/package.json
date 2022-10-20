@@ -2,7 +2,7 @@
 	"dependencies": {
 		"graphiql": "1.4.7",
 		"graphql": "^15.0.0",
-		"swagger-ui-react": "^3.48.0"
+		"swagger-ui-react": "^4.1.3"
 	},
 	"name": "headless-discovery-web",
 	"scripts": {
@@ -11,5 +11,5 @@
 		"format": "liferay-npm-scripts fix",
 		"start": "liferay-npm-scripts webpack --env=development"
 	},
-	"version": "4.0.22"
+	"version": "4.0.27"
 }

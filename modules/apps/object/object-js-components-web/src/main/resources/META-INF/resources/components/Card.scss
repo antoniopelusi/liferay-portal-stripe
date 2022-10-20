@@ -1,0 +1,72 @@
+@import 'atlas-variables';
+
+.lfr-objects__card {
+	background-color: $white;
+	border: 1px solid $gray-300;
+	border-radius: 4px;
+	margin: 1.5rem 1.5rem 0;
+
+	&--inline {
+		align-items: center;
+		color: $secondary;
+		display: flex;
+		font-weight: 600;
+		gap: 1rem;
+		margin: 0;
+		padding: 1.5rem;
+	}
+
+	&--no-margin {
+		margin: 0;
+	}
+
+	&-body {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+		padding: 1.5rem;
+
+		&--inline {
+			align-items: center;
+			flex-direction: row;
+			gap: 1rem;
+			padding: 0;
+
+			.has-error {
+				position: relative;
+				top: 12px;
+			}
+		}
+
+		&--no-padding {
+			padding: 0;
+		}
+	}
+
+	&-header {
+		align-items: baseline;
+		border-bottom: 1px solid $gray-300;
+		display: flex;
+		padding: 1.5rem;
+
+		&-tooltip-icon {
+			color: $secondary-l1;
+		}
+
+		&-tooltip-icon:hover {
+			color: $secondary-d1;
+		}
+	}
+
+	&-title {
+		margin: 0;
+
+		&--with-padding {
+			padding: 8px 46px 8px 16px;
+		}
+	}
+
+	.form-group {
+		margin-bottom: 0;
+	}
+}

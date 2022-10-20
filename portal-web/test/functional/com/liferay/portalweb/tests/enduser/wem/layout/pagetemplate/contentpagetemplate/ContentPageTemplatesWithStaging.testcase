@@ -62,7 +62,7 @@ definition {
 		}
 
 		task ("Publish the page template") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 	}
 
@@ -113,7 +113,7 @@ definition {
 		}
 
 		task ("Publish the content page") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Navigate to the content page in the staging site") {
@@ -204,11 +204,11 @@ definition {
 		task ("Configure the styles of Button") {
 			PageEditor.gotoStyle(fragmentName = "Button");
 
-			PageEditor.configureFragment(alignment = "Center");
+			PageEditor.configureFragment(alignment = "Align Center");
 
 			PageEditor.viewFragmentStyle(
 				alignment = "center",
-				fragmentName = "button");
+				fragmentName = "Button");
 		}
 
 		task ("Undo changes") {
@@ -221,7 +221,7 @@ definition {
 				index = "1",
 				locator1 = "Fragment#FRAGMENT_BODY",
 				locator2 = "text-align",
-				value1 = "left");
+				value1 = "start");
 
 			Click(
 				key_text = "undo",

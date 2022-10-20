@@ -101,6 +101,12 @@ public interface ContentSetElementResource {
 			return new ContentSetElementResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -146,6 +152,7 @@ public interface ContentSetElementResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -241,7 +248,7 @@ public interface ContentSetElementResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-delivery/v1.0/asset-libraries/{assetLibraryId}/content-sets/by-key/{key}/content-set-elements");
 
 			httpInvoker.path("assetLibraryId", assetLibraryId);
@@ -334,7 +341,7 @@ public interface ContentSetElementResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-delivery/v1.0/asset-libraries/{assetLibraryId}/content-sets/by-uuid/{uuid}/content-set-elements");
 
 			httpInvoker.path("assetLibraryId", assetLibraryId);
@@ -426,7 +433,7 @@ public interface ContentSetElementResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-delivery/v1.0/content-sets/{contentSetId}/content-set-elements");
 
 			httpInvoker.path("contentSetId", contentSetId);
@@ -518,7 +525,7 @@ public interface ContentSetElementResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-delivery/v1.0/sites/{siteId}/content-sets/by-key/{key}/content-set-elements");
 
 			httpInvoker.path("siteId", siteId);
@@ -611,7 +618,7 @@ public interface ContentSetElementResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-delivery/v1.0/sites/{siteId}/content-sets/by-uuid/{uuid}/content-set-elements");
 
 			httpInvoker.path("siteId", siteId);

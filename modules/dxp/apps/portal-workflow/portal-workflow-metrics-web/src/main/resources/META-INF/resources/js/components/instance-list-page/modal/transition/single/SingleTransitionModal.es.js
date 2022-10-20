@@ -50,6 +50,7 @@ export default function SingleTransitionModal() {
 			title: '',
 			transitionName: '',
 		});
+		window.location.reload();
 	};
 
 	const {observer, onClose} = useModal({

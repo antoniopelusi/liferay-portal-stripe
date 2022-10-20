@@ -1,4 +1,4 @@
-import com.liferay.gradle.plugins.node.tasks.PublishNodeModuleTask
+import com.liferay.gradle.plugins.node.task.PublishNodeModuleTask
 
 task publishNodeModule(type: PublishNodeModuleTask)
 

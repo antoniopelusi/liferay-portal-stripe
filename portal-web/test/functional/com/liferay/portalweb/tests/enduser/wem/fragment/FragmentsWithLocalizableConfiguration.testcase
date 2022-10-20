@@ -50,7 +50,6 @@ definition {
 
 		task ("Change to instance language to es-ES") {
 			var baseURL = PropsUtil.get("portal.url");
-
 			var currentURL = Navigator.getCurrentURL();
 
 			var localizedURL = StringUtil.replace("${currentURL}", "${baseURL}", "${baseURL}/es");
@@ -71,7 +70,7 @@ definition {
 
 			AssertVisible(
 				key_fieldSetLabel = "Marco",
-				locator1 = "PageEditor#COMMON_STYLES_FIELDSET_LABEL");
+				locator1 = "PageEditor#ITEM_CONFIGURATION_FIELDSET_LABEL");
 
 			AssertSelectedLabel(
 				key_fieldLabel = "Desbordamiento",
@@ -90,7 +89,7 @@ definition {
 			for (var fieldSetLabel : list "Espaciado,Texto,Fondo,Bordes,Efectos") {
 				AssertVisible(
 					key_fieldSetLabel = "${fieldSetLabel}",
-					locator1 = "PageEditor#COMMON_STYLES_FIELDSET_LABEL");
+					locator1 = "PageEditor#ITEM_CONFIGURATION_FIELDSET_LABEL");
 			}
 
 			for (var fieldLabel : list "Margen,Relleno") {
@@ -152,7 +151,7 @@ definition {
 
 			FragmentsEditor.typeHtmlEditor(content = "${htmlSnippet}");
 
-			Pause(locator1 = "3000");
+			FragmentsEditor.waitForAutoSave();
 		}
 
 		task ("Type css codes in CSS section") {
@@ -163,13 +162,13 @@ definition {
 
 			FragmentsEditor.typeCssEditor(content = "${cssSnippet}");
 
-			Pause(locator1 = "3000");
+			FragmentsEditor.waitForAutoSave();
 		}
 
 		task ("Type json codes in Configuration section") {
 			FragmentsEditor.gotoConfigurationTab();
 
-			Pause(locator1 = "3000");
+			FragmentsEditor.waitForAutoSave();
 
 			var jsonSnippet = '''
 {
@@ -193,7 +192,7 @@ definition {
 
 			FragmentsEditor.typeConfigurationEditor(content = "${jsonSnippet}");
 
-			Pause(locator1 = "3000");
+			FragmentsEditor.waitForAutoSave();
 
 			PortletEntry.publish();
 		}
@@ -218,13 +217,13 @@ definition {
 			PageEditorConfiguration.changeConfigText(
 				editableText = "Ir a alguna parte",
 				fragmentName = "Fragment Name",
-				textConfigName = "buttonText");
+				textConfigName = "Button Text");
 		}
 
 		task ("Assert localized content is shown in Button Text field") {
-			FormFields.viewTextValue(
-				fieldName = "buttonText",
-				fieldValue = "Ir a alguna parte");
+			InputField.viewText(
+				fieldLabel = "Button Text",
+				text = "Ir a alguna parte");
 		}
 
 		task ("Assert localized content is shown in fragment") {
@@ -241,9 +240,9 @@ definition {
 		}
 
 		task ("Assert Go Somewhere is shown in Button Text field") {
-			FormFields.viewTextValue(
-				fieldName = "buttonText",
-				fieldValue = "Go Somewhere");
+			InputField.viewText(
+				fieldLabel = "Button Text",
+				text = "Go Somewhere");
 		}
 
 		task ("Assert Go Somewhere is shown in fragment") {
@@ -260,9 +259,9 @@ definition {
 		}
 
 		task ("Assert Ir a alguna parte is shown in Button Text field") {
-			FormFields.viewTextValue(
-				fieldName = "buttonText",
-				fieldValue = "Ir a alguna parte");
+			InputField.viewText(
+				fieldLabel = "Button Text",
+				text = "Ir a alguna parte");
 		}
 
 		task ("Assert Ir a alguna parte is shown in fragment") {

@@ -15,17 +15,10 @@
 package com.liferay.layout.taglib.internal.display.context;
 
 import com.liferay.asset.kernel.model.AssetRendererFactory;
-import com.liferay.fragment.constants.FragmentActionKeys;
-import com.liferay.fragment.constants.FragmentConstants;
-import com.liferay.fragment.contributor.FragmentCollectionContributorTracker;
-import com.liferay.fragment.model.FragmentEntry;
+import com.liferay.fragment.helper.FragmentEntryLinkHelper;
 import com.liferay.fragment.model.FragmentEntryLink;
-import com.liferay.fragment.renderer.FragmentRenderer;
-import com.liferay.fragment.renderer.FragmentRendererTracker;
 import com.liferay.fragment.service.FragmentEntryLinkLocalServiceUtil;
-import com.liferay.fragment.service.FragmentEntryLocalServiceUtil;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
-import com.liferay.layout.content.page.editor.constants.ContentPageEditorWebKeys;
 import com.liferay.layout.model.LayoutClassedModelUsage;
 import com.liferay.layout.page.template.constants.LayoutPageTemplateEntryTypeConstants;
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
@@ -59,7 +52,6 @@ import com.liferay.portal.kernel.util.WebKeys;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.ResourceBundle;
 
@@ -84,13 +76,9 @@ public class LayoutClassedModelUsagesDisplayContext {
 		_classPK = classPK;
 
 		_classNameId = PortalUtil.getClassNameId(className);
-		_fragmentCollectionContributorTracker =
-			(FragmentCollectionContributorTracker)renderRequest.getAttribute(
-				ContentPageEditorWebKeys.
-					FRAGMENT_COLLECTION_CONTRIBUTOR_TRACKER);
-		_fragmentRendererTracker =
-			(FragmentRendererTracker)renderRequest.getAttribute(
-				FragmentActionKeys.FRAGMENT_RENDERER_TRACKER);
+		_fragmentEntryLinkHelper =
+			(FragmentEntryLinkHelper)renderRequest.getAttribute(
+				FragmentEntryLinkHelper.class.getName());
 
 		_themeDisplay = (ThemeDisplay)_renderRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
@@ -223,15 +211,14 @@ public class LayoutClassedModelUsagesDisplayContext {
 					GetterUtil.getLong(
 						layoutClassedModelUsage.getContainerKey()));
 
-			String name = _getFragmentEntryName(fragmentEntryLink);
+			String name = _fragmentEntryLinkHelper.getFragmentEntryName(
+				fragmentEntryLink, _themeDisplay.getLocale());
 
 			if (Validator.isNull(name)) {
 				return StringPool.BLANK;
 			}
 
-			if (_getType(fragmentEntryLink) ==
-					FragmentConstants.TYPE_COMPONENT) {
-
+			if (!fragmentEntryLink.isTypeSection()) {
 				return LanguageUtil.format(_resourceBundle, "x-element", name);
 			}
 
@@ -459,43 +446,6 @@ public class LayoutClassedModelUsagesDisplayContext {
 		return true;
 	}
 
-	private String _getFragmentEntryName(FragmentEntryLink fragmentEntryLink) {
-		FragmentEntry fragmentEntry =
-			FragmentEntryLocalServiceUtil.fetchFragmentEntry(
-				fragmentEntryLink.getFragmentEntryId());
-
-		if (fragmentEntry != null) {
-			return fragmentEntry.getName();
-		}
-
-		String rendererKey = fragmentEntryLink.getRendererKey();
-
-		if (Validator.isNull(rendererKey)) {
-			return StringPool.BLANK;
-		}
-
-		Map<String, FragmentEntry> fragmentEntries =
-			_fragmentCollectionContributorTracker.getFragmentEntries(
-				_themeDisplay.getLocale());
-
-		FragmentEntry contributedFragmentEntry = fragmentEntries.get(
-			rendererKey);
-
-		if (contributedFragmentEntry != null) {
-			return contributedFragmentEntry.getName();
-		}
-
-		FragmentRenderer fragmentRenderer =
-			_fragmentRendererTracker.getFragmentRenderer(
-				fragmentEntryLink.getRendererKey());
-
-		if (fragmentRenderer != null) {
-			return fragmentRenderer.getLabel(_themeDisplay.getLocale());
-		}
-
-		return StringPool.BLANK;
-	}
-
 	private String _getOrderByCol() {
 		if (Validator.isNotNull(_orderByCol)) {
 			return _orderByCol;
@@ -518,48 +468,10 @@ public class LayoutClassedModelUsagesDisplayContext {
 		return _orderByType;
 	}
 
-	private int _getType(FragmentEntryLink fragmentEntryLink) {
-		FragmentEntry fragmentEntry =
-			FragmentEntryLocalServiceUtil.fetchFragmentEntry(
-				fragmentEntryLink.getFragmentEntryId());
-
-		if (fragmentEntry != null) {
-			return fragmentEntry.getType();
-		}
-
-		String rendererKey = fragmentEntryLink.getRendererKey();
-
-		if (Validator.isNull(rendererKey)) {
-			return 0;
-		}
-
-		Map<String, FragmentEntry> fragmentEntries =
-			_fragmentCollectionContributorTracker.getFragmentEntries();
-
-		FragmentEntry contributedFragmentEntry = fragmentEntries.get(
-			rendererKey);
-
-		if (contributedFragmentEntry != null) {
-			return contributedFragmentEntry.getType();
-		}
-
-		FragmentRenderer fragmentRenderer =
-			_fragmentRendererTracker.getFragmentRenderer(
-				fragmentEntryLink.getRendererKey());
-
-		if (fragmentRenderer != null) {
-			return fragmentRenderer.getType();
-		}
-
-		return 0;
-	}
-
 	private final String _className;
 	private final long _classNameId;
 	private final long _classPK;
-	private final FragmentCollectionContributorTracker
-		_fragmentCollectionContributorTracker;
-	private final FragmentRendererTracker _fragmentRendererTracker;
+	private final FragmentEntryLinkHelper _fragmentEntryLinkHelper;
 	private String _navigation;
 	private String _orderByCol;
 	private String _orderByType;

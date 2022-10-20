@@ -10,8 +10,7 @@
  */
 
 import {createContext, useContext, useEffect, useReducer} from 'react';
-import client from '../../../apolloClient';
-import {useApplicationProvider} from '../../../common/context/AppPropertiesProvider';
+import {useAppPropertiesContext} from '../../../common/contexts/AppPropertiesContext';
 import {Liferay} from '../../../common/services/liferay';
 import {
 	addAccountFlag,
@@ -33,11 +32,10 @@ const AppContext = createContext();
 
 const MAX_PAGE_SIZE = 9999;
 
-const AppContextProvider = ({assetsPath, children}) => {
-	const {oktaSessionURL} = useApplicationProvider();
+const AppContextProvider = ({children}) => {
+	const {client, oktaSessionAPI} = useAppPropertiesContext();
 	const [state, dispatch] = useReducer(reducer, {
 		analyticsCloudActivationSubmittedStatus: undefined,
-		assetsPath,
 		dxpCloudActivationSubmittedStatus: undefined,
 		koroneikiAccount: {},
 		project: undefined,
@@ -68,6 +66,14 @@ const AppContextProvider = ({assetsPath, children}) => {
 						({name}) => name === ROLE_TYPES.admin.key
 					);
 
+				const isAccountProvisioning = !!data.userAccount?.accountBriefs
+					?.find(
+						({externalReferenceCode}) =>
+							externalReferenceCode ===
+							projectExternalReferenceCode
+					)
+					?.roleBriefs?.find(({name}) => name === 'Provisioning');
+
 				const isStaff = data.userAccount?.organizationBriefs?.some(
 					(organization) => organization.name === 'Liferay Staff'
 				);
@@ -75,6 +81,7 @@ const AppContextProvider = ({assetsPath, children}) => {
 				const userAccount = {
 					...data.userAccount,
 					isAdmin: isAccountAdministrator,
+					isProvisioning: isAccountProvisioning,
 					isStaff,
 				};
 
@@ -151,7 +158,7 @@ const AppContextProvider = ({assetsPath, children}) => {
 		};
 
 		const getSessionId = async () => {
-			const session = await getCurrentSession(oktaSessionURL);
+			const session = await getCurrentSession(oktaSessionAPI);
 
 			if (session) {
 				dispatch({
@@ -165,7 +172,7 @@ const AppContextProvider = ({assetsPath, children}) => {
 			const {data} = await client.query({
 				query: getAccountSubscriptionGroups,
 				variables: {
-					filter: `accountKey eq '${accountKey}'`,
+					filter: `accountKey eq '${accountKey}' and hasActivation eq true`,
 				},
 			});
 
@@ -229,6 +236,7 @@ const AppContextProvider = ({assetsPath, children}) => {
 			}
 
 			const isValid = await isValidPage(
+				client,
 				user,
 				projectExternalReferenceCode,
 				ROUTE_TYPES.onboarding
@@ -252,6 +260,9 @@ const AppContextProvider = ({assetsPath, children}) => {
 					getTotalAdministratorAccounts(projectExternalReferenceCode);
 
 					client.mutate({
+						context: {
+							displaySuccess: false,
+						},
 						mutation: addAccountFlag,
 						variables: {
 							accountFlag: {
@@ -266,7 +277,7 @@ const AppContextProvider = ({assetsPath, children}) => {
 		};
 
 		fetchData();
-	}, [oktaSessionURL]);
+	}, [client, oktaSessionAPI]);
 
 	return (
 		<AppContext.Provider value={[state, dispatch]}>

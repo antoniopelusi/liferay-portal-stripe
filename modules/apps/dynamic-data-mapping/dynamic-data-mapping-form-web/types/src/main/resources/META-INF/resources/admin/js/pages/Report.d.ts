@@ -15,4 +15,4 @@
 /// <reference types="react" />
 
 import './Report.scss';
-export declare function Report(): JSX.Element;
+export default function Report(): JSX.Element;

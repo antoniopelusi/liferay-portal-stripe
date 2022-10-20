@@ -35,10 +35,6 @@ renderResponse.setTitle(objectDefinition.getLabel(locale, true));
 	fdsActionDropdownItems="<%= objectDefinitionsViewsDisplayContext.getFDSActionDropdownItems() %>"
 	formName="fm"
 	id="<%= ObjectDefinitionsFDSNames.OBJECT_VIEWS %>"
-	itemsPerPage="<%= 20 %>"
-	namespace="<%= liferayPortletResponse.getNamespace() %>"
-	pageNumber="<%= 1 %>"
-	portletURL="<%= liferayPortletResponse.createRenderURL() %>"
 	style="fluid"
 />
 
@@ -50,5 +46,11 @@ renderResponse.setTitle(objectDefinition.getLabel(locale, true));
 				"apiURL", objectDefinitionsViewsDisplayContext.getAPIURL()
 			).build()
 		%>'
+	/>
+</div>
+
+<div>
+	<react:component
+		module="js/components/ModalAddColumns"
 	/>
 </div>

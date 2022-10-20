@@ -106,13 +106,24 @@ public class ContentImagesUpgradeProcess extends UpgradeProcess {
 								getFileEntryFromURL(data);
 
 						if (fileEntry == null) {
-							JSONObject jsonObject =
-								JSONFactoryUtil.createJSONObject(data);
+							try {
+								JSONObject jsonObject =
+									JSONFactoryUtil.createJSONObject(data);
 
-							fileEntryId = GetterUtil.getLong(
-								jsonObject.get("fileEntryId"));
+								fileEntryId = GetterUtil.getLong(
+									jsonObject.get("fileEntryId"));
 
-							fileEntry = _getFileEntryByFileEntryId(fileEntryId);
+								fileEntry = _getFileEntryByFileEntryId(
+									fileEntryId);
+							}
+							catch (Exception exception) {
+								if (_log.isWarnEnabled()) {
+									_log.warn(
+										"Unable to get file entry " +
+											fileEntryId,
+										exception);
+								}
+							}
 						}
 					}
 				}
@@ -223,36 +234,27 @@ public class ContentImagesUpgradeProcess extends UpgradeProcess {
 		try (LoggingTimer loggingTimer = new LoggingTimer();
 			PreparedStatement preparedStatement1 = connection.prepareStatement(
 				"select id_, resourcePrimKey, groupId, companyId, userId, " +
-					"content from JournalArticle where content like ?")) {
+					"content from JournalArticle where content like " +
+						"'%type=\"image\"%'");
+			ResultSet resultSet = preparedStatement1.executeQuery();
+			PreparedStatement preparedStatement2 =
+				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
+					connection,
+					"update JournalArticle set content = ? where id_ = ?")) {
 
-			preparedStatement1.setString(1, "%type=\"image\"%");
+			while (resultSet.next()) {
+				preparedStatement2.setString(
+					1,
+					_convertTypeImageElements(
+						resultSet.getLong(5), resultSet.getLong(3),
+						resultSet.getLong(4), resultSet.getString(6),
+						resultSet.getLong(2)));
+				preparedStatement2.setLong(2, resultSet.getLong(1));
 
-			ResultSet resultSet1 = preparedStatement1.executeQuery();
-
-			while (resultSet1.next()) {
-				long id = resultSet1.getLong(1);
-
-				long resourcePrimKey = resultSet1.getLong(2);
-				long groupId = resultSet1.getLong(3);
-				long companyId = resultSet1.getLong(4);
-				long userId = resultSet1.getLong(5);
-				String content = resultSet1.getString(6);
-
-				String newContent = _convertTypeImageElements(
-					userId, groupId, companyId, content, resourcePrimKey);
-
-				try (PreparedStatement preparedStatement2 =
-						AutoBatchPreparedStatementUtil.concurrentAutoBatch(
-							connection,
-							"update JournalArticle set content = ? where id_ " +
-								"= ?")) {
-
-					preparedStatement2.setString(1, newContent);
-					preparedStatement2.setLong(2, id);
-
-					preparedStatement2.executeUpdate();
-				}
+				preparedStatement2.addBatch();
 			}
+
+			preparedStatement2.executeBatch();
 		}
 	}
 

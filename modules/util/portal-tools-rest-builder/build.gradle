@@ -12,13 +12,14 @@ buildPluginDescriptor {
 
 dependencies {
 	compile group: "com.puppycrawl.tools", name: "checkstyle", version: "8.29"
-	compile group: "commons-io", name: "commons-io", version: "2.8.0"
+	compile group: "commons-io", name: "commons-io", version: "2.11.0"
 	compile group: "org.freemarker", name: "freemarker", transitive: false, version: "2.3.28"
 
 	compileInclude group: "com.beust", name: "jcommander", version: "1.48"
 	compileInclude group: "org.yaml", name: "snakeyaml", version: "1.27"
 	compileInclude project(":apps:portal-vulcan:portal-vulcan-api")
 
+	compileOnly group: "com.liferay", name: "com.liferay.petra.io", version: "5.0.5"
 	compileOnly group: "com.liferay", name: "com.liferay.petra.lang", version: "1.0.0"
 	compileOnly group: "com.liferay", name: "com.liferay.petra.string", version: "5.0.1"
 	compileOnly group: "com.liferay", name: "com.liferay.portal.tools.java.parser", version: "1.0.41"
@@ -56,4 +57,14 @@ updateFileVersions {
 	match(/\t\t\t\t<version>(\d.+)<\/version>/, "samples/pom.xml")
 	match(/com\.liferay\.portal\.tools\.rest\.builder=(\d.+)/, "../../sdk/gradle-plugins/src/main/resources/com/liferay/gradle/plugins/dependencies/portal-tools.properties")
 	match(/\t\t<dependency name="com.liferay.portal.tools.rest.builder" org="com.liferay" rev="(\d.+)" \/>/, "../../../tools/sdk/dependencies/com.liferay.portal.tools.rest.builder/ivy.xml")
+
+	replaceOnlyIf([{
+		String group, String replacement, String content, File contentFile ->
+
+		if (contentFile.parentFile.name == "__artifactId__-impl") {
+			return false
+		}
+
+		return true
+	}])
 }

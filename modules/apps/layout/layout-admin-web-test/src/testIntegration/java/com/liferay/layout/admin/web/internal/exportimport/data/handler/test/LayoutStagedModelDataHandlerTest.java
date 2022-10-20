@@ -17,8 +17,8 @@ package com.liferay.layout.admin.web.internal.exportimport.data.handler.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
-import com.liferay.document.library.kernel.service.DLAppLocalServiceUtil;
-import com.liferay.document.library.util.DLURLHelperUtil;
+import com.liferay.document.library.kernel.service.DLAppLocalService;
+import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.exportimport.kernel.lar.PortletDataContextFactoryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.exportimport.kernel.lifecycle.ExportImportLifecycleManagerUtil;
@@ -26,17 +26,26 @@ import com.liferay.exportimport.kernel.lifecycle.constants.ExportImportLifecycle
 import com.liferay.exportimport.test.util.lar.BaseStagedModelDataHandlerTestCase;
 import com.liferay.friendly.url.model.FriendlyURLEntry;
 import com.liferay.friendly.url.service.FriendlyURLEntryLocalServiceUtil;
+import com.liferay.layout.test.util.ContentLayoutTestUtil;
 import com.liferay.layout.test.util.LayoutTestUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutFriendlyURL;
+import com.liferay.portal.kernel.model.PortletPreferencesIds;
 import com.liferay.portal.kernel.model.StagedModel;
+import com.liferay.portal.kernel.portlet.PortletIdCodec;
+import com.liferay.portal.kernel.portlet.PortletPreferencesFactory;
+import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
-import com.liferay.portal.kernel.service.LayoutFriendlyURLLocalServiceUtil;
-import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
+import com.liferay.portal.kernel.service.CompanyLocalService;
+import com.liferay.portal.kernel.service.LayoutFriendlyURLLocalService;
+import com.liferay.portal.kernel.service.LayoutLocalService;
+import com.liferay.portal.kernel.service.PortletPreferencesLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
@@ -46,20 +55,35 @@ import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.xml.Document;
+import com.liferay.portal.kernel.xml.Element;
+import com.liferay.portal.kernel.xml.SAXReaderUtil;
+import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+
+import javax.portlet.Portlet;
+import javax.portlet.PortletPreferences;
 
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.ServiceRegistration;
 
 /**
  * @author Máté Thurzó
@@ -74,6 +98,92 @@ public class LayoutStagedModelDataHandlerTest
 		new LiferayIntegrationTestRule();
 
 	@Test
+	public void testCompanyScopedPortletOnContentLayoutHasCorrectAttributes()
+		throws Exception {
+
+		ServiceRegistration<Portlet> serviceRegistration =
+			_registerTestPortlet();
+
+		try {
+			initExport();
+
+			Layout layout = LayoutTestUtil.addTypeContentLayout(stagingGroup);
+
+			Layout draftLayout = layout.fetchDraftLayout();
+
+			String portletId = _addPortletToLayout(draftLayout);
+
+			PortletPreferencesIds portletPreferencesIds =
+				_portletPreferencesFactory.getPortletPreferencesIds(
+					draftLayout.getCompanyId(), draftLayout.getGroupId(), 0,
+					draftLayout.getPlid(), portletId);
+
+			PortletPreferences jxPortletPreferences =
+				_portletPreferencesLocalService.fetchPreferences(
+					portletPreferencesIds);
+
+			jxPortletPreferences.setValue("lfrScopeType", "company");
+
+			_portletPreferencesLocalService.updatePreferences(
+				portletPreferencesIds.getOwnerId(),
+				portletPreferencesIds.getOwnerType(),
+				portletPreferencesIds.getPlid(),
+				portletPreferencesIds.getPortletId(), jxPortletPreferences);
+
+			ContentLayoutTestUtil.publishLayout(draftLayout, layout);
+
+			StagedModelDataHandlerUtil.exportStagedModel(
+				portletDataContext, layout);
+
+			initImport();
+
+			Company company = _companyLocalService.getCompany(
+				liveGroup.getCompanyId());
+
+			validatePortletAttributes(
+				layout.getUuid(), portletId, company.getGroupId(), "company");
+		}
+		finally {
+			serviceRegistration.unregister();
+		}
+	}
+
+	@Test
+	public void testCompanyScopedPortletOnPortletLayoutHasCorrectAttributes()
+		throws Exception {
+
+		ServiceRegistration<Portlet> serviceRegistration =
+			_registerTestPortlet();
+
+		try {
+			initExport();
+
+			Layout layout = LayoutTestUtil.addTypePortletLayout(
+				stagingGroup.getGroupId());
+
+			String portletId = LayoutTestUtil.addPortletToLayout(
+				layout, _TEST_PORTLET_NAME,
+				HashMapBuilder.put(
+					"lfrScopeType", new String[] {"company"}
+				).build());
+
+			StagedModelDataHandlerUtil.exportStagedModel(
+				portletDataContext, layout);
+
+			initImport();
+
+			Company company = _companyLocalService.getCompany(
+				liveGroup.getCompanyId());
+
+			validatePortletAttributes(
+				layout.getUuid(), portletId, company.getGroupId(), "company");
+		}
+		finally {
+			serviceRegistration.unregister();
+		}
+	}
+
+	@Test
 	public void testTypeLinkToLayout() throws Exception {
 		initExport();
 
@@ -83,7 +193,7 @@ public class LayoutStagedModelDataHandlerTest
 		Layout linkedLayout = LayoutTestUtil.addTypePortletLayout(stagingGroup);
 
 		List<LayoutFriendlyURL> linkedLayoutFriendlyURLs =
-			LayoutFriendlyURLLocalServiceUtil.getLayoutFriendlyURLs(
+			_layoutFriendlyURLLocalService.getLayoutFriendlyURLs(
 				linkedLayout.getPlid());
 
 		addDependentStagedModel(
@@ -96,7 +206,7 @@ public class LayoutStagedModelDataHandlerTest
 			stagingGroup.getGroupId(), linkedLayout.getLayoutId());
 
 		List<LayoutFriendlyURL> layoutFriendlyURLs =
-			LayoutFriendlyURLLocalServiceUtil.getLayoutFriendlyURLs(
+			_layoutFriendlyURLLocalService.getLayoutFriendlyURLs(
 				layout.getPlid());
 
 		_addDependentFriendlyURLEntries(dependentStagedModelsMap, layout);
@@ -136,21 +246,21 @@ public class LayoutStagedModelDataHandlerTest
 			PortletDataContextFactoryUtil.clonePortletDataContext(
 				portletDataContext));
 
-		LayoutLocalServiceUtil.getLayoutByUuidAndGroupId(
+		_layoutLocalService.getLayoutByUuidAndGroupId(
 			linkedLayout.getUuid(), liveGroup.getGroupId(), false);
 
 		LayoutFriendlyURL linkedLayoutFriendlyURL =
 			linkedLayoutFriendlyURLs.get(0);
 
-		LayoutFriendlyURLLocalServiceUtil.getLayoutFriendlyURLByUuidAndGroupId(
+		_layoutFriendlyURLLocalService.getLayoutFriendlyURLByUuidAndGroupId(
 			linkedLayoutFriendlyURL.getUuid(), liveGroup.getGroupId());
 
-		LayoutLocalServiceUtil.getLayoutByUuidAndGroupId(
+		_layoutLocalService.getLayoutByUuidAndGroupId(
 			layout.getUuid(), liveGroup.getGroupId(), false);
 
 		LayoutFriendlyURL layoutFriendlyURL = layoutFriendlyURLs.get(0);
 
-		LayoutFriendlyURLLocalServiceUtil.getLayoutFriendlyURLByUuidAndGroupId(
+		_layoutFriendlyURLLocalService.getLayoutFriendlyURLByUuidAndGroupId(
 			layoutFriendlyURL.getUuid(), liveGroup.getGroupId());
 	}
 
@@ -163,7 +273,7 @@ public class LayoutStagedModelDataHandlerTest
 
 		String fileName = "PDF_Test.pdf";
 
-		FileEntry fileEntry = DLAppLocalServiceUtil.addFileEntry(
+		FileEntry fileEntry = _dlAppLocalService.addFileEntry(
 			null, TestPropsValues.getUserId(), stagingGroup.getGroupId(),
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID, fileName,
 			ContentTypes.APPLICATION_PDF,
@@ -172,7 +282,7 @@ public class LayoutStagedModelDataHandlerTest
 			ServiceContextTestUtil.getServiceContext(
 				liveGroup.getGroupId(), TestPropsValues.getUserId()));
 
-		String stagingPreviewURL = DLURLHelperUtil.getPreviewURL(
+		String stagingPreviewURL = _dlURLHelper.getPreviewURL(
 			fileEntry, fileEntry.getFileVersion(), null, StringPool.BLANK);
 
 		addDependentStagedModel(
@@ -216,17 +326,15 @@ public class LayoutStagedModelDataHandlerTest
 				portletDataContext));
 
 		FileEntry importedFileEntry =
-			DLAppLocalServiceUtil.getFileEntryByUuidAndGroupId(
+			_dlAppLocalService.getFileEntryByUuidAndGroupId(
 				fileEntry.getUuid(), liveGroup.getGroupId());
 
-		String livePreviewURL = DLURLHelperUtil.getPreviewURL(
+		String livePreviewURL = _dlURLHelper.getPreviewURL(
 			importedFileEntry, importedFileEntry.getFileVersion(), null,
 			StringPool.BLANK);
 
-		Layout importedLayout =
-			LayoutLocalServiceUtil.getLayoutByUuidAndGroupId(
-				layout.getUuid(), liveGroup.getGroupId(),
-				layout.isPrivateLayout());
+		Layout importedLayout = _layoutLocalService.getLayoutByUuidAndGroupId(
+			layout.getUuid(), liveGroup.getGroupId(), layout.isPrivateLayout());
 
 		UnicodeProperties typeSettingsUnicodeProperties =
 			importedLayout.getTypeSettingsProperties();
@@ -282,7 +390,7 @@ public class LayoutStagedModelDataHandlerTest
 	protected StagedModel getStagedModel(String uuid, Group group)
 		throws PortalException {
 
-		return LayoutLocalServiceUtil.getLayoutByUuidAndGroupId(
+		return _layoutLocalService.getLayoutByUuidAndGroupId(
 			uuid, group.getGroupId(), false);
 	}
 
@@ -322,17 +430,17 @@ public class LayoutStagedModelDataHandlerTest
 
 		Layout parentLayout = (Layout)dependentStagedModels.get(0);
 
-		LayoutLocalServiceUtil.getLayoutByUuidAndGroupId(
+		_layoutLocalService.getLayoutByUuidAndGroupId(
 			parentLayout.getUuid(), group.getGroupId(), false);
 
 		List<LayoutFriendlyURL> parentLayoutFriendlyURLs =
-			LayoutFriendlyURLLocalServiceUtil.getLayoutFriendlyURLs(
+			_layoutFriendlyURLLocalService.getLayoutFriendlyURLs(
 				parentLayout.getPlid());
 
 		LayoutFriendlyURL parentLayoutFriendlyURL =
 			parentLayoutFriendlyURLs.get(0);
 
-		LayoutFriendlyURLLocalServiceUtil.getLayoutFriendlyURLByUuidAndGroupId(
+		_layoutFriendlyURLLocalService.getLayoutFriendlyURLByUuidAndGroupId(
 			parentLayoutFriendlyURL.getUuid(), group.getGroupId());
 	}
 
@@ -348,9 +456,8 @@ public class LayoutStagedModelDataHandlerTest
 
 		Layout layout = (Layout)stagedModel;
 
-		Layout importedLayout =
-			LayoutLocalServiceUtil.getLayoutByUuidAndGroupId(
-				layout.getUuid(), group.getGroupId(), layout.isPrivateLayout());
+		Layout importedLayout = _layoutLocalService.getLayoutByUuidAndGroupId(
+			layout.getUuid(), group.getGroupId(), layout.isPrivateLayout());
 
 		List<FriendlyURLEntry> layoutFriendlyURLEntries =
 			_getFriendlyURLEntries(layout);
@@ -399,6 +506,69 @@ public class LayoutStagedModelDataHandlerTest
 		Assert.assertEquals(layout.getCss(), importedLayout.getCss());
 	}
 
+	protected void validatePortletAttributes(
+			String layoutUuid, String portletId, long expectedScopeGroupId,
+			String expectedScopeLayoutType)
+		throws Exception {
+
+		Element layoutRootElement = rootElement.element("Layout");
+
+		List<Element> layoutElements = layoutRootElement.elements();
+
+		Element layoutElement = null;
+
+		for (Element curLayoutElement : layoutElements) {
+			if (Objects.equals(
+					curLayoutElement.attributeValue("uuid"), layoutUuid)) {
+
+				layoutElement = curLayoutElement;
+
+				break;
+			}
+		}
+
+		if (layoutElement == null) {
+			throw new IllegalStateException(
+				"Unable to find layout element with UUID " + layoutUuid);
+		}
+
+		Element portletRootElement = layoutElement.element("portlets");
+
+		List<Element> portletElements = portletRootElement.elements();
+
+		Element portletElement = null;
+
+		for (Element curPortletElement : portletElements) {
+			if (Objects.equals(
+					curPortletElement.attributeValue("portlet-id"),
+					portletId)) {
+
+				portletElement = curPortletElement;
+
+				break;
+			}
+		}
+
+		if (portletElement == null) {
+			throw new IllegalStateException(
+				"Unable to find portlet element with portlet ID " + portletId);
+		}
+
+		Document portletDocument = SAXReaderUtil.read(
+			portletDataContext.getZipEntryAsString(
+				portletElement.attributeValue("path")));
+
+		Element portletDocumentRootElement = portletDocument.getRootElement();
+
+		Assert.assertEquals(
+			String.valueOf(expectedScopeGroupId),
+			portletDocumentRootElement.attributeValue("scope-group-id"));
+
+		Assert.assertEquals(
+			expectedScopeLayoutType,
+			portletDocumentRootElement.attributeValue("scope-layout-type"));
+	}
+
 	private void _addDependentFriendlyURLEntries(
 		Map<String, List<StagedModel>> dependentStagedModelsMap,
 		Layout layout) {
@@ -418,7 +588,7 @@ public class LayoutStagedModelDataHandlerTest
 		throws Exception {
 
 		List<LayoutFriendlyURL> layoutFriendlyURLs =
-			LayoutFriendlyURLLocalServiceUtil.getLayoutFriendlyURLs(
+			_layoutFriendlyURLLocalService.getLayoutFriendlyURLs(
 				layout.getPlid());
 
 		for (LayoutFriendlyURL layoutFriendlyURL : layoutFriendlyURLs) {
@@ -426,6 +596,22 @@ public class LayoutStagedModelDataHandlerTest
 				dependentStagedModelsMap, LayoutFriendlyURL.class,
 				layoutFriendlyURL);
 		}
+	}
+
+	private String _addPortletToLayout(Layout layout) throws Exception {
+		JSONObject processAddPortletJSONObject =
+			ContentLayoutTestUtil.addPortletToLayout(
+				layout, _TEST_PORTLET_NAME);
+
+		JSONObject fragmentEntryLinkJSONObject =
+			processAddPortletJSONObject.getJSONObject("fragmentEntryLink");
+
+		JSONObject editableValuesJSONObject =
+			fragmentEntryLinkJSONObject.getJSONObject("editableValues");
+
+		return PortletIdCodec.encode(
+			editableValuesJSONObject.getString("portletId"),
+			editableValuesJSONObject.getString("instanceId"));
 	}
 
 	private List<FriendlyURLEntry> _getFriendlyURLEntries(Layout layout) {
@@ -437,5 +623,46 @@ public class LayoutStagedModelDataHandlerTest
 					String.valueOf(layout.isPrivateLayout()))),
 			layout.getPlid());
 	}
+
+	private ServiceRegistration<Portlet> _registerTestPortlet() {
+		Bundle bundle = FrameworkUtil.getBundle(
+			LayoutStagedModelDataHandlerTest.class);
+
+		BundleContext bundleContext = bundle.getBundleContext();
+
+		return bundleContext.registerService(
+			Portlet.class, new MVCPortlet(),
+			HashMapDictionaryBuilder.<String, Object>put(
+				"com.liferay.portlet.instanceable", "true"
+			).put(
+				"com.liferay.portlet.preferences-owned-by-group", "true"
+			).put(
+				"javax.portlet.name", _TEST_PORTLET_NAME
+			).build());
+	}
+
+	private static final String _TEST_PORTLET_NAME =
+		"com_liferay_test_portlet_TestPortlet";
+
+	@Inject
+	private CompanyLocalService _companyLocalService;
+
+	@Inject
+	private DLAppLocalService _dlAppLocalService;
+
+	@Inject
+	private DLURLHelper _dlURLHelper;
+
+	@Inject
+	private LayoutFriendlyURLLocalService _layoutFriendlyURLLocalService;
+
+	@Inject
+	private LayoutLocalService _layoutLocalService;
+
+	@Inject
+	private PortletPreferencesFactory _portletPreferencesFactory;
+
+	@Inject
+	private PortletPreferencesLocalService _portletPreferencesLocalService;
 
 }

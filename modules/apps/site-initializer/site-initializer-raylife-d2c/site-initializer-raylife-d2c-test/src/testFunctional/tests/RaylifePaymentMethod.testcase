@@ -1,18 +1,20 @@
 @component-name = "portal-solutions"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "false";
 	property portal.upstream = "true";
-	property testray.main.component.name = "Raylife";
+	property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+	property testray.main.component.name = "Site Initializer Raylife D2C";
+
+	var testSiteName = "Raylife D2C";
+	var testSiteURL = "raylife-d2c";
 
 	setUp {
 		TestCase.setUpPortalInstance();
 
 		User.firstLoginPG();
 
-		Raylife.createRaylifeSite(siteName = "Raylife");
+		Raylife.createRaylifeSite(site = "${testSiteName}");
 	}
 
 	tearDown {
@@ -31,9 +33,9 @@ definition {
 	@description = "LPS-144582 - Check if I am redirected to the payment confirmation page, after selected payment by PayPal"
 	@priority = "5"
 	test CanViewConfirmSuccessfulPayment {
-		RaylifePaymentMethod.enablePayPalPayment();
+		RaylifePaymentMethod.configurationPaypal();
 
-		ApplicationsMenu.gotoSite(key_site = "Raylife");
+		ApplicationsMenu.gotoSite(site = "${testSiteName}");
 
 		RaylifeHomePage.startFlow();
 
@@ -57,7 +59,7 @@ definition {
 
 		Click(locator1 = "RaylifePaymentMethod#PAY_NOW");
 
-		AssertElementPresent(locator1 = "RaylifePaymentMethod#CONGRATS");
+		AssertElementPresent(locator1 = "RaylifePaymentMethod#FIELD_EMAIL_PAYPAL");
 	}
 
 	@description = "LPS-144583 - Check if the payment method is not selected by default"
@@ -65,7 +67,7 @@ definition {
 	test CanViewPaymentMethodNotSelected {
 		RaylifePaymentMethod.enablePayPalPayment();
 
-		ApplicationsMenu.gotoSite(key_site = "Raylife");
+		ApplicationsMenu.gotoSite(site = "${testSiteName}");
 
 		RaylifeHomePage.startFlow();
 
@@ -91,7 +93,7 @@ definition {
 	test CheckRaylifeTermsAndConditionsNotSelected {
 		RaylifePaymentMethod.enablePayPalPayment();
 
-		ApplicationsMenu.gotoSite(key_site = "Raylife");
+		ApplicationsMenu.gotoSite(site = "${testSiteName}");
 
 		RaylifeHomePage.startFlow();
 
@@ -119,7 +121,7 @@ definition {
 	test CheckSelectInstallmentPayment {
 		RaylifePaymentMethod.enablePayPalPayment();
 
-		ApplicationsMenu.gotoSite(key_site = "Raylife");
+		ApplicationsMenu.gotoSite(site = "${testSiteName}");
 
 		RaylifeHomePage.startFlow();
 
@@ -153,7 +155,7 @@ definition {
 	test IsPayNowButtonEnabled {
 		RaylifePaymentMethod.enablePayPalPayment();
 
-		ApplicationsMenu.gotoSite(key_site = "Raylife");
+		ApplicationsMenu.gotoSite(site = "${testSiteName}");
 
 		RaylifeHomePage.startFlow();
 
@@ -183,7 +185,7 @@ definition {
 	test ViewExtendedPaymentSection {
 		RaylifePaymentMethod.enablePayPalPayment();
 
-		ApplicationsMenu.gotoSite(key_site = "Raylife");
+		ApplicationsMenu.gotoSite(site = "${testSiteName}");
 
 		RaylifeHomePage.startFlow();
 
@@ -209,7 +211,7 @@ definition {
 	test ViewPaymentCollectionOptions {
 		RaylifePaymentMethod.enablePayPalPayment();
 
-		ApplicationsMenu.gotoSite(key_site = "Raylife");
+		ApplicationsMenu.gotoSite(site = "${testSiteName}");
 
 		RaylifeHomePage.startFlow();
 

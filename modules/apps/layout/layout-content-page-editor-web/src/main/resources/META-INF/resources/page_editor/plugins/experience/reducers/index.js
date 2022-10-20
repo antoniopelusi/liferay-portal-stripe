@@ -47,6 +47,7 @@ const reducer = (state, action) => {
 			break;
 		case SELECT_SEGMENTS_EXPERIENCE:
 			nextState = selectExperienceReducer(nextState, {
+				fragmentEntryLinks: action.payload.fragmentEntryLinks,
 				segmentsExperienceId: action.payload.segmentsExperienceId,
 			});
 			break;
@@ -62,6 +63,13 @@ const reducer = (state, action) => {
 			});
 			break;
 		default:
+			if (!state.loadedSegmentsExperiences) {
+				nextState = {
+					...state,
+					loadedSegmentsExperiences: [state.segmentsExperienceId],
+				};
+			}
+
 			break;
 	}
 

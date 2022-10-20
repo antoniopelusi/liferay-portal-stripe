@@ -1,5 +1,18 @@
 definition {
 
+	macro assertDownloadedFileName {
+		var downloadedFileName = TestCase.getDownloadedTempFileName(fileNamePattern = "${downloadedFile}");
+
+		echo("## downloadedFileName: ${downloadedFileName}");
+
+		if (contains("${downloadedFileName}", "${downloadedFile}")) {
+			echo("This is a correct file.");
+		}
+		else {
+			fail("FAIL!");
+		}
+	}
+
 	macro assertExecutionEntry {
 		AssertElementPresent(
 			key_entityType = "${entityType}",
@@ -7,15 +20,25 @@ definition {
 			key_executionName = "${executionName}",
 			key_executionStatus = "${executionStatus}",
 			locator1 = "ImportExport#EXECUTION_ENTRY");
-	}
 
-	macro assertExportFileContent {
-		var exportFileContent = TestCase.getTempFileContent(fileName = "${exportFileName}");
+		if (isSet(successfulRows) && isSet(failedRows) && isSet(totalRows)) {
+			AssertTextEquals(
+				key_column = "successful-rows",
+				key_executionName = "${executionName}",
+				locator1 = "ImportExport#EXECUTION_COLUMN",
+				value1 = "${successfulRows}");
 
-		var expectedFileContent = TestCase.getFileContent(fileName = "${comparisonFileName}");
+			AssertTextEquals(
+				key_column = "failed-rows",
+				key_executionName = "${executionName}",
+				locator1 = "ImportExport#EXECUTION_COLUMN",
+				value1 = "${failedRows}");
 
-		if ("${exportFileContent}" != "${expectedFileContent}") {
-			fail("The exported file content does not match the expected file content.");
+			AssertTextEquals(
+				key_column = "total",
+				key_executionName = "${executionName}",
+				locator1 = "ImportExport#EXECUTION_COLUMN",
+				value1 = "${totalRows}");
 		}
 	}
 
@@ -28,11 +51,6 @@ definition {
 			key_selectFieldLabel = "Template",
 			locator1 = "ImportExport#SELECT",
 			value1 = "${templateName}");
-
-		AssertSelectedLabel(
-			key_selectFieldLabel = "Headless Endpoint",
-			locator1 = "ImportExport#SELECT",
-			value1 = "${headlessEndpoint}");
 
 		AssertSelectedLabel(
 			locator1 = "ImportExport#ENTITY_TYPE",
@@ -51,6 +69,15 @@ definition {
 			AssertChecked.assertCheckedNotVisible(
 				key_checkboxOption = "${exportField}",
 				locator1 = "Checkbox#SPECIFIC_CHECKBOX_IN_TABLE");
+		}
+	}
+
+	macro assertFileContent {
+		var fileContent = TestCase.getTempFileContent(fileName = "${fileName}");
+		var expectedFileContent = TestCase.getFileContent(fileName = "${comparisonFileName}");
+
+		if ("${fileContent}" != "${expectedFileContent}") {
+			fail("The file content does not match the expected file content.");
 		}
 	}
 
@@ -91,11 +118,6 @@ definition {
 			key_selectFieldLabel = "Template",
 			locator1 = "ImportExport#SELECT",
 			value1 = "${templateName}");
-
-		AssertSelectedLabel(
-			key_selectFieldLabel = "Headless Endpoint",
-			locator1 = "ImportExport#SELECT",
-			value1 = "${headlessEndpoint}");
 
 		AssertSelectedLabel(
 			locator1 = "ImportExport#ENTITY_TYPE",
@@ -148,9 +170,7 @@ definition {
 	}
 
 	macro configureExport {
-		ImportExport.selectEntity(
-			entityType = "${entityType}",
-			headlessEndpoint = "${headlessEndpoint}");
+		ImportExport.selectEntity(entityType = "${entityType}");
 
 		Select(
 			key_selectFieldLabel = "Export File Format",
@@ -173,6 +193,12 @@ definition {
 	macro configureImport {
 		UploadDependencyFile.uploadFile(fileName = "${fileName}");
 
+		if (isSet(importName)) {
+			Type(
+				locator1 = "TextInput#NAME",
+				value1 = "${importName}");
+		}
+
 		if (isSet(csvSeparator)) {
 			Type(
 				key_text = "CSV Separator",
@@ -186,9 +212,7 @@ definition {
 				locator1 = "Checkbox#ANY_CHECKBOX");
 		}
 
-		ImportExport.selectEntity(
-			entityType = "${entityType}",
-			headlessEndpoint = "${headlessEndpoint}");
+		ImportExport.selectEntity(entityType = "${entityType}");
 
 		if ("${stopImportOnError}" == "false") {
 			Uncheck.uncheckNotVisible(
@@ -208,9 +232,7 @@ definition {
 
 		MenuItem.click(menuItem = "Export File");
 
-		ImportExport.selectEntity(
-			entityType = "${entityType}",
-			headlessEndpoint = "${headlessEndpoint}");
+		ImportExport.selectEntity(entityType = "${entityType}");
 
 		Select(
 			key_selectFieldLabel = "Export File Format",
@@ -259,6 +281,12 @@ definition {
 
 		UploadDependencyFile.uploadFile(fileName = "${fileName}");
 
+		if (isSet(importName)) {
+			Type(
+				locator1 = "TextInput#NAME",
+				value1 = "${importName}");
+		}
+
 		if (isSet(csvSeparator)) {
 			Type(
 				key_text = "CSV Separator",
@@ -272,9 +300,7 @@ definition {
 				locator1 = "Checkbox#ANY_CHECKBOX");
 		}
 
-		ImportExport.selectEntity(
-			entityType = "${entityType}",
-			headlessEndpoint = "${headlessEndpoint}");
+		ImportExport.selectEntity(entityType = "${entityType}");
 
 		if ("${stopImportOnError}" == "false") {
 			Uncheck.uncheckNotVisible(
@@ -290,7 +316,7 @@ definition {
 
 		WaitForElementPresent(locator1 = "ImportExport#EXECUTION_SUCCESS");
 
-		Button.clickDone();
+		Button.click(button = "Back to the List");
 	}
 
 	macro mapExport {
@@ -303,9 +329,11 @@ definition {
 			locator1 = "Checkbox#SPECIFIC_CHECKBOX_IN_TABLE");
 
 		for (var exportField : list "${exportFields}") {
-			Click.clickAtNotVisible(
-				key_checkboxOption = "${exportField}",
-				locator1 = "Checkbox#SPECIFIC_CHECKBOX_IN_TABLE");
+			if ("${exportField}" != "") {
+				Click.clickAtNotVisible(
+					key_checkboxOption = "${exportField}",
+					locator1 = "Checkbox#SPECIFIC_CHECKBOX_IN_TABLE");
+			}
 		}
 	}
 
@@ -339,7 +367,8 @@ definition {
 		Button.click(button = "Save as Template");
 
 		Type(
-			locator1 = "TextInput#NAME",
+			key_placeHolder = "Template Name",
+			locator1 = "TextInput#ANY_PLACEHOLDER",
 			value1 = "${templateName}");
 
 		Button.clickSave();
@@ -348,11 +377,6 @@ definition {
 	}
 
 	macro selectEntity {
-		Select(
-			key_selectFieldLabel = "Headless Endpoint",
-			locator1 = "ImportExport#SELECT",
-			value1 = "${headlessEndpoint}");
-
 		WaitForElementPresent(locator1 = "ImportExport#ENTITY_TYPE");
 
 		Select(

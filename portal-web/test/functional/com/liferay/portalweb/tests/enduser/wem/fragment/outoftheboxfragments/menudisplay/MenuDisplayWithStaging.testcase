@@ -60,9 +60,7 @@ definition {
 				panel = "General",
 				siteMenus = "Navigation Menu Name");
 
-			Button.click(button = "Publish Master");
-
-			Alert.viewSuccessMessage();
+			MastersPageTemplates.publishMaster();
 		}
 
 		task ("Add a widget page and add it to navigation menu") {
@@ -83,10 +81,9 @@ definition {
 
 			MastersPageTemplates.selectMaster(masterLayoutName = "Custom Masters Page Template");
 
-			AssertTextEquals(
+			AssertElementPresent(
 				key_masterLayoutName = "Custom Masters Page Template",
-				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME",
-				value1 = "Custom Masters Page Template");
+				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME");
 
 			PortletEntry.save();
 		}
@@ -99,7 +96,7 @@ definition {
 				navigationMenus = "Navigation Menu Name",
 				pageName = "Test Content Page");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add an URL type item to navigation menu") {

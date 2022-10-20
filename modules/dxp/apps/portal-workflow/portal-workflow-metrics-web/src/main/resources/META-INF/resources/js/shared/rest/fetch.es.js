@@ -9,12 +9,19 @@
  * distribution rights of the Software.
  */
 
-const adminBaseURL = '/o/headless-admin-workflow/v1.0';
+let adminBaseURL = '/o/headless-admin-workflow/v1.0';
 
-const metricsBaseURL = '/o/portal-workflow-metrics/v1.0';
+let metricsBaseURL = '/o/portal-workflow-metrics/v1.0';
+
+const contextPath = Liferay.ThemeDisplay.getPathContext();
 
 const headers = {
 	'Accept-Language': Liferay.ThemeDisplay.getBCP47LanguageId(),
 };
+
+if (contextPath) {
+	adminBaseURL = contextPath + adminBaseURL;
+	metricsBaseURL = contextPath + metricsBaseURL;
+}
 
 export {adminBaseURL, headers, metricsBaseURL};

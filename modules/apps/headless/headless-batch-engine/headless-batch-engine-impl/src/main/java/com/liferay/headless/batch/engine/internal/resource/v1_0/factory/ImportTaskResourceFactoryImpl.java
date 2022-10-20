@@ -14,6 +14,7 @@
 
 package com.liferay.headless.batch.engine.internal.resource.v1_0.factory;
 
+import com.liferay.headless.batch.engine.internal.security.permission.LiberalPermissionChecker;
 import com.liferay.headless.batch.engine.resource.v1_0.ImportTaskResource;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.User;
@@ -193,7 +194,7 @@ public class ImportTaskResourceFactoryImpl
 		}
 		else {
 			PermissionThreadLocal.setPermissionChecker(
-				_liberalPermissionCheckerFactory.create(user));
+				new LiberalPermissionChecker(user));
 		}
 
 		ImportTaskResource importTaskResource =
@@ -256,9 +257,6 @@ public class ImportTaskResourceFactoryImpl
 
 	@Reference
 	private GroupLocalService _groupLocalService;
-
-	@Reference(target = "(permission.checker.type=liberal)")
-	private PermissionCheckerFactory _liberalPermissionCheckerFactory;
 
 	@Reference
 	private ResourceActionLocalService _resourceActionLocalService;

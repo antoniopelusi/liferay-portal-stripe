@@ -13,6 +13,7 @@ definition {
                         		}
                         	}
                         	return value;''';
+
 		var cookieValue = selenium.getEval("${javascript}");
 
 		if ("${cookieValue}" != "empty") {
@@ -27,32 +28,60 @@ definition {
 		}
 	}
 
+	@description = "Verifying if all Cookies are saved with true as value"
 	macro checkAllCookieAreAcceptedAndSaved {
 		CookieHelper._checkSelectedCookieValue(
-			cookieName = "liferay.cookie.consent.performance",
-			expectedCookieValue = "accepted");
+			cookieName = "CONSENT_TYPE_PERFORMANCE",
+			expectedCookieValue = "true");
 
 		CookieHelper._checkSelectedCookieValue(
-			cookieName = "liferay.cookie.consent.functional",
-			expectedCookieValue = "accepted");
+			cookieName = "CONSENT_TYPE_FUNCTIONAL",
+			expectedCookieValue = "true");
 
 		CookieHelper._checkSelectedCookieValue(
-			cookieName = "liferay.cookie.consent.personalization",
-			expectedCookieValue = "accepted");
+			cookieName = "CONSENT_TYPE_PERSONALIZATION",
+			expectedCookieValue = "true");
+
+		CookieHelper._checkSelectedCookieValue(
+			cookieName = "CONSENT_TYPE_NECESSARY",
+			expectedCookieValue = "true");
 	}
 
+	@description = "Verifying if all Cookies are saved with false as value"
 	macro checkAllCookieAreDeclinedAndSaved {
 		CookieHelper._checkSelectedCookieValue(
-			cookieName = "liferay.cookie.consent.performance",
-			expectedCookieValue = "decline");
+			cookieName = "CONSENT_TYPE_PERFORMANCE",
+			expectedCookieValue = "false");
 
 		CookieHelper._checkSelectedCookieValue(
-			cookieName = "liferay.cookie.consent.functional",
-			expectedCookieValue = "decline");
+			cookieName = "CONSENT_TYPE_FUNCTIONAL",
+			expectedCookieValue = "false");
 
 		CookieHelper._checkSelectedCookieValue(
-			cookieName = "liferay.cookie.consent.personalization",
-			expectedCookieValue = "decline");
+			cookieName = "CONSENT_TYPE_PERSONALIZATION",
+			expectedCookieValue = "false");
+
+		CookieHelper._checkSelectedCookieValue(
+			cookieName = "CONSENT_TYPE_NECESSARY",
+			expectedCookieValue = "true");
+	}
+
+	macro checkEachCookiesSavedValue {
+		if (isSet(cookieNameListWithTrueValue)) {
+			for (var cookieName : list "${cookieNameListWithTrueValue}") {
+				CookieHelper._checkSelectedCookieValue(
+					cookieName = "${cookieName}",
+					expectedCookieValue = "true");
+			}
+		}
+
+		if (isSet(cookieNameListWithFalseValue)) {
+			for (var cookieName : list "${cookieNameListWithFalseValue}") {
+				CookieHelper._checkSelectedCookieValue(
+					cookieName = "${cookieName}",
+					expectedCookieValue = "false");
+			}
+		}
 	}
 
 	@description = "Check if cookie named as '${cookieName}' lasts for 6 months. Requires Chrome 87."
@@ -60,8 +89,8 @@ definition {
 		Variables.assertDefined(parameterList = "${cookieName}");
 
 		var javascriptForTargetDate = '''var targetDate = new Date( Date.now() - 1000 * (60 * 5) ); targetDate.setMonth(targetDate.getMonth() + 6); return targetDate.toISOString().slice(0,13);''';
-		var targetDate = selenium.getEval("${javascriptForTargetDate}");
 
+		var targetDate = selenium.getEval("${javascriptForTargetDate}");
 		var javascriptForCookieExpirationDate = '''var cookieName = "${cookieName}";
 													async function getCookieExpirationDate(){
 													try {
@@ -74,6 +103,7 @@ definition {
 												 }
 
 			return getCookieExpirationDate();''';
+
 		var cookieExpirationDate = selenium.getEval("${javascriptForCookieExpirationDate}");
 
 		if ("${targetDate}" != "${cookieExpirationDate}") {
@@ -94,6 +124,7 @@ definition {
                                 	}
                                 }
                                 return value;''';
+
 		var cookieValue = selenium.getEval("${javascript}");
 
 		if ("${cookieValue}" == "empty") {
@@ -106,6 +137,7 @@ definition {
 		}
 	}
 
+	@description = "Adding site with Cookie Banner Configuration portlet"
 	macro createSitePageWithCookieBannerConfigurationPortlet {
 		JSONLayout.addPublicLayout(
 			groupName = "Guest",
@@ -121,16 +153,38 @@ definition {
 			siteName = "Guest");
 	}
 
+	@description = "Delete all cookies and Refresh page"
 	macro deleteAllCookiesAndRefreshPage {
-		var javascript = '''var allCookies = document.cookie.split(';');
-    							for (var i = 0; i < allCookies.length; i++)
-    								document.cookie = allCookies[i] + "=;expires="
-    								+ new Date(0).toUTCString();''';
+		var javascript = '''document.cookie.split(";").forEach(function(c) {
+    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+});''';
+
 		var deleted = selenium.getEval("${javascript}");
 
 		echo("${deleted}");
 
-		Refresh();
+		Navigator.openURL();
+	}
+
+	@description = "Navigate to home page"
+	macro siteVisit {
+		if (isSet(virtualHostsURL)) {
+			Navigator.openSpecificURL(
+				domain = "${domain}",
+				url = "${virtualHostsURL}");
+		}
+		else {
+			Navigator.openURL();
+		}
+	}
+
+	@description = "Verify if Policy Page is visible"
+	macro verifyPolicyPageIsVisible {
+		Variables.assertDefined(parameterList = "${policyLink}");
+
+		SelectWindow(locator1 = "PolicyPage - Liferay DXP");
+
+		AssertElementPresent(locator1 = "//h2[contains(.,'Type Facet')]");
 	}
 
 }

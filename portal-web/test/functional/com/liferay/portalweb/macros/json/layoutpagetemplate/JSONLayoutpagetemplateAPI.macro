@@ -15,7 +15,7 @@ definition {
 			  -d classTypeId=${classTypeId} \
 			  -d name=${displayPageTemplateEntryName} \
 			  -d masterLayoutPlid=${masterLayoutPlid} \
-			  -d status=2 \
+			  -d status=${status} \
 			  -d serviceContext=${serviceContext}
 		''';
 
@@ -126,6 +126,7 @@ definition {
 				-u test@liferay.com:test \
 				-d groupId=${groupId}
 		''';
+
 		var layoutPageTemplateCollectionId = JSONCurlUtil.post("${curl}", "$.[?(@['name'] == '${layoutPageTemplateCollectionName}')]['layoutPageTemplateCollectionId']");
 
 		if ("${layoutPageTemplateCollectionId}" == "") {
@@ -150,6 +151,7 @@ definition {
 			  -d "end=-1" \
 			  -d -orderByComparator=
 		''';
+
 		var layoutPageTemplateEntryId = JSONCurlUtil.post("${curl}", "$.[?(@['name'] == '${layoutPageTemplateEntryName}')]['layoutPageTemplateEntryId']");
 
 		if ("${layoutPageTemplateEntryId}" == "") {
@@ -174,6 +176,7 @@ definition {
 			  -d "end=-1" \
 			  -d -orderByComparator=
 		''';
+
 		var masterLayoutPlid = JSONCurlUtil.post("${curl}", "$.[?(@['name'] == '${masterLayoutEntryName}')]['plid']");
 
 		if ("${masterLayoutPlid}" == "") {
@@ -181,6 +184,22 @@ definition {
 		}
 
 		return "${masterLayoutPlid}";
+	}
+
+	@summary = "Set the layoutPageTemplateEntry as default by using layoutPageTemplateEntryId"
+	macro _setLayoutPageTemplateEntryAsDefault {
+		Variables.assertDefined(parameterList = "${layoutPageTemplateEntryId}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		var curl = '''
+			${portalURL}/api/jsonws/layout.layoutpagetemplateentry/update-layout-page-template-entry \
+				-u test@liferay.com:test \
+				-d layoutPageTemplateEntryId=${layoutPageTemplateEntryId} \
+				-d defaultTemplate=true
+		''';
+
+		JSONCurlUtil.post("${curl}");
 	}
 
 }

@@ -15,25 +15,27 @@
 package com.liferay.commerce.internal.upgrade.v4_3_0;
 
 import com.liferay.commerce.constants.CommerceOrderConstants;
-import com.liferay.commerce.internal.upgrade.v1_1_0.BaseCommerceOrderUpgradeProcess;
+import com.liferay.portal.kernel.upgrade.UpgradeProcess;
+import com.liferay.portal.kernel.upgrade.UpgradeProcessFactory;
+import com.liferay.portal.kernel.upgrade.UpgradeStep;
 
 /**
  * @author Alec Sloan
  */
-public class CommerceOrderDateUpgradeProcess
-	extends BaseCommerceOrderUpgradeProcess {
-
-	public CommerceOrderDateUpgradeProcess() {
-		super("CommerceOrder", "orderDate", "DATE");
-	}
+public class CommerceOrderDateUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		super.doUpgrade();
-
 		runSQL(
 			"update CommerceOrder set orderDate = createDate where " +
 				"orderStatus <> " + CommerceOrderConstants.ORDER_STATUS_OPEN);
+	}
+
+	@Override
+	protected UpgradeStep[] getPreUpgradeSteps() {
+		return new UpgradeStep[] {
+			UpgradeProcessFactory.addColumns("CommerceOrder", "orderDate DATE")
+		};
 	}
 
 }

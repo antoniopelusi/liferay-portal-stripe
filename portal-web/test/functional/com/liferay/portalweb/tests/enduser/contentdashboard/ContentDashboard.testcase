@@ -13,6 +13,10 @@ definition {
 		JSONGroup.addGroup(groupName = "Test Site Name");
 
 		Navigator.openURL();
+
+		JSONDocument.deleteFile(
+			dmDocumentTitle = "tree.png",
+			groupName = "Guest");
 	}
 
 	tearDown {
@@ -69,22 +73,82 @@ definition {
 		}
 	}
 
+	@description = "LPS-120417 When there is web content published by a user different than the admin user and the admin user visit the Content Dashboard, the content is visible"
+	@priority = "3"
+	test AssetNotFilteredByMe {
+		task ("Create an user via JSONWS") {
+			JSONUser.addUser(
+				userEmailAddress = "userea@liferay.com",
+				userFirstName = "userfn",
+				userLastName = "userln",
+				userScreenName = "usersn");
+
+			JSONRole.assignRoleToUser(
+				roleTitle = "Administrator",
+				userEmailAddress = "userea@liferay.com");
+
+			JSONUser.setFirstPassword(
+				agreeToTermsAndAnswerReminderQuery = "true",
+				requireReset = "false",
+				userEmailAddress = "userea@liferay.com");
+		}
+
+		task ("Create a web content with Test Test via JSONWS") {
+			JSONWebcontent.addWebContent(
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "Web Content Title 1");
+		}
+
+		task ("Create a web content with created user") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "userea@liferay.com",
+				userLoginFullName = "userfn userln");
+
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+			WebContentNavigator.gotoAddCP();
+
+			WebContent.addCP(
+				webContentContent = "WC Content Content",
+				webContentTitle = "Web Content Title 2");
+
+			PortletEntry.publish();
+
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "test@liferay.com",
+				userLoginFullName = "Test Test");
+		}
+
+		task ("Natigate to Content Dashboard") {
+			ContentDashboard.goToContentDashboard();
+		}
+
+		task ("Check that both web contents are displayed and no filter is applyed") {
+			for (var assetName : list "Web Content Title 1,Web Content Title 2") {
+				LexiconTable.viewTableEntryTitle(tableEntry = "${assetName}");
+			}
+
+			AssertElementNotPresent(locator1 = "ContentDashboard#FILTER_TEXT");
+		}
+
+		task ("Delete user created") {
+			JSONUser.deleteUserByEmailAddress(userEmailAddress = "userea@liferay.com");
+		}
+	}
+
 	@description = "LPS-122873 When all the web content is unassigned from a Vocab1's category, the relative ordering of the rest of the categories remain the same"
 	@priority = "3"
 	test AssigningSomeAudienceCategoriesAndCheckingTheOrder {
-		property portal.acceptance = "true";
-
 		task ("Create a list of Audience Categories") {
 			var audienceId1 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Subaudience_1",
 				vocabularyName = "Audience");
-
 			var audienceId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Subaudience_2",
 				vocabularyName = "Audience");
-
 			var audienceId3 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Subaudience_3",
@@ -96,12 +160,10 @@ definition {
 				groupName = "Global",
 				title = "Substage_1",
 				vocabularyName = "Stage");
-
 			var stageId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Substage_2",
 				vocabularyName = "Stage");
-
 			var stageId3 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Substage_3",
@@ -154,19 +216,16 @@ definition {
 				groupName = "Test Site Name");
 		}
 
-		task ("Go to Content Dashboard and check the title in the Info panel") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Content",
-				panel = "Applications",
-				portlet = "Content Dashboard");
+		task ("When the info panel of a blog is open") {
+			ContentDashboard.goToContentDashboard();
+
+			ContentDashboard.openInfoPanelByDropdownMenu();
 		}
 
-		task ("Go to Content Dashboard and check the author's avatar and name in the Info panel") {
-			ContentDashboard.openInfoPanelByDropdownMenu();
-
-			AssertElementPresent(
-				assetAuthor = "Test Test",
-				locator1 = "ContentDashboard#INFO_PANEL_AUTHOR");
+		task ("Then the blog author's avatar and name are shown") {
+			AssertTextPresent(
+				locator1 = "ContentDashboard#INFO_PANEL_AUTHOR",
+				value1 = "Test Test");
 
 			AssertElementPresent(locator1 = "ContentDashboard#INFO_PANEL_AVATAR");
 		}
@@ -569,6 +628,34 @@ definition {
 		}
 	}
 
+	@description = "LPS-151065 Given a Blog
+    When the user opens asset's Info Panel at Content Dashboard
+    Then 'Blogs Entry' text will be exhibit"
+	@priority = "3"
+	test BlogTypeInInfoPanel {
+		task ("Create a blog") {
+			JSONBlog.addEntry(
+				entryContent = "Blogs Entry Content",
+				entryTitle = "Blogs Entry Title",
+				groupName = "Test Site Name");
+		}
+
+		task ("Go to Content Dashboard and check the title in the Info panel") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Content",
+				panel = "Applications",
+				portlet = "Content Dashboard");
+		}
+
+		task ("Go to Content Dashboard and check the type in the Info panel") {
+			ContentDashboard.openInfoPanelByDropdownMenu();
+
+			AssertTextPresent(
+				locator1 = "ContentDashboard#INFO_PANEL_ASSET_TYPE",
+				value1 = "Blogs Entry");
+		}
+	}
+
 	@description = "LPS-132510 Given The Content Dashboard
 	When the info panel of a blog is open
 	Then the blog version labels are shown"
@@ -643,19 +730,15 @@ definition {
 	@description = "LPS-122873 When there are some categories created for vocabulary1 (X axis), they will always have the same order during the user session"
 	@priority = "3"
 	test CategoriesWithSameOrderDuringASession {
-		property portal.acceptance = "true";
-
 		task ("Create a list of Audiences") {
 			var categoryId1 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "C_Subaudience_1",
 				vocabularyName = "Audience");
-
 			var categoryId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "B_Subaudience_2",
 				vocabularyName = "Audience");
-
 			var categoryId3 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "A_Subaudience_3",
@@ -732,25 +815,324 @@ definition {
 		}
 	}
 
+	@description = "LPS-155288: Given categories filter using treeview component
+	And there is any category's checkbox selected
+	When user clicks 'Clear All' button
+	Then all checkboxes turns deselected"
+	@priority = "4"
+	test CheckAllCheckboxesTurnsDeselectedWithClearButtonAtTreeviewComponent {
+		property portal.acceptance = "true";
+
+		task ("Adding vocabulary and categories") {
+			JSONCategory.addVocabulary(
+				groupName = "Test Site Name",
+				title = "Vocabulary Name");
+
+			var categoryId = JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Test 1",
+				vocabularyName = "Vocabulary Name");
+			var categoryId = JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Test 2",
+				vocabularyName = "Vocabulary Name");
+			var categoryId = JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Test 3",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Adding Web Content") {
+			JSONWebcontent.addWebContent(
+				assetCategoryIds = "${categoryId}",
+				content = "WC WebContent Content",
+				groupName = "Test Site Name",
+				title = "WC WebContent Title");
+		}
+
+		task ("Open filter modal at Content Dashboard and filtering category") {
+			ContentDashboard.goToContentDashboard();
+
+			ContentDashboard.openFilterModal(filterOption = "Categories");
+
+			Portlet.expandTree();
+
+			Click(
+				key_nodeName = "Test 1",
+				locator1 = "Treeview#NODE_ITEM");
+
+			Click(
+				key_nodeName = "Test 2",
+				locator1 = "Treeview#NODE_ITEM");
+
+			Click(
+				key_nodeName = "Test 3",
+				locator1 = "Treeview#NODE_ITEM");
+		}
+
+		task ("Checking if the results bar appears") {
+			AssertTextPresent(
+				locator1 = "Treeview#FILTER_BY_RESULTS_BAR_MESSAGE",
+				value1 = "3 ");
+
+			AssertTextPresent(
+				locator1 = "Treeview#FILTER_BY_RESULTS_BAR_MESSAGE",
+				value1 = "Items Selected");
+		}
+
+		task ("Assert 'Clear All' disapears after clicking it") {
+			ContentDashboard.checkClearAllButtonNotPresent();
+		}
+
+		task ("Asserting that all checkboxes turns deselected") {
+			AssertNotChecked(
+				key_nodeName = "Test 1",
+				locator1 = "Treeview#NODE_ITEM");
+
+			AssertNotChecked(
+				key_nodeName = "Test 2",
+				locator1 = "Treeview#NODE_ITEM");
+
+			AssertNotChecked(
+				key_nodeName = "Test 3",
+				locator1 = "Treeview#NODE_ITEM");
+		}
+	}
+
+	@description = "LPS-155288: Given categories filter using treeview component
+	When user selects any category's checkbox
+	Then a the amount of items selected appears at results bar"
+	@priority = "3"
+	test CheckAmountOfCategoriesResultsBarAtTreeviewComponent {
+		property portal.acceptance = "false";
+
+		task ("Adding vocabulary and categories") {
+			JSONCategory.addVocabulary(
+				groupName = "Test Site Name",
+				title = "Vocabulary Name");
+
+			var categoryId = JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Test 1",
+				vocabularyName = "Vocabulary Name");
+			var categoryId = JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Test 2",
+				vocabularyName = "Vocabulary Name");
+			var categoryId = JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Test 3",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Adding Web Content") {
+			JSONWebcontent.addWebContent(
+				assetCategoryIds = "${categoryId}",
+				content = "WC WebContent Content",
+				groupName = "Test Site Name",
+				title = "WC WebContent Title");
+		}
+
+		task ("Open filter modal at Content Dashboard and filtering category") {
+			ContentDashboard.goToContentDashboard();
+
+			ContentDashboard.openFilterModal(filterOption = "Categories");
+
+			Portlet.expandTree();
+
+			Click(
+				key_nodeName = "Test 1",
+				locator1 = "Treeview#NODE_ITEM");
+
+			Click(
+				key_nodeName = "Test 2",
+				locator1 = "Treeview#NODE_ITEM");
+
+			Click(
+				key_nodeName = "Test 3",
+				locator1 = "Treeview#NODE_ITEM");
+		}
+
+		task ("Checking if the results bar appears") {
+			AssertTextPresent(
+				locator1 = "Treeview#FILTER_BY_RESULTS_BAR_MESSAGE",
+				value1 = "3 ");
+
+			AssertTextPresent(
+				locator1 = "Treeview#FILTER_BY_RESULTS_BAR_MESSAGE",
+				value1 = "Items Selected");
+		}
+	}
+
+	@description = "LPS-155288: Given user has selected categories checkboxes
+	And clicked 'Select'
+	When returns to 'Select Categories'
+	Then the results bar is present"
+	@priority = "3"
+	test CheckCategoriesKeepResultsBarAtTreeviewComponent {
+		property portal.acceptance = "false";
+
+		task ("Adding vocabulary and category") {
+			JSONCategory.addVocabulary(
+				groupName = "Test Site Name",
+				title = "Vocabulary Name");
+
+			var categoryId = JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Test",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Adding Web Content") {
+			JSONWebcontent.addWebContent(
+				assetCategoryIds = "${categoryId}",
+				content = "WC WebContent Content",
+				groupName = "Test Site Name",
+				title = "WC WebContent Title");
+		}
+
+		task ("Open filter modal at Content Dashboard and filtering category") {
+			ContentDashboard.goToContentDashboard();
+
+			ContentDashboard.filterByCategory(
+				categoryNameList = "Test",
+				filterOption = "Categories");
+		}
+
+		task ("Returns to 'Select Categories' and checking if the results bar is present") {
+			ContentDashboard.openFilterModal(filterOption = "Categories");
+
+			AssertTextPresent(
+				locator1 = "Treeview#FILTER_BY_RESULTS_BAR_MESSAGE",
+				value1 = "1 ");
+
+			AssertTextPresent(
+				locator1 = "Treeview#FILTER_BY_RESULTS_BAR_MESSAGE",
+				value1 = "Item Selected");
+		}
+	}
+
+	@description = "LPS-155288: Given categories filter using treeview component
+	When user selects any category's checkbox
+	Then a results bar appears"
+	@priority = "4"
+	test CheckCategoriesResultsBarAtTreeviewComponent {
+		property portal.acceptance = "true";
+
+		task ("Adding vocabulary and category") {
+			JSONCategory.addVocabulary(
+				groupName = "Test Site Name",
+				title = "Vocabulary Name");
+
+			var categoryId = JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Test",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Adding Web Content") {
+			JSONWebcontent.addWebContent(
+				assetCategoryIds = "${categoryId}",
+				content = "WC WebContent Content",
+				groupName = "Test Site Name",
+				title = "WC WebContent Title");
+		}
+
+		task ("Open filter modal at Content Dashboard and filtering category") {
+			ContentDashboard.goToContentDashboard();
+
+			ContentDashboard.openFilterModal(filterOption = "Categories");
+
+			Portlet.expandTree();
+
+			Click(
+				key_nodeName = "Test",
+				locator1 = "Treeview#NODE_ITEM");
+		}
+
+		task ("Checking if the results bar appears") {
+			AssertTextPresent(
+				locator1 = "Treeview#FILTER_BY_RESULTS_BAR_MESSAGE",
+				value1 = "1 ");
+
+			AssertTextPresent(
+				locator1 = "Treeview#FILTER_BY_RESULTS_BAR_MESSAGE",
+				value1 = "Item Selected");
+		}
+	}
+
+	@description = "LPS-155288: Given categories filter using treeview component
+	When user selects any category's checkbox
+	Then a 'Clear All' button appears at results bar"
+	@priority = "4"
+	test CheckClearButtonCategoryResultsBarAtTreeviewComponent {
+		property portal.acceptance = "true";
+
+		task ("Adding vocabulary and category") {
+			JSONCategory.addVocabulary(
+				groupName = "Test Site Name",
+				title = "Vocabulary Name");
+
+			var categoryId = JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Test",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Adding Web Content") {
+			JSONWebcontent.addWebContent(
+				assetCategoryIds = "${categoryId}",
+				content = "WC WebContent Content",
+				groupName = "Test Site Name",
+				title = "WC WebContent Title");
+		}
+
+		task ("Open filter modal at Content Dashboard and filtering category") {
+			ContentDashboard.goToContentDashboard();
+
+			ContentDashboard.openFilterModal(filterOption = "Categories");
+
+			Portlet.expandTree();
+
+			Click(
+				key_nodeName = "Test",
+				locator1 = "Treeview#NODE_ITEM");
+		}
+
+		task ("Checking if the results bar appears") {
+			AssertTextPresent(
+				locator1 = "Treeview#FILTER_BY_RESULTS_BAR_MESSAGE",
+				value1 = "1 ");
+
+			AssertTextPresent(
+				locator1 = "Treeview#FILTER_BY_RESULTS_BAR_MESSAGE",
+				value1 = "Item Selected");
+		}
+
+		task ("Assert 'Clear All' button appears at results bar") {
+			AssertElementPresent(
+				key_text = "Clear All",
+				locator1 = "Button#ANY");
+		}
+	}
+
 	@description = "LPS-132597 When a web content is associated to a Display Page and its status is Approved, a display page icon is displayed"
 	@priority = "5"
 	test CheckDisplayPageIconofApprovedWebContent {
-		task ("Create and Publish a Display Page Template with Fragment") {
+		property portal.acceptance = "true";
+
+		task ("Create a default Display Page Template") {
 			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 				contentType = "Web Content Article",
 				displayPageTemplateEntryName = "Display Page Name",
 				groupName = "Test Site Name",
+				statusKey = "APPROVED",
 				subType = "Basic Web Content");
 
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
-
-			Button.clickPublish();
-
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+			JSONLayoutpagetemplate.setLayoutPageTemplateEntryAsDefault(
+				groupName = "Test Site Name",
+				layoutPageTemplateEntryName = "Display Page Name",
+				type = "Display Page Template");
 		}
 
 		task ("Create a Web Content and set a Display Page") {
@@ -777,6 +1159,8 @@ definition {
 	@description = "LPS-132597 When a web content is NOT associated to a Display Page and its status is Approved, a display page icon is NOT displayed"
 	@priority = "5"
 	test CheckDisplayPageIconofApprovedWebContentNotDisplayed {
+		property portal.acceptance = "true";
+
 		task ("Create a Web Content and set a Display Page") {
 			JSONWebcontent.addWebContent(
 				content = "Webcontent Content",
@@ -801,28 +1185,24 @@ definition {
 	@description = "LPS-132597 When a web content is associated to a Display Page and its status is Pending, a display page icon is NOT displayed"
 	@priority = "5"
 	test CheckDisplayPageIconofPendingWebContent {
-		task ("Create and Publish a Display Page Template with Fragment") {
+		property portal.acceptance = "true";
+
+		task ("Create a default Display Page Template") {
 			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 				contentType = "Web Content Article",
 				displayPageTemplateEntryName = "Display Page Name",
 				groupName = "Test Site Name",
+				statusKey = "APPROVED",
 				subType = "Basic Web Content");
 
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
-
-			Button.clickPublish();
-
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+			JSONLayoutpagetemplate.setLayoutPageTemplateEntryAsDefault(
+				groupName = "Test Site Name",
+				layoutPageTemplateEntryName = "Display Page Name",
+				type = "Display Page Template");
 		}
 
 		task ("Configure Web Content Article workflow to Single Approver") {
-			ProductMenu.gotoPortlet(
-				category = "Configuration",
-				portlet = "Workflow");
+			Workflow.openWorkflowAdmin(siteURLKey = "test-site-name");
 
 			Workflow.configureWorkflow(
 				workflowDefinition = "Single Approver",
@@ -862,12 +1242,10 @@ definition {
 				groupName = "Global",
 				title = "Subaudience_1",
 				vocabularyName = "Audience");
-
 			var categoryId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Subaudience_2",
 				vocabularyName = "Audience");
-
 			var categoryId3 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Subaudience_3",
@@ -891,22 +1269,86 @@ definition {
 		}
 	}
 
+	@description = "LPS-151808 Bug: The button Metrics is shown for web content in Pending status"
+	@priority = "4"
+	test CheckMetricsIconofPendingWebContent {
+		property portal.acceptance = "true";
+
+		task ("Create a default Display Page Template") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Web Content Article",
+				displayPageTemplateEntryName = "Display Page Name",
+				groupName = "Test Site Name",
+				statusKey = "APPROVED",
+				subType = "Basic Web Content");
+
+			JSONLayoutpagetemplate.setLayoutPageTemplateEntryAsDefault(
+				groupName = "Test Site Name",
+				layoutPageTemplateEntryName = "Display Page Name",
+				type = "Display Page Template");
+		}
+
+		task ("Create a pending Web Content") {
+			JSONWebcontent.addWebContent(
+				content = "WebcontentContent",
+				groupName = "Test Site Name",
+				title = "Approved Web Content Title");
+		}
+
+		task ("Configure Web Content Article workflow to Single Approver") {
+			Workflow.openWorkflowAdmin(siteURLKey = "test-site-name");
+
+			Workflow.configureWorkflow(
+				workflowDefinition = "Single Approver",
+				workflowResourceValue = "Web Content Article");
+		}
+
+		task ("Create a pending Web Content") {
+			JSONWebcontent.addWebContent(
+				content = "Webcontent Content",
+				groupName = "Test Site Name",
+				title = "Pending Web Content Title");
+		}
+
+		task ("Navigate to Content Dashboard") {
+			ContentDashboard.goToContentDashboard();
+		}
+
+		task ("Chech that Metrics is present for approved asset") {
+			Click.clickNoMouseOver(
+				key_assetName = "Approved Web Content Title",
+				locator1 = "ContentDashboard#ROW_PANEL_ASSET_NAME");
+
+			AssertVisible(locator1 = "ContentDashboard#ICON_VIEW_METRICS");
+		}
+
+		task ("Check that Metrics icon is not present for pending asset") {
+			Click.clickNoMouseOver(
+				key_assetName = "Pending Web Content Title",
+				locator1 = "ContentDashboard#ROW_PANEL_ASSET_NAME");
+
+			AssertNotVisible(locator1 = "ContentDashboard#ICON_VIEW_METRICS");
+		}
+
+		task ("Check that Metrics option is not present at dropdown for pending asset") {
+			Click(locator1 = "ContentDashboard#ASSET_MENU_DROPDOWN_BUTTON");
+
+			AssertNotVisible(locator1 = "ContentDashboard#VIEW_OPTION");
+		}
+	}
+
 	@description = "LPS-122873 When any web content is unassigned to a Vocab1's category, the relative ordering of categories remain the same"
 	@priority = "3"
 	test CheckOrderEvenWithSomeUnassignedCategories {
-		property portal.acceptance = "true";
-
 		task ("Create a list of Audience Categories") {
 			var audienceId1 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Subaudience_1",
 				vocabularyName = "Audience");
-
 			var audienceId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Subaudience_2",
 				vocabularyName = "Audience");
-
 			var audienceId3 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Subaudience_3",
@@ -918,12 +1360,10 @@ definition {
 				groupName = "Global",
 				title = "Substage_1",
 				vocabularyName = "Stage");
-
 			var stageId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Substage_2",
 				vocabularyName = "Stage");
-
 			var stageId3 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Substage_3",
@@ -971,6 +1411,64 @@ definition {
 		}
 	}
 
+	@description = "LPS-152906: Given a Blogs Asset at Content Dashboard
+	When the user accesses the its information panel
+	Then the share button must be present"
+	@ignore = "true"
+	@priority = "4"
+	test CheckShareButtonIsPresentForBlogs {
+		task ("Create a Blog Entry asset") {
+			JSONBlog.addEntry(
+				entryContent = "Blogs Entry Content",
+				entryTitle = "Blogs Entry Title",
+				groupName = "Test Site Name");
+		}
+
+		task ("Navigate to the content Dashboard and the user accesses the Blog Asset information panel") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Content",
+				panel = "Applications",
+				portlet = "Content Dashboard");
+
+			ContentDashboard.openInfoPanelByDropdownMenu();
+		}
+
+		task ("Check if the share button is not present at info panel") {
+			AssertElementPresent(
+				key_text = "Share",
+				locator1 = "Button#ANY");
+		}
+	}
+
+	@description = "LPS-152906: Given the Info panel of the Content Dashboard
+	When the user accesses the Web Content information panel
+	Then share button must not be present for Web Content"
+	@ignore = "true"
+	@priority = "4"
+	test CheckShareButtonNotPresentForWebContent {
+		task ("Create a Web Content and set a Display Page") {
+			JSONWebcontent.addWebContent(
+				content = "Webcontent Content",
+				groupName = "Test Site Name",
+				title = "WC Content");
+		}
+
+		task ("Navigate to the content Dashboard and the user accesses the Web Content information panel") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Content",
+				panel = "Applications",
+				portlet = "Content Dashboard");
+
+			ContentDashboard.openInfoPanelByDropdownMenu();
+		}
+
+		task ("Check if the share button is not present at info panel") {
+			AssertElementNotPresent(
+				key_text = "Share",
+				locator1 = "Button#ANY");
+		}
+	}
+
 	@description = "LPS-133716 When in Content Dashboard, a column with the Site / assetLibraty header is shown."
 	@priority = "2"
 	test CheckSiteAssertLibraryColumn {
@@ -996,6 +1494,8 @@ definition {
 	@description = "LPS-133716 When in Content Dashboard, the name of the Site/Asset Library where the contents are stored is shown, regardless where it was created"
 	@priority = "5"
 	test CheckSiteAssertLibraryOfContent {
+		property portal.acceptance = "true";
+
 		task ("Create new Group") {
 			JSONGroup.addGroup(groupName = "Second Test Site Name");
 		}
@@ -1035,19 +1535,15 @@ definition {
 	@description = "LPS-122873 When a new category is created and assigned to a web content, the relative ordering of categories remain the same and the new category gets a new color, positionated in the last position"
 	@priority = "3"
 	test CheckTheOrderWithANewCategory {
-		property portal.acceptance = "true";
-
 		task ("Create a list of Audience Categories") {
 			var audienceId1 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Subaudience_1",
 				vocabularyName = "Audience");
-
 			var audienceId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Subaudience_2",
 				vocabularyName = "Audience");
-
 			var audienceId3 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Subaudience_3",
@@ -1059,12 +1555,10 @@ definition {
 				groupName = "Global",
 				title = "Substage_1",
 				vocabularyName = "Stage");
-
 			var stageId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Substage_2",
 				vocabularyName = "Stage");
-
 			var stageId3 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Substage_3",
@@ -1118,7 +1612,7 @@ definition {
 			WebContentNavigator.gotoEditCP(webContentTitle = "Webcontent Title");
 
 			WebContent.selectCategory(
-				categoryName = "Substage_4",
+				categoryNameList = "Substage_4",
 				vocabularyName = "Stage");
 
 			PortletEntry.publish();
@@ -1156,6 +1650,8 @@ definition {
 	@description = "When click on the 'Other options' icon of Approved WC and has NOT a display page associated, View option NOT displayed"
 	@priority = "4"
 	test CheckViewOptionNotDisplayedApprovedWCNotAssiciatedDPT {
+		property portal.acceptance = "true";
+
 		task ("Create a Web Content") {
 			JSONWebcontent.addWebContent(
 				content = "Web Content Content",
@@ -1178,28 +1674,24 @@ definition {
 	@description = "When click on the 'Other options' icon of not Approved WC and has a display page associated, View option NOT displayed"
 	@priority = "4"
 	test CheckViewOptionNotDisplayedNotApprovedWCAssiciatedDPT {
-		task ("Create and Publish a Display Page Template with Fragment") {
+		property portal.acceptance = "true";
+
+		task ("Create a default Display Page Template") {
 			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 				contentType = "Web Content Article",
 				displayPageTemplateEntryName = "Display Page Name",
 				groupName = "Test Site Name",
+				statusKey = "APPROVED",
 				subType = "Basic Web Content");
 
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
-
-			Button.clickPublish();
-
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+			JSONLayoutpagetemplate.setLayoutPageTemplateEntryAsDefault(
+				groupName = "Test Site Name",
+				layoutPageTemplateEntryName = "Display Page Name",
+				type = "Display Page Template");
 		}
 
 		task ("Configure Web Content Article workflow to Single Approver") {
-			ProductMenu.gotoPortlet(
-				category = "Configuration",
-				portlet = "Workflow");
+			Workflow.openWorkflowAdmin(siteURLKey = "test-site-name");
 
 			Workflow.configureWorkflow(
 				workflowDefinition = "Single Approver",
@@ -1225,6 +1717,103 @@ definition {
 		}
 	}
 
+	@description = "LPS-152604 Given there are nodes selected at treeview
+    When user clicks the 'Clear' button
+    Then 'Clear' button should not appear anymore"
+	@priority = "3"
+	@uitest
+	test ClearButtonAtTreeviewComponent {
+		task ("Create a Web Content asset") {
+			JSONWebcontent.addWebContent(
+				content = "WC Content",
+				groupName = "Test Site Name",
+				title = "WC Title");
+		}
+
+		task ("Create a Blog Entry asset") {
+			JSONBlog.addEntry(
+				entryContent = "Blogs Entry Content",
+				entryTitle = "Blogs Entry Title",
+				groupName = "Test Site Name");
+		}
+
+		task ("Open filter modal at Content Dashboard") {
+			ContentDashboard.goToContentDashboard();
+
+			ContentDashboard.openFilterModal(filterOption = "Type");
+		}
+
+		task ("Assert 'Clear All' disapears after clicking it") {
+			ContentDashboard.clearFilterTreeview(optionsList = "Basic Web Content,Basic Document");
+
+			ContentDashboard.checkNoFiltersApplied();
+		}
+	}
+
+	@description = "LPS-155288: Given categories filter using treeview component
+	And there is any category's checkbox selected
+	When user clicks 'Clear All' button
+	Then the results bar disappears "
+	@priority = "3"
+	test ClearButtonCategoryAtTreeviewComponent {
+		property portal.acceptance = "false";
+
+		task ("Adding vocabulary and category") {
+			JSONCategory.addVocabulary(
+				groupName = "Test Site Name",
+				title = "Vocabulary Name");
+
+			var categoryId = JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Test",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Adding Web Content") {
+			JSONWebcontent.addWebContent(
+				assetCategoryIds = "${categoryId}",
+				content = "WC WebContent Content",
+				groupName = "Test Site Name",
+				title = "WC WebContent Title");
+		}
+
+		task ("Open filter modal at Content Dashboard and filtering category") {
+			ContentDashboard.goToContentDashboard();
+
+			ContentDashboard.openFilterModal(filterOption = "Categories");
+
+			Portlet.expandTree();
+
+			Click(
+				key_nodeName = "Test",
+				locator1 = "Treeview#NODE_ITEM");
+		}
+
+		task ("Checking if the results bar appears") {
+			AssertTextPresent(
+				locator1 = "Treeview#FILTER_BY_RESULTS_BAR_MESSAGE",
+				value1 = "1 ");
+
+			AssertTextPresent(
+				locator1 = "Treeview#FILTER_BY_RESULTS_BAR_MESSAGE",
+				value1 = "Item Selected");
+		}
+
+		task ("Assert 'Clear All' disapears after clicking it") {
+			ContentDashboard.checkClearAllButtonNotPresent();
+		}
+
+		task ("Checking if the results bar not appears") {
+			AssertTextNotPresent(
+				locator1 = "Treeview#FILTER_BY_RESULTS_BAR_MESSAGE",
+				value1 = "1 ");
+
+			AssertTextNotPresent(
+				locator1 = "Treeview#FILTER_BY_RESULTS_BAR_MESSAGE",
+				value1 = "Item Selected");
+		}
+	}
+
 	@description = "LPS-121658 When a user with no edit permissions clicks on the title of a content in status Approved with associated DPT, the user is led to the page view"
 	@priority = "4"
 	@uitest
@@ -1232,36 +1821,18 @@ definition {
 		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "ContentDashboard#ClickTitleApprovedDPTWithNoPermissions";
 
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
-		}
-
-		task ("Create a DPT and set as Default") {
+		task ("Create a default Display Page Template") {
 			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 				contentType = "Web Content Article",
 				displayPageTemplateEntryName = "Display Page Name",
 				groupName = "Test Site Name",
+				statusKey = "APPROVED",
 				subType = "Basic Web Content");
 
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
-
-			Button.clickPublish();
-
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+			JSONLayoutpagetemplate.setLayoutPageTemplateEntryAsDefault(
+				groupName = "Test Site Name",
+				layoutPageTemplateEntryName = "Display Page Name",
+				type = "Display Page Template");
 		}
 
 		task ("Create a Web Content") {
@@ -1344,36 +1915,18 @@ definition {
 		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "ContentDashboard#ClickTitleApprovedDPTWithPermissions";
 
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
-		}
-
-		task ("Create a DPT and set as Default") {
+		task ("Create a default Display Page Template") {
 			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 				contentType = "Web Content Article",
 				displayPageTemplateEntryName = "Display Page Name",
 				groupName = "Test Site Name",
+				statusKey = "APPROVED",
 				subType = "Basic Web Content");
 
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
-
-			Button.clickPublish();
-
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+			JSONLayoutpagetemplate.setLayoutPageTemplateEntryAsDefault(
+				groupName = "Test Site Name",
+				layoutPageTemplateEntryName = "Display Page Name",
+				type = "Display Page Template");
 		}
 
 		task ("Create a Web Content") {
@@ -1468,7 +2021,6 @@ definition {
 	@priority = "3"
 	@uitest
 	test ClickTitleApprovedNoDPT {
-		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "ContentDashboard#ClickTitleApprovedNoDPT";
 
 		task ("Add web content Approved") {
@@ -1507,21 +2059,17 @@ definition {
 		property osgi.module.configurations = "blogsEntryEnabled=B&quot;true&quot;";
 		property portal.acceptance = "true";
 
-		task ("Add Display Page and mark it as default") {
+		task ("Create a default Display Page Template") {
 			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 				contentType = "Blogs Entry",
 				displayPageTemplateEntryName = "Display Page Name",
-				groupName = "Test Site Name");
+				groupName = "Test Site Name",
+				statusKey = "APPROVED");
 
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
-
-			Button.clickPublish();
-
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+			JSONLayoutpagetemplate.setLayoutPageTemplateEntryAsDefault(
+				groupName = "Test Site Name",
+				layoutPageTemplateEntryName = "Display Page Name",
+				type = "Display Page Template");
 		}
 
 		task ("Create a blog in the first site") {
@@ -1606,21 +2154,17 @@ definition {
 		property osgi.module.configurations = "blogsEntryEnabled=B&quot;true&quot;";
 		property portal.acceptance = "true";
 
-		task ("Add Display Page and mark it as default") {
+		task ("Create a default Display Page Template") {
 			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 				contentType = "Blogs Entry",
 				displayPageTemplateEntryName = "Display Page Name",
-				groupName = "Test Site Name");
+				groupName = "Test Site Name",
+				statusKey = "APPROVED");
 
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
-
-			Button.clickPublish();
-
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+			JSONLayoutpagetemplate.setLayoutPageTemplateEntryAsDefault(
+				groupName = "Test Site Name",
+				layoutPageTemplateEntryName = "Display Page Name",
+				type = "Display Page Template");
 		}
 
 		task ("Create a blog") {
@@ -1762,36 +2306,18 @@ definition {
 		property osgi.module.configurations = "enabled=B&quot;true&quot;";
 		property portal.acceptance = "true";
 
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
-		}
-
-		task ("Add Display Page and mark it as default") {
+		task ("Create a default Display Page Template") {
 			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 				contentType = "Document",
 				displayPageTemplateEntryName = "Display Page Name",
 				groupName = "Test Site Name",
+				statusKey = "APPROVED",
 				subType = "Basic Document");
 
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
-
-			PageEditor.addWidget(portletName = "Documents and Media");
-
-			PageEditor.clickPublish();
-
-			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+			JSONLayoutpagetemplate.setLayoutPageTemplateEntryAsDefault(
+				groupName = "Test Site Name",
+				layoutPageTemplateEntryName = "Display Page Name",
+				type = "Display Page Template");
 		}
 
 		task ("Add a document") {
@@ -1876,22 +2402,18 @@ definition {
 		property osgi.module.configurations = "enabled=B&quot;true&quot;";
 		property portal.acceptance = "true";
 
-		task ("Add Display Page and mark it as default") {
+		task ("Create a default Display Page Template") {
 			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 				contentType = "Document",
 				displayPageTemplateEntryName = "Display Page Name",
 				groupName = "Test Site Name",
+				statusKey = "APPROVED",
 				subType = "Basic Document");
 
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
-
-			PageEditor.addWidget(portletName = "Documents and Media");
-
-			PageEditor.clickPublish();
-
-			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+			JSONLayoutpagetemplate.setLayoutPageTemplateEntryAsDefault(
+				groupName = "Test Site Name",
+				layoutPageTemplateEntryName = "Display Page Name",
+				type = "Display Page Template");
 		}
 
 		task ("Add a document") {
@@ -1921,7 +2443,6 @@ definition {
 	@priority = "3"
 	@uitest
 	test ClickTitleDraftNoDPT {
-		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "ContentDashboard#ClickTitleDraftNoDPT";
 
 		task ("Add web content Draft") {
@@ -1951,8 +2472,15 @@ definition {
 	@priority = "3"
 	@uitest
 	test ClickTitlePendingNoDPT {
-		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "ContentDashboard#ClickTitlePendingNoDPT";
+
+		task ("Configure Web Content Article workflow to Single Approver") {
+			Workflow.openWorkflowAdmin(siteURLKey = "test-site-name");
+
+			Workflow.configureWorkflow(
+				workflowDefinition = "Single Approver",
+				workflowResourceValue = "Web Content Article");
+		}
 
 		task ("Create a Web Content") {
 			JSONWebcontent.addWebContent(
@@ -1961,33 +2489,8 @@ definition {
 				title = "WC Title");
 		}
 
-		task ("Configure Web Content Article workflow to Single Approver") {
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
-
-			ProductMenu.gotoPortlet(
-				category = "Configuration",
-				portlet = "Workflow");
-
-			Workflow.configureWorkflow(
-				workflowDefinition = "Single Approver",
-				workflowResourceValue = "Web Content Article");
-		}
-
-		task ("Edit the Web Content article and submit it for publication") {
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
-
-			WebContentNavigator.gotoEditCP(webContentTitle = "WC Title");
-
-			Button.clickSubmitForPublication();
-
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
-		}
-
 		task ("Go to Content Dashboard and click on the title") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Content",
-				panel = "Applications",
-				portlet = "Content Dashboard");
+			ContentDashboard.goToContentDashboard();
 
 			LexiconTable.clickTableEntryColumnLink(
 				columnName = "title",
@@ -2005,7 +2508,6 @@ definition {
 	@priority = "3"
 	@uitest
 	test ClickTitleScheduledNoDPT {
-		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "ContentDashboard#ClickTitleScheduledNoDPT";
 
 		task ("Create a Web Content") {
@@ -2091,22 +2593,18 @@ definition {
 		property osgi.module.configurations = "enabled=B&quot;true&quot;";
 		property portal.acceptance = "true";
 
-		task ("Add Display Page and mark it as default") {
+		task ("Create a default Display Page Template") {
 			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 				contentType = "Document",
 				displayPageTemplateEntryName = "Display Page Name",
 				groupName = "Test Site Name",
+				statusKey = "APPROVED",
 				subType = "Basic Document");
 
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
-
-			PageEditor.addWidget(portletName = "Documents and Media");
-
-			PageEditor.clickPublish();
-
-			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+			JSONLayoutpagetemplate.setLayoutPageTemplateEntryAsDefault(
+				groupName = "Test Site Name",
+				layoutPageTemplateEntryName = "Display Page Name",
+				type = "Display Page Template");
 		}
 
 		task ("Add a document") {
@@ -2124,7 +2622,7 @@ definition {
 		task ("Click on the View icon and check the user is lead to the Display Page") {
 			Click.clickNoMouseOver(locator1 = "ContentDashboard#ROW_PANEL_WC");
 
-			Click(locator1 = "ContentDashboard#ICON_VIEW_LISTED_MODIFIED_DATE");
+			Click.javaScriptClick(locator1 = "ContentDashboard#ICON_VIEW_LISTED_MODIFIED_DATE");
 		}
 	}
 
@@ -2216,6 +2714,43 @@ definition {
 			JSONGroup.deleteGroupByName(groupName = "Site Name 1");
 
 			JSONGroup.deleteGroupByName(groupName = "Site Name 2");
+		}
+	}
+
+	@description = "LPS-151065 Given a Document asset using a New Document Type
+    When the user opens Info Panel at Content Dashboard
+    Then 'Document - ' and structure's name text will be exhibit"
+	@priority = "3"
+	test DocumentTypeInInfoPanel {
+		task ("Add a document type") {
+			DMNavigator.openDocumentTypesAdmin(siteURLKey = "test-site-name");
+
+			DMDocumentType.add(
+				dmDocumentTypeDescription = "DM Document Type Description",
+				dmDocumentTypeFieldNames = "Text",
+				dmDocumentTypeName = "DM Document Type Name");
+		}
+
+		task ("Add a document") {
+			DMDocument.openDocumentsAndMediaAdmin(siteURLKey = "test-site-name");
+
+			DMDocument.addCP(
+				dmDocumentDescription = "DM Document Description",
+				dmDocumentTitle = "DM Document Title",
+				dmDocumentTypeName = "DM Document Type Name",
+				textField = "DM Document Text");
+		}
+
+		task ("Navigate to Content Dashbaord") {
+			ContentDashboard.goToContentDashboard();
+		}
+
+		task ("Go to Content Dashboard and check the type in the Info panel") {
+			ContentDashboard.openInfoPanelByDropdownMenu();
+
+			AssertTextPresent(
+				locator1 = "ContentDashboard#INFO_PANEL_ASSET_TYPE",
+				value1 = "Document - DM Document Type Name");
 		}
 	}
 
@@ -2622,7 +3157,6 @@ definition {
 				groupName = "Global",
 				title = "Category1",
 				vocabularyName = "Audience");
-
 			var categoryId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Category2",
@@ -2652,20 +3186,6 @@ definition {
 				content = "Web Content Content",
 				groupName = "Test Site Name",
 				title = "Web Content Title 1");
-		}
-
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			PortalSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
 		}
 
 		task ("Create a web content with created user via JSONWS") {
@@ -2756,7 +3276,6 @@ definition {
 				groupName = "Global",
 				title = "Category1",
 				vocabularyName = "Audience");
-
 			var categoryId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Category2",
@@ -2786,20 +3305,6 @@ definition {
 				content = "Web Content Content",
 				groupName = "Test Site Name",
 				title = "Web Content Title 1");
-		}
-
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			PortalSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
 		}
 
 		task ("Create a web content with created user via JSONWS") {
@@ -2847,7 +3352,6 @@ definition {
 				groupName = "Global",
 				title = "Category1",
 				vocabularyName = "Audience");
-
 			var categoryId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Category2",
@@ -2877,20 +3381,6 @@ definition {
 				content = "Web Content Content",
 				groupName = "Test Site Name",
 				title = "Web Content Title 1");
-		}
-
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			PortalSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
 		}
 
 		task ("Create a web content with created user via JSONWS") {
@@ -2938,7 +3428,6 @@ definition {
 				groupName = "Global",
 				title = "Category1",
 				vocabularyName = "Audience");
-
 			var categoryId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Category2",
@@ -3077,8 +3566,6 @@ definition {
 			ContentDashboard.filterByTag(
 				filterOption = "Tags",
 				tagName = "tagnumber2");
-
-			Pause(locator1 = "3000");
 
 			AssertTextPresent(
 				locator1 = "ContentDashboard#FIRST_ELEMENT_LISTED",
@@ -3266,7 +3753,7 @@ definition {
 		}
 
 		task ("Filter by Type") {
-			ContentDashboard.filterByType(typeNameList = "Basic Web Content");
+			ContentDashboard.filterByType(typeName = "Basic Web Content");
 		}
 
 		task ("Assert that the web content and filter label are present") {
@@ -3298,7 +3785,7 @@ definition {
 		}
 
 		task ("Filter by Type: Basic Document") {
-			ContentDashboard.filterByType(typeNameList = "Basic Document");
+			ContentDashboard.filterByType(typeName = "Basic Document");
 		}
 
 		task ("Assert that the web content and filter label are present") {
@@ -3329,7 +3816,7 @@ definition {
 		}
 
 		task ("Filter by Type") {
-			ContentDashboard.filterByType(typeNameList = "Blogs Entry");
+			ContentDashboard.filterByType(typeName = "Blogs Entry");
 		}
 
 		task ("Assert that the web content and filter label are present") {
@@ -3447,7 +3934,7 @@ definition {
 		}
 
 		task ("Filter assets by both structure types") {
-			ContentDashboard.filterByType(typeNameList = "Basic Web Content,WC Structure Name");
+			ContentDashboard.filterByType(typeName = "Basic Web Content,WC Structure Name");
 		}
 
 		task ("Assert if both assets are displayed") {
@@ -3462,6 +3949,8 @@ definition {
 	Then the extensions selected appear as filter boxes above the Content table in the Content Dashboard, with the format 'Extension: [extension_name]' "
 	@priority = "5"
 	test FilteringExtensionsOnTheDashboard {
+		property portal.acceptance = "true";
+
 		task ("Add a text file") {
 			JSONDocument.addFileWithUploadedFile(
 				dmDocumentTitle = "Document_1",
@@ -3473,9 +3962,7 @@ definition {
 		task ("Navigate to the content Dashboard and filter by file extension") {
 			ContentDashboard.goToContentDashboard();
 
-			ContentDashboard.filterByExtension(
-				extensionName = "doc",
-				filterOption = "Extension");
+			ContentDashboard.filterByExtension(extensionName = "doc");
 		}
 
 		task ("Check if extension is present") {
@@ -3521,7 +4008,7 @@ definition {
 		task ("Assert if both Web Contents are displayed") {
 			AssertTextPresent(
 				locator1 = "ContentDashboard#FILTER_TEXT",
-				value1 = "Tag:test_tag");
+				value1 = "Tag: test_tag");
 
 			ContentDashboard.searchValue(webContentTitle = "Web Content Title 1");
 
@@ -3564,22 +4051,18 @@ definition {
 	test IconInfo {
 		property portal.acceptance = "true";
 
-		task ("Add Display Page and mark it as default") {
+		task ("Create a default Display Page Template") {
 			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 				contentType = "Web Content Article",
 				displayPageTemplateEntryName = "Display Page Name",
 				groupName = "Test Site Name",
+				statusKey = "APPROVED",
 				subType = "Basic Web Content");
 
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
-
-			Button.clickPublish();
-
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+			JSONLayoutpagetemplate.setLayoutPageTemplateEntryAsDefault(
+				groupName = "Test Site Name",
+				layoutPageTemplateEntryName = "Display Page Name",
+				type = "Display Page Template");
 		}
 
 		task ("Add Web Content and check it in its display page and access the info") {
@@ -3706,19 +4189,15 @@ definition {
 	@description = "LPS-122873 When the user add filters need to have only one vocabulary, the relative ordering of the categories remain the same"
 	@priority = "3"
 	test JustAddingAVocabularyThroughTheFilters {
-		property portal.acceptance = "true";
-
 		task ("Create a list of Audience Categories") {
 			var audienceId1 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Subaudience_1",
 				vocabularyName = "Audience");
-
 			var audienceId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Subaudience_2",
 				vocabularyName = "Audience");
-
 			var audienceId3 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Subaudience_3",
@@ -3730,12 +4209,10 @@ definition {
 				groupName = "Global",
 				title = "Substage_1",
 				vocabularyName = "Stage");
-
 			var stageId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Substage_2",
 				vocabularyName = "Stage");
-
 			var stageId3 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Substage_3",
@@ -3777,22 +4254,18 @@ definition {
 	test LanguageVersion {
 		property portal.acceptance = "true";
 
-		task ("Add Display Page and mark it as default") {
+		task ("Create a default Display Page Template") {
 			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 				contentType = "Web Content Article",
 				displayPageTemplateEntryName = "Display Page Name",
 				groupName = "Test Site Name",
+				statusKey = "APPROVED",
 				subType = "Basic Web Content");
 
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
-
-			Button.clickPublish();
-
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+			JSONLayoutpagetemplate.setLayoutPageTemplateEntryAsDefault(
+				groupName = "Test Site Name",
+				layoutPageTemplateEntryName = "Display Page Name",
+				type = "Display Page Template");
 		}
 
 		task ("Add Web Content and change the language") {
@@ -3810,13 +4283,29 @@ definition {
 				currentTargetLocale = "ar-SA",
 				newTargetLocale = "es-ES");
 
+			Translations.viewBaseFields(
+				webContentContent = "WC WebContent Content",
+				webContentTitle = "WC WebContent Title");
+
+			Translations.translateFields(
+				webContentContent = "WC WebContent Contenido",
+				webContentDescription = "WC WebContent Descripción",
+				webContentTitle = "WC WebContent Título");
+
 			Button.clickPublish();
 		}
 
 		task ("Navigate to the content Dashboard and go to the page view in the corresponding language") {
 			ContentDashboard.goToContentDashboard();
 
-			WebContent.checkLanguage();
+			ContentDashboard.viewAssetsTranslatedVersion(language = "es-ES");
+		}
+
+		task ("Check view version of the page") {
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "WC WebContent Título");
 		}
 	}
 
@@ -3825,6 +4314,8 @@ definition {
 	Then the MIME type 'audio' appears as father and all of the file extensions for it appear as children and available to be selected"
 	@priority = "4"
 	test MimeTypeAudio {
+		property portal.acceptance = "true";
+
 		task ("Add an audio file") {
 			JSONDocument.addFileWithUploadedFile(
 				dmDocumentTitle = "Document_1",
@@ -3836,9 +4327,7 @@ definition {
 		task ("Navigate to the content Dashboard and filter by file extension") {
 			ContentDashboard.goToContentDashboard();
 
-			ContentDashboard.filterByExtension(
-				extensionName = "mp3",
-				filterOption = "Extension");
+			ContentDashboard.filterByExtension(extensionName = "mp3");
 		}
 
 		task ("Check if extension is present") {
@@ -3853,6 +4342,8 @@ definition {
 	Then the MIME type 'code' appears as father and all of the file extensions for it appear as children and available to be selected"
 	@priority = "4"
 	test MimeTypeCode {
+		property portal.acceptance = "true";
+
 		task ("Add a document") {
 			JSONDocument.addFileWithUploadedFile(
 				dmDocumentTitle = "Document_1",
@@ -3864,9 +4355,7 @@ definition {
 		task ("Navigate to the content Dashboard and filter by file extension") {
 			ContentDashboard.goToContentDashboard();
 
-			ContentDashboard.filterByExtension(
-				extensionName = "html",
-				filterOption = "Extension");
+			ContentDashboard.filterByExtension(extensionName = "html");
 		}
 
 		task ("Check if extension is present") {
@@ -3881,6 +4370,8 @@ definition {
 	Then the MIME type 'compressed' appears as father and all of the file extensions for it appear as children and available to be selected"
 	@priority = "4"
 	test MimeTypeCompressed {
+		property portal.acceptance = "true";
+
 		task ("Add a compressed file") {
 			DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "test-site-name");
 
@@ -3894,9 +4385,7 @@ definition {
 		task ("Navigate to the content Dashboard and filter by file extension") {
 			ContentDashboard.goToContentDashboard();
 
-			ContentDashboard.filterByExtension(
-				extensionName = "zip",
-				filterOption = "Extension");
+			ContentDashboard.filterByExtension(extensionName = "zip");
 		}
 
 		task ("Check if extension is present") {
@@ -3911,6 +4400,8 @@ definition {
 	Then the MIME type 'others' appears as father and all of the file extensions for it appear as children and available to be selected"
 	@priority = "4"
 	test MimeTypeOthers {
+		property portal.acceptance = "true";
+
 		task ("Add a vectorial file") {
 			JSONDocument.addFileWithUploadedFile(
 				dmDocumentTitle = "Document_1",
@@ -3922,9 +4413,7 @@ definition {
 		task ("Navigate to the content Dashboard and filter by file extension") {
 			ContentDashboard.goToContentDashboard();
 
-			ContentDashboard.filterByExtension(
-				extensionName = "json",
-				filterOption = "Extension");
+			ContentDashboard.filterByExtension(extensionName = "json");
 		}
 
 		task ("Check if extension is present") {
@@ -3939,6 +4428,8 @@ definition {
 	Then the MIME type 'presentation' appears as father and all of the file extensions for it appear as children and available to be selected"
 	@priority = "4"
 	test MimeTypePresentation {
+		property portal.acceptance = "true";
+
 		task ("Add a compressed file") {
 			JSONDocument.addFileWithUploadedFile(
 				dmDocumentTitle = "Document_1",
@@ -3950,9 +4441,7 @@ definition {
 		task ("Navigate to the content Dashboard and filter by file extension") {
 			ContentDashboard.goToContentDashboard();
 
-			ContentDashboard.filterByExtension(
-				extensionName = "pptx",
-				filterOption = "Extension");
+			ContentDashboard.filterByExtension(extensionName = "pptx");
 		}
 
 		task ("Check if extension is present") {
@@ -3967,6 +4456,8 @@ definition {
 	Then the MIME type 'spreadSheet' appears as father and all of the file extensions for it appear as children and available to be selected"
 	@priority = "4"
 	test MimeTypeSpreadsheet {
+		property portal.acceptance = "true";
+
 		task ("Add a spreadSheet file") {
 			JSONDocument.addFileWithUploadedFile(
 				dmDocumentTitle = "Document_1",
@@ -3978,9 +4469,7 @@ definition {
 		task ("Navigate to the content Dashboard and filter by file extension") {
 			ContentDashboard.goToContentDashboard();
 
-			ContentDashboard.filterByExtension(
-				extensionName = "xls",
-				filterOption = "Extension");
+			ContentDashboard.filterByExtension(extensionName = "xls");
 		}
 
 		task ("Check if extension is present") {
@@ -3995,6 +4484,8 @@ definition {
 	Then the MIME type 'text' appears as father and all of the file extensions for it appear as children and available to be selected"
 	@priority = "4"
 	test MimeTypeText {
+		property portal.acceptance = "true";
+
 		task ("Add a text file") {
 			JSONDocument.addFileWithUploadedFile(
 				dmDocumentTitle = "Document_1",
@@ -4006,9 +4497,7 @@ definition {
 		task ("Navigate to the content Dashboard and filter by file extension") {
 			ContentDashboard.goToContentDashboard();
 
-			ContentDashboard.filterByExtension(
-				extensionName = "docx",
-				filterOption = "Extension");
+			ContentDashboard.filterByExtension(extensionName = "docx");
 		}
 
 		task ("Check if extension is present") {
@@ -4023,6 +4512,8 @@ definition {
 	Then the MIME type 'vectorial' appears as father and all of the file extensions for it appear as children and available to be selected"
 	@priority = "4"
 	test MimeTypeVectorial {
+		property portal.acceptance = "true";
+
 		task ("Add a vectorial file") {
 			JSONDocument.addFileWithUploadedFile(
 				dmDocumentTitle = "Document_1",
@@ -4034,9 +4525,7 @@ definition {
 		task ("Navigate to the content Dashboard and filter by file extension") {
 			ContentDashboard.goToContentDashboard();
 
-			ContentDashboard.filterByExtension(
-				extensionName = "pdf",
-				filterOption = "Extension");
+			ContentDashboard.filterByExtension(extensionName = "pdf");
 		}
 
 		task ("Check if extension is present") {
@@ -4051,6 +4540,8 @@ definition {
 	Then the MIME type 'video' appears as father and all of the file extensions for it appear as children and available to be selected"
 	@priority = "4"
 	test MimeTypeVideo {
+		property portal.acceptance = "true";
+
 		task ("Add a video file") {
 			JSONDocument.addFileWithUploadedFile(
 				dmDocumentTitle = "Document_1",
@@ -4062,9 +4553,7 @@ definition {
 		task ("Navigate to the content Dashboard and filter by file extension") {
 			ContentDashboard.goToContentDashboard();
 
-			ContentDashboard.filterByExtension(
-				extensionName = "mp4",
-				filterOption = "Extension");
+			ContentDashboard.filterByExtension(extensionName = "mp4");
 		}
 
 		task ("Check if extension is present") {
@@ -4152,10 +4641,7 @@ definition {
 		task ("Navigate to the content Dashboard and filter by file extension") {
 			ContentDashboard.goToContentDashboard();
 
-			ContentDashboard.filterByExtension(
-				extensionName = "",
-				filterOption = "Extension",
-				noResultMessage = "No results were found.");
+			ContentDashboard.openFilterModal(filterOption = "Extension");
 		}
 
 		task ("Check if message of No results were found is present") {
@@ -4168,19 +4654,15 @@ definition {
 	@description = "LPS-122873 When the user configure the audit graph to have just one vocabulary, the relative ordering of the categories remain the same"
 	@priority = "3"
 	test NumberOfVocabulariesAccordingToTheAuditGraph {
-		property portal.acceptance = "true";
-
 		task ("Create a list of Audiences") {
 			var categoryId1 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "C_Subaudience_1",
 				vocabularyName = "Audience");
-
 			var categoryId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "B_Subaudience_2",
 				vocabularyName = "Audience");
-
 			var categoryId3 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "A_Subaudience_3",
@@ -4192,12 +4674,10 @@ definition {
 				groupName = "Global",
 				title = "Substage_1",
 				vocabularyName = "Stage");
-
 			var stageId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Substage_2",
 				vocabularyName = "Stage");
-
 			var stageId3 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Substage_3",
@@ -4256,6 +4736,8 @@ definition {
 	@description = "Validate if the user can order by Modification Date"
 	@priority = "5"
 	test OrderByModificationDate {
+		property portal.acceptance = "true";
+
 		task ("Create 5 Web Contents") {
 			for (var count : list "1,2,3,4,5") {
 				JSONWebcontent.addWebContent(
@@ -4287,6 +4769,8 @@ definition {
 	@description = "Validate if the user can order by title"
 	@priority = "5"
 	test OrderByTitle {
+		property portal.acceptance = "true";
+
 		task ("Create 5 Web Contents") {
 			for (var count : list "1,2,3,4,5") {
 				JSONWebcontent.addWebContent(
@@ -4346,8 +4830,6 @@ definition {
 	@description = "LPS-132254 When a user use the <, > buttons, the page displayed moves forward/backward"
 	@priority = "3"
 	test PaginationMoveAcrossPagesWithButtons {
-		property portal.acceptance = "true";
-
 		task ("Create 6 WC using JSON") {
 			for (var count : list "1,2,3,4,5,6") {
 				JSONWebcontent.addWebContent(
@@ -4380,8 +4862,6 @@ definition {
 	@description = "LPS-132254 When a user clicks on a page number, that page is displayed in the Content Dashboard"
 	@priority = "3"
 	test PaginationMoveAcrossPagesWithNumber {
-		property portal.acceptance = "true";
-
 		task ("Create 6 WC using JSON") {
 			for (var count : list "1,2,3,4,5,6") {
 				JSONWebcontent.addWebContent(
@@ -4411,20 +4891,6 @@ definition {
 	@priority = "5"
 	test PermissionsForContentDashboard {
 		property portal.acceptance = "true";
-
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
-		}
 
 		task ("Create a new user") {
 			JSONUser.addUser(
@@ -4483,6 +4949,34 @@ definition {
 		}
 	}
 
+	@description = "LPS-152905: Add a Preview to the Info Panel of Blogs in the Content Dashboard :"
+	@priority = "3"
+	test PreviewBlogsImage {
+		task ("Given a blog contains only an image") {
+			var imageId = JSONBlog.uploadBlogImage(
+				groupName = "Test Site Name",
+				sourceFileName = "Document_1.jpg");
+
+			JSONBlog.addEntryWithImage(
+				coverImageId = "${imageId}",
+				entryContent = "Blogs Content",
+				entryTitle = "Blogs Title",
+				groupName = "Test Site Name");
+		}
+
+		task ("When the user opens asset Info Panel at Content Dashboard ") {
+			ContentDashboard.goToContentDashboard();
+
+			ContentDashboard.openInfoPanelByDropdownMenu();
+		}
+
+		task ("Then a preview of the blog image must appear in the Info Panel") {
+			AssertVisible(
+				assetName = "Document_1.jpg",
+				locator1 = "ContentDashboard#PREVIEW_IMAGE");
+		}
+	}
+
 	@description = "Validate if the user can open de Info side panel of a web content"
 	@priority = "5"
 	test SaveFiltersAfterEditing {
@@ -4504,7 +4998,7 @@ definition {
 
 			AssertTextPresent(
 				locator1 = "ContentDashboard#FILTER_TEXT",
-				value1 = "Author:Test Test");
+				value1 = "Author: Test Test");
 		}
 	}
 
@@ -4540,17 +5034,7 @@ definition {
 		task ("Navigate to the content Dashboard and filter by file extension") {
 			ContentDashboard.goToContentDashboard();
 
-			ContentDashboard.filterByExtension(
-				extensionName = "mp3",
-				filterOption = "Extension");
-
-			ContentDashboard.filterByExtension(
-				extensionName = "Image",
-				filterOption = "Extension");
-
-			ContentDashboard.filterByExtension(
-				extensionName = "Text",
-				filterOption = "Extension");
+			ContentDashboard.filterByExtension(extensionNameList = "mp3,Image,Text");
 		}
 
 		task ("Check if extension is present") {
@@ -4576,9 +5060,7 @@ definition {
 		task ("Navigate to the content Dashboard and filter by file extension") {
 			ContentDashboard.goToContentDashboard();
 
-			ContentDashboard.filterByMimeParent(
-				filterOption = "Extension",
-				parentExtension = "Text (1 Item)");
+			ContentDashboard.filterByMimeParent(parentExtension = "Text (1 Item)");
 		}
 
 		task ("Check if extension is present") {
@@ -4619,22 +5101,20 @@ definition {
 	@description = "LPS-131886 Validade if a Web Content associated with a Display Page Template is shown"
 	@priority = "5"
 	test ShouldExhibitWebContentAssociatedWithDisplayPage {
-		task ("Create and Publish a Display Page Template with Fragment") {
+		property portal.acceptance = "true";
+
+		task ("Create a default Display Page Template") {
 			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 				contentType = "Web Content Article",
 				displayPageTemplateEntryName = "Display Page Name",
 				groupName = "Test Site Name",
+				statusKey = "APPROVED",
 				subType = "Basic Web Content");
 
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
-
-			Button.clickPublish();
-
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+			JSONLayoutpagetemplate.setLayoutPageTemplateEntryAsDefault(
+				groupName = "Test Site Name",
+				layoutPageTemplateEntryName = "Display Page Name",
+				type = "Display Page Template");
 		}
 
 		task ("Create a Web Content and set a Display Page") {
@@ -4661,6 +5141,8 @@ definition {
 	@description = "LPS-131886 Validade if a Web Content not associated with a Display Page Template is shown"
 	@priority = "5"
 	test ShouldExhibitWebContentNotAssociatedWithDisplayPageTemplate {
+		property portal.acceptance = "true";
+
 		task ("Create WC via JSON") {
 			JSONWebcontent.addWebContent(
 				content = "WC Content",
@@ -4685,19 +5167,7 @@ definition {
 	@description = "LPS-133181 When Filter by Author 'All', displays content from all users featured in the user's content dashboard view."
 	@priority = "5"
 	test ShowAllContentCreatorUsers {
-		task ("Disable option to strangers to verify email") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "User Authentication",
-				configurationName = "General",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.uncheckStrangersVerifyEmailCheckbox();
-		}
+		property portal.acceptance = "true";
 
 		task ("Create and configure second user") {
 			JSONUser.addUser(
@@ -4764,6 +5234,7 @@ definition {
 	@priority = "5"
 	test ShowAllContentsCreatedByUsers {
 		property custom.properties = "jsonws.web.service.paths.excludes=";
+		property portal.acceptance = "true";
 
 		task ("Create and configure second user") {
 			JSONUser.addUser(
@@ -4837,6 +5308,7 @@ definition {
 	@priority = "5"
 	test ShowOnlyContentCreatedByUser {
 		property custom.properties = "jsonws.web.service.paths.excludes=";
+		property portal.acceptance = "true";
 
 		task ("Create and configure second user") {
 			JSONUser.addUser(
@@ -4921,7 +5393,6 @@ definition {
 	test TypeColumnForDocument {
 		property osgi.module.configuration.file.names = "com.liferay.content.dashboard.web.internal.configuration.FFContentDashboardDocumentConfiguration.config";
 		property osgi.module.configurations = "enabled=B&quot;true&quot;";
-		property portal.acceptance = "true";
 
 		task ("Create document via JSON") {
 			task ("Create a new Document") {
@@ -4975,19 +5446,15 @@ definition {
 	@description = "LPS-122873 When the user uncheck any checkbox from the vocab2, the relative ordering of the categories remain the same"
 	@priority = "3"
 	test UncheckACategoryInTheContentPanel {
-		property portal.acceptance = "true";
-
 		task ("Create a list of Audience Categories") {
 			var audienceId1 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Subaudience_1",
 				vocabularyName = "Audience");
-
 			var audienceId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Subaudience_2",
 				vocabularyName = "Audience");
-
 			var audienceId3 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Subaudience_3",
@@ -4999,12 +5466,10 @@ definition {
 				groupName = "Global",
 				title = "Substage_1",
 				vocabularyName = "Stage");
-
 			var stageId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Substage_2",
 				vocabularyName = "Stage");
-
 			var stageId3 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Substage_3",
@@ -5046,27 +5511,94 @@ definition {
 		}
 	}
 
+	@description = "LPS-151911 Bug: Content Dashboard shows error when displaying details of article whose authors has been deleted"
+	@priority = "4"
+	test ViewInfoPanelDeletedUser {
+		property portal.acceptance = "true";
+
+		task ("Create a new User") {
+			JSONUser.addUser(
+				userEmailAddress = "userea@liferay.com",
+				userFirstName = "userfn",
+				userLastName = "userln",
+				userScreenName = "usersn");
+
+			JSONUser.setFirstPassword(
+				agreeToTermsAndAnswerReminderQuery = "true",
+				newPassword = "test",
+				requireReset = "false",
+				userEmailAddress = "userea@liferay.com");
+		}
+
+		task ("Assign the new user to a site") {
+			JSONUser.addUserToSite(
+				groupName = "Test Site Name",
+				userEmailAddress = "userea@liferay.com");
+		}
+
+		task ("Assign the Site Administrator to new user") {
+			JSONRole.assignSiteRoleToUser(
+				groupName = "Test Site Name",
+				roleTitle = "Site Administrator",
+				userEmailAddress = "userea@liferay.com");
+		}
+
+		task ("Create a web content with created user via JSONWS") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "userea@liferay.com",
+				userLoginFullName = "userfn userln");
+
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+			WebContentNavigator.gotoAddCP();
+
+			WebContent.addCP(
+				webContentContent = "WC Content Content",
+				webContentTitle = "Web Content Title");
+
+			PortletEntry.publish();
+		}
+
+		task ("Login with Test user once more") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "test@liferay.com",
+				userLoginFullName = "Test Test");
+		}
+
+		task ("Delete the user created") {
+			JSONUser.deleteUserByEmailAddress(userEmailAddress = "userea@liferay.com");
+		}
+
+		task ("Natigate to Content Dashboard") {
+			ContentDashboard.goToContentDashboard();
+		}
+
+		task ("Check the info panel of the asset") {
+			ContentDashboard.openInfoPanelByDropdownMenu();
+
+			AssertTextPresent(
+				locator1 = "ContentDashboard#INFO_PANEL_TITLE",
+				value1 = "Web Content Title");
+		}
+	}
+
 	@description = "LPS-116840 When the user clicks on the view icon of a content with an associated display page, the user is led to the view mode of the page"
 	@priority = "5"
 	test WebContentIconView {
 		property portal.acceptance = "true";
 
-		task ("Add Display Page and mark it as default") {
+		task ("Create a default Display Page Template") {
 			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 				contentType = "Web Content Article",
 				displayPageTemplateEntryName = "Display Page Name",
 				groupName = "Test Site Name",
+				statusKey = "APPROVED",
 				subType = "Basic Web Content");
 
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
-
-			Button.clickPublish();
-
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+			JSONLayoutpagetemplate.setLayoutPageTemplateEntryAsDefault(
+				groupName = "Test Site Name",
+				layoutPageTemplateEntryName = "Display Page Name",
+				type = "Display Page Template");
 		}
 
 		task ("Add Web Content and check it in its display page and access the view") {
@@ -5081,7 +5613,51 @@ definition {
 
 			WaitForElementPresent(locator1 = "ContentDashboard#ICON_VIEW_LISTED_MODIFIED_DATE");
 
-			Click(locator1 = "ContentDashboard#ICON_VIEW_LISTED_MODIFIED_DATE");
+			Click.javaScriptClick(locator1 = "ContentDashboard#ICON_VIEW_LISTED_MODIFIED_DATE");
+		}
+	}
+
+	@description = "LPS-151065 Given a Web Content asset using a Web Content Structure
+    When the user opens Info Panel at Content Dashboard
+    Then 'Web Content Article -' and structure's name text will be exhibit"
+	@priority = "3"
+	test WebContentStructureTypeInInfoPanel {
+		task ("Create a web content structure") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+			NavItem.gotoStructures();
+
+			WebContentStructures.addCP(structureName = "WC Structure Name");
+
+			DataEngine.addField(
+				fieldFieldLabel = "Text",
+				fieldName = "Text");
+
+			WebContentStructures.saveCP();
+		}
+
+		task ("Create a web content based on the structure created") {
+			NavItem.click(navItem = "Web Content");
+
+			WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Name");
+
+			WebContent.addWithStructureCP(
+				webContentText = "Web Content Content",
+				webContentTitle = "Web Content Title");
+
+			PortletEntry.publish();
+		}
+
+		task ("Navigate to Content Dashbaord") {
+			ContentDashboard.goToContentDashboard();
+		}
+
+		task ("Go to Content Dashboard and check the type in the Info panel") {
+			ContentDashboard.openInfoPanelByDropdownMenu();
+
+			AssertTextPresent(
+				locator1 = "ContentDashboard#INFO_PANEL_ASSET_TYPE",
+				value1 = "Web Content Article - WC Structure Name");
 		}
 	}
 

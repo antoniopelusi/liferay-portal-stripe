@@ -15,17 +15,20 @@
 import ClayButton, {ClayButtonWithIcon} from '@clayui/button';
 import {ClayDropDownWithItems} from '@clayui/drop-down';
 import ClayLayout from '@clayui/layout';
-import React from 'react';
+import {Context as ModalContext} from '@clayui/modal';
+import React, {useContext} from 'react';
 
 import {EVENT_TYPES as CORE_EVENT_TYPES} from '../../../core/actions/eventTypes.es';
 import {useForm, useFormState} from '../../../core/hooks/useForm.es';
 import {usePage} from '../../../core/hooks/usePage.es';
+import pageReset from '../../../core/thunks/pageReset.es';
 import {sub} from '../../../utils/strings';
-import {EVENT_TYPES} from '../eventTypes.es';
+import {EVENT_TYPES} from '../eventTypes';
 
 export function Container({children, empty, pageIndex, pages}) {
-	const {editingLanguageId, successPageSettings} = useFormState();
+	const {editingLanguageId, rules, successPageSettings} = useFormState();
 	const dispatch = useForm();
+	const [{onClose}, modalDispatch] = useContext(ModalContext);
 
 	const pageSettingsItems = [
 		empty
@@ -37,10 +40,18 @@ export function Container({children, empty, pageIndex, pages}) {
 			: {
 					label: Liferay.Language.get('reset-page'),
 					onClick: () =>
-						dispatch({
-							payload: {pageIndex},
-							type: EVENT_TYPES.PAGE.RESET,
-						}),
+						dispatch(
+							pageReset({
+								action: {
+									payload: {pageIndex},
+									type: EVENT_TYPES.PAGE.RESET,
+								},
+								modalDispatch,
+								onClose,
+								pages,
+								rules,
+							})
+						),
 			  },
 		pageIndex > 0
 			? {

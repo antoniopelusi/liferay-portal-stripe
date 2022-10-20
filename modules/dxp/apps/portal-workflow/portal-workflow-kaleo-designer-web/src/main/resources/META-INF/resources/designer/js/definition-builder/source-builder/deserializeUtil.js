@@ -70,14 +70,17 @@ DeserializeUtil.prototype = {
 					type = 'start';
 				}
 
-				const metadata = JSON.parse(node.metadata);
+				const metadata = node.metadata && JSON.parse(node.metadata);
 
-				if (metadata.terminal) {
+				if (
+					metadata?.terminal ||
+					(type === 'state' && !node.transitions && !metadata)
+				) {
 					type = 'end';
 				}
 
-				position.x = metadata.xy[0];
-				position.y = metadata.xy[1];
+				position.x = metadata?.xy[0] || Math.floor(Math.random() * 800);
+				position.y = metadata?.xy[1] || Math.floor(Math.random() * 500);
 
 				let label = {};
 
@@ -98,9 +101,14 @@ DeserializeUtil.prototype = {
 					script: node.script,
 				};
 
+				if (type === 'condition') {
+					data.scriptLanguage =
+						node.scriptLanguage || DEFAULT_LANGUAGE;
+				}
+
 				if (type === 'task') {
 					node.assignments?.forEach((assignment) => {
-						var roleTypes = assignment['role-type'];
+						const roleTypes = assignment['role-type'];
 
 						roleTypes?.forEach((type, index) => {
 							if (type === 'depot') {
@@ -126,7 +134,7 @@ DeserializeUtil.prototype = {
 					node.notifications?.length && parseNotifications(node);
 
 				node.notifications?.forEach((notification) => {
-					var roleTypes = notification['role-type'];
+					const roleTypes = notification['role-type'];
 
 					roleTypes?.forEach((type, index) => {
 						if (type === 'depot') {

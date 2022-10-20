@@ -22,7 +22,6 @@ import com.liferay.portal.json.JSONFactoryImpl;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.Language;
-import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
 import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoaderUtil;
 import com.liferay.portal.kernel.service.GroupLocalService;
@@ -52,7 +51,6 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 import org.skyscreamer.jsonassert.JSONAssert;
@@ -75,7 +73,7 @@ public class SearchLocationDDMFormFieldTemplateContextContributorTest {
 		_setUpGooglePlacesUtil();
 		_setUpJSONFactory();
 		_setUpJSONFactoryUtil();
-		_setUpLanguageUtil();
+		_setUpLanguage();
 		_setUpResourceBundleUtil();
 	}
 
@@ -137,12 +135,10 @@ public class SearchLocationDDMFormFieldTemplateContextContributorTest {
 
 	private static void _mockGet(String key, String message) {
 		Mockito.when(
-			_language.get(Matchers.any(ResourceBundle.class), Matchers.eq(key))
+			_language.get(Mockito.any(ResourceBundle.class), Mockito.eq(key))
 		).thenReturn(
 			message
 		);
-
-		_languageUtil.setLanguage(_language);
 	}
 
 	private static void _setUpGooglePlacesUtil() {
@@ -153,7 +149,7 @@ public class SearchLocationDDMFormFieldTemplateContextContributorTest {
 
 		Mockito.when(
 			portletPreferences.getValue(
-				Mockito.anyString(), Mockito.anyString())
+				Mockito.nullable(String.class), Mockito.nullable(String.class))
 		).thenReturn(
 			"googlePlacesAPIKey"
 		);
@@ -187,7 +183,7 @@ public class SearchLocationDDMFormFieldTemplateContextContributorTest {
 		jsonFactoryUtil.setJSONFactory(new JSONFactoryImpl());
 	}
 
-	private static void _setUpLanguageUtil() {
+	private static void _setUpLanguage() {
 		_language = Mockito.mock(Language.class);
 
 		_mockGet("address", "Address");
@@ -195,6 +191,10 @@ public class SearchLocationDDMFormFieldTemplateContextContributorTest {
 		_mockGet("country", "Country");
 		_mockGet("postal-code", "Postal Code");
 		_mockGet("state", "State");
+
+		ReflectionTestUtil.setFieldValue(
+			_searchLocationDDMFormFieldTemplateContextContributor, "_language",
+			_language);
 	}
 
 	private static void _setUpResourceBundleUtil() {
@@ -244,7 +244,6 @@ public class SearchLocationDDMFormFieldTemplateContextContributorTest {
 	private static final long _GROUP_ID = RandomTestUtil.randomLong();
 
 	private static Language _language;
-	private static final LanguageUtil _languageUtil = new LanguageUtil();
 	private static final SearchLocationDDMFormFieldTemplateContextContributor
 		_searchLocationDDMFormFieldTemplateContextContributor =
 			new SearchLocationDDMFormFieldTemplateContextContributor();

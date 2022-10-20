@@ -13,20 +13,22 @@
  */
 
 import {
+	openConfirmModal,
 	openModal,
 	openSelectionModal,
 	openSimpleInputModal,
 } from 'frontend-js-web';
 
+import openDeletePageTemplateModal from '../modal/openDeletePageTemplateModal';
+
 const ACTIONS = {
 	deleteLayoutPageTemplateEntry({deleteLayoutPageTemplateEntryURL}) {
-		if (
-			confirm(
-				Liferay.Language.get('are-you-sure-you-want-to-delete-this')
-			)
-		) {
-			send(deleteLayoutPageTemplateEntryURL);
-		}
+		openDeletePageTemplateModal({
+			onDelete: () => {
+				send(deleteLayoutPageTemplateEntryURL);
+			},
+			title: Liferay.Language.get('page-template'),
+		});
 	},
 
 	deleteLayoutPageTemplateEntryPreview({
@@ -36,30 +38,31 @@ const ACTIONS = {
 	},
 
 	discardDraft({discardDraftURL}) {
-		if (
-			confirm(
-				Liferay.Language.get(
-					'are-you-sure-you-want-to-discard-current-draft-and-apply-latest-published-changes'
-				)
-			)
-		) {
-			send(discardDraftURL);
-		}
+		openConfirmModal({
+			message: Liferay.Language.get(
+				'are-you-sure-you-want-to-discard-current-draft-and-apply-latest-published-changes'
+			),
+			onConfirm: (isConfirmed) => {
+				if (isConfirmed) {
+					send(discardDraftURL);
+				}
+			},
+		});
 	},
 
 	moveLayoutPageTemplateEntry(
 		{itemSelectorURL, moveLayoutPageTemplateEntryURL},
 		namespace
 	) {
-		Liferay.Util.openSelectionModal({
+		openSelectionModal({
 			onSelect: (selectedItem) => {
 				if (!selectedItem) {
 					return;
 				}
 
-				var value = JSON.parse(selectedItem.value);
+				const value = JSON.parse(selectedItem.value);
 
-				var portletURL = new Liferay.Util.PortletURL.createPortletURL(
+				const portletURL = new Liferay.Util.PortletURL.createPortletURL(
 					moveLayoutPageTemplateEntryURL,
 					{
 						targetLayoutPageTemplateCollectionId:

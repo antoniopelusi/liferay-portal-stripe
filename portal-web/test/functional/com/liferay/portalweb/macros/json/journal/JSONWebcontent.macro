@@ -5,23 +5,18 @@ definition {
 		Variables.assertDefined(parameterList = "${groupName}");
 
 		var groupId = JSONWebcontentSetter.setGroupId(groupName = "${groupName}");
-
 		var contentXml = JSONWebcontentSetter.setContentXML(
 			content = "${content}",
 			contentMap = "${contentMap}");
-
 		var descriptionMap = JSONWebcontentSetter.setDescriptionMap(description = "${description}");
-
 		var folderId = JSONWebcontentSetter.setFolderId(
 			folderName = "${folderName}",
 			groupId = "${groupId}");
-
 		var serviceContext = JSONWebcontentSetter.setServiceContext(
 			assetCategoryIds = "${assetCategoryIds}",
 			assetTagNames = "${assetTagNames}",
 			serviceContext = "${serviceContext}",
 			workflowAction = "${workflowAction}");
-
 		var titleMap = JSONWebcontentSetter.setTitleMap(
 			title = "${title}",
 			titleMap = "${titleMap}");
@@ -65,23 +60,18 @@ definition {
 		var groupId = JSONWebcontentSetter.setGroupId(
 			groupName = "${groupName}",
 			site = "${site}");
-
 		var contentXml = JSONWebcontentSetter.setContentXML(
 			content = "${content}",
 			source = "${source}");
-
 		var descriptionMap = JSONWebcontentSetter.setDescriptionMap(description = "${description}");
-
 		var folderId = JSONWebcontentSetter.setFolderId(
 			folderName = "${folderName}",
 			groupId = "${groupId}");
-
 		var serviceContext = JSONWebcontentSetter.setServiceContext(
 			assetCategoryIds = "${assetCategoryIds}",
 			assetTagNames = "${assetTagNames}",
 			serviceContext = "${serviceContext}",
 			workflowAction = "${workflowAction}");
-
 		var titleMap = JSONWebcontentSetter.setTitleMap(title = "${title}");
 
 		JSONWebcontentAPI._addWebContent(
@@ -102,7 +92,6 @@ definition {
 		var groupId = JSONWebcontentSetter.setGroupId(
 			groupName = "${groupName}",
 			site = "${site}");
-
 		var articleId = JSONWebcontentSetter.setArticleId(
 			groupName = "${groupName}",
 			site = "${site}",
@@ -131,6 +120,7 @@ definition {
 		Variables.assertDefined(parameterList = "${groupName},${title}");
 
 		var urlTitle = StringUtil.replace("${title}", " ", "-");
+
 		var urlTitle = StringUtil.lowerCase("${urlTitle}");
 
 		var resourcePrimKey = JSONWebcontentAPI._getResourcePrimKeyByURLTitle(
@@ -145,7 +135,6 @@ definition {
 		Variables.assertDefined(parameterList = "${groupName},${title}");
 
 		var groupId = JSONWebcontentSetter.setGroupId(groupName = "${groupName}");
-
 		var articleId = JSONWebcontentSetter.setArticleId(
 			groupName = "${groupName}",
 			title = "${title}");
@@ -158,7 +147,6 @@ definition {
 	@summary = "Restore a WC Article from the trash via 'resourcePrimKey' by JSON"
 	macro restoreWebContentFromTrashViaResourcePrimKey {
 		var resourcePrimKey = "${resourcePrimKey}";
-
 		var portalURL = JSONCompany.getPortalURL();
 
 		var curl = '''
@@ -177,9 +165,7 @@ definition {
 		var articleId = JSONWebcontentSetter.setArticleId(
 			groupName = "${groupName}",
 			title = "${title}");
-
 		var groupId = JSONWebcontentSetter.setGroupId(groupName = "${groupName}");
-
 		var status = JSONWebcontentSetter.setStatus(statusKey = "${statusKey}");
 
 		if (!(isSet(version))) {

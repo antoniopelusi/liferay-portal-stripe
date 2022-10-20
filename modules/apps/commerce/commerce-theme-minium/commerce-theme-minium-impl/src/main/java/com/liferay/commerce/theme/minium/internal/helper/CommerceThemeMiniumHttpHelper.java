@@ -19,8 +19,10 @@ import com.liferay.application.list.PanelCategoryRegistry;
 import com.liferay.application.list.constants.PanelCategoryKeys;
 import com.liferay.application.list.display.context.logic.PanelCategoryHelper;
 import com.liferay.commerce.account.util.CommerceAccountHelper;
+import com.liferay.commerce.product.constants.CPPortletKeys;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.model.UserNotificationEvent;
 import com.liferay.portal.kernel.portlet.PortletProvider;
 import com.liferay.portal.kernel.portlet.PortletProviderUtil;
@@ -29,8 +31,6 @@ import com.liferay.portal.kernel.util.ResourceBundleUtil;
 
 import java.util.Locale;
 import java.util.ResourceBundle;
-
-import javax.portlet.PortletURL;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -54,11 +54,27 @@ public class CommerceThemeMiniumHttpHelper {
 			httpServletRequest);
 	}
 
+	public String getCatalogURL(HttpServletRequest httpServletRequest)
+		throws PortalException {
+
+		String portletURL = String.valueOf(
+			PortletProviderUtil.getPortletURL(
+				httpServletRequest, CPPortletKeys.CP_SEARCH_RESULTS,
+				PortletProvider.Action.VIEW));
+
+		if (portletURL.contains(StringPool.QUESTION)) {
+			return portletURL.substring(
+				0, portletURL.lastIndexOf(StringPool.QUESTION));
+		}
+
+		return portletURL;
+	}
+
 	public String getMyListsLabel(Locale locale) {
 		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
 			"content.Language", locale, getClass());
 
-		return LanguageUtil.get(resourceBundle, "my-lists");
+		return _language.get(resourceBundle, "my-lists");
 	}
 
 	public int getNotificationsCount(ThemeDisplay themeDisplay) {
@@ -74,15 +90,17 @@ public class CommerceThemeMiniumHttpHelper {
 	public String getNotificationsURL(HttpServletRequest httpServletRequest)
 		throws PortalException {
 
-		PortletURL portletURL = PortletProviderUtil.getPortletURL(
-			httpServletRequest, UserNotificationEvent.class.getName(),
-			PortletProvider.Action.VIEW);
-
-		return portletURL.toString();
+		return String.valueOf(
+			PortletProviderUtil.getPortletURL(
+				httpServletRequest, UserNotificationEvent.class.getName(),
+				PortletProvider.Action.VIEW));
 	}
 
 	@Reference
 	private CommerceAccountHelper _commerceAccountHelper;
+
+	@Reference
+	private Language _language;
 
 	@Reference
 	private PanelAppRegistry _panelAppRegistry;

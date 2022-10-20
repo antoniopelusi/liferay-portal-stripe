@@ -127,6 +127,20 @@ public class ObjectValidationRuleSerDes {
 			sb.append("\"");
 		}
 
+		if (objectValidationRule.getEngineLabel() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"engineLabel\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(objectValidationRule.getEngineLabel()));
+
+			sb.append("\"");
+		}
+
 		if (objectValidationRule.getErrorLabel() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -247,6 +261,15 @@ public class ObjectValidationRuleSerDes {
 			map.put("engine", String.valueOf(objectValidationRule.getEngine()));
 		}
 
+		if (objectValidationRule.getEngineLabel() == null) {
+			map.put("engineLabel", null);
+		}
+		else {
+			map.put(
+				"engineLabel",
+				String.valueOf(objectValidationRule.getEngineLabel()));
+		}
+
 		if (objectValidationRule.getErrorLabel() == null) {
 			map.put("errorLabel", null);
 		}
@@ -335,6 +358,12 @@ public class ObjectValidationRuleSerDes {
 			else if (Objects.equals(jsonParserFieldName, "engine")) {
 				if (jsonParserFieldValue != null) {
 					objectValidationRule.setEngine(
+						(String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "engineLabel")) {
+				if (jsonParserFieldValue != null) {
+					objectValidationRule.setEngineLabel(
 						(String)jsonParserFieldValue);
 				}
 			}

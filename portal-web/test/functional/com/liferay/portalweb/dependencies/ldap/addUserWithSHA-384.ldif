@@ -1,0 +1,11 @@
+changetype: add
+cn: usersn
+dn: cn=usersn,dc=example,dc=com
+givenName: userfn
+mail: testUser@liferay.com
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: person
+objectClass: top
+sn: userln
+userPassword: {SHA384}WKd1ukESvjAFrkQHznV9iP2nHUBJe7gCbsrFTU4//HIyzo3jq1rLMK45dg/ufFPt

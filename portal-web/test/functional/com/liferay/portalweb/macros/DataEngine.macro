@@ -557,6 +557,21 @@ definition {
 		Alert.viewSuccessMessage();
 	}
 
+	macro assertAllowMultipleSelectionsField {
+		var checkboxName = "Allow Multiple Selections";
+
+		AssertClick.assertPartialTextClickAt(
+			key_fieldFieldLabel = "${fieldFieldLabel}",
+			locator1 = "DDMEditStructure#FORM_FIELD_CONTAINER",
+			value1 = "${fieldFieldLabel}");
+
+		Navigator.gotoNavTab(navTab = "Advanced");
+
+		AssertElementPresent(locator1 = "Checkbox#ANY_CHECKBOX");
+
+		Click(locator1 = "Sidebar#BACK");
+	}
+
 	macro assertCheckboxOptions {
 		if (!(isSet(fieldIndex))) {
 			var fieldIndex = "1";
@@ -606,6 +621,21 @@ definition {
 			key_fieldName = "${fieldName}",
 			key_index = "${index}",
 			locator1 = "WCEditWebContent#REPEATED_FIELD");
+	}
+
+	macro assertInlineField {
+		var checkboxName = "Inline";
+
+		AssertClick.assertPartialTextClickAt(
+			key_fieldFieldLabel = "${fieldFieldLabel}",
+			locator1 = "DDMEditStructure#FORM_FIELD_CONTAINER",
+			value1 = "${fieldFieldLabel}");
+
+		Navigator.gotoNavTab(navTab = "Advanced");
+
+		AssertElementPresent(locator1 = "Checkbox#ANY_CHECKBOX");
+
+		Click(locator1 = "Sidebar#BACK");
 	}
 
 	macro assertInlineOptions {
@@ -680,6 +710,51 @@ definition {
 		AssertElementPresent(
 			key_fieldName = "${fieldFieldName}",
 			locator1 = "DataEngineRenderer#WEB_CONTENT_DISABLED_FIELD");
+	}
+
+	macro assertOrderOptionsAlphabeticallyField {
+		var checkboxName = "Order Options Alphabetically";
+
+		AssertClick.assertPartialTextClickAt(
+			key_fieldFieldLabel = "${fieldFieldLabel}",
+			locator1 = "DDMEditStructure#FORM_FIELD_CONTAINER",
+			value1 = "${fieldFieldLabel}");
+
+		Navigator.gotoNavTab(navTab = "Advanced");
+
+		AssertElementPresent(locator1 = "Checkbox#ANY_CHECKBOX");
+
+		Click(locator1 = "Sidebar#BACK");
+	}
+
+	macro assertRepeatableField {
+		var checkboxName = "Repeatable";
+
+		AssertClick.assertPartialTextClickAt(
+			key_fieldFieldLabel = "${fieldFieldLabel}",
+			locator1 = "DDMEditStructure#FORM_FIELD_CONTAINER",
+			value1 = "${fieldFieldLabel}");
+
+		Navigator.gotoNavTab(navTab = "Advanced");
+
+		AssertElementPresent(locator1 = "Checkbox#ANY_CHECKBOX");
+
+		Click(locator1 = "Sidebar#BACK");
+	}
+
+	macro assertShowLabelField {
+		var checkboxName = "Show Label";
+
+		AssertClick.assertPartialTextClickAt(
+			key_fieldFieldLabel = "${fieldFieldLabel}",
+			locator1 = "DDMEditStructure#FORM_FIELD_CONTAINER",
+			value1 = "${fieldFieldLabel}");
+
+		Navigator.gotoNavTab(navTab = "Advanced");
+
+		AssertElementPresent(locator1 = "Checkbox#ANY_CHECKBOX");
+
+		Click(locator1 = "Sidebar#BACK");
 	}
 
 	macro assertSwitchOptions {
@@ -877,15 +952,22 @@ definition {
 
 		Navigator.gotoSidebarTab(tabName = "Builder");
 
-		if (isSet(fieldsetModal)) {
+		if ("${fieldName}" == "Boolean") {
 			Click(
-				key_fieldFieldLabel = "${fieldFieldLabel}",
-				locator1 = "DDMEditStructure#FORM_FIELD_CONTAINER_LABEL_IN_FIELDSET_MODAL");
+				key_fieldLabel = "${fieldFieldLabel}",
+				locator1 = "Checkbox#CHECKBOX_LABEL");
 		}
 		else {
-			Click(
-				key_fieldFieldLabel = "${fieldFieldLabel}",
-				locator1 = "DDMEditStructure#FORM_FIELD_CONTAINER_LABEL");
+			if (isSet(fieldsetModal)) {
+				Click(
+					key_fieldFieldLabel = "${fieldFieldLabel}",
+					locator1 = "DDMEditStructure#FORM_FIELD_CONTAINER_LABEL_IN_FIELDSET_MODAL");
+			}
+			else {
+				Click(
+					key_fieldFieldLabel = "${fieldFieldLabel}",
+					locator1 = "DDMEditStructure#FORM_FIELD_CONTAINER_LABEL");
+			}
 		}
 
 		Type(
@@ -900,9 +982,16 @@ definition {
 			locator1 = "Sidebar#TEXT_INPUT",
 			value1 = "${fieldFieldLabelEdit}");
 
-		AssertElementPresent(
-			key_fieldFieldLabel = "${fieldFieldLabelEdit}",
-			locator1 = "DDMEditStructure#FORM_FIELD_CONTAINER_LABEL");
+		if ("${fieldName}" == "Boolean") {
+			AssertElementPresent(
+				key_fieldLabel = "${fieldFieldLabelEdit}",
+				locator1 = "Checkbox#CHECKBOX_LABEL");
+		}
+		else {
+			AssertElementPresent(
+				key_fieldFieldLabel = "${fieldFieldLabelEdit}",
+				locator1 = "DDMEditStructure#FORM_FIELD_CONTAINER_LABEL");
+		}
 
 		Click(locator1 = "Sidebar#BACK");
 	}
@@ -1198,8 +1287,6 @@ definition {
 			key_fieldFieldLabel = "Field Type",
 			key_optionValue = "${fieldLineType}",
 			locator1 = "WCEditWebContent#SELECTION_OPTION");
-
-		Pause(locator1 = "2000");
 
 		Click(locator1 = "Sidebar#BACK");
 	}
@@ -1719,8 +1806,6 @@ definition {
 	}
 
 	macro waitForAutoSave {
-		Pause(locator1 = "3000");
-
 		if (IsElementPresent(locator1 = "Button#PUBLISH")) {
 			Button.clickPublish();
 		}

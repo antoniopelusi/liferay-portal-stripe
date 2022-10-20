@@ -1,5 +1,11 @@
 definition {
 
+	macro checkTableCheckbox {
+		Check(
+			key_tableEntry = "${tableEntry}",
+			locator1 = "LexiconTable#TABLE_ENTRY_CHECKBOX");
+	}
+
 	macro clickEllipsisItem {
 		Click.waitForMenuToggleJSClick(
 			key_tableEntry = "${tableEntry}",
@@ -30,11 +36,20 @@ definition {
 	}
 
 	macro viewTableEntryInfo {
-		AssertTextEquals(
-			key_columnName = "${columnName}",
-			key_tableEntry = "${tableEntry}",
-			locator1 = "LexiconTable#TABLE_ENTRY_INFO",
-			value1 = "${tableEntryInfo}");
+		if (isSet(index)) {
+			AssertTextEquals(
+				index = "${index}",
+				key_tableEntry = "${tableEntry}",
+				locator1 = "LexiconTable#TABLE_ENTRY_INFO_BY_INDEX",
+				value1 = "${tableEntryInfo}");
+		}
+		else {
+			AssertTextEquals(
+				key_columnName = "${columnName}",
+				key_tableEntry = "${tableEntry}",
+				locator1 = "LexiconTable#TABLE_ENTRY_INFO",
+				value1 = "${tableEntryInfo}");
+		}
 	}
 
 	macro viewTableEntryNotPresent {

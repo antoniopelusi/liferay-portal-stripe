@@ -48,7 +48,7 @@ public class UpgradeGroup extends UpgradeProcess {
 
 		alterColumnType("Group_", "name", "STRING null");
 
-		try (SafeCloseable safeCloseable = addTempIndex(
+		try (SafeCloseable safeCloseable = addTemporaryIndex(
 				"Group_", false, "classNameId", "classPK")) {
 
 			updateGlobalGroupName();
@@ -107,8 +107,8 @@ public class UpgradeGroup extends UpgradeProcess {
 			ResultSet resultSet = preparedStatement1.executeQuery();
 			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.autoBatch(
-					connection.prepareStatement(
-						"update Group_ set name = ? where groupId = ?"))) {
+					connection,
+					"update Group_ set name = ? where groupId = ?")) {
 
 			while (resultSet.next()) {
 				long groupId = resultSet.getLong("groupId");

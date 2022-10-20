@@ -71,7 +71,7 @@ export default function EdgeInformation({errors, setErrors}) {
 
 	return (
 		<>
-			<SidebarPanel panelTitle={Liferay.Language.get('transitions')}>
+			<SidebarPanel panelTitle={Liferay.Language.get('information')}>
 				<ClayForm.Group className={errors.label ? 'has-error' : ''}>
 					<label htmlFor="nodeLabel">
 						{Liferay.Language.get('label')}

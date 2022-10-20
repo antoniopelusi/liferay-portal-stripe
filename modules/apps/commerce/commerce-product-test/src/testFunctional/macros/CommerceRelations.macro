@@ -13,7 +13,9 @@ definition {
 			locator1 = "CommerceEntry#SEARCH_PRODUCT_RELATIONS",
 			value1 = "${key_product}");
 
-		Click(locator1 = "Button#SEARCH");
+		KeyPress(
+			locator1 = "CommerceEntry#SEARCH_PRODUCT_RELATIONS",
+			value1 = "\RETURN");
 
 		Check.checkToggleSwitch(
 			locator1 = "CommerceAccelerators#SELECT_PRODUCT_RELATIONS",
@@ -39,7 +41,9 @@ definition {
 			locator1 = "CommerceEntry#SEARCH_PRODUCT_RELATIONS",
 			value1 = "${productNameRelation}");
 
-		Click(locator1 = "Button#SEARCH");
+		KeyPress(
+			locator1 = "CommerceEntry#SEARCH_PRODUCT_RELATIONS",
+			value1 = "\RETURN");
 
 		Check.checkToggleSwitch(
 			locator1 = "CommerceAccelerators#SELECT_PRODUCT_RELATIONS",
@@ -78,7 +82,7 @@ definition {
 			value1 = "Add");
 	}
 
-	macro assignSingleRelationToProductsEntry {
+	macro assignSingleRelationToEligibility {
 		var searchTerm = '''"${entryName}"''';
 
 		Type(
@@ -86,7 +90,29 @@ definition {
 			locator1 = "CommerceEntry#ADD_RELATION_FIELD",
 			value1 = "${searchTerm}");
 
-		Pause(locator1 = "3000");
+		WaitForElementPresent(
+			key_entryName = "${entryName}",
+			key_title = "${title}",
+			locator1 = "CommerceEntry#ADD_RELATION_FIELD_SELECT");
+
+		ClickNoError(
+			key_entryName = "${entryName}",
+			key_title = "${title}",
+			locator1 = "CommerceEntry#ADD_RELATION_FIELD_SELECT");
+	}
+
+	macro assignSingleRelationToProductsEntry {
+		var searchTerm = '''"${entryName}''';
+
+		Type(
+			key_title = "${title}",
+			locator1 = "CommerceEntry#ADD_RELATION_FIELD",
+			value1 = "${searchTerm}");
+
+		WaitForElementPresent(
+			key_entryName = "${entryName}",
+			key_title = "${title}",
+			locator1 = "CommerceEntry#ADD_RELATION_FIELD_SELECT");
 
 		ClickNoError(
 			key_entryName = "${entryName}",

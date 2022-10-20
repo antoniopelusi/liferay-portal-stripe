@@ -5,6 +5,7 @@ definition {
 	property database.types = "mysql";
 	property portal.release = "true";
 	property portal.upstream = "true";
+	property test.run.environment = "EE";
 	property testray.main.component.name = "Database Partitioning";
 	property timeout.explicit.wait = "180";
 
@@ -19,122 +20,12 @@ definition {
 	}
 
 	@priority = "4"
-	test AddMultipleCompanies {
-		property custom.properties = "database.partition.schema.name.prefix=testPartition";
-		property test.name.skip.portal.instance = "DatabasePartitioning#AddMultipleCompanies";
-
-		PortalInstances.openVirtualInstancesAdmin();
-
-		PortalInstances.addCP(
-			mailDomain = "www.able.com",
-			virtualHost = "www.able.com",
-			webId = "www.able.com");
-
-		PortalInstances.openVirtualInstancesAdmin();
-
-		PortalInstances.addCP(
-			mailDomain = "www.baker.com",
-			virtualHost = "www.baker.com",
-			webId = "www.baker.com");
-
-		User.firstLoginUI(
-			password = "test",
-			specificURL = "http://www.able.com:8080",
-			userEmailAddress = "test@www.able.com");
-
-		Navigator.openSpecificURL(url = "http://www.able.com:8080");
-
-		ProductMenu.gotoPortlet(
-			category = "Content & Data",
-			panel = "Site Administration",
-			portlet = "Documents and Media");
-
-		DMDocument.addCP(
-			dmDocumentDescription = "DM Document Description",
-			dmDocumentFile = "Document_1.doc",
-			dmDocumentTitle = "DM Document Title");
-
-		DMNavigator.gotoDocumentCP(dmDocumentTitle = "DM Document Title");
-
-		DMDocument.viewCP(dmDocumentTitle = "DM Document Title");
-
-		User.firstLoginUI(
-			password = "test",
-			specificURL = "http://www.baker.com:8080",
-			userEmailAddress = "test@www.baker.com");
-
-		Navigator.openSpecificURL(url = "http://www.baker.com:8080");
-
-		ProductMenu.gotoPortlet(
-			category = "Content & Data",
-			panel = "Site Administration",
-			portlet = "Documents and Media");
-
-		DMDocument.addCP(
-			dmDocumentDescription = "DM Document Description",
-			dmDocumentFile = "Document_1.doc",
-			dmDocumentTitle = "DM Document Title");
-
-		DMNavigator.gotoDocumentCP(dmDocumentTitle = "DM Document Title");
-
-		DMDocument.viewCP(dmDocumentTitle = "DM Document Title");
-
-		SQL.assertDatabaseCount(
-			databaseFilter = "testPartition%",
-			databaseSubstring = "testPartition",
-			expectedCount = "2");
-
-		DBPartition.validateSchemas(schemaNamePrefix = "testPartition");
-	}
-
-	@priority = "5"
-	test AddNewCompany {
-		property custom.properties = "database.partition.schema.name.prefix=testPartition";
-		property portal.acceptance = "true";
-		property test.assert.warning.exceptions = "true";
-		property test.name.skip.portal.instance = "DatabasePartitioning#AddNewCompany";
-
-		PortalInstances.openVirtualInstancesAdmin();
-
-		PortalInstances.addCP(
-			mailDomain = "www.able.com",
-			virtualHost = "www.able.com",
-			webId = "www.able.com");
-
-		SignOut.signOut();
-
-		User.firstLoginUI(
-			password = "test",
-			specificURL = "http://www.able.com:8080",
-			userEmailAddress = "test@www.able.com");
-
-		ProductMenu.gotoPortlet(
-			category = "Content & Data",
-			panel = "Site Administration",
-			portlet = "Documents and Media");
-
-		DMDocument.addCP(
-			dmDocumentDescription = "DM Document Description",
-			dmDocumentFile = "Document_1.doc",
-			dmDocumentTitle = "DM Document Title");
-
-		DMNavigator.gotoDocumentCP(dmDocumentTitle = "DM Document Title");
-
-		DMDocument.viewCP(dmDocumentTitle = "DM Document Title");
-
-		SQL.assertDatabaseCount(
-			databaseFilter = "testPartition%",
-			databaseSubstring = "testPartition",
-			expectedCount = "1");
-	}
-
-	@priority = "4"
-	test AddNewCompanyWithCluster {
+	test CanAddCompanyWithCluster {
 		property app.server.bundles.size = "1";
 		property cluster.enabled = "true";
 		property custom.properties = "database.partition.schema.name.prefix=testPartition";
 		property minimum.slave.ram = "24";
-		property test.name.skip.portal.instance = "DatabasePartitioning#AddNewCompanyWithCluster";
+		property test.name.skip.portal.instance = "DatabasePartitioning#CanAddCompanyWithCluster";
 
 		Clustering.viewClusterStatusInConsole();
 
@@ -216,12 +107,91 @@ definition {
 			expectedCount = "1");
 	}
 
+	@description = "This is a use case for LPS-160064."
+	@priority = "4"
+	test CanAddCompanyWithHeadlessAPI {
+		property test.assert.warning.exceptions = "true";
+		property test.name.skip.portal.instance = "DatabasePartitioning#CanAddCompanyWithHeadlessAPI";
+
+		HeadlessPortalInstanceAPI.addPortalInstance(
+			domain = "www.baker.com",
+			portalInstanceId = "www.baker.com",
+			virtualHost = "www.baker.com");
+
+		SignOut.signOut();
+
+		User.firstLoginUI(
+			password = "test",
+			specificURL = "http://www.baker.com:8080",
+			userEmailAddress = "test@www.baker.com");
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			panel = "Site Administration",
+			portlet = "Documents and Media");
+
+		DMDocument.addCP(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentFile = "Document_1.doc",
+			dmDocumentTitle = "DM Document Title");
+
+		DMNavigator.gotoDocumentCP(dmDocumentTitle = "DM Document Title");
+
+		DMDocument.viewCP(dmDocumentTitle = "DM Document Title");
+
+		SQL.assertDatabaseCount(
+			databaseFilter = "lpartition%",
+			databaseSubstring = "lpartition",
+			expectedCount = "1");
+	}
+
 	@priority = "5"
-	test DeleteCompany {
+	test CanAddCompanyWithPortalInstancesAdminUI {
 		property custom.properties = "database.partition.schema.name.prefix=testPartition";
 		property portal.acceptance = "true";
 		property test.assert.warning.exceptions = "true";
-		property test.name.skip.portal.instance = "DatabasePartitioning#DeleteCompany";
+		property test.name.skip.portal.instance = "DatabasePartitioning#CanAddCompanyWithPortalInstancesAdminUI";
+
+		PortalInstances.openVirtualInstancesAdmin();
+
+		PortalInstances.addCP(
+			mailDomain = "www.able.com",
+			virtualHost = "www.able.com",
+			webId = "www.able.com");
+
+		SignOut.signOut();
+
+		User.firstLoginUI(
+			password = "test",
+			specificURL = "http://www.able.com:8080",
+			userEmailAddress = "test@www.able.com");
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			panel = "Site Administration",
+			portlet = "Documents and Media");
+
+		DMDocument.addCP(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentFile = "Document_1.doc",
+			dmDocumentTitle = "DM Document Title");
+
+		DMNavigator.gotoDocumentCP(dmDocumentTitle = "DM Document Title");
+
+		DMDocument.viewCP(dmDocumentTitle = "DM Document Title");
+
+		SQL.assertDatabaseCount(
+			databaseFilter = "testPartition%",
+			databaseSubstring = "testPartition",
+			expectedCount = "1");
+	}
+
+	@priority = "5"
+	test CanDeleteCompany {
+		property custom.properties = "database.partition.schema.name.prefix=testPartition";
+		property portal.acceptance = "true";
+		property test.assert.warning.exceptions = "true";
+		property test.name.skip.portal.instance = "DatabasePartitioning#CanDeleteCompany";
 
 		PortalInstances.openVirtualInstancesAdmin();
 
@@ -262,11 +232,130 @@ definition {
 			expectedCount = "0");
 	}
 
-	@priority = "5"
-	test RestartPortal {
+	@priority = "4"
+	test CanSetVirtualHostViaPages {
+		property test.assert.warning.exceptions = "true";
+		property test.name.skip.portal.instance = "DatabasePartitioning#CanSetVirtualHostViaPages";
+
+		PortalInstances.openVirtualInstancesAdmin();
+
+		PortalInstances.addCP(
+			mailDomain = "www.able.com",
+			virtualHost = "www.able.com",
+			webId = "www.able.com");
+
+		User.firstLoginUI(
+			password = "test",
+			specificURL = "http://www.able.com:8080",
+			userEmailAddress = "test@www.able.com");
+
+		ProductMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Site Administration",
+			portlet = "Site Settings");
+
+		Site.addVirtualHostsURLCP(
+			pageVirtualHosts = "true",
+			pageVirtualHostURL = "www.baker.com");
+
+		Navigator.gotoPage(
+			baseURL = "http://www.baker.com:8080",
+			pageName = "Home");
+
+		AssertLocation(value1 = "http://www.baker.com:8080/web/guest/home");
+
+		SignOut.signOut();
+
+		User.firstLoginPG();
+
+		ApplicationsMenu.gotoPortlet(
+			category = "System",
+			panel = "Control Panel",
+			portlet = "Server Administration");
+
+		ServerAdministration.executeServerResourcesActions(actionsDescription = "Clear the database cache.");
+
+		Navigator.gotoPage(
+			baseURL = "http://www.baker.com:8080",
+			pageName = "Home");
+
+		AssertLocation(value1 = "http://www.baker.com:8080/web/guest/home");
+	}
+
+	@priority = "4"
+	test ExecuteSchemaValidator {
+		property custom.properties = "database.partition.schema.name.prefix=testPartition";
+		property test.name.skip.portal.instance = "DatabasePartitioning#ExecuteSchemaValidator";
+
+		PortalInstances.openVirtualInstancesAdmin();
+
+		PortalInstances.addCP(
+			mailDomain = "www.able.com",
+			virtualHost = "www.able.com",
+			webId = "www.able.com");
+
+		PortalInstances.openVirtualInstancesAdmin();
+
+		PortalInstances.addCP(
+			mailDomain = "www.baker.com",
+			virtualHost = "www.baker.com",
+			webId = "www.baker.com");
+
+		User.firstLoginUI(
+			password = "test",
+			specificURL = "http://www.able.com:8080",
+			userEmailAddress = "test@www.able.com");
+
+		Navigator.openSpecificURL(url = "http://www.able.com:8080");
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			panel = "Site Administration",
+			portlet = "Documents and Media");
+
+		DMDocument.addCP(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentFile = "Document_1.doc",
+			dmDocumentTitle = "DM Document Title");
+
+		DMNavigator.gotoDocumentCP(dmDocumentTitle = "DM Document Title");
+
+		DMDocument.viewCP(dmDocumentTitle = "DM Document Title");
+
+		User.firstLoginUI(
+			password = "test",
+			specificURL = "http://www.baker.com:8080",
+			userEmailAddress = "test@www.baker.com");
+
+		Navigator.openSpecificURL(url = "http://www.baker.com:8080");
+
+		ProductMenu.gotoPortlet(
+			category = "Content & Data",
+			panel = "Site Administration",
+			portlet = "Documents and Media");
+
+		DMDocument.addCP(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentFile = "Document_1.doc",
+			dmDocumentTitle = "DM Document Title");
+
+		DMNavigator.gotoDocumentCP(dmDocumentTitle = "DM Document Title");
+
+		DMDocument.viewCP(dmDocumentTitle = "DM Document Title");
+
+		SQL.assertDatabaseCount(
+			databaseFilter = "testPartition%",
+			databaseSubstring = "testPartition",
+			expectedCount = "2");
+
+		DBPartition.validateSchemas(schemaNamePrefix = "testPartition");
+	}
+
+	@priority = "3"
+	test NewCompanyStillAccessibleAfterRestart {
 		property custom.properties = "database.partition.schema.name.prefix=testPartition";
 		property test.assert.warning.exceptions = "true";
-		property test.name.skip.portal.instance = "DatabasePartitioning#RestartPortal";
+		property test.name.skip.portal.instance = "DatabasePartitioning#NewCompanyStillAccessibleAfterRestart";
 
 		HeadlessPortalInstanceAPI.addPortalInstance(
 			domain = "www.able.com",
@@ -308,7 +397,7 @@ definition {
 		DMDocument.viewCP(dmDocumentTitle = "DM Document Title");
 	}
 
-	@priority = "4"
+	@priority = "3"
 	test ScheduleWebContentChangesWithDBPartitioningActivatedAcrossVariousCompanies {
 		property osgi.module.configuration.file.names = "com.liferay.journal.configuration.JournalServiceConfiguration.config";
 		property osgi.module.configurations = "checkInterval=I&quot;1&quot;";
@@ -337,37 +426,17 @@ definition {
 				webContentContent = "WC WebContent Content New Company",
 				webContentTitle = "WC WebContent Title New Company");
 
-			WebContent.increaseDisplayDate(minuteIncrease = "8");
+			WebContent.increaseDisplayDate(minuteIncrease = "5");
 
 			PortletEntry.publish();
+
+			AssertTextEquals(
+				key_webContentTitle = "WC WebContent Title New Company",
+				locator1 = "WC#ENTRY_LIST_WORKFLOW_STATUS",
+				value1 = "SCHEDULED");
 		}
-
-		task ("Add a page and WebContent display select a WebContent article") {
-			ProductMenu.gotoPortlet(
-				category = "Site Builder",
-				portlet = "Pages");
-
-			PagesAdmin.addPage(pageName = "Web Content Display Page");
-
-			Navigator.gotoPage(
-				baseURL = "www.able.com:8080",
-				pageName = "Web Content Display Page");
-
-			Portlet.addPG(portletName = "Web Content Display");
-
-			WebContentDisplayPortlet.selectWebContent(webContentTitle = "WC WebContent Title New Company");
-
-			IFrame.closeFrame();
-		}
-
-		AssertTextEquals.assertPartialText(
-			key_warningMessage = "WC WebContent Title New Company is scheduled and will be displayed",
-			locator1 = "Message#WARNING_SPECIFIC",
-			value1 = "WC WebContent Title New Company is scheduled and will be displayed");
 
 		task ("Add a WebContent article on default Company") {
-			SignOut.signOut();
-
 			User.firstLoginPG();
 
 			ProductMenu.gotoPortlet(
@@ -380,80 +449,61 @@ definition {
 				webContentContent = "WC WebContent Content Default Company",
 				webContentTitle = "WC WebContent Title Default Company");
 
-			WebContent.increaseDisplayDate(minuteIncrease = "3");
+			WebContent.increaseDisplayDate(minuteIncrease = "2");
 
 			PortletEntry.publish();
+
+			AssertTextEquals(
+				key_webContentTitle = "WC WebContent Title Default Company",
+				locator1 = "WC#ENTRY_LIST_WORKFLOW_STATUS",
+				value1 = "SCHEDULED");
 		}
-
-		task ("Add a page and WebContent display select a WebContent article") {
-			ProductMenu.gotoPortlet(
-				category = "Site Builder",
-				portlet = "Pages");
-
-			PagesAdmin.addPage(pageName = "Web Content Display Page");
-
-			Navigator.gotoPage(pageName = "Web Content Display Page");
-
-			Portlet.addPG(portletName = "Web Content Display");
-
-			WebContentDisplayPortlet.selectWebContent(webContentTitle = "WC WebContent Title Default Company");
-
-			IFrame.closeFrame();
-		}
-
-		AssertTextEquals.assertPartialText(
-			key_warningMessage = "WC WebContent Title Default Company is scheduled and will be displayed",
-			locator1 = "Message#WARNING_SPECIFIC",
-			value1 = "WC WebContent Title Default Company is scheduled and will be displayed");
 
 		task ("View WebContent Article Publish on default Company") {
-			Pause(locator1 = "180000");
 
-			// Disable Check on Default company until LPS-116111 is resolved
+			// Pausing 150 seconds due to LRQA-75909
 
-			/*
-			Refresh();
+			Pause(locator1 = "150000");
 
-			WebContentDisplayPortlet.viewContent(
-				webContentContent = "WC WebContent Content Default Company",
-				webContentTitle = "WC WebContent Title Default Company");*/
+			ProductMenu.gotoPortlet(
+				category = "Content & Data",
+				portlet = "Web Content");
+
+			AssertTextEquals(
+				key_webContentTitle = "WC WebContent Title Default Company",
+				locator1 = "WC#ENTRY_LIST_WORKFLOW_STATUS",
+				value1 = "APPROVED");
 		}
 
 		task ("New Company publish it's WebContent Article") {
-			SignOut.signOut();
+			Navigator.openSpecificURL(url = "http://www.able.com:8080");
 
-			Navigator.gotoPage(
-				baseURL = "www.able.com:8080",
-				pageName = "Web Content Display Page");
+			// Pausing 230 seconds due to LRQA-75909
 
-			AssertTextEquals.assertPartialText(
-				key_warningMessage = "WC WebContent Title New Company is scheduled and will be displayed",
-				locator1 = "Message#WARNING_SPECIFIC",
-				value1 = "WC WebContent Title New Company is scheduled and will be displayed");
+			Pause(locator1 = "230000");
 
-			Pause(locator1 = "240000");
+			ProductMenu.gotoPortlet(
+				category = "Content & Data",
+				portlet = "Web Content");
 
-			Refresh();
-
-			WebContentDisplayPortlet.viewContent(
-				webContentContent = "WC WebContent Content New Company",
-				webContentTitle = "WC WebContent Title New Company");
+			AssertTextEquals(
+				key_webContentTitle = "WC WebContent Title New Company",
+				locator1 = "WC#ENTRY_LIST_WORKFLOW_STATUS",
+				value1 = "APPROVED");
 		}
 
-		// Disable Check on Default company until LPS-116111 is resolved
-
-		/*
 		task ("WebContent Article not repulish on default Company") {
-			SignOut.signOut();
+			Navigator.openURL();
 
-			User.firstLoginPG();
+			ProductMenu.gotoPortlet(
+				category = "Content & Data",
+				portlet = "Web Content");
 
-			Navigator.gotoPage(pageName = "Web Content Display Page");
-
-			WebContentDisplayPortlet.viewContent(
-				webContentContent = "WC WebContent Content Default Company",
-				webContentTitle = "WC WebContent Title Default Company");
-		}*/
+			AssertTextEquals(
+				key_webContentTitle = "WC WebContent Title Default Company",
+				locator1 = "WC#ENTRY_LIST_WORKFLOW_STATUS",
+				value1 = "APPROVED");
+		}
 	}
 
 }

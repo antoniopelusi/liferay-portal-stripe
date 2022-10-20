@@ -13,23 +13,32 @@
  */
 
 import ClayForm, {ClayToggle} from '@clayui/form';
-import ClayIcon from '@clayui/icon';
-import {ClayTooltipProvider} from '@clayui/tooltip';
-import {fetch} from 'frontend-js-web';
-import React, {ChangeEventHandler, ReactNode, useMemo, useState} from 'react';
-
-import useForm, {FormError, invalidateRequired} from '../hooks/useForm';
 import {
-	normalizeFieldSettings,
-	updateFieldSettings,
-} from '../utils/fieldSettings';
+	API,
+	AutoComplete,
+	FormCustomSelect,
+	FormError,
+	Input,
+	Select,
+	Toggle,
+	invalidateRequired,
+	useForm,
+} from '@liferay/object-js-components-web';
+import {sub} from 'frontend-js-web';
+import React, {
+	ChangeEventHandler,
+	ReactNode,
+	useEffect,
+	useMemo,
+	useState,
+} from 'react';
+
+import {normalizeFieldSettings} from '../utils/fieldSettings';
 import {toCamelCase} from '../utils/string';
-import CustomSelect from './Form/CustomSelect/CustomSelect';
-import Input from './Form/Input';
-import Select from './Form/Select';
 
 import './ObjectFieldFormBase.scss';
 
+const defaultLanguageId = Liferay.ThemeDisplay.getDefaultLanguageId();
 const REQUIRED_MSG = Liferay.Language.get('required');
 
 const attachmentSources = [
@@ -51,39 +60,41 @@ const attachmentSources = [
 	},
 ];
 
-const defaultLanguageId = Liferay.ThemeDisplay.getDefaultLanguageId() as Liferay.Language.Locale;
-
-const headers = new Headers({
-	'Accept': 'application/json',
-	'Content-Type': 'application/json',
-});
-
-async function fetchPickList() {
-	const result = await fetch(
-		'/o/headless-admin-list-type/v1.0/list-type-definitions?pageSize=-1',
-		{
-			headers,
-			method: 'GET',
-		}
-	);
-
-	const {items = []} = (await result.json()) as {
-		items: IPickList[] | undefined;
-	};
-
-	return items.map(({id, name}) => ({id, name}));
-}
+const aggregationFunctions = [
+	{
+		label: Liferay.Language.get('count'),
+		value: 'COUNT',
+	},
+	{
+		label: Liferay.Language.get('sum'),
+		value: 'SUM',
+	},
+	{
+		label: Liferay.Language.get('average'),
+		value: 'AVERAGE',
+	},
+	{
+		label: Liferay.Language.get('min'),
+		value: 'MIN',
+	},
+	{
+		label: Liferay.Language.get('max'),
+		value: 'MAX',
+	},
+];
 
 export default function ObjectFieldFormBase({
-	allowMaxLength,
-	allowUploadDocAndMedia,
 	children,
 	disabled,
+	editingField,
 	errors,
 	handleChange,
+	objectDefinitionId,
 	objectField: values,
 	objectFieldTypes,
 	objectName,
+	onAggregationFilterChange,
+	onRelationshipChange,
 	setValues,
 }: IProps) {
 	const businessTypeMap = useMemo(() => {
@@ -96,19 +107,35 @@ export default function ObjectFieldFormBase({
 		return businessTypeMap;
 	}, [objectFieldTypes]);
 
-	const [pickList, setPickList] = useState<IPickList[]>([]);
+	const [pickLists, setPickLists] = useState<PickList[]>([]);
+	const [pickListItems, setPickListItems] = useState<PickListItem[]>([]);
 
-	const handleSettingsChange = ({name, value}: ObjectFieldSetting) =>
-		setValues({
-			objectFieldSettings: updateFieldSettings(
-				values.objectFieldSettings,
-				{name, value}
-			),
-		});
+	const picklistBusinessType = values.businessType === 'Picklist';
+	const validListTypeDefinitionId =
+		values.listTypeDefinitionId !== undefined &&
+		values.listTypeDefinitionId !== 0;
+
+	useEffect(() => {
+		if (values.businessType === 'Picklist') {
+			API.getPickLists().then(setPickLists);
+
+			if (values.state) {
+				API.getPickListItems(values.listTypeDefinitionId!).then(
+					setPickListItems
+				);
+			}
+		}
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [values.businessType, values.listTypeDefinitionId]);
+
+	const selectedPicklist = useMemo(() => {
+		return pickLists.find(({id}) => values.listTypeDefinitionId === id);
+	}, [pickLists, values.listTypeDefinitionId]);
 
 	const handleTypeChange = async (option: ObjectFieldType) => {
 		if (option.businessType === 'Picklist') {
-			setPickList(await fetchPickList());
+			setPickLists(await API.getPickLists());
 		}
 
 		let objectFieldSettings: ObjectFieldSetting[] | undefined;
@@ -129,14 +156,12 @@ export default function ObjectFieldFormBase({
 
 			case 'LongText':
 			case 'Text':
-				if (allowMaxLength) {
-					objectFieldSettings = [
-						{
-							name: 'showCounter',
-							value: false,
-						},
-					];
-				}
+				objectFieldSettings = [
+					{
+						name: 'showCounter',
+						value: false,
+					},
+				];
 				break;
 
 			default:
@@ -153,13 +178,28 @@ export default function ObjectFieldFormBase({
 				? values.indexedLanguageId ?? defaultLanguageId
 				: null;
 
-		setValues({
-			DBType: option.dbType,
-			businessType: option.businessType,
-			indexedAsKeyword,
-			indexedLanguageId,
-			objectFieldSettings,
-		});
+		if (Liferay.FeatureFlags['LPS-152677']) {
+			setValues({
+				DBType: option.dbType,
+				businessType: option.businessType,
+				defaultValue: '',
+				indexedAsKeyword,
+				indexedLanguageId,
+				listTypeDefinitionId: 0,
+				objectFieldSettings,
+				state: false,
+			});
+		}
+		else {
+			setValues({
+				DBType: option.dbType,
+				businessType: option.businessType,
+				indexedAsKeyword,
+				indexedLanguageId,
+				listTypeDefinitionId: 0,
+				objectFieldSettings,
+			});
+		}
 	};
 
 	return (
@@ -177,7 +217,7 @@ export default function ObjectFieldFormBase({
 				}
 			/>
 
-			<CustomSelect<ObjectFieldType>
+			<FormCustomSelect<ObjectFieldType>
 				disabled={disabled}
 				error={errors.businessType}
 				label={Liferay.Language.get('type')}
@@ -189,40 +229,127 @@ export default function ObjectFieldFormBase({
 
 			{values.businessType === 'Attachment' && (
 				<AttachmentSourceProperty
-					allowUploadDocAndMedia={allowUploadDocAndMedia}
 					disabled={disabled}
 					error={errors.fileSource}
 					objectFieldSettings={
 						values.objectFieldSettings as ObjectFieldSetting[]
 					}
 					objectName={objectName}
-					onSettingsChange={handleSettingsChange}
 					setValues={setValues}
 				/>
 			)}
 
-			{values.businessType === 'Picklist' && (
+			{values.businessType === 'Aggregation' && (
+				<AggregationSourceProperty
+					editingField={editingField}
+					errors={errors}
+					objectDefinitionId={objectDefinitionId}
+					objectFieldSettings={
+						values.objectFieldSettings as ObjectFieldSetting[]
+					}
+					onAggregationFilterChange={onAggregationFilterChange}
+					onRelationshipChange={onRelationshipChange}
+					setValues={setValues}
+				/>
+			)}
+
+			{picklistBusinessType && (
 				<Select
 					disabled={disabled}
 					error={errors.listTypeDefinitionId}
 					label={Liferay.Language.get('picklist')}
-					onChange={({target: {value}}: any) =>
-						setValues({
-							listTypeDefinitionId: Number(pickList[value].id),
-						})
-					}
-					options={pickList.map(({name}) => name)}
+					onChange={({target: {value}}) => {
+						if (Liferay.FeatureFlags['LPS-152677']) {
+							setValues({
+								defaultValue: '',
+								listTypeDefinitionId: Number(
+									pickLists[Number(value)].id
+								),
+								state: false,
+							});
+						}
+						else {
+							setValues({
+								listTypeDefinitionId: Number(
+									pickLists[Number(value)].id
+								),
+							});
+						}
+					}}
+					options={pickLists.map(({name}) => name)}
 					required
+					value={
+						(validListTypeDefinitionId &&
+							selectedPicklist &&
+							pickLists.indexOf(selectedPicklist)) as number
+					}
 				/>
 			)}
+
 			{children}
-			<ClayToggle
-				disabled={disabled}
-				label={Liferay.Language.get('mandatory')}
-				name="required"
-				onToggle={(required) => setValues({required})}
-				toggled={values.required}
-			/>
+
+			<ClayForm.Group className="lfr-objects__object-field-form-base-form-group-toggles">
+				{values.businessType !== 'Aggregation' && (
+					<ClayToggle
+						disabled={disabled || values.state}
+						label={Liferay.Language.get('mandatory')}
+						name="required"
+						onToggle={(required) => setValues({required})}
+						toggled={values.required || values.state}
+					/>
+				)}
+
+				{Liferay.FeatureFlags['LPS-152677'] &&
+					picklistBusinessType &&
+					validListTypeDefinitionId && (
+						<ClayToggle
+							disabled={disabled}
+							label={Liferay.Language.get('mark-as-state')}
+							name="state"
+							onToggle={async (state) => {
+								if (state) {
+									setValues({required: state, state});
+									setPickListItems(
+										await API.getPickListItems(
+											values.listTypeDefinitionId!
+										)
+									);
+								}
+								else {
+									setValues({
+										defaultValue: '',
+										required: state,
+										state,
+									});
+								}
+							}}
+							toggled={values.state}
+						/>
+					)}
+			</ClayForm.Group>
+
+			{values.state && (
+				<Select
+					disabled={disabled}
+					error={errors.defaultValue}
+					label={Liferay.Language.get('default-value')}
+					onChange={({target: {value}}) =>
+						setValues({
+							defaultValue: pickListItems[Number(value)].key,
+						})
+					}
+					options={pickListItems.map(({name}) => name)}
+					required
+					value={
+						values.defaultValue &&
+						pickListItems.indexOf(
+							pickListItems.find(
+								({key}) => values.defaultValue === key
+							)!
+						)
+					}
+				/>
+			)}
 		</>
 	);
 }
@@ -242,7 +369,7 @@ export function useObjectFieldForm({
 			const lastChar = folderPath[folderPath.length - 1];
 
 			if (forbiddenLastChars?.some((char) => char === lastChar)) {
-				return Liferay.Util.sub(
+				return sub(
 					Liferay.Language.get(
 						'the-folder-name-cannot-end-with-the-following-characters-x'
 					),
@@ -253,7 +380,7 @@ export function useObjectFieldForm({
 			// folder name cannot contain invalid characters
 
 			if (forbiddenChars?.some((symbol) => folderPath.includes(symbol))) {
-				return Liferay.Util.sub(
+				return sub(
 					Liferay.Language.get(
 						'the-folder-name-cannot-contain-the-following-invalid-characters-x'
 					),
@@ -269,7 +396,7 @@ export function useObjectFieldForm({
 				forbiddenNames &&
 				folderPath.split('/').some((name) => reservedNames.has(name))
 			) {
-				return Liferay.Util.sub(
+				return sub(
 					Liferay.Language.get(
 						'the-folder-name-cannot-have-a-reserved-word-such-as-x'
 					),
@@ -297,7 +424,25 @@ export function useObjectFieldForm({
 		if (!field.businessType) {
 			errors.businessType = REQUIRED_MSG;
 		}
+		else if (field.businessType === 'Aggregation') {
+			if (!settings.function) {
+				errors.function = REQUIRED_MSG;
+			}
+
+			if (settings.function !== 'COUNT' && !settings.objectFieldName) {
+				errors.objectFieldName = REQUIRED_MSG;
+			}
+
+			if (!settings.objectRelationshipName) {
+				errors.objectRelationshipName = REQUIRED_MSG;
+			}
+		}
 		else if (field.businessType === 'Attachment') {
+			const uploadRequestSizeLimit = Math.floor(
+				Liferay.PropsValues.UPLOAD_SERVLET_REQUEST_IMPL_MAX_SIZE /
+					1048576
+			);
+
 			if (
 				invalidateRequired(
 					settings.acceptedFileExtensions as string | undefined
@@ -311,8 +456,16 @@ export function useObjectFieldForm({
 			if (!settings.maximumFileSize && settings.maximumFileSize !== 0) {
 				errors.maximumFileSize = REQUIRED_MSG;
 			}
+			else if (settings.maximumFileSize > uploadRequestSizeLimit) {
+				errors.maximumFileSize = sub(
+					Liferay.Language.get(
+						'file-size-is-larger-than-the-allowed-overall-maximum-upload-request-size-x-mb'
+					),
+					uploadRequestSizeLimit
+				);
+			}
 			else if (settings.maximumFileSize < 0) {
-				errors.maximumFileSize = Liferay.Util.sub(
+				errors.maximumFileSize = sub(
 					Liferay.Language.get(
 						'only-integers-greater-than-or-equal-to-x-are-allowed'
 					),
@@ -351,6 +504,14 @@ export function useObjectFieldForm({
 			if (!field.listTypeDefinitionId) {
 				errors.listTypeDefinitionId = REQUIRED_MSG;
 			}
+
+			if (
+				Liferay.FeatureFlags['LPS-152677'] &&
+				field.state &&
+				!field.defaultValue
+			) {
+				errors.defaultValue = REQUIRED_MSG;
+			}
 		}
 
 		return errors;
@@ -358,7 +519,7 @@ export function useObjectFieldForm({
 
 	const {errors, handleChange, handleSubmit, setValues, values} = useForm<
 		ObjectField,
-		{[key in ObjectFieldSettingName]: any}
+		{[key in ObjectFieldSettingName]: unknown}
 	>({
 		initialValues,
 		onSubmit,
@@ -368,13 +529,307 @@ export function useObjectFieldForm({
 	return {errors, handleChange, handleSubmit, setValues, values};
 }
 
+function AggregationSourceProperty({
+	disabled,
+	errors,
+	editingField,
+	onAggregationFilterChange,
+	onRelationshipChange,
+	objectDefinitionId,
+	objectFieldSettings = [],
+	setValues,
+}: IAggregationSourcePropertyProps) {
+	const [query, setQuery] = useState<string>('');
+	const [
+		selectedRelatedObjectRelationship,
+		setSelectRelatedObjectRelationship,
+	] = useState<TObjectRelationship>();
+	const [selectedSummarizeField, setSelectedSummarizeField] = useState<
+		string
+	>();
+	const [
+		selectedAggregationFunction,
+		setSelectedAggregationFunction,
+	] = useState<{label: string; value: string}>();
+	const [objectRelationships, setObjectRelationships] = useState<
+		TObjectRelationship[]
+	>();
+	const [objectRelationshipFields, setObjectRelationshipFields] = useState<
+		ObjectField[]
+	>();
+
+	useEffect(() => {
+		const makeFetch = async () => {
+			const objectRelationshipsData = await API.getObjectRelationships(
+				objectDefinitionId
+			);
+
+			setObjectRelationships(
+				objectRelationshipsData.filter(
+					(objectRelationship) =>
+						!(
+							objectRelationship.type === 'manyToMany' &&
+							objectRelationship.reverse &&
+							objectRelationship.objectDefinitionId1 ===
+								objectRelationship.objectDefinitionId2
+						)
+				)
+			);
+		};
+
+		makeFetch();
+	}, [objectDefinitionId]);
+
+	useEffect(() => {
+		if (editingField && objectRelationships) {
+			const makeFetch = async () => {
+				const settings = normalizeFieldSettings(objectFieldSettings);
+
+				const currentRelatedObjectRelationship = objectRelationships.find(
+					(relationship) =>
+						relationship.name === settings.objectRelationshipName
+				) as ObjectRelationship;
+
+				const currentFunction = aggregationFunctions.find(
+					(aggregationFunction) =>
+						aggregationFunction.value === settings.function
+				);
+
+				const relatedFields = await API.getObjectFields(
+					currentRelatedObjectRelationship.objectDefinitionId2
+				);
+
+				const currentSummarizeField = relatedFields.find(
+					(relatedField) =>
+						relatedField.name === settings.objectFieldName
+				) as ObjectField;
+
+				if (onRelationshipChange) {
+					onRelationshipChange(
+						currentRelatedObjectRelationship.objectDefinitionId2
+					);
+				}
+
+				setObjectRelationshipFields(
+					relatedFields.filter(
+						(objectField) =>
+							objectField.businessType === 'Integer' ||
+							objectField.businessType === 'LongInteger' ||
+							objectField.businessType === 'Decimal' ||
+							objectField.businessType === 'PrecisionDecimal'
+					)
+				);
+
+				setSelectRelatedObjectRelationship(
+					currentRelatedObjectRelationship
+				);
+
+				setSelectedAggregationFunction(currentFunction);
+
+				if (currentSummarizeField) {
+					setSelectedSummarizeField(
+						currentSummarizeField.label[defaultLanguageId]
+					);
+				}
+			};
+
+			makeFetch();
+		}
+	}, [
+		editingField,
+		objectRelationships,
+		objectFieldSettings,
+		onRelationshipChange,
+	]);
+
+	const handleChangeRelatedObjectRelationship = async (
+		objectRelationship: TObjectRelationship
+	) => {
+		setSelectRelatedObjectRelationship(objectRelationship);
+		setSelectedSummarizeField('');
+
+		const relatedFields = await API.getObjectFields(
+			objectRelationship.objectDefinitionId2
+		);
+
+		const numericFields = relatedFields.filter(
+			(objectField) =>
+				objectField.businessType === 'Integer' ||
+				objectField.businessType === 'LongInteger' ||
+				objectField.businessType === 'Decimal' ||
+				objectField.businessType === 'PrecisionDecimal'
+		);
+
+		setObjectRelationshipFields(numericFields);
+
+		const fieldSettingWithoutSummarizeField = objectFieldSettings.filter(
+			(fieldSettings) =>
+				fieldSettings.name !== 'objectFieldName' &&
+				fieldSettings.name !== 'filters' &&
+				fieldSettings.name !== 'objectRelationshipName'
+		);
+
+		const newObjectFieldSettings: ObjectFieldSetting[] | undefined = [
+			...fieldSettingWithoutSummarizeField,
+			{
+				name: 'objectRelationshipName',
+				value: objectRelationship.name,
+			},
+			{
+				name: 'filters',
+				value: [],
+			},
+		];
+
+		if (onAggregationFilterChange) {
+			onAggregationFilterChange([]);
+		}
+
+		setValues({
+			objectFieldSettings: newObjectFieldSettings,
+		});
+
+		if (onRelationshipChange) {
+			onRelationshipChange(objectRelationship.objectDefinitionId2);
+		}
+	};
+
+	const handleAggregationFunctionChange = ({
+		label,
+		value,
+	}: {
+		label: string;
+		value: string;
+	}) => {
+		setSelectedAggregationFunction({label, value});
+
+		let newObjectFieldSettings: ObjectFieldSetting[] | undefined;
+
+		if (value === 'COUNT') {
+			setSelectedSummarizeField('');
+
+			const fieldSettingWithoutSummarizeField = objectFieldSettings.filter(
+				(fieldSettings) => fieldSettings.name !== 'objectFieldName'
+			);
+
+			newObjectFieldSettings = [
+				...fieldSettingWithoutSummarizeField.filter(
+					(fieldSettings) => fieldSettings.name !== 'function'
+				),
+				{
+					name: 'function',
+					value,
+				},
+			];
+
+			setValues({
+				objectFieldSettings: newObjectFieldSettings,
+			});
+
+			return;
+		}
+
+		newObjectFieldSettings = [
+			...objectFieldSettings.filter(
+				(fieldSettings) => fieldSettings.name !== 'function'
+			),
+			{
+				name: 'function',
+				value,
+			},
+		];
+
+		setValues({
+			objectFieldSettings: newObjectFieldSettings,
+		});
+	};
+
+	const handleSummarizeFieldChange = (objectField: ObjectField) => {
+		setSelectedSummarizeField(objectField.label[defaultLanguageId]);
+
+		const newObjectFieldSettings: ObjectFieldSetting[] | undefined = [
+			...objectFieldSettings.filter(
+				(fieldSettings) => fieldSettings.name !== 'objectFieldName'
+			),
+			{
+				name: 'objectFieldName',
+				value: objectField.name as string,
+			},
+		];
+
+		setValues({
+			objectFieldSettings: newObjectFieldSettings,
+		});
+	};
+
+	return (
+		<>
+			<AutoComplete
+				emptyStateMessage={Liferay.Language.get(
+					'no-relationships-were-found'
+				)}
+				error={errors.objectRelationshipName}
+				items={objectRelationships ?? []}
+				label={Liferay.Language.get('relationship')}
+				onChangeQuery={setQuery}
+				onSelectItem={(item: TObjectRelationship) => {
+					handleChangeRelatedObjectRelationship(item);
+				}}
+				query={query}
+				required
+				value={
+					selectedRelatedObjectRelationship?.label[defaultLanguageId]
+				}
+			>
+				{({label}) => (
+					<div className="d-flex justify-content-between">
+						<div>{label[defaultLanguageId]}</div>
+					</div>
+				)}
+			</AutoComplete>
+
+			<FormCustomSelect
+				disabled={disabled}
+				error={errors.function}
+				label={Liferay.Language.get('function')}
+				onChange={handleAggregationFunctionChange}
+				options={aggregationFunctions}
+				required
+				value={selectedAggregationFunction?.label}
+			/>
+
+			{selectedAggregationFunction?.value !== 'COUNT' && (
+				<AutoComplete
+					emptyStateMessage={Liferay.Language.get(
+						'no-fields-were-found'
+					)}
+					error={errors.objectFieldName}
+					items={objectRelationshipFields ?? []}
+					label={Liferay.Language.get('field')}
+					onChangeQuery={setQuery}
+					onSelectItem={(item: ObjectField) => {
+						handleSummarizeFieldChange(item);
+					}}
+					query={query}
+					required
+					value={selectedSummarizeField}
+				>
+					{({label}) => (
+						<div className="d-flex justify-content-between">
+							<div>{label[defaultLanguageId]}</div>
+						</div>
+					)}
+				</AutoComplete>
+			)}
+		</>
+	);
+}
+
 function AttachmentSourceProperty({
-	allowUploadDocAndMedia,
 	disabled,
 	error,
 	objectFieldSettings,
 	objectName,
-	onSettingsChange,
 	setValues,
 }: IAttachmentSourcePropertyProps) {
 	const settings = normalizeFieldSettings(objectFieldSettings);
@@ -385,11 +840,6 @@ function AttachmentSourceProperty({
 
 	const handleAttachmentSourceChange = ({value}: {value: string}) => {
 		const fileSource: ObjectFieldSetting = {name: 'fileSource', value};
-		if (!allowUploadDocAndMedia) {
-			onSettingsChange(fileSource);
-
-			return;
-		}
 
 		const updatedSettings = objectFieldSettings.filter(
 			(setting) =>
@@ -434,7 +884,7 @@ function AttachmentSourceProperty({
 
 	return (
 		<>
-			<CustomSelect
+			<FormCustomSelect
 				disabled={disabled}
 				error={error}
 				label={Liferay.Language.get('request-files')}
@@ -444,9 +894,9 @@ function AttachmentSourceProperty({
 				value={attachmentSource?.label}
 			/>
 
-			{allowUploadDocAndMedia && settings.fileSource === 'userComputer' && (
+			{settings.fileSource === 'userComputer' && (
 				<ClayForm.Group className="lfr-objects__object-field-form-base-container">
-					<ClayToggle
+					<Toggle
 						disabled={disabled}
 						label={Liferay.Language.get(
 							'show-files-in-documents-and-media'
@@ -454,34 +904,33 @@ function AttachmentSourceProperty({
 						name="showFilesInDocumentsAndMedia"
 						onToggle={toggleShowFiles}
 						toggled={!!settings.showFilesInDocumentsAndMedia}
+						tooltip={Liferay.Language.get(
+							'when-activated-users-can-define-a-folder-within-documents-and-media-to-display-the-files-leave-it-unchecked-for-files-to-be-stored-individually-per-entry'
+						)}
+						tooltipAlign="top"
 					/>
-
-					<ClayTooltipProvider>
-						<div
-							data-tooltip-align="top"
-							title={Liferay.Language.get(
-								'when-activated-users-can-define-a-folder-within-documents-and-media-to-display-the-files-leave-it-unchecked-for-files-to-be-stored-individually-per-entry'
-							)}
-						>
-							<ClayIcon
-								className="lfr-objects__edit-object-field-tooltip-icon"
-								symbol="question-circle-full"
-							/>
-						</div>
-					</ClayTooltipProvider>
 				</ClayForm.Group>
 			)}
 		</>
 	);
 }
 
+interface IAggregationSourcePropertyProps {
+	disabled?: boolean;
+	editingField?: boolean;
+	errors: ObjectFieldErrors;
+	objectDefinitionId: number;
+	objectFieldSettings: ObjectFieldSetting[];
+	onAggregationFilterChange?: (aggregationFilterArray: []) => void;
+	onRelationshipChange?: (objectDefinitionId2: number) => void;
+	setValues: (values: Partial<ObjectField>) => void;
+}
+
 interface IAttachmentSourcePropertyProps {
-	allowUploadDocAndMedia?: boolean;
 	disabled?: boolean;
 	error?: string;
 	objectFieldSettings: ObjectFieldSetting[];
 	objectName: string;
-	onSettingsChange: (setting: ObjectFieldSetting) => void;
 	setValues: (values: Partial<ObjectField>) => void;
 }
 interface IUseObjectFieldForm {
@@ -491,24 +940,28 @@ interface IUseObjectFieldForm {
 	initialValues: Partial<ObjectField>;
 	onSubmit: (field: ObjectField) => void;
 }
-interface IPickList {
-	id: string;
-	name: string;
-}
 
 interface IProps {
-	allowMaxLength?: boolean;
-	allowUploadDocAndMedia?: boolean;
 	children?: ReactNode;
 	disabled?: boolean;
+	editingField?: boolean;
 	errors: ObjectFieldErrors;
 	handleChange: ChangeEventHandler<HTMLInputElement>;
+	objectDefinitionId: number;
 	objectField: Partial<ObjectField>;
 	objectFieldTypes: ObjectFieldType[];
 	objectName: string;
+	onAggregationFilterChange?: (aggregationFilterArray: []) => void;
+	onRelationshipChange?: (objectDefinitionId2: number) => void;
 	setValues: (values: Partial<ObjectField>) => void;
 }
 
+type TObjectRelationship = {
+	label: LocalizedValue<string>;
+	name: string;
+	objectDefinitionId2: number;
+};
+
 export type ObjectFieldErrors = FormError<
-	ObjectField & {[key in ObjectFieldSettingName]: any}
+	ObjectField & {[key in ObjectFieldSettingName]: unknown}
 >;

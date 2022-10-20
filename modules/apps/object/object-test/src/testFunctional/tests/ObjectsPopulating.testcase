@@ -1,7 +1,6 @@
 @component-name = "portal-object"
 definition {
 
-	property portal.acceptance = "true";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Object";
@@ -91,7 +90,7 @@ definition {
 			fieldName = "Text",
 			fieldValue = "Test text");
 
-		FormPortlet.submitSuccessfully();
+		Button.clickSubmitForPublication();
 
 		Navigator.openURL();
 
@@ -150,7 +149,7 @@ definition {
 			fieldName = "Numeric",
 			fieldValue = "123.123456");
 
-		FormPortlet.submitSuccessfully();
+		Button.clickSubmitForPublication();
 
 		Navigator.openURL();
 
@@ -203,7 +202,7 @@ definition {
 			checkboxName = "Boolean",
 			locator1 = "Checkbox#ANY_CHECKBOX");
 
-		FormPortlet.submitSuccessfully();
+		Button.clickSubmitForPublication();
 
 		Navigator.openURL();
 
@@ -256,7 +255,7 @@ definition {
 			fieldName = "Date",
 			fieldValue = "01/01/2001");
 
-		FormPortlet.submitSuccessfully();
+		Button.clickSubmitForPublication();
 
 		Navigator.openURL();
 
@@ -313,7 +312,7 @@ definition {
 			fieldName = "Numeric",
 			fieldValue = "1.54");
 
-		FormPortlet.submitSuccessfully();
+		Button.clickSubmitForPublication();
 
 		Navigator.openURL();
 
@@ -366,7 +365,7 @@ definition {
 			fieldName = "Numeric",
 			fieldValue = "123456789");
 
-		FormPortlet.submitSuccessfully();
+		Button.clickSubmitForPublication();
 
 		Navigator.openURL();
 
@@ -419,7 +418,7 @@ definition {
 			fieldName = "Numeric",
 			fieldValue = "1234567891234567");
 
-		FormPortlet.submitSuccessfully();
+		Button.clickSubmitForPublication();
 
 		Navigator.openURL();
 
@@ -486,7 +485,7 @@ definition {
 
 		PopulateObjectFormsConfiguration.selectPicklistObject(picklistItem = "Item Test 1");
 
-		FormPortlet.submitSuccessfully();
+		Button.clickSubmitForPublication();
 
 		Navigator.openURL();
 
@@ -541,7 +540,7 @@ definition {
 			fieldName = "Text",
 			fieldValue = "Test Text Test Text Test Text Test Text Test Text Test Text Test Text  Test");
 
-		FormPortlet.submitSuccessfully();
+		Button.clickSubmitForPublication();
 
 		Navigator.openURL();
 
@@ -616,7 +615,7 @@ definition {
 			fieldName = "Text",
 			fieldValue = "String text");
 
-		FormPortlet.submitSuccessfully();
+		Button.clickSubmitForPublication();
 
 		Navigator.openURL();
 
@@ -669,7 +668,7 @@ definition {
 			fieldName = "Text",
 			fieldValue = "Test text");
 
-		FormPortlet.submitSuccessfully();
+		Button.clickSubmitForPublication();
 
 		Navigator.openURL();
 
@@ -726,7 +725,7 @@ definition {
 			fieldName = "Date",
 			fieldValue = "01/01/2001");
 
-		FormPortlet.submitSuccessfully();
+		Button.clickSubmitForPublication();
 
 		Navigator.openURL();
 

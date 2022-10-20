@@ -32,6 +32,7 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.translation.info.field.TranslationInfoFieldChecker;
 import com.liferay.translation.snapshot.TranslationSnapshot;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -122,18 +123,21 @@ public class ViewTranslationDisplayContext {
 		return _translationSnapshot.getSourceLocale();
 	}
 
-	public String getStringValue(InfoField infoField, Locale locale) {
+	public List<String> getStringValues(InfoField infoField, Locale locale) {
+		List<String> stringValues = new ArrayList<>();
+
 		InfoItemFieldValues infoItemFieldValues =
 			_translationSnapshot.getInfoItemFieldValues();
 
-		InfoFieldValue<Object> infoFieldValue =
-			infoItemFieldValues.getInfoFieldValue(infoField.getUniqueId());
+		for (InfoFieldValue<Object> infoFieldValue :
+				infoItemFieldValues.getInfoFieldValues(
+					infoField.getUniqueId())) {
 
-		if (infoFieldValue != null) {
-			return GetterUtil.getString(infoFieldValue.getValue(locale));
+			stringValues.add(
+				GetterUtil.getString(infoFieldValue.getValue(locale)));
 		}
 
-		return null;
+		return stringValues;
 	}
 
 	public String getTargetLanguageId() {

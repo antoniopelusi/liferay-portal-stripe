@@ -15,14 +15,6 @@
 import PortletBase from './PortletBase.es';
 import delegate from './delegate/delegate.es';
 
-function isBoolean(val) {
-	return typeof val === 'boolean';
-}
-
-function isString(val) {
-	return typeof val === 'string';
-}
-
 /**
  * Appends list item elements to dropdown menus with inline-scrollers on scroll
  * events to improve page loading performance.
@@ -50,7 +42,19 @@ class DynamicInlineScroll extends PortletBase {
 	/**
 	 * @inheritDoc
 	 */
-	created() {
+	created(props) {
+		this.cur = Number(props.cur);
+		this.curParam = props.curParam;
+		this.forcePost = props.forcePost;
+		this.formName = props.formName;
+		this.initialPages = Number(props.initialPages);
+		this.jsCall = props.jsCall;
+		this.namespace = props.namespace;
+		this.pages = Number(props.pages);
+		this.randomNamespace = props.randomNamespace;
+		this.url = props.url;
+		this.urlAnchor = props.urlAnchor;
+
 		this.handleListItemClick_ = this.handleListItemClick_.bind(this);
 	}
 
@@ -116,7 +120,7 @@ class DynamicInlineScroll extends PortletBase {
 	 * @return {number} The parameter's numberical value.
 	 */
 	getNumber_(val) {
-		return Number(val);
+		return Number(val ?? 0);
 	}
 
 	/**
@@ -155,7 +159,6 @@ class DynamicInlineScroll extends PortletBase {
 	onScroll_(event) {
 		const {cur, initialPages, pages} = this;
 		const {target} = event;
-
 		let pageIndex = this.getNumber_(target.dataset.pageIndex);
 		let pageIndexMax = this.getNumber_(target.dataset.maxIndex);
 
@@ -186,140 +189,5 @@ class DynamicInlineScroll extends PortletBase {
 		}
 	}
 }
-
-/**
- * State definition.
- *
- * @ignore
- * @static
- * @type {!Object}
- */
-DynamicInlineScroll.STATE = {
-
-	/**
-	 * Current page index.
-	 *
-	 * @instance
-	 * @memberof DynamicInlineScroll
-	 * @type {string}
-	 */
-	cur: {
-		setter: 'getNumber_',
-		validator: isString,
-	},
-
-	/**
-	 * URL parameter of the current page.
-	 *
-	 * @instance
-	 * @memberof DynamicInlineScroll
-	 * @type {string}
-	 */
-	curParam: {
-		validator: isString,
-	},
-
-	/**
-	 * Forces a form post when a page on the dropdown menu is clicked.
-	 *
-	 * @instance
-	 * @memberof DynamicInlineScroll
-	 * @type {boolean}
-	 */
-	forcePost: {
-		validator: isBoolean,
-	},
-
-	/**
-	 * Form name.
-	 *
-	 * @instance
-	 * @memberof DynamicInlineScroll
-	 * @type {string}
-	 */
-	formName: {
-		validator: isString,
-	},
-
-	/**
-	 * Number of pages loaded to the inline-scroll dropdown menu for the first
-	 * page load.
-	 *
-	 * @instance
-	 * @memberof DynamicInlineScroll
-	 * @type {string}
-	 */
-	initialPages: {
-		setter: 'getNumber_',
-		validator: isString,
-	},
-
-	/**
-	 * JavaScript call.
-	 *
-	 * @instance
-	 * @memberof DynamicInlineScroll
-	 * @type {string}
-	 */
-	jsCall: {
-		validator: isString,
-	},
-
-	/**
-	 * Namespace.
-	 *
-	 * @instance
-	 * @memberof DynamicInlineScroll
-	 * @type {string}
-	 */
-	namespace: {
-		validator: isString,
-	},
-
-	/**
-	 * Total number of pages.
-	 *
-	 * @instance
-	 * @memberof DynamicInlineScroll
-	 * @type {string}
-	 */
-	pages: {
-		setter: 'getNumber_',
-		validator: isString,
-	},
-
-	/**
-	 * Random namespace.
-	 *
-	 * @instance
-	 * @memberof DynamicInlineScroll
-	 * @type {string}
-	 */
-	randomNamespace: {
-		validator: isString,
-	},
-
-	/**
-	 * URL.
-	 *
-	 * @instance
-	 * @memberof DynamicInlineScroll
-	 * @type {string}
-	 */
-	url: {
-		validator: isString,
-	},
-
-	/**
-	 * URL anchor.
-	 *
-	 * @instance
-	 * @memberof DynamicInlineScroll
-	 * @type {string}
-	 */
-	urlAnchor: {
-		validator: isString,
-	},
-};
 
 export default DynamicInlineScroll;

@@ -101,10 +101,13 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 /**
  * @author Raymond Augé
  * @author Miguel Pastor
+ * @author Gregory Amerson
  */
 public class WabProcessor {
 
@@ -116,7 +119,14 @@ public class WabProcessor {
 	}
 
 	public File getProcessedFile() throws IOException {
-		_pluginDir = _autoDeploy();
+		String fileExtension = MapUtil.getString(_parameters, "fileExtension");
+
+		if (Objects.equals(fileExtension, "zip")) {
+			_pluginDir = _convertToClientExtensionBundleDir();
+		}
+		else {
+			_pluginDir = _autoDeploy();
+		}
 
 		if ((_pluginDir == null) || !_pluginDir.exists() ||
 			!_pluginDir.isDirectory()) {
@@ -242,8 +252,6 @@ public class WabProcessor {
 		autoDeploymentContext.setFile(_file);
 
 		if (_file.isDirectory()) {
-			autoDeploymentContext.setDestDir(_file.getAbsolutePath());
-
 			return autoDeploymentContext;
 		}
 
@@ -254,6 +262,66 @@ public class WabProcessor {
 		autoDeploymentContext.setDestDir(file.getAbsolutePath());
 
 		return autoDeploymentContext;
+	}
+
+	private File _convertToClientExtensionBundleDir() {
+		Path clientExtensionBundlePath = null;
+
+		try (ZipFile zipFile = new ZipFile(_file)) {
+			clientExtensionBundlePath = Files.createTempDirectory(
+				"clientextension");
+
+			Path metatInfResourcesPath = _createPath(
+				clientExtensionBundlePath, "META-INF/resources");
+			Path osgiInfConfiguratorPath = _createPath(
+				clientExtensionBundlePath, "OSGI-INF/configurator");
+
+			Enumeration<? extends ZipEntry> enumeration = zipFile.entries();
+
+			while (enumeration.hasMoreElements()) {
+				ZipEntry zipEntry = enumeration.nextElement();
+
+				String name = zipEntry.getName();
+
+				if (zipEntry.isDirectory()) {
+					if (name.startsWith("static/")) {
+						Files.createDirectories(
+							metatInfResourcesPath.resolve(
+								name.replaceAll("^static/", "")));
+					}
+				}
+				else {
+					if (!name.contains("/") &&
+						name.endsWith(".client-extension-config.json")) {
+
+						Files.copy(
+							zipFile.getInputStream(zipEntry),
+							osgiInfConfiguratorPath.resolve(name));
+					}
+					else if (name.startsWith("static/")) {
+						Files.copy(
+							zipFile.getInputStream(zipEntry),
+							metatInfResourcesPath.resolve(
+								name.replaceAll("^static/", "")));
+					}
+				}
+			}
+		}
+		catch (IOException ioException) {
+			_log.error(ioException);
+		}
+
+		return clientExtensionBundlePath.toFile();
+	}
+
+	private Path _createPath(Path parentPath, String pathString)
+		throws IOException {
+
+		Path path = parentPath.resolve(pathString);
+
+		Files.createDirectories(path);
+
+		return path;
 	}
 
 	private Discover _findDiscoveryMode(Document document) {
@@ -460,7 +528,7 @@ public class WabProcessor {
 			Constants.CDIANNOTATIONS, "*;discover=" + discover);
 
 		_appendProperty(
-			analyzer, Constants.REQUIRE_CAPABILITY, _CDI_REQUIREMENTS);
+			analyzer, Constants.REQUIRE_CAPABILITY, _REQUIRE_CAPABILITY_CDI);
 	}
 
 	private void _processBundleClasspath(Analyzer analyzer) throws IOException {
@@ -815,6 +883,17 @@ public class WabProcessor {
 		}
 
 		_formatDocument(file, document);
+	}
+
+	private void _processOSGiConfigurator(Jar jar, Builder analyzer) {
+		Stream<Resource> resources = jar.getResources(
+			resourceName -> resourceName.startsWith("OSGI-INF/configurator/"));
+
+		if (resources.count() != 0) {
+			_appendProperty(
+				analyzer, Constants.REQUIRE_CAPABILITY,
+				_REQUIRE_CAPABILITY_OSGI_CONFIGURATOR);
+		}
 	}
 
 	private void _processPackageNames(Analyzer analyzer) {
@@ -1351,6 +1430,8 @@ public class WabProcessor {
 
 			_processBeans(analyzer);
 
+			_processOSGiConfigurator(jar, analyzer);
+
 			try {
 				jar = analyzer.build();
 
@@ -1436,15 +1517,19 @@ public class WabProcessor {
 
 	private static final Version _CDI_ARCHIVE_VERSION = new Version(1, 1, 0);
 
-	private static final String _CDI_REQUIREMENTS = StringBundler.concat(
+	private static final String[] _KNOWN_PROPERTY_KEYS = {
+		"jdbc.driverClassName"
+	};
+
+	private static final String _REQUIRE_CAPABILITY_CDI = StringBundler.concat(
 		"osgi.cdi.extension;filter:='(osgi.cdi.extension=aries.cdi.http)',",
 		"osgi.cdi.extension;filter:='(osgi.cdi.extension=aries.cdi.el.jsp)',",
 		"osgi.cdi.extension;filter:='(osgi.cdi.extension=",
 		"com.liferay.bean.portlet.cdi.extension)'");
 
-	private static final String[] _KNOWN_PROPERTY_KEYS = {
-		"jdbc.driverClassName"
-	};
+	private static final String _REQUIRE_CAPABILITY_OSGI_CONFIGURATOR =
+		"osgi.extender;filter:=\"(&(osgi.extender=osgi.configurator)" +
+			"(version>=1.0)(!(version>=2.0)))\"";
 
 	private static final String _XPATHS_HOOK = StringUtil.merge(
 		new String[] {

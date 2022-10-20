@@ -97,7 +97,7 @@ definition {
 			PageEditor.addElementToContainer(
 				collectionName = "Layout Elements",
 				fragmentName = "Grid",
-				index = "2",
+				height = "Tall",
 				navTab = "Fragments",
 				targetElementName = "Grid");
 
@@ -158,6 +158,7 @@ definition {
 
 		task ("Assert the height of the first module is greater than 20px") {
 			var moduleHeight = selenium.getElementHeight("//div[@aria-label='Grid']//div[contains(@class,'page-editor__topper__content')]//div[contains(@class,'col-4')]");
+
 			var moduleHeight = StringUtil.replace("${moduleHeight}", "px", "");
 
 			TestUtils.isGreaterThan(
@@ -169,7 +170,7 @@ definition {
 	@description = "This is a test for LPS-108463. Assert no Container is outside when add a Grid element to content page template."
 	@priority = "4"
 	test AddGridWithoutContainerInContentPageTemplate {
-		property testray.main.component.name = "Content Page Templates";
+		property testray.component.names = "Content Page Templates,Fragments";
 
 		task ("Add a page template collection") {
 			JSONLayoutpagetemplate.addLayoutPageTemplateCollection(
@@ -208,7 +209,7 @@ definition {
 	@description = "This is a test for LPS-108463. Assert no Container is outside when add a Grid element to display page template."
 	@priority = "4"
 	test AddGridWithoutContainerInDisplayPageTemplate {
-		property testray.main.component.name = "Display Pages";
+		property testray.component.names = "Display Pages,Fragments";
 
 		task ("Add a display page") {
 			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
@@ -334,7 +335,7 @@ definition {
 		}
 
 		task ("Add a Web Content Display widget to module 1") {
-			PageEditor.gotoTab(tabName = "Widgets");
+			Navigator.gotoNavTab(navTab = "Widgets");
 
 			Type.sendKeysApplicationSearch(
 				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_SEARCH_FIELD",
@@ -349,7 +350,7 @@ definition {
 				locator2 = "PageEditor#GRID_COLUMN",
 				value1 = "Web Content Display");
 
-			Pause(locator1 = "5000");
+			PageEditor.waitForAutoSave();
 
 			AssertElementPresent(
 				key_columnNumber = "1",
@@ -452,7 +453,7 @@ definition {
 			PageEditor.gotoStyle(fragmentName = "Heading");
 
 			PageEditor.configureFragment(
-				alignment = "Center",
+				alignment = "Align Center",
 				textColor = "Success");
 
 			PageEditor.gotoConfiguration(fragmentName = "Heading");
@@ -463,7 +464,7 @@ definition {
 		task ("View the Heading's style") {
 			PageEditor.viewFragmentStyle(
 				alignment = "center",
-				fragmentName = "heading",
+				fragmentName = "Heading",
 				headingLevel = "h2",
 				textColor = "success");
 		}
@@ -474,12 +475,12 @@ definition {
 			Navigator.gotoNavTab(navTab = "Fragments");
 
 			DragAndDrop.javaScriptDragAndDropToUp(
+				index = "1",
 				key_collectionName = "Basic Components",
 				key_fragmentName = "Button",
 				key_targetFragmentName = "Grid",
 				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_TAB_FRAGMENT",
-				locator2 = "PageEditor#ANY_FRAGMENT_DROP_TARGET",
-				value1 = "");
+				locator2 = "PageEditor#ANY_FRAGMENT_DROP_TARGET");
 
 			PageEditor.waitForAutoSave();
 		}
@@ -493,13 +494,13 @@ definition {
 
 			PageEditor.gotoStyle(fragmentName = "Button");
 
-			PageEditor.configureFragment(alignment = "Center");
+			PageEditor.configureFragment(alignment = "Align Center");
 		}
 
 		task ("View the Button's style") {
 			PageEditor.viewFragmentStyle(
 				alignment = "center",
-				fragmentName = "button",
+				fragmentName = "Button",
 				size = "lg",
 				type = "link");
 		}
@@ -536,7 +537,7 @@ definition {
 		task ("View the Heading's style") {
 			PageEditor.viewFragmentStyle(
 				alignment = "center",
-				fragmentName = "heading",
+				fragmentName = "Heading",
 				headingLevel = "h2",
 				textColor = "success");
 		}
@@ -544,13 +545,13 @@ definition {
 		task ("View the Button's style") {
 			PageEditor.viewFragmentStyle(
 				alignment = "center",
-				fragmentName = "button",
+				fragmentName = "Button",
 				size = "lg",
 				type = "link");
 		}
 
 		task ("Assert the width of modules in view mode") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Content Page Name",
@@ -560,13 +561,13 @@ definition {
 				AssertElementPresent(locator1 = "//div[contains(@class,'container-fluid')]/div[contains(@class,'row')]//div[contains(@class,'col')][${n}]");
 			}
 
-			AssertElementPresent(locator1 = "//div[contains(@class,'col-4')][1]");
+			AssertElementPresent(locator1 = "//div[contains(@class,'col-md-4')][1]");
 
-			AssertElementNotPresent(locator1 = "//div[contains(@class,'col-4')][2]");
+			AssertElementNotPresent(locator1 = "//div[contains(@class,'col-md-4')][2]");
 
-			AssertElementNotPresent(locator1 = "//div[contains(@class,'col-4')][3]");
+			AssertElementNotPresent(locator1 = "//div[contains(@class,'col-md-4')][3]");
 
-			var thirdModuleWidth = selenium.getElementWidth("//div[contains(@class,'container-fluid')]/div[contains(@class,'row')]//div[contains(@class,'col')][3]");
+			var thirdModuleWidth = selenium.getElementWidth("//div[contains(@class,'container-fluid')]/div[contains(@class,'row')]//div[contains(@class,'col-12')][3]");
 
 			TestUtils.assertNotEquals(
 				actual = "${thirdModuleWidth}",
@@ -574,19 +575,84 @@ definition {
 		}
 
 		task ("View the Heading's style in view mode") {
-			PageEditor.viewFragmentStyle(
-				alignment = "center",
+			ContentPages.viewFragmentCommonStyle(
 				fragmentName = "Heading",
-				headingLevel = "h2",
-				textColor = "success");
+				styleName = "textAlign",
+				styleValue = "center");
+
+			ContentPages.viewFragmentCommonStyle(
+				fragmentName = "Heading",
+				styleName = "color",
+				styleValue = "success");
+
+			PageEditor.viewFragmentStyle(
+				fragmentName = "Heading",
+				headingLevel = "h2");
 		}
 
 		task ("View the Button's style in view mode") {
+			ContentPages.viewFragmentCommonStyle(
+				fragmentName = "Button",
+				styleName = "textAlign",
+				styleValue = "center");
+
 			PageEditor.viewFragmentStyle(
-				alignment = "center",
-				fragmentName = "button",
+				fragmentName = "Button",
 				size = "lg",
 				type = "link");
+		}
+	}
+
+	@description = "This is a use case for LPS-146029. View the defined layout style of Grid in the non-desktop viewport."
+	@priority = "4"
+	test ViewDefinedGridLayoutStyleInNonDesktopViewport {
+		property test.name.skip.portal.instance = "Grid#ViewDefinedGridLayoutStyleInNonDesktopViewport";
+
+		task ("Add a Grid to page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Layout Elements",
+				fragmentName = "Grid");
+		}
+
+		task ("Change the Number of Modules to 6") {
+			PageEditor.editLayoutGrid(
+				columnCount = "6",
+				panel = "General");
+		}
+
+		task ("Change to the Landscape Phone viewport") {
+			PageEditor.switchViewport(deviceType = "Landscape Phone");
+		}
+
+		task ("View Grid styles in Landscape Phone viewport") {
+			SelectFrame.selectFrameNoLoading(locator1 = "IFrame#PAGE_EDITOR_GLOBAL_CONTEXT_IFRAME");
+
+			PageEditor.viewGridStyle(
+				columnCount = "6",
+				layout = "12",
+				position = "1");
+
+			SelectFrame(value1 = "relative=top");
+		}
+
+		task ("Change the Layout to 2 Modules per Row") {
+			Select(
+				key_fieldLabel = "Layout",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
+				value1 = "2 Modules per Row");
+		}
+
+		task ("View edited Grid styles in shown") {
+			SelectFrame.selectFrameNoLoading(locator1 = "IFrame#PAGE_EDITOR_GLOBAL_CONTEXT_IFRAME");
+
+			PageEditor.viewGridStyle(
+				columnCount = "6",
+				layout = "6",
+				position = "1");
 		}
 	}
 

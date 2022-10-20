@@ -1,0 +1,12 @@
+Bundle-Name: Liferay Notification API
+Bundle-SymbolicName: com.liferay.notification.api
+Bundle-Version: 3.2.1
+Export-Package:\
+	com.liferay.notification.constants,\
+	com.liferay.notification.exception,\
+	com.liferay.notification.model,\
+	com.liferay.notification.service,\
+	com.liferay.notification.service.persistence,\
+	com.liferay.notification.term.contributor,\
+	com.liferay.notification.type,\
+	com.liferay.notification.util

@@ -40,6 +40,7 @@ import Link from '../../components/Link.es';
 import PaginatedList from '../../components/PaginatedList.es';
 import Rating from '../../components/Rating.es';
 import SectionLabel from '../../components/SectionLabel.es';
+import SubscritionCheckbox from '../../components/SubscribeCheckbox.es';
 import SubscriptionButton from '../../components/SubscriptionButton.es';
 import TagList from '../../components/TagList.es';
 import {
@@ -51,15 +52,17 @@ import {
 	subscribeQuery,
 	unsubscribeQuery,
 } from '../../utils/client.es';
+import {ALL_SECTIONS_ID} from '../../utils/contants.es';
 import lang from '../../utils/lang.es';
 import {
-	dateToBriefInternationalHuman,
+	dateToInternationalHuman,
 	deleteCacheKey,
 	getContextLink,
 	getErrorObject,
 	getFullPath,
 	historyPushWithSlug,
 } from '../../utils/utils.es';
+import FlagsContainer from './components/FlagsContainer';
 
 export default withRouter(
 	({
@@ -69,21 +72,31 @@ export default withRouter(
 			url,
 		},
 	}) => {
-		const context = useContext(AppContext);
+		const sectionRef = useRef(null);
 
+		const runScroll = () =>
+			sectionRef.current.scrollIntoView({
+				behavior: 'smooth',
+				block: 'start',
+			});
+
+		const context = useContext(AppContext);
 		const historyPushParser = historyPushWithSlug(history.push);
 
 		const [error, setError] = useState(null);
+		const [isPageScroll, setIsPageScroll] = useState(false);
 
 		const editorRef = useRef('');
 
 		const [isPostButtonDisable, setIsPostButtonDisable] = useState(true);
 		const [showDeleteModalPanel, setShowDeleteModalPanel] = useState(false);
 
+		const [allowSubscription, setAllowSubscription] = useState(false);
 		const [page, setPage] = useState(1);
 		const [pageSize, setPageSize] = useState(20);
 
 		const [loading, setLoading] = useState(true);
+		const [loadingAnswer, setLoadingAnswer] = useState(true);
 		const [question, setQuestion] = useState({});
 		const [answers, setAnswers] = useState({});
 
@@ -92,6 +105,7 @@ export default withRouter(
 				getMessages(question.id, page, pageSize).then(
 					({data: {messageBoardThreadMessageBoardMessages}}) => {
 						setAnswers(messageBoardThreadMessageBoardMessages);
+						setLoadingAnswer(false);
 					}
 				);
 			}
@@ -136,7 +150,7 @@ export default withRouter(
 		}, [questionId, context.siteKey]);
 
 		sectionTitle =
-			sectionTitle || sectionTitle === '0'
+			sectionTitle || sectionTitle === ALL_SECTIONS_ID
 				? sectionTitle
 				: question.messageBoardSection &&
 				  question.messageBoardSection.title;
@@ -149,14 +163,72 @@ export default withRouter(
 			fetchMessages();
 		}, [fetchMessages]);
 
+		const questionVisited = context?.questionsVisited?.includes(
+			question.id
+		);
+
+		useEffect(() => {
+			if (question.id && context?.questionsVisited && !questionVisited) {
+				context.setQuestionsVisited([
+					...context.questionsVisited,
+					question.id,
+				]);
+			}
+		}, [context, question, questionVisited]);
+
 		const [createAnswer] = useMutation(createAnswerQuery);
+		const [subscribe] = useMutation(subscribeQuery);
+
+		const onSubscription = useCallback(
+			async ({
+				allowSubscription: _allowSubscription = allowSubscription,
+			} = {}) => {
+				if (question.subscribed || !_allowSubscription) {
+					return;
+				}
+
+				await subscribe({
+					variables: {
+						messageBoardThreadId: question.id,
+					},
+				});
+
+				deleteCacheKey(getSubscriptionsQuery, {
+					contentType: 'MessageBoardThread',
+				});
+
+				setQuestion({...question, subscribed: true});
+			},
+			[allowSubscription, question, subscribe, setQuestion]
+		);
+
+		const onCreateAnswer = async () => {
+			try {
+				await createAnswer({
+					fetchOptionsOverrides: getContextLink(
+						`${sectionTitle}/${questionId}`
+					),
+					variables: {
+						articleBody: editorRef.current.getContent(),
+						messageBoardThreadId: question.id,
+					},
+				});
+
+				editorRef.current.clearContent();
+
+				await onSubscription();
+
+				fetchMessages();
+			}
+			catch (error) {}
+		};
 
 		const deleteAnswer = useCallback(
 			(answer) => {
 				setAnswers({
 					...answers,
 					items: [
-						...answers.items.filter(
+						...answers.items?.filter(
 							(otherAnswer) => answer.id !== otherAnswer.id
 						),
 					],
@@ -172,7 +244,7 @@ export default withRouter(
 
 		const answerChange = useCallback(
 			(answerId) => {
-				const answer = answers.items.find(
+				const answer = answers.items?.find(
 					(answer) => answer.showAsAnswer && answer.id !== answerId
 				);
 
@@ -189,6 +261,22 @@ export default withRouter(
 			},
 			[markAsAnswerMessageBoardMessage, answers.items, fetchMessages]
 		);
+
+		useEffect(() => {
+			const body = document.body;
+			const html = document.documentElement;
+
+			const docHeight = Math.max(
+				body.scrollHeight,
+				body.offsetHeight,
+				html.clientHeight,
+				html.scrollHeight,
+				html.offsetHeight
+			);
+
+			const winHeight = window.innerHeight;
+			setIsPageScroll(docHeight > winHeight);
+		}, [question, answers]);
 
 		return (
 			<section className="questions-section questions-section-single">
@@ -239,8 +327,8 @@ export default withRouter(
 							</div>
 
 							<div className="col-md-10">
-								<div className="align-items-end flex-column-reverse flex-md-row row">
-									<div className="c-mt-4 c-mt-md-0 col-md-8">
+								<div className="align-items-top flex-column-reverse flex-md-row row">
+									<div className="c-mt-4 c-mt-md-0 col-md-7">
 										{!!question.messageBoardSection &&
 											!!question.messageBoardSection
 												.numberOfMessageBoardSections && (
@@ -293,12 +381,14 @@ export default withRouter(
 										<p className="c-mb-0 small text-secondary">
 											{`${Liferay.Language.get(
 												'asked'
-											)} ${dateToBriefInternationalHuman(
-												question.dateCreated
-											)} - ${Liferay.Language.get(
+											)} - ${dateToInternationalHuman(
+												question.dateCreated,
+												Liferay.ThemeDisplay.getBCP47LanguageId()
+											)} / ${Liferay.Language.get(
 												'active'
-											)} ${dateToBriefInternationalHuman(
-												question.dateModified
+											)} - ${dateToInternationalHuman(
+												question.dateModified,
+												Liferay.ThemeDisplay.getBCP47LanguageId()
 											)} - ${lang.sub(
 												Liferay.Language.get(
 													'viewed-x-times'
@@ -309,7 +399,7 @@ export default withRouter(
 									</div>
 
 									{!question.locked && (
-										<div className="col-md-4 text-right">
+										<div className="col-md-5 text-right">
 											<ClayButton.Group
 												className="questions-actions"
 												spaced={true}
@@ -319,15 +409,26 @@ export default withRouter(
 														isSubscribed={
 															question.subscribed
 														}
-														onSubscription={() =>
+														onSubscription={(
+															subscribed
+														) => {
 															deleteCacheKey(
 																getSubscriptionsQuery,
 																{
 																	contentType:
 																		'MessageBoardThread',
 																}
-															)
-														}
+															);
+
+															setQuestion(
+																(
+																	prevQuestion
+																) => ({
+																	...prevQuestion,
+																	subscribed,
+																})
+															);
+														}}
 														queryVariables={{
 															messageBoardThreadId:
 																question.id,
@@ -370,6 +471,11 @@ export default withRouter(
 													</>
 												)}
 
+												<FlagsContainer
+													content={question}
+													context={context}
+												/>
+
 												{question.actions.replace && (
 													<Link to={`${url}/edit`}>
 														<ClayButton displayType="secondary">
@@ -379,6 +485,19 @@ export default withRouter(
 														</ClayButton>
 													</Link>
 												)}
+
+												{isPageScroll &&
+													!!answers.items?.length && (
+														<ClayButton
+															className="btn btn-secondary"
+															displayType="secondary"
+															onClick={runScroll}
+														>
+															{Liferay.Language.get(
+																'go-to-answers'
+															)}
+														</ClayButton>
+													)}
 											</ClayButton.Group>
 										</div>
 									)}
@@ -388,7 +507,7 @@ export default withRouter(
 									<ArticleBodyRenderer {...question} />
 								</div>
 
-								<div className="c-mt-4">
+								<div className="c-mt-4" ref={sectionRef}>
 									<TagList
 										sectionTitle={sectionTitle}
 										tags={question.keywords}
@@ -400,9 +519,13 @@ export default withRouter(
 								</div>
 
 								<h3 className="c-mt-4 text-secondary">
-									{answers.totalCount + ' '}
-
-									{Liferay.Language.get('answers')}
+									{loadingAnswer
+										? `${Liferay.Language.get(
+												'loading-answers'
+										  )}`
+										: `${
+												answers.totalCount
+										  } ${Liferay.Language.get('answers')}`}
 								</h3>
 
 								<div className="c-mt-3">
@@ -421,9 +544,12 @@ export default withRouter(
 													!question.locked &&
 													!!question.actions.replace
 												}
+												context={context}
 												deleteAnswer={deleteAnswer}
 												editable={!question.locked}
 												key={answer.id}
+												onSubscription={onSubscription}
+												question={question}
 											/>
 										)}
 									</PaginatedList>
@@ -445,27 +571,22 @@ export default withRouter(
 												ref={editorRef}
 											/>
 
+											{!question.subscribed && (
+												<SubscritionCheckbox
+													checked={allowSubscription}
+													setChecked={
+														setAllowSubscription
+													}
+												/>
+											)}
+
 											{!question.locked && (
 												<ClayButton
 													disabled={
 														isPostButtonDisable
 													}
 													displayType="primary"
-													onClick={() => {
-														createAnswer({
-															fetchOptionsOverrides: getContextLink(
-																`${sectionTitle}/${questionId}`
-															),
-															variables: {
-																articleBody: editorRef.current.getContent(),
-																messageBoardThreadId:
-																	question.id,
-															},
-														}).then(() => {
-															editorRef.current.clearContent();
-															fetchMessages();
-														});
-													}}
+													onClick={onCreateAnswer}
 												>
 													{context.trustedUser
 														? Liferay.Language.get(

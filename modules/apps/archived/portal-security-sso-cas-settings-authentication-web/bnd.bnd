@@ -1,5 +1,4 @@
 Bundle-Name: Liferay Portal Security SSO CAS Settings Authentication Web
 Bundle-SymbolicName: com.liferay.portal.security.sso.cas.settings.authentication.web
-Bundle-Version: 1.0.6
+Bundle-Version: 1.0.8
 Web-ContextPath: /portal-security-sso-cas-settings-authentication-web
--liferay-aggregate-resource-bundles: com.liferay.portal.settings.lang

@@ -1,6 +1,8 @@
 @component-name = "portal-analytics-cloud"
 definition {
 
+	property analytics.cloud.release = "true";
+	property analytics.cloud.upstream = "true";
 	property portal.release = "false";
 	property portal.upstream = "true";
 	property property.group = "analytics.cloud.profile";
@@ -27,6 +29,8 @@ definition {
 	tearDown {
 		var testPortalInstance = PropsUtil.get("test.portal.instance");
 
+		ACUtils.tearDownAC();
+
 		ACUtils.tearDownDXP();
 
 		if ("${testPortalInstance}" == "true") {
@@ -34,16 +38,15 @@ definition {
 		}
 		else {
 			JSONGroup.deleteGroupByName(groupName = "Site Name");
-
-			JSONUser.tearDownNonAdminUsers();
 		}
-
-		ACUtils.tearDownAC();
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-9018 | Test Summary: Search an Individual's Activities List with a query that won't return results"
 	@priority = "3"
 	test AssertNoIndividualsActivitiesResults {
+		property analytics.cloud.upstream = "false";
+		property test.name.skip.portal.instance = "KnownIndividualsSearch#AssertNoIndividualsActivitiesResults";
+
 		task ("Add DM to AC Page") {
 			ACUtils.createDMAndAddToPage();
 		}
@@ -107,13 +110,16 @@ definition {
 		}
 
 		task ("Assert there are no activities found") {
-			ACUtils.viewGenericText(textValueList = "No Events Found,Try a different date range or search term.");
+			ACUtils.viewGenericText(textValueList = "There are no events found.,Check back later to verify if data has been received from your data sources.,Learn more about individuals.");
 		}
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-9020 | Test Summary: Search associated segment will not return results in the individual List"
 	@priority = "3"
 	test AssertNoIndividualsAssociatedSegmentsResults {
+		property analytics.cloud.upstream = "false";
+		property test.name.skip.portal.instance = "KnownIndividualsSearch#AssertNoIndividualsAssociatedSegmentsResults";
+
 		task ("Get site assigned property name") {
 			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
 		}
@@ -175,7 +181,7 @@ definition {
 		}
 
 		task ("Assert there are no segments found") {
-			ACUtils.viewNoResultsMessage(noResultMessage = "There are no Associated Segments found.");
+			ACUtils.viewGenericText(textValueList = "There are no results found.,Please try a different search term.");
 		}
 	}
 
@@ -245,6 +251,8 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-9021 | Test Summary: Search associated segment will not return results in the individual overview List"
 	@priority = "3"
 	test AssertNoResultsInIndividualsOverviewAssociatedSegment {
+		property analytics.cloud.upstream = "false";
+
 		task ("Get site assigned property name") {
 			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
 		}
@@ -291,7 +299,7 @@ definition {
 			ACSegments.saveSegment();
 		}
 
-		task ("Navigate to Individule Segments") {
+		task ("Navigate to Known Individuals") {
 			ACNavigation.goToIndividuals();
 
 			ACNavigation.switchTab(tabName = "Known Individuals");
@@ -306,13 +314,15 @@ definition {
 		}
 
 		task ("Assert there are no segments found") {
-			ACUtils.viewNoResultsMessage(noResultMessage = "There are no Segments found.");
+			ACUtils.viewGenericText(textValueList = "There are no results found.,Please try a different search term.");
 		}
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-9033 | Test Summary: Case Insensitive Search"
 	@priority = "5"
 	test CanCaseInsensitiveSearch {
+		property analytics.cloud.upstream = "false";
+
 		var emailList = "randy.smith@liferay.com,maria.rau@liferay.com";
 
 		task ("Get site assigned property name") {
@@ -376,6 +386,8 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-9032 | Test Summary: Search and Clear Field"
 	@priority = "1"
 	test SearchAndClearField {
+		property analytics.cloud.upstream = "false";
+
 		var usernameList = "user1,user2";
 		var emailList = "user1@liferay.com,user2@liferay.com";
 		var nameList = "user1 user1,user2 user2";
@@ -437,6 +449,8 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-9024 | Test Summary: Search an Individual's Details in the individual List"
 	@priority = "4"
 	test SearchIndividualDetails {
+		property analytics.cloud.upstream = "false";
+
 		task ("Get site assigned property name") {
 			ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
 
@@ -485,7 +499,7 @@ definition {
 		task ("Search and return no results") {
 			ACUtils.searchBar(searchItem = "some invalid query");
 
-			ACUtils.viewNoResultsMessage(noResultMessage = "There are no items found.");
+			ACUtils.viewGenericText(textValueList = "There are no items found.");
 		}
 
 		task ("Search for upper case") {
@@ -546,6 +560,8 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-9026 | Test Summary: Search for an Individual in the individual List"
 	@priority = "4"
 	test SearchIndividualList {
+		property analytics.cloud.upstream = "false";
+
 		var emailList = "randy.smith@liferay.com,maria.rau@liferay.com";
 
 		task ("Get site assigned property name") {
@@ -637,6 +653,8 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-9022 | Test Summary: Search an Individual's Activities List"
 	@priority = "4"
 	test SearchIndividualsActivitiesList {
+		property analytics.cloud.upstream = "false";
+
 		task ("Create a Document And Media") {
 			ACUtils.createDMAndAddToPage();
 		}
@@ -778,6 +796,8 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-9029 | Test Summary: Sort Individuals List"
 	@priority = "3"
 	test SortIndividualList {
+		property analytics.cloud.upstream = "false";
+
 		var usernameList = "user1,user2,user3";
 		var emailList = "user1@liferay.com,user2@liferay.com,user3@liferay.com";
 
@@ -836,6 +856,8 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-9030 | Test Summary: Sorting a List Returns a User to the First Page"
 	@priority = "3"
 	test SortingReturnsUserToFirstPage {
+		property analytics.cloud.upstream = "false";
+
 		var usernameList = "user1,user2,user3,user4,user5,user6,user7";
 
 		task ("Get site assigned property name") {
@@ -913,6 +935,8 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-9031 | Test Summary: Table Pagination"
 	@priority = "4"
 	test TablePagination {
+		property analytics.cloud.upstream = "false";
+
 		var usernameList = "user1,user2,user3,user4,user5,user6";
 
 		task ("Get site assigned property name") {

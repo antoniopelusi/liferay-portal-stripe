@@ -121,7 +121,9 @@ definition {
 			locator1 = "ReportsAdminViewReportEntry#INFO_MESSAGE",
 			value1 = "Processing report. This may take several minutes.");
 
-		Pause(locator1 = "180000");
+		while ((IsElementPresent(locator1 = "ReportsAdminViewReportEntry#INFO_MESSAGE")) && (maxIterations = "40")) {
+			Refresh();
+		}
 
 		Navigator.openURL();
 
@@ -247,6 +249,7 @@ definition {
 
 	@priority = "4"
 	test DeliverReportToEmail {
+		property portal.upstream = "quarantine";
 		property test.assert.javascript.errors = "false";
 		property test.smtp.server.enabled = "true";
 
@@ -564,13 +567,13 @@ definition {
 		PortletEntry.save();
 	}
 
+	@ignore = "true"
 	@priority = "4"
 	test ViewEmailNotificationDelivery {
 		property test.assert.javascript.errors = "false";
 		property test.name.skip.portal.instance = "CPReportsadmin#ViewEmailNotificationDelivery";
 
 		var portalURL = PropsUtil.get("portal.url");
-
 		var siteName = TestCase.getSiteName(siteName = "${siteName}");
 
 		ApplicationsMenu.gotoPortlet(
@@ -603,8 +606,6 @@ definition {
 			reportName = "Custom Report Name",
 			reportsDefinitionName = "Reports Definition Name");
 
-		Pause(locator1 = "30000");
-
 		Gmail.login(
 			userEmailAddress = PropsUtil.get("email.address.4"),
 			userPassword = PropsUtil.get("email.password.4"));
@@ -624,8 +625,6 @@ definition {
 			locator1 = "Gmail#GMAIL_HTML_MODE_MESSAGE_BODY_LINK",
 			value1 = "report");
 
-		Pause(locator1 = "30000");
-
 		SelectWindow(locator1 = "title=Reports Definition Name - ${siteName}");
 
 		ReportsAdmin.viewReportEntryFields(
@@ -642,6 +641,7 @@ definition {
 		Navigator.openSpecificURL(url = "${portalURL}");
 	}
 
+	@ignore = "true"
 	@priority = "4"
 	test ViewEmailRecipientDelivery {
 		property test.assert.javascript.errors = "false";
@@ -677,8 +677,6 @@ definition {
 			emailRecipientAddress = PropsUtil.get("email.address.4"),
 			reportFormat = "pdf",
 			reportsDefinitionName = "Reports Definition Name");
-
-		Pause(locator1 = "30000");
 
 		Gmail.login(
 			userEmailAddress = PropsUtil.get("email.address.4"),

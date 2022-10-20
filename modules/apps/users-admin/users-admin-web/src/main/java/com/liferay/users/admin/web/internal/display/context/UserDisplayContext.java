@@ -31,6 +31,7 @@ import com.liferay.portal.kernel.model.UserGroup;
 import com.liferay.portal.kernel.model.UserGroupGroupRole;
 import com.liferay.portal.kernel.model.UserGroupRole;
 import com.liferay.portal.kernel.model.role.RoleConstants;
+import com.liferay.portal.kernel.security.membershippolicy.RoleMembershipPolicyUtil;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.OrganizationLocalServiceUtil;
@@ -38,6 +39,7 @@ import com.liferay.portal.kernel.service.PasswordPolicyLocalServiceUtil;
 import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserGroupGroupRoleLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserGroupRoleLocalServiceUtil;
+import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -51,6 +53,7 @@ import com.liferay.users.admin.kernel.util.UsersAdminUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -240,6 +243,26 @@ public class UserDisplayContext {
 					LanguageUtil.get(_httpServletRequest, "organizations"));
 			}
 		).build();
+	}
+
+	public boolean isAllowRemoveRole(Role role) throws PortalException {
+		User selUser = getSelectedUser();
+
+		if (RoleMembershipPolicyUtil.isRoleRequired(
+				selUser.getUserId(), role.getRoleId())) {
+
+			return false;
+		}
+
+		if (!Objects.equals(RoleConstants.ADMINISTRATOR, role.getName())) {
+			return true;
+		}
+
+		if (UserLocalServiceUtil.getRoleUsersCount(role.getRoleId()) == 1) {
+			return false;
+		}
+
+		return true;
 	}
 
 	private List<Group> _getAllGroups() throws PortalException {

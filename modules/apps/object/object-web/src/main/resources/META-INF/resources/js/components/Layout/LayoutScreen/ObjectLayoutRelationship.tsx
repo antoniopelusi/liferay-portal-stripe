@@ -13,40 +13,50 @@
  */
 
 import ClayLabel from '@clayui/label';
-import React, {useContext} from 'react';
+import React from 'react';
 
 import Panel from '../../Panel/Panel';
-import LayoutContext from '../context';
-import {TObjectRelationship} from '../types';
-
-const defaultLanguageId = Liferay.ThemeDisplay.getDefaultLanguageId();
+import {useLayoutContext} from '../objectLayoutContext';
 
 interface IObjectLayoutRelationshipProps
 	extends React.HTMLAttributes<HTMLElement> {
 	objectRelationshipId: number;
 }
+const defaultLanguageId = Liferay.ThemeDisplay.getDefaultLanguageId();
 
 const ObjectLayoutRelationship: React.FC<IObjectLayoutRelationshipProps> = ({
 	objectRelationshipId,
 }) => {
-	const [{objectRelationships}] = useContext(LayoutContext);
+	const [{objectRelationships}] = useLayoutContext();
 
 	const objectRelationship = objectRelationships.find(
 		({id}) => id === objectRelationshipId
-	) as TObjectRelationship;
+	)!;
 
 	return (
 		<>
 			<Panel key={`field_${objectRelationshipId}`}>
 				<Panel.SimpleBody
-					title={objectRelationship?.label[defaultLanguageId]}
+					title={objectRelationship?.label[defaultLanguageId]!}
 				>
 					<small className="text-secondary">
 						{Liferay.Language.get('relationship')} |{' '}
 					</small>
 
-					<ClayLabel displayType="secondary">
-						{objectRelationship?.type}
+					<ClayLabel
+						displayType={
+							Liferay.FeatureFlags['LPS-158478']
+								? objectRelationship.reverse
+									? 'info'
+									: 'success'
+								: 'secondary'
+						}
+					>
+						{Liferay.FeatureFlags['LPS-158478']
+							? objectRelationship.reverse
+								? Liferay.Language.get('child')
+								: Liferay.Language.get('parent')
+							: objectRelationship?.type}
 					</ClayLabel>
 				</Panel.SimpleBody>
 			</Panel>

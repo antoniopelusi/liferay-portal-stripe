@@ -35,11 +35,13 @@ definition {
 
 		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
 
-		Click(locator1 = "Treeview#NODE_COLLAPSED");
+		Click(
+			key_site = "Minium",
+			locator1 = "CommerceEntry#TREEVIEW_NODE_COLLAPSED_PAGES");
 
 		Click(
-			key_card = "${key_card}",
-			locator1 = "Card#CARD_TITLE");
+			key_nodeName = "${key_card}",
+			locator1 = "Treeview#NODE_ITEM");
 
 		SelectFrame.selectFrameTop();
 
@@ -58,8 +60,12 @@ definition {
 		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
 
 		Click(
-			key_card = "${key_card}",
-			locator1 = "Card#CARD_TITLE");
+			key_site = "Minium",
+			locator1 = "CommerceEntry#TREEVIEW_NODE_COLLAPSED_PAGES");
+
+		Click(
+			key_nodeName = "${key_card}",
+			locator1 = "Treeview#NODE_ITEM");
 
 		SelectFrame.selectFrameTop();
 
@@ -90,6 +96,82 @@ definition {
 			locator1 = "CommerceEntry#CHOOSE_ENTRY_BUTTON");
 
 		SelectFrame.selectFrameTop();
+	}
+
+	macro addShippingMethodTrackingURL {
+		Type(
+			key_fieldLabel = "Tracking URL",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "${trackingURL}");
+	}
+
+	macro addShippingOption {
+		Variables.assertDefined(parameterList = "${name},${key}");
+
+		Click(locator1 = "Button#PLUS");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Type(
+			locator1 = "TextInput#NAME",
+			value1 = "${name}");
+
+		if (isSet(description)) {
+			Type(
+				locator1 = "TextInput#DESCRIPTION",
+				value1 = "${description}");
+		}
+
+		if (isSet(amount)) {
+			Type(
+				key_fieldLabel = "Amount",
+				locator1 = "TextInput#GENERIC_TEXT_INPUT",
+				value1 = "${amount}");
+		}
+
+		if (isSet(priority)) {
+			Type(
+				locator1 = "CommerceEntry#PRIORITY_FIELD",
+				value1 = "${priority}");
+		}
+
+		Type(
+			key_fieldLabel = "Key",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "${key}");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+
+		Click(locator1 = "Icon#CLOSE");
+
+		SelectFrame.selectFrameTop();
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+	}
+
+	macro assertDefaultAccountShippingOption {
+		AssertElementPresent(
+			key_columnNumber = "1",
+			key_productName = "${channelName}",
+			key_value = "${shippingMethod}",
+			locator1 = "CommerceEntry#TABLE_SEARCH_BY_NAME_AND_COLUMN_CONTENT");
+
+		AssertElementPresent(
+			key_columnNumber = "2",
+			key_productName = "${channelName}",
+			key_value = "${shippingOption}",
+			locator1 = "CommerceEntry#TABLE_SEARCH_BY_NAME_AND_COLUMN_CONTENT");
+
+		if (isSet(active)) {
+			AssertTextEquals(
+				key_columnNumber = "3",
+				key_productName = "${channelName}",
+				key_value = "${active}",
+				locator1 = "CommerceEntry#TABLE_SEARCH_BY_NAME_AND_COLUMN_CONTENT",
+				value1 = "${active}");
+		}
 	}
 
 	macro assertMercanetConfigurationEnvironment {
@@ -137,7 +219,9 @@ definition {
 
 		CommerceNavigator.searchEntry(entryName = "${pageName}");
 
-		LexiconCard.clickCard(card = "${pageName}");
+		Click.mouseDownMouseUp(
+			key_nodeName = "${pageName}",
+			locator1 = "Treeview#NODE_ITEM");
 
 		SelectFrame.selectFrameTop();
 
@@ -164,12 +248,22 @@ definition {
 		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
 
 		if ("${pageType}" == "Private") {
+			if (IsElementNotPresent(key_menuTab = "Private Pages", locator1 = "CommerceEntry#MENU_TAB")) {
+				Click(
+					key_panel = "Public Pages",
+					locator1 = "Panel#PANEL_COLLAPSED");
+			}
+
 			CommerceEntry.gotoMenuTab(menuTab = "Private Pages");
 		}
 
-		CommerceNavigator.searchEntry(entryName = "${pageName}");
+		if (IsElementNotPresent(key_nodeName = "${pageName}", locator1 = "Treeview#NODE_ITEM")) {
+			CommerceNavigator.searchEntry(entryName = "${pageName}");
+		}
 
-		LexiconCard.clickCard(card = "${pageName}");
+		Click.mouseDownMouseUp(
+			key_nodeName = "${pageName}",
+			locator1 = "Treeview#NODE_ITEM");
 
 		SelectFrame.selectFrameTop();
 
@@ -215,6 +309,22 @@ definition {
 		CommerceChannels.addCategoryDiplayPage(key_card = "${page}");
 	}
 
+	macro disablePaymentMethod {
+		CommerceEntry.clickTableEntryEditButton(
+			entryName = "${paymentMethod}",
+			table = "Payment Methods");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		Uncheck.uncheckToggleSwitch(locator1 = "CommerceEntry#ACTIVE_CHECKBOX");
+
+		Button.clickSave();
+
+		Click(locator1 = "Icon#CLOSE");
+
+		SelectFrame.selectFrameTop();
+	}
+
 	macro editCategoryDisplayPage {
 		Click(
 			key_value = "${name}",
@@ -243,8 +353,12 @@ definition {
 		}
 
 		Click(
-			key_card = "${key_card}",
-			locator1 = "Card#CARD_TITLE");
+			key_site = "Minium",
+			locator1 = "CommerceEntry#TREEVIEW_NODE_COLLAPSED_PAGES");
+
+		Click(
+			key_nodeName = "${key_card}",
+			locator1 = "Treeview#NODE_ITEM");
 
 		SelectFrame.selectFrameTop();
 
@@ -313,6 +427,148 @@ definition {
 		SelectFrame.selectFrameTop();
 	}
 
+	macro editPaymentMethod {
+		CommerceEntry.clickTableEntryEditButton(
+			entryName = "${paymentMethod}",
+			table = "Payment Methods");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		if (isSet(name)) {
+			Type(
+				locator1 = "TextInput#NAME",
+				value1 = "${name}");
+		}
+
+		if (isSet(description)) {
+			Type(
+				locator1 = "TextInput#DESCRIPTION",
+				value1 = "${description}");
+		}
+
+		if (isSet(priority)) {
+			Type(
+				locator1 = "CommerceEntry#PRIORITY_FIELD",
+				value1 = "${priority}");
+		}
+
+		if ("${active}" == "true") {
+			Check.checkToggleSwitch(locator1 = "CommerceEntry#ACTIVE_CHECKBOX");
+		}
+
+		if ("${active}" == "false") {
+			Uncheck.uncheckToggleSwitch(locator1 = "CommerceEntry#ACTIVE_CHECKBOX");
+		}
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+
+		Click(locator1 = "Icon#CLOSE");
+
+		SelectFrame.selectFrameTop();
+	}
+
+	macro editShippingMethod {
+		CommerceEntry.clickTableEntryEditButton(
+			entryName = "${shippingMethod}",
+			table = "Shipping Methods");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		if (isSet(name)) {
+			Type(
+				locator1 = "TextInput#NAME",
+				value1 = "${name}");
+		}
+
+		if (isSet(description)) {
+			Type(
+				locator1 = "TextInput#DESCRIPTION",
+				value1 = "${description}");
+		}
+
+		if (isSet(priority)) {
+			Type(
+				locator1 = "CommerceEntry#PRIORITY_FIELD",
+				value1 = "${priority}");
+		}
+
+		if ("${active}" == "true") {
+			Check.checkToggleSwitch(locator1 = "CommerceEntry#ACTIVE_CHECKBOX");
+		}
+
+		if ("${active}" == "false") {
+			Uncheck.uncheckToggleSwitch(locator1 = "CommerceEntry#ACTIVE_CHECKBOX");
+		}
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+
+		Click(locator1 = "Icon#CLOSE");
+
+		SelectFrame.selectFrameTop();
+	}
+
+	macro editShippingOption {
+		CommerceNavigator.gotoEntry(entryName = "${shippingOption}");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		if (isSet(name)) {
+			Type(
+				locator1 = "TextInput#NAME",
+				value1 = "${name}");
+		}
+
+		if (isSet(description)) {
+			Type(
+				locator1 = "TextInput#DESCRIPTION",
+				value1 = "${description}");
+		}
+
+		if (isSet(amount)) {
+			Type(
+				key_fieldLabel = "Amount",
+				locator1 = "TextInput#GENERIC_TEXT_INPUT",
+				value1 = "${amount}");
+		}
+
+		if (isSet(priority)) {
+			Type(
+				locator1 = "CommerceEntry#PRIORITY_FIELD",
+				value1 = "${priority}");
+		}
+
+		if (isSet(key)) {
+			Type(
+				key_fieldLabel = "Key",
+				locator1 = "TextInput#GENERIC_TEXT_INPUT",
+				value1 = "${key}");
+		}
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+
+		Click(locator1 = "Icon#CLOSE");
+
+		SelectFrame.selectFrameTop();
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+	}
+
+	macro gotoShippingMethodShippingOptions {
+		CommerceEntry.clickTableEntryEditButton(
+			entryName = "${shippingMethod}",
+			table = "Shipping Methods");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		CommerceEntry.gotoMenuTab(menuTab = "Shipping Options");
+	}
+
 	macro openChannelsAdmin {
 		Navigator.openWithAppendToBaseURL(
 			baseURL = "${baseURL}",
@@ -361,6 +617,22 @@ definition {
 		Button.clickSave();
 
 		AssertElementPresent(locator1 = "Message#SUCCESS");
+	}
+
+	macro uploadPrintOrderTemplate {
+		Click(locator1 = "CommerceOrders#PRINT_ORDER_TEMPLATE");
+
+		SelectFrame(
+			key_frameTitle = "Select File",
+			locator1 = "CommerceEntry#ANY_IFRAME");
+
+		Click(locator1 = "CommerceOrders#PRINT_ORDER_TEMPLATE_SELECT_FILE");
+
+		SelectFrameTop();
+
+		CommerceItemSelector.uploadSingleFile(uploadFileName = "${uploadFileName}");
+
+		Button.clickSave();
 	}
 
 }

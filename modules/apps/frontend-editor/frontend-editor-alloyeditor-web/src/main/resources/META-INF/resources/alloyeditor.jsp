@@ -79,7 +79,7 @@ if (editorOptions != null) {
 </script>
 
 <liferay-util:html-top>
-	<link href="<%= PortalUtil.getStaticResourceURL(request, application.getContextPath() + "/css/main.css") %>" rel="stylesheet" type="text/css" />
+	<link href="<%= PortalUtil.getStaticResourceURL(request, PortalUtil.getPathProxy() + application.getContextPath() + "/css/main.css") %>" rel="stylesheet" type="text/css" />
 </liferay-util:html-top>
 
 <liferay-util:buffer
@@ -230,7 +230,7 @@ name = HtmlUtil.escapeJS(name);
 			{
 				documentBrowseLinkCallback: documentBrowseLinkCallback,
 				htmlEncodeOutput: true,
-				spritemap: themeDisplay.getPathThemeImages() + '/clay/icons.svg',
+				spritemap: '<%= FrontendIconsUtil.getSpritemap(themeDisplay) %>',
 				title: false,
 				uiNode: uiNode,
 			},

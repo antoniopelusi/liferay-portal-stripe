@@ -16,6 +16,7 @@ import fetchMock from 'fetch-mock';
 
 import AnalyticsClient from '../src/analytics';
 import {
+	DXP_APPLICATION_IDS,
 	STORAGE_KEY_EVENTS,
 	STORAGE_KEY_IDENTITY,
 	STORAGE_KEY_USER_ID,
@@ -210,6 +211,27 @@ describe('Analytics', () => {
 		expect(firstUserId).not.toEqual(secondUserId);
 	});
 
+	it('does not replace the user id whenever the set identity hash is the same', async () => {
+		fetchMock.mock(/ac-server/i, () => Promise.resolve(200));
+		fetchMock.mock(/identity$/, () => Promise.resolve(200));
+
+		await Analytics.setIdentity({
+			email: 'john@liferay.com',
+			name: 'John',
+		});
+
+		const firstUserId = getItem(STORAGE_KEY_USER_ID);
+
+		await Analytics.setIdentity({
+			email: 'john@liferay.com',
+			name: 'John',
+		});
+
+		const secondUserId = getItem(STORAGE_KEY_USER_ID);
+
+		expect(firstUserId).toEqual(secondUserId);
+	});
+
 	// Skipping this test because it was broken in the old
 	// Karma-based implementation (the `expect` was failing but it
 	// did so asynchronously after the test has "finished").
@@ -323,9 +345,25 @@ describe('Analytics', () => {
 
 			console.error = jest.fn((val) => val);
 
-			Analytics.track('foo', {bar: []});
+			Analytics.track(
+				'foo',
+				{bar: [], type: null},
+				{applicationId: 'Any'}
+			);
 
-			expect(console.error).toHaveBeenCalledTimes(1);
+			expect(console.error).toHaveBeenCalledTimes(2);
+		});
+
+		it('does not returns a type error if the attribute type is not valid and applicationId is from DXP', () => {
+			Analytics = AnalyticsClient.create(INITIAL_CONFIG);
+
+			console.error = jest.fn((val) => val);
+
+			DXP_APPLICATION_IDS.forEach((applicationId) => {
+				Analytics.track('foo', {bar: [], type: null}, {applicationId});
+
+				expect(console.error).toHaveBeenCalledTimes(0);
+			});
 		});
 
 		it('uses the applicationId from options', async () => {

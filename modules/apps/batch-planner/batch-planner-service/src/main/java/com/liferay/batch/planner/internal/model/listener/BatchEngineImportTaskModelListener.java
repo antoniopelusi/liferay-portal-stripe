@@ -22,6 +22,7 @@ import com.liferay.batch.planner.internal.notification.BatchPlannerNotificationS
 import com.liferay.batch.planner.model.BatchPlannerPlan;
 import com.liferay.batch.planner.service.BatchPlannerPlanLocalService;
 import com.liferay.portal.kernel.exception.ModelListenerException;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.BaseModelListener;
@@ -48,10 +49,8 @@ public class BatchEngineImportTaskModelListener
 		throws ModelListenerException {
 
 		try {
-			_batchPlannerPlanLocalService.updateActive(
-				false,
-				String.valueOf(
-					batchEngineImportTask.getBatchEngineImportTaskId()));
+			_batchPlannerPlanLocalService.deactivateBatchPlannerPlan(
+				batchEngineImportTask.getExternalReferenceCode());
 		}
 		catch (Exception exception) {
 			_log.error(exception);
@@ -96,6 +95,32 @@ public class BatchEngineImportTaskModelListener
 		return fileName.replaceAll("(.+)-(.+)\\.(\\w+)", "$1.$3");
 	}
 
+	private int _getStatus(BatchEngineImportTask batchEngineImportTask) {
+		int status = BatchPlannerPlanConstants.getStatus(
+			BatchEngineTaskExecuteStatus.valueOf(
+				batchEngineImportTask.getExecuteStatus()));
+
+		if (status == BatchPlannerPlanConstants.STATUS_COMPLETED) {
+			int batchEngineImportTaskErrorsCount =
+				batchEngineImportTask.getBatchEngineImportTaskErrorsCount();
+
+			if (batchEngineImportTaskErrorsCount > 0) {
+				int totalItemsCount =
+					batchEngineImportTask.getTotalItemsCount();
+
+				if (batchEngineImportTaskErrorsCount < totalItemsCount) {
+					status =
+						BatchPlannerPlanConstants.STATUS_PARTIALLY_COMPLETED;
+				}
+				else {
+					status = BatchPlannerPlanConstants.STATUS_FAILED;
+				}
+			}
+		}
+
+		return status;
+	}
+
 	private void _notify(
 		BatchEngineTaskExecuteStatus batchEngineTaskExecuteStatus,
 		BatchPlannerPlan batchPlannerPlan) {
@@ -128,13 +153,16 @@ public class BatchEngineImportTaskModelListener
 			return null;
 		}
 
-		batchPlannerPlan.setStatus(
-			BatchPlannerPlanConstants.getStatus(
-				BatchEngineTaskExecuteStatus.valueOf(
-					batchEngineImportTask.getExecuteStatus())));
+		try {
+			return _batchPlannerPlanLocalService.updateStatus(
+				batchPlannerPlan.getBatchPlannerPlanId(),
+				_getStatus(batchEngineImportTask));
+		}
+		catch (PortalException portalException) {
+			_log.error(portalException);
+		}
 
-		return _batchPlannerPlanLocalService.updateBatchPlannerPlan(
-			batchPlannerPlan);
+		return null;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

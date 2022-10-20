@@ -1,7 +1,6 @@
 @component-name = "portal-object"
 definition {
 
-	property portal.acceptance = "true";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Object";
@@ -183,7 +182,7 @@ definition {
 
 		Picklist.clickSaveButton();
 
-		AssertElementPresent(locator1 = "ObjectAdmin#REQUIRED_ERROR_MESSAGE");
+		FieldBase.assertRequiredFieldErrorPresent(fieldLabel = "Key");
 	}
 
 	@description = "LPS-136595 - Verify it is not possible to leave Name field empty for a Picklist item"
@@ -201,7 +200,7 @@ definition {
 
 		Picklist.clickSaveButton();
 
-		AssertElementPresent(locator1 = "ObjectAdmin#REQUIRED_ERROR_MESSAGE");
+		FieldBase.assertRequiredFieldErrorPresent(fieldLabel = "Name");
 	}
 
 	@description = "LPS-136595 - Verify it is not possible to leave Name field empty for Picklist"
@@ -211,7 +210,7 @@ definition {
 
 		Picklist.addPicklistViaUI(picklistName = "");
 
-		AssertElementPresent(locator1 = "ObjectAdmin#REQUIRED_ERROR_MESSAGE");
+		FieldBase.assertRequiredFieldErrorPresent(fieldLabel = "Name");
 	}
 
 	@description = "LPS-136595 - Verify it is not possible to update a Picklist item's key"

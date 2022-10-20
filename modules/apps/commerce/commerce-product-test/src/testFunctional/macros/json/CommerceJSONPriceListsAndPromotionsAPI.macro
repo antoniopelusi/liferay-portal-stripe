@@ -34,7 +34,6 @@ definition {
 		Variables.assertDefined(parameterList = "${productSKU},${priceListName},${entryPrice}");
 
 		var skuId = CommerceJSONProductsAPI._getSKUId(productSKU = "${productSKU}");
-
 		var priceListId = CommerceJSONPriceListsAndPromotionsAPI._getCommercePriceListsAndPromotionsIdByName(priceListAndPromotionName = "${priceListName}");
 
 		if (!(isSet(baseURL))) {
@@ -92,7 +91,6 @@ definition {
 		Variables.assertDefined(parameterList = "${productSKU},${promotionName},${entryPrice}");
 
 		var skuId = CommerceJSONProductsAPI._getSKUId(productSKU = "${productSKU}");
-
 		var promotionId = CommerceJSONPriceListsAndPromotionsAPI._getCommercePriceListsAndPromotionsIdByName(priceListAndPromotionName = "${promotionName}");
 
 		if (!(isSet(baseURL))) {
@@ -160,6 +158,7 @@ definition {
 			-u test@liferay.com:test \
 			-H 'accept: application/json' \
 		''';
+
 		var priceListAndPromotionIds = JSONCurlUtil.get("${curl}", "$.items[?(@['name'] != 'Master Base Promotion' && @['name'] != 'Master Base Price List')].['id']");
 
 		return "${priceListAndPromotionIds}";
@@ -186,6 +185,7 @@ definition {
 			-u test@liferay.com:test \
 			-H 'accept: application/json' \
 		''';
+
 		var priceListAndPromotionId = JSONCurlUtil.get("${curl}", "$.items[?(@['name'] == '${priceListAndPromotionName}')].['id']");
 
 		return "${priceListAndPromotionId}";

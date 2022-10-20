@@ -12,40 +12,53 @@
  * details.
  */
 
-import {useMutation} from '@apollo/client';
+import {useRef} from 'react';
+import {useNavigate} from 'react-router-dom';
 
-import {DeleteRequirement} from '../../../graphql/mutations';
-import {TestrayRequirement} from '../../../graphql/queries';
-import useFormModal from '../../../hooks/useFormModal';
+import useFormActions from '../../../hooks/useFormActions';
+import useMutate from '../../../hooks/useMutate';
 import i18n from '../../../i18n';
+import {TestrayRequirement, deleteResource} from '../../../services/rest';
+import {Action, ActionsHookParameter} from '../../../types';
 
-const useRequirementActions = () => {
-	const [onDeleteRequirement] = useMutation(DeleteRequirement);
+const useRequirementActions = ({
+	isHeaderActions,
+}: ActionsHookParameter = {}) => {
+	const {form} = useFormActions();
+	const {removeItemFromList} = useMutate();
+	const navigate = useNavigate();
 
-	const formModal = useFormModal();
-	const modal = formModal.modal;
+	const actionsRef = useRef([
+		{
+			action: (Requirement: TestrayRequirement) =>
+				navigate(
+					isHeaderActions ? 'update' : `${Requirement.id}/update`
+				),
+			icon: 'pencil',
+			name: i18n.translate(isHeaderActions ? 'edit-requirement' : 'edit'),
+			permission: 'UPDATE',
+		},
+		{
+			action: ({id}: TestrayRequirement, mutate) =>
+				deleteResource(`/requirements/${id}`)
+					?.then(() => {
+						navigate(-1);
+
+						return removeItemFromList(mutate, id);
+					})
+					.then(form.onSuccess)
+					.catch(form.onError),
+			icon: 'trash',
+			name: i18n.translate(
+				isHeaderActions ? 'delete-requirement' : 'delete'
+			),
+			permission: 'DELETE',
+		},
+	] as Action[]);
 
 	return {
-		actions: [
-			{
-				action: (requirement: TestrayRequirement) =>
-					modal.open({
-						...requirement,
-						componentId: requirement.component?.id,
-					}),
-				name: i18n.translate('edit'),
-			},
-			{
-				action: ({id}: TestrayRequirement) =>
-					onDeleteRequirement({
-						variables: {id},
-					})
-						.then(() => modal.onSave())
-						.catch(modal.onError),
-				name: i18n.translate('delete'),
-			},
-		],
-		formModal,
+		actions: actionsRef.current,
+		navigate,
 	};
 };
 

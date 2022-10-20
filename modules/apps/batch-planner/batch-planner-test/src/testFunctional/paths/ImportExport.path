@@ -12,7 +12,12 @@
 <tbody>
 <tr>
 	<td>ENTITY_TYPE</td>
-	<td>//div[not(contains(@class,'hide'))]/div[label[contains(.,'Entity Type')]]/select[not(@disabled)] | //div[not(contains(@class,'hide'))]/div[label[contains(.,'Entity Name')]]/select[not(@disabled)]</td>
+	<td>//div[not(contains(@class,'hide'))]/div[label[contains(.,'Entity Type')]]/select[not(@disabled)]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EXECUTION_COLUMN</td>
+	<td>//table[contains(@class,'table-list')]//td[contains(@class,'lfr-name-column')]/a[contains(text(),'${key_executionName}')]/following::td[contains(@class,'${key_column}-column')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -36,13 +41,18 @@
 	<td></td>
 </tr>
 <tr>
+	<td>IMPORT_EXPORT_STATUS</td>
+	<td>//span[contains(@class,'label-item-expand')][contains(.,'${key_status}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>IMPORT_MAPPING_SELECT</td>
 	<td>//div[contains(@class,'import-mapping-table')]//select[contains(@id,'input-field-${key_destinationField}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>IMPORT_PREVIEW</td>
-	<td>//div[contains(@class,'import-mapping-table')]//tr[@class]/td[@class]/label[contains(text(),'${key_destinationField}')]/parent::td//following-sibling::td[2][contains(text(),'${key_previewField}')]</td>
+	<td>//div[contains(@class,'import-mapping-table')]//tr[@class]/td[@class]/label[contains(text(),'${key_destinationField}')]/parent::td//following-sibling::td[2][contains(.,'${key_previewField}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -52,12 +62,12 @@
 </tr>
 <tr>
 	<td>PREVIEW_ENTRY</td>
-	<td>//div[@class="modal-content"]//tr/td[normalize-space(text())='${key_entryName}']</td>
+	<td>//div[@class="modal-content"]//tr/td[contains(.,'${key_entryName}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PREVIEW_ENTRY_FIELD</td>
-	<td>//div[@class="modal-content"]//tr/td[normalize-space(text())='${key_entryName}']//following-sibling::td[normalize-space(text())='${key_previewField}'] | //div[@class="modal-content"]//tr/td[normalize-space(text())='${key_entryName}']//preceding-sibling::td[normalize-space(text())='${key_previewField}']</td>
+	<td>//div[@class="modal-content"]//tr/td[contains(.,'${key_entryName}')]//following-sibling::td[contains(.,'${key_previewField}')] | //div[@class="modal-content"]//tr/td[contains(.,'${key_entryName}')]//preceding-sibling::td[contains(.,'${key_previewField}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -73,6 +83,11 @@
 <tr>
 	<td>REQUIRED_IMPORT_FIELD_ERROR</td>
 	<td>//div[contains(@class,'has-error')]/select[contains(@aria-required,'true')][contains(@id,'${key_destinationField}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SAMPLE_FILE_DOWNLOAD_BUTTON</td>
+	<td>//a[contains(@id,'BatchPlannerPlanTemplate')][contains(text(),'Download')]</td>
 	<td></td>
 </tr>
 <tr>

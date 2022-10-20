@@ -78,7 +78,7 @@ public class ObjectLayoutBoxCacheModel
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(25);
+		StringBundler sb = new StringBundler(27);
 
 		sb.append("{mvccVersion=");
 		sb.append(mvccVersion);
@@ -104,6 +104,8 @@ public class ObjectLayoutBoxCacheModel
 		sb.append(name);
 		sb.append(", priority=");
 		sb.append(priority);
+		sb.append(", type=");
+		sb.append(type);
 		sb.append("}");
 
 		return sb.toString();
@@ -159,6 +161,13 @@ public class ObjectLayoutBoxCacheModel
 
 		objectLayoutBoxImpl.setPriority(priority);
 
+		if (type == null) {
+			objectLayoutBoxImpl.setType("");
+		}
+		else {
+			objectLayoutBoxImpl.setType(type);
+		}
+
 		objectLayoutBoxImpl.resetOriginalValues();
 
 		return objectLayoutBoxImpl;
@@ -184,6 +193,7 @@ public class ObjectLayoutBoxCacheModel
 		name = objectInput.readUTF();
 
 		priority = objectInput.readInt();
+		type = objectInput.readUTF();
 	}
 
 	@Override
@@ -225,6 +235,13 @@ public class ObjectLayoutBoxCacheModel
 		}
 
 		objectOutput.writeInt(priority);
+
+		if (type == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(type);
+		}
 	}
 
 	public long mvccVersion;
@@ -239,5 +256,6 @@ public class ObjectLayoutBoxCacheModel
 	public boolean collapsable;
 	public String name;
 	public int priority;
+	public String type;
 
 }

@@ -7,7 +7,6 @@ definition {
 		var groupId = JSONStagingSetter.setGroupId(
 			groupKey = "${groupKey}",
 			site = "${site}");
-
 		var userId = JSONUserAPI._getUserIdByEmailAddress(userEmailAddress = "${userEmailAddress}");
 
 		JSONGroupAPI._assignUserToGroup(
@@ -43,7 +42,19 @@ definition {
 			groupId = "${groupId}",
 			unCheckedContent = "${unCheckedContent}");
 
-		Pause(locator1 = "3000");
+		var groupId = JSONGroupAPI._getGroupIdByNameNoError(
+			grandParentGroupName = "${grandParentGroupName}",
+			groupName = "${groupName} (Staging)",
+			parentGroupName = "${parentGroupName}",
+			site = "false");
+
+		while (("${groupId}" == "")) {
+			var groupId = JSONGroupAPI._getGroupIdByNameNoError(
+				grandParentGroupName = "${grandParentGroupName}",
+				groupName = "${groupName} (Staging)",
+				parentGroupName = "${parentGroupName}",
+				site = "false");
+		}
 	}
 
 	@summary = "Activate remote staging with or without page versioning with all content"

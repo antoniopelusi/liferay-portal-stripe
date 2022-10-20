@@ -3,20 +3,13 @@
 <project basedir="." name="portal-test-elasticsearch" xmlns:antelope="antlib:ise.antelope.tasks" xmlns:if="ant:if" xmlns:unless="ant:unless">
 	<import file="build-test.xml" />
 
-	<get-testcase-property if:set="env.JENKINS_HOME" property.name="elastic.override.version" />
 	<propertycopy from="suite.elastic.version[${env.CI_TEST_SUITE}]" name="suite.elastic.version" silent="true" />
 
 	<if>
-		<isset property="elastic.override.version" />
+		<isset property="suite.elastic.version" />
 		<then>
-			<property name="elasticsearch.version" value="${elastic.override.version}" />
+			<property name="elasticsearch.version" value="${suite.elastic.version}" />
 		</then>
-		<elseif>
-			<isset property="suite.elastic.version" />
-			<then>
-				<property name="elasticsearch.version" value="${suite.elastic.version}" />
-			</then>
-		</elseif>
 		<else>
 			<property name="elasticsearch.version" value="7.17.0" />
 		</else>
@@ -108,6 +101,17 @@
 		</sequential>
 	</macrodef>
 
+	<macrodef name="configure-elasticsearch-jdk17">
+		<sequential>
+			<replace
+				file="${elasticsearch.dir}/bin/elasticsearch-env"
+			>
+				<replacetoken><![CDATA[JAVA="$JAVA_HOME/bin/java"]]></replacetoken>
+				<replacevalue><![CDATA[JAVA="/opt/java/openjdk17/bin/java"]]></replacevalue>
+			</replace>
+		</sequential>
+	</macrodef>
+
 	<macrodef name="configure-elasticsearch-ltr-properties">
 		<sequential>
 			<echo append="true" file="${elasticsearch.dir}/config/elasticsearch.yml">${line.separator}xpack.ml.enabled: false
@@ -187,6 +191,23 @@ xpack.security.transport.ssl.verification_mode: certificate</echo>
 
 			<echo append="true" file="${elasticsearch.dir}/config/elasticsearch.yml" if:true="${elasticsearch.jdk11.enabled}">${line.separator}xpack.security.transport.ssl.supported_protocols: [ "TLSv1.1", "TLSv1.2" ]
 xpack.security.http.ssl.supported_protocols: [ "TLSv1.1", "TLSv1.2" ]</echo>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="configure-elasticsearch-x-pack-security-tls-cipher-suites-properties">
+		<sequential>
+			<echo append="true" file="${elasticsearch.dir}/config/elasticsearch.yml">${line.separator}xpack.security.enabled: true
+xpack.security.http.ssl.enabled: true
+xpack.security.http.ssl.keystore.path: certs/elastic-certificates.p12
+xpack.security.http.ssl.supported_protocols: [ "TLSv1.2" ]
+xpack.security.http.ssl.truststore.path: certs/elastic-certificates.p12
+xpack.security.transport.ssl.certificate: certs/elastic-certificates.crt
+xpack.security.transport.ssl.certificate_authorities: [ "certs/ca.crt" ]
+xpack.security.transport.ssl.cipher_suites : TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_DHE_RSA_WITH_AES_128_GCM_SHA256
+xpack.security.transport.ssl.enabled: true
+xpack.security.transport.ssl.key: certs/elastic-certificates.key
+xpack.security.transport.ssl.supported_protocols: [ "TLSv1.2" ]
+xpack.security.transport.ssl.verification_mode: certificate</echo>
 		</sequential>
 	</macrodef>
 
@@ -324,6 +345,24 @@ networkHostAddresses=["https://localhost:9200"]
 truststorePassword="liferay"
 truststorePath="${elasticsearch.dir}/config/certs/elastic-certificates.p12"
 truststoreType="pkcs12"</echo>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="configure-portal-x-pack-security-tls-cipher-suites">
+		<sequential>
+			<if>
+				<equals arg1="${app.server.type}" arg2="tomcat" />
+				<then>
+					<echo append="true" file="${app.server.tomcat.dir}/bin/setenv.bat">
+${line.separator}CATALINA_OPTS="${CATALINA_OPTS} -Djdk.tls.client.cipherSuites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_DHE_RSA_WITH_AES_128_GCM_SHA256 -Djdk.tls.client.protocols=TLSv1.2"</echo>
+
+					<echo append="true" file="${app.server.tomcat.dir}/bin/setenv.sh">
+${line.separator}CATALINA_OPTS="${CATALINA_OPTS} -Djdk.tls.client.cipherSuites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_DHE_RSA_WITH_AES_128_GCM_SHA256 -Djdk.tls.client.protocols=TLSv1.2"</echo>
+				</then>
+				<else>
+					<echo>Set setenv.bat and setenv.sh manually before attempting to connect with portal.</echo>
+				</else>
+			</if>
 		</sequential>
 	</macrodef>
 
@@ -603,7 +642,7 @@ ${line.separator}CATALINA_OPTS="${CATALINA_OPTS} -Djavax.net.ssl.trustStore=${el
 		<sequential>
 			<lstopwatch action="start" name="prepare.elasticsearch.ltr" />
 
-			<property name="ltr.plugin.version" value="1.5.7" />
+			<property name="ltr.plugin.version" value="1.5.8" />
 
 			<property name="elasticsearch.ltr.zip.name" value="ltr-plugin-v${ltr.plugin.version}-es${elasticsearch.version}.zip" />
 
@@ -710,6 +749,8 @@ ${line.separator}CATALINA_OPTS="${CATALINA_OPTS} -Djavax.net.ssl.trustStore=${el
 
 			<configure-elasticsearch-ltr-properties />
 
+			<configure-elasticsearch-jdk17 />
+
 			<prepare-elasticsearch-ltr />
 
 			<if>
@@ -778,6 +819,13 @@ ${line.separator}CATALINA_OPTS="${CATALINA_OPTS} -Djavax.net.ssl.trustStore=${el
 
 			<configure-portal-x-pack-security-truststore />
 
+			<if>
+				<equals arg1="${elastic.xpack.configure.tls.cipher.suites}" arg2="true" />
+				<then>
+					<configure-portal-x-pack-security-tls-cipher-suites />
+				</then>
+			</if>
+
 			<configure-elasticsearch-monitoring-property />
 
 			<if>
@@ -785,6 +833,12 @@ ${line.separator}CATALINA_OPTS="${CATALINA_OPTS} -Djavax.net.ssl.trustStore=${el
 				<then>
 					<configure-elasticsearch-x-pack-pki-security-properties />
 				</then>
+				<elseif>
+					<equals arg1="${elastic.xpack.configure.tls.cipher.suites}" arg2="true" />
+					<then>
+						<configure-elasticsearch-x-pack-security-tls-cipher-suites-properties />
+					</then>
+				</elseif>
 				<else>
 					<configure-elasticsearch-x-pack-security-properties />
 				</else>
@@ -1254,6 +1308,7 @@ ${line.separator}CATALINA_OPTS="${CATALINA_OPTS} -Djavax.net.ssl.trustStore=${el
 			<isset property="env.JENKINS_HOME" />
 			<then>
 				<get-testcase-property property.name="elastic.pki.authentication.enabled" />
+				<get-testcase-property property.name="elastic.xpack.configure.tls.cipher.suites" />
 				<get-testcase-property property.name="elastic.xpack.enabled" />
 				<get-testcase-property property.name="elasticsearch.ccr.enabled" />
 				<get-testcase-property property.name="elasticsearch.cluster.size" />

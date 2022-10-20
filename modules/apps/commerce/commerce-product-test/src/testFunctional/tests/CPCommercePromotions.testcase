@@ -1,10 +1,9 @@
 @component-name = "portal-commerce"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "true";
 	property portal.upstream = "true";
+	property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 	property testray.main.component.name = "Product Info Management";
 
 	setUp {
@@ -19,9 +18,10 @@ definition {
 	@priority = "3"
 	test AllowMultiplePriceEntriesInTheSamePromotion {
 		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
-		property osgi.module.configuration.file.names = "com.liferay.commerce.price.list.configuration.CommercePriceEntryConfiguration.config:com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-		property osgi.module.configurations = "checkInterval=&quot;1&quot;:disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
+		property osgi.module.configuration.file.names = "com.liferay.commerce.price.list.configuration.CommercePriceEntryConfiguration.config";
+		property osgi.module.configurations = "checkInterval=&quot;1&quot;";
 		property portal.acceptance = "false";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		// TODO COMMERCE-9089 Find alternative to having a pause to wait for a timed expiration and publication
 
@@ -110,9 +110,14 @@ definition {
 		}
 
 		task ("When the first price entry expires and the buyer views the U-Joint product") {
-			Pause(locator1 = "90000");
+			while ((IsElementPresent(key_productName = "U-Joint", locator1 = "CommerceFrontStore#FS_PRODUCT_VALUE_INACTIVE_PRICE", value1 = "24.00")) && (maxIterations = "40")) {
 
-			Refresh();
+				// We need this pause for waiting for the first Promo Price to expire
+
+				Pause(locator1 = "5000");
+
+				Refresh();
+			}
 		}
 
 		task ("Then the U-Joint price is the base price (24.00)") {
@@ -123,9 +128,14 @@ definition {
 		}
 
 		task ("When the second promo entry is published and the buyer views the U-Joint product") {
-			Pause(locator1 = "30000");
+			while ((IsElementPresent(key_productName = "U-Joint", locator1 = "CommerceAccelerators#PRODUCT_CARD_PRICE", value1 = "24.00")) && (maxIterations = "40")) {
 
-			Refresh();
+				// We need this pause for waiting for the Promo Price to expire
+
+				Pause(locator1 = "5000");
+
+				Refresh();
+			}
 		}
 
 		task ("Then the U-Joint price is the second promo entry price (10.00)") {

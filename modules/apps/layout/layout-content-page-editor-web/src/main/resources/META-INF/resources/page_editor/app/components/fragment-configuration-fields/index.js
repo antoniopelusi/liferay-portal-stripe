@@ -12,11 +12,15 @@
  * details.
  */
 
+import {LengthField} from '../../../common/components/LengthField';
+import {ButtonGroupField} from './ButtonGroupField';
+import CSSClassSelectorField from './CSSClassSelectorField';
 import {CategoryTreeNodeSelectorField} from './CategoryTreeNodeSelectorField';
 import {CheckboxField} from './CheckboxField';
 import {CollectionSelectorField} from './CollectionSelectorField';
 import {ColorPaletteField} from './ColorPaletteField';
 import {ColorPickerField} from './ColorPickerField';
+import CustomCSSField from './CustomCSSField';
 import {HideFragmentField} from './HideFragmentField';
 import {ImageSelectorField} from './ImageSelectorField';
 import {ItemSelectorField} from './ItemSelectorField';
@@ -27,14 +31,20 @@ import {TextField} from './TextField';
 import {VideoSelectorField} from './VideoSelectorField';
 
 export const FRAGMENT_CONFIGURATION_FIELDS = {
+	buttonGroup: Liferay.FeatureFlags['LPS-143206']
+		? ButtonGroupField
+		: SelectField,
 	categoryTreeNodeSelector: CategoryTreeNodeSelectorField,
 	checkbox: CheckboxField,
 	collectionSelector: CollectionSelectorField,
 	colorPalette: ColorPaletteField,
 	colorPicker: ColorPickerField,
+	cssClassSelector: CSSClassSelectorField,
+	customCSS: CustomCSSField,
 	hideFragment: HideFragmentField,
 	imageSelector: ImageSelectorField,
 	itemSelector: ItemSelectorField,
+	length: Liferay.FeatureFlags['LPS-143206'] ? LengthField : TextField,
 	navigationMenuSelector: NavigationMenuSelectorField,
 	select: SelectField,
 	spacing: SpacingBoxField,

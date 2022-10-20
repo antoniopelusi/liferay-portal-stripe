@@ -86,16 +86,18 @@ definition {
 			locator1 = "Home#PORTAL_LOCALIZATION_TRANSLATION_LANGUAGE_MESSAGE",
 			value1 = "${translationLanguageLocalizationMessage}");
 
+		AssertTextEquals(
+			locator1 = "Home#PORTAL_LOCALIZATION_PREFERRED_LANGUAGE_MESSAGE",
+			value1 = "${preferredLanguageLocalizationMessage}");
+
 		if (isSet(defaultLanguageLocalizationMessage)) {
+			Refresh();
+
 			AssertTextEquals(
 				key_pageLocale = "${defaultLanguageLocalizationMessage}",
 				locator1 = "Home#PORTAL_LOCALIZATION_DEFAULT_LANGUAGE_MESSAGE",
 				value1 = "${defaultLanguageLocalizationMessage}");
 		}
-
-		AssertTextEquals(
-			locator1 = "Home#PORTAL_LOCALIZATION_PREFERRED_LANGUAGE_MESSAGE",
-			value1 = "${preferredLanguageLocalizationMessage}");
 	}
 
 	macro viewMutedMessage {
@@ -139,6 +141,12 @@ definition {
 
 	macro viewWarningSpecific {
 		AssertElementPresent(
+			key_warningMessage = "${warningMessage}",
+			locator1 = "Message#WARNING_SPECIFIC");
+	}
+
+	macro viewWarningSpecificNotPresent {
+		AssertElementNotPresent(
 			key_warningMessage = "${warningMessage}",
 			locator1 = "Message#WARNING_SPECIFIC");
 	}

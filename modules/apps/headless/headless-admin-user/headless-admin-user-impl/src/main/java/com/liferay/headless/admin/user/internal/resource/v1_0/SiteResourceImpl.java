@@ -17,7 +17,7 @@ package com.liferay.headless.admin.user.internal.resource.v1_0;
 import com.liferay.headless.admin.user.dto.v1_0.Site;
 import com.liferay.headless.admin.user.internal.dto.v1_0.util.CreatorUtil;
 import com.liferay.headless.admin.user.resource.v1_0.SiteResource;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
@@ -87,7 +87,7 @@ public class SiteResourceImpl extends BaseSiteResourceImpl {
 	private Site _toSite(Group group) throws Exception {
 		return new Site() {
 			{
-				Set<Locale> availableLocales = LanguageUtil.getAvailableLocales(
+				Set<Locale> availableLocales = _language.getAvailableLocales(
 					group.getGroupId());
 
 				availableLanguages = LocaleUtil.toW3cLanguageIds(
@@ -101,6 +101,8 @@ public class SiteResourceImpl extends BaseSiteResourceImpl {
 				description_i18n = LocalizedMapUtil.getI18nMap(
 					contextAcceptLanguage.isAcceptAllLanguages(),
 					group.getDescriptionMap());
+				descriptiveName = group.getDescriptiveName(
+					contextAcceptLanguage.getPreferredLocale());
 				friendlyUrlPath = group.getFriendlyURL();
 				id = group.getGroupId();
 				key = group.getGroupKey();
@@ -127,6 +129,9 @@ public class SiteResourceImpl extends BaseSiteResourceImpl {
 
 	@Reference
 	private GroupService _groupService;
+
+	@Reference
+	private Language _language;
 
 	@Reference
 	private Portal _portal;

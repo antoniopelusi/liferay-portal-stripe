@@ -10,7 +10,9 @@
 </thead>
 
 <tbody>
+
 <!--PROCESS_TABLE-->
+
 <tr>
 	<td>NAME_ROW_FROM_MANAGE_FIELD</td>
 	<td>//tr[${key_rowNumber}]//td[contains(@class, 'table-title')]//a[contains(.,'${key_nameFieldset}')]</td>
@@ -23,7 +25,7 @@
 </tr>
 <tr>
 	<td>PAGINATION_NUMBER</td>
-	<td>//*[contains(@class, 'page-link') and contains(text(), '${key_pageNumber}')]</td>
+	<td>//*[contains(@class, 'page-link') and contains(., '${key_pageNumber}')]</td>
 	<td></td>
 </tr>
 <tr>

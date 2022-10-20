@@ -79,6 +79,27 @@ public class ObjectAction implements Cloneable, Serializable {
 
 	protected Boolean active;
 
+	public String getConditionExpression() {
+		return conditionExpression;
+	}
+
+	public void setConditionExpression(String conditionExpression) {
+		this.conditionExpression = conditionExpression;
+	}
+
+	public void setConditionExpression(
+		UnsafeSupplier<String, Exception> conditionExpressionUnsafeSupplier) {
+
+		try {
+			conditionExpression = conditionExpressionUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected String conditionExpression;
+
 	public Date getDateCreated() {
 		return dateCreated;
 	}
@@ -120,6 +141,27 @@ public class ObjectAction implements Cloneable, Serializable {
 	}
 
 	protected Date dateModified;
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public void setDescription(
+		UnsafeSupplier<String, Exception> descriptionUnsafeSupplier) {
+
+		try {
+			description = descriptionUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected String description;
 
 	public Long getId() {
 		return id;
@@ -224,6 +266,27 @@ public class ObjectAction implements Cloneable, Serializable {
 	}
 
 	protected Map<String, ?> parameters;
+
+	public Status getStatus() {
+		return status;
+	}
+
+	public void setStatus(Status status) {
+		this.status = status;
+	}
+
+	public void setStatus(
+		UnsafeSupplier<Status, Exception> statusUnsafeSupplier) {
+
+		try {
+			status = statusUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Status status;
 
 	@Override
 	public ObjectAction clone() throws CloneNotSupportedException {

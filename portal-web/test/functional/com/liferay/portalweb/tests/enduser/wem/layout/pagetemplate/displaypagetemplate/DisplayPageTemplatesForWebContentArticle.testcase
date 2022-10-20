@@ -59,7 +59,7 @@ definition {
 				fragmentName = "Heading",
 				id = "element-text");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a web content article") {
@@ -95,7 +95,7 @@ definition {
 				fragmentName = "Button",
 				targetFragmentName = "Heading");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View displayed content at view mode") {
@@ -133,7 +133,7 @@ definition {
 				fragmentName = "Heading",
 				id = "element-text");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a web content article") {
@@ -205,7 +205,7 @@ definition {
 				fragmentName = "Button",
 				targetFragmentName = "Heading");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View the displayed content in display page template") {
@@ -280,7 +280,7 @@ definition {
 				fragmentName = "Heading",
 				id = "element-text");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a web content article") {
@@ -347,7 +347,7 @@ definition {
 				fragmentName = "Heading",
 				id = "element-text");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a web content") {
@@ -417,7 +417,7 @@ definition {
 				fragmentName = "Heading",
 				id = "element-text");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a web content") {
@@ -472,7 +472,7 @@ definition {
 				fragmentName = "Heading",
 				id = "element-text");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a draft web content") {
@@ -534,7 +534,7 @@ definition {
 				fragmentName = "Heading",
 				id = "element-text");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Enable Single Approver for Web Content Article") {
@@ -604,7 +604,7 @@ definition {
 				fragmentName = "Heading",
 				id = "element-text");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a web content article") {
@@ -646,6 +646,72 @@ definition {
 		}
 	}
 
+	@description = "This is a test for LPS-150919. Canonical URL should be valid for DPT."
+	@priority = "2"
+	test ViewCanonicalURL {
+		property test.name.skip.portal.instance = "DisplayPageTemplatesForWebContentArticle#ViewCanonicalURL";
+
+		task ("Given I select Use Localized URL as Canonical URL") {
+			SystemSettings.openSystemSettingsAdmin();
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "Pages",
+				configurationName = "SEO",
+				configurationScope = "Virtual Instance Scope");
+
+			SystemSettings.selectOptionSetting(
+				fieldName = "Canonical URL",
+				selectOption = "Use Localized URL");
+
+			SystemSettings.saveConfiguration();
+		}
+
+		task ("When I get the previously created web content DPT URL") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+
+			Button.clickPublish();
+
+			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+
+			JSONWebcontent.addWebContent(
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "Web Content Title");
+
+			ApplicationsMenu.gotoPortlet(
+				category = "Content",
+				panel = "Applications",
+				portlet = "Content Dashboard");
+
+			Click.waitForMenuToggleJSClick(
+				key_rowEntry = "Web Content Title",
+				locator1 = "Icon#ROW_VERTICAL_ELLIPSIS");
+
+			MenuItem.click(menuItem = "View");
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Display Page Name");
+
+			var jornalURL = Navigator.getCurrentURL();
+
+			echo("${jornalURL}");
+
+			User.logoutPG();
+
+			Navigator.openSpecificURL(url = "${jornalURL}");
+		}
+
+		task ("Then it should use Localized URL as Canonical URL") {
+			var canonicalText = '''<link data-senna-track="temporary" href="http://localhost:8080/web/test-site-name/w/web-content-title" rel="canonical"''';
+			var alternateText = '''<link data-senna-track="temporary" href="http://localhost:8080/zh/web/test-site-name/w/web-content-title" hreflang="zh-CN" rel="alternate"''';
+
+			AssertHTMLSourceTextPresent(value1 = "${canonicalText}");
+
+			AssertHTMLSourceTextPresent(value1 = "${alternateText}");
+		}
+	}
+
 	@description = "This is a test for LPS-96438. Guests should be able to view display page template."
 	@priority = "5"
 	test ViewDisplayPageTemplateAsGuest {
@@ -667,7 +733,7 @@ definition {
 				fragmentName = "Heading",
 				id = "element-text");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add two widget pages") {
@@ -758,7 +824,7 @@ definition {
 				fragmentName = "Heading",
 				id = "element-text");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a vocabulary and category") {
@@ -823,7 +889,7 @@ definition {
 				fragmentName = "Heading",
 				id = "element-text");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Mark the display page as default") {
@@ -908,7 +974,7 @@ definition {
 				fragmentName = "Heading",
 				id = "element-text");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Mark the display page as default") {
@@ -939,7 +1005,7 @@ definition {
 				fragmentName = "Button",
 				id = "link");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a web content article") {

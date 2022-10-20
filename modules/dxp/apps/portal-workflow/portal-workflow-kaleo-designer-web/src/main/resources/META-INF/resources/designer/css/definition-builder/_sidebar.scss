@@ -1,16 +1,18 @@
 .sidebar {
 	background: #fff;
 	border-left: 1px solid #e7e7ed;
-	max-width: 850px;
-	min-width: 510px;
+	width: 368px;
 
 	.tab-pane {
 		padding: 10px;
 	}
 
+	.nav-underline {
+		margin-bottom: 1rem;
+	}
+
 	.info-group {
 		display: grid;
-		margin-top: 25px;
 
 		button {
 			height: 32px;
@@ -31,11 +33,21 @@
 	.node {
 		border: none;
 		cursor: grab;
-		width: 480px;
+		padding: 12px 16px 12px 8px;
+		width: fit-content;
 
 		&:hover {
 			border: 2px solid #80acff;
 			box-shadow: 0 8px 16px 0 #27283329;
+		}
+
+		> .lexicon-icon {
+			margin-right: 16px !important;
+		}
+
+		.node-icon,
+		.lexicon-icon {
+			flex-shrink: 0;
 		}
 
 		.node-icon {
@@ -47,10 +59,26 @@
 				width: 16px;
 			}
 		}
+
+		.node-info {
+			.node-label {
+				font-size: 14px;
+				line-height: 150%;
+			}
+			.node-description {
+				font-size: 12px;
+				line-height: 150%;
+			}
+		}
+	}
+
+	.node.selected {
+		background-color: transparent;
 	}
 
 	.sidebar-body {
 		overflow: hidden;
+		padding: 12px;
 
 		.delete-button {
 			& svg {
@@ -77,6 +105,7 @@
 			display: flex;
 			flex-direction: row;
 			justify-content: space-between;
+			margin-bottom: 1.5rem;
 		}
 
 		#timers-buttons-area {

@@ -10,6 +10,10 @@ definition {
 		}
 	}
 
+	macro addConditionWithConjunction {
+		Click(locator1 = "Segmentation#CRITERION_CONJUNCTION_BUTTON");
+	}
+
 	macro addProperties {
 		var key_propertyOption = "${propertyOption}";
 
@@ -28,6 +32,26 @@ definition {
 			key_locale = StringUtil.replace("${locale}", "_", "-"),
 			locator1 = "Segmentation#TRANSLATION_STATUS_TITLE",
 			value1 = "${tagName}");
+	}
+
+	macro assignSiteRoles {
+		Click.waitForMenuToggleJSClick(
+			key_tableEntry = "${segmentName}",
+			locator1 = "LexiconTable#TABLE_ENTRY_ELLIPSIS");
+
+		MenuItem.clickNoError(menuItem = "Assign Site Roles");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		Check(
+			key_checkboxName = "${roleName}",
+			locator1 = "Checkbox#ENABLE_CHECKBOX");
+
+		SelectFrame(value1 = "relative=top");
+
+		Button.clickAdd();
+
+		Alert.viewSuccessMessage();
 	}
 
 	macro changeCriterionConjunction {
@@ -76,6 +100,16 @@ definition {
 			value = "${displayDate}");
 	}
 
+	macro checkSegmentationDisabledWarning {
+		if (!(isSet(textValue))) {
+			var textValue = "Segmentation is disabled";
+		}
+
+		AssertTextEquals.assertPartialText(
+			locator1 = "Message#ERROR_3",
+			value1 = "${textValue}");
+	}
+
 	macro clickAssignSiteRolesOption {
 		Click(locator1 = "Segmentation#SEGMENT_OPTIONS_MENU");
 
@@ -86,6 +120,14 @@ definition {
 		AssertTextPresent(
 			locator1 = "Segmentation#ASSIGN_SITE_ROLES_MODAL_TITLE",
 			value1 = "Assign Site Roles");
+	}
+
+	macro clickToReEnableSegmentsWarningLink {
+		Click(locator1 = "Segmentation#ENABLE_SEGMENTS_INSTANCE_SETTINGS");
+	}
+
+	macro closeSegmentationDisabledWarning {
+		Click(locator1 = "Icon#CLOSE");
 	}
 
 	macro createExperienceWithSegment {
@@ -143,7 +185,70 @@ definition {
 			Click(locator1 = "Button#UPDATE");
 		}
 
+		Alert.viewSuccessMessage();
+
 		AssertNotChecked.assertNotCheckedNotVisible(locator1 = "Segmentation#ENABLE_ASSIGN_ROLES_SEGMENTS_CHECKBOX");
+	}
+
+	macro disableCheckbox {
+		FormFields.disableCheckbox(fieldName = "${key_checkLabel}");
+
+		if (IsElementPresent(locator1 = "Button#UPDATE")) {
+			PortletEntry.update();
+		}
+		else if (IsElementPresent(locator1 = "Button#SAVE")) {
+			PortletEntry.save();
+		}
+
+		Alert.viewSuccessMessage();
+
+		Navigator.openURL();
+	}
+
+	macro disableConfigurationAtSystemSettings {
+		Segmentation.gotoSegmeentsService(key_portlet = "System Settings");
+
+		if (!(isSet(checkLabel))) {
+			var checkLabel = "Enable Segmentation,Enable Assign Roles by Segment";
+		}
+
+		for (var label : list "${checkLabel}") {
+			FormFields.disableCheckbox(fieldName = "${label}");
+		}
+
+		if (IsElementPresent(locator1 = "Button#UPDATE")) {
+			PortletEntry.update();
+		}
+		else if (IsElementPresent(locator1 = "Button#SAVE")) {
+			PortletEntry.save();
+		}
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro disableSegmentationAtInstanceSettings {
+		Segmentation.gotoSegmeentsService(key_portlet = "Instance Settings");
+
+		if (!(isSet(checkLabel))) {
+			var checkLabel = "Enable Segmentation";
+		}
+
+		Segmentation.disableCheckbox(key_checkLabel = "${checkLabel}");
+	}
+
+	macro disableSegmentationAtSystemSettings {
+		Segmentation.gotoSegmeentsService(key_portlet = "System Settings");
+
+		FormFields.disableCheckbox(fieldName = "Enable Segmentation");
+
+		if (IsElementPresent(locator1 = "Button#UPDATE")) {
+			PortletEntry.update();
+		}
+		else if (IsElementPresent(locator1 = "Button#SAVE")) {
+			PortletEntry.save();
+		}
+
+		Alert.viewSuccessMessage();
 	}
 
 	macro editSegment {
@@ -166,6 +271,8 @@ definition {
 		if (IsElementPresent(locator1 = "Button#UPDATE")) {
 			Click(locator1 = "Button#UPDATE");
 		}
+
+		Alert.viewSuccessMessage();
 
 		AssertChecked.assertCheckedNotVisible(locator1 = "Segmentation#ENABLE_ASSIGN_ROLES_SEGMENTS_CHECKBOX");
 	}
@@ -245,10 +352,18 @@ definition {
 				locator1 = "Segmentation#CRITERION_INPUT_FORM_CONTROL",
 				value1 = "${optionsValue}");
 		}
-		else {
-			Type.type(
-				locator1 = "Segmentation#PROPERTY_FIELD",
-				value1 = "${propertyField}");
+		else if (isSet(propertyField)) {
+			if (isSet(indexNumber)) {
+				Type.type(
+					key_indexNumber = "${indexNumber}",
+					locator1 = "Segmentation#PROPERTY_FIELD_2",
+					value1 = "${propertyField}");
+			}
+			else {
+				Type.type(
+					locator1 = "Segmentation#PROPERTY_FIELD",
+					value1 = "${propertyField}");
+			}
 		}
 	}
 
@@ -262,7 +377,6 @@ definition {
 
 	macro getPortalInstanceDefaultLanguageId {
 		var portalURL = PropsUtil.get("portal.url");
-
 		var companyId = JSONCompany.getCompanyId(portalInstanceName = "${portalInstanceName}");
 
 		var curl = '''
@@ -273,9 +387,46 @@ definition {
 			-d end=1 \
 			-d -orderByComparator=
 		''';
+
 		var languageId = JSONCurlUtil.post("${curl}", "$..defaultLanguageId");
 
 		return "${languageId}";
+	}
+
+	macro gotoRoleAssigneeSegments {
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Roles");
+
+		Role._goToRoleAssigneeType(
+			assigneeType = "Segments",
+			roleTitle = "${roleName}");
+	}
+
+	macro gotoSegmeentsService {
+		if ("${key_portlet}" == "Instance Settings") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Configuration",
+				panel = "Control Panel",
+				portlet = "Instance Settings");
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "Segments",
+				configurationName = "Segments Service",
+				configurationScope = "Virtual Instance Scope");
+		}
+		else if ("${key_portlet}" == "System Settings") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Configuration",
+				panel = "Control Panel",
+				portlet = "System Settings");
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "Segments",
+				configurationName = "Segments Service",
+				configurationScope = "System Scope");
+		}
 	}
 
 	macro gotoSidebar {
@@ -302,6 +453,30 @@ definition {
 
 	macro openSegmentsAdmin {
 		Navigator.openWithAppendToBaseURL(urlAppend = "group/${siteURLKey}/~/control_panel/manage?p_p_id=com_liferay_segments_web_internal_portlet_SegmentsPortlet");
+	}
+
+	macro resetDefaultValues {
+		Click(locator1 = "Icon#HISTORY_VERTICAL_ELLIPSIS");
+
+		MenuItem.clickNoError(menuItem = "Reset Default Values");
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro resetSegmentationAtInstanceSettings {
+		Navigator.openURL();
+
+		Segmentation.gotoSegmeentsService(key_portlet = "Instance Settings");
+
+		Segmentation.resetDefaultValues();
+	}
+
+	macro resetSegmentationAtSystemSettings {
+		Navigator.openURL();
+
+		Segmentation.gotoSegmeentsService(key_portlet = "System Settings");
+
+		Segmentation.resetDefaultValues();
 	}
 
 	macro selectTag {
@@ -352,7 +527,7 @@ definition {
 
 		SystemSettings.gotoConfiguration(
 			configurationCategory = "Segments",
-			configurationName = "Segments Analytics Cloud",
+			configurationName = "Analytics Cloud Segments",
 			configurationScope = "System Scope");
 
 		if (IsElementPresent(locator1 = "SystemSettings#SAVE_BUTTON_SEGMENTS_AC")) {

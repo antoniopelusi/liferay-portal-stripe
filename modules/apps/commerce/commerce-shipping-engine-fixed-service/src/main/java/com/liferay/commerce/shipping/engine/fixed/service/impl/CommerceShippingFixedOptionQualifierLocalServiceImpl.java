@@ -31,18 +31,28 @@ import com.liferay.petra.sql.dsl.expression.Predicate;
 import com.liferay.petra.sql.dsl.query.FromStep;
 import com.liferay.petra.sql.dsl.query.GroupByStep;
 import com.liferay.petra.sql.dsl.query.JoinStep;
+import com.liferay.portal.aop.AopService;
 import com.liferay.portal.dao.orm.custom.sql.CustomSQL;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.spring.extender.service.ServiceReference;
 
 import java.util.List;
+
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Alessio Antonio Rendina
  */
+@Component(
+	enabled = false,
+	property = "model.class.name=com.liferay.commerce.shipping.engine.fixed.model.CommerceShippingFixedOptionQualifier",
+	service = AopService.class
+)
 public class CommerceShippingFixedOptionQualifierLocalServiceImpl
 	extends CommerceShippingFixedOptionQualifierLocalServiceBaseImpl {
 
@@ -53,7 +63,7 @@ public class CommerceShippingFixedOptionQualifierLocalServiceImpl
 				long commerceShippingFixedOptionId)
 		throws PortalException {
 
-		long classNameId = classNameLocalService.getClassNameId(className);
+		long classNameId = _classNameLocalService.getClassNameId(className);
 
 		_validate(classNameId, classPK, commerceShippingFixedOptionId);
 
@@ -62,7 +72,7 @@ public class CommerceShippingFixedOptionQualifierLocalServiceImpl
 				commerceShippingFixedOptionQualifierPersistence.create(
 					counterLocalService.increment());
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		commerceShippingFixedOptionQualifier.setCompanyId(user.getCompanyId());
 		commerceShippingFixedOptionQualifier.setUserId(user.getUserId());
@@ -106,7 +116,7 @@ public class CommerceShippingFixedOptionQualifierLocalServiceImpl
 		List<CommerceShippingFixedOptionQualifier>
 			commerceShippingFixedOptionQualifiers =
 				commerceShippingFixedOptionQualifierPersistence.findByC_C(
-					classNameLocalService.getClassNameId(className),
+					_classNameLocalService.getClassNameId(className),
 					commerceShippingFixedOptionId);
 
 		for (CommerceShippingFixedOptionQualifier
@@ -126,7 +136,7 @@ public class CommerceShippingFixedOptionQualifierLocalServiceImpl
 			long commerceShippingFixedOptionId) {
 
 		return commerceShippingFixedOptionQualifierPersistence.fetchByC_C_C(
-			classNameLocalService.getClassNameId(className), classPK,
+			_classNameLocalService.getClassNameId(className), classPK,
 			commerceShippingFixedOptionId);
 	}
 
@@ -195,7 +205,7 @@ public class CommerceShippingFixedOptionQualifierLocalServiceImpl
 			String className, long commerceShippingFixedOptionId) {
 
 		return commerceShippingFixedOptionQualifierPersistence.findByC_C(
-			classNameLocalService.getClassNameId(className),
+			_classNameLocalService.getClassNameId(className),
 			commerceShippingFixedOptionId);
 	}
 
@@ -270,7 +280,8 @@ public class CommerceShippingFixedOptionQualifierLocalServiceImpl
 					).and(
 						CommerceShippingFixedOptionQualifierTable.INSTANCE.
 							classNameId.eq(
-								classNameLocalService.getClassNameId(className))
+								_classNameLocalService.getClassNameId(
+									className))
 					).and(
 						() -> {
 							if (Validator.isNotNull(keywords)) {
@@ -300,7 +311,13 @@ public class CommerceShippingFixedOptionQualifierLocalServiceImpl
 		}
 	}
 
-	@ServiceReference(type = CustomSQL.class)
+	@Reference
+	private ClassNameLocalService _classNameLocalService;
+
+	@Reference
 	private CustomSQL _customSQL;
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

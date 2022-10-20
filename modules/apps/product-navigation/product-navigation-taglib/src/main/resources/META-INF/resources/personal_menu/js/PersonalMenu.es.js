@@ -16,9 +16,39 @@ import ClayButton from '@clayui/button';
 import {ClayDropDownWithItems} from '@clayui/drop-down';
 import ClayIcon from '@clayui/icon';
 import ClaySticker from '@clayui/sticker';
-import {fetch} from 'frontend-js-web';
+import {fetch, openSelectionModal} from 'frontend-js-web';
 import PropTypes from 'prop-types';
 import React, {useRef, useState} from 'react';
+
+function mapItemsOnClick(items) {
+	return items.map((item) => {
+		const {items: nestedItems, jsOnClickConfig, ...otherKeys} = item;
+
+		const newVal = {...otherKeys};
+
+		if (nestedItems) {
+			newVal.items = mapItemsOnClick(nestedItems);
+		}
+
+		if (jsOnClickConfig) {
+			newVal.onClick = () => {
+				const {selectEventName, title, url} = jsOnClickConfig;
+
+				openSelectionModal({
+					id: selectEventName,
+					onSelect(selectedItem) {
+						Liferay.Util.navigate(selectedItem.url);
+					},
+					selectEventName,
+					title,
+					url,
+				});
+			};
+		}
+
+		return newVal;
+	});
+}
 
 function PersonalMenu({
 	color,
@@ -35,7 +65,9 @@ function PersonalMenu({
 		if (!preloadPromiseRef.current) {
 			preloadPromiseRef.current = fetch(itemsURL)
 				.then((response) => response.json())
-				.then((items) => setItems(items));
+				.then((responseItems) =>
+					setItems(mapItemsOnClick(responseItems))
+				);
 		}
 	}
 
@@ -68,6 +100,7 @@ function PersonalMenu({
 							>
 								{userPortraitURL ? (
 									<img
+										alt=""
 										className="sticker-img"
 										src={userPortraitURL}
 									/>

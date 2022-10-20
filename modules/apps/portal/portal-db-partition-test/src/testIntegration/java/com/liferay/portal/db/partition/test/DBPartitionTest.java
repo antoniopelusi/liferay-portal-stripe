@@ -17,7 +17,6 @@ package com.liferay.portal.db.partition.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.db.partition.DBPartitionUtil;
-import com.liferay.portal.db.partition.test.util.BaseDBPartitionTestCase;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -44,16 +43,16 @@ public class DBPartitionTest extends BaseDBPartitionTestCase {
 
 		createControlTable(TEST_CONTROL_TABLE_NAME);
 
-		addDBPartition();
+		addDBPartitions();
 
-		insertCompanyAndDefaultUser();
+		insertPartitionRequiredData();
 	}
 
 	@AfterClass
 	public static void tearDownClass() throws Exception {
-		deleteCompanyAndDefaultUser();
+		deletePartitionRequiredData();
 
-		dropSchema();
+		dropSchemas();
 
 		dropTable(TEST_CONTROL_TABLE_NAME);
 

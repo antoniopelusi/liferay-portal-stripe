@@ -22,15 +22,18 @@ import com.liferay.headless.delivery.dto.v1_0.PageElement;
 import com.liferay.headless.delivery.dto.v1_0.PageSectionDefinition;
 import com.liferay.headless.delivery.internal.dto.v1_0.mapper.util.FragmentMappedValueUtil;
 import com.liferay.headless.delivery.internal.dto.v1_0.mapper.util.LocalizedValueUtil;
+import com.liferay.headless.delivery.internal.dto.v1_0.mapper.util.StyledLayoutStructureItemUtil;
 import com.liferay.layout.page.template.util.AlignConverter;
 import com.liferay.layout.page.template.util.BorderRadiusConverter;
 import com.liferay.layout.page.template.util.ContentDisplayConverter;
+import com.liferay.layout.page.template.util.ContentVisibilityConverter;
 import com.liferay.layout.page.template.util.FlexWrapConverter;
 import com.liferay.layout.page.template.util.HtmlTagConverter;
 import com.liferay.layout.page.template.util.JustifyConverter;
 import com.liferay.layout.page.template.util.MarginConverter;
 import com.liferay.layout.page.template.util.PaddingConverter;
 import com.liferay.layout.page.template.util.ShadowConverter;
+import com.liferay.layout.util.structure.CommonStylesUtil;
 import com.liferay.layout.util.structure.ContainerStyledLayoutStructureItem;
 import com.liferay.layout.util.structure.LayoutStructureItem;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -64,6 +67,14 @@ public class ContainerLayoutStructureItemMapper
 			{
 				definition = new PageSectionDefinition() {
 					{
+						cssClasses =
+							StyledLayoutStructureItemUtil.getCssClasses(
+								containerStyledLayoutStructureItem);
+						customCSS = StyledLayoutStructureItemUtil.getCustomCSS(
+							containerStyledLayoutStructureItem);
+						customCSSViewports =
+							StyledLayoutStructureItemUtil.getCustomCSSViewports(
+								containerStyledLayoutStructureItem);
 						fragmentLink = _toFragmentLink(
 							containerStyledLayoutStructureItem.
 								getLinkJSONObject(),
@@ -72,6 +83,19 @@ public class ContainerLayoutStructureItemMapper
 							containerStyledLayoutStructureItem.isIndexed();
 						layout = _toLayout(containerStyledLayoutStructureItem);
 
+						setContentVisibility(
+							() -> {
+								String contentVisibility =
+									containerStyledLayoutStructureItem.
+										getContentVisibility();
+
+								if (Validator.isNull(contentVisibility)) {
+									return null;
+								}
+
+								return ContentVisibilityConverter.
+									convertToExternalValue(contentVisibility);
+							});
 						setFragmentStyle(
 							() -> {
 								JSONObject itemConfigJSONObject =
@@ -90,11 +114,24 @@ public class ContainerLayoutStructureItemMapper
 						setHtmlProperties(
 							() -> _toHtmlProperties(
 								containerStyledLayoutStructureItem));
+						setName(containerStyledLayoutStructureItem::getName);
 					}
 				};
 				type = Type.SECTION;
 			}
 		};
+	}
+
+	private Object _getStyleProperty(
+		JSONObject stylesJSONObject, String propertyKey) {
+
+		Object styleValue = stylesJSONObject.get(propertyKey);
+
+		if (styleValue != null) {
+			return styleValue;
+		}
+
+		return CommonStylesUtil.getDefaultStyleValue(propertyKey);
 	}
 
 	private FragmentLink _toFragmentLink(
@@ -173,6 +210,12 @@ public class ContainerLayoutStructureItemMapper
 	private Layout _toLayout(
 		ContainerStyledLayoutStructureItem containerStyledLayoutStructureItem) {
 
+		JSONObject itemConfigJSONObject =
+			containerStyledLayoutStructureItem.getItemConfigJSONObject();
+
+		JSONObject stylesJSONObject = itemConfigJSONObject.getJSONObject(
+			"styles");
+
 		return new Layout() {
 			{
 				setAlign(
@@ -189,20 +232,19 @@ public class ContainerLayoutStructureItemMapper
 					});
 				setBorderColor(
 					() -> {
-						String borderColor =
-							containerStyledLayoutStructureItem.getBorderColor();
+						Object borderColor = _getStyleProperty(
+							stylesJSONObject, "borderColor");
 
 						if (Validator.isNull(borderColor)) {
 							return null;
 						}
 
-						return borderColor;
+						return GetterUtil.getString(borderColor);
 					});
 				setBorderRadius(
 					() -> {
-						String borderRadius =
-							containerStyledLayoutStructureItem.
-								getBorderRadius();
+						Object borderRadius = _getStyleProperty(
+							stylesJSONObject, "borderRadius");
 
 						if (Validator.isNull(borderRadius)) {
 							return null;
@@ -210,12 +252,12 @@ public class ContainerLayoutStructureItemMapper
 
 						return BorderRadius.create(
 							BorderRadiusConverter.convertToExternalValue(
-								borderRadius));
+								GetterUtil.getString(borderRadius)));
 					});
 				setBorderWidth(
 					() -> {
-						String borderWidth =
-							containerStyledLayoutStructureItem.getBorderWidth();
+						Object borderWidth = _getStyleProperty(
+							stylesJSONObject, "borderWidth");
 
 						if (Validator.isNull(borderWidth)) {
 							return null;
@@ -225,7 +267,7 @@ public class ContainerLayoutStructureItemMapper
 					});
 				setContentDisplay(
 					() -> {
-						String contentDisplay =
+						Object contentDisplay =
 							containerStyledLayoutStructureItem.
 								getContentDisplay();
 
@@ -235,7 +277,7 @@ public class ContainerLayoutStructureItemMapper
 
 						return ContentDisplay.create(
 							ContentDisplayConverter.convertToExternalValue(
-								contentDisplay));
+								GetterUtil.getString(contentDisplay)));
 					});
 				setFlexWrap(
 					() -> {
@@ -263,9 +305,8 @@ public class ContainerLayoutStructureItemMapper
 					});
 				setMarginBottom(
 					() -> {
-						String marginBottom =
-							containerStyledLayoutStructureItem.
-								getMarginBottom();
+						Object marginBottom = _getStyleProperty(
+							stylesJSONObject, "marginBottom");
 
 						if (Validator.isNull(marginBottom)) {
 							return null;
@@ -273,24 +314,25 @@ public class ContainerLayoutStructureItemMapper
 
 						return GetterUtil.getInteger(
 							MarginConverter.convertToExternalValue(
-								marginBottom));
+								GetterUtil.getString(marginBottom)));
 					});
 				setMarginLeft(
 					() -> {
-						String marginLeft =
-							containerStyledLayoutStructureItem.getMarginLeft();
+						Object marginLeft = _getStyleProperty(
+							stylesJSONObject, "marginLeft");
 
 						if (Validator.isNull(marginLeft)) {
 							return null;
 						}
 
 						return GetterUtil.getInteger(
-							MarginConverter.convertToExternalValue(marginLeft));
+							MarginConverter.convertToExternalValue(
+								GetterUtil.getString(marginLeft)));
 					});
 				setMarginRight(
 					() -> {
-						String marginRight =
-							containerStyledLayoutStructureItem.getMarginRight();
+						Object marginRight = _getStyleProperty(
+							stylesJSONObject, "marginRight");
 
 						if (Validator.isNull(marginRight)) {
 							return null;
@@ -298,24 +340,25 @@ public class ContainerLayoutStructureItemMapper
 
 						return GetterUtil.getInteger(
 							MarginConverter.convertToExternalValue(
-								marginRight));
+								GetterUtil.getString(marginRight)));
 					});
 				setMarginTop(
 					() -> {
-						String marginTop =
-							containerStyledLayoutStructureItem.getMarginTop();
+						Object marginTop = _getStyleProperty(
+							stylesJSONObject, "marginTop");
 
 						if (Validator.isNull(marginTop)) {
 							return null;
 						}
 
 						return GetterUtil.getInteger(
-							MarginConverter.convertToExternalValue(marginTop));
+							MarginConverter.convertToExternalValue(
+								GetterUtil.getString(marginTop)));
 					});
 				setOpacity(
 					() -> {
-						String opacity =
-							containerStyledLayoutStructureItem.getOpacity();
+						Object opacity = _getStyleProperty(
+							stylesJSONObject, "opacity");
 
 						if (Validator.isNull(opacity)) {
 							return null;
@@ -325,9 +368,8 @@ public class ContainerLayoutStructureItemMapper
 					});
 				setPaddingBottom(
 					() -> {
-						String paddingBottom =
-							containerStyledLayoutStructureItem.
-								getPaddingBottom();
+						Object paddingBottom = _getStyleProperty(
+							stylesJSONObject, "paddingBottom");
 
 						if (Validator.isNull(paddingBottom)) {
 							return null;
@@ -335,12 +377,12 @@ public class ContainerLayoutStructureItemMapper
 
 						return GetterUtil.getInteger(
 							PaddingConverter.convertToExternalValue(
-								paddingBottom));
+								GetterUtil.getString(paddingBottom)));
 					});
 				setPaddingLeft(
 					() -> {
-						String paddingLeft =
-							containerStyledLayoutStructureItem.getPaddingLeft();
+						Object paddingLeft = _getStyleProperty(
+							stylesJSONObject, "paddingLeft");
 
 						if (Validator.isNull(paddingLeft)) {
 							return null;
@@ -348,13 +390,12 @@ public class ContainerLayoutStructureItemMapper
 
 						return GetterUtil.getInteger(
 							PaddingConverter.convertToExternalValue(
-								paddingLeft));
+								GetterUtil.getString(paddingLeft)));
 					});
 				setPaddingRight(
 					() -> {
-						String paddingRight =
-							containerStyledLayoutStructureItem.
-								getPaddingRight();
+						Object paddingRight = _getStyleProperty(
+							stylesJSONObject, "paddingRight");
 
 						if (Validator.isNull(paddingRight)) {
 							return null;
@@ -362,12 +403,12 @@ public class ContainerLayoutStructureItemMapper
 
 						return GetterUtil.getInteger(
 							PaddingConverter.convertToExternalValue(
-								paddingRight));
+								GetterUtil.getString(paddingRight)));
 					});
 				setPaddingTop(
 					() -> {
-						String paddingTop =
-							containerStyledLayoutStructureItem.getPaddingTop();
+						Object paddingTop = _getStyleProperty(
+							stylesJSONObject, "paddingTop");
 
 						if (Validator.isNull(paddingTop)) {
 							return null;
@@ -375,19 +416,20 @@ public class ContainerLayoutStructureItemMapper
 
 						return GetterUtil.getInteger(
 							PaddingConverter.convertToExternalValue(
-								paddingTop));
+								GetterUtil.getString(paddingTop)));
 					});
 				setShadow(
 					() -> {
-						String shadow =
-							containerStyledLayoutStructureItem.getShadow();
+						Object shadow = _getStyleProperty(
+							stylesJSONObject, "shadow");
 
 						if (Validator.isNull(shadow)) {
 							return null;
 						}
 
 						return Shadow.create(
-							ShadowConverter.convertToExternalValue(shadow));
+							ShadowConverter.convertToExternalValue(
+								GetterUtil.getString(shadow)));
 					});
 				setWidthType(
 					() -> {

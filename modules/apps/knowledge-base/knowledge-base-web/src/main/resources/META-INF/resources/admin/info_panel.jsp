@@ -67,7 +67,7 @@ if (ListUtil.isEmpty(kbFolders) && ListUtil.isEmpty(kbArticles)) {
 				<div class="autofit-col">
 					<ul class="autofit-padded-no-gutters autofit-row">
 						<li class="autofit-col">
-							<liferay-util:include page="/admin/folder_action.jsp" servletContext="<%= application %>" />
+							<liferay-util:include page="/admin/kb_folder_action.jsp" servletContext="<%= application %>" />
 						</li>
 					</ul>
 				</div>
@@ -75,7 +75,7 @@ if (ListUtil.isEmpty(kbFolders) && ListUtil.isEmpty(kbArticles)) {
 		</div>
 
 		<%
-		KBAdminNavigationDisplayContext kbAdminNavigationDisplayContext = new KBAdminNavigationDisplayContext(request, liferayPortletResponse);
+		KBAdminNavigationDisplayContext kbAdminNavigationDisplayContext = new KBAdminNavigationDisplayContext(request, renderRequest, renderResponse);
 		%>
 
 		<clay:navigation-bar
@@ -120,38 +120,46 @@ if (ListUtil.isEmpty(kbFolders) && ListUtil.isEmpty(kbArticles)) {
 		%>
 
 		<div class="sidebar-header">
-			<div class="autofit-row sidebar-section">
-				<div class="autofit-col autofit-col-expand">
-					<h4 class="component-title"><%= HtmlUtil.escape(kbArticle.getTitle()) %></h4>
+			<clay:content-row
+				cssClass="sidebar-section"
+			>
+				<clay:content-col
+					expand="<%= true %>"
+				>
+					<clay:content-section>
+						<h4 class="component-title"><%= HtmlUtil.escape(kbArticle.getTitle()) %></h4>
 
-					<h5>
-						<liferay-ui:message key="entry" />
-					</h5>
-				</div>
+						<clay:label
+							displayType="info"
+							label='<%= LanguageUtil.get(request, "version") + StringPool.SPACE + kbArticle.getPriority() %>'
+						/>
 
-				<div class="autofit-col">
+						<aui:workflow-status markupView="lexicon" showIcon="<%= false %>" showLabel="<%= false %>" status="<%= kbArticle.getStatus() %>" />
+					</clay:content-section>
+				</clay:content-col>
+
+				<clay:content-col>
 					<c:if test='<%= ParamUtil.getBoolean(request, "showSidebarHeader", GetterUtil.getBoolean(request.getAttribute(KBWebKeys.SHOW_SIDEBAR_HEADER))) %>'>
 						<ul class="autofit-padded-no-gutters autofit-row">
 							<li class="autofit-col">
 								<liferay-util:include page="/admin/subscribe.jsp" servletContext="<%= application %>" />
 							</li>
 							<li class="autofit-col">
-								<liferay-util:include page="/admin/article_action.jsp" servletContext="<%= application %>" />
+								<liferay-util:include page="/admin/kb_article_action.jsp" servletContext="<%= application %>" />
 							</li>
 						</ul>
 					</c:if>
-				</div>
-			</div>
+				</clay:content-col>
+			</clay:content-row>
 		</div>
 
-		<liferay-ui:tabs
-			cssClass="navbar-no-collapse"
-			names="details,versions"
-			refresh="<%= false %>"
-			type="dropdown"
-		>
-			<liferay-ui:section>
-				<div class="sidebar-body">
+		<div class="sidebar-body">
+			<liferay-ui:tabs
+				cssClass="navbar-no-collapse"
+				names="details,versions"
+				refresh="<%= false %>"
+			>
+				<liferay-ui:section>
 					<dl class="sidebar-dl sidebar-section">
 						<dt class="sidebar-dt">
 							<liferay-ui:message key="title" />
@@ -196,15 +204,13 @@ if (ListUtil.isEmpty(kbFolders) && ListUtil.isEmpty(kbArticles)) {
 							<%= kbArticle.getViewCount() %>
 						</dd>
 					</dl>
-				</div>
-			</liferay-ui:section>
+				</liferay-ui:section>
 
-			<liferay-ui:section>
-				<div class="sidebar-body">
-					<liferay-util:include page="/admin/common/article_history.jsp" servletContext="<%= application %>" />
-				</div>
-			</liferay-ui:section>
-		</liferay-ui:tabs>
+				<liferay-ui:section>
+					<liferay-util:include page="/admin/common/kb_article_history.jsp" servletContext="<%= application %>" />
+				</liferay-ui:section>
+			</liferay-ui:tabs>
+		</div>
 	</c:when>
 	<c:otherwise>
 		<div class="sidebar-header">
@@ -216,7 +222,7 @@ if (ListUtil.isEmpty(kbFolders) && ListUtil.isEmpty(kbArticles)) {
 		</div>
 
 		<%
-		KBAdminNavigationDisplayContext kbAdminNavigationDisplayContext = new KBAdminNavigationDisplayContext(request, liferayPortletResponse);
+		KBAdminNavigationDisplayContext kbAdminNavigationDisplayContext = new KBAdminNavigationDisplayContext(request, renderRequest, renderResponse);
 		%>
 
 		<clay:navigation-bar

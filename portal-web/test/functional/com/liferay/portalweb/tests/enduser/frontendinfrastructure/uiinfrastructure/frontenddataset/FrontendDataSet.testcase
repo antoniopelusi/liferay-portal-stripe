@@ -28,6 +28,10 @@ definition {
 			widgetName = "Frontend Data Set Sample");
 
 		Navigator.gotoPage(pageName = "Frontend Data Set Test Page");
+
+		WaitForElementPresent(
+			key_itemName = "Sample1",
+			locator1 = "FrontendDataSet#TABLE_ITEM_ROW");
 	}
 
 	tearDown {
@@ -47,6 +51,10 @@ definition {
 	@priority = "4"
 	test ActionsCanBeCustomized {
 		task ("When Click on 1st action button in FDS sample") {
+			MouseOver(
+				key_itemName = "Sample1",
+				locator1 = "FrontendDataSet#TABLE_ITEM_ROW");
+
 			ClickNoError(
 				key_title = "Sample1",
 				locator1 = "FrontendDataSet#VIEW_ACTION_BUTTON");
@@ -57,6 +65,10 @@ definition {
 		}
 
 		task ("When Click on 2st action button in FDS sample") {
+			MouseOver(
+				key_itemName = "Sample2",
+				locator1 = "FrontendDataSet#TABLE_ITEM_ROW");
+
 			ClickNoError(
 				key_title = "Sample2",
 				locator1 = "FrontendDataSet#VIEW_ACTION_BUTTON");

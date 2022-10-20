@@ -90,6 +90,13 @@ public class ObjectFieldSettingLocalServiceUtil {
 		return getService().createPersistedModel(primaryKeyObj);
 	}
 
+	public static void deleteObjectFieldObjectFieldSetting(
+			com.liferay.object.model.ObjectField objectField)
+		throws PortalException {
+
+		getService().deleteObjectFieldObjectFieldSetting(objectField);
+	}
+
 	/**
 	 * Deletes the object field setting with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
@@ -266,6 +273,12 @@ public class ObjectFieldSettingLocalServiceUtil {
 		return getService().getIndexableActionableDynamicQuery();
 	}
 
+	public static List<ObjectFieldSetting> getObjectFieldObjectFieldSettings(
+		long objectFieldId) {
+
+		return getService().getObjectFieldObjectFieldSettings(objectFieldId);
+	}
+
 	/**
 	 * Returns the object field setting with the primary key.
 	 *
@@ -311,12 +324,6 @@ public class ObjectFieldSettingLocalServiceUtil {
 		int start, int end) {
 
 		return getService().getObjectFieldSettings(start, end);
-	}
-
-	public static List<ObjectFieldSetting> getObjectFieldSettings(
-		long objectFieldId) {
-
-		return getService().getObjectFieldSettings(objectFieldId);
 	}
 
 	/**

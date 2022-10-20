@@ -16,7 +16,7 @@ package com.liferay.gradle.plugins.workspace;
 
 import com.liferay.gradle.plugins.LiferayBasePlugin;
 import com.liferay.gradle.plugins.extensions.LiferayExtension;
-import com.liferay.gradle.plugins.tasks.BuildExtInfoTask;
+import com.liferay.gradle.plugins.task.BuildExtInfoTask;
 import com.liferay.gradle.plugins.workspace.internal.util.GradleUtil;
 
 import groovy.lang.Closure;

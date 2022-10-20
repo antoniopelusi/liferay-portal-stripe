@@ -17,6 +17,7 @@ package com.liferay.object.service.impl;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectView;
 import com.liferay.object.model.ObjectViewColumn;
+import com.liferay.object.model.ObjectViewFilterColumn;
 import com.liferay.object.model.ObjectViewSortColumn;
 import com.liferay.object.service.base.ObjectViewServiceBaseImpl;
 import com.liferay.object.service.persistence.ObjectDefinitionPersistence;
@@ -49,6 +50,7 @@ public class ObjectViewServiceImpl extends ObjectViewServiceBaseImpl {
 			long objectDefinitionId, boolean defaultObjectView,
 			Map<Locale, String> nameMap,
 			List<ObjectViewColumn> objectViewColumns,
+			List<ObjectViewFilterColumn> objectViewFilterColumns,
 			List<ObjectViewSortColumn> objectViewSortColumns)
 		throws PortalException {
 
@@ -61,7 +63,7 @@ public class ObjectViewServiceImpl extends ObjectViewServiceBaseImpl {
 
 		return objectViewLocalService.addObjectView(
 			getUserId(), objectDefinitionId, defaultObjectView, nameMap,
-			objectViewColumns, objectViewSortColumns);
+			objectViewColumns, objectViewFilterColumns, objectViewSortColumns);
 	}
 
 	@Override
@@ -95,6 +97,7 @@ public class ObjectViewServiceImpl extends ObjectViewServiceBaseImpl {
 			long objectViewId, boolean defaultObjectView,
 			Map<Locale, String> nameMap,
 			List<ObjectViewColumn> objectViewColumns,
+			List<ObjectViewFilterColumn> objectViewFilterColumns,
 			List<ObjectViewSortColumn> objectViewSortColumns)
 		throws PortalException {
 
@@ -107,7 +110,7 @@ public class ObjectViewServiceImpl extends ObjectViewServiceBaseImpl {
 
 		return objectViewLocalService.updateObjectView(
 			objectViewId, defaultObjectView, nameMap, objectViewColumns,
-			objectViewSortColumns);
+			objectViewFilterColumns, objectViewSortColumns);
 	}
 
 	@Reference(

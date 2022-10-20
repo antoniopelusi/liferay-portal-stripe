@@ -30,13 +30,13 @@ export default function EndNode({
 	return (
 		<BaseNode
 			actions={actions}
-			className="end-node"
 			description={description}
 			descriptionSidebar={descriptionSidebar}
 			icon="flag-full"
 			id={id}
 			label={label}
 			newNode={newNode}
+			nodeTypeClassName="end-node"
 			notifications={notifications}
 			type="end"
 			{...otherProps}

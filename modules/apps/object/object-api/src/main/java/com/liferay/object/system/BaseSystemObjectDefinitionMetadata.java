@@ -14,29 +14,15 @@
 
 package com.liferay.object.system;
 
-import com.liferay.object.action.engine.ObjectActionEngine;
 import com.liferay.object.model.ObjectField;
-import com.liferay.object.service.ObjectDefinitionLocalService;
-import com.liferay.object.service.ObjectEntryLocalService;
-import com.liferay.object.system.model.listener.SystemObjectDefinitionMetadataModelListener;
 import com.liferay.object.util.LocalizedMapUtil;
 import com.liferay.object.util.ObjectFieldUtil;
 import com.liferay.petra.sql.dsl.Table;
-import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.model.ModelListener;
-import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.LocaleUtil;
-import com.liferay.portal.vulcan.dto.converter.DTOConverterRegistry;
 
 import java.util.Locale;
 import java.util.Map;
-
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Marco Leo
@@ -65,15 +51,9 @@ public abstract class BaseSystemObjectDefinitionMetadata
 		return tableName;
 	}
 
-	@Activate
-	protected void activate(BundleContext bundleContext) throws Exception {
-		_serviceRegistration = bundleContext.registerService(
-			ModelListener.class.getName(),
-			new SystemObjectDefinitionMetadataModelListener(
-				dtoConverterRegistry, jsonFactory, getModelClass(),
-				objectActionEngine, objectDefinitionLocalService,
-				objectEntryLocalService, userLocalService),
-			null);
+	@Override
+	public String getRESTDTOIdPropertyName() {
+		return "id";
 	}
 
 	protected Map<Locale, String> createLabelMap(String labelKey) {
@@ -82,48 +62,23 @@ public abstract class BaseSystemObjectDefinitionMetadata
 
 	protected ObjectField createObjectField(
 		String businessType, String dbType, String labelKey, String name,
-		boolean required) {
+		boolean required, boolean system) {
 
 		return createObjectField(
-			businessType, null, dbType, labelKey, name, required);
+			businessType, null, dbType, labelKey, name, required, system);
 	}
 
 	protected ObjectField createObjectField(
 		String businessType, String dbColumnName, String dbType,
-		String labelKey, String name, boolean required) {
+		String labelKey, String name, boolean required, boolean system) {
 
 		return ObjectFieldUtil.createObjectField(
 			0, businessType, dbColumnName, dbType, false, false, null,
-			_translate(labelKey), name, required);
+			_translate(labelKey), name, required, system);
 	}
-
-	@Deactivate
-	protected void deactivate() throws Exception {
-		_serviceRegistration.unregister();
-	}
-
-	@Reference
-	protected DTOConverterRegistry dtoConverterRegistry;
-
-	@Reference
-	protected JSONFactory jsonFactory;
-
-	@Reference
-	protected ObjectActionEngine objectActionEngine;
-
-	@Reference
-	protected ObjectDefinitionLocalService objectDefinitionLocalService;
-
-	@Reference
-	protected ObjectEntryLocalService objectEntryLocalService;
-
-	@Reference
-	protected UserLocalService userLocalService;
 
 	private String _translate(String labelKey) {
 		return LanguageUtil.get(LocaleUtil.getDefault(), labelKey);
 	}
-
-	private ServiceRegistration<?> _serviceRegistration;
 
 }

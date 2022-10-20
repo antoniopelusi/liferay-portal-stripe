@@ -39,15 +39,17 @@ public class ObjectActionLocalServiceWrapper
 
 	@Override
 	public com.liferay.object.model.ObjectAction addObjectAction(
-			long userId, long objectDefinitionId, boolean active, String name,
+			long userId, long objectDefinitionId, boolean active,
+			String conditionExpression, String description, String name,
 			String objectActionExecutorKey, String objectActionTriggerKey,
 			com.liferay.portal.kernel.util.UnicodeProperties
 				parametersUnicodeProperties)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _objectActionLocalService.addObjectAction(
-			userId, objectDefinitionId, active, name, objectActionExecutorKey,
-			objectActionTriggerKey, parametersUnicodeProperties);
+			userId, objectDefinitionId, active, conditionExpression,
+			description, name, objectActionExecutorKey, objectActionTriggerKey,
+			parametersUnicodeProperties);
 	}
 
 	/**
@@ -125,6 +127,13 @@ public class ObjectActionLocalServiceWrapper
 		com.liferay.object.model.ObjectAction objectAction) {
 
 		return _objectActionLocalService.deleteObjectAction(objectAction);
+	}
+
+	@Override
+	public void deleteObjectActions(long objectDefinitionId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		_objectActionLocalService.deleteObjectActions(objectDefinitionId);
 	}
 
 	/**
@@ -385,13 +394,17 @@ public class ObjectActionLocalServiceWrapper
 
 	@Override
 	public com.liferay.object.model.ObjectAction updateObjectAction(
-			long objectActionId, boolean active, String name,
+			long objectActionId, boolean active, String conditionExpression,
+			String description, String name, String objectActionExecutorKey,
+			String objectActionTriggerKey,
 			com.liferay.portal.kernel.util.UnicodeProperties
 				parametersUnicodeProperties)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _objectActionLocalService.updateObjectAction(
-			objectActionId, active, name, parametersUnicodeProperties);
+			objectActionId, active, conditionExpression, description, name,
+			objectActionExecutorKey, objectActionTriggerKey,
+			parametersUnicodeProperties);
 	}
 
 	/**
@@ -409,6 +422,14 @@ public class ObjectActionLocalServiceWrapper
 		com.liferay.object.model.ObjectAction objectAction) {
 
 		return _objectActionLocalService.updateObjectAction(objectAction);
+	}
+
+	@Override
+	public com.liferay.object.model.ObjectAction updateStatus(
+			long objectActionId, int status)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _objectActionLocalService.updateStatus(objectActionId, status);
 	}
 
 	@Override

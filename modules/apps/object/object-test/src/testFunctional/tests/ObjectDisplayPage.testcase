@@ -1,7 +1,6 @@
 @component-name = "portal-object"
 definition {
 
-	property portal.acceptance = "true";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Object";
@@ -64,7 +63,7 @@ definition {
 
 		VisualizeObjectDisplayPage.assertDisplayEntry(entry = "We make it possible for people to reach their full potential to serve others.");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		PagesAdmin.gotoPageEllipsisMenuItem(
 			menuItem = "View",
@@ -127,7 +126,7 @@ definition {
 
 		VisualizeObjectDisplayPage.assertDisplayEntry(entry = "Entry Test");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		PagesAdmin.gotoPageEllipsisMenuItem(
 			menuItem = "View",

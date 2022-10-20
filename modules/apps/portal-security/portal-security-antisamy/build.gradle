@@ -9,15 +9,16 @@ String sanitizerConfigurationUrl = "https://storage.googleapis.com/google-code-a
 
 dependencies {
 	compileInclude group: "commons-codec", name: "commons-codec", version: "1.15"
-	compileInclude group: "net.sourceforge.nekohtml", name: "nekohtml", version: "1.9.22"
-	compileInclude group: "org.apache.httpcomponents", name: "httpclient", version: "4.5.13"
-	compileInclude group: "org.apache.httpcomponents", name: "httpcore", version: "4.4.14"
+	compileInclude group: "net.sourceforge.htmlunit", name: "neko-htmlunit", version: "2.61.0"
+	compileInclude group: "org.apache.httpcomponents.client5", name: "httpclient5", version: "5.1.3"
+	compileInclude group: "org.apache.httpcomponents.core5", name: "httpcore5", version: "5.1.3"
+	compileInclude group: "org.apache.httpcomponents.core5", name: "httpcore5-h2", version: "5.1.3"
 	compileInclude group: "org.apache.xmlgraphics", name: "batik-constants", version: "1.14"
 	compileInclude group: "org.apache.xmlgraphics", name: "batik-css", version: "1.14"
 	compileInclude group: "org.apache.xmlgraphics", name: "batik-i18n", version: "1.14"
 	compileInclude group: "org.apache.xmlgraphics", name: "batik-util", version: "1.14"
 	compileInclude group: "org.apache.xmlgraphics", name: "xmlgraphics-commons", version: "2.6"
-	compileInclude group: "org.owasp.antisamy", name: "antisamy", version: "1.6.4"
+	compileInclude group: "org.owasp.antisamy", name: "antisamy", version: "1.6.8"
 	compileInclude group: "xml-apis", name: "xml-apis-ext", version: "1.3.04"
 
 	compileOnly group: "com.liferay", name: "biz.aQute.bnd.annotation", version: "4.2.0.LIFERAY-PATCHED-2"
@@ -25,7 +26,7 @@ dependencies {
 	compileOnly group: "org.osgi", name: "org.osgi.service.cm", version: "1.6.0"
 	compileOnly group: "org.osgi", name: "org.osgi.service.component.annotations", version: "1.4.0"
 	compileOnly group: "org.osgi", name: "osgi.core", version: "6.0.0"
-	compileOnly group: "xerces", name: "xercesImpl", version: "2.12.1"
+	compileOnly group: "xerces", name: "xercesImpl", version: "2.12.2"
 	compileOnly group: "xml-apis", name: "xml-apis", version: "1.4.01"
 	compileOnly project(":apps:static:portal-configuration:portal-configuration-metatype-api")
 	compileOnly project(":apps:static:portal-configuration:portal-configuration-persistence-api")
@@ -145,8 +146,8 @@ private String _filterBlogsSanitizer(String line) {
 
 	if (line.contains('<literal value="hr"/>')) {
 		line = """\
-			|	${line}
-			|	<literal value="iframe"/>""".stripMargin()
+			|${line}
+			|				<literal value="iframe"/>""".stripMargin()
 	}
 	else if (line.contains('<tag name="iframe" action="remove"/>')) {
 		line = """\
@@ -204,6 +205,12 @@ private String _filterBlogsSanitizer(String line) {
 }
 
 private String _filterDefaultSanitizer(String line) {
+	if (line.contains('<directives>')) {
+		line = """\
+			|${line}
+			|		<directive name="noopenerAndNoreferrerAnchors" value="true" />""".stripMargin()
+	}
+
 	if (line.contains('<directive name="maxInputSize" value="20000"/>')) {
 		line = line.replace "20000", "200000"
 	}
@@ -409,8 +416,8 @@ private String _filterKnowledgeBaseSanitizer(String line) {
 
 	if (line.contains('<literal value="hr"/>')) {
 		line = """\
-			|	${line}
-			|	<literal value="iframe"/>""".stripMargin()
+			|${line}
+			|				<literal value="iframe"/>""".stripMargin()
 	}
 	else if (line.contains('<tag name="iframe" action="remove"/>')) {
 		line = """\
@@ -463,6 +470,27 @@ private String _filterKnowledgeBaseSanitizer(String line) {
 		|		</attribute>
 		|		<attribute name="width"/>
 		|	</tag>""".stripMargin()
+	}
+
+	if (line.contains('<regexp name="systemColor" value="(activeborder|activecaption')) {
+		line = """\
+			|${line}\n
+			|		<!-- Used for onclick attribute on a tag -->
+			|		<regexp name="onclick-window" value="(^window\\.open\\(this\\.href, \\'.*\\', \\'resizable=(yes|no),status=(yes|no),location=(yes|no),toolbar=(yes|no),menubar=(yes|no),fullscreen=(yes|no),scrollbars=(yes|no),dependent=(yes|no)(,width=(\\d)+(px|cm|mm|in|pt|pc|\\%){0,1}){0,1}(,left=(\\d)+(px|cm|mm|in|pt|pc|\\%){0,1}){0,1}(,height=(\\d)+(px|cm|mm|in|pt|pc|\\%){0,1}){0,1}(,top=(\\d)+(px|cm|mm|in|pt|pc|\\%){0,1}){0,1}\\'\\); return false;)"/>""".stripMargin()
+	}
+
+	if (line.contains('<tag name="a" action="validate">')) {
+		line = """\
+			|${line}
+			|			<attribute name="onClick"/>\n""".stripMargin()
+	}
+
+	if (line.contains('<attribute name="onClick" description="The \'onClick\' event is executed when the control associated with the tag is clicked">')) {
+		line = """\
+			|${line}
+			|			<regexp-list>
+			|				<regexp name="onclick-window"/>
+			|			</regexp-list>""".stripMargin()
 	}
 
 	return line

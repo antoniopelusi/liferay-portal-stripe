@@ -30,8 +30,10 @@ import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserNotificationDeliveryConstants;
 import com.liferay.portal.kernel.notifications.UserNotificationManagerUtil;
+import com.liferay.portal.kernel.service.ResourceLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.service.UserNotificationEventLocalService;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.BigDecimalUtil;
@@ -39,7 +41,6 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.segments.constants.SegmentsExperienceConstants;
 import com.liferay.segments.constants.SegmentsExperimentConstants;
 import com.liferay.segments.constants.SegmentsPortletKeys;
 import com.liferay.segments.exception.LockedSegmentsExperimentException;
@@ -58,6 +59,7 @@ import com.liferay.segments.model.SegmentsExperimentRelTable;
 import com.liferay.segments.service.SegmentsExperienceLocalService;
 import com.liferay.segments.service.SegmentsExperimentRelLocalService;
 import com.liferay.segments.service.base.SegmentsExperimentLocalServiceBaseImpl;
+import com.liferay.segments.service.persistence.SegmentsExperiencePersistence;
 
 import java.math.RoundingMode;
 
@@ -65,7 +67,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.osgi.service.component.annotations.Component;
@@ -104,7 +105,7 @@ public class SegmentsExperimentLocalServiceImpl
 		segmentsExperiment.setUuid(serviceContext.getUuid());
 		segmentsExperiment.setGroupId(serviceContext.getScopeGroupId());
 
-		User user = userLocalService.getUser(serviceContext.getUserId());
+		User user = _userLocalService.getUser(serviceContext.getUserId());
 
 		segmentsExperiment.setCompanyId(user.getCompanyId());
 		segmentsExperiment.setUserId(user.getUserId());
@@ -138,7 +139,7 @@ public class SegmentsExperimentLocalServiceImpl
 
 		// Resources
 
-		resourceLocalService.addModelResources(
+		_resourceLocalService.addModelResources(
 			segmentsExperiment, serviceContext);
 
 		// Segments experiment rel
@@ -186,7 +187,7 @@ public class SegmentsExperimentLocalServiceImpl
 
 		// Resources
 
-		resourceLocalService.deleteResource(
+		_resourceLocalService.deleteResource(
 			segmentsExperiment, ResourceConstants.SCOPE_INDIVIDUAL);
 
 		// Segments experiment rels
@@ -497,16 +498,11 @@ public class SegmentsExperimentLocalServiceImpl
 		SegmentsExperience controlSegmentsExperience,
 		SegmentsExperience variantSegmentsExperience) {
 
-		int lowestSegmentsExperiencePriority = Optional.ofNullable(
-			segmentsExperiencePersistence.fetchByG_C_C_Last(
+		SegmentsExperience segmentsExperience =
+			_segmentsExperiencePersistence.fetchByG_C_C_Last(
 				controlSegmentsExperience.getGroupId(),
 				controlSegmentsExperience.getClassNameId(),
-				controlSegmentsExperience.getClassPK(), null)
-		).map(
-			SegmentsExperience::getPriority
-		).orElse(
-			SegmentsExperienceConstants.PRIORITY_DEFAULT
-		);
+				controlSegmentsExperience.getClassPK(), null);
 
 		int controlSegmentsExperiencePriority =
 			controlSegmentsExperience.getPriority();
@@ -514,18 +510,18 @@ public class SegmentsExperimentLocalServiceImpl
 			variantSegmentsExperience.getPriority();
 
 		controlSegmentsExperience.setPriority(
-			lowestSegmentsExperiencePriority - 1);
+			segmentsExperience.getPriority() - 1);
 
-		controlSegmentsExperience = segmentsExperiencePersistence.update(
+		controlSegmentsExperience = _segmentsExperiencePersistence.update(
 			controlSegmentsExperience);
 
 		variantSegmentsExperience.setPriority(
-			lowestSegmentsExperiencePriority - 2);
+			segmentsExperience.getPriority() - 2);
 
-		variantSegmentsExperience = segmentsExperiencePersistence.update(
+		variantSegmentsExperience = _segmentsExperiencePersistence.update(
 			variantSegmentsExperience);
 
-		segmentsExperiencePersistence.flush();
+		_segmentsExperiencePersistence.flush();
 
 		controlSegmentsExperience.setPriority(
 			variantSegmentsExperiencePriority);
@@ -760,11 +756,20 @@ public class SegmentsExperimentLocalServiceImpl
 	}
 
 	@Reference
+	private ResourceLocalService _resourceLocalService;
+
+	@Reference
 	private SegmentsExperienceLocalService _segmentsExperienceLocalService;
+
+	@Reference
+	private SegmentsExperiencePersistence _segmentsExperiencePersistence;
 
 	@Reference
 	private SegmentsExperimentRelLocalService
 		_segmentsExperimentRelLocalService;
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 	@Reference
 	private UserNotificationEventLocalService

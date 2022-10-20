@@ -76,7 +76,7 @@ public class LayoutCacheModel
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(85);
+		StringBundler sb = new StringBundler(87);
 
 		sb.append("{mvccVersion=");
 		sb.append(mvccVersion);
@@ -142,6 +142,8 @@ public class LayoutCacheModel
 		sb.append(css);
 		sb.append(", priority=");
 		sb.append(priority);
+		sb.append(", faviconFileEntryId=");
+		sb.append(faviconFileEntryId);
 		sb.append(", masterLayoutPlid=");
 		sb.append(masterLayoutPlid);
 		sb.append(", layoutPrototypeUuid=");
@@ -299,6 +301,7 @@ public class LayoutCacheModel
 		}
 
 		layoutImpl.setPriority(priority);
+		layoutImpl.setFaviconFileEntryId(faviconFileEntryId);
 		layoutImpl.setMasterLayoutPlid(masterLayoutPlid);
 
 		if (layoutPrototypeUuid == null) {
@@ -405,6 +408,8 @@ public class LayoutCacheModel
 		css = (String)objectInput.readObject();
 
 		priority = objectInput.readInt();
+
+		faviconFileEntryId = objectInput.readLong();
 
 		masterLayoutPlid = objectInput.readLong();
 		layoutPrototypeUuid = objectInput.readUTF();
@@ -551,6 +556,8 @@ public class LayoutCacheModel
 
 		objectOutput.writeInt(priority);
 
+		objectOutput.writeLong(faviconFileEntryId);
+
 		objectOutput.writeLong(masterLayoutPlid);
 
 		if (layoutPrototypeUuid == null) {
@@ -618,6 +625,7 @@ public class LayoutCacheModel
 	public long styleBookEntryId;
 	public String css;
 	public int priority;
+	public long faviconFileEntryId;
 	public long masterLayoutPlid;
 	public String layoutPrototypeUuid;
 	public boolean layoutPrototypeLinkEnabled;

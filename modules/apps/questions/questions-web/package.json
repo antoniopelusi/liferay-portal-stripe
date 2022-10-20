@@ -11,6 +11,7 @@
 			"<rootDir>/test/helpers.es.js"
 		]
 	},
+	"main": "js/index.es.js",
 	"name": "questions-web",
 	"private": true,
 	"scripts": {
@@ -19,5 +20,5 @@
 		"format": "liferay-npm-scripts fix",
 		"test": "liferay-npm-scripts test"
 	},
-	"version": "2.0.44"
+	"version": "2.0.62"
 }

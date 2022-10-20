@@ -15,6 +15,8 @@
 package com.liferay.portal.upgrade.v7_3_x;
 
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
+import com.liferay.portal.kernel.upgrade.UpgradeProcessFactory;
+import com.liferay.portal.kernel.upgrade.UpgradeStep;
 
 /**
  * @author Preston Crary
@@ -23,15 +25,6 @@ public class UpgradeLayout extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		if (hasColumn("Layout", "headId") || hasColumn("Layout", "head")) {
-			alterTableDropColumn("Layout", "headId");
-			alterTableDropColumn("Layout", "head");
-		}
-
-		if (!hasColumnType("Layout", "description", "TEXT null")) {
-			alterColumnType("Layout", "description", "TEXT null");
-		}
-
 		if (!hasColumn("Layout", "masterLayoutPlid")) {
 			alterTableAddColumn("Layout", "masterLayoutPlid", "LONG");
 
@@ -44,20 +37,25 @@ public class UpgradeLayout extends UpgradeProcess {
 			runSQL("update Layout set status = 0");
 		}
 
-		if (!hasColumn("Layout", "statusByUserId")) {
-			alterTableAddColumn("Layout", "statusByUserId", "LONG");
-		}
-
-		if (!hasColumn("Layout", "statusByUserName")) {
-			alterTableAddColumn(
-				"Layout", "statusByUserName", "VARCHAR(75) null");
-		}
-
-		if (!hasColumn("Layout", "statusDate")) {
-			alterTableAddColumn("Layout", "statusDate", "DATE null");
-		}
-
 		runSQL("DROP_TABLE_IF_EXISTS(LayoutVersion)");
+	}
+
+	@Override
+	protected UpgradeStep[] getPostUpgradeSteps() {
+		return new UpgradeStep[] {
+			UpgradeProcessFactory.addColumns(
+				"Layout", "statusByUserId LONG",
+				"statusByUserName VARCHAR(75) null", "statusDate DATE null")
+		};
+	}
+
+	@Override
+	protected UpgradeStep[] getPreUpgradeSteps() {
+		return new UpgradeStep[] {
+			UpgradeProcessFactory.dropColumns("Layout", "headId", "head"),
+			UpgradeProcessFactory.alterColumnType(
+				"Layout", "description", "TEXT null")
+		};
 	}
 
 }

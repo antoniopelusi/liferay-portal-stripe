@@ -14,6 +14,7 @@
 
 package com.liferay.portal.model.impl;
 
+import com.liferay.document.library.kernel.service.DLAppServiceUtil;
 import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
@@ -43,6 +44,7 @@ import com.liferay.portal.kernel.model.Theme;
 import com.liferay.portal.kernel.portlet.LiferayPortletURL;
 import com.liferay.portal.kernel.portlet.PortalPreferences;
 import com.liferay.portal.kernel.portlet.PortletURLFactoryUtil;
+import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
@@ -67,6 +69,7 @@ import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.URLCodec;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.kernel.util.Validator;
@@ -528,6 +531,23 @@ public class LayoutImpl extends LayoutBaseImpl {
 		}
 
 		return portlets;
+	}
+
+	@Override
+	public String getFaviconURL() {
+		if (_faviconURL != null) {
+			return _faviconURL;
+		}
+
+		String faviconURL = _getFaviconURL(getFaviconFileEntryId());
+
+		if (faviconURL != null) {
+			_faviconURL = faviconURL;
+
+			return _faviconURL;
+		}
+
+		return _faviconURL;
 	}
 
 	/**
@@ -1427,6 +1447,32 @@ public class LayoutImpl extends LayoutBaseImpl {
 		}
 	}
 
+	private String _getFaviconURL(long faviconFileEntryId) {
+		if (faviconFileEntryId <= 0) {
+			return null;
+		}
+
+		try {
+			FileEntry fileEntry = DLAppServiceUtil.getFileEntry(
+				faviconFileEntryId);
+
+			return HtmlUtil.escape(
+				StringBundler.concat(
+					PortalUtil.getPathContext(), "/documents/",
+					fileEntry.getRepositoryId(), StringPool.SLASH,
+					fileEntry.getFolderId(), StringPool.SLASH,
+					URLCodec.encodeURL(HtmlUtil.unescape(fileEntry.getTitle())),
+					StringPool.SLASH, URLCodec.encodeURL(fileEntry.getUuid())));
+		}
+		catch (PortalException portalException) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(portalException);
+			}
+		}
+
+		return null;
+	}
+
 	private Set<String> _getLayoutPortletIds() {
 		Set<String> layoutPortletIds = new HashSet<>();
 
@@ -1635,6 +1681,7 @@ public class LayoutImpl extends LayoutBaseImpl {
 		_initFriendlyURLKeywords();
 	}
 
+	private String _faviconURL;
 	private LayoutSet _layoutSet;
 	private transient LayoutType _layoutType;
 	private Layout _masterLayout;

@@ -67,7 +67,7 @@ definition {
 
 			Portlet.saveAndCloseConfig();
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
 		}
@@ -158,7 +158,7 @@ definition {
 			PageEditor.viewFragmentEditableImage(
 				contributed = "false",
 				fragmentClass = "image",
-				imageFileName = "Document_1.png");
+				imageFileName = "document_1-png");
 		}
 	}
 
@@ -245,7 +245,7 @@ definition {
 			PageEditor.gotoStyle(fragmentName = "Heading");
 
 			PageEditor.configureFragment(
-				alignment = "Center",
+				alignment = "Align Center",
 				textColor = "Success");
 
 			PageEditor.gotoConfiguration(fragmentName = "Heading");
@@ -256,11 +256,11 @@ definition {
 		task ("View the fragment style") {
 			PageEditor.viewFragmentStyle(
 				alignment = "center",
-				fragmentName = "heading",
+				fragmentName = "Heading",
 				headingLevel = "h2",
 				textColor = "success");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a page based on content page template") {
@@ -275,24 +275,31 @@ definition {
 		task ("View the fragment style") {
 			PageEditor.viewFragmentStyle(
 				alignment = "center",
-				fragmentName = "heading",
+				fragmentName = "Heading",
 				headingLevel = "h2",
 				textColor = "success");
 		}
 
 		task ("Assert the fragment styles are shown in view mode") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Test Page Name",
 				siteName = "Test Site Name");
 
-			AssertVisible(locator1 = "//div[contains(@class,'text-center')][//h2[contains(@class,'component-heading')]]");
+			PageEditor.viewFragmentStyle(
+				fragmentName = "Heading",
+				headingLevel = "h2");
 
-			AssertCssValue(
-				locator1 = "//div[contains(@class,'text-center')][//h2[contains(@class,'component-heading')]]",
-				locator2 = "color",
-				value1 = "rgba(40, 125, 60, 1)");
+			ContentPages.viewFragmentCommonStyle(
+				fragmentName = "heading",
+				styleName = "textAlign",
+				styleValue = "center");
+
+			ContentPages.viewFragmentCommonStyle(
+				fragmentName = "heading",
+				styleName = "color",
+				styleValue = "success");
 		}
 	}
 
@@ -308,11 +315,11 @@ definition {
 
 			PageTemplatesAdmin.openPageTemplatesAdmin(siteURLKey = "test-site-name");
 
-			Collection.deleteCollection(collectionName = "Collection Name");
+			PageTemplatesAdmin.deletePageTemplateSet(setName = "Collection Name");
 		}
 
 		task ("Assert the collection was deleted") {
-			Collection.viewNotPresent(rowEntry = "Collection Name");
+			PageTemplatesAdmin.viewPageTemplateSetNotPresent(setName = "Collection Name");
 		}
 	}
 

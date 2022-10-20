@@ -57,6 +57,7 @@ html#{$cadmin-selector} {
 			}
 
 			.list-group-keywords-list,
+			.list-group-countries-list,
 			.list-group-pages-list {
 				li {
 					border-width: 0;
@@ -111,6 +112,8 @@ html#{$cadmin-selector} {
 				}
 
 				.pie-chart-wrapper--chart {
+					flex-shrink: 0;
+
 					.dim {
 						opacity: 0.4;
 					}

@@ -73,10 +73,10 @@ definition {
 				fragmentName = "Fragment Name");
 
 			AssertVisible(
-				key_content = "Place fragments here.",
+				key_content = "Place fragments or widgets here.",
 				key_fragmentClass = "content",
 				key_position = "1",
-				locator1 = "Fragment#NO_FRAGMENTS_MESSAGE");
+				locator1 = "Fragment#DROP_ZONE_NO_FRAGMENTS_MESSAGE");
 		}
 
 		task ("Add a Button fragment to the new fragment") {
@@ -123,16 +123,16 @@ definition {
 
 		task ("View the new fragment is shown on page") {
 			AssertVisible(
-				key_content = "Place fragments here.",
+				key_content = "Place fragments or widgets here.",
 				key_fragmentClass = "content",
 				key_position = "1",
-				locator1 = "Fragment#NO_FRAGMENTS_MESSAGE");
+				locator1 = "Fragment#DROP_ZONE_NO_FRAGMENTS_MESSAGE");
 
 			AssertVisible(
-				key_content = "Place fragments here.",
+				key_content = "Place fragments or widgets here.",
 				key_fragmentClass = "content",
 				key_position = "2",
-				locator1 = "Fragment#NO_FRAGMENTS_MESSAGE");
+				locator1 = "Fragment#DROP_ZONE_NO_FRAGMENTS_MESSAGE");
 		}
 	}
 

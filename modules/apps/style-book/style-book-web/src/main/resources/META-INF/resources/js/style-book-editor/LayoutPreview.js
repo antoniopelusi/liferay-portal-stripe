@@ -15,34 +15,34 @@
 import ClayEmptyState from '@clayui/empty-state';
 import ClayLoadingIndicator from '@clayui/loading-indicator';
 import classNames from 'classnames';
-import React, {
-	useCallback,
-	useContext,
-	useEffect,
-	useRef,
-	useState,
-} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 
-import {StyleBookContext} from './StyleBookContext';
 import {LAYOUT_TYPES} from './constants/layoutTypes';
+import {
+	useLoading,
+	usePreviewLayout,
+	usePreviewLayoutType,
+	useSetLoading,
+} from './contexts/LayoutContext';
+import {useFrontendTokensValues} from './contexts/StyleBookEditorContext';
 
-export default function LayoutPreview() {
+export default React.memo(function LayoutPreview() {
+	const frontendTokensValues = useFrontendTokensValues();
+	const loading = useLoading();
+	const previewLayout = usePreviewLayout();
+	const previewLayoutType = usePreviewLayoutType();
+	const setLoading = useSetLoading();
+
 	const iframeRef = useRef();
 	const [iframeLoaded, setIframeLoaded] = useState(false);
-
-	const {
-		frontendTokensValues = {},
-		previewLayout,
-		previewLayoutType,
-		loading,
-		setLoading,
-	} = useContext(StyleBookContext);
 
 	const loadFrontendTokenValues = useCallback(() => {
 		if (iframeLoaded) {
 			const root = iframeRef.current.contentDocument.documentElement;
 
 			if (root) {
+				root.removeAttribute('style');
+
 				Object.values(frontendTokensValues).forEach(
 					({cssVariableMapping, value}) => {
 						root.style.setProperty(
@@ -55,7 +55,7 @@ export default function LayoutPreview() {
 				setLoading(false);
 			}
 		}
-	}, [frontendTokensValues, setLoading, iframeLoaded]);
+	}, [frontendTokensValues, iframeLoaded, setLoading]);
 
 	useEffect(() => {
 		loadFrontendTokenValues();
@@ -107,7 +107,7 @@ export default function LayoutPreview() {
 			</div>
 		</>
 	);
-}
+});
 
 function loadOverlay(iframeRef, previewLayoutType) {
 	if (previewLayoutType === LAYOUT_TYPES.fragmentCollection) {

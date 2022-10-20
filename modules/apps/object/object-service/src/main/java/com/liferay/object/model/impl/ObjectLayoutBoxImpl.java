@@ -16,6 +16,7 @@ package com.liferay.object.model.impl;
 
 import com.liferay.object.model.ObjectLayoutRow;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -34,6 +35,6 @@ public class ObjectLayoutBoxImpl extends ObjectLayoutBoxBaseImpl {
 		_objectLayoutRows = objectLayoutRows;
 	}
 
-	private List<ObjectLayoutRow> _objectLayoutRows;
+	private List<ObjectLayoutRow> _objectLayoutRows = Collections.emptyList();
 
 }

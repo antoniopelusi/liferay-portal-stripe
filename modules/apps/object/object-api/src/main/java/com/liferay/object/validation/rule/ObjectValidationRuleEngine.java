@@ -14,6 +14,7 @@
 
 package com.liferay.object.validation.rule;
 
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -21,7 +22,11 @@ import java.util.Map;
  */
 public interface ObjectValidationRuleEngine {
 
-	public boolean evaluate(Map<String, Object> inputObjects, String script);
+	public default Map<String, Object> execute(
+		Map<String, Object> inputObjects, String script) {
+
+		return Collections.emptyMap();
+	}
 
 	public String getName();
 

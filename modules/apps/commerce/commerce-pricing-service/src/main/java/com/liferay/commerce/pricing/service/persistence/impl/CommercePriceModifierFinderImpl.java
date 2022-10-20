@@ -28,15 +28,18 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.SQLQuery;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.spring.extender.service.ServiceReference;
 
 import java.util.List;
+
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Riccardo Alberti
  */
+@Component(enabled = false, service = CommercePriceModifierFinder.class)
 public class CommercePriceModifierFinderImpl
 	extends CommercePriceModifierFinderBaseImpl
 	implements CommercePriceModifierFinder {
@@ -89,13 +92,10 @@ public class CommercePriceModifierFinderImpl
 
 			queryPos.add(commercePriceListId);
 			queryPos.add(cpDefinitionId);
+			queryPos.add(_portal.getClassNameId(CPDefinition.class.getName()));
+			queryPos.add(_portal.getClassNameId(AssetCategory.class.getName()));
 			queryPos.add(
-				PortalUtil.getClassNameId(CPDefinition.class.getName()));
-			queryPos.add(
-				PortalUtil.getClassNameId(AssetCategory.class.getName()));
-			queryPos.add(
-				PortalUtil.getClassNameId(
-					CommercePricingClass.class.getName()));
+				_portal.getClassNameId(CommercePricingClass.class.getName()));
 			queryPos.add(CommercePriceModifierConstants.TARGET_CATALOG);
 
 			return (List<CommercePriceModifier>)QueryUtil.list(
@@ -125,7 +125,10 @@ public class CommercePriceModifierFinderImpl
 		return StringUtil.replace(sql, queryPlaceholder, sb.toString());
 	}
 
-	@ServiceReference(type = CustomSQL.class)
+	@Reference
 	private CustomSQL _customSQL;
+
+	@Reference
+	private Portal _portal;
 
 }

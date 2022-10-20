@@ -278,6 +278,10 @@ public interface ListTypeEntryLocalService
 	public ListTypeEntry getListTypeEntry(long listTypeEntryId)
 		throws PortalException;
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public ListTypeEntry getListTypeEntry(long listTypeDefinitionId, String key)
+		throws PortalException;
+
 	/**
 	 * Returns the list type entry with the matching UUID and company.
 	 *

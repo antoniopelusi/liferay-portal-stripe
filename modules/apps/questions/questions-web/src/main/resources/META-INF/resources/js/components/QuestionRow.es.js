@@ -32,6 +32,7 @@ import TagList from './TagList.es';
 import UserIcon from './UserIcon.es';
 
 export default function QuestionRow({
+	context,
 	currentSection,
 	items,
 	question,
@@ -45,7 +46,7 @@ export default function QuestionRow({
 
 	const creatorInformation = question.creator
 		? {
-				link: `/questions/${sectionTitle}/creator/${question.creator.id}`,
+				link: `/questions/all/creator/${question.creator.id}`,
 				name: question.creator.name,
 				portraitURL: question.creator.image,
 				userId: String(question.creator.id),
@@ -132,7 +133,11 @@ export default function QuestionRow({
 						'stretched-link-layer',
 						'text-dark',
 						{
-							'question-seen': question.seen,
+							'question-seen':
+								question.seen ||
+								context?.questionsVisited?.includes(
+									question.id
+								),
 						}
 					)}
 				>
@@ -187,7 +192,11 @@ export default function QuestionRow({
 					</Link>
 
 					<span className="c-ml-2 small">
-						{'- ' + dateToInternationalHuman(question.dateModified)}
+						{'- ' +
+							dateToInternationalHuman(
+								question.dateModified,
+								Liferay.ThemeDisplay.getBCP47LanguageId()
+							)}
 					</span>
 				</div>
 

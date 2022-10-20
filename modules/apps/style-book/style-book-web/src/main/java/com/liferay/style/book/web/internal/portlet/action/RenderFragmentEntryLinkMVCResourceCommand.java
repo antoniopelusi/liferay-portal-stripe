@@ -16,6 +16,7 @@ package com.liferay.style.book.web.internal.portlet.action;
 
 import com.liferay.fragment.constants.FragmentEntryLinkConstants;
 import com.liferay.fragment.contributor.FragmentCollectionContributorTracker;
+import com.liferay.fragment.entry.processor.constants.FragmentEntryProcessorConstants;
 import com.liferay.fragment.model.FragmentEntry;
 import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.renderer.DefaultFragmentRendererContext;
@@ -93,12 +94,15 @@ public class RenderFragmentEntryLinkMVCResourceCommand
 				JSONFactoryUtil.createJSONObject(configurationValues);
 
 			JSONObject editableValuesJSONObject = JSONUtil.put(
-				_KEY_FREEMARKER_FRAGMENT_ENTRY_PROCESSOR,
+				FragmentEntryProcessorConstants.
+					KEY_FREEMARKER_FRAGMENT_ENTRY_PROCESSOR,
 				configurationValuesJSONObject);
 
 			fragmentEntryLink.setEditableValues(
 				editableValuesJSONObject.toString());
 		}
+
+		fragmentEntryLink.setType(fragmentEntry.getType());
 
 		DefaultFragmentRendererContext defaultFragmentRendererContext =
 			new DefaultFragmentRendererContext(fragmentEntryLink);
@@ -156,10 +160,6 @@ public class RenderFragmentEntryLinkMVCResourceCommand
 
 		return fragmentEntry;
 	}
-
-	private static final String _KEY_FREEMARKER_FRAGMENT_ENTRY_PROCESSOR =
-		"com.liferay.fragment.entry.processor.freemarker." +
-			"FreeMarkerFragmentEntryProcessor";
 
 	@Reference
 	private FragmentCollectionContributorTracker

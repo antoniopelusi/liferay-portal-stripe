@@ -16,12 +16,16 @@ package com.liferay.analytics.settings.web.internal.portal.settings.configuratio
 
 import com.liferay.analytics.settings.configuration.AnalyticsConfiguration;
 import com.liferay.analytics.settings.web.internal.constants.AnalyticsSettingsWebKeys;
+import com.liferay.analytics.settings.web.internal.display.context.DisplayContext;
 import com.liferay.analytics.settings.web.internal.user.AnalyticsUsersManager;
 import com.liferay.configuration.admin.display.ConfigurationScreen;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Release;
 import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 
 import java.io.IOException;
@@ -68,7 +72,8 @@ public abstract class BaseAnalyticsConfigurationScreen
 			RequestDispatcher requestDispatcher =
 				servletContext.getRequestDispatcher(getJspPath());
 
-			_setHttpServletRequestAttributes(httpServletRequest);
+			_setHttpServletRequestAttributes(
+				httpServletRequest, httpServletResponse);
 
 			requestDispatcher.include(httpServletRequest, httpServletResponse);
 		}
@@ -78,7 +83,20 @@ public abstract class BaseAnalyticsConfigurationScreen
 		}
 	}
 
-	protected abstract String getJspPath();
+	protected abstract String getDefaultJspPath();
+
+	protected abstract DisplayContext getDisplayContext(
+			HttpServletRequest httpServletRequest,
+			HttpServletResponse httpServletResponse)
+		throws PortalException;
+
+	protected String getJspPath() {
+		if (GetterUtil.getBoolean(PropsUtil.get("feature.flag.LRAC-10757"))) {
+			return "/LRAC-10757" + getDefaultJspPath();
+		}
+
+		return getDefaultJspPath();
+	}
 
 	protected abstract ServletContext getServletContext();
 
@@ -96,7 +114,8 @@ public abstract class BaseAnalyticsConfigurationScreen
 	protected ConfigurationProvider configurationProvider;
 
 	private void _setHttpServletRequestAttributes(
-			HttpServletRequest httpServletRequest)
+			HttpServletRequest httpServletRequest,
+			HttpServletResponse httpServletResponse)
 		throws Exception {
 
 		ThemeDisplay themeDisplay =
@@ -107,6 +126,17 @@ public abstract class BaseAnalyticsConfigurationScreen
 			AnalyticsSettingsWebKeys.ANALYTICS_CONFIGURATION,
 			configurationProvider.getCompanyConfiguration(
 				AnalyticsConfiguration.class, themeDisplay.getCompanyId()));
+
+		if (GetterUtil.getBoolean(PropsUtil.get("feature.flag.LRAC-10757"))) {
+			DisplayContext displayContext = getDisplayContext(
+				httpServletRequest, httpServletResponse);
+
+			if (displayContext != null) {
+				httpServletRequest.setAttribute(
+					AnalyticsSettingsWebKeys.ANALYTICS_DISPLAY_CONTEXT,
+					getDisplayContext(httpServletRequest, httpServletResponse));
+			}
+		}
 
 		httpServletRequest.setAttribute(
 			AnalyticsSettingsWebKeys.ANALYTICS_USERS_MANAGER,

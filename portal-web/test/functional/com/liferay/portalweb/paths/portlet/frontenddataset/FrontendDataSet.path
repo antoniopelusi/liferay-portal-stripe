@@ -11,8 +11,161 @@
 
 <tbody>
 <tr>
+	<td>DELETE_ACTION_BUTTON</td>
+	<td>//div[contains(@class,'dnd-td') and text()='${key_title}']//..//*[*[name()='svg'][contains(@class,'lexicon-icon-times-circle')]]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DROPDOWN_MENU_SHOW_ITEM_EDIT_ICON</td>
+	<td>//div[contains(@class,'dropdown-menu show')]//*[*[name()='svg'][contains(@class,'lexicon-icon-pencil')]]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>QUICK_ACTION_ITEM_INDEX</td>
+	<td>//div[contains(@class,'dnd-td') and text()='${key_title}']//..//*[contains(@class,'quick-action-item')][${key_index}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EDIT_ACTION_BUTTON</td>
+	<td>//div[contains(@class,'dnd-td') and text()='${key_title}']//..//*[*[name()='svg'][contains(@class,'lexicon-icon-pencil')]]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ENTRY_CHECKBOX</td>
+	<td>//div[contains(@class,'dnd-td') and text()='${key_title}']/preceding-sibling::div//input[contains(@type,'checkbox')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ENTRY_VERTICAL_ELLIPSIS</td>
+	<td>//div[contains(@class,'dnd-td') and text()='${key_title}']/..//*[name()='svg'][contains(@class,'icon-ellipsis')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FDS_DATASET</td>
+	<td>//a[contains(@class,'nav-link') and contains(text(),'${key_sampleTab}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ITEMS_VIEW_MODE_BUTTON</td>
+	<td>//div[@class='dropdown']/parent::li[contains(@class,'nav-item')]//button[contains(@class,'nav-link')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ITEMS_VIEW_TYPE_DROPDOWN</td>
+	<td>//div[@class='dropdown-menu show']//*[@class='dropdown-item' and text()='${key_viewMode}']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>VIEW_ACTION_BUTTON</td>
 	<td>//div[contains(@class,'dnd-td') and text()='${key_title}']//..//*[*[name()='svg'][contains(@class,'lexicon-icon-view')]]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VERTICAL_ELLIPSIS_BUTTON</td>
+	<td>//*[normalize-space(text())='${key_itemName}']/parent::*[contains(@class,'dnd-tr')]//button[contains(@class,'dropdown-toggle')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TABLE_BODY</td>
+	<td>//*[contains(@class,'fds')]//*[@class='dnd-tbody']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TABLE_ITEM_ROW</td>
+	<td>//*[normalize-space(text())='${key_itemName}']/parent::*[contains(@class,'dnd-tr')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TABLE_STATUS</td>
+	<td>//strong[contains(@class,'label-success') and text()='${key_statusName}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGINATION_RESULTS</td>
+	<td>//div[contains(@class,'pagination-results') and contains(.,'Showing 1 to 10 of 100')]</td>
+	<td></td>
+</tr>
+
+<!--FILTERS-->
+
+<tr>
+	<td>EDIT_FILTER_BUTTON</td>
+	<td>//div[@class='dropdown-menu show']//*[@type="button" and contains(.,'Edit Filter')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADD_FILTER_BUTTON</td>
+	<td>//div[@class='dropdown-menu show']//*[@type="button" and contains(.,'Add Filter')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EMPTY_FDS_TABLE_MESSAGE</td>
+	<td>//div[contains(@class,'empty-state-text') and contains(.,'Sorry, no results were found.')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EXCLUDE_TOGGLE</td>
+	<td>//div[@class='dropdown-menu show']//*[@type="checkbox" and @id='autocomplete-exclude-status']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FILTER_BUTTON</td>
+	<td>//*[contains(@class,'fds')]//*[contains(@class,'filters-dropdown-button')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FILTER_DROPDOWN</td>
+	<td>//*[@class='dropdown-menu show' and contains(.,'Filters')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FILTER_OPTION</td>
+	<td>//div[@class='dropdown-menu show']//*[@class='dropdown-item' and contains(.,'${key_filter}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FILTER_SEARCH_BUTTON</td>
+	<td>//div[@class='dropdown-menu show']//*[@type='button']//*[contains(@class,'lexicon-icon-search')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FILTER_SUMMARY_LABEL</td>
+	<td>//*[@class='tbar-section']//*[@class='label-section' and contains(.,'${key_filter}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FILTER_WARN_MESSAGE</td>
+	<td>//div[@class='dropdown-menu show']//*[@class='dropdown-caption' and contains(.,'No filters were found.')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>MANAGEMENT_BAR</td>
+	<td>//div[contains(@class,'data-set-management-bar')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>STATUS_FILTER_CHECKBOX</td>
+	<td>//div[@class='dropdown-menu show']//*[@type="checkbox" and @aria-label='${key_status}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>RESET_FILTERS</td>
+	<td>//*[contains(@class,'management-bar')]//*[@type='button' and contains(text(), 'Reset Filters')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FILTER_DATE_RANGE</td>
+	<td>//div[@class='dropdown-menu show']//input[contains(@id,'${key_dateId}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FILTER_BACK_NAVIGATION</td>
+	<td>//div[@class='dropdown-menu show']//*[@type="button" and contains(@class,'btn-filter-navigation')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>REMOVE_FILTER</td>
+	<td>//span[contains(@class,'label dropdown-toggle') and contains(.,'${key_filter}')]//button[@class='filter-resume-close close']</td>
 	<td></td>
 </tr>
 </tbody>

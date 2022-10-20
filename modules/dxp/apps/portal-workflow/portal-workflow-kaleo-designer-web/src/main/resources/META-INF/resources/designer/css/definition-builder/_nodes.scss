@@ -1,11 +1,11 @@
+@import 'atlas-variables';
 .base-node {
 	position: relative;
 }
-
 .node {
 	align-items: center;
 	background: #fff;
-	border: 1px solid #cdced9;
+	border: 1px $light-l1 solid;
 	border-radius: 8px;
 	display: flex;
 	height: 74px;
@@ -23,18 +23,19 @@
 		background: #f7f8f9;
 		border-radius: 4px;
 		display: flex;
-		height: 40px;
+		height: 32px;
 		justify-content: center;
-		width: 40px;
+		width: 32px;
 
 		svg {
-			height: 20px;
-			width: 20px;
+			height: 16px;
+			width: 16px;
 		}
 	}
 
 	.node-info {
 		display: inline-grid;
+		max-width: 167px;
 	}
 
 	.node-label {

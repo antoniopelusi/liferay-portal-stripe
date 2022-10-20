@@ -17,3 +17,23 @@ e4f483434573c7fccebefcb6f873d3d6723b1ac0^..3f1a59a247f934c9c43fea7bac6b547e17a2c
 # Bundle Version 1.0.4
 #
 2aeda285c211fca533c499e863732f1f7fcdc3e8^..8164c8a867f2fd2a690f03b183c88502f58df59a=LRAC-10679
+
+#
+# Bundle Version 1.0.5
+#
+8164c8a867f2fd2a690f03b183c88502f58df59a^..fceb2e042f5233cea6b6df6d8c91e304b0d1fc6e=LPS-150185 LRAC-10912
+
+#
+# Bundle Version 1.0.6
+#
+fceb2e042f5233cea6b6df6d8c91e304b0d1fc6e^..6ac85288397aa437c88bd50af47fd1e7be39e264=LRAC-10824 LRAC-11078
+
+#
+# Bundle Version 1.0.7
+#
+6ac85288397aa437c88bd50af47fd1e7be39e264^..582b52bb57ae2382b1bda7ddc2a5921132d6fd5e=LRAC-11159
+
+#
+# Bundle Version 1.0.8
+#
+582b52bb57ae2382b1bda7ddc2a5921132d6fd5e^..2605e383b3be2e5df4cba67bd13b52d38879338e=COMMERCE-9611

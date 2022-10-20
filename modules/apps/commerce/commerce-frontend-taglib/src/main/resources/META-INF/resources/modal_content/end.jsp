@@ -33,7 +33,7 @@
 	</c:if>
 </div>
 
-<aui:script require="commerce-frontend-js/utilities/eventsDefinitions as events, commerce-frontend-js/utilities/debounce as debounce">
+<aui:script require="commerce-frontend-js/utilities/eventsDefinitions as events, frontend-js-web/liferay/debounce/debounce.es as debounce">
 	function closeModal(isSuccessful) {
 		var eventDetail = {};
 

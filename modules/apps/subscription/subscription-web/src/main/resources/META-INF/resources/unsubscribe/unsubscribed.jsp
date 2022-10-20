@@ -53,7 +53,7 @@ if (manageSubscriptionsURL != null) {
 	</p>
 
 	<p>
-		<liferay-ui:message arguments="<%= unsubscribedUser.getEmailAddress() %>" key="we-wont-send-you-mails-to-x-anymore" />
+		<liferay-ui:message arguments="<%= unsubscribedUser.getEmailAddress() %>" key="we-will-not-send-you-emails-to-x-anymore" />
 	</p>
 
 	<c:if test="<%= manageSubscriptionsURL != null %>">

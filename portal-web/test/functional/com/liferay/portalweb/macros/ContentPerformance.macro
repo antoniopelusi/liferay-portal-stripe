@@ -26,14 +26,13 @@ definition {
 				value1 = "${language}");
 
 			var i = ${i} + 1;
+
 			var i = StringUtil.valueOf("${i}");
 		}
 	}
 
 	macro clickDoNotShowMeThisAgain {
-		Click(
-			key_text = "Do not show me this again",
-			locator1 = "Link#ANY");
+		Click(locator1 = "ContentPerformance#CONTENT_PERFORMANCE_DO_NOT_SHOW_AGAIN");
 	}
 
 	macro connectDXPtoAnalyticsCloudNoSync {
@@ -48,12 +47,10 @@ definition {
 		if (!(IsVisible(locator1 = "ContentPerformance#SIDEBAR"))) {
 			Click(locator1 = "ContentPerformance#CONTENT_PERFORMANCE_BUTTON");
 		}
-	}
 
-	macro showMetricsButton {
-		Click(locator1 = "ContentDashboard#ROW_PANEL_WC");
-
-		Click(locator1 = "ContentPerformance#ICON_VIEW_METRICS");
+		while (IsNotVisible(locator1 = "ContentPerformance#SIDEBAR")) {
+			WaitForElementPresent(locator1 = "ContentPerformance#SIDEBAR");
+		}
 	}
 
 	macro viewTotalViews {
@@ -66,6 +63,19 @@ definition {
 		AssertVisible(
 			key_numberViews = "${numberViews}",
 			locator1 = "ContentPerformance#TOTAL_VIEWS_NUMBER");
+	}
+
+	macro viewTrafficViews {
+		ContentPerformance.openContentPerformance();
+
+		while (IsElementPresent(locator1 = "ContentPerformance#TOTAL_VIEWS_EMPTY")) {
+			Refresh();
+		}
+
+		AssertVisible(
+			key_numberViews = "${numberViews}",
+			key_trafficChannel = "${trafficChannel}",
+			locator1 = "ContentPerformance#TRAFFIC_CHANNELS_VALUE");
 	}
 
 }

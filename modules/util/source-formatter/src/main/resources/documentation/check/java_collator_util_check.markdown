@@ -2,7 +2,7 @@
 
 Instead of getting an instance of Collator by calling
 `java.text.Collator.getInstance(java.util.Locale)` we should be calling
-`com.liferay.portal.kernel.util.CollatorUtil.getInstance(java.util.Locale)`
+`com.liferay.portal.kernel.util.CollatorUtil.getInstance(java.util.Locale)`.
 
 Example:
 
@@ -19,6 +19,6 @@ order.
 
 See also:
 
-- http://jan.baresovi.cz/dr/en/java-collator-spaces
-- https://docs.oracle.com/javase/7/docs/api/java/text/RuleBasedCollator.html
-- https://stackoverflow.com/questions/15230339/collator-compares-strings-weird
+- <http://jan.baresovi.cz/dr/en/java-collator-spaces>
+- <https://docs.oracle.com/javase/7/docs/api/java/text/RuleBasedCollator.html>
+- <https://stackoverflow.com/questions/15230339/collator-compares-strings-weird>

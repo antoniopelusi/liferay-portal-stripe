@@ -15,8 +15,8 @@
 import ClayButton from '@clayui/button';
 import {ClayDropDownWithItems} from '@clayui/drop-down';
 import ClayIcon from '@clayui/icon';
-import ClayManagementToolbar from '@clayui/management-toolbar';
 import classNames from 'classnames';
+import {ManagementToolbar} from 'frontend-js-components-web';
 import React, {useContext} from 'react';
 
 import FeatureFlagContext from './FeatureFlagContext';
@@ -39,7 +39,7 @@ const FilterOrderControls = ({
 	return (
 		<>
 			{filterDropdownItems && (
-				<ClayManagementToolbar.Item>
+				<ManagementToolbar.Item>
 					<ClayDropDownWithItems
 						items={filterDropdownItems.map((item) =>
 							item.items
@@ -99,10 +99,11 @@ const FilterOrderControls = ({
 								<span
 									className="navbar-breakpoint-d-none"
 									title={
-										showDesignImprovements &&
-										Liferay.Language.get(
-											'show-filter-options'
-										)
+										showDesignImprovements
+											? Liferay.Language.get(
+													'show-filter-options'
+											  )
+											: undefined
 									}
 								>
 									<ClayIcon symbol="filter" />
@@ -110,11 +111,11 @@ const FilterOrderControls = ({
 							</ClayButton>
 						}
 					/>
-				</ClayManagementToolbar.Item>
+				</ManagementToolbar.Item>
 			)}
 
 			{showDesignImprovements && !showOrderToggle && (
-				<ClayManagementToolbar.Item>
+				<ManagementToolbar.Item>
 					<ClayDropDownWithItems
 						items={[
 							...orderDropdownItems.map((item) => {
@@ -187,12 +188,12 @@ const FilterOrderControls = ({
 							</ClayButton>
 						}
 					/>
-				</ClayManagementToolbar.Item>
+				</ManagementToolbar.Item>
 			)}
 
 			{((!showDesignImprovements && sortingURL) ||
 				(showDesignImprovements && sortingURL && showOrderToggle)) && (
-				<ClayManagementToolbar.Item>
+				<ManagementToolbar.Item>
 					<LinkOrButton
 						className="nav-link nav-link-monospaced"
 						disabled={disabled}
@@ -211,7 +212,7 @@ const FilterOrderControls = ({
 								: Liferay.Language.get('reverse-sort-direction')
 						}
 					/>
-				</ClayManagementToolbar.Item>
+				</ManagementToolbar.Item>
 			)}
 		</>
 	);

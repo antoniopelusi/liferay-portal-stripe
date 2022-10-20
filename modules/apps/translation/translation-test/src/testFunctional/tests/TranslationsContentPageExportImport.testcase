@@ -28,8 +28,6 @@ definition {
 	@description = "This ensures that the user can export an available language for multiple experiences."
 	@priority = "5"
 	test CanExportAnAvailableLanguageForMultipleExperiences {
-		property osgi.module.configuration.file.names = "com.liferay.layout.admin.web.internal.configuration.FFBulkTranslationConfiguration.config";
-		property osgi.module.configurations = "bulkTranslationEnabled=&quot;true&quot;";
 		property portal.acceptance = "false";
 
 		JSONLayout.addPublicLayout(
@@ -47,7 +45,7 @@ definition {
 				segmentName = "Anyone");
 		}
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
 
@@ -63,8 +61,8 @@ definition {
 		Translations.assertFileNameFromTempFolder(pageName = "TranslationContentPage");
 
 		AntCommand(
-			locator1 = "build-test.xml",
-			value1 = "unzip-temp-file -DfileName=TranslationContentPage-en_US.zip");
+			locator1 = "build-test-translation.xml",
+			value1 = "unzip-translation-file -DfileName=TranslationContentPage-en_US.zip");
 
 		for (var fileName : list "TranslationContentPage (NewAnyoneExperience1)-en_US-es_ES.xlf,TranslationContentPage (NewAnyoneExperience2)-en_US-es_ES.xlf") {
 			DMDocument.assertFileNameFromTempFolder(fileName = "${fileName}");
@@ -91,7 +89,7 @@ definition {
 			experienceName = "NewAnyoneExperience",
 			segmentName = "Anyone");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
 
@@ -105,8 +103,8 @@ definition {
 		Translations.assertFileNameFromTempFolder(pageName = "TranslationContentPage");
 
 		AntCommand(
-			locator1 = "build-test.xml",
-			value1 = "unzip-temp-file -DfileName=TranslationContentPage-en_US.zip");
+			locator1 = "build-test-translation.xml",
+			value1 = "unzip-translation-file -DfileName=TranslationContentPage-en_US.zip");
 
 		for (var fileName : list "TranslationContentPage (NewAnyoneExperience)-en_US-ja_JP.xlf,TranslationContentPage (NewAnyoneExperience)-en_US-es_ES.xlf") {
 			DMDocument.assertFileNameFromTempFolder(fileName = "${fileName}");
@@ -133,7 +131,7 @@ definition {
 			experienceName = "NewAnyoneExperience",
 			segmentName = "Anyone");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
 
@@ -146,10 +144,151 @@ definition {
 		Translations.assertFileNameFromTempFolder(pageName = "TranslationContentPage");
 
 		AntCommand(
-			locator1 = "build-test.xml",
-			value1 = "unzip-temp-file -DfileName=TranslationContentPage-en_US.zip");
+			locator1 = "build-test-translation.xml",
+			value1 = "unzip-translation-file -DfileName=TranslationContentPage-en_US.zip");
 
-		for (var fileName : list "TranslationContentPage-en_US-ja_JP.xlf,TranslationContentPage-en_US-es_ES.xlf,TranslationContentPage (NewAnyoneExperience)-en_US-ja_JP.xlf,TranslationContentPage (NewAnyoneExperience)-en_US-es_ES.xlf") {
+		for (var fileName : list "TranslationContentPage (Default)-en_US-ja_JP.xlf,TranslationContentPage (Default)-en_US-es_ES.xlf,TranslationContentPage (NewAnyoneExperience)-en_US-ja_JP.xlf,TranslationContentPage (NewAnyoneExperience)-en_US-es_ES.xlf") {
+			DMDocument.assertFileNameFromTempFolder(fileName = "${fileName}");
+		}
+	}
+
+	@description = "This ensures that user can choose to export all experiences when exporting translation for multiple content pages."
+	@priority = "5"
+	test CanExportMultiplePagesAllWithNewExperiences {
+		property custom.properties = "feature.flag.LPS-142736=true";
+		property portal.acceptance = "false";
+
+		for (var i : list "1,2") {
+			JSONLayout.addPublicLayout(
+				groupName = "Guest",
+				layoutName = "Translation Content Page${i}",
+				type = "content");
+
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Translation Content Page${i}",
+				siteName = "Guest");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "HTML");
+
+			PageEditor.addExperience(
+				experienceName = "NewAnyoneExperience",
+				segmentName = "Anyone");
+
+			PageEditor.publish();
+		}
+
+		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
+
+		Translations.gotoBulkExportTranslation(exportTranslationEntry = "Translation Content Page1,Translation Content Page2");
+
+		Translations.exportTranslation(
+			defaultLanguage = "English (United States)",
+			languageList = "Japanese (Japan)",
+			multiplePageExperiencesSelector = "All Experiences");
+
+		Translations.assertFileNameFromTempFolder(pageName = "Segments Experience Translations-en_US");
+
+		Translations.unzipTranslationFile(fileName = "Segments Experience Translations-en_US.zip");
+
+		for (var fileName : list "Translation Content Page1 (Default)-en_US-ja_JP.xlf,Translation Content Page2 (Default)-en_US-ja_JP.xlf,Translation Content Page1 (NewAnyoneExperience)-en_US-ja_JP.xlf,Translation Content Page2 (NewAnyoneExperience)-en_US-ja_JP.xlf") {
+			DMDocument.assertFileNameFromTempFolder(fileName = "${fileName}");
+		}
+	}
+
+	@description = "This ensures that experiences selector shows up when exporting translation for multiple content pages which is at least one page with new experiences."
+	@priority = "5"
+	test CanExportMultiplePagesNotAllWithNewExperiences {
+		property custom.properties = "feature.flag.LPS-142736=true";
+		property portal.acceptance = "false";
+
+		for (var i : list "1,2") {
+			JSONLayout.addPublicLayout(
+				groupName = "Guest",
+				layoutName = "Translation Content Page${i}",
+				type = "content");
+
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Translation Content Page${i}",
+				siteName = "Guest");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "HTML");
+
+			PageEditor.publish();
+		}
+
+		ContentPagesNavigator.openEditContentPage(
+			pageName = "Translation Content Page1",
+			siteName = "Guest");
+
+		PageEditor.addExperience(
+			experienceName = "NewAnyoneExperience",
+			segmentName = "Anyone");
+
+		PageEditor.publish();
+
+		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
+
+		Translations.gotoBulkExportTranslation(exportTranslationEntry = "Translation Content Page1,Translation Content Page2");
+
+		Translations.exportTranslation(
+			defaultLanguage = "English (United States)",
+			languageList = "Japanese (Japan)",
+			multiplePageExperiencesSelector = "All Experiences");
+
+		Translations.assertFileNameFromTempFolder(pageName = "Segments Experience Translations-en_US");
+
+		Translations.unzipTranslationFile(fileName = "Segments Experience Translations-en_US.zip");
+
+		for (var fileName : list "Translation Content Page1 (Default)-en_US-ja_JP.xlf,Translation Content Page1 (NewAnyoneExperience)-en_US-ja_JP.xlf,Translation Content Page2 (Default)-en_US-ja_JP.xlf") {
+			DMDocument.assertFileNameFromTempFolder(fileName = "${fileName}");
+		}
+	}
+
+	@description = "This ensures that user can choose to export only the default experience when exporting translation for multiple content pages."
+	@priority = "5"
+	test CanExportMultiplePagesWithDefaultExperiences {
+		property custom.properties = "feature.flag.LPS-142736=true";
+		property portal.acceptance = "false";
+
+		for (var i : list "1,2") {
+			JSONLayout.addPublicLayout(
+				groupName = "Guest",
+				layoutName = "Translation Content Page${i}",
+				type = "content");
+
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Translation Content Page${i}",
+				siteName = "Guest");
+
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "HTML");
+
+			PageEditor.addExperience(
+				experienceName = "NewAnyoneExperience",
+				segmentName = "Anyone");
+
+			PageEditor.publish();
+		}
+
+		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
+
+		Translations.gotoBulkExportTranslation(exportTranslationEntry = "Translation Content Page1,Translation Content Page2");
+
+		Translations.exportTranslation(
+			defaultLanguage = "English (United States)",
+			languageList = "Japanese (Japan),Spanish (Spain)",
+			multiplePageExperiencesSelector = "true");
+
+		Translations.assertFileNameFromTempFolder(pageName = "Page Translations-en_US");
+
+		Translations.unzipTranslationFile(fileName = "Page Translations-en_US.zip");
+
+		for (var fileName : list "Translation Content Page1-en_US-es_ES.xlf,Translation Content Page2-en_US-es_ES.xlf,Translation Content Page1-en_US-ja_JP.xlf,Translation Content Page2-en_US-ja_JP.xlf") {
 			DMDocument.assertFileNameFromTempFolder(fileName = "${fileName}");
 		}
 	}
@@ -157,8 +296,7 @@ definition {
 	@description = "This ensures that Users can select multiple available languages when exporting multiple content pages for translation."
 	@priority = "5"
 	test CanExportMultiplePagesWithMultipleLanguages {
-		property osgi.module.configuration.file.names = "com.liferay.layout.admin.web.internal.configuration.FFBulkTranslationConfiguration.config";
-		property osgi.module.configurations = "bulkTranslationEnabled=&quot;true&quot;";
+		property custom.properties = "feature.flag.LPS-142736=true";
 		property portal.acceptance = "false";
 
 		for (var i : list "1,2,3") {
@@ -175,7 +313,7 @@ definition {
 				collectionName = "Basic Components",
 				fragmentName = "HTML");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
@@ -184,7 +322,8 @@ definition {
 
 		Translations.exportTranslation(
 			defaultLanguage = "English (United States)",
-			languageList = "Arabic (Saudi Arabia),Chinese (China),Japanese (Japan),Spanish (Spain)");
+			languageList = "Arabic (Saudi Arabia),Chinese (China),Japanese (Japan),Spanish (Spain)",
+			noMultiplePageExperiencesSelector = "true");
 
 		Translations.assertFileNameFromTempFolder(pageName = "Page Translations-en_US");
 	}
@@ -205,7 +344,7 @@ definition {
 			collectionName = "Basic Components",
 			fragmentName = "Paragraph");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
 
@@ -234,7 +373,7 @@ definition {
 			collectionName = "Basic Components",
 			fragmentName = "Heading");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
 
@@ -269,7 +408,7 @@ definition {
 			id = "element-text",
 			text = "Heading");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
 
@@ -319,7 +458,7 @@ definition {
 			fragmentName = "Heading",
 			id = "element-text");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		ContentPagesNavigator.openViewContentPage(
 			pageName = "TranslationContentPage",
@@ -361,7 +500,7 @@ definition {
 			id = "element-text",
 			text = "Heading");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
 
@@ -401,7 +540,7 @@ definition {
 			fragmentName = "Heading",
 			id = "element-text");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		ContentPagesNavigator.openViewContentPage(
 			pageName = "TranslationContentPage",
@@ -449,7 +588,7 @@ definition {
 			id = "element-text",
 			text = "Heading");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
 
@@ -479,7 +618,7 @@ definition {
 			pageName = "TranslationContentPage",
 			siteName = "Guest");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		ContentPagesNavigator.openViewContentPage(
 			pageName = "TranslationContentPage",
@@ -509,8 +648,6 @@ definition {
 	@description = "This ensures that the translation files contains multiple content pages can be imported from a zip."
 	@priority = "5"
 	test CanImportMultiplePages {
-		property osgi.module.configuration.file.names = "com.liferay.layout.admin.web.internal.configuration.FFBulkTranslationConfiguration.config";
-		property osgi.module.configurations = "bulkTranslationEnabled=&quot;true&quot;";
 		property portal.acceptance = "false";
 
 		for (var i : list "1,2") {
@@ -532,7 +669,7 @@ definition {
 				fragmentName = "HTML",
 				id = "element-html");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
@@ -637,8 +774,6 @@ definition {
 	@description = "This ensures that user can select multiple Xlf files when importing translations for multiple content pages."
 	@priority = "5"
 	test CanImportMultipleXlfFiles {
-		property osgi.module.configuration.file.names = "com.liferay.layout.admin.web.internal.configuration.FFBulkTranslationConfiguration.config:com.liferay.translation.web.internal.configuration.FFBulkTranslationConfiguration.config";
-		property osgi.module.configurations = "bulkTranslationEnabled=&quot;true&quot;:enabled=B&quot;true&quot;";
 		property portal.acceptance = "false";
 
 		for (var i : list "1,2") {
@@ -660,7 +795,7 @@ definition {
 				fragmentName = "HTML",
 				id = "element-html");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
@@ -752,8 +887,6 @@ definition {
 	@description = "This ensures that user can select multiple zip files when importing translations for multiple content pages with different experience."
 	@priority = "5"
 	test CanImportMultipleZipFilesWithExperiences {
-		property osgi.module.configuration.file.names = "com.liferay.layout.admin.web.internal.configuration.FFBulkTranslationConfiguration.config:com.liferay.translation.web.internal.configuration.FFBulkTranslationConfiguration.config";
-		property osgi.module.configurations = "bulkTranslationEnabled=&quot;true&quot;:enabled=B&quot;true&quot;";
 		property portal.acceptance = "false";
 
 		for (var i : list "1,2") {
@@ -786,7 +919,7 @@ definition {
 				id = "element-text",
 				text = "HeadingExperience");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		for (var i : list "1,2") {
@@ -817,7 +950,7 @@ definition {
 				fragmentContent = "Heading",
 				fragmentContentTranslation = "Headinges_ES",
 				operation = "zip",
-				translationFileName = "TranslationContentPage${i}-en_US-es_ES",
+				translationFileName = "TranslationContentPage${i} (Default)-en_US-es_ES",
 				translationZipFileName = "TranslationContentPage${i}-en_US");
 		}
 
@@ -834,7 +967,7 @@ definition {
 				pageName = "TranslationContentPage${i}",
 				siteName = "Guest");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "TranslationContentPage${i}",
@@ -889,8 +1022,8 @@ definition {
 			languageList = "Spanish (Spain)");
 
 		AntCommand(
-			locator1 = "build-test.xml",
-			value1 = "unzip-temp-file -DfileName=TranslationContentPage1-en_US.zip");
+			locator1 = "build-test-translation.xml",
+			value1 = "unzip-translation-file -DfileName=TranslationContentPage1-en_US.zip");
 
 		Translations.importTranslation(
 			contentPageTranslation = "true",
@@ -924,7 +1057,7 @@ definition {
 			experienceName = "NewAnyoneExperience",
 			segmentName = "Anyone");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
 
@@ -936,8 +1069,8 @@ definition {
 			languageList = "Spanish (Spain)");
 
 		AntCommand(
-			locator1 = "build-test.xml",
-			value1 = "unzip-temp-file -DfileName=TranslationContentPage-en_US.zip");
+			locator1 = "build-test-translation.xml",
+			value1 = "unzip-translation-file -DfileName=TranslationContentPage-en_US.zip");
 
 		ContentPagesNavigator.openEditContentPage(
 			pageName = "TranslationContentPage",
@@ -945,7 +1078,7 @@ definition {
 
 		PageEditor.deleteExperience(experienceName = "NewAnyoneExperience");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
 
@@ -964,8 +1097,6 @@ definition {
 	@description = "This ensures that only the valid translation files can be imported from xlf and zip files."
 	@priority = "5"
 	test CanPartiallyImportMultipleFiles {
-		property osgi.module.configuration.file.names = "com.liferay.layout.admin.web.internal.configuration.FFBulkTranslationConfiguration.config:com.liferay.translation.web.internal.configuration.FFBulkTranslationConfiguration.config";
-		property osgi.module.configurations = "bulkTranslationEnabled=&quot;true&quot;:enabled=B&quot;true&quot;";
 		property portal.acceptance = "false";
 
 		for (var i : list "1,2,3") {
@@ -987,7 +1118,7 @@ definition {
 				id = "element-text",
 				text = "Heading");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
@@ -1059,7 +1190,7 @@ definition {
 			translationZipFileName = "TranslationContentPage3-en_US");
 
 		AntCommand(
-			locator1 = "build-test.xml",
+			locator1 = "build-test-translation.xml",
 			value1 = "copy-translation-file -Dtranslation.zip.file.name=TranslationContentPage3-en_US -Dtranslation.file.name=TranslationContentPage3-en_US-es_ES.xlf");
 
 		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
@@ -1139,7 +1270,7 @@ definition {
 			id = "element-text",
 			text = "Heading");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
 
@@ -1192,7 +1323,7 @@ definition {
 			pageName = "TranslationContentPage",
 			siteName = "Guest");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		ContentPagesNavigator.openViewContentPage(
 			pageName = "TranslationContentPage",
@@ -1232,7 +1363,7 @@ definition {
 			id = "link",
 			text = "Title");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
 
@@ -1281,7 +1412,7 @@ definition {
 			fragmentName = "Button",
 			id = "link");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		ContentPagesNavigator.openViewContentPage(
 			pageName = "TranslationContentPage",
@@ -1323,7 +1454,7 @@ definition {
 			fragmentName = "HTML",
 			id = "element-html");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
 
@@ -1365,7 +1496,7 @@ definition {
 			fragmentName = "HTML",
 			id = "element-html");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		ContentPagesNavigator.openViewContentPage(
 			pageName = "TranslationContentPage",
@@ -1389,8 +1520,6 @@ definition {
 	@description = "This ensures that users can view the info of the unsuccessfully imported content page translations in the downloaded CSV report."
 	@priority = "5"
 	test CanViewUnsuccessfullyImportedTranslationsInfoInDownloadedCSVReport {
-		property osgi.module.configuration.file.names = "com.liferay.translation.web.internal.configuration.FFBulkTranslationConfiguration.config";
-		property osgi.module.configurations = "enabled=B&quot;true&quot;";
 		property portal.acceptance = "false";
 
 		JSONLayout.addPublicLayout(
@@ -1411,7 +1540,7 @@ definition {
 			id = "element-text",
 			text = "Heading");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
 
@@ -1450,13 +1579,14 @@ definition {
 
 		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
 
-		Translations.importTranslation(
+		var errorReportName = Translations.importTranslation(
 			downloadCSVErrorReport = "true",
 			fileName = "ContentPage-en_US_translated.zip",
 			filePath = "",
 			pageName = "ContentPage");
 
 		Translations.viewCSVErrorReport(
+			errorReportName = "${errorReportName}",
 			reportContent = "ContentPage-en_US-es_ES.xlf,The translation file does not correspond to this page.,ContentPage-en_US_translated.zip",
 			viewNoSuccessfullyImportedTranslation = "ContentPage-en_US-ja_JP");
 	}
@@ -1464,8 +1594,6 @@ definition {
 	@description = "This ensures that only the default experiences are exported when exporting multiple content pages for translation."
 	@priority = "4"
 	test OnlyDefaultExperiencesExportedWhenExportingMultiplePages {
-		property osgi.module.configuration.file.names = "com.liferay.layout.admin.web.internal.configuration.FFBulkTranslationConfiguration.config";
-		property osgi.module.configurations = "bulkTranslationEnabled=&quot;true&quot;";
 		property portal.acceptance = "false";
 
 		for (var i : list "1,2") {
@@ -1486,7 +1614,7 @@ definition {
 				experienceName = "NewAnyoneExperience",
 				segmentName = "Anyone");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
@@ -1504,8 +1632,8 @@ definition {
 		var fileName = StringUtil.replace("Page Translations-en_US.zip", " ", "*");
 
 		AntCommand(
-			locator1 = "build-test.xml",
-			value1 = "unzip-temp-file -DfileName=${fileName}");
+			locator1 = "build-test-translation.xml",
+			value1 = "unzip-translation-file -DfileName=${fileName}");
 
 		for (var fileName : list "TranslationContentPage1-en_US-es_ES.xlf,TranslationContentPage2-en_US-es_ES.xlf") {
 			DMDocument.assertFileNameFromTempFolder(fileName = "${fileName}");
@@ -1537,7 +1665,7 @@ definition {
 			id = "element-text",
 			text = "Heading");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
 
@@ -1631,7 +1759,7 @@ definition {
 			fragmentName = "Heading",
 			id = "element-text");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		ContentPagesNavigator.openViewContentPage(
 			pageName = "ContentPage",

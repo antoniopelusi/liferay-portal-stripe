@@ -30,13 +30,13 @@ export default function StateNode({
 	return (
 		<BaseNode
 			actions={actions}
-			className="state-node"
 			description={description}
 			descriptionSidebar={descriptionSidebar}
 			icon="circle"
 			id={id}
 			label={label}
 			newNode={newNode}
+			nodeTypeClassName="state-node"
 			notifications={notifications}
 			type="state"
 			{...otherProps}

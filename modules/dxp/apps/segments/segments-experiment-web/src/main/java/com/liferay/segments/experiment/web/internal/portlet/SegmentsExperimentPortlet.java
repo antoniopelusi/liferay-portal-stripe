@@ -65,7 +65,8 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.display-name=Segments Experiment",
 		"javax.portlet.init-param.view-template=/view.jsp",
 		"javax.portlet.name=" + SegmentsPortletKeys.SEGMENTS_EXPERIMENT,
-		"javax.portlet.resource-bundle=content.Language"
+		"javax.portlet.resource-bundle=content.Language",
+		"javax.portlet.version=3.0"
 	},
 	service = {Portlet.class, SegmentsExperimentPortlet.class}
 )
@@ -98,7 +99,7 @@ public class SegmentsExperimentPortlet extends MVCPortlet {
 
 		SegmentsExperimentDisplayContext segmentsExperimentDisplayContext =
 			new SegmentsExperimentDisplayContext(
-				httpServletRequest, _layoutLocalService, _portal,
+				httpServletRequest, _layoutLocalService, _portal, renderRequest,
 				renderResponse, _segmentsExperienceService,
 				_segmentsExperimentConfiguration,
 				new SegmentsExperienceManager(_segmentsExperienceLocalService),

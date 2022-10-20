@@ -23,6 +23,7 @@ import com.liferay.headless.admin.taxonomy.client.problem.Problem;
 import com.liferay.headless.admin.taxonomy.client.serdes.v1_0.KeywordSerDes;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
@@ -44,13 +45,13 @@ public interface KeywordResource {
 	}
 
 	public Page<Keyword> getAssetLibraryKeywordsPage(
-			Long assetLibraryId, String search, String filterString,
-			Pagination pagination, String sortString)
+			Long assetLibraryId, String search, List<String> aggregations,
+			String filterString, Pagination pagination, String sortString)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse getAssetLibraryKeywordsPageHttpResponse(
-			Long assetLibraryId, String search, String filterString,
-			Pagination pagination, String sortString)
+			Long assetLibraryId, String search, List<String> aggregations,
+			String filterString, Pagination pagination, String sortString)
 		throws Exception;
 
 	public Keyword postAssetLibraryKeyword(Long assetLibraryId, Keyword keyword)
@@ -137,13 +138,13 @@ public interface KeywordResource {
 		throws Exception;
 
 	public Page<Keyword> getSiteKeywordsPage(
-			Long siteId, String search, String filterString,
-			Pagination pagination, String sortString)
+			Long siteId, String search, List<String> aggregations,
+			String filterString, Pagination pagination, String sortString)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse getSiteKeywordsPageHttpResponse(
-			Long siteId, String search, String filterString,
-			Pagination pagination, String sortString)
+			Long siteId, String search, List<String> aggregations,
+			String filterString, Pagination pagination, String sortString)
 		throws Exception;
 
 	public Keyword postSiteKeyword(Long siteId, Keyword keyword)
@@ -188,6 +189,12 @@ public interface KeywordResource {
 
 		public KeywordResource build() {
 			return new KeywordResourceImpl(this);
+		}
+
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
 		}
 
 		public Builder endpoint(String host, int port, String scheme) {
@@ -235,6 +242,7 @@ public interface KeywordResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -249,14 +257,14 @@ public interface KeywordResource {
 	public static class KeywordResourceImpl implements KeywordResource {
 
 		public Page<Keyword> getAssetLibraryKeywordsPage(
-				Long assetLibraryId, String search, String filterString,
-				Pagination pagination, String sortString)
+				Long assetLibraryId, String search, List<String> aggregations,
+				String filterString, Pagination pagination, String sortString)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
 				getAssetLibraryKeywordsPageHttpResponse(
-					assetLibraryId, search, filterString, pagination,
-					sortString);
+					assetLibraryId, search, aggregations, filterString,
+					pagination, sortString);
 
 			String content = httpResponse.getContent();
 
@@ -296,8 +304,8 @@ public interface KeywordResource {
 		}
 
 		public HttpInvoker.HttpResponse getAssetLibraryKeywordsPageHttpResponse(
-				Long assetLibraryId, String search, String filterString,
-				Pagination pagination, String sortString)
+				Long assetLibraryId, String search, List<String> aggregations,
+				String filterString, Pagination pagination, String sortString)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
@@ -342,7 +350,7 @@ public interface KeywordResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-taxonomy/v1.0/asset-libraries/{assetLibraryId}/keywords");
 
 			httpInvoker.path("assetLibraryId", assetLibraryId);
@@ -426,7 +434,7 @@ public interface KeywordResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-taxonomy/v1.0/asset-libraries/{assetLibraryId}/keywords");
 
 			httpInvoker.path("assetLibraryId", assetLibraryId);
@@ -506,7 +514,7 @@ public interface KeywordResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-taxonomy/v1.0/asset-libraries/{assetLibraryId}/keywords/batch");
 
 			httpInvoker.path("assetLibraryId", assetLibraryId);
@@ -594,7 +602,7 @@ public interface KeywordResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-taxonomy/v1.0/asset-libraries/{assetLibraryId}/keywords/permissions");
 
 			httpInvoker.path("assetLibraryId", assetLibraryId);
@@ -688,7 +696,7 @@ public interface KeywordResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-taxonomy/v1.0/asset-libraries/{assetLibraryId}/keywords/permissions");
 
 			httpInvoker.path("assetLibraryId", assetLibraryId);
@@ -785,7 +793,7 @@ public interface KeywordResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-taxonomy/v1.0/keywords/ranked");
 
 			httpInvoker.userNameAndPassword(
@@ -862,7 +870,7 @@ public interface KeywordResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-taxonomy/v1.0/keywords/{keywordId}");
 
 			httpInvoker.path("keywordId", keywordId);
@@ -939,7 +947,7 @@ public interface KeywordResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-taxonomy/v1.0/keywords/batch");
 
 			httpInvoker.userNameAndPassword(
@@ -1015,7 +1023,7 @@ public interface KeywordResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-taxonomy/v1.0/keywords/{keywordId}");
 
 			httpInvoker.path("keywordId", keywordId);
@@ -1098,7 +1106,7 @@ public interface KeywordResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-taxonomy/v1.0/keywords/{keywordId}");
 
 			httpInvoker.path("keywordId", keywordId);
@@ -1175,7 +1183,7 @@ public interface KeywordResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-taxonomy/v1.0/keywords/batch");
 
 			httpInvoker.userNameAndPassword(
@@ -1252,7 +1260,7 @@ public interface KeywordResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-taxonomy/v1.0/keywords/{keywordId}/subscribe");
 
 			httpInvoker.path("keywordId", keywordId);
@@ -1331,7 +1339,7 @@ public interface KeywordResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-taxonomy/v1.0/keywords/{keywordId}/unsubscribe");
 
 			httpInvoker.path("keywordId", keywordId);
@@ -1343,13 +1351,14 @@ public interface KeywordResource {
 		}
 
 		public Page<Keyword> getSiteKeywordsPage(
-				Long siteId, String search, String filterString,
-				Pagination pagination, String sortString)
+				Long siteId, String search, List<String> aggregations,
+				String filterString, Pagination pagination, String sortString)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
 				getSiteKeywordsPageHttpResponse(
-					siteId, search, filterString, pagination, sortString);
+					siteId, search, aggregations, filterString, pagination,
+					sortString);
 
 			String content = httpResponse.getContent();
 
@@ -1389,8 +1398,8 @@ public interface KeywordResource {
 		}
 
 		public HttpInvoker.HttpResponse getSiteKeywordsPageHttpResponse(
-				Long siteId, String search, String filterString,
-				Pagination pagination, String sortString)
+				Long siteId, String search, List<String> aggregations,
+				String filterString, Pagination pagination, String sortString)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
@@ -1435,7 +1444,7 @@ public interface KeywordResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-taxonomy/v1.0/sites/{siteId}/keywords");
 
 			httpInvoker.path("siteId", siteId);
@@ -1518,7 +1527,7 @@ public interface KeywordResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-taxonomy/v1.0/sites/{siteId}/keywords");
 
 			httpInvoker.path("siteId", siteId);
@@ -1596,7 +1605,7 @@ public interface KeywordResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-taxonomy/v1.0/sites/{siteId}/keywords/batch");
 
 			httpInvoker.path("siteId", siteId);
@@ -1683,7 +1692,7 @@ public interface KeywordResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-taxonomy/v1.0/sites/{siteId}/keywords/permissions");
 
 			httpInvoker.path("siteId", siteId);
@@ -1776,7 +1785,7 @@ public interface KeywordResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-taxonomy/v1.0/sites/{siteId}/keywords/permissions");
 
 			httpInvoker.path("siteId", siteId);

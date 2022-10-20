@@ -26,7 +26,9 @@ taglib uri="http://liferay.com/tld/commerce-product" prefix="liferay-commerce-pr
 taglib uri="http://liferay.com/tld/commerce-ui" prefix="commerce-ui" %><%@
 taglib uri="http://liferay.com/tld/ddm" prefix="liferay-ddm" %><%@
 taglib uri="http://liferay.com/tld/frontend" prefix="liferay-frontend" %><%@
+taglib uri="http://liferay.com/tld/frontend-data-set" prefix="frontend-data-set" %><%@
 taglib uri="http://liferay.com/tld/portlet" prefix="liferay-portlet" %><%@
+taglib uri="http://liferay.com/tld/react" prefix="react" %><%@
 taglib uri="http://liferay.com/tld/soy" prefix="soy" %><%@
 taglib uri="http://liferay.com/tld/template" prefix="liferay-template" %><%@
 taglib uri="http://liferay.com/tld/theme" prefix="liferay-theme" %><%@
@@ -35,6 +37,7 @@ taglib uri="http://liferay.com/tld/util" prefix="liferay-util" %>
 
 <%@ page import="com.liferay.asset.kernel.exception.DuplicateQueryRuleException" %><%@
 page import="com.liferay.commerce.account.model.CommerceAccount" %><%@
+page import="com.liferay.commerce.constants.CPDefinitionInventoryConstants" %><%@
 page import="com.liferay.commerce.constants.CommerceWebKeys" %><%@
 page import="com.liferay.commerce.context.CommerceContext" %><%@
 page import="com.liferay.commerce.model.CommerceOrder" %><%@
@@ -50,6 +53,7 @@ page import="com.liferay.commerce.product.content.util.CPContentHelper" %><%@
 page import="com.liferay.commerce.product.content.util.CPMedia" %><%@
 page import="com.liferay.commerce.product.content.web.internal.constants.CPCompareContentConstants" %><%@
 page import="com.liferay.commerce.product.content.web.internal.constants.CPCompareContentMiniConstants" %><%@
+page import="com.liferay.commerce.product.content.web.internal.constants.CPContentFDSNames" %><%@
 page import="com.liferay.commerce.product.content.web.internal.constants.CPContentPortletConstants" %><%@
 page import="com.liferay.commerce.product.content.web.internal.constants.CPPublisherConstants" %><%@
 page import="com.liferay.commerce.product.content.web.internal.display.context.CPCompareContentDisplayContext" %><%@
@@ -57,7 +61,6 @@ page import="com.liferay.commerce.product.content.web.internal.display.context.C
 page import="com.liferay.commerce.product.content.web.internal.display.context.CPContentConfigurationDisplayContext" %><%@
 page import="com.liferay.commerce.product.content.web.internal.display.context.CPPublisherConfigurationDisplayContext" %><%@
 page import="com.liferay.commerce.product.content.web.internal.display.context.CPPublisherDisplayContext" %><%@
-page import="com.liferay.commerce.product.content.web.internal.frontend.constants.CPContentDataSetConstants" %><%@
 page import="com.liferay.commerce.product.content.web.internal.portlet.CPCompareContentMiniPortlet" %><%@
 page import="com.liferay.commerce.product.content.web.internal.portlet.CPCompareContentPortlet" %><%@
 page import="com.liferay.commerce.product.content.web.internal.portlet.CPContentPortlet" %><%@
@@ -69,10 +72,15 @@ page import="com.liferay.commerce.product.model.CPInstance" %><%@
 page import="com.liferay.commerce.product.model.CPOptionCategory" %><%@
 page import="com.liferay.commerce.product.model.CPSpecificationOption" %><%@
 page import="com.liferay.commerce.product.type.CPType" %><%@
+page import="com.liferay.commerce.product.type.grouped.constants.GroupedCPTypeWebKeys" %><%@
+page import="com.liferay.commerce.product.type.grouped.util.GroupedCPTypeHelper" %><%@
+page import="com.liferay.commerce.product.type.virtual.constants.VirtualCPTypeWebKeys" %><%@
+page import="com.liferay.commerce.product.type.virtual.util.VirtualCPTypeHelper" %><%@
 page import="com.liferay.commerce.util.CommerceUtil" %><%@
 page import="com.liferay.petra.string.StringPool" %><%@
 page import="com.liferay.portal.kernel.dao.search.ResultRow" %><%@
 page import="com.liferay.portal.kernel.dao.search.SearchContainer" %><%@
+page import="com.liferay.portal.kernel.frontend.icons.FrontendIconsUtil" %><%@
 page import="com.liferay.portal.kernel.language.LanguageUtil" %><%@
 page import="com.liferay.portal.kernel.util.Constants" %><%@
 page import="com.liferay.portal.kernel.util.FastDateFormatFactoryUtil" %><%@

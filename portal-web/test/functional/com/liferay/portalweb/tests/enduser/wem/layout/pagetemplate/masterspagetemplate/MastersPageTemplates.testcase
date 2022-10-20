@@ -70,16 +70,14 @@ definition {
 			PageEditor.gotoStyle(fragmentName = "Button");
 
 			PageEditor.configureFragment(
-				alignment = "Center",
+				alignment = "Align Center",
 				backgroundColor = "Gray 300");
 
 			PageEditor.viewFragmentStyle(
 				backgroundColor = "gray-300",
-				fragmentName = "button");
+				fragmentName = "Button");
 
-			Button.click(button = "Publish Master");
-
-			Alert.viewSuccessMessage();
+			MastersPageTemplates.publishMaster();
 		}
 
 		task ("Assert custom masters as an option when add a new page") {
@@ -96,13 +94,21 @@ definition {
 				locator1 = "PageEditor#FRAGMENT_INHERITED_FROM_CUSTOM_MASTERS");
 
 			PageEditor.viewFragmentStyle(
-				fragmentName = "button",
+				fragmentName = "Button",
 				size = "lg",
 				type = "link");
 
-			AssertElementPresent(locator1 = "//div[contains(@class,'fragment-content--master')][contains(@class,'text-center')][//div[contains(@class,'component-button')]]");
+			AssertCssValue(
+				key_fragmentName = "button",
+				locator1 = "PageEditor#FRAGMENT_INHERITED_FROM_CUSTOM_MASTERS",
+				locator2 = "text-align",
+				value1 = "center");
 
-			AssertElementPresent(locator1 = "//div[contains(@class,'fragment-content--master')][contains(@style,'color: var(--gray-300)')][//div[contains(@class,'component-button')]]");
+			AssertCssValue(
+				key_fragmentName = "button",
+				locator1 = "PageEditor#FRAGMENT_INHERITED_FROM_CUSTOM_MASTERS",
+				locator2 = "background-color",
+				value1 = "rgba(231, 231, 237, 1)");
 		}
 	}
 
@@ -162,9 +168,7 @@ definition {
 				fragmentName = "Footer Nav Dark",
 				scope = "Master");
 
-			Button.click(button = "Publish Master");
-
-			Alert.viewSuccessMessage();
+			MastersPageTemplates.publishMaster();
 		}
 
 		task ("Add a content page based on custom master") {
@@ -180,7 +184,7 @@ definition {
 				collectionName = "Basic Components",
 				fragmentName = "Heading");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Assert the elements are shown in view mode") {
@@ -246,9 +250,7 @@ definition {
 				fragmentName = "Footer Nav Dark",
 				scope = "Master");
 
-			Button.click(button = "Publish Master");
-
-			Alert.viewSuccessMessage();
+			MastersPageTemplates.publishMaster();
 		}
 
 		task ("Add a content page based on Blank") {
@@ -267,10 +269,9 @@ definition {
 
 			Click(locator1 = "PageEditor#MORE_LINK");
 
-			AssertTextEquals(
+			AssertElementPresent(
 				key_masterLayoutName = "Blank",
-				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME",
-				value1 = "Blank");
+				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME");
 
 			AssertClick(
 				key_text = "Change Master",
@@ -279,10 +280,9 @@ definition {
 
 			MastersPageTemplates.selectMaster(masterLayoutName = "Custom Masters Page Template");
 
-			AssertTextEquals(
+			AssertElementPresent(
 				key_masterLayoutName = "Custom Masters Page Template",
-				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME",
-				value1 = "Custom Masters Page Template");
+				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME");
 
 			AssertElementNotPresent(
 				key_sectionTitle = "Theme",
@@ -306,7 +306,7 @@ definition {
 				key_type = "dark",
 				locator1 = "PageEditor#FOOTERS");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a content page based on custom master") {
@@ -322,10 +322,9 @@ definition {
 
 			Click(locator1 = "PageEditor#MORE_LINK");
 
-			AssertTextEquals(
+			AssertElementPresent(
 				key_masterLayoutName = "Custom Masters Page Template",
-				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME",
-				value1 = "Custom Masters Page Template");
+				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME");
 
 			AssertVisible(
 				key_text = "Edit Master",
@@ -338,16 +337,15 @@ definition {
 
 			MastersPageTemplates.selectMaster(masterLayoutName = "Blank");
 
-			AssertTextEquals(
+			AssertElementPresent(
 				key_masterLayoutName = "Blank",
-				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME",
-				value1 = "Blank");
+				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME");
 
 			AssertVisible(
 				key_sectionTitle = "Theme",
 				locator1 = "PagesAdmin#SECTION_TITLE");
 
-			AssertNotVisible(
+			AssertElementNotPresent(
 				key_text = "Edit Master",
 				locator1 = "Button#ANY");
 
@@ -387,9 +385,7 @@ definition {
 				fragmentName = "Footer Nav Dark",
 				scope = "Master");
 
-			Button.click(button = "Publish Master");
-
-			Alert.viewSuccessMessage();
+			MastersPageTemplates.publishMaster();
 		}
 
 		task ("Add a page template collection") {
@@ -420,10 +416,9 @@ definition {
 
 			Click(locator1 = "PageEditor#MORE_LINK");
 
-			AssertTextEquals(
+			AssertElementPresent(
 				key_masterLayoutName = "Blank",
-				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME",
-				value1 = "Blank");
+				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME");
 
 			AssertClick(
 				key_text = "Change Master",
@@ -432,10 +427,9 @@ definition {
 
 			MastersPageTemplates.selectMaster(masterLayoutName = "Custom Masters Page Template");
 
-			AssertTextEquals(
+			AssertElementPresent(
 				key_masterLayoutName = "Custom Masters Page Template",
-				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME",
-				value1 = "Custom Masters Page Template");
+				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME");
 
 			AssertElementNotPresent(
 				key_sectionTitle = "Theme",
@@ -459,7 +453,7 @@ definition {
 				key_type = "dark",
 				locator1 = "PageEditor#FOOTERS");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a content page template based on custom master") {
@@ -485,10 +479,9 @@ definition {
 
 			Click(locator1 = "PageEditor#MORE_LINK");
 
-			AssertTextEquals(
+			AssertElementPresent(
 				key_masterLayoutName = "Custom Masters Page Template",
-				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME",
-				value1 = "Custom Masters Page Template");
+				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME");
 
 			AssertVisible(
 				key_text = "Edit Master",
@@ -501,16 +494,15 @@ definition {
 
 			MastersPageTemplates.selectMaster(masterLayoutName = "Blank");
 
-			AssertTextEquals(
+			AssertElementPresent(
 				key_masterLayoutName = "Blank",
-				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME",
-				value1 = "Blank");
+				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME");
 
 			AssertVisible(
 				key_sectionTitle = "Theme",
 				locator1 = "PagesAdmin#SECTION_TITLE");
 
-			AssertNotVisible(
+			AssertElementNotPresent(
 				key_text = "Edit Master",
 				locator1 = "Button#ANY");
 
@@ -536,9 +528,7 @@ definition {
 		task ("Add a page based on custom master") {
 			MastersPageTemplatesAdmin.gotoMasters(masterLayoutName = "Custom Masters Page Template");
 
-			Button.click(button = "Publish Master");
-
-			Alert.viewSuccessMessage();
+			MastersPageTemplates.publishMaster();
 
 			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
 
@@ -556,7 +546,7 @@ definition {
 		}
 
 		task ("Type content in the HTML Title field") {
-			Navigator.gotoEditPageViaControlMenu(pageName = "Test Page Name");
+			LexiconEntry.gotoHeaderMenuItem(menuItem = "Configure");
 
 			Navigator.gotoNavTab(navTab = "SEO");
 
@@ -600,9 +590,7 @@ definition {
 				fragmentName = "Footer Nav Dark",
 				scope = "Master");
 
-			Button.click(button = "Publish Master");
-
-			Alert.viewSuccessMessage();
+			MastersPageTemplates.publishMaster();
 		}
 
 		task ("Add a display page template based on Blank") {
@@ -622,10 +610,9 @@ definition {
 
 			Click(locator1 = "PageEditor#MORE_LINK");
 
-			AssertTextEquals(
+			AssertElementPresent(
 				key_masterLayoutName = "Blank",
-				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME",
-				value1 = "Blank");
+				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME");
 
 			AssertClick(
 				key_text = "Change Master",
@@ -634,10 +621,9 @@ definition {
 
 			MastersPageTemplates.selectMaster(masterLayoutName = "Custom Masters Page Template");
 
-			AssertTextEquals(
+			AssertElementPresent(
 				key_masterLayoutName = "Custom Masters Page Template",
-				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME",
-				value1 = "Custom Masters Page Template");
+				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME");
 
 			AssertElementNotPresent(
 				key_sectionTitle = "Theme",
@@ -661,7 +647,7 @@ definition {
 				key_type = "dark",
 				locator1 = "PageEditor#FOOTERS");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a display page template based on custom masters") {
@@ -682,10 +668,9 @@ definition {
 
 			Click(locator1 = "PageEditor#MORE_LINK");
 
-			AssertTextEquals(
+			AssertElementPresent(
 				key_masterLayoutName = "Custom Masters Page Template",
-				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME",
-				value1 = "Custom Masters Page Template");
+				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME");
 
 			AssertVisible(
 				key_text = "Edit Master",
@@ -698,16 +683,15 @@ definition {
 
 			MastersPageTemplates.selectMaster(masterLayoutName = "Blank");
 
-			AssertTextEquals(
+			AssertElementPresent(
 				key_masterLayoutName = "Blank",
-				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME",
-				value1 = "Blank");
+				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME");
 
 			AssertVisible(
 				key_sectionTitle = "Theme",
 				locator1 = "PagesAdmin#SECTION_TITLE");
 
-			AssertNotVisible(
+			AssertElementNotPresent(
 				key_text = "Edit Master",
 				locator1 = "Button#ANY");
 
@@ -747,9 +731,7 @@ definition {
 				fragmentName = "Footer Nav Dark",
 				scope = "Master");
 
-			Button.click(button = "Publish Master");
-
-			Alert.viewSuccessMessage();
+			MastersPageTemplates.publishMaster();
 		}
 
 		task ("Add a widget page") {
@@ -767,10 +749,9 @@ definition {
 
 			Navigator.gotoNavTab(navTab = "Look and Feel");
 
-			AssertTextEquals(
+			AssertElementPresent(
 				key_masterLayoutName = "Blank",
-				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME",
-				value1 = "Blank");
+				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME");
 
 			AssertClick(
 				key_text = "Change Master",
@@ -779,10 +760,9 @@ definition {
 
 			MastersPageTemplates.selectMaster(masterLayoutName = "Custom Masters Page Template");
 
-			AssertTextEquals(
+			AssertElementPresent(
 				key_masterLayoutName = "Custom Masters Page Template",
-				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME",
-				value1 = "Custom Masters Page Template");
+				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME");
 
 			AssertElementNotPresent(
 				key_sectionTitle = "Theme",
@@ -818,10 +798,9 @@ definition {
 
 			Navigator.gotoNavTab(navTab = "Look and Feel");
 
-			AssertTextEquals(
+			AssertElementPresent(
 				key_masterLayoutName = "Custom Masters Page Template",
-				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME",
-				value1 = "Custom Masters Page Template");
+				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME");
 
 			AssertVisible(
 				key_text = "Edit Master",
@@ -834,16 +813,15 @@ definition {
 
 			MastersPageTemplates.selectMaster(masterLayoutName = "Blank");
 
-			AssertTextEquals(
+			AssertElementPresent(
 				key_masterLayoutName = "Blank",
-				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME",
-				value1 = "Blank");
+				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME");
 
 			AssertVisible(
 				key_sectionTitle = "Theme",
 				locator1 = "PagesAdmin#SECTION_TITLE");
 
-			AssertNotVisible(
+			AssertElementNotPresent(
 				key_text = "Edit Master",
 				locator1 = "Button#ANY");
 
@@ -885,9 +863,7 @@ definition {
 				fragmentName = "Footer Nav Dark",
 				scope = "Master");
 
-			Button.click(button = "Publish Master");
-
-			Alert.viewSuccessMessage();
+			MastersPageTemplates.publishMaster();
 		}
 
 		task ("Add a page template collection") {
@@ -916,14 +892,13 @@ definition {
 		}
 
 		task ("Assert can change master from Blank to custom master") {
-			Click.pauseClickAt(locator1 = "ControlMenu#EDIT_COG");
+			Click(locator1 = "ControlMenu#EDIT_COG");
 
 			Navigator.gotoNavTab(navTab = "Look and Feel");
 
-			AssertTextEquals(
+			AssertElementPresent(
 				key_masterLayoutName = "Blank",
-				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME",
-				value1 = "Blank");
+				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME");
 
 			AssertClick(
 				key_text = "Change Master",
@@ -932,10 +907,9 @@ definition {
 
 			MastersPageTemplates.selectMaster(masterLayoutName = "Custom Masters Page Template");
 
-			AssertTextEquals(
+			AssertElementPresent(
 				key_masterLayoutName = "Custom Masters Page Template",
-				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME",
-				value1 = "Custom Masters Page Template");
+				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME");
 
 			AssertElementNotPresent(
 				key_sectionTitle = "Theme",
@@ -967,14 +941,15 @@ definition {
 
 			PageTemplatesAdmin.gotoPageTemplate(pageTemplateName = "Page Template Name");
 
-			Click.pauseClickAt(locator1 = "ControlMenu#EDIT_COG");
+			WaitForPageLoad();
+
+			Click(locator1 = "ControlMenu#EDIT_COG");
 
 			Navigator.gotoNavTab(navTab = "Look and Feel");
 
-			AssertTextEquals(
+			AssertElementPresent(
 				key_masterLayoutName = "Custom Masters Page Template",
-				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME",
-				value1 = "Custom Masters Page Template");
+				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME");
 
 			AssertVisible(
 				key_text = "Edit Master",
@@ -987,16 +962,15 @@ definition {
 
 			MastersPageTemplates.selectMaster(masterLayoutName = "Blank");
 
-			AssertTextEquals(
+			AssertElementPresent(
 				key_masterLayoutName = "Blank",
-				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME",
-				value1 = "Blank");
+				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME");
 
 			AssertVisible(
 				key_sectionTitle = "Theme",
 				locator1 = "PagesAdmin#SECTION_TITLE");
 
-			AssertNotVisible(
+			AssertElementNotPresent(
 				key_text = "Edit Master",
 				locator1 = "Button#ANY");
 
@@ -1153,7 +1127,7 @@ definition {
 				masterLayoutName = "Custom Masters Page Template",
 				pageName = "Test Page Name 1");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a page based on the second custom master") {
@@ -1163,7 +1137,7 @@ definition {
 				masterLayoutName = "Custom Masters Page Template 2",
 				pageName = "Test Page Name 2");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a collection and frgament to the colletion") {
@@ -1227,7 +1201,7 @@ definition {
 				masterLayoutName = "Custom Masters Page Template",
 				pageName = "Test Page Name");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Assert the only Heading fragment exist in page editor sidebar") {
@@ -1275,7 +1249,7 @@ definition {
 		task ("Wait for page load and All the fragments in Basic Components are visible") {
 			WaitForPageLoad();
 
-			PageEditor.gotoTab(tabName = "Fragments");
+			Navigator.gotoNavTab(navTab = "Fragments");
 
 			PageEditor.expandFragmentCollection(collectionName = "Basic Components");
 
@@ -1306,9 +1280,7 @@ definition {
 				fragmentName = "Footer Nav Dark",
 				scope = "Master");
 
-			Button.click(button = "Publish Master");
-
-			Alert.viewSuccessMessage();
+			MastersPageTemplates.publishMaster();
 		}
 
 		task ("Add a content page based on custom master") {
@@ -1381,9 +1353,7 @@ definition {
 				fragmentName = "Footer Nav Dark",
 				scope = "Master");
 
-			Button.click(button = "Publish Master");
-
-			Alert.viewSuccessMessage();
+			MastersPageTemplates.publishMaster();
 		}
 
 		task ("Add a widget page and Add an Asset Publisher and Web Content Display portlet to page ") {
@@ -1430,10 +1400,9 @@ definition {
 
 			MastersPageTemplates.selectMaster(masterLayoutName = "Custom Masters Page Template");
 
-			AssertTextEquals(
+			AssertElementPresent(
 				key_masterLayoutName = "Custom Masters Page Template",
-				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME",
-				value1 = "Custom Masters Page Template");
+				locator1 = "PagesAdmin#MASTER_LAYOUT_NAME");
 
 			Button.clickSave();
 
@@ -1564,9 +1533,7 @@ definition {
 				portletName = "Asset Publisher",
 				scope = "Master");
 
-			Button.click(button = "Publish Master");
-
-			Alert.viewSuccessMessage();
+			MastersPageTemplates.publishMaster();
 		}
 
 		task ("Add a content page based on custom master") {
@@ -1644,9 +1611,7 @@ definition {
 				fragmentName = "Heading",
 				index = "1");
 
-			Button.click(button = "Publish Master");
-
-			Alert.viewSuccessMessage();
+			MastersPageTemplates.publishMaster();
 		}
 
 		task ("Add a new content page and use created master page") {
@@ -1747,9 +1712,7 @@ definition {
 				portletName = "Asset Publisher",
 				scope = "Master");
 
-			Button.click(button = "Publish Master");
-
-			Alert.viewSuccessMessage();
+			MastersPageTemplates.publishMaster();
 		}
 
 		task ("Assert elements inherited from custom masters are changeless") {
@@ -1843,9 +1806,7 @@ definition {
 
 			Portlet.saveAndCloseConfig();
 
-			Button.click(button = "Publish Master");
-
-			Alert.viewSuccessMessage();
+			MastersPageTemplates.publishMaster();
 		}
 
 		task ("Add a page based on custom masters") {
@@ -1859,7 +1820,7 @@ definition {
 				key_tab = "Liferay",
 				locator1 = "NavTab#TAB_LINK");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View the Liferay item is shown in page") {
@@ -1897,7 +1858,7 @@ definition {
 				key_tab = "Liferay",
 				locator1 = "NavTab#TAB_LINK");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a display page template based on custom masters") {
@@ -1916,7 +1877,7 @@ definition {
 				key_tab = "Liferay",
 				locator1 = "NavTab#TAB_LINK");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Edit the master page") {

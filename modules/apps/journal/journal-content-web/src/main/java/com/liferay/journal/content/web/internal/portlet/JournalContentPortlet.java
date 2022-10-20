@@ -16,6 +16,7 @@ package com.liferay.journal.content.web.internal.portlet;
 
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.model.DDMTemplate;
+import com.liferay.item.selector.ItemSelector;
 import com.liferay.journal.constants.JournalContentPortletKeys;
 import com.liferay.journal.constants.JournalWebKeys;
 import com.liferay.journal.content.web.internal.display.context.JournalContentDisplayContext;
@@ -25,7 +26,7 @@ import com.liferay.journal.service.JournalArticleLocalService;
 import com.liferay.journal.util.ExportArticleHelper;
 import com.liferay.journal.util.JournalContent;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Release;
@@ -133,7 +134,7 @@ public class JournalContentPortlet extends MVCPortlet {
 		}
 		else if ((articleGroupId > 0) && Validator.isNotNull(articleId)) {
 			String viewMode = ParamUtil.getString(renderRequest, "viewMode");
-			String languageId = LanguageUtil.getLanguageId(renderRequest);
+			String languageId = _language.getLanguageId(renderRequest);
 			int page = ParamUtil.getInteger(renderRequest, "page", 1);
 
 			article = _journalArticleLocalService.fetchLatestArticle(
@@ -193,7 +194,7 @@ public class JournalContentPortlet extends MVCPortlet {
 		try {
 			JournalContentDisplayContext.create(
 				renderRequest, renderResponse, _CLASS_NAME_ID,
-				_ddmTemplateModelResourcePermission);
+				_ddmTemplateModelResourcePermission, _itemSelector);
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
@@ -250,7 +251,7 @@ public class JournalContentPortlet extends MVCPortlet {
 			try {
 				JournalContentDisplayContext.create(
 					resourceRequest, resourceResponse, _CLASS_NAME_ID,
-					_ddmTemplateModelResourcePermission);
+					_ddmTemplateModelResourcePermission, _itemSelector);
 			}
 			catch (PortalException portalException) {
 				if (_log.isDebugEnabled()) {
@@ -285,10 +286,16 @@ public class JournalContentPortlet extends MVCPortlet {
 	private ExportArticleHelper _exportArticleHelper;
 
 	@Reference
+	private ItemSelector _itemSelector;
+
+	@Reference
 	private JournalArticleLocalService _journalArticleLocalService;
 
 	@Reference
 	private JournalContent _journalContent;
+
+	@Reference
+	private Language _language;
 
 	@Reference
 	private TrashEntryService _trashEntryService;

@@ -15,6 +15,7 @@
 package com.liferay.commerce.notification.internal.upgrade.v2_2_1;
 
 import com.liferay.commerce.product.model.CommerceChannel;
+import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
@@ -45,32 +46,30 @@ public class CommerceNotificationTemplateGroupIdUpgradeProcess
 
 			ResultSet resultSet = s.executeQuery(
 				"select commerceNotificationTemplateId, groupId from " +
-					"CommerceNotificationTemplate")) {
-
-			PreparedStatement preparedStatement = null;
+					"CommerceNotificationTemplate");
+			PreparedStatement preparedStatement =
+				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
+					connection,
+					"update CommerceNotificationTemplate set groupId = ? " +
+						"where commerceNotificationTemplateId = ?")) {
 
 			while (resultSet.next()) {
-				long groupId = resultSet.getLong("groupId");
-
 				long commerceChannelGroupId =
-					_getCommerceChannelGroupIdBySiteGroupId(groupId);
+					_getCommerceChannelGroupIdBySiteGroupId(
+						resultSet.getLong("groupId"));
 
 				if (commerceChannelGroupId == 0) {
 					continue;
 				}
 
-				long commerceNotificationTemplateId = resultSet.getLong(
-					"commerceNotificationTemplateId");
-
-				preparedStatement = connection.prepareStatement(
-					"update CommerceNotificationTemplate set groupId = ? " +
-						"where commerceNotificationTemplateId = ?");
-
 				preparedStatement.setLong(1, commerceChannelGroupId);
-				preparedStatement.setLong(2, commerceNotificationTemplateId);
+				preparedStatement.setLong(
+					2, resultSet.getLong("commerceNotificationTemplateId"));
 
-				preparedStatement.executeUpdate();
+				preparedStatement.addBatch();
 			}
+
+			preparedStatement.executeBatch();
 		}
 	}
 

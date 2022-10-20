@@ -52,6 +52,7 @@ const STATE = {
 			},
 		},
 	},
+	permissions: {UPDATE: true},
 	segmentsExperienceId: '0',
 	selectedViewportSize: 'desktop',
 };
@@ -82,19 +83,6 @@ const renderComponent = ({
 			</ResizeContextProvider>
 		</StoreAPIContextProvider>
 	);
-
-jest.mock(
-	'../../../../../../../../../src/main/resources/META-INF/resources/page_editor/app/config',
-	() => ({
-		config: {
-			availableViewportSizes: {
-				desktop: {label: 'Desktop'},
-				landscapeMobile: {label: 'landscapeMobile'},
-			},
-			commonStyles: [],
-		},
-	})
-);
 
 jest.mock(
 	'../../../../../../../../../src/main/resources/META-INF/resources/page_editor/app/thunks/updateItemConfig',

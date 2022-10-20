@@ -40,7 +40,7 @@
 	<#assign useCache = "useFinderCache && productionMode" />
 </#if>
 
-<#if entity.hasUuid() && osgiModule && serviceBuilder.isVersionGTE_7_4_0()>
+<#if osgiModule && serviceBuilder.isVersionGTE_7_4_0() && entity.hasUuid()>
 	<#assign
 		portalUUID = "_portalUUID"
 	/>
@@ -820,6 +820,16 @@ public class ${entity.name}PersistenceImpl extends BasePersistenceImpl<${entity.
 			}
 		</#if>
 
+		<#if entity.hasExternalReferenceCode() || entity.hasEntityColumn("externalReferenceCode")>
+			if (Validator.isNull(${entity.variableName}.getExternalReferenceCode())) {
+				<#if entity.hasUuid()>
+					${entity.variableName}.setExternalReferenceCode(${entity.variableName}.getUuid());
+				<#else>
+					${entity.variableName}.setExternalReferenceCode(String.valueOf(${entity.variableName}.getPrimaryKey()));
+				</#if>
+			}
+		</#if>
+
 		<#if entity.hasEntityColumn("createDate", "Date") && entity.hasEntityColumn("modifiedDate", "Date")>
 			ServiceContext serviceContext = ServiceContextThreadLocal.getServiceContext();
 
@@ -1242,7 +1252,11 @@ public class ${entity.name}PersistenceImpl extends BasePersistenceImpl<${entity.
 		 */
 		@Override
 		public ${entity.name} fetchByPrimaryKey(Serializable primaryKey) {
-			if (${ctPersistenceHelper}.isProductionMode(${entity.name}.class)) {
+			<#if serviceBuilder.isVersionGTE_7_3_0()>
+				if (${ctPersistenceHelper}.isProductionMode(${entity.name}.class, primaryKey)) {
+			<#else>
+				if (${ctPersistenceHelper}.isProductionMode(${entity.name}.class)) {
+			</#if>
 				return super.fetchByPrimaryKey(primaryKey);
 			}
 

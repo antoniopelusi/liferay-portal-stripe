@@ -1,10 +1,9 @@
 @component-name = "portal-commerce"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "true";
 	property portal.upstream = "true";
+	property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 	property testray.main.component.name = "Order Management";
 
 	setUp {
@@ -73,11 +72,7 @@ definition {
 
 		Refresh();
 
-		CommerceNavigator.gotoMiniCart();
-
-		Button.click(button = "View Details");
-
-		Button.click(button = "Checkout");
+		CommerceCheckout.gotoCheckout();
 
 		CommerceCheckout.initializersCheckout(
 			newAddressAddress = "Test Address",
@@ -101,7 +96,9 @@ definition {
 			category = "Order Management",
 			portlet = "Orders");
 
-		Pause(locator1 = "3000");
+		WaitForElementPresent(
+			key_orderStatus = "Pending",
+			locator1 = "CommerceOrders#ORDER_ELLIPSIS_BY_STATUS");
 
 		ClickNoError(
 			key_orderStatus = "Pending",
@@ -122,14 +119,14 @@ definition {
 		Select(
 			key_fieldLabel = "Payment Status",
 			locator1 = "Select#GENERIC_SELECT_FIELD",
-			value1 = "Cancelled");
+			value1 = "Canceled");
 
 		Button.click(button = "Submit");
 
 		Refresh();
 
 		AssertElementPresent(
-			key_filterOption = "Cancelled",
+			key_filterOption = "Canceled",
 			locator1 = "AppBuilder#CHOOSE_APP_SEARCH_FILTER_BY_OPTION");
 	}
 
@@ -165,11 +162,7 @@ definition {
 			productName = "U-Joint",
 			productQuantity = "1");
 
-		CommerceNavigator.gotoMiniCart();
-
-		Button.click(button = "View Details");
-
-		Button.click(button = "Checkout");
+		CommerceCheckout.gotoCheckout();
 
 		CommerceCheckout.initializersCheckout(
 			newAddressAddress = "Test Address",

@@ -30,7 +30,7 @@ jest.mock(
 	'../../../../src/main/resources/META-INF/resources/ServiceProvider/index'
 );
 
-describe('MiniCart Utils', () => {
+describe('MiniCart tests_utilities', () => {
 	describe('hasErrors', () => {
 		it('returns true if at least one cart item contains error messages', () => {
 			const CART_ITEMS = [

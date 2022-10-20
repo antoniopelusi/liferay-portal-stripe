@@ -243,8 +243,6 @@ definition {
 	@description = "Add a vocabulary for Bookmarks Entry."
 	@priority = "3"
 	test AddVocabularyForBookmarksEntry {
-		property portal.release = "false";
-
 		task ("Add a vocabulary for Bookmarks Entry") {
 			Category.openCategoriesAdmin(siteURLKey = "test-site-name");
 
@@ -510,6 +508,10 @@ definition {
 
 			PortletEntry.inputTitle(title = "${modifiedText}");
 
+			AssertTextEquals(
+				locator1 = "TextInput#TITLE",
+				value1 = "${modifiedText}");
+
 			PortletEntry.save();
 		}
 
@@ -710,7 +712,7 @@ definition {
 			Category.moveViaEditCP(
 				categoryName = "Category Name",
 				vocabularyName = "Vocabulary Name",
-				vocabularyName2 = "Vocabulary Name 2");
+				vocabularyName2 = "Vocabulary Name 2 (Test Site Name)");
 		}
 
 		task ("View the category is moved to another vocabulary") {
@@ -940,6 +942,53 @@ definition {
 			Category.viewPath(
 				categoryName = "Subcategory Name",
 				path = "Vocabulary Name > Category Name > Subcategory Name");
+		}
+	}
+
+	@description = "This is a test for LPS-145292. The user could view new icons on dropdown menu of categories admin."
+	@priority = "4"
+	test ViewDropdownMenuIconsInCategoriesAdmin {
+		task ("Given a Categories creator has a category within a vocabulary") {
+			JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Category Name",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("When the Categories creator opens the dropdown menu of Vocabularies") {
+			Category.openCategoriesAdmin(siteURLKey = "test-site-name");
+
+			Click.waitForMenuToggleJSClick(locator1 = "NavNested#NAV_NESTED_ELLIPSIS");
+		}
+
+		task ("Then the Categories creator can see the new icon on the dropdown menu") {
+			DropdownMenuItem.viewIcon(iconList = "trash");
+		}
+
+		task ("When the Categories creator opens the dropdown menu of new vocabulary") {
+			Click.waitForMenuToggleJSClick(locator1 = "Icon#BODY_VERTICAL_ELLIPSIS");
+		}
+
+		task ("Then the Categories creator can see the new icons on the dropdown menu") {
+			DropdownMenuItem.viewIcon(iconList = "pencil,password-policies,trash");
+		}
+
+		task ("When the  Categories creator opens the dropdown menu of category") {
+			LexiconEntry.openEntryMenu(rowEntry = "Category Name");
+		}
+
+		task ("Then the Categories creator can see the new icons on the dropdown menu") {
+			DropdownMenuItem.viewIcon(iconList = "pencil,move-folder,password-policies,trash");
+		}
+
+		task ("When the Categories creator opens the dropdown menu of management toolbar after selecting the category") {
+			ManagementBar.clickSelectAllCheckbox();
+
+			Click(locator1 = "ManagementBar#MORE_ACTIONS_ELLIPSIS");
+		}
+
+		task ("Then the Categories creator can see the new icons on the dropdown menu") {
+			DropdownMenuItem.viewIcon(iconList = "page,trash");
 		}
 	}
 

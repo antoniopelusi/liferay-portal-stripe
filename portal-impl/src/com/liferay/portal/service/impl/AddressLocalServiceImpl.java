@@ -68,27 +68,6 @@ import java.util.List;
  */
 public class AddressLocalServiceImpl extends AddressLocalServiceBaseImpl {
 
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
-	 *             #addAddress(String, long, String, long, String, String,
-	 *             String, String, String, String, String, long, long, long,
-	 *             boolean, boolean, String, ServiceContext)}
-	 */
-	@Deprecated
-	@Override
-	public Address addAddress(
-			long userId, String className, long classPK, String street1,
-			String street2, String street3, String city, String zip,
-			long regionId, long countryId, long typeId, boolean mailing,
-			boolean primary, ServiceContext serviceContext)
-		throws PortalException {
-
-		return addressLocalService.addAddress(
-			null, userId, className, classPK, null, null, street1, street2,
-			street3, city, zip, regionId, countryId, typeId, mailing, primary,
-			null, serviceContext);
-	}
-
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public Address addAddress(
@@ -148,12 +127,12 @@ public class AddressLocalServiceImpl extends AddressLocalServiceBaseImpl {
 		Address address = addressPersistence.findByPrimaryKey(addressId);
 
 		return addressLocalService.addAddress(
-			address.getExternalReferenceCode(), serviceContext.getUserId(),
-			className, classPK, address.getName(), address.getDescription(),
-			address.getStreet1(), address.getStreet2(), address.getStreet3(),
-			address.getCity(), address.getZip(), address.getRegionId(),
-			address.getCountryId(), address.getTypeId(), address.isMailing(),
-			address.isPrimary(), address.getPhoneNumber(), serviceContext);
+			null, serviceContext.getUserId(), className, classPK,
+			address.getName(), address.getDescription(), address.getStreet1(),
+			address.getStreet2(), address.getStreet3(), address.getCity(),
+			address.getZip(), address.getRegionId(), address.getCountryId(),
+			address.getTypeId(), address.isMailing(), address.isPrimary(),
+			address.getPhoneNumber(), serviceContext);
 	}
 
 	@Indexable(type = IndexableType.DELETE)

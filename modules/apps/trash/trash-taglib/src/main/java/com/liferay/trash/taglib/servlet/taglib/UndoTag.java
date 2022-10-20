@@ -16,11 +16,13 @@ package com.liferay.trash.taglib.servlet.taglib;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.TrashedModel;
 import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.trash.TrashHandler;
+import com.liferay.portal.kernel.trash.TrashHandlerRegistryUtil;
 import com.liferay.portal.kernel.trash.TrashRenderer;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.JavaConstants;
@@ -122,14 +124,23 @@ public class UndoTag extends IncludeTag {
 
 		for (TrashedModel trashedModel : trashedModels) {
 			try {
+				if (!(trashedModel instanceof BaseModel)) {
+					continue;
+				}
+
 				TrashEntry trashEntry = trashedModel.getTrashEntry();
 
-				TrashHandler trashHandler = trashedModel.getTrashHandler();
+				restoreTrashEntryIds.add(trashEntry.getEntryId());
+
+				BaseModel<?> baseModel = (BaseModel<?>)trashedModel;
+
+				TrashHandler trashHandler =
+					TrashHandlerRegistryUtil.getTrashHandler(
+						baseModel.getModelClassName());
 
 				TrashRenderer trashRenderer = trashHandler.getTrashRenderer(
 					trashedModel.getTrashEntryClassPK());
 
-				restoreTrashEntryIds.add(trashEntry.getEntryId());
 				titles.add(trashRenderer.getTitle(themeDisplay.getLocale()));
 			}
 			catch (Exception exception) {

@@ -15,28 +15,62 @@
 package com.liferay.portal.util;
 
 import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.module.util.SystemBundleUtil;
+import com.liferay.portal.kernel.portlet.InvokerPortlet;
 import com.liferay.portal.kernel.security.auth.AlwaysAllowDoAsUser;
+import com.liferay.portal.kernel.servlet.DummyHttpServletResponse;
+import com.liferay.portal.kernel.servlet.DynamicServletRequest;
 import com.liferay.portal.kernel.servlet.PersistentHttpServletRequestWrapper;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.upgrade.MockPortletPreferences;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HttpComponentsUtil;
+import com.liferay.portal.kernel.util.LayoutTypePortletFactoryUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.ProxyFactory;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.model.impl.LayoutImpl;
+import com.liferay.portal.model.impl.PortletAppImpl;
+import com.liferay.portal.model.impl.PortletImpl;
+import com.liferay.portal.model.impl.UserImpl;
 import com.liferay.portal.test.log.LogCapture;
 import com.liferay.portal.test.log.LoggerTestUtil;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
+import com.liferay.portal.theme.ThemeDisplayFactory;
+import com.liferay.portlet.ActionRequestFactory;
+import com.liferay.portlet.ActionResponseFactory;
+import com.liferay.portlet.internal.MutableRenderParametersImpl;
+import com.liferay.portlet.internal.RenderParametersImpl;
+import com.liferay.portlet.test.MockLiferayPortletContext;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 
+import javax.portlet.ActionRequest;
+import javax.portlet.ActionResponse;
+import javax.portlet.PortletException;
+import javax.portlet.PortletMode;
+import javax.portlet.RenderParameters;
+import javax.portlet.WindowState;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
+
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -51,6 +85,51 @@ public class PortalImplUnitTest {
 	@ClassRule
 	public static LiferayUnitTestRule liferayUnitTestRule =
 		LiferayUnitTestRule.INSTANCE;
+
+	@Test
+	public void testCopyRequestParametersWithoutPassword1Password2()
+		throws PortletException {
+
+		Map<String, String[]> params = _createParams();
+
+		ActionRequest actionRequest = _createActionRequest(params);
+
+		MockedStatic<PortalUtil> portalUtilMockStatic = Mockito.mockStatic(
+			PortalUtil.class);
+
+		ActionResponse actionResponse = _createActionResponse(
+			portalUtilMockStatic);
+
+		_portalImpl.copyRequestParameters(actionRequest, actionResponse);
+
+		portalUtilMockStatic.close();
+
+		_assertActionResponse(actionResponse, params);
+	}
+
+	@Test
+	public void testCopyRequestParametersWithPassword1Password2()
+		throws PortletException {
+
+		Map<String, String[]> params = _createParams();
+
+		params.put("password1", new String[] {"abc_123"});
+		params.put("password2", new String[] {"def_456"});
+
+		ActionRequest actionRequest = _createActionRequest(params);
+
+		MockedStatic<PortalUtil> portalUtilMockStatic = Mockito.mockStatic(
+			PortalUtil.class);
+
+		ActionResponse actionResponse = _createActionResponse(
+			portalUtilMockStatic);
+
+		_portalImpl.copyRequestParameters(actionRequest, actionResponse);
+
+		portalUtilMockStatic.close();
+
+		_assertActionResponse(actionResponse, params);
+	}
 
 	@Test
 	public void testGetForwardedHost() {
@@ -673,6 +752,25 @@ public class PortalImplUnitTest {
 		ReflectionTestUtil.setFieldValue(PropsValues.class, fieldName, value);
 	}
 
+	private void _assertActionResponse(
+		ActionResponse actionResponse, Map<String, String[]> params) {
+
+		MutableRenderParametersImpl mutableRenderParametersImpl =
+			(MutableRenderParametersImpl)actionResponse.getRenderParameters();
+
+		Assert.assertEquals(
+			mutableRenderParametersImpl.getValues("redirect")[0],
+			params.get("redirect")[0]);
+		Assert.assertEquals(
+			mutableRenderParametersImpl.getValues("p_u_i_d")[0],
+			params.get("p_u_i_d")[0]);
+		Assert.assertEquals(
+			mutableRenderParametersImpl.getValues("passwordReset")[0],
+			params.get("passwordReset")[0]);
+		Assert.assertNull(mutableRenderParametersImpl.getValues("password1"));
+		Assert.assertNull(mutableRenderParametersImpl.getValues("password2"));
+	}
+
 	private void _assertGetHost(String httpHostHeader, String host) {
 		MockHttpServletRequest mockHttpServletRequest =
 			new MockHttpServletRequest();
@@ -680,6 +778,88 @@ public class PortalImplUnitTest {
 		mockHttpServletRequest.addHeader("Host", httpHostHeader);
 
 		Assert.assertEquals(host, _portalImpl.getHost(mockHttpServletRequest));
+	}
+
+	private ActionRequest _createActionRequest(Map<String, String[]> params) {
+		ActionRequest actionRequest = Mockito.mock(ActionRequest.class);
+
+		RenderParameters renderParameters = new RenderParametersImpl(
+			params, null, StringPool.BLANK);
+
+		Mockito.when(
+			actionRequest.getRenderParameters()
+		).thenReturn(
+			renderParameters
+		);
+
+		return actionRequest;
+	}
+
+	private ActionRequest _createActionRequest(PortletMode portletMode) {
+		MockHttpServletRequest mockHttpServletRequest =
+			new MockHttpServletRequest();
+
+		HttpServletRequest httpServletRequest = new DynamicServletRequest(
+			mockHttpServletRequest, new HashMap<>());
+
+		ThemeDisplay themeDisplay = ThemeDisplayFactory.create();
+
+		httpServletRequest.setAttribute(WebKeys.THEME_DISPLAY, themeDisplay);
+
+		Portlet portlet = new PortletImpl(100L, "test_portlet");
+
+		portlet.setPortletApp(new PortletAppImpl("test_servlet_context"));
+
+		return ActionRequestFactory.create(
+			httpServletRequest, portlet,
+			ProxyFactory.newDummyInstance(InvokerPortlet.class),
+			new MockLiferayPortletContext("/path"), WindowState.NORMAL,
+			portletMode, new MockPortletPreferences(), 4000L);
+	}
+
+	private ActionResponse _createActionResponse(
+			MockedStatic<PortalUtil> portalUtilMockStatic)
+		throws PortletException {
+
+		HttpServletResponse httpServletResponse =
+			new DummyHttpServletResponse();
+
+		LayoutTypePortletFactoryUtil layoutTypePortletFactoryUtil =
+			new LayoutTypePortletFactoryUtil();
+
+		layoutTypePortletFactoryUtil.setLayoutTypePortletFactory(
+			new LayoutTypePortletFactoryImpl());
+
+		portalUtilMockStatic.when(
+			() -> PortalUtil.updateWindowState(
+				Mockito.anyString(), Mockito.any(UserImpl.class),
+				Mockito.any(LayoutImpl.class), Mockito.any(WindowState.class),
+				Mockito.any(HttpServletRequest.class))
+		).thenReturn(
+			WindowState.NORMAL
+		);
+
+		PortletMode portletMode = Mockito.mock(PortletMode.class);
+
+		Mockito.doReturn(
+			null
+		).when(
+			portletMode
+		).toString();
+
+		return ActionResponseFactory.create(
+			_createActionRequest(portletMode), httpServletResponse,
+			new UserImpl(), new LayoutImpl());
+	}
+
+	private Map<String, String[]> _createParams() {
+		return HashMapBuilder.put(
+			"p_u_i_d", new String[] {String.valueOf(4200L)}
+		).put(
+			"passwordReset", new String[] {Boolean.TRUE.toString()}
+		).put(
+			"redirect", new String[] {"http://localhost:8080/test"}
+		).build();
 	}
 
 	private final PortalImpl _portalImpl = new PortalImpl();

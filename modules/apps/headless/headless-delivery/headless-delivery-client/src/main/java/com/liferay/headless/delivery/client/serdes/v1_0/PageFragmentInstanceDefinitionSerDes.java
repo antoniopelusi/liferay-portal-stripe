@@ -14,6 +14,7 @@
 
 package com.liferay.headless.delivery.client.serdes.v1_0;
 
+import com.liferay.headless.delivery.client.dto.v1_0.CustomCSSViewport;
 import com.liferay.headless.delivery.client.dto.v1_0.FragmentField;
 import com.liferay.headless.delivery.client.dto.v1_0.FragmentViewport;
 import com.liferay.headless.delivery.client.dto.v1_0.PageFragmentInstanceDefinition;
@@ -62,6 +63,80 @@ public class PageFragmentInstanceDefinitionSerDes {
 		StringBuilder sb = new StringBuilder();
 
 		sb.append("{");
+
+		if (pageFragmentInstanceDefinition.getCssClasses() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"cssClasses\": ");
+
+			sb.append("[");
+
+			for (int i = 0;
+				 i < pageFragmentInstanceDefinition.getCssClasses().length;
+				 i++) {
+
+				sb.append("\"");
+
+				sb.append(
+					_escape(pageFragmentInstanceDefinition.getCssClasses()[i]));
+
+				sb.append("\"");
+
+				if ((i + 1) <
+						pageFragmentInstanceDefinition.getCssClasses().length) {
+
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
+		}
+
+		if (pageFragmentInstanceDefinition.getCustomCSS() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"customCSS\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(pageFragmentInstanceDefinition.getCustomCSS()));
+
+			sb.append("\"");
+		}
+
+		if (pageFragmentInstanceDefinition.getCustomCSSViewports() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"customCSSViewports\": ");
+
+			sb.append("[");
+
+			for (int i = 0;
+				 i <
+					 pageFragmentInstanceDefinition.
+						 getCustomCSSViewports().length;
+				 i++) {
+
+				sb.append(
+					String.valueOf(
+						pageFragmentInstanceDefinition.getCustomCSSViewports()
+							[i]));
+
+				if ((i + 1) < pageFragmentInstanceDefinition.
+						getCustomCSSViewports().length) {
+
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
+		}
 
 		if (pageFragmentInstanceDefinition.getFragment() != null) {
 			if (sb.length() > 1) {
@@ -165,6 +240,20 @@ public class PageFragmentInstanceDefinitionSerDes {
 			sb.append(pageFragmentInstanceDefinition.getIndexed());
 		}
 
+		if (pageFragmentInstanceDefinition.getName() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"name\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(pageFragmentInstanceDefinition.getName()));
+
+			sb.append("\"");
+		}
+
 		if (pageFragmentInstanceDefinition.getWidgetInstances() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -214,6 +303,34 @@ public class PageFragmentInstanceDefinitionSerDes {
 		}
 
 		Map<String, String> map = new TreeMap<>();
+
+		if (pageFragmentInstanceDefinition.getCssClasses() == null) {
+			map.put("cssClasses", null);
+		}
+		else {
+			map.put(
+				"cssClasses",
+				String.valueOf(pageFragmentInstanceDefinition.getCssClasses()));
+		}
+
+		if (pageFragmentInstanceDefinition.getCustomCSS() == null) {
+			map.put("customCSS", null);
+		}
+		else {
+			map.put(
+				"customCSS",
+				String.valueOf(pageFragmentInstanceDefinition.getCustomCSS()));
+		}
+
+		if (pageFragmentInstanceDefinition.getCustomCSSViewports() == null) {
+			map.put("customCSSViewports", null);
+		}
+		else {
+			map.put(
+				"customCSSViewports",
+				String.valueOf(
+					pageFragmentInstanceDefinition.getCustomCSSViewports()));
+		}
 
 		if (pageFragmentInstanceDefinition.getFragment() == null) {
 			map.put("fragment", null);
@@ -273,6 +390,15 @@ public class PageFragmentInstanceDefinitionSerDes {
 				String.valueOf(pageFragmentInstanceDefinition.getIndexed()));
 		}
 
+		if (pageFragmentInstanceDefinition.getName() == null) {
+			map.put("name", null);
+		}
+		else {
+			map.put(
+				"name",
+				String.valueOf(pageFragmentInstanceDefinition.getName()));
+		}
+
 		if (pageFragmentInstanceDefinition.getWidgetInstances() == null) {
 			map.put("widgetInstances", null);
 		}
@@ -304,7 +430,34 @@ public class PageFragmentInstanceDefinitionSerDes {
 			PageFragmentInstanceDefinition pageFragmentInstanceDefinition,
 			String jsonParserFieldName, Object jsonParserFieldValue) {
 
-			if (Objects.equals(jsonParserFieldName, "fragment")) {
+			if (Objects.equals(jsonParserFieldName, "cssClasses")) {
+				if (jsonParserFieldValue != null) {
+					pageFragmentInstanceDefinition.setCssClasses(
+						toStrings((Object[])jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "customCSS")) {
+				if (jsonParserFieldValue != null) {
+					pageFragmentInstanceDefinition.setCustomCSS(
+						(String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(
+						jsonParserFieldName, "customCSSViewports")) {
+
+				if (jsonParserFieldValue != null) {
+					pageFragmentInstanceDefinition.setCustomCSSViewports(
+						Stream.of(
+							toStrings((Object[])jsonParserFieldValue)
+						).map(
+							object -> CustomCSSViewportSerDes.toDTO(
+								(String)object)
+						).toArray(
+							size -> new CustomCSSViewport[size]
+						));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "fragment")) {
 				if (jsonParserFieldValue != null) {
 					pageFragmentInstanceDefinition.setFragment(
 						FragmentSerDes.toDTO((String)jsonParserFieldValue));
@@ -353,6 +506,12 @@ public class PageFragmentInstanceDefinitionSerDes {
 				if (jsonParserFieldValue != null) {
 					pageFragmentInstanceDefinition.setIndexed(
 						(Boolean)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "name")) {
+				if (jsonParserFieldValue != null) {
+					pageFragmentInstanceDefinition.setName(
+						(String)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "widgetInstances")) {

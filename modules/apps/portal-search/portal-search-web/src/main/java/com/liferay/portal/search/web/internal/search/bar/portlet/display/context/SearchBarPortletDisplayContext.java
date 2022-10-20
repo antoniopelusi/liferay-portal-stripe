@@ -67,6 +67,18 @@ public class SearchBarPortletDisplayContext {
 		return _searchURL;
 	}
 
+	public String getSuggestionsContributorConfiguration() {
+		return _suggestionsContributorConfiguration;
+	}
+
+	public int getSuggestionsDisplayThreshold() {
+		return _suggestionsDisplayThreshold;
+	}
+
+	public String getSuggestionsURL() {
+		return _suggestionsURL;
+	}
+
 	public boolean isAvailableEverythingSearchScope() {
 		return _availableEverythingSearchScope;
 	}
@@ -97,6 +109,14 @@ public class SearchBarPortletDisplayContext {
 
 	public boolean isSelectedEverythingSearchScope() {
 		return _selectedEverythingSearchScope;
+	}
+
+	public boolean isSuggestionsEnabled() {
+		return _suggestionsEnabled;
+	}
+
+	public boolean isSuggestionsEndpointEnabled() {
+		return _suggestionsEndpointEnabled;
 	}
 
 	public void setAvailableEverythingSearchScope(
@@ -198,6 +218,33 @@ public class SearchBarPortletDisplayContext {
 		_selectedEverythingSearchScope = selectedEverythingSearchScope;
 	}
 
+	public void setSuggestionsContributorConfiguration(
+		String suggestionsContributorConfiguration) {
+
+		_suggestionsContributorConfiguration =
+			suggestionsContributorConfiguration;
+	}
+
+	public void setSuggestionsDisplayThreshold(
+		int suggestionsDisplayThreshold) {
+
+		_suggestionsDisplayThreshold = suggestionsDisplayThreshold;
+	}
+
+	public void setSuggestionsEnabled(boolean suggestionsEnabled) {
+		_suggestionsEnabled = suggestionsEnabled;
+	}
+
+	public void setSuggestionsEndpointEnabled(
+		boolean suggestionsEndpointEnabled) {
+
+		_suggestionsEndpointEnabled = suggestionsEndpointEnabled;
+	}
+
+	public void setSuggestionsURL(String suggestionsURL) {
+		_suggestionsURL = suggestionsURL;
+	}
+
 	private boolean _availableEverythingSearchScope;
 	private String _currentSiteSearchScopeParameterString;
 	private boolean _destinationUnreachable;
@@ -218,5 +265,10 @@ public class SearchBarPortletDisplayContext {
 	private String _searchURL;
 	private boolean _selectedCurrentSiteSearchScope;
 	private boolean _selectedEverythingSearchScope;
+	private String _suggestionsContributorConfiguration;
+	private int _suggestionsDisplayThreshold;
+	private boolean _suggestionsEnabled;
+	private boolean _suggestionsEndpointEnabled;
+	private String _suggestionsURL;
 
 }

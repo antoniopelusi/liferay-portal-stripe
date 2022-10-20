@@ -25,7 +25,7 @@ import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Validator;
 
@@ -73,7 +73,7 @@ public class TableFDSViewContextContributor
 			locale);
 
 		for (FDSTableSchemaField fdsTableSchemaField : fieldsMap.values()) {
-			String label = LanguageUtil.get(
+			String label = _language.get(
 				resourceBundle, fdsTableSchemaField.getLabel());
 
 			if (Validator.isNull(label)) {
@@ -88,11 +88,16 @@ public class TableFDSViewContextContributor
 		}
 
 		return HashMapBuilder.<String, Object>put(
+			"quickActionsEnabled", baseTableFDSView.isQuickActionsEnabled()
+		).put(
 			"schema", JSONUtil.put("fields", fieldsJSONArray)
 		).build();
 	}
 
 	@Reference
 	private JSONFactory _jsonFactory;
+
+	@Reference
+	private Language _language;
 
 }

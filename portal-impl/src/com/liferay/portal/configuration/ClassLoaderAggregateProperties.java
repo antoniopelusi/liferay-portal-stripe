@@ -272,7 +272,8 @@ public class ClassLoaderAggregateProperties extends CompositeConfiguration {
 
 			if (url != null) {
 				newConfiguration = _addURLProperties(
-					url, loadedCompositeConfiguration, includeAndOverrides);
+					sourceName, url, loadedCompositeConfiguration,
+					includeAndOverrides);
 			}
 			else {
 				newConfiguration = _addFileProperties(
@@ -316,7 +317,8 @@ public class ClassLoaderAggregateProperties extends CompositeConfiguration {
 	}
 
 	private Configuration _addURLProperties(
-		URL url, CompositeConfiguration loadedCompositeConfiguration,
+		String sourceFileName, URL url,
+		CompositeConfiguration loadedCompositeConfiguration,
 		List<String> includeAndOverrides) {
 
 		try {
@@ -353,6 +355,18 @@ public class ClassLoaderAggregateProperties extends CompositeConfiguration {
 
 			if (_log.isDebugEnabled()) {
 				_log.debug("Adding resource " + url);
+			}
+
+			if (sourceFileName.equals("portal.properties")) {
+				String value = System.getenv(
+					"LIFERAY_INCLUDE_MINUS_AND_MINUS_OVERRIDE");
+
+				if (value != null) {
+					Collections.addAll(
+						(List<String>)propertiesConfiguration.getProperty(
+							"include-and-override"),
+						StringUtil.split(value));
+				}
 			}
 
 			_addIncludedPropertiesSources(

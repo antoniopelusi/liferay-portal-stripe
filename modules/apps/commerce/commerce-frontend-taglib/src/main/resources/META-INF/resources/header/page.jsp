@@ -127,7 +127,7 @@ String myWorkflowTasksPortletNamespace = PortalUtil.getPortletNamespace(PortletK
 			<hr class="d-lg-none" />
 
 			<div class="align-items-center c-ml-auto d-flex justify-content-end">
-				<c:if test="<%= Validator.isNotNull(reviewWorkflowTask) %>">
+				<c:if test="<%= !CommercePortletKeys.COMMERCE_OPEN_ORDER_CONTENT.equals(PortalUtil.getPortletId(request)) && Validator.isNotNull(reviewWorkflowTask) %>">
 
 					<%
 					boolean assignedToCurrentUser = false;
@@ -318,7 +318,7 @@ String myWorkflowTasksPortletNamespace = PortalUtil.getPortletNamespace(PortletK
 						<aui:script require="commerce-frontend-js/components/dropdown/entry as dropdown">
 							dropdown.default('dropdown-header', 'dropdown-header-container', {
 								items: <%= jsonSerializer.serializeDeep(dropdownItems) %>,
-								spritemap: '<%= themeDisplay.getPathThemeImages() + "/clay/icons.svg" %>',
+								spritemap: '<%= FrontendIconsUtil.getSpritemap(themeDisplay) %>',
 							});
 						</aui:script>
 					</c:if>
@@ -336,7 +336,7 @@ String myWorkflowTasksPortletNamespace = PortalUtil.getPortletNamespace(PortletK
 	</div>
 </div>
 
-<aui:script require="commerce-frontend-js/utilities/debounce as debounce">
+<aui:script require="frontend-js-web/liferay/debounce/debounce.es as debounce">
 	var commerceHeader = document.querySelector('.commerce-header');
 	var pageHeader = document.querySelector('.page-header');
 

@@ -1,6 +1,8 @@
 @component-name = "portal-analytics-cloud"
 definition {
 
+	property analytics.cloud.release = "true";
+	property analytics.cloud.upstream = "true";
 	property portal.release = "false";
 	property portal.upstream = "true";
 	property property.group = "analytics.cloud.profile";
@@ -14,6 +16,51 @@ definition {
 		var testPortalInstance = PropsUtil.get("test.portal.instance");
 
 		ACUtils.tearDownAC();
+
+		ACUtils.tearDownDXP();
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Site Name");
+		}
+	}
+
+	@description = "Bug: LRAC-11360 | Automation ID: LRAC-11361 | Test Summary: Paginate property list"
+	@priority = "4"
+	test CanPaginatePropertyList {
+		var propertyList = "Property Name 1,Property Name 2,Property Name 3,Property Name 4,Property Name 5,Property Name 6";
+
+		task ("go to property and add 6 properties") {
+			ACNavigation.goToSettings();
+
+			for (var n : list "${propertyList}") {
+				ACSettings.goToProperties();
+
+				ACProperties.addNewProperty(propertyName = "${n}");
+			}
+		}
+
+		task ("Change the pagination to 5") {
+			ACSettings.goToProperties();
+
+			ACUtils.changePagination(itemsPerPage = "5");
+		}
+
+		task ("Check first 5 properties appear on first page") {
+			var propertyList1 = "Property Name 2,Property Name 3,Property Name 4,Property Name 5,Property Name 6";
+
+			ACUtils.assertItemsName(itemList = "${propertyList1}");
+		}
+
+		task ("Click next page") {
+			ACUtils.checkPreviousNextButton(nextButton = "true");
+		}
+
+		task ("Check last property appear on second page") {
+			ACUtils.assertItemsName(itemList = "Property Name 1");
+		}
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-9119 | Test Summary: Property list loading a lot of values"
@@ -28,7 +75,7 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-9121 | Test Summary: Settings page properties list is searchable"
 	@priority = "3"
 	test CanSearchForPagePropertiesList {
-		var propertyList = "Property Name 1,Property Name 2,Property Name 3,Property Name 4";
+		var propertyList = "Property CanSearchForPagePropertiesList 1,Property CanSearchForPagePropertiesList 2,Property CanSearchForPagePropertiesList 3,Property CanSearchForPagePropertiesList 4";
 
 		task ("go to property and add new  properties") {
 			ACNavigation.goToSettings();
@@ -54,7 +101,7 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-9122 | Test Summary: Search for a property"
 	@priority = "5"
 	test CanSearchForProperty {
-		var propertyList = "Property Name 1,Property Name 2,Property Name 3,Property Name 4";
+		var propertyList = "Property CanSearchForProperty 1,Property CanSearchForProperty 2,Property CanSearchForProperty 3,Property CanSearchForProperty 4";
 
 		task ("go to property and add new  properties") {
 			ACNavigation.goToSettings();
@@ -78,7 +125,7 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-9117 | Test Summary: User selecting a property from the drop down by 1st time"
 	@priority = "3"
 	test CanUserSelectPropertyFromTheDropDownByFirstTime {
-		var propertyName = "Property Name 1";
+		var propertyName = "Property CanUserSelectPropertyFromTheDropDownByFirstTime 1";
 
 		task ("go to properties and add a new property") {
 			ACNavigation.goToSettings();
@@ -92,6 +139,134 @@ definition {
 			ACNavigation.exitSettings();
 
 			ACProperties.switchProperty(propertyName = "${propertyName}");
+		}
+	}
+
+	@description = "Bug: LRAC-10602 | Automation ID: LRAC-11055 | Test Summary: Deleted properties don't appear as an option to sync sites"
+	@priority = "2"
+	test DeletedPropertiesNotAppearAsOptionInSyncSites {
+		task ("Go to properties page and add 2 new properties") {
+			var propertyList = "Property DeletedPropertiesNotAppearAsOptionInSyncSites 1,Property DeletedPropertiesNotAppearAsOptionInSyncSites 2";
+
+			ACNavigation.goToSettings();
+
+			for (var propertyName : list "${propertyList}") {
+				ACSettings.goToProperties();
+
+				ACProperties.addNewProperty(propertyName = "${propertyName}");
+			}
+		}
+
+		task ("Delete a property") {
+			ACSettings.goToProperties();
+
+			ACSettings.deletePropertyByCheckbox(propertyName = "Property DeletedPropertiesNotAppearAsOptionInSyncSites 2");
+		}
+
+		task ("Copy the token from AC") {
+			ACSettings.takeTokenFromAnalyticsCloud();
+		}
+
+		task ("Set up instance and sign in DXP") {
+			TestCase.setUpPortalInstance();
+
+			ACUtils.launchDXP();
+		}
+
+		task ("Connect the DXP to AC") {
+			ACDXPSettings.goToInstanceSettingsAC();
+
+			ACDXPSettings.connectAnalyticsCloud();
+		}
+
+		task ("Go to Synced Sites") {
+			ACDXPSettings.navToSyncedSitesMenu();
+		}
+
+		task ("Check that the existing properties in the AC appear in the list") {
+			ACUtils.assertItemsName(itemList = "Property DeletedPropertiesNotAppearAsOptionInSyncSites 1");
+		}
+
+		task ("Check that the deleted AC properties do not appear in the list") {
+			ACUtils.assertItemsNameNotPresent(itemList = "Property DeletedPropertiesNotAppearAsOptionInSyncSites 2");
+		}
+
+		task ("Disconnect the DXP to AC") {
+			ACDXPSettings.disconnectDXPFromAnalyticsCloud();
+		}
+	}
+
+	@description = "Bug: LRAC-11142 | Automation ID: LRAC-11162 | Test Summary: New property created when reconnect and old property remains"
+	@priority = "4"
+	test OnlyAvailablePropertiesAppearInDXP {
+		task ("Go to properties page and add 2 new properties") {
+			var propertyList = "Property OnlyAvailablePropertiesAppearInDXP 1,Property OnlyAvailablePropertiesAppearInDXP 2";
+
+			ACNavigation.goToSettings();
+
+			for (var propertyName : list "${propertyList}") {
+				ACSettings.goToProperties();
+
+				ACProperties.addNewProperty(propertyName = "${propertyName}");
+			}
+		}
+
+		task ("Copy the token from AC") {
+			ACSettings.takeTokenFromAnalyticsCloud();
+		}
+
+		task ("Set up instance and sign in DXP") {
+			TestCase.setUpPortalInstance();
+
+			ACUtils.launchDXP();
+
+			ACUtils.addSiteAndPage();
+		}
+
+		task ("Connect the DXP to AC") {
+			ACDXPSettings.goToInstanceSettingsAC();
+
+			ACDXPSettings.connectAnalyticsCloud();
+
+			Alert.viewSuccessMessage();
+
+			ACDXPSettings.navToSyncedSitesMenu();
+
+			ACUtils.assertItemsName(itemList = "Property OnlyAvailablePropertiesAppearInDXP 1");
+
+			ACUtils.assertItemsName(itemList = "Property OnlyAvailablePropertiesAppearInDXP 2");
+
+			ACDXPSettings.assignSiteToExistingProperty(
+				assignedPropertyName = "Property OnlyAvailablePropertiesAppearInDXP 1",
+				siteName = "Site Name");
+		}
+
+		task ("Disconnect DXP from AC") {
+			ACDXPSettings.disconnectDXPFromAnalyticsCloud();
+		}
+
+		task ("Launch AC and Connect new data source") {
+			ACUtils.launchAC();
+
+			ACSettings.takeTokenFromAnalyticsCloud();
+		}
+
+		task ("Connect DXP to AC") {
+			ACUtils.launchDXP();
+
+			ACDXPSettings.goToInstanceSettingsAC();
+
+			ACDXPSettings.connectAnalyticsCloud();
+		}
+
+		task ("Assert a new property is created along with old property") {
+			Alert.viewSuccessMessage();
+
+			ACDXPSettings.navToSyncedSitesMenu();
+
+			ACUtils.assertItemsName(itemList = "Property OnlyAvailablePropertiesAppearInDXP 1");
+
+			ACUtils.assertItemsName(itemList = "Property OnlyAvailablePropertiesAppearInDXP 2");
 		}
 	}
 
@@ -127,7 +302,7 @@ definition {
 		task ("go to properties and add 2 new properties") {
 			ACNavigation.goToSettings();
 
-			var propertyList = "Property Name 1,Property Name 2";
+			var propertyList = "Property ViewSettingInfoAreGlobalAndDontDependOfProperty 1,Property ViewSettingInfoAreGlobalAndDontDependOfProperty 2";
 
 			for (var n : list "${propertyList}") {
 				ACSettings.goToProperties();
@@ -158,7 +333,7 @@ definition {
 	@priority = "3"
 	test ViewTheDropdownTransition {
 		task ("go to properties page and add 2 new properties") {
-			var propertyList = "Property Name 1,Property Name 2";
+			var propertyList = "Property ViewTheDropdownTransition 1,Property ViewTheDropdownTransition 2";
 
 			ACNavigation.goToSettings();
 

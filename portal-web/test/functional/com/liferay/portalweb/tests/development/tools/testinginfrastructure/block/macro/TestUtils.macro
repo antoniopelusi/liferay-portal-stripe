@@ -26,12 +26,55 @@ definition {
 		}
 	}
 
+	macro assertPartialAttributeValue {
+		var attributeValue = selenium.getAttribute("${element}@${attribute}");
+
+		if (contains("${attributeValue}", "${value}")) {
+			echo("PASSED");
+		}
+		else {
+			TestUtils.fail(message = "FAILED: Expected text '${value}' does not match actual text '${attributeValue}'");
+		}
+	}
+
+	macro assertPartialEquals {
+		echo("${expected}");
+
+		echo("${actual}");
+
+		if (contains("${actual}", "${expected}")) {
+			echo("PASSED");
+		}
+		else {
+			TestUtils.fail(message = "FAILED: Expected text '${expected}' does not match actual text '${actual}'");
+		}
+	}
+
+	macro assertTruncatedText {
+		WaitForSPARefresh();
+
+		var javascript = '''
+var element = document.evaluate("${element}", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+
+return (element.offsetWidth < element.scrollWidth).toString();
+
+		''';
+
+		var isTruncated = selenium.getEval("${javascript}");
+
+		if ("${isTruncated}" != "true") {
+			TestUtils.fail(message = "FAILED: The text is not truncated");
+		}
+	}
+
 	macro fail {
 		if (!(isSet(message))) {
 			var message = "FAIL";
 		}
 
 		echo("${message}");
+
+		takeScreenshot();
 
 		fail("${message}");
 	}
@@ -44,6 +87,7 @@ var element = document.evaluate("${element}", document, null, XPathResult.FIRST_
 
 return element.textContent;
 		''';
+
 		var textContent = selenium.getEval("${javascript}");
 
 		return "${textContent}";

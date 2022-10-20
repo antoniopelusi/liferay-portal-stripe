@@ -1,11 +1,9 @@
 Bundle-Name: Liferay Asset API
 Bundle-SymbolicName: com.liferay.asset.api
-Bundle-Version: 5.0.1
+Bundle-Version: 7.0.2
 Export-Package:\
 	com.liferay.asset.constants,\
 	com.liferay.asset.exception,\
 	com.liferay.asset.model,\
-	com.liferay.asset.service,\
-	com.liferay.asset.service.persistence,\
 	com.liferay.asset.util,\
 	com.liferay.asset.util.comparator

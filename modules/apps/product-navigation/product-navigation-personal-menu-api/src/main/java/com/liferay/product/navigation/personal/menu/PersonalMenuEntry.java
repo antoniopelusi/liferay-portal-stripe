@@ -16,6 +16,7 @@ package com.liferay.product.navigation.personal.menu;
 
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 
 import java.util.Locale;
@@ -49,6 +50,12 @@ public interface PersonalMenuEntry {
 	 */
 	public default String getIcon(PortletRequest portletRequest) {
 		return StringPool.BLANK;
+	}
+
+	public default JSONObject getJSOnClickConfigJSONObject(
+		HttpServletRequest httpServletRequest) {
+
+		return null;
 	}
 
 	/**

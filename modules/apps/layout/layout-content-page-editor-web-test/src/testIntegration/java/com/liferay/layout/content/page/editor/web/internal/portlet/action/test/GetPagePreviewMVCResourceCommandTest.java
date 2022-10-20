@@ -155,7 +155,7 @@ public class GetPagePreviewMVCResourceCommandTest {
 				StringUtil.randomString(), StringUtil.randomString(),
 				RandomTestUtil.randomString(), RandomTestUtil.randomString(),
 				RandomTestUtil.randomString(), false, "{fieldSets: []}", null,
-				0, FragmentConstants.TYPE_COMPONENT,
+				0, FragmentConstants.TYPE_COMPONENT, null,
 				WorkflowConstants.STATUS_APPROVED, _serviceContext);
 
 		long defaultSegmentsExperienceId =
@@ -167,7 +167,8 @@ public class GetPagePreviewMVCResourceCommandTest {
 			defaultSegmentsExperienceId, layout.getPlid(),
 			fragmentEntry.getCss(), fragmentEntry.getHtml(),
 			fragmentEntry.getJs(), fragmentEntry.getConfiguration(), null,
-			StringPool.BLANK, 0, null, _serviceContext);
+			StringPool.BLANK, 0, null, fragmentEntry.getType(),
+			_serviceContext);
 
 		LayoutPageTemplateStructure layoutPageTemplateStructure =
 			LayoutPageTemplateStructureLocalServiceUtil.
@@ -216,14 +217,17 @@ public class GetPagePreviewMVCResourceCommandTest {
 					fetchDefaultSegmentsExperienceId(
 						_fragmentEntryLink.getPlid())));
 
-		MockHttpServletRequest httpServletRequest =
+		MockHttpServletRequest mockHttpServletRequest =
 			(MockHttpServletRequest)
 				mockLiferayResourceRequest.getHttpServletRequest();
 
-		httpServletRequest.setAttribute(WebKeys.THEME_DISPLAY, _themeDisplay);
-		httpServletRequest.setMethod(HttpMethods.GET);
+		mockHttpServletRequest.setAttribute(
+			WebKeys.THEME_DISPLAY, _themeDisplay);
+		mockHttpServletRequest.setMethod(HttpMethods.GET);
 
-		_serviceContext.setRequest(httpServletRequest);
+		_themeDisplay.setRequest(mockHttpServletRequest);
+
+		_serviceContext.setRequest(mockHttpServletRequest);
 
 		MockLiferayResourceResponse mockLiferayResourceResponse =
 			new MockLiferayResourceResponse();

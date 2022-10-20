@@ -116,6 +116,12 @@ public interface KnowledgeBaseAttachmentResource {
 			return new KnowledgeBaseAttachmentResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -161,6 +167,7 @@ public interface KnowledgeBaseAttachmentResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -249,7 +256,7 @@ public interface KnowledgeBaseAttachmentResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-delivery/v1.0/knowledge-base-articles/{knowledgeBaseArticleId}/knowledge-base-attachments");
 
 			httpInvoker.path("knowledgeBaseArticleId", knowledgeBaseArticleId);
@@ -349,7 +356,7 @@ public interface KnowledgeBaseAttachmentResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-delivery/v1.0/knowledge-base-articles/{knowledgeBaseArticleId}/knowledge-base-attachments");
 
 			httpInvoker.path("knowledgeBaseArticleId", knowledgeBaseArticleId);
@@ -436,7 +443,7 @@ public interface KnowledgeBaseAttachmentResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-delivery/v1.0/knowledge-base-articles/{knowledgeBaseArticleId}/knowledge-base-attachments/batch");
 
 			httpInvoker.path("knowledgeBaseArticleId", knowledgeBaseArticleId);
@@ -520,7 +527,7 @@ public interface KnowledgeBaseAttachmentResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-delivery/v1.0/knowledge-base-attachments/{knowledgeBaseAttachmentId}");
 
 			httpInvoker.path(
@@ -601,7 +608,7 @@ public interface KnowledgeBaseAttachmentResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-delivery/v1.0/knowledge-base-attachments/batch");
 
 			httpInvoker.userNameAndPassword(
@@ -682,7 +689,7 @@ public interface KnowledgeBaseAttachmentResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-delivery/v1.0/knowledge-base-attachments/{knowledgeBaseAttachmentId}");
 
 			httpInvoker.path(

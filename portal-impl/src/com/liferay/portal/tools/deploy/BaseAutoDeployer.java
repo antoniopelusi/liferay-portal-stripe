@@ -57,13 +57,9 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.attribute.BasicFileAttributes;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -110,7 +106,6 @@ public class BaseAutoDeployer implements AutoDeployer {
 
 			String displayName = specifiedContext;
 
-			boolean overwrite = false;
 			String preliminaryContext = specifiedContext;
 
 			// The order of priority of the context is: 1.) the specified
@@ -127,7 +122,6 @@ public class BaseAutoDeployer implements AutoDeployer {
 				displayName = srcFileName.substring(
 					DEPLOY_TO_PREFIX.length(), srcFileName.length() - 4);
 
-				overwrite = true;
 				preliminaryContext = displayName;
 			}
 
@@ -204,8 +198,6 @@ public class BaseAutoDeployer implements AutoDeployer {
 
 						return AutoDeployer.CODE_SKIP_NEWER_VERSION;
 					}
-
-					overwrite = true;
 				}
 
 				File mergeDirFile = new File(
@@ -214,12 +206,12 @@ public class BaseAutoDeployer implements AutoDeployer {
 				if (srcFile.isDirectory()) {
 					_deployDirectory(
 						srcFile, mergeDirFile, deployDirFile, displayName,
-						overwrite, pluginPackage);
+						pluginPackage);
 				}
 				else {
 					boolean deployed = _deployFile(
 						srcFile, mergeDirFile, deployDirFile, displayName,
-						overwrite, pluginPackage);
+						pluginPackage);
 
 					if (!deployed) {
 						String context = preliminaryContext;
@@ -288,12 +280,10 @@ public class BaseAutoDeployer implements AutoDeployer {
 	}
 
 	public void deployDirectory(
-			File srcFile, String displayName, boolean override,
-			PluginPackage pluginPackage)
+			File srcFile, String displayName, PluginPackage pluginPackage)
 		throws Exception {
 
-		_deployDirectory(
-			srcFile, null, null, displayName, override, pluginPackage);
+		_deployDirectory(srcFile, null, null, displayName, pluginPackage);
 	}
 
 	public String getExtraContent(
@@ -540,60 +530,6 @@ public class BaseAutoDeployer implements AutoDeployer {
 	protected String uiTaglibDTD;
 	protected String utilTaglibDTD;
 
-	private void _copyDirectory(
-		File source, File destination, boolean overwrite) {
-
-		Path sourcePath = source.toPath();
-
-		Path destinationPath = destination.toPath();
-
-		try {
-			Files.walkFileTree(
-				sourcePath,
-				new SimpleFileVisitor<Path>() {
-
-					@Override
-					public FileVisitResult preVisitDirectory(
-							Path dirPath,
-							BasicFileAttributes basicFileAttributes)
-						throws IOException {
-
-						if (dirPath.equals(destinationPath)) {
-							return FileVisitResult.SKIP_SUBTREE;
-						}
-
-						Files.createDirectories(
-							destinationPath.resolve(
-								sourcePath.relativize(dirPath)));
-
-						return FileVisitResult.CONTINUE;
-					}
-
-					@Override
-					public FileVisitResult visitFile(
-							Path filePath,
-							BasicFileAttributes basicFileAttributes)
-						throws IOException {
-
-						Path destinationFile = destinationPath.resolve(
-							sourcePath.relativize(filePath));
-
-						if (Files.notExists(destinationFile) || overwrite) {
-							Files.copy(
-								filePath, destinationFile,
-								StandardCopyOption.REPLACE_EXISTING);
-						}
-
-						return FileVisitResult.CONTINUE;
-					}
-
-				});
-		}
-		catch (IOException ioException) {
-			_log.error(ioException);
-		}
-	}
-
 	private void _copyJars(File srcFile) throws Exception {
 		for (String jar : _jars) {
 			String jarFullName = DeployUtil.getResourcePath(tempDirPaths, jar);
@@ -605,8 +541,7 @@ public class BaseAutoDeployer implements AutoDeployer {
 				DeployUtil.getResourcePath(tempDirPaths, jarName);
 			}
 
-			FileUtil.copyFile(
-				jarFullName, srcFile + "/WEB-INF/lib/" + jarName, false);
+			FileUtil.copyFile(jarFullName, srcFile + "/WEB-INF/lib/" + jarName);
 		}
 	}
 
@@ -637,7 +572,7 @@ public class BaseAutoDeployer implements AutoDeployer {
 						portalJar;
 
 				FileUtil.copyFile(
-					portalJarPath, srcFile + "/WEB-INF/lib/" + portalJar, true);
+					portalJarPath, srcFile + "/WEB-INF/lib/" + portalJar);
 			}
 			catch (Exception exception) {
 				_log.error("Unable to copy portal JAR " + portalJar, exception);
@@ -663,7 +598,7 @@ public class BaseAutoDeployer implements AutoDeployer {
 					tempDirPaths, portalTld);
 
 				FileUtil.copyFile(
-					portalTldPath, srcFile + "/WEB-INF/tld/" + portalTld, true);
+					portalTldPath, srcFile + "/WEB-INF/tld/" + portalTld);
 			}
 			catch (Exception exception) {
 				_log.error("Unable to copy portal TLD " + portalTld, exception);
@@ -684,8 +619,8 @@ public class BaseAutoDeployer implements AutoDeployer {
 						"commons-logging.jar";
 
 				FileUtil.copyFile(
-					portalJarPath, srcFile + "/WEB-INF/lib/commons-logging.jar",
-					true);
+					portalJarPath,
+					srcFile + "/WEB-INF/lib/commons-logging.jar");
 			}
 		}
 
@@ -701,24 +636,21 @@ public class BaseAutoDeployer implements AutoDeployer {
 						"log4j-api.jar";
 
 				FileUtil.copyFile(
-					portalJarPath, srcFile + "/WEB-INF/lib/log4j-api.jar",
-					true);
+					portalJarPath, srcFile + "/WEB-INF/lib/log4j-api.jar");
 
 				portalJarPath =
 					PropsValues.LIFERAY_SHIELDED_CONTAINER_LIB_PORTAL_DIR +
 						"log4j-1.2-api.jar";
 
 				FileUtil.copyFile(
-					portalJarPath, srcFile + "/WEB-INF/lib/log4j-1.2-api.jar",
-					true);
+					portalJarPath, srcFile + "/WEB-INF/lib/log4j-1.2-api.jar");
 
 				portalJarPath =
 					PropsValues.LIFERAY_SHIELDED_CONTAINER_LIB_PORTAL_DIR +
 						"log4j-core.jar";
 
 				FileUtil.copyFile(
-					portalJarPath, srcFile + "/WEB-INF/lib/log4j-core.jar",
-					true);
+					portalJarPath, srcFile + "/WEB-INF/lib/log4j-core.jar");
 			}
 		}
 	}
@@ -766,51 +698,49 @@ public class BaseAutoDeployer implements AutoDeployer {
 	private void _copyTlds(File srcFile) throws Exception {
 		if (Validator.isNotNull(auiTaglibDTD)) {
 			FileUtil.copyFile(
-				auiTaglibDTD, srcFile + "/WEB-INF/tld/liferay-aui.tld", true);
+				auiTaglibDTD, srcFile + "/WEB-INF/tld/liferay-aui.tld");
 		}
 
 		if (Validator.isNotNull(portletTaglibDTD)) {
 			FileUtil.copyFile(
-				portletTaglibDTD, srcFile + "/WEB-INF/tld/liferay-portlet.tld",
-				true);
+				portletTaglibDTD, srcFile + "/WEB-INF/tld/liferay-portlet.tld");
 			FileUtil.copyFile(
 				DeployUtil.getResourcePath(
 					tempDirPaths, "liferay-portlet_2_0.tld"),
-				srcFile + "/WEB-INF/tld/liferay-portlet_2_0.tld", true);
+				srcFile + "/WEB-INF/tld/liferay-portlet_2_0.tld");
 		}
 
 		if (Validator.isNotNull(portletExtTaglibDTD)) {
 			FileUtil.copyFile(
 				portletExtTaglibDTD,
-				srcFile + "/WEB-INF/tld/liferay-portlet-ext.tld", true);
+				srcFile + "/WEB-INF/tld/liferay-portlet-ext.tld");
 		}
 
 		if (Validator.isNotNull(securityTaglibDTD)) {
 			FileUtil.copyFile(
 				securityTaglibDTD,
-				srcFile + "/WEB-INF/tld/liferay-security.tld", true);
+				srcFile + "/WEB-INF/tld/liferay-security.tld");
 		}
 
 		if (Validator.isNotNull(themeTaglibDTD)) {
 			FileUtil.copyFile(
-				themeTaglibDTD, srcFile + "/WEB-INF/tld/liferay-theme.tld",
-				true);
+				themeTaglibDTD, srcFile + "/WEB-INF/tld/liferay-theme.tld");
 		}
 
 		if (Validator.isNotNull(uiTaglibDTD)) {
 			FileUtil.copyFile(
-				uiTaglibDTD, srcFile + "/WEB-INF/tld/liferay-ui.tld", true);
+				uiTaglibDTD, srcFile + "/WEB-INF/tld/liferay-ui.tld");
 		}
 
 		if (Validator.isNotNull(utilTaglibDTD)) {
 			FileUtil.copyFile(
-				utilTaglibDTD, srcFile + "/WEB-INF/tld/liferay-util.tld", true);
+				utilTaglibDTD, srcFile + "/WEB-INF/tld/liferay-util.tld");
 		}
 	}
 
 	private void _deployDirectory(
 			File srcFile, File mergeDir, File deployDir, String displayName,
-			boolean overwrite, PluginPackage pluginPackage)
+			PluginPackage pluginPackage)
 		throws Exception {
 
 		_rewriteFiles(srcFile);
@@ -835,12 +765,12 @@ public class BaseAutoDeployer implements AutoDeployer {
 
 		updateDeployDirectory(srcFile);
 
-		_copyDirectory(srcFile, deployDir, overwrite);
+		FileUtil.copyDirectory(srcFile, deployDir);
 	}
 
 	private boolean _deployFile(
 			File srcFile, File mergeDir, File deployDir, String displayName,
-			boolean overwrite, PluginPackage pluginPackage)
+			PluginPackage pluginPackage)
 		throws Exception {
 
 		Path tempDirPath = Files.createTempDirectory(
@@ -851,8 +781,7 @@ public class BaseAutoDeployer implements AutoDeployer {
 		FileUtil.unzip(srcFile, tempDir);
 
 		_deployDirectory(
-			tempDir, mergeDir, deployDir, displayName, overwrite,
-			pluginPackage);
+			tempDir, mergeDir, deployDir, displayName, pluginPackage);
 
 		FileUtil.deltree(tempDir);
 
@@ -1092,12 +1021,14 @@ public class BaseAutoDeployer implements AutoDeployer {
 		).build();
 	}
 
-	private void _mergeDirectory(File mergeDir, File targetDir) {
+	private void _mergeDirectory(File mergeDir, File targetDir)
+		throws Exception {
+
 		if ((mergeDir == null) || !mergeDir.exists()) {
 			return;
 		}
 
-		_copyDirectory(mergeDir, targetDir, true);
+		FileUtil.copyDirectory(mergeDir, targetDir);
 	}
 
 	private PluginPackage _readPluginPackage(File file) {

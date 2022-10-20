@@ -1,9 +1,17 @@
 definition {
 
 	macro _clickAddPortlet {
-		Click.clickNoWaitForVisible(
-			key_portletName = "${portletName}",
-			locator1 = "ControlMenuAddPanel#ADD_PORTLET_LINK");
+		if (isSet(categoryName)) {
+			Click.clickNoWaitForVisible(
+				key_categoryName = "${categoryName}",
+				key_portletName = "${portletName}",
+				locator1 = "ControlMenuAddPanel#ADD_PORTLET_LINK_BY_CATEGORY");
+		}
+		else {
+			Click.clickNoWaitForVisible(
+				key_portletName = "${portletName}",
+				locator1 = "ControlMenuAddPanel#ADD_PORTLET_LINK");
+		}
 	}
 
 	macro addDuplicatePG {
@@ -27,7 +35,9 @@ definition {
 
 			Refresh();
 
-			Portlet.addPGCmd(portletName = "${portletName}");
+			Portlet.addPGCmd(
+				categoryName = "${categoryName}",
+				portletName = "${portletName}");
 		}
 
 		var key_portletName = "${portletName}";
@@ -41,7 +51,9 @@ definition {
 			var portletName = "Where are the Liferay members?";
 		}
 
-		Portlet.addPGCmd(portletName = "${portletName}");
+		Portlet.addPGCmd(
+			categoryName = "${categoryName}",
+			portletName = "${portletName}");
 
 		var i = "1";
 		var key_portletName = "${portletName}";
@@ -53,7 +65,9 @@ definition {
 
 			Refresh();
 
-			Portlet.addPGCmd(portletName = "${portletName}");
+			Portlet.addPGCmd(
+				categoryName = "${categoryName}",
+				portletName = "${portletName}");
 		}
 
 		Click.clickAt(locator1 = "ControlMenuAddPanel#CLOSE_ADD_PANEL");
@@ -81,13 +95,15 @@ definition {
 
 		Navigator.gotoNavTab(navTab = "Widgets");
 
-		Pause(locator1 = "3000");
+		WaitForElementPresent(locator1 = "NavBar#APPLICATION_SEARCH_FIELD");
 
 		Type(
 			locator1 = "NavBar#APPLICATION_SEARCH_FIELD",
 			value1 = "${portletName}");
 
-		Portlet._clickAddPortlet(portletName = "${portletName}");
+		Portlet._clickAddPortlet(
+			categoryName = "${categoryName}",
+			portletName = "${portletName}");
 
 		var key_portletName = "${portletName}";
 
@@ -108,8 +124,6 @@ definition {
 		while ((IsElementPresent(locator1 = "//body")) && ("${shutdownPauseCount}" != "12")) {
 			Refresh();
 
-			Pause(locator1 = "10000");
-
 			var shutdownPauseCount = ${shutdownPauseCount} + 1;
 
 			echo("Shutdown pause count: ${shutdownPauseCount}");
@@ -121,8 +135,6 @@ definition {
 
 		while (!(IsElementPresent(locator1 = "UserBar#USER_SIGN_IN")) && ("${startupPauseCount}" != "12")) {
 			Refresh();
-
-			Pause(locator1 = "10000");
 
 			var startupPauseCount = ${startupPauseCount} + 1;
 
@@ -506,12 +518,12 @@ definition {
 				AssertVisible(locator1 = "Portlet#SPECIFIC_BORDERLESS_ELLIPSIS_ICON");
 			}
 			else if ("${siteTemplate}" == "true") {
-				MouseOver.mouseOverNotVisible(locator1 = "Portlet#SPECIFIC_BORDERLESS_ELLIPSIS_ICON");
+				MouseOver.waitForMenuToggleJSMouseOver(locator1 = "Portlet#SPECIFIC_BORDERLESS_ELLIPSIS_ICON");
 
 				Click(locator1 = "Portlet#SPECIFIC_BORDERLESS_ELLIPSIS_ICON");
 			}
 			else if (isSet(portletIndex)) {
-				MouseOver.mouseOverNotVisible(
+				MouseOver.waitForMenuToggleJSMouseOver(
 					locator1 = "Portlet#SPECIFIC_BORDERLESS_ELLIPSIS_ICON_INDEX",
 					portletIndex = "${portletIndex}");
 
@@ -520,7 +532,7 @@ definition {
 					portletIndex = "${portletIndex}");
 			}
 			else {
-				MouseOver.mouseOverInvisible(locator1 = "Portlet#SPECIFIC_BORDERLESS_ELLIPSIS_ICON");
+				MouseOver.waitForMenuToggleJSMouseOver(locator1 = "Portlet#SPECIFIC_BORDERLESS_ELLIPSIS_ICON");
 
 				if (IsNotVisible(locator1 = "Portlet#SPECIFIC_BORDERLESS_ELLIPSIS_ICON")) {
 					Click.javaScriptClick(locator1 = "Portlet#SPECIFIC_BORDERLESS_ELLIPSIS_ICON");
@@ -531,7 +543,7 @@ definition {
 			}
 		}
 		else {
-			MouseOver.mouseOverNotVisible(locator1 = "Portlet#OPTIONS_ICON");
+			MouseOver.waitForMenuToggleJSMouseOver(locator1 = "Portlet#OPTIONS_ICON");
 
 			Click.waitForMenuToggleJSClick(locator1 = "Portlet#OPTIONS_ICON");
 		}
@@ -573,6 +585,7 @@ definition {
 		WaitForLiferayEvent.initializeLiferayEventLog();
 
 		Portlet.gotoPortletOptions(
+			portletIndex = "${portletIndex}",
 			portletName = "${portletName}",
 			portletOption = "Configuration");
 
@@ -678,7 +691,7 @@ definition {
 
 		Navigator.gotoNavTab(navTab = "Widgets");
 
-		Pause(locator1 = "5000");
+		WaitForElementPresent(locator1 = "NavBar#APPLICATION_SEARCH_FIELD");
 
 		Type(
 			locator1 = "NavBar#APPLICATION_SEARCH_FIELD",
@@ -752,6 +765,14 @@ definition {
 		AssertTextEquals(
 			locator1 = "Message#ERROR",
 			value1 = "You do not have the roles required to access this portlet.");
+	}
+
+	macro viewNoPortletOptions {
+		MouseOver.mouseOverNotVisible(locator1 = "Portlet#OPTIONS_ICON");
+
+		Click(locator1 = "Portlet#OPTIONS_ICON");
+
+		MenuItem.viewNotPresent(menuItem = "${menuItem}");
 	}
 
 	macro viewNoPortletsPresentCP {
@@ -847,7 +868,7 @@ definition {
 
 	macro viewPortletPresentPG {
 		AssertTextEquals.assertPartialText(
-			locator1 = "Portlet#PORTLET_CONTENT",
+			locator1 = "PageEditor#CONTENT_PAGE_WEB_CONTENT_CONTENT",
 			value1 = "${portletContent}");
 	}
 

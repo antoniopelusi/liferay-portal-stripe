@@ -59,6 +59,8 @@ public class AssetVocabularyModelDocumentContributor
 			document, Field.TITLE, siteDefaultLocale,
 			assetVocabulary.getTitleMap());
 
+		document.addNumber(
+			Field.VISIBILITY_TYPE, assetVocabulary.getVisibilityType());
 		document.addLocalizedKeyword(
 			"localized_title",
 			LocalizationUtil.populateLocalizationMap(

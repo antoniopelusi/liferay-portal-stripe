@@ -12,6 +12,7 @@
  * details.
  */
 
+import {sub} from 'frontend-js-web';
 import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 
@@ -69,7 +70,7 @@ export default function (props) {
 				<p
 					className="small text-secondary"
 					dangerouslySetInnerHTML={{
-						__html: Liferay.Util.sub(
+						__html: sub(
 							Liferay.Language.get(
 								'x-learn-how-x-to-tailor-categories-to-your-needs'
 							),
@@ -80,7 +81,7 @@ export default function (props) {
 				/>
 			)}
 
-			{initialPublicVocabularies && initialPublicVocabularies.length > 0 && (
+			{initialPublicVocabularies && !!initialPublicVocabularies.length && (
 				<>
 					<div className="border-0 mb-0 sheet-subtitle text-uppercase">
 						{Liferay.Language.get('public-categories')}
@@ -100,7 +101,7 @@ export default function (props) {
 			)}
 
 			{initialInternalVocabularies &&
-				initialInternalVocabularies.length > 0 && (
+				!!initialInternalVocabularies.length && (
 					<>
 						<div className="border-0 mb-0 sheet-subtitle text-uppercase">
 							{Liferay.Language.get('internal-categories')}

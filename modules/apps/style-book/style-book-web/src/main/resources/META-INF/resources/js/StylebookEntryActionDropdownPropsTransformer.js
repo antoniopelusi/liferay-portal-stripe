@@ -12,7 +12,13 @@
  * details.
  */
 
-import {openSelectionModal, openSimpleInputModal} from 'frontend-js-web';
+import {
+	openConfirmModal,
+	openSelectionModal,
+	openSimpleInputModal,
+} from 'frontend-js-web';
+
+import openDeleteStyleBookModal from './openDeleteStyleBookModal';
 
 const ACTIONS = {
 	copyStyleBookEntry({copyStyleBookEntryURL}) {
@@ -20,13 +26,11 @@ const ACTIONS = {
 	},
 
 	deleteStyleBookEntry({deleteStyleBookEntryURL}) {
-		if (
-			confirm(
-				Liferay.Language.get('are-you-sure-you-want-to-delete-this')
-			)
-		) {
-			submitForm(document.hrefFm, deleteStyleBookEntryURL);
-		}
+		openDeleteStyleBookModal({
+			onDelete: () => {
+				submitForm(document.hrefFm, deleteStyleBookEntryURL);
+			},
+		});
 	},
 
 	deleteStyleBookEntryPreview({deleteStyleBookEntryPreviewURL}) {
@@ -38,9 +42,14 @@ const ACTIONS = {
 	},
 
 	markAsDefaultStyleBookEntry({markAsDefaultStyleBookEntryURL, message}) {
-		if (confirm(message)) {
-			submitForm(document.hrefFm, markAsDefaultStyleBookEntryURL);
-		}
+		openConfirmModal({
+			message,
+			onConfirm: (isConfirmed) => {
+				if (isConfirmed) {
+					submitForm(document.hrefFm, markAsDefaultStyleBookEntryURL);
+				}
+			},
+		});
 	},
 
 	renameStyleBookEntry(

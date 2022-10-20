@@ -14,6 +14,7 @@
 
 package com.liferay.portal.util;
 
+import com.liferay.portal.json.JSONObjectImpl;
 import com.liferay.portal.kernel.configuration.Filter;
 import com.liferay.portal.kernel.util.CookieKeys;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -367,6 +368,12 @@ public class PropsValues {
 
 	public static String COMPANY_DEFAULT_TIME_ZONE = PropsUtil.get(
 		PropsKeys.COMPANY_DEFAULT_TIME_ZONE);
+
+	public static String COMPANY_DEFAULT_VIRTUAL_HOST_MAIL_DOMAIN =
+		PropsUtil.get(PropsKeys.COMPANY_DEFAULT_VIRTUAL_HOST_MAIL_DOMAIN);
+
+	public static String COMPANY_DEFAULT_VIRTUAL_HOST_NAME = PropsUtil.get(
+		PropsKeys.COMPANY_DEFAULT_VIRTUAL_HOST_NAME);
 
 	public static String COMPANY_DEFAULT_WEB_ID = PropsUtil.get(
 		PropsKeys.COMPANY_DEFAULT_WEB_ID);
@@ -826,6 +833,9 @@ public class PropsValues {
 			PropsUtil.get(
 				PropsKeys.FACEBOOK_CONNECT_VERIFIED_ACCOUNT_REQUIRED));
 
+	public static final String FEATURE_FLAGS_JSON = String.valueOf(
+		new JSONObjectImpl(PropsUtil.getProperties("feature.flag.", true)));
+
 	public static final String[] FIELD_EDITABLE_DOMAINS = PropsUtil.getArray(
 		PropsKeys.FIELD_EDITABLE_DOMAINS);
 
@@ -1176,16 +1186,10 @@ public class PropsValues {
 	public static final String LIFERAY_HOME = PropsUtil.get(
 		PropsKeys.LIFERAY_HOME);
 
-	public static final String LIFERAY_LIB_GLOBAL_SHARED_DIR = PropsUtil.get(
-		PropsKeys.LIFERAY_LIB_GLOBAL_SHARED_DIR);
-
 	public static final String LIFERAY_SHIELDED_CONTAINER_LIB_PORTAL_DIR =
 		PropsUtil.get(PropsKeys.LIFERAY_SHIELDED_CONTAINER_LIB_PORTAL_DIR);
 
 	public static String LIFERAY_WEB_PORTAL_CONTEXT_TEMPDIR;
-
-	public static final String LIFERAY_WEB_PORTAL_DIR = PropsUtil.get(
-		PropsKeys.LIFERAY_WEB_PORTAL_DIR);
 
 	/**
 	 * @deprecated As of Mueller (7.2.x), with no direct replacement
@@ -1448,9 +1452,6 @@ public class PropsValues {
 
 	public static final String MODULE_FRAMEWORK_PORTAL_DIR = PropsUtil.get(
 		PropsKeys.MODULE_FRAMEWORK_PORTAL_DIR);
-
-	public static final String MODULE_FRAMEWORK_RESOLVER_REVISION_BATCH_SIZE =
-		PropsUtil.get(PropsKeys.MODULE_FRAMEWORK_RESOLVER_REVISION_BATCH_SIZE);
 
 	public static final int MODULE_FRAMEWORK_RUNTIME_START_LEVEL =
 		GetterUtil.getInteger(
@@ -1982,9 +1983,6 @@ public class PropsValues {
 	public static final String[] REQUEST_HEADER_IGNORE_INIT_PARAMS =
 		PropsUtil.getArray(PropsKeys.REQUEST_HEADER_IGNORE_INIT_PARAMS);
 
-	public static final String[] REQUEST_SHARED_ATTRIBUTES = PropsUtil.getArray(
-		PropsKeys.REQUEST_SHARED_ATTRIBUTES);
-
 	public static final String[] REQUEST_UNWRAP_PACKAGES = PropsUtil.getArray(
 		PropsKeys.REQUEST_UNWRAP_PACKAGES);
 
@@ -2421,6 +2419,10 @@ public class PropsValues {
 	public static final int TRASH_SEARCH_LIMIT = GetterUtil.getInteger(
 		PropsUtil.get(PropsKeys.TRASH_SEARCH_LIMIT));
 
+	public static final boolean TUNNEL_SERVLET_HIDE_EXCEPTION_DATA =
+		GetterUtil.getBoolean(
+			PropsUtil.get(PropsKeys.TUNNEL_SERVLET_HIDE_EXCEPTION_DATA));
+
 	public static final String TUNNELING_SERVLET_ENCRYPTION_ALGORITHM =
 		PropsUtil.get(PropsKeys.TUNNELING_SERVLET_ENCRYPTION_ALGORITHM);
 
@@ -2444,6 +2446,13 @@ public class PropsValues {
 	public static final boolean UPGRADE_DATABASE_TRANSACTIONS_DISABLED =
 		GetterUtil.getBoolean(
 			PropsUtil.get(PropsKeys.UPGRADE_DATABASE_TRANSACTIONS_DISABLED));
+
+	public static final boolean UPGRADE_LOG_CONTEXT_ENABLED =
+		GetterUtil.getBoolean(
+			PropsUtil.get(PropsKeys.UPGRADE_LOG_CONTEXT_ENABLED));
+
+	public static final String UPGRADE_LOG_CONTEXT_NAME = PropsUtil.get(
+		PropsKeys.UPGRADE_LOG_CONTEXT_NAME);
 
 	public static final boolean UPGRADE_REPORT_ENABLED = GetterUtil.getBoolean(
 		PropsUtil.get(PropsKeys.UPGRADE_REPORT_ENABLED));
@@ -2554,6 +2563,10 @@ public class PropsValues {
 
 	public static final String[] VIRTUAL_HOSTS_IGNORE_EXTENSIONS =
 		PropsUtil.getArray(PropsKeys.VIRTUAL_HOSTS_IGNORE_EXTENSIONS);
+
+	public static final boolean VIRTUAL_HOSTS_STRICT_ACCESS =
+		GetterUtil.getBoolean(
+			PropsUtil.get(PropsKeys.VIRTUAL_HOSTS_STRICT_ACCESS));
 
 	public static final String[] VIRTUAL_HOSTS_VALID_HOSTS = PropsUtil.getArray(
 		PropsKeys.VIRTUAL_HOSTS_VALID_HOSTS);

@@ -16,7 +16,7 @@ package com.liferay.fragment.internal.renderer;
 
 import com.liferay.fragment.exception.FragmentEntryContentException;
 import com.liferay.fragment.renderer.FragmentDropZoneRenderer;
-import com.liferay.layout.taglib.servlet.taglib.RenderFragmentLayoutTag;
+import com.liferay.layout.taglib.servlet.taglib.RenderLayoutStructureTag;
 import com.liferay.petra.io.unsync.UnsyncStringWriter;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.servlet.PipingServletResponse;
@@ -35,8 +35,8 @@ public class FragmentDropZoneRendererImpl implements FragmentDropZoneRenderer {
 	@Override
 	public String renderDropZone(
 			HttpServletRequest httpServletRequest,
-			HttpServletResponse httpServletResponse, long groupId, long plid,
-			String mainItemId, String mode, boolean showPreview)
+			HttpServletResponse httpServletResponse, String mainItemId,
+			String mode, boolean showPreview)
 		throws PortalException {
 
 		UnsyncStringWriter unsyncStringWriter = new UnsyncStringWriter();
@@ -45,16 +45,14 @@ public class FragmentDropZoneRendererImpl implements FragmentDropZoneRenderer {
 			httpServletResponse, unsyncStringWriter);
 
 		try {
-			RenderFragmentLayoutTag renderFragmentLayoutTag =
-				new RenderFragmentLayoutTag();
+			RenderLayoutStructureTag renderLayoutStructureTag =
+				new RenderLayoutStructureTag();
 
-			renderFragmentLayoutTag.setGroupId(groupId);
-			renderFragmentLayoutTag.setMainItemId(mainItemId);
-			renderFragmentLayoutTag.setMode(mode);
-			renderFragmentLayoutTag.setPlid(plid);
-			renderFragmentLayoutTag.setShowPreview(showPreview);
+			renderLayoutStructureTag.setMainItemId(mainItemId);
+			renderLayoutStructureTag.setMode(mode);
+			renderLayoutStructureTag.setShowPreview(showPreview);
 
-			renderFragmentLayoutTag.doTag(
+			renderLayoutStructureTag.doTag(
 				httpServletRequest, pipingServletResponse);
 		}
 		catch (Exception exception) {

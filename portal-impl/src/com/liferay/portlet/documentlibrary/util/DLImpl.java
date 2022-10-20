@@ -24,9 +24,6 @@ import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLAppLocalServiceUtil;
 import com.liferay.document.library.kernel.service.DLFolderLocalServiceUtil;
 import com.liferay.document.library.kernel.util.DL;
-import com.liferay.document.library.kernel.util.ImageProcessorUtil;
-import com.liferay.document.library.kernel.util.PDFProcessorUtil;
-import com.liferay.document.library.kernel.util.VideoProcessorUtil;
 import com.liferay.document.library.kernel.util.comparator.RepositoryModelCreateDateComparator;
 import com.liferay.document.library.kernel.util.comparator.RepositoryModelModifiedDateComparator;
 import com.liferay.document.library.kernel.util.comparator.RepositoryModelReadCountComparator;
@@ -57,6 +54,7 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalServiceUtil;
 import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.trash.helper.TrashHelper;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ContentTypes;
@@ -64,13 +62,13 @@ import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HtmlUtil;
-import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PrefsPropsUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtil;
+import com.liferay.portal.kernel.util.ServiceProxyFactory;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.URLCodec;
@@ -78,8 +76,6 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.workflow.WorkflowHandlerRegistryUtil;
-import com.liferay.portal.util.PropsValues;
-import com.liferay.trash.kernel.util.TrashUtil;
 
 import java.io.Serializable;
 
@@ -221,40 +217,6 @@ public class DLImpl implements DL {
 		sb.append(id);
 
 		return sb.toString();
-	}
-
-	/**
-	 * @deprecated As of Mueller (7.2.x), replaced by {@link
-	 *             com.liferay.document.library.util.DLURLHelper#getDownloadURL(
-	 *             FileEntry, FileVersion, ThemeDisplay, String)}
-	 */
-	@Deprecated
-	@Override
-	public String getDownloadURL(
-		FileEntry fileEntry, FileVersion fileVersion, ThemeDisplay themeDisplay,
-		String queryString) {
-
-		return getDownloadURL(
-			fileEntry, fileVersion, themeDisplay, queryString, true, true);
-	}
-
-	/**
-	 * @deprecated As of Mueller (7.2.x), replaced by {@link
-	 *             com.liferay.document.library.util.DLURLHelper#getDownloadURL(
-	 *             FileEntry, FileVersion, ThemeDisplay, String, boolean,
-	 *             boolean)}
-	 */
-	@Deprecated
-	@Override
-	public String getDownloadURL(
-		FileEntry fileEntry, FileVersion fileVersion, ThemeDisplay themeDisplay,
-		String queryString, boolean appendVersion, boolean absoluteURL) {
-
-		String previewURL = getPreviewURL(
-			fileEntry, fileVersion, themeDisplay, queryString, appendVersion,
-			absoluteURL);
-
-		return HttpComponentsUtil.addParameter(previewURL, "download", true);
 	}
 
 	@Override
@@ -451,73 +413,6 @@ public class DLImpl implements DL {
 
 	/**
 	 * @deprecated As of Mueller (7.2.x), replaced by {@link
-	 *             com.liferay.document.library.util.DLURLHelper#getImagePreviewURL(
-	 *             FileEntry, FileVersion, ThemeDisplay)}
-	 */
-	@Deprecated
-	@Override
-	public String getImagePreviewURL(
-		FileEntry fileEntry, FileVersion fileVersion,
-		ThemeDisplay themeDisplay) {
-
-		return getImagePreviewURL(
-			fileEntry, fileVersion, themeDisplay, null, true, true);
-	}
-
-	/**
-	 * @deprecated As of Mueller (7.2.x), replaced by {@link
-	 *             com.liferay.document.library.util.DLURLHelper#getImagePreviewURL(
-	 *             FileEntry, FileVersion, ThemeDisplay, String, boolean,
-	 *             boolean)}
-	 */
-	@Deprecated
-	@Override
-	public String getImagePreviewURL(
-		FileEntry fileEntry, FileVersion fileVersion, ThemeDisplay themeDisplay,
-		String queryString, boolean appendVersion, boolean absoluteURL) {
-
-		String previewQueryString = queryString;
-
-		if (Validator.isNull(previewQueryString)) {
-			previewQueryString = StringPool.BLANK;
-		}
-
-		if (ImageProcessorUtil.isSupported(fileVersion.getMimeType())) {
-			previewQueryString = previewQueryString.concat("&imagePreview=1");
-		}
-		else if (PropsValues.DL_FILE_ENTRY_PREVIEW_ENABLED) {
-			if (PDFProcessorUtil.hasImages(fileVersion)) {
-				previewQueryString = previewQueryString.concat(
-					"&previewFileIndex=1");
-			}
-			else if (VideoProcessorUtil.hasVideo(fileVersion)) {
-				previewQueryString = previewQueryString.concat(
-					"&videoThumbnail=1");
-			}
-		}
-
-		return getImageSrc(
-			fileEntry, fileVersion, themeDisplay, previewQueryString,
-			appendVersion, absoluteURL);
-	}
-
-	/**
-	 * @deprecated As of Mueller (7.2.x), replaced by {@link
-	 *             com.liferay.document.library.util.DLURLHelper#getImagePreviewURL(
-	 *             FileEntry, FileVersion, ThemeDisplay)}
-	 */
-	@Deprecated
-	@Override
-	public String getImagePreviewURL(
-			FileEntry fileEntry, ThemeDisplay themeDisplay)
-		throws Exception {
-
-		return getImagePreviewURL(
-			fileEntry, fileEntry.getFileVersion(), themeDisplay);
-	}
-
-	/**
-	 * @deprecated As of Mueller (7.2.x), replaced by {@link
 	 *             com.liferay.document.library.util.DLURLHelper#getPreviewURL(
 	 *             FileEntry, FileVersion, ThemeDisplay, String)}
 	 */
@@ -559,7 +454,8 @@ public class DLImpl implements DL {
 		String fileName = fileEntry.getFileName();
 
 		if (fileEntry.isInTrash()) {
-			fileName = TrashUtil.getOriginalTitle(fileEntry.getFileName());
+			fileName = _trashTitleResolver.getOriginalTitle(
+				fileEntry.getFileName());
 		}
 
 		sb.append(URLCodec.encodeURL(HtmlUtil.unescape(fileName)));
@@ -1045,6 +941,9 @@ public class DLImpl implements DL {
 	private static final Set<String> _allMediaGalleryMimeTypes =
 		new TreeSet<String>() {
 			{
+				add(
+					ContentTypes.
+						APPLICATION_VND_LIFERAY_VIDEO_EXTERNAL_SHORTCUT_HTML);
 				addAll(
 					SetUtil.fromArray(
 						PropsUtil.getArray(
@@ -1097,6 +996,9 @@ public class DLImpl implements DL {
 	};
 
 	private static final Map<String, String> _genericNames = new HashMap<>();
+	private static volatile TrashHelper _trashTitleResolver =
+		ServiceProxyFactory.newServiceTrackedInstance(
+			TrashHelper.class, DLImpl.class, "_trashTitleResolver", false);
 
 	static {
 		String[] genericNames = PropsUtil.getArray(

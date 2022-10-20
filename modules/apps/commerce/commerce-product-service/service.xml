@@ -4,7 +4,7 @@
 <service-builder auto-namespace-tables="false" change-tracking-enabled="true" mvcc-enabled="true" package-path="com.liferay.commerce.product">
 	<author>Marco Leo</author>
 	<namespace>Commerce</namespace>
-	<entity external-reference-code="true" local-service="true" name="CommerceCatalog" remote-service="true">
+	<entity external-reference-code="true" local-service="true" name="CommerceCatalog" remote-service="true" uuid="true">
 
 		<!-- PK fields -->
 
@@ -41,7 +41,7 @@
 			<finder-column name="system" />
 		</finder>
 	</entity>
-	<entity external-reference-code="true" local-service="true" name="CommerceChannel" remote-service="true">
+	<entity external-reference-code="true" local-service="true" name="CommerceChannel" remote-service="true" uuid="true">
 
 		<!-- PK fields -->
 
@@ -754,7 +754,7 @@
 			<finder-column name="CPInstanceId" />
 		</finder>
 	</entity>
-	<entity local-service="true" name="CPMeasurementUnit" remote-service="true" uuid="true">
+	<entity external-reference-code="true" local-service="true" name="CPMeasurementUnit" remote-service="true" uuid="true">
 
 		<!-- PK fields -->
 
@@ -1006,7 +1006,7 @@
 			<finder-column name="key" />
 		</finder>
 	</entity>
-	<entity external-reference-code="true" local-service="true" name="CPTaxCategory" remote-service="true">
+	<entity external-reference-code="true" local-service="true" name="CPTaxCategory" remote-service="true" uuid="true">
 
 		<!-- PK fields -->
 
@@ -1066,9 +1066,10 @@
 		<exception>CPInstanceDisplayDate</exception>
 		<exception>CPInstanceExpirationDate</exception>
 		<exception>CPInstanceJson</exception>
+		<exception>CPInstanceMaxPriceValue</exception>
 		<exception>CPInstanceReplacementCPInstanceUuid</exception>
 		<exception>CPInstanceSku</exception>
-		<exception>CPMeasurementUnitKey</exception>
+		<exception>CPMeasurementUnitType</exception>
 		<exception>CPOptionCategoryKey</exception>
 		<exception>CPOptionKey</exception>
 		<exception>CPOptionSKUContributor</exception>
@@ -1080,8 +1081,11 @@
 		<exception>DuplicateCommerceChannelRel</exception>
 		<exception>DuplicateCPAttachmentFileEntry</exception>
 		<exception>DuplicateCPDefinitionOptionRelKey</exception>
+		<exception>DuplicateCPMeasurementUnitExternalReferenceCode</exception>
+		<exception>DuplicateCPMeasurementUnitKey</exception>
 		<exception>DuplicateCProduct</exception>
 		<exception>DuplicateCPSpecificationOptionKey</exception>
+		<exception>DuplicateCPTaxCategory</exception>
 		<exception>InvalidCommerceChannelType</exception>
 		<exception>NoSuchSkuContributorCPDefinitionOptionRel</exception>
 	</exceptions>

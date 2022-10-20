@@ -16,12 +16,6 @@
 
 <%@ include file="/init.jsp" %>
 
-<style>
-	.facet-checkbox-label {
-		display: block;
-	}
-</style>
-
 <%
 CPOptionsSearchFacetDisplayContext cpOptionsSearchFacetDisplayContext = (CPOptionsSearchFacetDisplayContext)request.getAttribute(WebKeys.PORTLET_DISPLAY_CONTEXT);
 %>
@@ -106,7 +100,7 @@ CPOptionsSearchFacetDisplayContext cpOptionsSearchFacetDisplayContext = (CPOptio
 
 								<li class="facet-value">
 									<div class="custom-checkbox custom-control">
-										<label class="facet-checkbox-label" for="<portlet:namespace />term_<%= facet.getFieldName() + i %>">
+										<label for="<portlet:namespace />term_<%= facet.getFieldName() + i %>">
 											<input
 												class="custom-control-input facet-term"
 												data-term-id="<%= HtmlUtil.escapeAttribute(termCollector.getTerm()) %>"
@@ -152,7 +146,5 @@ CPOptionsSearchFacetDisplayContext cpOptionsSearchFacetDisplayContext = (CPOptio
 				</div>
 			</c:otherwise>
 		</c:choose>
-
-		<aui:script use="liferay-search-facet-util"></aui:script>
 	</c:otherwise>
 </c:choose>

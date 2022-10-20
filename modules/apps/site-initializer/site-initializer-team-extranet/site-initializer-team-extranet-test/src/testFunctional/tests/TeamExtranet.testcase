@@ -1,11 +1,10 @@
 @component-name = "portal-liferay-online"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property osgi.modules.includes = "site-initializer-team-extranet";
 	property portal.release = "true";
 	property portal.upstream = "true";
+	property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 	property testray.main.component.name = "Team Extranet";
 
 	var testSiteName = "Test Site Team Extranet Name";
@@ -78,7 +77,7 @@ definition {
 
 			AssertElementPresent(
 				id = "parallaxContainerImage",
-				key_image = "entry_01.jpg",
+				key_image = "entry_01",
 				locator1 = "Fragment#BACKGROUND_IMAGE_EDITABLE_FIELD_IMAGE_PROPERTIES");
 		}
 	}
@@ -420,8 +419,8 @@ definition {
 		task ("Select the Bordered List in Collection Display") {
 			PageEditor.editCollectionDisplay(
 				fragmentName = "Collection Display",
-				listStyle = "Bordered List",
-				selectedName = "Dynamic Collection Test");
+				selectedName = "Dynamic Collection Test",
+				styleDisplay = "Bordered List");
 		}
 
 		task ("Preview the Page and Assert the list of Blog Entries") {
@@ -453,8 +452,8 @@ definition {
 
 			PageEditor.editCollectionDisplay(
 				fragmentName = "Collection Display",
-				listStyle = "Bordered List",
-				selectedName = "Dynamic Collection Test");
+				selectedName = "Dynamic Collection Test",
+				styleDisplay = "Bordered List");
 		}
 
 		task ("Preview the Page and Assert the list of Members") {
@@ -966,7 +965,6 @@ definition {
 		FragmentsAdmin.addFragment(fragmentName = "Fragment Name");
 
 		var fragmentHtml = '''<lfr-widget-search-bar>''';
-
 		var htmlSnippet = '''<lfr-''';
 
 		FragmentsEditor.autocompleteFragmentHTML(

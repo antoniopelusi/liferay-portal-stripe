@@ -402,7 +402,7 @@ public class PortalPreferencesImpl
 		}
 	}
 
-	protected String toXML() {
+	public String toXML() {
 		Map<PortalPreferenceKey, String[]> preferences = getPreferences();
 
 		if ((preferences == null) || preferences.isEmpty()) {

@@ -1,5 +1,15 @@
 definition {
 
+	macro getCurrentMetric {
+		WaitForVisible(
+			key_cardTitle = "Visitors Behavior",
+			locator1 = "ACCards#CARD_TITLE");
+
+		var current = selenium.getText("ACSites#SITE_METRIC_VALUE");
+
+		return "${current}";
+	}
+
 	macro viewActivitiesDuration {
 		var valueNumber = "";
 		var timeUnit = "";
@@ -71,7 +81,7 @@ definition {
 			var pageName = ListUtil.get("${list1}", "${i}");
 			var position = ListUtil.get("${list2}", "${i}");
 
-			while (IsElementNotPresent(key_index = "${position}", key_pageName = "${pageName}", locator1 = "ACSites#VISITED_TOP_PAGES_CARD") && (maxIterations = "50")) {
+			while ((IsElementNotPresent(key_index = "${position}", key_pageName = "${pageName}", locator1 = "ACSites#VISITED_TOP_PAGES_CARD")) && (maxIterations = "50")) {
 				TestUtils.hardRefresh();
 
 				ACTimeFilter.clickTimeFilterButton(cardName = "Top Pages");
@@ -85,6 +95,7 @@ definition {
 				locator1 = "ACSites#VISITED_TOP_PAGES_CARD");
 
 			var i = ${i} + 1;
+
 			var i = StringUtil.valueOf("${i}");
 		}
 	}
@@ -94,7 +105,7 @@ definition {
 
 		ACTimeFilter.setLast24Hours();
 
-		while (IsElementNotPresent(locator1 = "ACIndividualsDashboard#ACTIVE_INDIVIDUAL_CHART") && (maxIterations = "50")) {
+		while ((IsElementNotPresent(locator1 = "ACIndividualsDashboard#ACTIVE_INDIVIDUAL_CHART")) && (maxIterations = "50")) {
 			TestUtils.hardRefresh();
 
 			ACTimeFilter.clickTimeFilterButton();
@@ -113,7 +124,7 @@ definition {
 			var visitorsType = ListUtil.get("${list1}", "${i}");
 			var valueVisitors = ListUtil.get("${list2}", "${i}");
 
-			while (IsElementNotPresent(key_value = "${valueVisitors}", key_visitors = "${visitorsType}", locator1 = "ACSites#TOOLTIP_UNIQUE_VISITORS") && (maxIterations = "50")) {
+			while ((IsElementNotPresent(key_value = "${valueVisitors}", key_visitors = "${visitorsType}", locator1 = "ACSites#TOOLTIP_UNIQUE_VISITORS")) && (maxIterations = "50")) {
 				TestUtils.hardRefresh();
 
 				ACTimeFilter.clickTimeFilterButton();
@@ -129,6 +140,7 @@ definition {
 				locator1 = "ACSites#TOOLTIP_UNIQUE_VISITORS");
 
 			var i = ${i} + 1;
+
 			var i = StringUtil.valueOf("${i}");
 		}
 	}

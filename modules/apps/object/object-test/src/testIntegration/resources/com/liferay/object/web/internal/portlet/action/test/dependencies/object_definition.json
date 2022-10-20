@@ -1,4 +1,6 @@
 {
+	"accountEntryRestricted": false,
+	"accountEntryRestrictedObjectFieldId": 0,
 	"actions": {
 		"delete": {
 		},
@@ -19,18 +21,166 @@
 	"objectActions": [
 		{
 			"active": true,
+			"conditionExpression": "",
+			"description": "",
+			"name": "Action",
+			"objectActionExecutorKey": "groovy",
+			"objectActionTriggerKey": "onAfterAdd",
+			"parameters": {
+				"script": "invalidFields = false;"
+			},
+			"status": {
+				"code": 0,
+				"label": "never-ran",
+				"label_i18n": "Never Ran"
+			}
+		},
+		{
+			"active": true,
+			"conditionExpression": "",
+			"description": "",
+			"name": "Action",
+			"objectActionExecutorKey": "notification",
+			"objectActionTriggerKey": "onAfterAdd",
+			"parameters": {
+				"notificationTemplateId": 0
+			},
+			"status": {
+				"code": 0,
+				"label": "never-ran",
+				"label_i18n": "Never Ran"
+			}
+		},
+		{
+			"active": true,
+			"conditionExpression": "",
+			"description": "",
 			"name": "Action",
 			"objectActionExecutorKey": "webhook",
 			"objectActionTriggerKey": "onAfterAdd",
 			"parameters": {
 				"url": "www.liferay.com"
+			},
+			"status": {
+				"code": 0,
+				"label": "never-ran",
+				"label_i18n": "Never Ran"
 			}
 		}
 	],
 	"objectFields": [
 		{
+			"DBType": "Date",
+			"businessType": "Date",
+			"defaultValue": "",
+			"indexed": false,
+			"indexedAsKeyword": false,
+			"indexedLanguageId": "",
+			"label": {
+				"en_US": "Create Date"
+			},
+			"name": "createDate",
+			"objectFieldSettings": [
+			],
+			"required": false,
+			"state": false,
+			"system": true,
+			"type": "Date"
+		},
+		{
 			"DBType": "String",
 			"businessType": "Text",
+			"defaultValue": "",
+			"indexed": false,
+			"indexedAsKeyword": false,
+			"indexedLanguageId": "",
+			"label": {
+				"en_US": "Author"
+			},
+			"name": "creator",
+			"objectFieldSettings": [
+			],
+			"required": false,
+			"state": false,
+			"system": true,
+			"type": "String"
+		},
+		{
+			"DBType": "String",
+			"businessType": "Text",
+			"defaultValue": "",
+			"indexed": false,
+			"indexedAsKeyword": false,
+			"indexedLanguageId": "",
+			"label": {
+				"en_US": "External Reference Code"
+			},
+			"name": "externalReferenceCode",
+			"objectFieldSettings": [
+			],
+			"required": false,
+			"state": false,
+			"system": true,
+			"type": "String"
+		},
+		{
+			"DBType": "Long",
+			"businessType": "LongInteger",
+			"defaultValue": "",
+			"indexed": false,
+			"indexedAsKeyword": false,
+			"indexedLanguageId": "",
+			"label": {
+				"en_US": "ID"
+			},
+			"name": "id",
+			"objectFieldSettings": [
+			],
+			"required": false,
+			"state": false,
+			"system": true,
+			"type": "Long"
+		},
+		{
+			"DBType": "Date",
+			"businessType": "Date",
+			"defaultValue": "",
+			"indexed": false,
+			"indexedAsKeyword": false,
+			"indexedLanguageId": "",
+			"label": {
+				"en_US": "Modified Date"
+			},
+			"name": "modifiedDate",
+			"objectFieldSettings": [
+			],
+			"required": false,
+			"state": false,
+			"system": true,
+			"type": "Date"
+		},
+		{
+			"DBType": "String",
+			"businessType": "Text",
+			"defaultValue": "",
+			"indexed": false,
+			"indexedAsKeyword": false,
+			"indexedLanguageId": "",
+			"label": {
+				"en_US": "Status"
+			},
+			"name": "status",
+			"objectFieldSettings": [
+			],
+			"required": false,
+			"state": false,
+			"system": true,
+			"type": "String"
+		},
+		{
+			"DBType": "String",
+			"businessType": "Text",
+			"defaultValue": "",
 			"indexed": true,
 			"indexedAsKeyword": false,
 			"indexedLanguageId": "",
@@ -38,12 +188,17 @@
 				"en_US": "Text Field 1"
 			},
 			"name": "textField1",
+			"objectFieldSettings": [
+			],
 			"required": false,
+			"state": false,
+			"system": false,
 			"type": "String"
 		},
 		{
 			"DBType": "String",
 			"businessType": "Text",
+			"defaultValue": "",
 			"indexed": true,
 			"indexedAsKeyword": false,
 			"indexedLanguageId": "",
@@ -51,7 +206,11 @@
 				"en_US": "Text Field 2"
 			},
 			"name": "textField2",
+			"objectFieldSettings": [
+			],
 			"required": false,
+			"state": false,
+			"system": false,
 			"type": "String"
 		}
 	],
@@ -94,7 +253,8 @@
 									"priority": 0
 								}
 							],
-							"priority": 0
+							"priority": 0,
+							"type": "regular"
 						}
 					],
 					"priority": 0
@@ -111,15 +271,31 @@
 			"objectViewColumns": [
 				{
 					"label": {
+						"en_US": "alias1"
 					},
 					"objectFieldName": "textField1",
 					"priority": 0
 				},
 				{
 					"label": {
+						"en_US": "alias2"
 					},
 					"objectFieldName": "textField2",
 					"priority": 1
+				}
+			],
+			"objectViewFilterColumns": [
+				{
+					"objectFieldName": "dateCreated"
+				},
+				{
+					"objectFieldName": "dateModified"
+				},
+				{
+					"filterType": "excludes",
+					"json": "{ \"excludes\": [0, 1]}",
+					"objectFieldName": "status",
+					"valueSummary": "Approved, Pending"
 				}
 			],
 			"objectViewSortColumns": [
@@ -137,6 +313,7 @@
 		}
 	],
 	"panelCategoryKey": "",
+	"parameterRequired": false,
 	"pluralLabel": {
 		"en_US": "Object Definitions"
 	},

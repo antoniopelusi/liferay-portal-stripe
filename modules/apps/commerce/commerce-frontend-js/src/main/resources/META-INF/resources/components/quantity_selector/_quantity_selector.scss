@@ -2,12 +2,15 @@
 	min-width: 8rem;
 }
 
-input[type='number'].quantity-selector {
-	padding: 0.25rem 0.5rem 0.25rem 1rem;
+.quantity-selector-popover {
+	bottom: auto;
+	top: auto;
 
-	&::-webkit-inner-spin-button,
-	&::-webkit-outer-spin-button {
-		margin: 0;
-		opacity: 1;
+	.popover-body {
+		padding: map-get($spacers, 1) map-get($spacers, 2);
+
+		li:last-child {
+			border-bottom: none;
+		}
 	}
 }

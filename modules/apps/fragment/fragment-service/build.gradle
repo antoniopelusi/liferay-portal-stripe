@@ -9,7 +9,7 @@ dependencies {
 	compileOnly group: "com.liferay.portal", name: "com.liferay.util.taglib", version: "default"
 	compileOnly group: "javax.portlet", name: "portlet-api", version: "3.0.1"
 	compileOnly group: "org.apache.felix", name: "org.apache.felix.http.servlet-api", version: "1.1.2"
-	compileOnly group: "org.jsoup", name: "jsoup", version: "1.10.2"
+	compileOnly group: "org.jsoup", name: "jsoup", version: "1.15.1"
 	compileOnly group: "org.osgi", name: "org.osgi.annotation.versioning", version: "1.1.0"
 	compileOnly group: "org.osgi", name: "org.osgi.service.component.annotations", version: "1.4.0"
 	compileOnly group: "org.osgi", name: "osgi.core", version: "6.0.0"
@@ -20,6 +20,7 @@ dependencies {
 	compileOnly project(":apps:dynamic-data-mapping:dynamic-data-mapping-api")
 	compileOnly project(":apps:export-import:export-import-api")
 	compileOnly project(":apps:fragment:fragment-api")
+	compileOnly project(":apps:fragment:fragment-entry-processor:fragment-entry-processor-api")
 	compileOnly project(":apps:layout:layout-page-template-api")
 	compileOnly project(":apps:portal:portal-aop-api")
 	compileOnly project(":apps:portal:portal-dao-orm-custom-sql-api")
@@ -40,5 +41,5 @@ dependencies {
 	testCompile group: "com.github.everit-org.json-schema", name: "org.everit.json.schema", version: "1.11.1"
 	testCompile group: "com.google.re2j", name: "re2j", version: "1.2"
 	testCompile group: "joda-time", name: "joda-time", version: "2.9.1"
-	testCompile group: "org.json", name: "json", version: "20180813"
+	testCompile group: "org.json", name: "json", version: "20220320"
 }

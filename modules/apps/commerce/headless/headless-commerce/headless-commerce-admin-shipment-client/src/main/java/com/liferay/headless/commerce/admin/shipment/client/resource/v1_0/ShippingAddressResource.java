@@ -83,6 +83,12 @@ public interface ShippingAddressResource {
 			return new ShippingAddressResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -128,6 +134,7 @@ public interface ShippingAddressResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -217,7 +224,7 @@ public interface ShippingAddressResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-shipment/v1.0/shipments/by-externalReferenceCode/{externalReferenceCode}/shipping-address");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -307,7 +314,7 @@ public interface ShippingAddressResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-shipment/v1.0/shipments/by-externalReferenceCode/{externalReferenceCode}/shipping-address");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -389,7 +396,7 @@ public interface ShippingAddressResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-shipment/v1.0/shipments/{shipmentId}/shipping-address");
 
 			httpInvoker.path("shipmentId", shipmentId);
@@ -476,7 +483,7 @@ public interface ShippingAddressResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-shipment/v1.0/shipments/{shipmentId}/shipping-address");
 
 			httpInvoker.path("shipmentId", shipmentId);

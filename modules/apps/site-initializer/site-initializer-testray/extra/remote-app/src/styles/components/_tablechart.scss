@@ -1,0 +1,28 @@
+.table-chart {
+	max-width: 500px;
+	table-layout: fixed;
+	.passed {
+		background-color: $passed-color;
+	}
+
+	.failed {
+		background-color: $failed-color;
+	}
+
+	.blocked {
+		background-color: $blocked-color;
+	}
+
+	.test-fix {
+		background-color: $test-fix-color;
+	}
+
+	.table-chart-data-area {
+		border-color: $color-gray-light !important;
+		opacity: 0.3;
+
+		&:hover {
+			opacity: 1;
+		}
+	}
+}

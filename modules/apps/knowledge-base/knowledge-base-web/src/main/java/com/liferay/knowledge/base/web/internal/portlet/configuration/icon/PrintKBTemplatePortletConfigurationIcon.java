@@ -20,7 +20,7 @@ import com.liferay.knowledge.base.web.internal.constants.KBWebKeys;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
@@ -42,7 +42,7 @@ import org.osgi.service.component.annotations.Reference;
 	immediate = true,
 	property = {
 		"javax.portlet.name=" + KBPortletKeys.KNOWLEDGE_BASE_ADMIN,
-		"path=/admin/view_template.jsp"
+		"path=/admin/view_kb_template.jsp"
 	},
 	service = PortletConfigurationIcon.class
 )
@@ -51,8 +51,7 @@ public class PrintKBTemplatePortletConfigurationIcon
 
 	@Override
 	public String getMessage(PortletRequest portletRequest) {
-		return LanguageUtil.get(
-			getResourceBundle(getLocale(portletRequest)), "print");
+		return _language.get(getLocale(portletRequest), "print");
 	}
 
 	@Override
@@ -67,7 +66,7 @@ public class PrintKBTemplatePortletConfigurationIcon
 						portletRequest, KBPortletKeys.KNOWLEDGE_BASE_ADMIN,
 						PortletRequest.RENDER_PHASE)
 				).setMVCPath(
-					"/admin/print_template.jsp"
+					"/admin/print_kb_template.jsp"
 				).setParameter(
 					"kbTemplateId",
 					() -> {
@@ -90,16 +89,16 @@ public class PrintKBTemplatePortletConfigurationIcon
 			if (_log.isDebugEnabled()) {
 				_log.debug(exception);
 			}
-		}
 
-		return StringPool.BLANK;
+			return StringPool.BLANK;
+		}
 	}
 
 	@Override
 	public String getURL(
 		PortletRequest portletRequest, PortletResponse portletResponse) {
 
-		return "javascript:;";
+		return "javascript:void(0);";
 	}
 
 	@Override
@@ -114,6 +113,9 @@ public class PrintKBTemplatePortletConfigurationIcon
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		PrintKBTemplatePortletConfigurationIcon.class);
+
+	@Reference
+	private Language _language;
 
 	@Reference
 	private Portal _portal;

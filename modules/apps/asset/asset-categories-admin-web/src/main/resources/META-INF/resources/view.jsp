@@ -16,6 +16,8 @@
 
 <%@ include file="/init.jsp" %>
 
+<liferay-ui:error exception="<%= DuplicateCategoryException.class %>" message="there-is-another-category-with-the-same-name-and-the-same-parent" />
+
 <liferay-ui:success key="categoryAdded" message='<%= GetterUtil.getString(MultiSessionMessages.get(renderRequest, "categoryAdded")) %>' />
 <liferay-ui:success key="categoryUpdated" message='<%= GetterUtil.getString(MultiSessionMessages.get(renderRequest, "categoryUpdated")) %>' />
 
@@ -66,12 +68,12 @@
 												</c:if>
 											</li>
 											<li>
-												<liferay-portlet:actionURL copyCurrentRenderParameters="<%= false %>" name="deleteVocabulary" var="deleteVocabulariesURL">
+												<liferay-portlet:actionURL copyCurrentRenderParameters="<%= false %>" name="/asset_categories_admin/delete_asset_vocabulary" var="deleteVocabulariesURL">
 													<portlet:param name="redirect" value="<%= assetCategoriesDisplayContext.getDefaultRedirect() %>" />
 												</liferay-portlet:actionURL>
 
 												<portlet:renderURL var="viewVocabulariesURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
-													<portlet:param name="mvcPath" value="/view_vocabularies.jsp" />
+													<portlet:param name="mvcPath" value="/view_asset_vocabularies.jsp" />
 												</portlet:renderURL>
 
 												<clay:dropdown-actions
@@ -260,7 +262,7 @@
 						<c:if test="<%= Validator.isNotNull(description) %>">
 							<div class="mb-2">
 								<span class="mr-1"><liferay-ui:message key="description" />:</span>
-								<span class="text-secondary"><%= description %></span>
+								<span class="text-break text-secondary"><%= description %></span>
 							</div>
 						</c:if>
 					</div>
@@ -299,7 +301,7 @@
 					</c:if>
 
 					<clay:sheet-section>
-						<liferay-util:include page="/view_categories.jsp" servletContext="<%= application %>" />
+						<liferay-util:include page="/view_asset_categories.jsp" servletContext="<%= application %>" />
 					</clay:sheet-section>
 				</clay:sheet>
 			</c:if>

@@ -30,29 +30,37 @@ List<MenuItem> menuItems = MenuItem.fromWikiNode(selNodeId, depth, viewURL);
 
 <c:choose>
 	<c:when test="<%= !menuItems.isEmpty() %>">
-		<%= _buildTreeMenuHTML(menuItems, title, true) %>
+		<div class="loading tree-view-container">
+			<span aria-hidden="true" class="loading-animation loading-animation-sm"></span>
+			<%= _buildTreeMenuHTML(menuItems, title, true) %>
 
-		<aui:script use="aui-tree-view">
-			var wikiPageList = A.one('.wiki-navigation-portlet-tree-menu .tree-menu');
+			<aui:script use="aui-tree-view">
+				var wikiPageList = A.one(
+					'.wiki-navigation-portlet-tree-menu .loading .tree-menu'
+				);
+				var wikiPageListContainer = wikiPageList.ancestor('.tree-view-container');
 
-			var treeView = new A.TreeView({
-				contentBox: wikiPageList,
-			}).render();
+				var treeView = new A.TreeView({
+					contentBox: wikiPageList,
+				}).render();
 
-			var selected = wikiPageList.one('.tree-node .tag-selected');
+				wikiPageListContainer.removeClass('loading');
 
-			if (selected) {
-				var selectedChild = treeView.getNodeByChild(selected);
+				var selected = wikiPageList.one('.tree-node .tag-selected');
 
-				selectedChild.expand();
+				if (selected) {
+					var selectedChild = treeView.getNodeByChild(selected);
 
-				selectedChild.eachParent((node) => {
-					if (node instanceof A.TreeNode) {
-						node.expand();
-					}
-				});
-			}
-		</aui:script>
+					selectedChild.expand();
+
+					selectedChild.eachParent((node) => {
+						if (node instanceof A.TreeNode) {
+							node.expand();
+						}
+					});
+				}
+			</aui:script>
+		</div>
 	</c:when>
 	<c:otherwise>
 		<liferay-ui:message key="no-wiki-pages-were-found" />

@@ -74,7 +74,7 @@ definition {
 
 			PageEditor.viewContainerStyle(backgroundColor = "gray-500");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View the Banner Center shown in view mode") {
@@ -97,10 +97,10 @@ definition {
 				id = "link",
 				text = "Go Somewhere");
 
-			AssertVisible(
-				backgroundImageStyle = "background-color: var(--gray-500)",
-				locator1 = "Fragment#BACKGROUND_IMAGE_STYLE",
-				position = "1");
+			ContentPages.viewFragmentCommonStyle(
+				fragmentName = "container",
+				styleName = "backgroundColor",
+				styleValue = "gray-500");
 		}
 	}
 

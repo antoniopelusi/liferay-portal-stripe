@@ -23,6 +23,8 @@ import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.json.JSONArray;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.portlet.JSONPortletResponseUtil;
@@ -66,6 +68,20 @@ public class AddFragmentEntryMVCActionCommand extends BaseMVCActionCommand {
 		int type = ParamUtil.getInteger(
 			actionRequest, "type", FragmentConstants.TYPE_SECTION);
 
+		String typeOptions = null;
+
+		if (type == FragmentConstants.TYPE_INPUT) {
+			String[] fieldTypes = ParamUtil.getStringValues(
+				actionRequest, "fieldTypes");
+
+			JSONArray fieldTypesJSONArray = JSONFactoryUtil.createJSONArray(
+				fieldTypes);
+
+			typeOptions = JSONUtil.put(
+				"fieldTypes", fieldTypesJSONArray
+			).toString();
+		}
+
 		try {
 			ServiceContext serviceContext = ServiceContextFactory.getInstance(
 				actionRequest);
@@ -75,7 +91,8 @@ public class AddFragmentEntryMVCActionCommand extends BaseMVCActionCommand {
 					serviceContext.getScopeGroupId(), fragmentCollectionId,
 					null, name, StringPool.BLANK, StringPool.BLANK,
 					StringPool.BLANK, false, StringPool.BLANK, null, 0, type,
-					WorkflowConstants.STATUS_DRAFT, serviceContext);
+					typeOptions, WorkflowConstants.STATUS_DRAFT,
+					serviceContext);
 
 			fragmentEntry.setCss(
 				StringBundler.concat(

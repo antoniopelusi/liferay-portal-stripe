@@ -16,7 +16,6 @@ definition {
 		}
 
 		var accountEntryStatus = JSONAccountEntrySetter.setStatus(accountEntryStatus = "${accountEntryStatus}");
-
 		var accountEntryType = JSONAccountEntrySetter.setType(accountEntryType = "${accountEntryType}");
 
 		JSONAccountEntryAPI._addAccountEntry(

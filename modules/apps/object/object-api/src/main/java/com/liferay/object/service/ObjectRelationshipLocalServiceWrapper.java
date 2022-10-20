@@ -40,14 +40,14 @@ public class ObjectRelationshipLocalServiceWrapper
 	@Override
 	public com.liferay.object.model.ObjectRelationship addObjectRelationship(
 			long userId, long objectDefinitionId1, long objectDefinitionId2,
-			String deletionType,
+			long parameterObjectFieldId, String deletionType,
 			java.util.Map<java.util.Locale, String> labelMap, String name,
 			String type)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _objectRelationshipLocalService.addObjectRelationship(
-			userId, objectDefinitionId1, objectDefinitionId2, deletionType,
-			labelMap, name, type);
+			userId, objectDefinitionId1, objectDefinitionId2,
+			parameterObjectFieldId, deletionType, labelMap, name, type);
 	}
 
 	/**
@@ -363,6 +363,15 @@ public class ObjectRelationshipLocalServiceWrapper
 			objectRelationshipId);
 	}
 
+	@Override
+	public com.liferay.object.model.ObjectRelationship getObjectRelationship(
+			long objectDefinitionId1, String name)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _objectRelationshipLocalService.getObjectRelationship(
+			objectDefinitionId1, name);
+	}
+
 	/**
 	 * Returns the object relationship with the matching UUID and company.
 	 *
@@ -415,6 +424,15 @@ public class ObjectRelationshipLocalServiceWrapper
 			objectDefinitionId1, start, end);
 	}
 
+	@Override
+	public java.util.List<com.liferay.object.model.ObjectRelationship>
+		getObjectRelationships(
+			long objectDefinitionId1, long objectDefinition2, String type) {
+
+		return _objectRelationshipLocalService.getObjectRelationships(
+			objectDefinitionId1, objectDefinition2, type);
+	}
+
 	/**
 	 * Returns the number of object relationships.
 	 *
@@ -448,12 +466,14 @@ public class ObjectRelationshipLocalServiceWrapper
 
 	@Override
 	public com.liferay.object.model.ObjectRelationship updateObjectRelationship(
-			long objectRelationshipId, String deletionType,
+			long objectRelationshipId, long parameterObjectFieldId,
+			String deletionType,
 			java.util.Map<java.util.Locale, String> labelMap)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _objectRelationshipLocalService.updateObjectRelationship(
-			objectRelationshipId, deletionType, labelMap);
+			objectRelationshipId, parameterObjectFieldId, deletionType,
+			labelMap);
 	}
 
 	/**

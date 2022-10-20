@@ -150,7 +150,7 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 
 	protected void updateFileEntryFileNames() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
-			runSQL("alter table DLFileEntry add fileName VARCHAR(255) null");
+			alterTableAddColumn("DLFileEntry", "fileName", "VARCHAR(255) null");
 
 			runSQL(
 				"update DLFileEntry set fileName = title where title like " +
@@ -359,7 +359,8 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 
 	protected void updateFileVersionFileNames() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
-			runSQL("alter table DLFileVersion add fileName VARCHAR(255) null");
+			alterTableAddColumn(
+				"DLFileVersion", "fileName", "VARCHAR(255) null");
 
 			runSQL(
 				"update DLFileVersion set fileName = title where title like " +
@@ -435,9 +436,9 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 						"fileName = ?");
 			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.autoBatch(
-					connection.prepareStatement(
-						"update DLFileEntry set fileName = ?, title = ? " +
-							"where fileEntryId = ?"));
+					connection,
+					"update DLFileEntry set fileName = ?, title = ? where " +
+						"fileEntryId = ?");
 			PreparedStatement preparedStatement3 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
@@ -553,9 +554,9 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 					" where fileName = '' or fileName is null");
 			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.autoBatch(
-					connection.prepareStatement(
-						"update " + tableName +
-							" set fileName = ? where fileEntryId = ?"));
+					connection,
+					"update " + tableName +
+						" set fileName = ? where fileEntryId = ?");
 			ResultSet resultSet = preparedStatement1.executeQuery()) {
 
 			while (resultSet.next()) {

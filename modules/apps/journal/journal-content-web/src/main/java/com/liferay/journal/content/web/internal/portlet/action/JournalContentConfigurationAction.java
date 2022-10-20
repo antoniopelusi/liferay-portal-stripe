@@ -92,14 +92,14 @@ public class JournalContentConfigurationAction
 				JavaConstants.JAVAX_PORTLET_RESPONSE);
 
 		httpServletRequest.setAttribute(
-			JournalWebKeys.ITEM_SELECTOR, _itemSelector);
+			ItemSelector.class.getName(), _itemSelector);
 		httpServletRequest.setAttribute(
 			JournalWebKeys.JOURNAL_CONTENT, _journalContent);
 
 		try {
 			JournalContentDisplayContext.create(
 				portletRequest, portletResponse, _CLASS_NAME_ID,
-				_ddmTemplateModelResourcePermission);
+				_ddmTemplateModelResourcePermission, _itemSelector);
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {

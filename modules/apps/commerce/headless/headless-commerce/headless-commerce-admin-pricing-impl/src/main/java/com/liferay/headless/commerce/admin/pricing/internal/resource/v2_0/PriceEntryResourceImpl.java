@@ -32,9 +32,7 @@ import com.liferay.headless.commerce.admin.pricing.internal.util.v2_0.TierPriceU
 import com.liferay.headless.commerce.admin.pricing.resource.v2_0.PriceEntryResource;
 import com.liferay.headless.commerce.core.util.DateConfig;
 import com.liferay.headless.commerce.core.util.ServiceContextHelper;
-import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.portal.kernel.search.Field;
-import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
@@ -52,8 +50,6 @@ import com.liferay.portal.vulcan.util.SearchUtil;
 
 import java.math.BigDecimal;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -131,7 +127,8 @@ public class PriceEntryResourceImpl extends BasePriceEntryResourceImpl {
 
 	@Override
 	public Page<PriceEntry> getPriceListByExternalReferenceCodePriceEntriesPage(
-			String externalReferenceCode, Pagination pagination)
+			String externalReferenceCode, String search, Filter filter,
+			Pagination pagination, Sort[] sorts)
 		throws Exception {
 
 		CommercePriceList commercePriceList =
@@ -144,17 +141,9 @@ public class PriceEntryResourceImpl extends BasePriceEntryResourceImpl {
 					externalReferenceCode);
 		}
 
-		List<CommercePriceEntry> commercePriceEntries =
-			_commercePriceEntryService.getCommercePriceEntries(
-				commercePriceList.getCommercePriceListId(),
-				pagination.getStartPosition(), pagination.getEndPosition());
-
-		int totalItems =
-			_commercePriceEntryService.getCommercePriceEntriesCount(
-				commercePriceList.getCommercePriceListId());
-
-		return Page.of(
-			_toPriceEntries(commercePriceEntries), pagination, totalItems);
+		return getPriceListIdPriceEntriesPage(
+			commercePriceList.getCommercePriceListId(), search, filter,
+			pagination, sorts);
 	}
 
 	@Override
@@ -176,17 +165,11 @@ public class PriceEntryResourceImpl extends BasePriceEntryResourceImpl {
 			CommercePriceEntry.class.getName(), search, pagination,
 			queryConfig -> queryConfig.setSelectedFieldNames(
 				Field.ENTRY_CLASS_PK),
-			new UnsafeConsumer() {
-
-				public void accept(Object object) throws Exception {
-					SearchContext searchContext = (SearchContext)object;
-
-					searchContext.setAttribute("commercePriceListId", id);
-					searchContext.setAttribute(
-						"status", WorkflowConstants.STATUS_ANY);
-					searchContext.setCompanyId(contextCompany.getCompanyId());
-				}
-
+			searchContext -> {
+				searchContext.setAttribute("commercePriceListId", id);
+				searchContext.setAttribute(
+					"status", WorkflowConstants.STATUS_ANY);
+				searchContext.setCompanyId(contextCompany.getCompanyId());
 			},
 			sorts,
 			document -> _toPriceEntry(
@@ -335,20 +318,6 @@ public class PriceEntryResourceImpl extends BasePriceEntryResourceImpl {
 				"UPDATE", commercePriceEntry.getCommercePriceEntryId(),
 				"patchPriceEntry", _commercePriceEntryModelResourcePermission)
 		).build();
-	}
-
-	private List<PriceEntry> _toPriceEntries(
-			List<CommercePriceEntry> commercePriceEntries)
-		throws Exception {
-
-		List<PriceEntry> priceEntries = new ArrayList<>();
-
-		for (CommercePriceEntry commercePriceEntry : commercePriceEntries) {
-			priceEntries.add(
-				_toPriceEntry(commercePriceEntry.getCommercePriceEntryId()));
-		}
-
-		return priceEntries;
 	}
 
 	private PriceEntry _toPriceEntry(CommercePriceEntry commercePriceEntry)

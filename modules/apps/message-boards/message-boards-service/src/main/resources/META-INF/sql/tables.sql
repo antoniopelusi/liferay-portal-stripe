@@ -122,6 +122,24 @@ create table MBMessage (
 	primary key (messageId, ctCollectionId)
 );
 
+create table MBSuspiciousActivity (
+	mvccVersion LONG default 0 not null,
+	ctCollectionId LONG default 0 not null,
+	uuid_ VARCHAR(75) null,
+	suspiciousActivityId LONG not null,
+	groupId LONG,
+	companyId LONG,
+	userId LONG,
+	userName VARCHAR(75) null,
+	createDate DATE null,
+	modifiedDate DATE null,
+	messageId LONG,
+	threadId LONG,
+	reason VARCHAR(75) null,
+	validated BOOLEAN,
+	primary key (suspiciousActivityId, ctCollectionId)
+);
+
 create table MBThread (
 	mvccVersion LONG default 0 not null,
 	ctCollectionId LONG default 0 not null,

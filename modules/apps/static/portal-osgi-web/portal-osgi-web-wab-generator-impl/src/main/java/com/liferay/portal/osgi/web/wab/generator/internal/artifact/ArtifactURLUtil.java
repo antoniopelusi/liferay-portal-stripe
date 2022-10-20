@@ -17,6 +17,7 @@ package com.liferay.portal.osgi.web.wab.generator.internal.artifact;
 import aQute.bnd.osgi.Jar;
 import aQute.bnd.osgi.Resource;
 
+import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.whip.util.ReflectionUtil;
 
@@ -34,6 +35,7 @@ import org.osgi.framework.Constants;
 /**
  * @author Matthew Tambara
  * @author Raymond Augé
+ * @author Gregory Amerson
  */
 public class ArtifactURLUtil {
 
@@ -41,7 +43,7 @@ public class ArtifactURLUtil {
 		String path = artifact.getPath();
 
 		int x = path.lastIndexOf('/');
-		int y = path.lastIndexOf(".war");
+		int y = path.lastIndexOf(CharPool.PERIOD);
 
 		String symbolicName = path.substring(x + 1, y);
 
@@ -53,15 +55,19 @@ public class ArtifactURLUtil {
 
 		String contextName = null;
 
-		try (Jar jar = new Jar("WAR", artifact.openStream())) {
-			if (jar.getBsn() != null) {
-				return artifact;
-			}
+		String fileExtension = path.substring(y + 1);
 
-			contextName = _readServletContextName(jar);
-		}
-		catch (Exception exception) {
-			ReflectionUtil.throwException(exception);
+		if (fileExtension.equals("war")) {
+			try (Jar jar = new Jar("WAR", artifact.openStream())) {
+				if (jar.getBsn() != null) {
+					return artifact;
+				}
+
+				contextName = _readServletContextName(jar);
+			}
+			catch (Exception exception) {
+				ReflectionUtil.throwException(exception);
+			}
 		}
 
 		if (contextName == null) {
@@ -73,7 +79,7 @@ public class ArtifactURLUtil {
 			StringBundler.concat(
 				artifact.getPath(), "?", Constants.BUNDLE_SYMBOLICNAME, "=",
 				symbolicName, "&Web-ContextPath=/", contextName,
-				"&protocol=file"));
+				"&fileExtension=", fileExtension, "&protocol=file"));
 	}
 
 	private static String _readServletContextName(Jar jar) throws Exception {
@@ -94,6 +100,6 @@ public class ArtifactURLUtil {
 	}
 
 	private static final Pattern _pattern = Pattern.compile(
-		"(.*?)(-\\d+\\.\\d+\\.\\d+\\.\\d+)?");
+		"(.*?)(-[0-9\\.]+)");
 
 }

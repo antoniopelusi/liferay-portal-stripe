@@ -191,6 +191,15 @@ public class ThemeDisplay
 		return _cdnHost;
 	}
 
+	public String getClayCSSURL() {
+		if (Validator.isNotNull(_clayCSSURL)) {
+			return _clayCSSURL;
+		}
+
+		return PortalUtil.getStaticResourceURL(
+			getRequest(), getPathThemeCss() + "/clay.css");
+	}
+
 	public ColorScheme getColorScheme() {
 		return _colorScheme;
 	}
@@ -369,6 +378,15 @@ public class ThemeDisplay
 		return _doAsUserLanguageId;
 	}
 
+	public String getFaviconURL() {
+		if (Validator.isNotNull(_faviconURL)) {
+			return _faviconURL;
+		}
+
+		return getPathThemeImages() + "/" +
+			PropsUtil.get(PropsKeys.THEME_SHORTCUT_ICON);
+	}
+
 	/**
 	 * Returns the current internationalization language's code.
 	 *
@@ -522,6 +540,33 @@ public class ThemeDisplay
 	 */
 	public Locale getLocale() {
 		return _locale;
+	}
+
+	public String getMainCSSURL() {
+		if (Validator.isNotNull(_mainCSSURL)) {
+			return _mainCSSURL;
+		}
+
+		return PortalUtil.getStaticResourceURL(
+			getRequest(), getPathThemeCss() + "/main.css");
+	}
+
+	public String getMainJSURL() {
+		if (Validator.isNotNull(_mainJSURL)) {
+			return _mainJSURL;
+		}
+
+		return PortalUtil.getStaticResourceURL(
+			getRequest(), getPathThemeJavaScript() + "/main.js");
+	}
+
+	public List<NavItem> getNavItems() throws PortalException {
+		if (_navItems == null) {
+			_navItems = NavItem.fromLayouts(
+				_httpServletRequest, _layouts, this);
+		}
+
+		return _navItems;
 	}
 
 	public String getPathApplet() {
@@ -751,6 +796,14 @@ public class ThemeDisplay
 
 	public long getRefererPlid() {
 		return _refererPlid;
+	}
+
+	public String getRemoteAddr() {
+		return _remoteAddr;
+	}
+
+	public String getRemoteHost() {
+		return _remoteHost;
 	}
 
 	/**
@@ -993,12 +1046,12 @@ public class ThemeDisplay
 	@JSON(include = false)
 	public PortletURL getURLMyAccount() {
 		if (_urlMyAccount == null) {
-			String portletId = PortletProviderUtil.getPortletId(
-				PortalMyAccountApplicationType.MyAccount.CLASS_NAME,
-				PortletProvider.Action.VIEW);
-
 			_urlMyAccount = PortalUtil.getControlPanelPortletURL(
-				getRequest(), portletId, PortletRequest.RENDER_PHASE);
+				getRequest(),
+				PortletProviderUtil.getPortletId(
+					PortalMyAccountApplicationType.MyAccount.CLASS_NAME,
+					PortletProvider.Action.VIEW),
+				PortletRequest.RENDER_PHASE);
 		}
 
 		return _urlMyAccount;
@@ -1258,6 +1311,10 @@ public class ThemeDisplay
 		_cdnHost = cdnHost;
 	}
 
+	public void setClayCSSURL(String clayCSSURL) {
+		_clayCSSURL = clayCSSURL;
+	}
+
 	public void setCompany(Company company) throws PortalException {
 		_company = company;
 		_companyGroupId = company.getGroupId();
@@ -1293,6 +1350,10 @@ public class ThemeDisplay
 
 	public void setDoAsUserLanguageId(String doAsUserLanguageId) {
 		_doAsUserLanguageId = doAsUserLanguageId;
+	}
+
+	public void setFaviconURL(String faviconURL) {
+		_faviconURL = faviconURL;
 	}
 
 	public void setHubAction(boolean hubAction) {
@@ -1444,6 +1505,18 @@ public class ThemeDisplay
 			cdnBaseURL + themeStaticResourcePath + theme.getTemplatesPath());
 	}
 
+	public void setMainCSSURL(String mainCSSURL) {
+		_mainCSSURL = mainCSSURL;
+	}
+
+	public void setMainJSURL(String mainJSURL) {
+		_mainJSURL = mainJSURL;
+	}
+
+	public void setNavItems(List<NavItem> navItems) {
+		_navItems = navItems;
+	}
+
 	public void setPathApplet(String pathApplet) {
 		_pathApplet = pathApplet;
 	}
@@ -1565,8 +1638,21 @@ public class ThemeDisplay
 		_refererPlid = refererPlid;
 	}
 
+	public void setRemoteAddr(String remoteAddr) {
+		_remoteAddr = remoteAddr;
+	}
+
+	public void setRemoteHost(String remoteHost) {
+		_remoteHost = remoteHost;
+	}
+
 	public void setRequest(HttpServletRequest httpServletRequest) {
 		_httpServletRequest = httpServletRequest;
+
+		if (httpServletRequest != null) {
+			_remoteAddr = httpServletRequest.getRemoteAddr();
+			_remoteHost = httpServletRequest.getRemoteHost();
+		}
 	}
 
 	public void setResponse(HttpServletResponse httpServletResponse) {
@@ -1843,6 +1929,7 @@ public class ThemeDisplay
 	private String _cdnBaseURL;
 	private String _cdnDynamicResourcesHost = StringPool.BLANK;
 	private String _cdnHost = StringPool.BLANK;
+	private String _clayCSSURL;
 	private ColorScheme _colorScheme;
 	private Company _company;
 	private long _companyGroupId;
@@ -1857,6 +1944,7 @@ public class ThemeDisplay
 	private long _doAsGroupId;
 	private String _doAsUserId = StringPool.BLANK;
 	private String _doAsUserLanguageId = StringPool.BLANK;
+	private String _faviconURL;
 	private transient HttpServletRequest _httpServletRequest;
 	private transient HttpServletResponse _httpServletResponse;
 	private boolean _hubAction;
@@ -1881,6 +1969,9 @@ public class ThemeDisplay
 	private boolean _lifecycleRender;
 	private boolean _lifecycleResource;
 	private Locale _locale;
+	private String _mainCSSURL;
+	private String _mainJSURL;
+	private List<NavItem> _navItems;
 	private String _pathApplet = StringPool.BLANK;
 	private String _pathCms = StringPool.BLANK;
 	private String _pathColorSchemeImages = StringPool.BLANK;
@@ -1912,6 +2003,8 @@ public class ThemeDisplay
 	private Group _refererGroup;
 	private long _refererGroupId;
 	private long _refererPlid;
+	private String _remoteAddr;
+	private String _remoteHost;
 	private Group _scopeGroup;
 	private long _scopeGroupId;
 	private boolean _secure;

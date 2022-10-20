@@ -84,8 +84,7 @@ definition {
 
 	@priority = "5"
 	test ActivateStagingPageVersioningWithCustomDefaultLanguage {
-		property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-		property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 		property test.name.skip.portal.instance = "Staging#ActivateStagingPageVersioningWithCustomDefaultLanguage";
 
 		JSONLayout.addPrivateLayout(
@@ -168,7 +167,6 @@ definition {
 		FragmentsAdmin.addFragment(fragmentName = "Fragment Name");
 
 		var fragmentHtml = '''<lfr-widget-web-content>''';
-
 		var htmlSnippet = '''<lfr-''';
 
 		FragmentsEditor.autocompleteFragmentHTML(
@@ -200,7 +198,7 @@ definition {
 
 		IFrame.closeFrame();
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/site-name/test-content-page-name");
 
@@ -223,7 +221,6 @@ definition {
 
 	@description = "This is a use case for LPS-90127."
 	@priority = "3"
-	@uitest
 	test ConfigureDDMStructureViaAPWhenNotStagedAssets {
 		property testray.component.name = "Data Engine";
 
@@ -274,7 +271,6 @@ definition {
 
 	@description = "This is a use case for LPS-92039 and LPS-92636."
 	@priority = "3"
-	@uitest
 	test CreateWidgetTemplateWhenNotStagedADT {
 		ApplicationDisplayTemplates.openWidgetTemplatesAdmin(siteURLKey = "site-name");
 
@@ -336,7 +332,6 @@ definition {
 
 	@description = "This is a use case for LPS-100807."
 	@priority = "4"
-	@uitest
 	test EditWikiPageInLiveSiteWhenWikiNotStaged {
 		JSONLayout.addWidgetToPublicLayout(
 			groupName = "Site Name",
@@ -485,7 +480,6 @@ definition {
 	}
 
 	@priority = "5"
-	@uitest
 	test NotStagedAssets {
 		property portal.acceptance = "true";
 
@@ -710,7 +704,7 @@ definition {
 
 		IFrame.closeFrame();
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/site-name-staging/test-content-page");
 
@@ -1055,8 +1049,7 @@ definition {
 
 	@priority = "4"
 	test PublishTemplateWithPages {
-		property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-		property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		JSONLayout.addPrivateLayout(
 			groupName = "Site Name",
@@ -1211,7 +1204,6 @@ definition {
 
 	@description = "This is a use case for LPS-89981 and LPS-88298."
 	@priority = "5"
-	@uitest
 	test PublishVocabularyDeletionViaRemoteStagingOnGlobalSite {
 		property app.server.bundles.size = "1";
 		property custom.properties = "tunneling.servlet.shared.secret=1234567890123456${line.separator}auth.verifier.TunnelAuthVerifier.hosts.allowed=";
@@ -1593,6 +1585,8 @@ definition {
 			pageName = "Staging Test Page",
 			siteName = "Site Name");
 
+		LexiconEntry.changeDisplayStyle(displayStyle = "list");
+
 		DMDocument.viewStagingDetailsPG();
 	}
 
@@ -1832,6 +1826,8 @@ definition {
 			siteName = "Remote Site");
 
 		AssetPublisherPortlet.configureDynamicAssetSelectionPG(portletName = "Asset Publisher");
+
+		Refresh();
 
 		AssetPublisherPortlet.viewAssetPG(
 			assetContent = "Blogs Entry2 Content",
@@ -2171,7 +2167,6 @@ definition {
 	@description = "This is a use case for LPS-79092. Specific for Bookmarks"
 	@priority = "4"
 	test ViewLastPublishDateBehaviourAfterInitialPublication {
-		property portal.release = "false";
 		property test.name.skip.portal.instance = "Staging#ViewLastPublishDateBehaviourAfterInitialPublication";
 
 		JSONWebcontent.addWebContent(
@@ -2659,6 +2654,8 @@ definition {
 	@description = "This is a use case for LPS-143852."
 	@priority = "4"
 	test ViewVirtualHostStagingPublicPageAsGuest {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		task ("Delete Staging Test Page") {
 			JSONLayout.deletePublicLayout(
 				groupName = "Site Name",

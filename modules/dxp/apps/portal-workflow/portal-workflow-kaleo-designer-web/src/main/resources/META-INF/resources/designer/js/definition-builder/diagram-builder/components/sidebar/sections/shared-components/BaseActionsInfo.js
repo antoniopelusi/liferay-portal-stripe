@@ -14,10 +14,7 @@ import ClayIcon from '@clayui/icon';
 import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
 
-import {limitValue, sortElements} from '../utils';
-
-const DEFAULT_LIMIT = 1;
-const MIN_PRIORITY = 1;
+import {sortElements} from '../utils';
 
 const BaseActionsInfo = ({
 	description,
@@ -31,7 +28,6 @@ const BaseActionsInfo = ({
 	script,
 	scriptLabel,
 	scriptLabelSecondary,
-	selectedItem,
 	setDescription,
 	setExecutionType,
 	setExecutionTypeOptions,
@@ -41,18 +37,6 @@ const BaseActionsInfo = ({
 	updateActionInfo,
 }) => {
 	useEffect(() => {
-		if (
-			selectedItem.type === 'task' &&
-			executionTypeOptions &&
-			!executionTypeOptions
-				.map((option) => option.value)
-				.includes('onAssignment')
-		) {
-			executionTypeOptions.push({
-				label: Liferay.Language.get('on-assignment'),
-				value: 'onAssignment',
-			});
-		}
 		if (executionTypeOptions) {
 			sortElements(executionTypeOptions, 'value');
 
@@ -188,7 +172,9 @@ const BaseActionsInfo = ({
 
 				<span
 					className="ml-1"
-					title={Liferay.Language.get('label-name')}
+					title={Liferay.Language.get(
+						'lower-numbers-represent-higher-priority'
+					)}
 				>
 					<ClayIcon
 						className="text-muted"
@@ -199,16 +185,8 @@ const BaseActionsInfo = ({
 				<ClayInput
 					aria-label="Select"
 					id="priority"
-					min={MIN_PRIORITY}
 					onBlur={({target}) => {
-						let {value: newValue} = target;
-
-						newValue = limitValue({
-							defaultValue: DEFAULT_LIMIT,
-							min: MIN_PRIORITY,
-							value: newValue,
-						});
-
+						const {value: newValue} = target;
 						setPriority(newValue);
 
 						updateActionInfo({
@@ -220,13 +198,10 @@ const BaseActionsInfo = ({
 						});
 					}}
 					onChange={({target}) => {
-						let {value: newValue} = target;
-						newValue = newValue.includes('-')
-							? newValue.replace('-', '')
-							: newValue;
-
+						const {value: newValue} = target;
 						setPriority(newValue);
 					}}
+					onWheel={(event) => event.target.blur()}
 					type="number"
 					value={priority}
 				/>

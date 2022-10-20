@@ -14,6 +14,10 @@
 
 package com.liferay.source.formatter.checkstyle.check;
 
+import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
+
 import com.puppycrawl.tools.checkstyle.api.DetailAST;
 import com.puppycrawl.tools.checkstyle.api.FullIdent;
 import com.puppycrawl.tools.checkstyle.api.TokenTypes;
@@ -37,6 +41,7 @@ public class JSONUtilCheck extends BaseChainedMethodCheck {
 		if (detailAST.getType() == TokenTypes.METHOD_CALL) {
 			_checkChainedPutCalls(detailAST);
 			_checkStringValueOfCalls(detailAST);
+			_checkToJSONStringCalls(detailAST);
 
 			return;
 		}
@@ -205,7 +210,7 @@ public class JSONUtilCheck extends BaseChainedMethodCheck {
 			if (Objects.equals(fullIdent.getText(), "JSONUtil.put") ||
 				Objects.equals(fullIdent.getText(), "JSONUtil.putAll")) {
 
-				log(detailAST, _MSG_USE_JSON_UTIL_TO_STRING);
+				log(detailAST, _MSG_USE_JSON_UTIL_TO_STRING_1);
 			}
 
 			return;
@@ -255,7 +260,41 @@ public class JSONUtilCheck extends BaseChainedMethodCheck {
 		String methodCall = fullIdent.getText();
 
 		if (methodCall.startsWith("JSONUtil.")) {
-			log(detailAST, _MSG_USE_JSON_UTIL_TO_STRING);
+			log(detailAST, _MSG_USE_JSON_UTIL_TO_STRING_1);
+		}
+	}
+
+	private void _checkToJSONStringCalls(DetailAST detailAST) {
+		if (!StringUtil.equals("toJSONString", getMethodName(detailAST))) {
+			return;
+		}
+
+		List<DetailAST> methodCallDetailASTList = getAllChildTokens(
+			detailAST, true, TokenTypes.METHOD_CALL);
+
+		if (methodCallDetailASTList.size() == 1) {
+			DetailAST methodCallDetailAST = methodCallDetailASTList.get(0);
+
+			DetailAST firstChildDetailAST = methodCallDetailAST.getFirstChild();
+
+			if ((firstChildDetailAST != null) &&
+				(firstChildDetailAST.getType() == TokenTypes.IDENT) &&
+				_isJSONTypeMethodCall(
+					detailAST, getMethodName(methodCallDetailAST))) {
+
+				log(detailAST, _MSG_USE_JSON_UTIL_TO_STRING_2);
+			}
+
+			return;
+		}
+
+		if (ArrayUtil.contains(
+				_VARIABLE_TYPE_NAMES,
+				getVariableTypeName(
+					detailAST, getVariableName(detailAST), false)) ||
+			_isJSONUtilCall(detailAST)) {
+
+			log(detailAST, _MSG_USE_JSON_UTIL_TO_STRING_2);
 		}
 	}
 
@@ -282,12 +321,65 @@ public class JSONUtilCheck extends BaseChainedMethodCheck {
 		return null;
 	}
 
+	private boolean _isJSONTypeMethodCall(
+		DetailAST detailAST, String methodName) {
+
+		if (Validator.isNull(methodName)) {
+			return false;
+		}
+
+		DetailAST parentDetailAST = getParentWithTokenType(
+			detailAST, TokenTypes.OBJBLOCK);
+
+		List<DetailAST> childDetailASTList = getAllChildTokens(
+			parentDetailAST, false, TokenTypes.METHOD_DEF);
+
+		for (DetailAST childDetailAST : childDetailASTList) {
+			if (StringUtil.equals(getName(childDetailAST), methodName) &&
+				ArrayUtil.contains(
+					_VARIABLE_TYPE_NAMES, getTypeName(childDetailAST, false))) {
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private boolean _isJSONUtilCall(DetailAST detailAST) {
+		if (detailAST.getChildCount() == 0) {
+			return false;
+		}
+
+		DetailAST firstChildDetailAST = detailAST.getFirstChild();
+
+		if (firstChildDetailAST.getType() == TokenTypes.DOT) {
+			FullIdent fullIdent = FullIdent.createFullIdent(
+				firstChildDetailAST);
+
+			String methodCall = fullIdent.getText();
+
+			if (methodCall.startsWith("JSONUtil.")) {
+				return true;
+			}
+		}
+
+		return _isJSONUtilCall(firstChildDetailAST);
+	}
+
 	private static final String _MSG_USE_JSON_UTIL_PUT = "json.util.put.use";
 
 	private static final String _MSG_USE_JSON_UTIL_PUT_ALL =
 		"json.util.put.all.use";
 
-	private static final String _MSG_USE_JSON_UTIL_TO_STRING =
-		"json.util.to.string.use";
+	private static final String _MSG_USE_JSON_UTIL_TO_STRING_1 =
+		"json.util.to.string.use.1";
+
+	private static final String _MSG_USE_JSON_UTIL_TO_STRING_2 =
+		"json.util.to.string.use.2";
+
+	private static final String[] _VARIABLE_TYPE_NAMES = {
+		"JSONArray", "JSONObject"
+	};
 
 }

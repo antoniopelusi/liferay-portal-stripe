@@ -69,7 +69,6 @@ import com.liferay.segments.service.SegmentsExperienceLocalServiceUtil;
 import com.liferay.style.book.constants.StyleBookPortletKeys;
 import com.liferay.style.book.model.StyleBookEntry;
 import com.liferay.style.book.service.StyleBookEntryLocalServiceUtil;
-import com.liferay.style.book.web.internal.configuration.FFStyleBookConfigurationUtil;
 import com.liferay.style.book.web.internal.constants.StyleBookWebKeys;
 
 import java.util.Collections;
@@ -138,15 +137,6 @@ public class EditStyleBookEntryDisplayContext {
 				return group.isPrivateLayoutsEnabled();
 			}
 		).put(
-			"layoutsTreeURL",
-			() -> {
-				ResourceURL resourceURL = _renderResponse.createResourceURL();
-
-				resourceURL.setResourceID("/style_book/layouts_tree");
-
-				return resourceURL.toString();
-			}
-		).put(
 			"namespace", _renderResponse.getNamespace()
 		).put(
 			"previewOptions",
@@ -193,9 +183,6 @@ public class EditStyleBookEntryDisplayContext {
 			"styleBookEntryId", _getStyleBookEntryId()
 		).put(
 			"themeName", _getThemeName()
-		).put(
-			"tokenReuseEnabled",
-			FFStyleBookConfigurationUtil.tokenReuseEnabled()
 		).build();
 	}
 
@@ -216,12 +203,11 @@ public class EditStyleBookEntryDisplayContext {
 			setDesiredItemSelectorReturnTypes(
 				new FragmentCollectionItemSelectorReturnType());
 
-		PortletURL itemSelectorURL = _itemSelector.getItemSelectorURL(
-			RequestBackedPortletURLFactoryUtil.create(_httpServletRequest),
-			_renderResponse.getNamespace() + "selectPreviewItem",
-			fragmentCollectionItemSelectorCriterion);
-
-		return itemSelectorURL.toString();
+		return String.valueOf(
+			_itemSelector.getItemSelectorURL(
+				RequestBackedPortletURLFactoryUtil.create(_httpServletRequest),
+				_renderResponse.getNamespace() + "selectPreviewItem",
+				fragmentCollectionItemSelectorCriterion));
 	}
 
 	private JSONObject _getFragmentCollectionOptionJSONObject() {
@@ -428,13 +414,12 @@ public class EditStyleBookEntryDisplayContext {
 				layoutItemSelectorCriterion.setShowPrivatePages(
 					group.isPrivateLayoutsEnabled());
 
-				PortletURL itemSelectorURL = _itemSelector.getItemSelectorURL(
-					RequestBackedPortletURLFactoryUtil.create(
-						_httpServletRequest),
-					_renderResponse.getNamespace() + "selectPreviewItem",
-					layoutItemSelectorCriterion);
-
-				return itemSelectorURL.toString();
+				return String.valueOf(
+					_itemSelector.getItemSelectorURL(
+						RequestBackedPortletURLFactoryUtil.create(
+							_httpServletRequest),
+						_renderResponse.getNamespace() + "selectPreviewItem",
+						layoutItemSelectorCriterion));
 			}
 		).put(
 			"recentLayouts",

@@ -63,6 +63,12 @@ public interface RelatedProductResource {
 			return new RelatedProductResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -108,6 +114,7 @@ public interface RelatedProductResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -208,7 +215,7 @@ public interface RelatedProductResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-delivery-catalog/v1.0/channels/{channelId}/products/{productId}/related-products");
 
 			httpInvoker.path("channelId", channelId);

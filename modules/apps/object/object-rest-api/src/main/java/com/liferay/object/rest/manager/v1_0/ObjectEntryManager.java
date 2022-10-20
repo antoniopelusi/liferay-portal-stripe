@@ -16,6 +16,7 @@ package com.liferay.object.rest.manager.v1_0;
 
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
+import com.liferay.petra.sql.dsl.expression.Predicate;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
 import com.liferay.portal.vulcan.aggregation.Aggregation;
@@ -23,9 +24,12 @@ import com.liferay.portal.vulcan.dto.converter.DTOConverterContext;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 
+import org.osgi.annotation.versioning.ProviderType;
+
 /**
  * @author Gabriel Albuquerque
  */
+@ProviderType
 public interface ObjectEntryManager {
 
 	public ObjectEntry addObjectEntry(
@@ -34,8 +38,14 @@ public interface ObjectEntryManager {
 			String scopeKey)
 		throws Exception;
 
-	public ObjectEntry addOrUpdateObjectEntry(
+	public ObjectEntry addObjectRelationshipMappingTableValues(
 			DTOConverterContext dtoConverterContext,
+			ObjectDefinition objectDefinition, String objectRelationshipName,
+			long primaryKey1, long primaryKey2)
+		throws Exception;
+
+	public ObjectEntry addOrUpdateObjectEntry(
+			long companyId, DTOConverterContext dtoConverterContext,
 			String externalReferenceCode, ObjectDefinition objectDefinition,
 			ObjectEntry objectEntry, String scopeKey)
 		throws Exception;
@@ -63,6 +73,13 @@ public interface ObjectEntryManager {
 	public Page<ObjectEntry> getObjectEntries(
 			long companyId, ObjectDefinition objectDefinition, String scopeKey,
 			Aggregation aggregation, DTOConverterContext dtoConverterContext,
+			Pagination pagination, Predicate predicate, String search,
+			Sort[] sorts)
+		throws Exception;
+
+	public Page<ObjectEntry> getObjectEntries(
+			long companyId, ObjectDefinition objectDefinition, String scopeKey,
+			Aggregation aggregation, DTOConverterContext dtoConverterContext,
 			String filterString, Pagination pagination, String search,
 			Sort[] sorts)
 		throws Exception;
@@ -76,6 +93,12 @@ public interface ObjectEntryManager {
 			DTOConverterContext dtoConverterContext,
 			String externalReferenceCode, long companyId,
 			ObjectDefinition objectDefinition, String scopeKey)
+		throws Exception;
+
+	public Page<ObjectEntry> getObjectEntryRelatedObjectEntries(
+			DTOConverterContext dtoConverterContext,
+			ObjectDefinition objectDefinition, Long objectEntryId,
+			String objectRelationshipName, Pagination pagination)
 		throws Exception;
 
 	public ObjectEntry updateObjectEntry(

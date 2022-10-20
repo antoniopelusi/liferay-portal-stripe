@@ -14,15 +14,15 @@
 
 import {openSelectionModal} from 'frontend-js-web';
 
+import openDeleteEntryModal from './openDeleteEntryModal';
+
 const ACTIONS = {
 	deleteEntry(itemData) {
-		if (
-			confirm(
-				Liferay.Language.get('are-you-sure-you-want-to-delete-this')
-			)
-		) {
-			submitForm(document.hrefFm, itemData.deleteEntryURL);
-		}
+		openDeleteEntryModal({
+			onDelete: () => {
+				submitForm(document.hrefFm, itemData.deleteEntryURL);
+			},
+		});
 	},
 
 	moveEntry(itemData, portletNamespace) {
@@ -82,22 +82,36 @@ const ACTIONS = {
 	},
 };
 
-export default function propsTransformer({items, portletNamespace, ...props}) {
+export default function propsTransformer({
+	actions,
+	items,
+	portletNamespace,
+	...props
+}) {
+	const updateItem = (item) => {
+		const newItem = {
+			...item,
+			onClick(event) {
+				const action = item.data?.action;
+
+				if (action) {
+					event.preventDefault();
+
+					ACTIONS[action]?.(item.data, portletNamespace);
+				}
+			},
+		};
+
+		if (Array.isArray(item.items)) {
+			newItem.items = item.items.map(updateItem);
+		}
+
+		return newItem;
+	};
+
 	return {
 		...props,
-		items: items.map((item) => {
-			return {
-				...item,
-				onClick(event) {
-					const action = item.data?.action;
-
-					if (action) {
-						event.preventDefault();
-
-						ACTIONS[action](item.data, portletNamespace);
-					}
-				},
-			};
-		}),
+		actions: actions?.map(updateItem),
+		items: items?.map(updateItem),
 	};
 }

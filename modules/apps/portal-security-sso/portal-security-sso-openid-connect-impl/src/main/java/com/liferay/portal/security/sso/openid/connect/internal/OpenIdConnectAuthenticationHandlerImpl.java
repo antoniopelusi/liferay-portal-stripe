@@ -14,6 +14,8 @@
 
 package com.liferay.portal.security.sso.openid.connect.internal;
 
+import com.liferay.oauth.client.persistence.model.OAuthClientEntry;
+import com.liferay.oauth.client.persistence.service.OAuthClientEntryLocalService;
 import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -23,15 +25,16 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextFactory;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.security.sso.openid.connect.OpenIdConnectAuthenticationHandler;
-import com.liferay.portal.security.sso.openid.connect.OpenIdConnectProvider;
-import com.liferay.portal.security.sso.openid.connect.OpenIdConnectProviderRegistry;
 import com.liferay.portal.security.sso.openid.connect.OpenIdConnectServiceException;
 import com.liferay.portal.security.sso.openid.connect.constants.OpenIdConnectConstants;
 import com.liferay.portal.security.sso.openid.connect.constants.OpenIdConnectWebKeys;
+import com.liferay.portal.security.sso.openid.connect.internal.configuration.admin.service.OpenIdConnectProviderManagedServiceFactory;
 import com.liferay.portal.security.sso.openid.connect.internal.session.manager.OfflineOpenIdConnectSessionManager;
+import com.liferay.portal.security.sso.openid.connect.internal.util.OpenIdConnectRequestParametersUtil;
 import com.liferay.portal.security.sso.openid.connect.internal.util.OpenIdConnectTokenRequestUtil;
 
 import com.nimbusds.jwt.JWT;
@@ -39,14 +42,13 @@ import com.nimbusds.langtag.LangTag;
 import com.nimbusds.langtag.LangTagException;
 import com.nimbusds.oauth2.sdk.ErrorObject;
 import com.nimbusds.oauth2.sdk.ParseException;
-import com.nimbusds.oauth2.sdk.ResponseType;
-import com.nimbusds.oauth2.sdk.Scope;
 import com.nimbusds.oauth2.sdk.http.HTTPRequest;
 import com.nimbusds.oauth2.sdk.http.HTTPResponse;
 import com.nimbusds.oauth2.sdk.id.ClientID;
 import com.nimbusds.oauth2.sdk.id.State;
 import com.nimbusds.oauth2.sdk.token.AccessToken;
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken;
+import com.nimbusds.oauth2.sdk.util.JSONObjectUtils;
 import com.nimbusds.openid.connect.sdk.AuthenticationErrorResponse;
 import com.nimbusds.openid.connect.sdk.AuthenticationRequest;
 import com.nimbusds.openid.connect.sdk.AuthenticationResponse;
@@ -59,7 +61,7 @@ import com.nimbusds.openid.connect.sdk.UserInfoResponse;
 import com.nimbusds.openid.connect.sdk.UserInfoSuccessResponse;
 import com.nimbusds.openid.connect.sdk.claims.UserInfo;
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata;
-import com.nimbusds.openid.connect.sdk.rp.OIDCClientMetadata;
+import com.nimbusds.openid.connect.sdk.rp.OIDCClientInformation;
 import com.nimbusds.openid.connect.sdk.token.OIDCTokens;
 
 import java.io.IOException;
@@ -67,7 +69,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -122,45 +124,51 @@ public class OpenIdConnectAuthenticationHandlerImpl
 			openIdConnectAuthenticationSession.getState(),
 			authenticationSuccessResponse.getState());
 
-		OpenIdConnectProvider<OIDCClientMetadata, OIDCProviderMetadata>
-			openIdConnectProvider =
-				_openIdConnectProviderRegistry.findOpenIdConnectProvider(
-					_portal.getCompanyId(httpServletRequest),
-					openIdConnectAuthenticationSession.getProviderName());
+		OAuthClientEntry oAuthClientEntry =
+			_oAuthClientEntryLocalService.getOAuthClientEntry(
+				openIdConnectAuthenticationSession.getOAuthClientEntryId());
+
+		OIDCClientInformation oidcClientInformation =
+			OIDCClientInformation.parse(
+				JSONObjectUtils.parse(oAuthClientEntry.getInfoJSON()));
+
+		OIDCProviderMetadata oidcProviderMetadata =
+			_authorizationServerMetadataResolver.resolveOIDCProviderMetadata(
+				oAuthClientEntry.getAuthServerWellKnownURI());
 
 		OIDCTokens oidcTokens = OpenIdConnectTokenRequestUtil.request(
 			authenticationSuccessResponse,
 			openIdConnectAuthenticationSession.getNonce(),
-			openIdConnectProvider, _getLoginRedirectURI(httpServletRequest));
+			oidcClientInformation, oidcProviderMetadata,
+			_getLoginRedirectURI(httpServletRequest),
+			oAuthClientEntry.getTokenRequestParametersJSON());
 
 		UserInfo userInfo = _requestUserInfo(
-			oidcTokens.getAccessToken(),
-			openIdConnectProvider.getOIDCProviderMetadata());
+			oidcTokens.getAccessToken(), oidcProviderMetadata);
 
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
 			httpServletRequest);
 
 		long userId = _openIdConnectUserInfoProcessor.processUserInfo(
 			userInfo, _portal.getCompanyId(httpServletRequest),
+			String.valueOf(oidcProviderMetadata.getIssuer()),
 			serviceContext.getPathMain(), serviceContext.getPortalURL());
 
 		userIdUnsafeConsumer.accept(userId);
 
 		httpSession = httpServletRequest.getSession();
 
-		OpenIdConnectProviderImpl openIdConnectProviderImpl =
-			(OpenIdConnectProviderImpl)openIdConnectProvider;
-
 		long openIdConnectSessionId =
 			_offlineOpenIdConnectSessionManager.startOpenIdConnectSession(
-				openIdConnectProviderImpl.getConfigurationPid(), oidcTokens,
-				openIdConnectAuthenticationSession.getProviderName(), userId);
+				oAuthClientEntry.getAuthServerWellKnownURI(),
+				String.valueOf(oidcClientInformation.getID()), oidcTokens,
+				userId);
 
 		httpSession.setAttribute(
 			OpenIdConnectWebKeys.OPEN_ID_CONNECT_SESSION,
 			new OpenIdConnectSessionImpl(
 				openIdConnectSessionId,
-				openIdConnectAuthenticationSession.getProviderName(),
+				oAuthClientEntry.getAuthServerWellKnownURI(),
 				openIdConnectAuthenticationSession.getNonce(),
 				openIdConnectAuthenticationSession.getState(), userId));
 		httpSession.setAttribute(
@@ -170,16 +178,9 @@ public class OpenIdConnectAuthenticationHandlerImpl
 
 	@Override
 	public void requestAuthentication(
-			String openIdConnectProviderName,
-			HttpServletRequest httpServletRequest,
+			long oAuthClientEntryId, HttpServletRequest httpServletRequest,
 			HttpServletResponse httpServletResponse)
 		throws PortalException {
-
-		OpenIdConnectProvider<OIDCClientMetadata, OIDCProviderMetadata>
-			openIdConnectProvider =
-				_openIdConnectProviderRegistry.findOpenIdConnectProvider(
-					_portal.getCompanyId(httpServletRequest),
-					openIdConnectProviderName);
 
 		HttpSession httpSession = httpServletRequest.getSession();
 
@@ -194,100 +195,104 @@ public class OpenIdConnectAuthenticationHandlerImpl
 				OpenIdConnectWebKeys.OPEN_ID_CONNECT_SESSION_ID);
 		}
 
-		List<LangTag> langTags = null;
+		OAuthClientEntry oAuthClientEntry =
+			_oAuthClientEntryLocalService.getOAuthClientEntry(
+				oAuthClientEntryId);
 
-		Locale locale = _portal.getLocale(httpServletRequest);
+		Map<String, Object> runtimeRequestParameters =
+			HashMapBuilder.<String, Object>put(
+				"nonce", new Nonce()
+			).put(
+				"redirect_uri", _getLoginRedirectURI(httpServletRequest)
+			).put(
+				"state", new State()
+			).put(
+				"ui_Locals", _getLangTags(httpServletRequest)
+			).build();
 
 		try {
-			if (locale != null) {
-				langTags = Arrays.asList(new LangTag(locale.getLanguage()));
-			}
-		}
-		catch (LangTagException langTagException) {
+			OIDCProviderMetadata oidcProviderMetadata =
+				_authorizationServerMetadataResolver.
+					resolveOIDCProviderMetadata(
+						oAuthClientEntry.getAuthServerWellKnownURI());
+
+			URI authenticationRequestURI = _getAuthenticationRequestURI(
+				oidcProviderMetadata.getAuthorizationEndpointURI(),
+				oAuthClientEntry.getAuthRequestParametersJSON(),
+				oAuthClientEntry.getClientId(), runtimeRequestParameters);
+
 			if (_log.isDebugEnabled()) {
 				_log.debug(
-					"Unable to create a lang tag with locale " +
-						locale.getLanguage());
+					"Authentication request query: " +
+						authenticationRequestURI.getQuery());
 			}
-		}
 
-		Nonce nonce = new Nonce();
-		State state = new State();
-
-		URI authenticationRequestURI = _getAuthenticationRequestURI(
-			langTags, _getLoginRedirectURI(httpServletRequest), nonce,
-			openIdConnectProvider,
-			Scope.parse(openIdConnectProvider.getScopes()), state);
-
-		if (_log.isDebugEnabled()) {
-			_log.debug(
-				"Authentication request query: " +
-					authenticationRequestURI.getQuery());
-		}
-
-		try {
 			httpServletResponse.sendRedirect(
 				authenticationRequestURI.toString());
 
 			httpSession.setAttribute(
 				_OPEN_ID_CONNECT_AUTHENTICATION_SESSION,
 				new OpenIdConnectAuthenticationSession(
-					nonce, openIdConnectProviderName, state));
+					(Nonce)runtimeRequestParameters.get("nonce"),
+					oAuthClientEntryId,
+					(State)runtimeRequestParameters.get("state")));
 		}
-		catch (IOException ioException) {
-			throw new SystemException(
-				StringBundler.concat(
-					"Unable to send user to OpenId Connect service ",
-					authenticationRequestURI.toString(), ": ",
-					ioException.getMessage()),
-				ioException);
+		catch (Exception exception) {
+			throw new PortalException(exception);
 		}
 	}
 
-	private URI _getAuthenticationRequestURI(
-			List<LangTag> langTags, URI loginRedirectURI, Nonce nonce,
-			OpenIdConnectProvider<OIDCClientMetadata, OIDCProviderMetadata>
-				openIdConnectProvider,
-			Scope scope, State state)
-		throws OpenIdConnectServiceException.ProviderException {
+	@Override
+	public void requestAuthentication(
+			String openIdConnectProviderName,
+			HttpServletRequest httpServletRequest,
+			HttpServletResponse httpServletResponse)
+		throws PortalException {
 
-		OIDCProviderMetadata oidcProviderMetadata =
-			openIdConnectProvider.getOIDCProviderMetadata();
+		requestAuthentication(
+			_openIdConnectProviderManagedServiceFactory.getOAuthClientEntryId(
+				_portal.getCompanyId(httpServletRequest),
+				openIdConnectProviderName),
+			httpServletRequest, httpServletResponse);
+	}
+
+	private URI _getAuthenticationRequestURI(
+			URI authenticationEndpointURI,
+			String authenticationRequestParametersJSON, String clientId,
+			Map<String, Object> runtimeRequestParameters)
+		throws Exception {
+
+		JSONObject authenticationRequestParametersJSONObject =
+			JSONObjectUtils.parse(authenticationRequestParametersJSON);
 
 		AuthenticationRequest.Builder builder =
 			new AuthenticationRequest.Builder(
-				new ResponseType(ResponseType.Value.CODE), scope,
-				new ClientID(openIdConnectProvider.getClientId()),
-				loginRedirectURI);
+				OpenIdConnectRequestParametersUtil.getResponseType(
+					authenticationRequestParametersJSONObject),
+				OpenIdConnectRequestParametersUtil.getScope(
+					authenticationRequestParametersJSONObject),
+				new ClientID(clientId),
+				(URI)runtimeRequestParameters.get("redirect_uri"));
 
 		builder = builder.endpointURI(
-			oidcProviderMetadata.getAuthorizationEndpointURI()
+			authenticationEndpointURI
 		).nonce(
-			nonce
+			(Nonce)runtimeRequestParameters.get("nonce")
+		).resources(
+			OpenIdConnectRequestParametersUtil.getResourceURIs(
+				authenticationRequestParametersJSONObject)
 		).state(
-			state
+			(State)runtimeRequestParameters.get("state")
 		).uiLocales(
-			langTags
+			(List<LangTag>)runtimeRequestParameters.get("ui_locales")
 		);
 
-		OpenIdConnectProviderImpl openIdConnectProviderImpl =
-			(OpenIdConnectProviderImpl)openIdConnectProvider;
+		OpenIdConnectRequestParametersUtil.consumeCustomRequestParameters(
+			builder::customParameter,
+			authenticationRequestParametersJSONObject);
 
-		Map<String, List<String>> customAuthorizationRequestParameters =
-			openIdConnectProviderImpl.getCustomAuthorizationRequestParameters();
-
-		for (Map.Entry<String, List<String>> entry :
-				customAuthorizationRequestParameters.entrySet()) {
-
-			List<String> values = entry.getValue();
-
-			builder.customParameter(
-				entry.getKey(), values.toArray(new String[0]));
-		}
-
-		AuthenticationRequest authenticationRequest = builder.build();
-
-		return authenticationRequest.toURI();
+		return builder.build(
+		).toURI();
 	}
 
 	private AuthenticationSuccessResponse _getAuthenticationSuccessResponse(
@@ -328,6 +333,27 @@ public class OpenIdConnectAuthenticationHandlerImpl
 					"Unable to process response from ", requestURL.toString(),
 					": ", exception.getMessage()),
 				exception);
+		}
+	}
+
+	private List<LangTag> _getLangTags(HttpServletRequest httpServletRequest) {
+		Locale locale = _portal.getLocale(httpServletRequest);
+
+		if (locale == null) {
+			return null;
+		}
+
+		try {
+			return Collections.singletonList(new LangTag(locale.getLanguage()));
+		}
+		catch (LangTagException langTagException) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(
+					"Unable to create a lang tag with locale " +
+						locale.getLanguage());
+			}
+
+			return null;
 		}
 	}
 
@@ -430,13 +456,19 @@ public class OpenIdConnectAuthenticationHandlerImpl
 		OpenIdConnectAuthenticationHandlerImpl.class);
 
 	@Reference
+	private AuthorizationServerMetadataResolver
+		_authorizationServerMetadataResolver;
+
+	@Reference
+	private OAuthClientEntryLocalService _oAuthClientEntryLocalService;
+
+	@Reference
 	private OfflineOpenIdConnectSessionManager
 		_offlineOpenIdConnectSessionManager;
 
 	@Reference
-	private OpenIdConnectProviderRegistry
-		<OIDCClientMetadata, OIDCProviderMetadata>
-			_openIdConnectProviderRegistry;
+	private OpenIdConnectProviderManagedServiceFactory
+		_openIdConnectProviderManagedServiceFactory;
 
 	@Reference
 	private OpenIdConnectUserInfoProcessor _openIdConnectUserInfoProcessor;

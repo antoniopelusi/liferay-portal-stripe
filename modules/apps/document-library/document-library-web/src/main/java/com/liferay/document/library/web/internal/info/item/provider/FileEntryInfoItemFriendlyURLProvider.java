@@ -20,7 +20,12 @@ import com.liferay.friendly.url.model.FriendlyURLEntryLocalization;
 import com.liferay.friendly.url.service.FriendlyURLEntryLocalService;
 import com.liferay.friendly.url.util.comparator.FriendlyURLEntryLocalizationComparator;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.GroupThreadLocal;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
 
@@ -41,16 +46,25 @@ public class FileEntryInfoItemFriendlyURLProvider
 
 	@Override
 	public String getFriendlyURL(FileEntry fileEntry, String languageId) {
-		FriendlyURLEntry friendlyURLEntry =
+		FriendlyURLEntry mainFriendlyURLEntry =
 			_friendlyURLEntryLocalService.fetchMainFriendlyURLEntry(
 				_portal.getClassNameId(FileEntry.class),
 				fileEntry.getFileEntryId());
 
-		if (friendlyURLEntry != null) {
-			return friendlyURLEntry.getUrlTitle();
+		if (mainFriendlyURLEntry == null) {
+			return String.valueOf(fileEntry.getFileEntryId());
 		}
 
-		return null;
+		long groupId = _getGroupId();
+
+		if ((groupId != GroupConstants.DEFAULT_LIVE_GROUP_ID) &&
+			(groupId != mainFriendlyURLEntry.getGroupId()) &&
+			_hasFriendlyURL(groupId, mainFriendlyURLEntry.getUrlTitle())) {
+
+			return String.valueOf(fileEntry.getFileEntryId());
+		}
+
+		return mainFriendlyURLEntry.getUrlTitle();
 	}
 
 	@Override
@@ -63,6 +77,41 @@ public class FileEntryInfoItemFriendlyURLProvider
 			LocaleUtil.toLanguageId(LocaleUtil.getSiteDefault()),
 			QueryUtil.ALL_POS, QueryUtil.ALL_POS,
 			_friendlyURLEntryLocalizationComparator);
+	}
+
+	private long _getGroupId() {
+		ServiceContext serviceContext =
+			ServiceContextThreadLocal.getServiceContext();
+
+		if (serviceContext == null) {
+			return GroupThreadLocal.getGroupId();
+		}
+
+		if (serviceContext.getThemeDisplay() == null) {
+			return serviceContext.getScopeGroupId();
+		}
+
+		ThemeDisplay themeDisplay = serviceContext.getThemeDisplay();
+
+		if (themeDisplay.getSiteGroupId() !=
+				GroupConstants.DEFAULT_LIVE_GROUP_ID) {
+
+			return themeDisplay.getSiteGroupId();
+		}
+
+		return themeDisplay.getScopeGroupId();
+	}
+
+	private boolean _hasFriendlyURL(long groupId, String friendlyURL) {
+		FriendlyURLEntry friendlyURLEntry =
+			_friendlyURLEntryLocalService.fetchFriendlyURLEntry(
+				groupId, FileEntry.class, friendlyURL);
+
+		if (friendlyURLEntry == null) {
+			return false;
+		}
+
+		return true;
 	}
 
 	private final FriendlyURLEntryLocalizationComparator

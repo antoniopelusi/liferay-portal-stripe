@@ -43,48 +43,28 @@ definition {
 				title = "WC Content");
 		}
 
-		task ("Create and Publish a Display Page Template") {
+		task ("Create a default Display Page Template") {
 			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 				contentType = "Web Content Article",
 				displayPageTemplateEntryName = "Display Page Name",
 				groupName = "Test Site Name",
+				statusKey = "APPROVED",
 				subType = "Basic Web Content");
 
-			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
-
-			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
-
-			Button.clickPublish();
-
-			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+			JSONLayoutpagetemplate.setLayoutPageTemplateEntryAsDefault(
+				groupName = "Test Site Name",
+				layoutPageTemplateEntryName = "Display Page Name",
+				type = "Display Page Template");
 		}
 
-		task ("Check in Content Dashboard and open Content Performance Panel") {
+		task ("Navigate to Content Dashboard and open Metrics Panel") {
 			ContentDashboard.goToContentDashboard();
 
-			Click.clickNoMouseOver(locator1 = "ContentDashboard#ROW_PANEL_WC");
-
-			Click(locator1 = "ContentPerformance#ICON_VIEW_METRICS");
-		}
-
-		task ("Check at panel that DXP is not connected to AC") {
-			AssertVisible(
-				key_text = "Start Free Trial",
-				locator1 = "Link#ANY");
-
-			AssertVisible(
-				key_text = "Do not show me this again",
-				locator1 = "Link#ANY");
+			ContentDashboard.openViewMetricsByIcon();
 		}
 
 		task ("Click on the button for do not show again") {
 			ContentPerformance.clickDoNotShowMeThisAgain();
-		}
-
-		task ("Assert the Metrics button is not shown anymore") {
-			Click.clickNoMouseOver(locator1 = "ContentDashboard#ROW_PANEL_WC");
-
-			AssertElementNotPresent(locator1 = "ContentPerformance#ICON_VIEW_METRICS");
 		}
 
 		task ("Launch AC and get Token") {
@@ -106,9 +86,7 @@ definition {
 		task ("Check in Content Dashboard and open Content Performance Panel") {
 			ContentDashboard.goToContentDashboard();
 
-			Click.clickNoMouseOver(locator1 = "ContentDashboard#ROW_PANEL_WC");
-
-			Click(locator1 = "ContentPerformance#ICON_VIEW_METRICS");
+			ContentDashboard.openViewMetricsByIcon();
 		}
 
 		task ("Assert the button is not present and the message are present") {
@@ -116,7 +94,7 @@ definition {
 				key_text = "Do not show me this again",
 				locator1 = "Link#ANY");
 
-			AssertElementPresent(
+			AssertVisible(
 				locator1 = "ContentPerformance#INSTRUCTIONS_SYNC_AC",
 				value1 = "Sync to Liferay Analytics Cloud");
 		}

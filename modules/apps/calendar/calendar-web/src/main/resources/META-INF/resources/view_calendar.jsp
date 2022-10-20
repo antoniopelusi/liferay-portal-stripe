@@ -103,7 +103,7 @@ boolean columnOptionsVisible = GetterUtil.getBoolean(SessionClicks.get(request, 
 							</div>
 
 							<c:if test="<%= userCalendarResource != null %>">
-								<span aria-label="<liferay-ui:message key="manage-calendars" />" class="calendar-list-item-arrow calendar-resource-arrow" data-calendarResourceId="<%= userCalendarResource.getCalendarResourceId() %>" tabindex="0"><clay:icon symbol="caret-bottom" /></span>
+								<span aria-controls="<portlet:namespace />calendarsMenu" aria-label="<liferay-ui:message key="manage-calendars" />" class="calendar-list-item-arrow calendar-resource-arrow" data-calendarResourceId="<%= userCalendarResource.getCalendarResourceId() %>" role="button" tabindex="0"><clay:icon symbol="caret-bottom" /></span>
 							</c:if>
 						</c:if>
 
@@ -372,6 +372,15 @@ boolean columnOptionsVisible = GetterUtil.getBoolean(SessionClicks.get(request, 
 			.attr(
 				'title',
 				Liferay.Util.unescapeHTML(schedulerEvent.get('content'))
+			);
+
+		schedulerEvent
+			.get('node')
+			.attr(
+				'calendarResourceName',
+				Liferay.Util.unescapeHTML(
+					schedulerEvent.get('calendarResourceName')
+				)
 			);
 	};
 

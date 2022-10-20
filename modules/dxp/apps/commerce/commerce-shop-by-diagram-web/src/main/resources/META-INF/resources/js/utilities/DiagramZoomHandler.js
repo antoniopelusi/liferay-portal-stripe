@@ -89,7 +89,7 @@ class DiagramZoomHandler {
 				)
 				.call(
 					this._zoom.transform,
-					d3ZoomIdentity.translate(x, y).scale(k)
+					d3ZoomIdentity.translate(x, y).scale(this._currentScale)
 				)
 				.on('end', resolve);
 		});

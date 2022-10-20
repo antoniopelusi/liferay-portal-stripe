@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -37,6 +38,7 @@ import org.junit.Before;
 
 /**
  * @author Ivica Cardic
+ * @author Igor Beslic
  */
 public abstract class BaseBatchEngineExportTaskItemWriterImplTestCase {
 
@@ -45,7 +47,7 @@ public abstract class BaseBatchEngineExportTaskItemWriterImplTestCase {
 		_createDate = new Date();
 	}
 
-	public static class BaseItem {
+	public class BaseItem {
 
 		public Long getId() {
 			return _id;
@@ -60,7 +62,11 @@ public abstract class BaseBatchEngineExportTaskItemWriterImplTestCase {
 	}
 
 	@JsonFilter("Liferay.Vulcan")
-	public static class Item extends BaseItem {
+	public class Item extends BaseItem {
+
+		public Item getChildItem() {
+			return _childItem;
+		}
 
 		public Date getCreateDate() {
 			return _createDate;
@@ -72,6 +78,10 @@ public abstract class BaseBatchEngineExportTaskItemWriterImplTestCase {
 
 		public Map<String, String> getName() {
 			return _name;
+		}
+
+		public void setChildItem(Item childItem) {
+			_childItem = childItem;
 		}
 
 		public void setCreateDate(Date createDate) {
@@ -86,6 +96,7 @@ public abstract class BaseBatchEngineExportTaskItemWriterImplTestCase {
 			_name = name;
 		}
 
+		private Item _childItem;
 		private Date _createDate;
 		private String _description;
 		private Map<String, String> _name;
@@ -130,6 +141,33 @@ public abstract class BaseBatchEngineExportTaskItemWriterImplTestCase {
 
 				item.setName(name);
 
+				if (j != 4) {
+					Item childItem = new Item();
+
+					childItem.setCreateDate(_createDate);
+					childItem.setDescription("Child Description");
+					childItem.setId((long)(i + j));
+
+					Map<String, String> childItemName = new HashMap<>();
+
+					for (String key : name.keySet()) {
+						childItemName.computeIfAbsent(
+							key,
+							childItemNameKey -> {
+								if (name.get(childItemNameKey) == null) {
+									return null;
+								}
+
+								return "Child Item " +
+									name.get(childItemNameKey);
+							});
+					}
+
+					childItem.setName(childItemName);
+
+					item.setChildItem(childItem);
+				}
+
 				items[j] = item;
 			}
 		}
@@ -141,6 +179,12 @@ public abstract class BaseBatchEngineExportTaskItemWriterImplTestCase {
 		StringBundler sb = new StringBundler();
 
 		sb.append("{");
+
+		if (fieldNames.contains("childItem") && (item.getChildItem() != null)) {
+			sb.append("\"childItem\": ");
+			sb.append(getItemJSONContent(fieldNames, item.getChildItem()));
+			sb.append(StringPool.COMMA);
+		}
 
 		if (fieldNames.contains("createDate") &&
 			(item.getCreateDate() != null)) {
@@ -208,10 +252,11 @@ public abstract class BaseBatchEngineExportTaskItemWriterImplTestCase {
 		"createDate", "description", "id", "name_en", "name_hr");
 	protected static final DateFormat dateFormat = new SimpleDateFormat(
 		"yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-	protected static Map<String, Field> fieldMap = ItemClassIndexUtil.index(
-		Item.class);
 	protected static final List<String> jsonFieldNames = Arrays.asList(
-		"createDate", "description", "id", "name");
+		"childItem", "createDate", "description", "id", "name");
+
+	protected Map<String, Field> fieldMap = ItemClassIndexUtil.index(
+		Item.class);
 
 	private String _formatJSONValue(Object value) {
 		if (value == null) {
@@ -231,6 +276,6 @@ public abstract class BaseBatchEngineExportTaskItemWriterImplTestCase {
 		return value.toString();
 	}
 
-	private static Date _createDate;
+	private Date _createDate;
 
 }

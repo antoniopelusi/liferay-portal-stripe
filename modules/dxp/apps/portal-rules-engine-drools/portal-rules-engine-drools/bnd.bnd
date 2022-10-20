@@ -1,6 +1,6 @@
 Bundle-Name: Liferay Portal Rules Engine Drools
 Bundle-SymbolicName: com.liferay.portal.rules.engine.drools
-Bundle-Version: 5.0.12
+Bundle-Version: 5.0.13
 DynamicImport-Package: *
 Import-Package:\
 	!com.sun.codemodel,\

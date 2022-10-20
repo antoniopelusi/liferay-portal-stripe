@@ -110,14 +110,14 @@ long organizationGroupId = organization.getGroupId();
 		<liferay-ui:icon
 			message="assign-users"
 			onClick="<%= taglibOnClick %>"
-			url="javascript:;"
+			url="javascript:void(0);"
 		/>
 	</c:if>
 
 	<c:if test="<%= OrganizationPermissionUtil.contains(permissionChecker, organization, ActionKeys.MANAGE_USERS) %>">
 		<portlet:renderURL var="addUserURL">
 			<portlet:param name="mvcRenderCommandName" value="/users_admin/edit_user" />
-			<portlet:param name="redirect" value="<%= redirect %>" />
+			<portlet:param name="backURL" value="<%= redirect %>" />
 			<portlet:param name="organizationsSearchContainerPrimaryKeys" value="<%= String.valueOf(organizationId) %>" />
 		</portlet:renderURL>
 

@@ -9,7 +9,9 @@ definition {
 			collectionName = "${collectionName}",
 			fragmentName = "${fragmentName}");
 
-		Button.clickPublish();
+		if ("${publish}" != "false") {
+			Button.clickPublish();
+		}
 	}
 
 	macro clickPencil {
@@ -111,7 +113,7 @@ definition {
 
 						AssertTextEquals(
 							locator1 = "Search#SEARCH_INFO",
-							value1 = "1 Results for &quot;${searchTerm}&quot;");
+							value1 = "1 Result for &quot;${searchTerm}&quot;");
 					}
 
 					Click(
@@ -123,8 +125,6 @@ definition {
 				}
 				else if ("${assetType}" == "Category") {
 					Portlet.expandTree();
-
-					Pause(locator1 = "3000");
 
 					Click(
 						key_nodeName = "${assetTitle}",

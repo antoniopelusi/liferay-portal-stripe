@@ -97,6 +97,115 @@ definition {
 		}
 	}
 
+	@description = "This is a use case for LPS-151394. User can be unassigned from groups through LDAP. Blocked by LPS-153043"
+	@priority = "3"
+	test CanRemoveUserFromGroupThroughLDAP {
+		property apacheds.enabled = "true";
+		property portal.release = "quarantine";
+		property portal.upstream = "quarantine";
+		property test.name.skip.portal.instance = "LDAP#CanRemoveUserFromGroupThroughLDAP";
+
+		task ("Given: User enable DEBUG log level for LDAP related loggers") {
+			LDAP.enableLDAPDebugLogs();
+		}
+
+		task ("And: Add LDAP server and configure settings") {
+			var enableSettingList = "enabled,ldapImportEnabled,importOnStartup";
+
+			LDAP.addLDAPServerAndTestConnection();
+
+			LDAP.enableLDAPSettings(enableSettingList = "${enableSettingList}");
+
+			PortalSettings.changeGroupImportMethod(groupImportMethod = "Group");
+
+			PortalSettings.setImportIntervalTime(importIntervalTime = "1");
+		}
+
+		task ("When: User adds 2 user and to a group on LDAP, from which only one have the mandatory fields to be imported") {
+			LDAP.installLDAPCommandUtil();
+
+			LDAP.importLDIFOnLDAPAndTriggerSync(ldifName = "addUser");
+
+			LDAP.importLDIFOnLDAPAndTriggerSync(ldifName = "addGroup");
+
+			LDAP.verifyLDAPUserGroupIsImported(userGroupName = "testgroup");
+		}
+
+		task ("And: Removes the imported user on LDAP") {
+			LDAP.importLDIFOnLDAPAndTriggerSync(ldifName = "removeUser");
+		}
+
+		task ("Then: The imported group should be empty and the user should be unassigned") {
+			LDAP.verifyLDAPUserIsRemovedFromGroup(
+				userFirstName = "firstName",
+				userGroupName = "testgroup");
+		}
+	}
+
+	@description = "This is a use case for LPS-121705. User status remain unchanged after LDAP imports."
+	@priority = "3"
+	test DeactivatedUserStayDeactivatedAfterLDAPImport {
+		property apacheds.enabled = "true";
+		property test.name.skip.portal.instance = "LDAP#DeactivatedUserStayDeactivatedAfterLDAPImport";
+
+		task ("Given: User enable DEBUG log level for LDAP related loggers") {
+			LDAP.enableLDAPDebugLogs();
+		}
+
+		task ("And: Adds LDAP server and test connection") {
+			PortalSettings.addLDAPServer(ldapServerName = "ApacheDS Server");
+
+			PortalSettings.editLDAPServer(ldapServerName = "ApacheDS Server");
+
+			PortalSettings.testLDAPConnection();
+		}
+
+		task ("And: Configure LDAP settings") {
+			var enableSettingList = "enabled,ldapImportEnabled";
+
+			LDAP.enableLDAPSettings(enableSettingList = "${enableSettingList}");
+		}
+
+		task ("When: User adds a new user") {
+			JSONUser.addUser(
+				userEmailAddress = "usera@liferay.com",
+				userFirstName = "firstName",
+				userLastName = "lastName",
+				userScreenName = "usera");
+
+			JSONUser.setFirstPassword(
+				agreeToTermsAndAnswerReminderQuery = "true",
+				requireReset = "false",
+				userEmailAddress = "usera@liferay.com");
+		}
+
+		task ("And: Deactivates the new user") {
+			User.openUsersAdmin();
+
+			User.deactivateCP(userFirstName = "firstName");
+
+			User.openUsersAdmin();
+
+			User.searchCP(searchTerm = "firstName");
+
+			User.viewNoUsersFoundCP();
+		}
+
+		task ("And: Manually trigger the LDAP import flow") {
+			Clustering.runGroovyScript(
+				nodePort = "8080",
+				scriptFile = "groovy-script-invoke-ldap-user-import-on-master.groovy");
+		}
+
+		task ("Then: The status of the new user remain unchanged after a new LDAP import") {
+			User.openUsersAdmin();
+
+			User.searchCP(searchTerm = "firstName");
+
+			User.viewNoUsersFoundCP();
+		}
+	}
+
 	@description = "This is a use case for LPS-30529. User fields are not reset to default when signing in with imported LDAP user."
 	@priority = "4"
 	test FieldValuesNotResetForImportedLDAPUser {
@@ -105,9 +214,9 @@ definition {
 		property test.name.skip.portal.instance = "LDAP#ResetFieldsValueForImportedLDAPUser";
 
 		task ("Add LDAP server and test connection") {
-			PortalSettings.addLDAPServer(ldapServerName = "ApacheDS Server");
+			PortalSettings.addLDAPServer();
 
-			PortalSettings.editLDAPServer(ldapServerName = "ApacheDS Server");
+			PortalSettings.editLDAPServer();
 
 			PortalSettings.testLDAPConnection();
 		}
@@ -197,6 +306,78 @@ definition {
 		}
 	}
 
+	@description = "This is a use case for LPS-78606 and LPS-64800. Users who have SHA-384 encrypted password and are imported from LDAP are able to log in."
+	@priority = "5"
+	test LDAPAuthenticationWorksWithDifferentPasswordAlgorithm {
+		property apacheds.enabled = "true";
+		property test.name.skip.portal.instance = "LDAP#LDAPAuthenticationWorksWithDifferentPasswordAlgorithm";
+
+		task ("Given: User enable DEBUG log level for LDAP related loggers") {
+			LDAP.enableLDAPDebugLogs();
+		}
+
+		task ("And: Adds LDAP server and configure settings") {
+			var enableSettingList = "enabled,ldapImportEnabled";
+
+			LDAP.addLDAPServerAndTestConnection();
+
+			LDAP.enableLDAPSettings(enableSettingList = "${enableSettingList}");
+
+			LDAP.setGeneralMethod(generalMethod = "Password Compare");
+
+			LDAP.setPasswordEncryption(passwordEncryption = "SHA-384");
+		}
+
+		task ("When: User adds a new user through LDAP with SHA-384 password encryption") {
+			LDAP.installLDAPCommandUtil();
+
+			LDAP.updateLDAPDatabaseWithLDIFFile(ldifName = "addUserWithSHA-384");
+
+			LDAP.verifyUserIsImported(userScreenName = "usersn");
+		}
+
+		task ("Then:The new user can log in with his encrypted password") {
+			User.logoutAndLoginPG();
+		}
+	}
+
+	@description = "This is a use case for LRQA-75138. User can set the Import Interval time manually."
+	@priority = "3"
+	test LDAPImportIntervalCanBeSetManually {
+		property apacheds.enabled = "true";
+		property test.name.skip.portal.instance = "LDAP#LDAPImportIntervalCanBeSetManually";
+
+		task ("Given: User enable DEBUG log level for LDAP related loggers") {
+			LDAP.enableLDAPDebugLogs();
+		}
+
+		task ("And: Adds LDAP server and test connection") {
+			PortalSettings.addLDAPServer();
+
+			PortalSettings.editLDAPServer();
+
+			PortalSettings.testLDAPConnection();
+		}
+
+		task ("When: User configure LDAP settings with Import Interval set to 1 minute") {
+			var enableSettingList = "enabled,ldapImportEnabled";
+
+			LDAP.enableLDAPSettings(enableSettingList = "${enableSettingList}");
+
+			PortalSettings.setImportIntervalTime(importIntervalTime = "1");
+		}
+
+		task ("And: Adds a new user in LDAP") {
+			LDAP.installLDAPCommandUtil();
+
+			LDAP.updateLDAPDatabaseWithLDIFFile(ldifName = "addUser");
+		}
+
+		task ("Then: Data will be imported from ldap in 1 minute") {
+			LDAP.verifyUserImportAfterImportIntervalTime(userScreenName = "testUser");
+		}
+	}
+
 	@description = "This is a use case for LPS-73381. LDAP instance settings do not affect system settings."
 	@priority = "3"
 	test LDAPInstanceSettingsDoNotAffectSystemSettings {
@@ -243,6 +424,70 @@ definition {
 			Button.clickAdd();
 
 			SystemSettings.editSecurityCredential(securityCredential = "123456");
+		}
+	}
+
+	@description = "This is a use case for LRQA-42764. Changes in the User informations will be exported into the LDAP database."
+	@priority = "3"
+	test UserChangesCanBeExportedToLDAP {
+		property apacheds.enabled = "true";
+		property test.name.skip.portal.instance = "LDAP#UserChangesCanBeExportedToLDAP";
+
+		task ("Given: User adds LDAP server and configure settings with group import method") {
+			var enableSettingList = "enabled,ldapImportEnabled,ldapExportEnabled";
+
+			LDAP.addLDAPServerAndTestConnection();
+
+			LDAP.enableLDAPSettings(enableSettingList = "${enableSettingList}");
+		}
+
+		task ("And: creates a new user on LDAP and import it") {
+			LDAP.installLDAPCommandUtil();
+
+			LDAP.importLDIFOnLDAPAndTriggerSync(ldifName = "addUser");
+		}
+
+		task ("When: Logs in with the new User and changes his first name") {
+			User.logoutAndLoginPG(userLoginEmailAddress = "testUser2@liferay.com");
+
+			Navigator.gotoAccountSettings();
+
+			User.editUserInformation(userFirstNameEdit = "changedfirstname");
+		}
+
+		task ("Then: The new user information will be present in the LDAP database") {
+			LDAP.verifyUserFirstNameIsChangedInLDAP(userFirstName = "changedfirstname");
+		}
+	}
+
+	@description = "This is a use case for LRQA-42766. Users can be imported with group import method."
+	@priority = "3"
+	test UsersCanBeImportedFromLDAPByGroups {
+		property apacheds.enabled = "true";
+		property test.name.skip.portal.instance = "LDAP#UsersCanBeImportedFromLDAPByGroups";
+
+		task ("Given: User adds LDAP server and configure settings with group import method") {
+			var enableSettingList = "enabled,ldapImportEnabled";
+
+			LDAP.addLDAPServerAndTestConnection();
+
+			LDAP.enableLDAPSettings(enableSettingList = "${enableSettingList}");
+
+			PortalSettings.changeGroupImportMethod(groupImportMethod = "Group");
+		}
+
+		task ("When: User creates a new user on LDAP and import it") {
+			LDAP.installLDAPCommandUtil();
+
+			LDAP.importLDIFOnLDAPAndTriggerSync(ldifName = "addUser");
+		}
+
+		task ("Then: This new user can log in") {
+			User.logoutPG();
+
+			User.firstLoginUI(
+				password = "test",
+				userEmailAddress = "testUser2@liferay.com");
 		}
 	}
 

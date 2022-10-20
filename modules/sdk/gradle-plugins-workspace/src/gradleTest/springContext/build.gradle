@@ -1,0 +1,39 @@
+import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
+
+task runGradleTest
+
+allprojects {
+	repositories {
+		maven {
+			url "https://repository-cdn.liferay.com/nexus/content/groups/public"
+		}
+	}
+}
+
+runGradleTest {
+	dependsOn ":modules:sample:sample-service:buildService"
+	dependsOn ":modules:sample:sample-service:jar"
+
+	doLast {
+		Project serviceProject = project(":modules:sample:sample-service")
+
+		File jarFile = serviceProject.file("build/libs/sample.service-1.0.0.jar")
+
+		assert jarFile.exists()
+
+		ZipFile zipFile = new ZipFile(jarFile)
+
+		String zipEntryName = "META-INF/MANIFEST.MF"
+
+		ZipEntry zipEntry = zipFile.getEntry(zipEntryName)
+
+		assert zipEntry != null
+
+		zipFile.withCloseable {
+			InputStream inputStream = zipFile.getInputStream(zipEntry)
+
+			assert inputStream.text.normalize().contains("Liferay-Spring-Context: META-INF/spring")
+		}
+	}
+}

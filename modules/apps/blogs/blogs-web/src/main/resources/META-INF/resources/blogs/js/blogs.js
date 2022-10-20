@@ -13,6 +13,7 @@
  */
 
 import {State} from '@liferay/frontend-js-state-web';
+import {fetch, openConfirmModal, toggleBoxes} from 'frontend-js-web';
 import {
 	STR_NULL_IMAGE_FILE_ENTRY_ID,
 	imageSelectorImageAtom,
@@ -88,7 +89,7 @@ export default class Blogs {
 			this._shortenDescription = !customDescriptionEnabled;
 
 			if (emailEntryUpdatedEnabled) {
-				Liferay.Util.toggleBoxes(
+				toggleBoxes(
 					`${namespace}sendEmailEntryUpdated`,
 					`${namespace}emailEntryUpdatedCommentWrapper`
 				);
@@ -212,13 +213,18 @@ export default class Blogs {
 		const tempImages = this._getTempImages();
 
 		if (tempImages.length) {
-			if (confirm(this._config.strings.confirmDiscardImages)) {
-				tempImages.each((image) => {
-					image.parentElement.remove();
-				});
+			openConfirmModal({
+				message: this._config.strings.confirmDiscardImages,
+				onConfirm: (isConfirmed) => {
+					if (isConfirmed) {
+						tempImages.each((image) => {
+							image.parentElement.remove();
+						});
 
-				instance._saveEntry(draft, ajax);
-			}
+						instance._saveEntry(draft, ajax);
+					}
+				},
+			});
 		}
 		else {
 			instance._saveEntry(draft, ajax);
@@ -268,6 +274,14 @@ export default class Blogs {
 
 	_getElementById(id) {
 		return document.getElementById(`${this._config.namespace}${id}`);
+	}
+
+	_getValuesByName(name) {
+		const nodes = document.querySelectorAll(
+			`input[name^=${this._config.namespace}${name}]`
+		);
+
+		return [...nodes].map((node) => node.value);
 	}
 
 	_getTempImages() {
@@ -359,13 +373,14 @@ export default class Blogs {
 				const allowPingbacks = this._getElementById('allowPingbacks');
 				const allowTrackbacks = this._getElementById('allowTrackbacks');
 
-				const assetTagNames = this._getElementById('assetTagNames');
-
 				const bodyData = addNamespace(
 					{
 						allowPingbacks: allowPingbacks?.value,
 						allowTrackbacks: allowTrackbacks?.value,
-						assetTagNames: assetTagNames?.value || '',
+						assetCategoryIds: this._getValuesByName(
+							'assetCategoryIds'
+						),
+						assetTagNames: this._getValuesByName('assetTagNames'),
 						cmd: constants.ADD,
 						content,
 						coverImageCaption,
@@ -418,7 +433,7 @@ export default class Blogs {
 
 				const body = new URLSearchParams(bodyData);
 
-				Liferay.Util.fetch(this._config.editEntryURL, {
+				fetch(this._config.editEntryURL, {
 					body,
 					method: 'POST',
 				})
@@ -468,14 +483,15 @@ export default class Blogs {
 							saveStatus.classList.add('hide');
 							saveStatus.hidden = true;
 						}
-
+					})
+					.catch(() => {
+						this._updateStatus(strings.saveDraftError);
+					})
+					.finally(() => {
 						Liferay.Util.toggleDisabled(
 							this._getElementById('publishButton'),
 							false
 						);
-					})
-					.catch(() => {
-						this._updateStatus(strings.saveDraftError);
 					});
 			}
 		}

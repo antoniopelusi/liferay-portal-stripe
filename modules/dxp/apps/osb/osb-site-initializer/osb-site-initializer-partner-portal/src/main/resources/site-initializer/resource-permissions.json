@@ -1,0 +1,20 @@
+[
+	{
+		"actionId": "VIEW",
+		"resourceName": "com.liferay.journal.model.JournalFolder",
+		"roleName": "User",
+		"scope": "2"
+	},
+	{
+		"actionId": "SUBSCRIBE",
+		"resourceName": "com_liferay_asset_publisher_web_portlet_AssetPublisherPortlet",
+		"roleName": "User",
+		"scope": "2"
+	},
+	{
+		"actionId": "VIEW",
+		"resourceName": "com_liferay_asset_publisher_web_portlet_AssetPublisherPortlet",
+		"roleName": "User",
+		"scope": "2"
+	}
+]

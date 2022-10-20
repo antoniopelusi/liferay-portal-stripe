@@ -107,19 +107,6 @@
 		<field name="vocabularyId" type="long" />
 		<field name="lastPublishDate" type="Date" />
 	</model>
-	<model name="com.liferay.asset.kernel.model.AssetCategoryProperty">
-		<field name="mvccVersion" type="long" />
-		<field name="ctCollectionId" type="long" />
-		<field name="categoryPropertyId" type="long" />
-		<field name="companyId" type="long" />
-		<field name="userId" type="long" />
-		<field name="userName" type="String" />
-		<field name="createDate" type="Date" />
-		<field name="modifiedDate" type="Date" />
-		<field name="categoryId" type="long" />
-		<field name="key" type="String" />
-		<field name="value" type="String" />
-	</model>
 	<model name="com.liferay.asset.kernel.model.AssetEntry">
 		<field name="mvccVersion" type="long" />
 		<field name="ctCollectionId" type="long" />
@@ -383,6 +370,7 @@
 		<field name="mvccVersion" type="long" />
 		<field name="ctCollectionId" type="long" />
 		<field name="uuid" type="String" />
+		<field name="externalReferenceCode" type="String" />
 		<field name="folderId" type="long" />
 		<field name="groupId" type="long" />
 		<field name="companyId" type="long" />
@@ -635,14 +623,22 @@
 		<field name="userName" type="String" />
 		<field name="createDate" type="Date" />
 		<field name="modifiedDate" type="Date" />
-		<field name="a2" type="String" />
-		<field name="a3" type="String" />
+		<field name="a2" type="String">
+			<validator name="required" />
+		</field>
+		<field name="a3" type="String">
+			<validator name="required" />
+		</field>
 		<field name="active" type="boolean" />
 		<field name="billingAllowed" type="boolean" />
 		<field name="groupFilterEnabled" type="boolean" />
 		<field name="idd" type="String" />
-		<field name="name" type="String" />
-		<field name="number" type="String" />
+		<field name="name" type="String">
+			<validator name="required" />
+		</field>
+		<field name="number" type="String">
+			<validator name="required" />
+		</field>
 		<field name="position" type="double">
 			<validator name="number" />
 		</field>
@@ -785,6 +781,7 @@
 			<hint-collection name="CLOB" />
 		</field>
 		<field name="priority" type="int" />
+		<field name="faviconFileEntryId" type="long" />
 		<field name="masterLayoutPlid" type="long" />
 		<field name="layoutPrototypeUuid" type="String" />
 		<field name="layoutPrototypeLinkEnabled" type="boolean" />
@@ -908,6 +905,7 @@
 		<field name="logoId" type="long" />
 		<field name="themeId" type="String" />
 		<field name="colorSchemeId" type="String" />
+		<field name="faviconFileEntryId" type="long" />
 		<field name="css" type="String">
 			<hint-collection name="CLOB" />
 		</field>
@@ -1024,13 +1022,6 @@
 			<hint name="display-width">400</hint>
 		</field>
 		<field name="logoId" type="long" />
-	</model>
-	<model name="com.liferay.portal.kernel.model.OrgGroupRole">
-		<field name="mvccVersion" type="long" />
-		<field name="organizationId" type="long" />
-		<field name="groupId" type="long" />
-		<field name="roleId" type="long" />
-		<field name="companyId" type="long" />
 	</model>
 	<model name="com.liferay.portal.kernel.model.OrgLabor">
 		<field name="mvccVersion" type="long" />

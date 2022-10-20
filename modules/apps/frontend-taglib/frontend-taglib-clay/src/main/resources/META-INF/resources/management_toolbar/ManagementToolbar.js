@@ -15,11 +15,12 @@
 import ClayButton, {ClayButtonWithIcon} from '@clayui/button';
 import {ClayDropDownWithItems} from '@clayui/drop-down';
 import ClayIcon from '@clayui/icon';
-import ClayManagementToolbar from '@clayui/management-toolbar';
 import {LinkOrButton} from '@clayui/shared';
+import {ManagementToolbar as FrontendManagementToolbar} from 'frontend-js-components-web';
 import PropTypes from 'prop-types';
 import React, {useMemo, useState} from 'react';
 
+import normalizeDropdownItems from '../normalize_dropdown_items';
 import ActionControls from './ActionControls';
 import CreationMenu from './CreationMenu';
 import FeatureFlagContext from './FeatureFlagContext';
@@ -82,6 +83,10 @@ function ManagementToolbar({
 	);
 	const [active, setActive] = useState(initialCheckboxStatus !== 'unchecked');
 	const [searchMobile, setSearchMobile] = useState(false);
+	const normalizedViewTypeItems = useMemo(
+		() => normalizeDropdownItems(viewTypeItems),
+		[viewTypeItems]
+	);
 	const viewTypeIcon = useMemo(
 		() => viewTypeItems?.find((item) => item.active)?.icon,
 		[viewTypeItems]
@@ -91,8 +96,8 @@ function ManagementToolbar({
 		<FeatureFlagContext.Provider
 			value={{showDesignImprovements: showDesignImprovementsFF}}
 		>
-			<ClayManagementToolbar active={active}>
-				<ClayManagementToolbar.ItemList>
+			<FrontendManagementToolbar.Container active={active}>
+				<FrontendManagementToolbar.ItemList>
 					{selectable && (
 						<SelectionControls
 							actionDropdownItems={actionDropdownItems}
@@ -135,7 +140,7 @@ function ManagementToolbar({
 							sortingURL={sortingURL}
 						/>
 					)}
-				</ClayManagementToolbar.ItemList>
+				</FrontendManagementToolbar.ItemList>
 
 				{!active && showSearch && (
 					<SearchControls
@@ -152,7 +157,7 @@ function ManagementToolbar({
 					/>
 				)}
 
-				<ClayManagementToolbar.ItemList>
+				<FrontendManagementToolbar.ItemList>
 					{!active && showSearch && (
 						<SearchControls.ShowMobileButton
 							disabled={disabled}
@@ -177,10 +182,10 @@ function ManagementToolbar({
 						</>
 					) : (
 						<>
-							{viewTypeItems && (
-								<ClayManagementToolbar.Item>
+							{normalizedViewTypeItems && (
+								<FrontendManagementToolbar.Item>
 									<ClayDropDownWithItems
-										items={viewTypeItems}
+										items={normalizedViewTypeItems}
 										trigger={
 											showDesignImprovementsFF ? (
 												<ClayButton
@@ -208,15 +213,18 @@ function ManagementToolbar({
 													className="nav-link nav-link-monospaced"
 													displayType="unstyled"
 													symbol={viewTypeIcon}
+													title={Liferay.Language.get(
+														'show-view-options'
+													)}
 												/>
 											)
 										}
 									/>
-								</ClayManagementToolbar.Item>
+								</FrontendManagementToolbar.Item>
 							)}
 
 							{showCreationMenu && (
-								<ClayManagementToolbar.Item>
+								<FrontendManagementToolbar.Item>
 									{creationMenu ? (
 										<CreationMenu
 											{...creationMenu}
@@ -248,7 +256,7 @@ function ManagementToolbar({
 											symbol="plus"
 										/>
 									)}
-								</ClayManagementToolbar.Item>
+								</FrontendManagementToolbar.Item>
 							)}
 						</>
 					)}
@@ -260,8 +268,8 @@ function ManagementToolbar({
 							separator={active}
 						/>
 					)}
-				</ClayManagementToolbar.ItemList>
-			</ClayManagementToolbar>
+				</FrontendManagementToolbar.ItemList>
+			</FrontendManagementToolbar.Container>
 
 			{showResultsBar && (
 				<ResultsBar

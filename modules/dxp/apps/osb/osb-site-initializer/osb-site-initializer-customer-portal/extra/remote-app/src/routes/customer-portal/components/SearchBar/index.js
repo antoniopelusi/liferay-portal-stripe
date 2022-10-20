@@ -12,6 +12,7 @@
 import {ClayButtonWithIcon} from '@clayui/button';
 import {ClayInput} from '@clayui/form';
 import {useState} from 'react';
+import i18n from '../../../../common/I18n';
 
 const SearchBar = ({setFilters}) => {
 	const [searchTerm, setSearchTerm] = useState('');
@@ -51,7 +52,7 @@ const SearchBar = ({setFilters}) => {
 							updateSearchFilter();
 						}
 					}}
-					placeholder="Search"
+					placeholder={i18n.translate('search')}
 					type="text"
 					value={searchTerm}
 				/>

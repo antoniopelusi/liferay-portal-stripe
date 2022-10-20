@@ -16,7 +16,7 @@ package com.liferay.product.navigation.control.menu.web.internal;
 
 import com.liferay.layout.security.permission.resource.LayoutContentModelResourcePermission;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Layout;
@@ -89,10 +89,14 @@ public class LayoutHeaderProductNavigationControlMenuEntry
 		sb.append("control-menu-level-1-heading d-flex mr-1\" ");
 		sb.append("data-qa-id=\"headerTitle\"><span class=\"");
 		sb.append("lfr-portal-tooltip text-truncate\" title=\"");
-		sb.append(
-			HtmlUtil.escapeAttribute(_getHeaderTitle(httpServletRequest)));
+
+		String headerTitle = HtmlUtil.escapeAttribute(
+			_getHeaderTitle(httpServletRequest));
+
+		sb.append(headerTitle);
+
 		sb.append("\">");
-		sb.append(_getHeaderTitle(httpServletRequest));
+		sb.append(headerTitle);
 		sb.append("</span>");
 
 		if (_hasDraftLayout(httpServletRequest) &&
@@ -107,7 +111,7 @@ public class LayoutHeaderProductNavigationControlMenuEntry
 			sb.append("<span class=\"bg-transparent flex-shrink-0 label ");
 			sb.append("label-inverse-secondary ml-2 mr-0\">");
 			sb.append("<span class=\"label-item label-item-expand\">");
-			sb.append(LanguageUtil.get(httpServletRequest, "draft"));
+			sb.append(_language.get(httpServletRequest, "draft"));
 			sb.append("</span></span>");
 		}
 
@@ -217,12 +221,8 @@ public class LayoutHeaderProductNavigationControlMenuEntry
 			if (_layoutContentModelResourcePermission.contains(
 					themeDisplay.getPermissionChecker(), layout.getPlid(),
 					ActionKeys.UPDATE) ||
-				_layoutPermission.contains(
-					themeDisplay.getPermissionChecker(), layout,
-					ActionKeys.UPDATE) ||
-				_layoutPermission.contains(
-					themeDisplay.getPermissionChecker(), layout,
-					ActionKeys.UPDATE_LAYOUT_CONTENT)) {
+				_layoutPermission.containsLayoutUpdatePermission(
+					themeDisplay.getPermissionChecker(), layout)) {
 
 				return true;
 			}
@@ -273,6 +273,9 @@ public class LayoutHeaderProductNavigationControlMenuEntry
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		LayoutHeaderProductNavigationControlMenuEntry.class);
+
+	@Reference
+	private Language _language;
 
 	@Reference
 	private LayoutContentModelResourcePermission

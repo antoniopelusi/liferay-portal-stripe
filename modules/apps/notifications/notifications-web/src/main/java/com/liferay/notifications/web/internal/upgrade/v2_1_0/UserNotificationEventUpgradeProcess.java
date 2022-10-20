@@ -50,14 +50,14 @@ public class UserNotificationEventUpgradeProcess extends UpgradeProcess {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
 			runSQL(
 				StringBundler.concat(
-					"update UserNotificationEvent set actionRequired = TRUE ",
-					"where userNotificationEventId in (select ",
+					"update UserNotificationEvent set actionRequired = ",
+					"[$TRUE$] where userNotificationEventId in (select ",
 					"userNotificationEventId from ",
 					"Notifications_UserNotificationEvent where actionRequired ",
-					"= TRUE)"));
+					"= [$TRUE$])"));
 
 			runSQL(
-				"update UserNotificationEvent set actionRequired = FALSE " +
+				"update UserNotificationEvent set actionRequired = [$FALSE$] " +
 					"where actionRequired IS NULL");
 		}
 	}
@@ -75,7 +75,7 @@ public class UserNotificationEventUpgradeProcess extends UpgradeProcess {
 						"actionRequired = ? where userNotificationEventId = ?");
 			ResultSet resultSet = preparedStatement1.executeQuery()) {
 
-			runSQL("update UserNotificationEvent set delivered = TRUE");
+			runSQL("update UserNotificationEvent set delivered = [$TRUE$]");
 
 			runSQL(
 				StringBundler.concat(

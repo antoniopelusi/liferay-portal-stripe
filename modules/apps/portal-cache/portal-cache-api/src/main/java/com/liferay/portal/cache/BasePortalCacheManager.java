@@ -31,6 +31,7 @@ import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
+import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -49,74 +50,67 @@ public abstract class BasePortalCacheManager<K extends Serializable, V>
 
 	@Override
 	public void destroy() {
-		portalCaches.clear();
+		_portalCaches.clear();
 
 		doDestroy();
 	}
 
 	@Override
 	public PortalCache<K, V> fetchPortalCache(String portalCacheName) {
-		return portalCaches.get(portalCacheName);
+		return _portalCaches.get(portalCacheName);
 	}
 
 	@Override
 	public PortalCache<K, V> getPortalCache(String portalCacheName)
 		throws PortalCacheException {
 
-		return getPortalCache(portalCacheName, false, false);
+		return getPortalCache(portalCacheName, false);
 	}
 
 	@Override
 	public PortalCache<K, V> getPortalCache(
-			String portalCacheName, boolean blocking, boolean mvcc)
+			String portalCacheName, boolean mvcc)
 		throws PortalCacheException {
 
-		PortalCache<K, V> portalCache = portalCaches.get(portalCacheName);
+		return getPortalCache(portalCacheName, mvcc, false);
+	}
 
-		if (portalCache != null) {
-			_verifyPortalCache(portalCache, mvcc);
+	@Override
+	public PortalCache<K, V> getPortalCache(
+			String portalCacheName, boolean mvcc, boolean sharded)
+		throws PortalCacheException {
 
-			return portalCache;
-		}
+		return _portalCaches.compute(
+			portalCacheName,
+			(key, value) -> {
+				if (value != null) {
+					_verifyMVCCPortalCache(value, mvcc);
+					_verifyShardedPortalCache(value, sharded);
 
-		PortalCacheConfiguration portalCacheConfiguration =
-			_portalCacheManagerConfiguration.getPortalCacheConfiguration(
-				portalCacheName);
+					return value;
+				}
 
-		if (portalCacheConfiguration == null) {
-			portalCacheConfiguration =
-				_defaultPortalCacheConfiguration.newPortalCacheConfiguration(
-					portalCacheName);
+				PortalCacheConfiguration portalCacheConfiguration =
+					_portalCacheManagerConfiguration.
+						getPortalCacheConfiguration(portalCacheName);
 
-			_portalCacheManagerConfiguration.putPortalCacheConfiguration(
-				portalCacheName, portalCacheConfiguration);
-		}
+				value = createPortalCache(portalCacheConfiguration, sharded);
 
-		portalCache = createPortalCache(portalCacheConfiguration);
+				_initPortalCacheListeners(value, portalCacheConfiguration);
 
-		_initPortalCacheListeners(portalCache, portalCacheConfiguration);
+				if (mvcc) {
+					value = (PortalCache<K, V>)new MVCCPortalCache<>(
+						(LowLevelCache<K, MVCCModel>)value);
+				}
 
-		if (mvcc) {
-			portalCache = (PortalCache<K, V>)new MVCCPortalCache<>(
-				(LowLevelCache<K, MVCCModel>)portalCache);
-		}
+				if (isTransactionalPortalCacheEnabled() &&
+					isTransactionalPortalCache(portalCacheName)) {
 
-		if (isTransactionalPortalCacheEnabled() &&
-			isTransactionalPortalCache(portalCacheName)) {
+					value = new TransactionalPortalCache<>(value, mvcc);
+				}
 
-			portalCache = new TransactionalPortalCache<>(portalCache, mvcc);
-		}
-
-		PortalCache<K, V> previousPortalCache = portalCaches.putIfAbsent(
-			portalCacheName, portalCache);
-
-		if (previousPortalCache != null) {
-			_verifyPortalCache(portalCache, mvcc);
-
-			portalCache = previousPortalCache;
-		}
-
-		return portalCache;
+				return value;
+			});
 	}
 
 	@Override
@@ -132,14 +126,6 @@ public abstract class BasePortalCacheManager<K extends Serializable, V>
 
 	public String[] getTransactionalPortalCacheNames() {
 		return _transactionalPortalCacheNames;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public boolean isBlockingPortalCacheAllowed() {
-		return false;
 	}
 
 	@Override
@@ -161,28 +147,28 @@ public abstract class BasePortalCacheManager<K extends Serializable, V>
 
 	@Override
 	public void removePortalCache(String portalCacheName) {
-		portalCaches.remove(portalCacheName);
-
-		doRemovePortalCache(portalCacheName);
+		doRemovePortalCache(_portalCaches.remove(portalCacheName));
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setBlockingPortalCacheAllowed(
-		boolean blockingPortalCacheAllowed) {
+	@Override
+	public void removePortalCaches(long companyId) {
+		Set<PortalCache<K, V>> shardedPortalCaches = new HashSet<>();
+
+		for (PortalCache<K, V> portalCache : _portalCaches.values()) {
+			if (portalCache.isSharded()) {
+				shardedPortalCaches.add(portalCache);
+			}
+		}
+
+		if (shardedPortalCaches.isEmpty()) {
+			return;
+		}
+
+		doRemoveShardedPortalCache(companyId, shardedPortalCaches);
 	}
 
 	public void setClusterAware(boolean clusterAware) {
 		_clusterAware = clusterAware;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setMpiOnly(boolean mpiOnly) {
 	}
 
 	public void setPortalCacheManagerName(String portalCacheManagerName) {
@@ -215,13 +201,16 @@ public abstract class BasePortalCacheManager<K extends Serializable, V>
 	}
 
 	protected abstract PortalCache<K, V> createPortalCache(
-		PortalCacheConfiguration portalCacheConfiguration);
+		PortalCacheConfiguration portalCacheConfiguration, boolean sharded);
 
 	protected abstract void doClearAll();
 
 	protected abstract void doDestroy();
 
-	protected abstract void doRemovePortalCache(String portalCacheName);
+	protected abstract void doRemovePortalCache(PortalCache<K, V> portalCache);
+
+	protected abstract void doRemoveShardedPortalCache(
+		long companyId, Set<PortalCache<K, V>> shardedPortalCaches);
 
 	protected abstract PortalCacheManagerConfiguration
 		getPortalCacheManagerConfiguration();
@@ -239,10 +228,6 @@ public abstract class BasePortalCacheManager<K extends Serializable, V>
 		initPortalCacheManager();
 
 		_portalCacheManagerConfiguration = getPortalCacheManagerConfiguration();
-
-		_defaultPortalCacheConfiguration =
-			_portalCacheManagerConfiguration.
-				getDefaultPortalCacheConfiguration();
 
 		for (Properties properties :
 				_portalCacheManagerConfiguration.
@@ -285,7 +270,7 @@ public abstract class BasePortalCacheManager<K extends Serializable, V>
 			_portalCacheManagerConfiguration.putPortalCacheConfiguration(
 				portalCacheName, portalCacheConfiguration);
 
-			PortalCache<K, V> portalCache = portalCaches.get(portalCacheName);
+			PortalCache<K, V> portalCache = _portalCaches.get(portalCacheName);
 
 			if (portalCache == null) {
 				continue;
@@ -306,8 +291,6 @@ public abstract class BasePortalCacheManager<K extends Serializable, V>
 	protected PortalCacheListenerFactory portalCacheListenerFactory;
 	protected PortalCacheManagerListenerFactory<PortalCacheManager<K, V>>
 		portalCacheManagerListenerFactory;
-	protected final ConcurrentMap<String, PortalCache<K, V>> portalCaches =
-		new ConcurrentHashMap<>();
 
 	private void _initPortalCacheListeners(
 		PortalCache<K, V> portalCache,
@@ -342,7 +325,7 @@ public abstract class BasePortalCacheManager<K extends Serializable, V>
 		}
 	}
 
-	private void _verifyPortalCache(
+	private void _verifyMVCCPortalCache(
 		PortalCache<K, V> portalCache, boolean mvcc) {
 
 		if (mvcc == portalCache.isMVCC()) {
@@ -378,10 +361,47 @@ public abstract class BasePortalCacheManager<K extends Serializable, V>
 		throw new IllegalStateException(sb.toString());
 	}
 
+	private void _verifyShardedPortalCache(
+		PortalCache<K, V> portalCache, boolean sharded) {
+
+		if (sharded == portalCache.isSharded()) {
+			return;
+		}
+
+		StringBundler sb = new StringBundler(9);
+
+		sb.append("Unable to get portal cache ");
+		sb.append(portalCache.getPortalCacheName());
+		sb.append(" from portal cache manager ");
+		sb.append(_portalCacheManagerName);
+		sb.append(" as a ");
+
+		if (sharded) {
+			sb.append("sharded ");
+		}
+		else {
+			sb.append("nonsharded ");
+		}
+
+		sb.append("portal cache, cause a ");
+
+		if (portalCache.isSharded()) {
+			sb.append("sharded ");
+		}
+		else {
+			sb.append("nonsharded ");
+		}
+
+		sb.append("portal cache with same name exists.");
+
+		throw new IllegalStateException(sb.toString());
+	}
+
 	private boolean _clusterAware;
-	private PortalCacheConfiguration _defaultPortalCacheConfiguration;
 	private PortalCacheManagerConfiguration _portalCacheManagerConfiguration;
 	private String _portalCacheManagerName;
+	private final ConcurrentMap<String, PortalCache<K, V>> _portalCaches =
+		new ConcurrentHashMap<>();
 	private boolean _transactionalPortalCacheEnabled;
 	private String[] _transactionalPortalCacheNames = StringPool.EMPTY_ARRAY;
 

@@ -67,6 +67,27 @@ public class ObjectDefinitionSerDes {
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ssXX");
 
+		if (objectDefinition.getAccountEntryRestricted() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"accountEntryRestricted\": ");
+
+			sb.append(objectDefinition.getAccountEntryRestricted());
+		}
+
+		if (objectDefinition.getAccountEntryRestrictedObjectFieldId() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"accountEntryRestrictedObjectFieldId\": ");
+
+			sb.append(
+				objectDefinition.getAccountEntryRestrictedObjectFieldId());
+		}
+
 		if (objectDefinition.getActions() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -296,6 +317,16 @@ public class ObjectDefinitionSerDes {
 			sb.append("\"");
 		}
 
+		if (objectDefinition.getParameterRequired() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"parameterRequired\": ");
+
+			sb.append(objectDefinition.getParameterRequired());
+		}
+
 		if (objectDefinition.getPluralLabel() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -340,6 +371,20 @@ public class ObjectDefinitionSerDes {
 			sb.append(String.valueOf(objectDefinition.getStatus()));
 		}
 
+		if (objectDefinition.getStorageType() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"storageType\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(objectDefinition.getStorageType()));
+
+			sb.append("\"");
+		}
+
 		if (objectDefinition.getSystem() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -381,6 +426,25 @@ public class ObjectDefinitionSerDes {
 
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ssXX");
+
+		if (objectDefinition.getAccountEntryRestricted() == null) {
+			map.put("accountEntryRestricted", null);
+		}
+		else {
+			map.put(
+				"accountEntryRestricted",
+				String.valueOf(objectDefinition.getAccountEntryRestricted()));
+		}
+
+		if (objectDefinition.getAccountEntryRestrictedObjectFieldId() == null) {
+			map.put("accountEntryRestrictedObjectFieldId", null);
+		}
+		else {
+			map.put(
+				"accountEntryRestrictedObjectFieldId",
+				String.valueOf(
+					objectDefinition.getAccountEntryRestrictedObjectFieldId()));
+		}
 
 		if (objectDefinition.getActions() == null) {
 			map.put("actions", null);
@@ -500,6 +564,15 @@ public class ObjectDefinitionSerDes {
 				String.valueOf(objectDefinition.getPanelCategoryKey()));
 		}
 
+		if (objectDefinition.getParameterRequired() == null) {
+			map.put("parameterRequired", null);
+		}
+		else {
+			map.put(
+				"parameterRequired",
+				String.valueOf(objectDefinition.getParameterRequired()));
+		}
+
 		if (objectDefinition.getPluralLabel() == null) {
 			map.put("pluralLabel", null);
 		}
@@ -528,6 +601,15 @@ public class ObjectDefinitionSerDes {
 		}
 		else {
 			map.put("status", String.valueOf(objectDefinition.getStatus()));
+		}
+
+		if (objectDefinition.getStorageType() == null) {
+			map.put("storageType", null);
+		}
+		else {
+			map.put(
+				"storageType",
+				String.valueOf(objectDefinition.getStorageType()));
 		}
 
 		if (objectDefinition.getSystem() == null) {
@@ -567,7 +649,22 @@ public class ObjectDefinitionSerDes {
 			ObjectDefinition objectDefinition, String jsonParserFieldName,
 			Object jsonParserFieldValue) {
 
-			if (Objects.equals(jsonParserFieldName, "actions")) {
+			if (Objects.equals(jsonParserFieldName, "accountEntryRestricted")) {
+				if (jsonParserFieldValue != null) {
+					objectDefinition.setAccountEntryRestricted(
+						(Boolean)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(
+						jsonParserFieldName,
+						"accountEntryRestrictedObjectFieldId")) {
+
+				if (jsonParserFieldValue != null) {
+					objectDefinition.setAccountEntryRestrictedObjectFieldId(
+						Long.valueOf((String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "actions")) {
 				if (jsonParserFieldValue != null) {
 					objectDefinition.setActions(
 						(Map)ObjectDefinitionSerDes.toMap(
@@ -684,6 +781,12 @@ public class ObjectDefinitionSerDes {
 						(String)jsonParserFieldValue);
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "parameterRequired")) {
+				if (jsonParserFieldValue != null) {
+					objectDefinition.setParameterRequired(
+						(Boolean)jsonParserFieldValue);
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "pluralLabel")) {
 				if (jsonParserFieldValue != null) {
 					objectDefinition.setPluralLabel(
@@ -705,6 +808,12 @@ public class ObjectDefinitionSerDes {
 				if (jsonParserFieldValue != null) {
 					objectDefinition.setStatus(
 						StatusSerDes.toDTO((String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "storageType")) {
+				if (jsonParserFieldValue != null) {
+					objectDefinition.setStorageType(
+						(String)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "system")) {

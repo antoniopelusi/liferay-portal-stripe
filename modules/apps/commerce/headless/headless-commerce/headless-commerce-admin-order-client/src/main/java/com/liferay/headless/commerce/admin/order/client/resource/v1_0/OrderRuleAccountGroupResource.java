@@ -120,6 +120,12 @@ public interface OrderRuleAccountGroupResource {
 			return new OrderRuleAccountGroupResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -165,6 +171,7 @@ public interface OrderRuleAccountGroupResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -250,7 +257,7 @@ public interface OrderRuleAccountGroupResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-order/v1.0/order-rule-account-groups/{orderRuleAccountGroupId}");
 
 			httpInvoker.path(
@@ -331,7 +338,7 @@ public interface OrderRuleAccountGroupResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-order/v1.0/order-rule-account-groups/batch");
 
 			httpInvoker.userNameAndPassword(
@@ -421,7 +428,7 @@ public interface OrderRuleAccountGroupResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-order/v1.0/order-rules/by-externalReferenceCode/{externalReferenceCode}/order-rule-account-groups");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -511,7 +518,7 @@ public interface OrderRuleAccountGroupResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-order/v1.0/order-rules/by-externalReferenceCode/{externalReferenceCode}/order-rule-account-groups");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -617,7 +624,7 @@ public interface OrderRuleAccountGroupResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-order/v1.0/order-rules/{id}/order-rule-account-groups");
 
 			httpInvoker.path("id", id);
@@ -704,7 +711,7 @@ public interface OrderRuleAccountGroupResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-order/v1.0/order-rules/{id}/order-rule-account-groups");
 
 			httpInvoker.path("id", id);
@@ -784,7 +791,7 @@ public interface OrderRuleAccountGroupResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-order/v1.0/order-rules/order-rule-account-groups/batch");
 
 			httpInvoker.path("id", id);

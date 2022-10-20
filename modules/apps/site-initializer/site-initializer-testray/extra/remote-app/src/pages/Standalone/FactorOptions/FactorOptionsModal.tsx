@@ -12,9 +12,12 @@
  * details.
  */
 
-import ListView from '../../../components/ListView/ListView';
-import {getFactorOptions} from '../../../graphql/queries';
+import ListView from '../../../components/ListView';
 import i18n from '../../../i18n';
+import {
+	factorOptionResource,
+	getFactorOptionsTransformData,
+} from '../../../services/rest';
 import FactorOptionsFormModal from './FactorOptionsFormModal';
 import useFactorOptionsActions from './useFactorOptionsActions';
 
@@ -25,8 +28,10 @@ const FactorOptionsModal = () => {
 		<>
 			<ListView
 				forceRefetch={formModal.forceRefetch}
-				managementToolbarProps={{addButton: formModal.modal.open}}
-				query={getFactorOptions}
+				managementToolbarProps={{
+					addButton: () => formModal.modal.open(),
+				}}
+				resource={factorOptionResource}
 				tableProps={{
 					actions,
 					columns: [
@@ -41,7 +46,7 @@ const FactorOptionsModal = () => {
 						},
 					],
 				}}
-				transformData={(data) => data?.factorOptions}
+				transformData={getFactorOptionsTransformData}
 			/>
 
 			<FactorOptionsFormModal modal={formModal.modal} />

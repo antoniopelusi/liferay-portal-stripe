@@ -160,6 +160,7 @@
 	}).render();
 
 	window.<portlet:namespace />calendarsMenu = {
+		id: '<portlet:namespace />calendarsMenu',
 		items: [
 			{
 				caption: '<liferay-ui:message key="add-calendar-booking" />',
@@ -497,22 +498,36 @@
 	A.one('#<portlet:namespace />calendarListContainer').delegate(
 		'click',
 		(event) => {
-			var currentTarget = event.currentTarget;
-
-			window.<portlet:namespace />calendarListsMenu.calendarResourceId = currentTarget.getAttribute(
-				'data-calendarResourceId'
-			);
-
-			window.<portlet:namespace />calendarListsMenu.setAttrs({
-				alignNode: currentTarget,
-				toggler: currentTarget,
-				visible: !window.<portlet:namespace />calendarListsMenu.get(
-					'visible'
-				),
-			});
+			<portlet:namespace />calendarListContainerEventHandler(event);
 		},
 		'.calendar-resource-arrow'
 	);
+
+	A.one('#<portlet:namespace />calendarListContainer').delegate(
+		'keyup',
+		(event) => {
+			if (event.keyCode === 13) {
+				<portlet:namespace />calendarListContainerEventHandler(event);
+			}
+		},
+		'.calendar-resource-arrow'
+	);
+
+	window.<portlet:namespace />calendarListContainerEventHandler = function (
+		event
+	) {
+		var currentTarget = event.currentTarget;
+
+		window.<portlet:namespace />calendarListsMenu.calendarResourceId = currentTarget.getAttribute(
+			'data-calendarResourceId'
+		);
+
+		window.<portlet:namespace />calendarListsMenu.setAttrs({
+			alignNode: currentTarget,
+			toggler: currentTarget,
+			visible: !window.<portlet:namespace />calendarListsMenu.get('visible'),
+		});
+	};
 
 	window.<portlet:namespace />toggler = new A.TogglerDelegate({
 		animated: true,
@@ -530,11 +545,13 @@
 			'<%= calendarResourcesURL %>',
 			addOtherCalendarInput,
 			(event) => {
-				window.<portlet:namespace />otherCalendarList.add(event.result.raw);
+				if (window.event.keyCode === 13 || window.event.type === 'click') {
+					window.<portlet:namespace />otherCalendarList.add(event.result.raw);
 
-				<portlet:namespace />refreshVisibleCalendarRenderingRules();
+					<portlet:namespace />refreshVisibleCalendarRenderingRules();
 
-				addOtherCalendarInput.val('');
+					addOtherCalendarInput.val('');
+				}
 			}
 		);
 	</c:if>
@@ -679,6 +696,20 @@
 				<portlet:namespace />scheduler.setAttrs({
 					date: event.date,
 				});
+			},
+			keydown: function (event) {
+				var instance = this;
+
+				var domEvent = event.domEvent;
+
+				if (
+					domEvent.keyCode === 13 &&
+					domEvent.target.hasClass('yui3-calendar-day-selected')
+				) {
+					<portlet:namespace />scheduler.setAttrs({
+						date: instance._getSelectedDatesList()[0],
+					});
+				}
 			},
 		},
 		'date': new Date(<%= String.valueOf(date) %>),

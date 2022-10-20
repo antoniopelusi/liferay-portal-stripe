@@ -23,7 +23,6 @@ definition {
 		var groupId = JSONSitenavigationSetter.setGroupId(
 			groupName = "${groupName}",
 			site = "${site}");
-
 		var siteNavigationMenuId = JSONSitenavigationSetter.setSiteNavigationMenuId(
 			groupName = "${groupName}",
 			site = "${site}",

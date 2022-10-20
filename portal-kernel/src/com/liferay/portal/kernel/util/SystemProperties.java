@@ -14,8 +14,15 @@
 
 package com.liferay.portal.kernel.util;
 
+import com.liferay.petra.string.CharPool;
+import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.io.unsync.UnsyncBufferedReader;
+import com.liferay.portal.kernel.io.unsync.UnsyncStringReader;
+import com.liferay.portal.kernel.model.CompanyConstants;
+
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 
 import java.net.URL;
 
@@ -34,6 +41,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class SystemProperties {
 
+	public static final String SYSTEM_ENV_OVERRIDE_PREFIX = "SYSTEM_LIFERAY_";
+
 	public static final String SYSTEM_PROPERTIES_QUIET =
 		"system.properties.quiet";
 
@@ -51,13 +60,21 @@ public class SystemProperties {
 	}
 
 	public static String get(String key) {
+		return get(key, null);
+	}
+
+	public static String get(String key, String defaultValue) {
 		String value = _properties.get(key);
 
 		if (value == null) {
-			value = System.getProperty(key);
+			value = System.getProperty(key, defaultValue);
 		}
 
 		return value;
+	}
+
+	public static String[] getArray(String key) {
+		return StringUtil.split(get(key));
 	}
 
 	public static Properties getProperties() {
@@ -84,9 +101,7 @@ public class SystemProperties {
 			while (enumeration.hasMoreElements()) {
 				URL url = enumeration.nextElement();
 
-				try (InputStream inputStream = url.openStream()) {
-					properties.load(inputStream);
-				}
+				_load(url, properties);
 
 				if (urls != null) {
 					urls.add(url);
@@ -106,9 +121,7 @@ public class SystemProperties {
 			while (enumeration.hasMoreElements()) {
 				URL url = enumeration.nextElement();
 
-				try (InputStream inputStream = url.openStream()) {
-					properties.load(inputStream);
-				}
+				_load(url, properties);
 
 				if (urls != null) {
 					urls.add(url);
@@ -161,6 +174,10 @@ public class SystemProperties {
 
 		PropertiesUtil.fromProperties(properties, _properties);
 
+		EnvPropertiesUtil.loadEnvOverrides(
+			SYSTEM_ENV_OVERRIDE_PREFIX, CompanyConstants.SYSTEM,
+			SystemProperties::set);
+
 		if (urls != null) {
 			for (URL url : urls) {
 				System.out.println("Loading " + url);
@@ -172,6 +189,43 @@ public class SystemProperties {
 		System.setProperty(key, value);
 
 		_properties.put(key, value);
+	}
+
+	private static void _load(URL url, Properties properties)
+		throws IOException {
+
+		try (InputStream inputStream = url.openStream();
+			InputStreamReader inputStreamReader = new InputStreamReader(
+				inputStream);
+			UnsyncBufferedReader unsyncBufferedReader =
+				new UnsyncBufferedReader(inputStreamReader)) {
+
+			String line = null;
+			StringBundler sb = new StringBundler();
+
+			while ((line = unsyncBufferedReader.readLine()) != null) {
+				line = line.trim();
+
+				// Empty line, Comment line or "\"
+
+				if (line.isEmpty() || (line.charAt(0) == CharPool.POUND) ||
+					line.equals(StringPool.BACK_SLASH)) {
+
+					continue;
+				}
+
+				sb.append(line);
+				sb.append(StringPool.NEW_LINE);
+			}
+
+			if (sb.index() != 0) {
+				try (UnsyncStringReader unsyncStringReader =
+						new UnsyncStringReader(sb.toString())) {
+
+					properties.load(unsyncStringReader);
+				}
+			}
+		}
 	}
 
 	private static final Map<String, String> _properties =

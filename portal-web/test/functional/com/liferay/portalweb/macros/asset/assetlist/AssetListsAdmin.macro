@@ -24,7 +24,9 @@ definition {
 		AssetCategorization.gotoSelectCategory();
 
 		for (var categoryName : list "${categoryNameList}") {
-			Portlet.selectTreeNode(nodeName = "${categoryName}");
+			Check.checkNotVisible(
+				key_nodeName = "${categoryName}",
+				locator1 = "Treeview#NODE_CHECKBOX");
 		}
 
 		SelectFrameTop();
@@ -333,7 +335,17 @@ definition {
 	}
 
 	macro deleteEntry {
-		LexiconList.delete(listEntry = "${assetListTitle}");
+		LexiconList.clickEllipsisItem(
+			item = "Delete",
+			listEntry = "${assetListTitle}");
+
+		AssertTextEquals(
+			locator1 = "Modal#BODY",
+			value1 = "Deleting a collection is an action impossible to revert.");
+
+		Click(
+			key_text = "Delete",
+			locator1 = "Modal#MODAL_FOOTER_BUTTON");
 
 		Alert.viewSuccessMessage();
 	}
@@ -403,6 +415,16 @@ definition {
 		}
 
 		Alert.viewSuccessMessage();
+	}
+
+	macro gotoEllipsisMenuItemInItemSelector {
+		Click(locator1 = "AssetLists#ASSET_LIST_ELLIPSIS");
+
+		Click(
+			key_menuItem = "View Items",
+			locator1 = "AssetLists#PERSONALIZATION_DROPDOWN_ITEM");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
 	}
 
 	macro gotoEntry {
@@ -617,7 +639,7 @@ definition {
 		}
 
 		if (isSet(personalizedVariation)) {
-			Navigator.gotoNavTab(navTab = "${personalizedVariation}");
+			Navigator.gotoNavItem(navItem = "${personalizedVariation}");
 		}
 
 		WaitForLiferayEvent.initializeLiferayEventLog();
@@ -646,7 +668,7 @@ definition {
 			locator1 = "AssetLists#ASSET_LIST_ENTRY_TITLE");
 
 		if (isSet(personalizedVariation)) {
-			Navigator.gotoNavTab(navTab = "${personalizedVariation}");
+			Navigator.gotoNavItem(navItem = "${personalizedVariation}");
 		}
 
 		WaitForLiferayEvent.initializeLiferayEventLog();
@@ -711,7 +733,7 @@ definition {
 			locator1 = "AssetLists#ASSET_LIST_ENTRY_TITLE");
 
 		if (isSet(personalizedVariation)) {
-			Navigator.gotoNavTab(navTab = "${personalizedVariation}");
+			Navigator.gotoNavItem(navItem = "${personalizedVariation}");
 		}
 
 		WaitForLiferayEvent.initializeLiferayEventLog();

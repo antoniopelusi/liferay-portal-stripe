@@ -22,6 +22,7 @@ definition {
 		ProductMenuHelper.openProductMenu();
 
 		var key_panel = StringUtil.toLowerCase("${panel}");
+
 		var key_panel = StringUtil.replace("${key_panel}", " ", "_");
 
 		if (IsElementPresent(key_panel = "${key_panel}", locator1 = "ProductMenu#PANEL_COLLAPSED")) {

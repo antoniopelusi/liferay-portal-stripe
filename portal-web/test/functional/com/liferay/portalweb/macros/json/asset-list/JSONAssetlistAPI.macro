@@ -13,6 +13,7 @@ definition {
 			-d title=${title} \
 			-d type=${type}
 		''';
+
 		var assetListEntryId = JSONCurlUtil.post("${curl}", "$.[?(@['title'] == '${title}')]['assetListEntryId']");
 
 		return "${assetListEntryId}";
@@ -23,9 +24,7 @@ definition {
 		Variables.assertDefined(parameterList = "${groupId},${itemType},${title}");
 
 		var portalURL = JSONCompany.getPortalURL();
-
 		var userId = JSONUserAPI._getUserIdByEmailAddress(userEmailAddress = "test@liferay.com");
-
 		var typeSettings = JSONAssetlistSetter.setTypeSettings(
 			groupId = "${groupId}",
 			itemSubtype = "${itemSubtype}",
@@ -52,7 +51,6 @@ definition {
 			groupId = "${groupId}",
 			title = "${title}",
 			type = "1");
-
 		var typeSettings = JSONAssetlistSetter.setTypeSettings(
 			groupId = "${groupId}",
 			itemSubtype = "${itemSubtype}",

@@ -1,3 +1,11 @@
+.col-md-4 {
+	.lfr-ddm-form-pagination-controls {
+		button {
+			width: 100%;
+		}
+	}
+}
+
 .cursor-pointer {
 	cursor: pointer;
 }
@@ -493,5 +501,12 @@ div.lfr-de__partial-results--background {
 		.hidden {
 			display: none;
 		}
+	}
+}
+
+.mobile.touch body:first-of-type .portlet-content .lfr-icon-actions {
+	.lfr-icon-menu-text,
+	.taglib-text {
+		max-width: 200px;
 	}
 }

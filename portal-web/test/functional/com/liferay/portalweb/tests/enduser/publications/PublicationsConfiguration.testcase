@@ -36,22 +36,114 @@ definition {
 			panel = "Applications",
 			portlet = "Publications");
 
-		Check.checkToggleSwitch(locator1 = "Publications#PUBLICATIONS_TOGGLE_SWITCH");
+		Check.checkToggleSwitch(locator1 = "Publications#ENABLE_PUBLICATIONS_TOGGLE_SWITCH");
 
 		Click(locator1 = "Button#SUBMIT");
 
 		Alert.viewErrorMessage(errorMessage = "Staging is enabled for at least one site or asset library in the current virtual instance. Publications and staging cannot be used together.");
 	}
 
+	@description = "Publications test in a non-root portal context."
+	@priority = "4"
+	test CreatePublicationsInNonRootContext {
+		property app.server.types = "tomcat";
+		property database.types = "hypersonic,mariadb,mysql,oracle,postgresql,sqlserver";
+		property portal.context = "liferay";
+		property skip.clean-app-server-deploy-dir = "true";
+		property test.assert.warning.exceptions = "true";
+		property test.name.skip.portal.instance = "PublicationsConfiguration#CreatePublicationsInNonRootContext";
+
+		Publications.enablePublications();
+
+		AssertTextEquals(
+			locator1 = "Publications#MANAGE_PUBLICATIONS_PAGE_TITLE",
+			value1 = "Publications");
+
+		AssertTextPresent(
+			key_publicationName = "Production",
+			locator1 = "Publications#PUBLICATIONS_INDICATOR_TITLE",
+			value1 = "Production");
+
+		Publications.createNewPublication(
+			gotoPublicationsAdmin = "true",
+			publicationDescription = "Publication Description",
+			publicationName = "Publication Name");
+
+		JSONWebcontent.addWebContent(
+			content = "WC WebContent Content",
+			groupName = "Guest",
+			title = "WC WebContent Title");
+
+		PublicationsNavigator.gotoPublish(
+			gotoPublicationsAdmin = "true",
+			publicationName = "Publication Name");
+
+		Publications.publishPublication(publicationName = "Publication Name");
+
+		Publications.viewPublicationPublished(publicationName = "Publication Name");
+	}
+
 	@priority = "5"
-	test EnableDisablePublications {
+	test EnableDisablePublicationsAndSandboxViaInstanceSettings {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
+		JSONUser.addUser(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
+
+		JSONRole.assignRoleToUser(
+			roleTitle = "Publications User",
+			userEmailAddress = "userea@liferay.com");
+
+		Publications.enablePublications(
+			enableSandboxOnly = "true",
+			gotoInstancesettings = "true");
+
+		Publications.createNewPublication(publicationName = "Publication Name");
+
+		SignOut.signOut();
+
+		User.firstLoginUI(
+			password = "test",
+			userEmailAddress = "userea@liferay.com");
+
+		var sandboxedPublicationName = Publications.generateSandboxedPublicationName(userScreenName = "usersn");
+
+		Publications.viewSandboxedPublication(
+			sandboxedPublicationName = "${sandboxedPublicationName}",
+			sandboxedUser = "true");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "test@liferay.com",
+			userLoginFullName = "test test");
+
+		Publications.disablePublications(gotoInstancesettings = "true");
+
+		FormFields.viewCheckboxNotChecked(fieldName = "Enabled");
+
+		FormFields.viewCheckboxNotChecked(fieldName = "Sandbox Enabled");
+
+		AssertElementNotPresent(locator1 = "Publications#PUBLICATIONS_INDICATOR_BUTTON");
+	}
+
+	@priority = "5"
+	test EnableDisablePublicationsViaPublicationsAdmin {
 		property portal.acceptance = "true";
+
+		JSONGroup.addGroup(groupName = "Site Name");
 
 		Publications.enablePublications();
 
 		Publications.createNewPublication(publicationName = "Publication Name");
 
-		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "site-name");
 
 		DMDocument.addCP(
 			dmDocumentDescription = "DM Document Description",
@@ -62,7 +154,7 @@ definition {
 
 		AssertElementNotPresent(locator1 = "Publications#PUBLICATIONS_INDICATOR_BUTTON");
 
-		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "site-name");
 
 		DMDocument.viewDefault();
 	}

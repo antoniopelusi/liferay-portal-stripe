@@ -1467,7 +1467,7 @@ info:
         name: Commerce Team
     description:
         "Liferay Commerce Admin Pricing API. A Java client JAR is available for use with the group ID 'com.liferay',
-        artifact ID 'com.liferay.headless.commerce.admin.pricing.client', and version '4.0.13'."
+        artifact ID 'com.liferay.headless.commerce.admin.pricing.client', and version '4.0.16'."
     license:
         name: "Apache 2.0"
         url: "http://www.apache.org/licenses/LICENSE-2.0.html"
@@ -7603,6 +7603,11 @@ paths:
                       type: string
                   style: simple
                 - in: query
+                  name: filter
+                  required: false
+                  schema:
+                      type: string
+                - in: query
                   explode: true
                   name: page
                   required: false
@@ -7616,6 +7621,16 @@ paths:
                   schema:
                       type: integer
                   style: form
+                - in: query
+                  name: search
+                  required: false
+                  schema:
+                      type: string
+                - in: query
+                  name: sort
+                  required: false
+                  schema:
+                      type: string
             responses:
                 200:
                     content:

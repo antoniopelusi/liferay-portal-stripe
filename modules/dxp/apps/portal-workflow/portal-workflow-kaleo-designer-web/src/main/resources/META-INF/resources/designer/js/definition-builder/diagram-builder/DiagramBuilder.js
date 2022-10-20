@@ -22,6 +22,7 @@ import ReactFlow, {
 	addEdge,
 	isEdge,
 } from 'react-flow-renderer';
+import uuidv4 from 'uuid/v4';
 
 import {DefinitionBuilderContext} from '../DefinitionBuilderContext';
 import {defaultLanguageId} from '../constants';
@@ -37,9 +38,6 @@ import FloatingConnectionLine from './components/transitions/FloatingConnectionL
 import getCollidingElements from './util/collisionDetection';
 import populateAssignmentsData from './util/populateAssignmentsData';
 import populateNotificationsData from './util/populateNotificationsData';
-
-let id = 2;
-const getId = () => `item_${id++}`;
 
 const deserializeUtil = new DeserializeUtil();
 
@@ -65,6 +63,7 @@ export default function DiagramBuilder() {
 	const [reactFlowInstance, setReactFlowInstance] = useState(null);
 	const [selectedItem, setSelectedItem] = useState(null);
 	const [selectedItemNewId, setSelectedItemNewId] = useState(null);
+	const [defaultPosition, setDefaultPosition] = useState(null);
 
 	const onConnect = (params) => {
 		if (
@@ -96,7 +95,7 @@ export default function DiagramBuilder() {
 					),
 				},
 			},
-			id: getId(),
+			id: uuidv4(),
 			type: 'transition',
 		};
 
@@ -151,8 +150,8 @@ export default function DiagramBuilder() {
 			});
 
 			if (
-				getCollidingElements(elements, elementRectangle, position)
-					.length === 0
+				!getCollidingElements(elements, elementRectangle, position)
+					.length
 			) {
 				event.preventDefault();
 
@@ -164,7 +163,7 @@ export default function DiagramBuilder() {
 					data: {
 						newNode: true,
 					},
-					id: getId(),
+					id: uuidv4(),
 					position,
 					type,
 				};
@@ -177,11 +176,20 @@ export default function DiagramBuilder() {
 	);
 
 	const onLoad = (reactFlowInstance) => {
+		reactFlowInstance.fitView({maxZoom: 1});
 		setReactFlowInstance(reactFlowInstance);
 	};
 
 	const onNodeDragStart = (event) => {
 		const elementRectangle = event.currentTarget.getBoundingClientRect();
+		const reactFlowBounds = reactFlowWrapperRef.current.getBoundingClientRect();
+
+		const position = reactFlowInstance.project({
+			x: elementRectangle.left - reactFlowBounds.left,
+			y: elementRectangle.top - reactFlowBounds.top,
+		});
+
+		setDefaultPosition(position);
 
 		setElementRectangle({
 			mouseXInRectangle: event.clientX - elementRectangle.left,
@@ -217,6 +225,24 @@ export default function DiagramBuilder() {
 				return element;
 			})
 		);
+
+		const newElements = elements.filter(
+			(element) => element.id !== node.id
+		);
+
+		if (
+			getCollidingElements(newElements, elementRectangle, position).length
+		) {
+			setElements((elements) =>
+				elements.map((element) => {
+					if (element.id === node.id) {
+						element.position = defaultPosition;
+					}
+
+					return element;
+				})
+			);
+		}
 	};
 
 	useEffect(() => {

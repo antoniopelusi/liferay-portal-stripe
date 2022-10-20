@@ -11,9 +11,6 @@
 			"/__mock__/",
 			"/__utils__/"
 		],
-		"setupFiles": [
-			"<rootDir>/jest-setup.config.js"
-		],
 		"snapshotSerializers": [
 			"metal-jest-serializer"
 		],
@@ -30,5 +27,5 @@
 		"format": "liferay-npm-scripts fix",
 		"test": "metalsoy -s \"test/**/*.soy\" -d \"test\" && liferay-npm-scripts test"
 	},
-	"version": "1.0.56"
+	"version": "1.0.73"
 }

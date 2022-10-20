@@ -4,6 +4,7 @@
 	<model name="com.liferay.search.experiences.model.SXPBlueprint">
 		<field name="mvccVersion" type="long" />
 		<field name="uuid" type="String" />
+		<field name="externalReferenceCode" type="String" />
 		<field name="SXPBlueprintId" type="long" />
 		<field name="companyId" type="long" />
 		<field name="userId" type="long" />
@@ -25,6 +26,7 @@
 			<sanitize content-type="text/plain" modes="ALL" />
 			<validator name="required" />
 		</field>
+		<field name="version" type="String" />
 		<field name="status" type="int" />
 		<field name="statusByUserId" type="long" />
 		<field name="statusByUserName" type="String" />
@@ -33,6 +35,7 @@
 	<model name="com.liferay.search.experiences.model.SXPElement">
 		<field name="mvccVersion" type="long" />
 		<field name="uuid" type="String" />
+		<field name="externalReferenceCode" type="String" />
 		<field name="SXPElementId" type="long" />
 		<field name="companyId" type="long" />
 		<field name="userId" type="long" />
@@ -54,6 +57,7 @@
 			<validator name="required" />
 		</field>
 		<field name="type" type="int" />
+		<field name="version" type="String" />
 		<field name="status" type="int" />
 	</model>
 </model-hints>

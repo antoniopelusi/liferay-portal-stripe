@@ -26,6 +26,12 @@ import java.util.Date;
  */
 public class ReleaseInfo {
 
+	public static final int RELEASE_6_0_12_BUILD_NUMBER = 6012;
+
+	public static final int RELEASE_6_1_0_BUILD_NUMBER = 6100;
+
+	public static final int RELEASE_6_1_1_BUILD_NUMBER = 6101;
+
 	public static final int RELEASE_6_2_0_BUILD_NUMBER = 6200;
 
 	public static final int RELEASE_7_0_0_BUILD_NUMBER = 7000;

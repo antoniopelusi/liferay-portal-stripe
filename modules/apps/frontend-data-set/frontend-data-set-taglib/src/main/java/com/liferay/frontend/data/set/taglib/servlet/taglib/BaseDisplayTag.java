@@ -19,6 +19,8 @@ import com.liferay.frontend.data.set.taglib.internal.util.ServicesProvider;
 import com.liferay.frontend.js.loader.modules.extender.npm.NPMResolvedPackageNameUtil;
 import com.liferay.frontend.js.loader.modules.extender.npm.NPMResolver;
 import com.liferay.frontend.js.module.launcher.JSModuleResolver;
+import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.template.react.renderer.ComponentDescriptor;
 import com.liferay.portal.template.react.renderer.ReactRenderer;
@@ -26,7 +28,11 @@ import com.liferay.taglib.util.AttributesTagSupport;
 
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
+
+import javax.portlet.PortletResponse;
+import javax.portlet.PortletURL;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -59,6 +65,24 @@ public class BaseDisplayTag extends AttributesTagSupport {
 		return _id;
 	}
 
+	public String getNamespace() {
+		if (_namespace != null) {
+			return _namespace;
+		}
+
+		HttpServletRequest httpServletRequest = getRequest();
+
+		PortletResponse portletResponse =
+			(PortletResponse)httpServletRequest.getAttribute(
+				JavaConstants.JAVAX_PORTLET_RESPONSE);
+
+		if (portletResponse != null) {
+			_namespace = portletResponse.getNamespace();
+		}
+
+		return _namespace;
+	}
+
 	public String getPropsTransformer() {
 		return _propsTransformer;
 	}
@@ -67,12 +91,28 @@ public class BaseDisplayTag extends AttributesTagSupport {
 		return _randomNamespace;
 	}
 
+	public List<Object> getSelectedItems() {
+		return _selectedItems;
+	}
+
 	public void setAdditionalProps(Map<String, Object> additionalProps) {
 		_additionalProps = additionalProps;
 	}
 
 	public void setId(String id) {
 		_id = id;
+	}
+
+	public void setNamespace(String namespace) {
+		_namespace = namespace;
+	}
+
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
+	 */
+	@Deprecated
+	public void setPortletURL(PortletURL portletURL) {
+		_portletURL = portletURL;
 	}
 
 	public void setPropsTransformer(String propsTransformer) {
@@ -89,12 +129,19 @@ public class BaseDisplayTag extends AttributesTagSupport {
 		_randomNamespace = randomNamespace;
 	}
 
+	public void setSelectedItems(List<Object> selectedItems) {
+		_selectedItems = selectedItems;
+	}
+
 	protected void cleanUp() {
 		_additionalProps = null;
 		_id = null;
+		_namespace = null;
+		_portletURL = null;
 		_propsTransformer = null;
 		_propsTransformerServletContext = null;
 		_randomNamespace = null;
+		_selectedItems = null;
 	}
 
 	protected void doClearTag() {
@@ -114,11 +161,22 @@ public class BaseDisplayTag extends AttributesTagSupport {
 	}
 
 	protected Map<String, Object> prepareProps(Map<String, Object> props) {
-		if (_additionalProps != null) {
-			props.put("additionalProps", _additionalProps);
-		}
+		return HashMapBuilder.<String, Object>putAll(
+			props
+		).put(
+			"additionalProps",
+			() -> {
+				if (_additionalProps != null) {
+					return _additionalProps;
+				}
 
-		return props;
+				return null;
+			}
+		).put(
+			"namespace", getNamespace()
+		).put(
+			"selectedItems", _selectedItems
+		).build();
 	}
 
 	protected int processEndTag() throws Exception {
@@ -176,8 +234,11 @@ public class BaseDisplayTag extends AttributesTagSupport {
 
 	private Map<String, Object> _additionalProps;
 	private String _id;
+	private String _namespace;
+	private PortletURL _portletURL;
 	private String _propsTransformer;
 	private ServletContext _propsTransformerServletContext;
 	private String _randomNamespace;
+	private List<Object> _selectedItems;
 
 }

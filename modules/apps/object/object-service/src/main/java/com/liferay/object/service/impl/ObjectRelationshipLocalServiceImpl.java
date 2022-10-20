@@ -18,6 +18,7 @@ import com.liferay.object.constants.ObjectFieldConstants;
 import com.liferay.object.constants.ObjectRelationshipConstants;
 import com.liferay.object.exception.DuplicateObjectRelationshipException;
 import com.liferay.object.exception.ObjectRelationshipNameException;
+import com.liferay.object.exception.ObjectRelationshipParameterObjectFieldIdException;
 import com.liferay.object.exception.ObjectRelationshipReverseException;
 import com.liferay.object.exception.ObjectRelationshipTypeException;
 import com.liferay.object.internal.petra.sql.dsl.DynamicObjectDefinitionTable;
@@ -31,13 +32,18 @@ import com.liferay.object.service.base.ObjectRelationshipLocalServiceBaseImpl;
 import com.liferay.object.service.persistence.ObjectDefinitionPersistence;
 import com.liferay.object.service.persistence.ObjectFieldPersistence;
 import com.liferay.object.service.persistence.ObjectLayoutTabPersistence;
+import com.liferay.object.system.SystemObjectDefinitionMetadata;
+import com.liferay.object.system.SystemObjectDefinitionMetadataTracker;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
+import com.liferay.portal.kernel.search.Indexer;
+import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
@@ -74,13 +80,13 @@ public class ObjectRelationshipLocalServiceImpl
 	@Override
 	public ObjectRelationship addObjectRelationship(
 			long userId, long objectDefinitionId1, long objectDefinitionId2,
-			String deletionType, Map<Locale, String> labelMap, String name,
-			String type)
+			long parameterObjectFieldId, String deletionType,
+			Map<Locale, String> labelMap, String name, String type)
 		throws PortalException {
 
 		return _addObjectRelationship(
-			userId, objectDefinitionId1, objectDefinitionId2, deletionType,
-			labelMap, name, false, type);
+			userId, objectDefinitionId1, objectDefinitionId2,
+			parameterObjectFieldId, deletionType, labelMap, name, false, type);
 	}
 
 	@Override
@@ -90,7 +96,7 @@ public class ObjectRelationshipLocalServiceImpl
 		throws PortalException {
 
 		ObjectRelationship objectRelationship =
-			objectRelationshipLocalService.getObjectRelationship(
+			objectRelationshipPersistence.findByPrimaryKey(
 				objectRelationshipId);
 
 		ObjectDefinition objectDefinition2 =
@@ -188,6 +194,12 @@ public class ObjectRelationshipLocalServiceImpl
 
 			objectRelationshipPersistence.remove(
 				reverseObjectRelationship.getObjectRelationshipId());
+
+			Indexer<ObjectRelationship> indexer =
+				IndexerRegistryUtil.nullSafeGetIndexer(
+					ObjectRelationship.class);
+
+			indexer.delete(reverseObjectRelationship);
 		}
 
 		return objectRelationship;
@@ -199,7 +211,7 @@ public class ObjectRelationshipLocalServiceImpl
 		throws PortalException {
 
 		ObjectRelationship objectRelationship =
-			objectRelationshipLocalService.getObjectRelationship(
+			objectRelationshipPersistence.findByPrimaryKey(
 				objectRelationshipId);
 
 		if (Objects.equals(
@@ -224,7 +236,7 @@ public class ObjectRelationshipLocalServiceImpl
 		throws PortalException {
 
 		ObjectRelationship objectRelationship =
-			objectRelationshipLocalService.getObjectRelationship(
+			objectRelationshipPersistence.findByPrimaryKey(
 				objectRelationshipId);
 
 		if (Objects.equals(
@@ -268,6 +280,15 @@ public class ObjectRelationshipLocalServiceImpl
 	}
 
 	@Override
+	public ObjectRelationship getObjectRelationship(
+			long objectDefinitionId1, String name)
+		throws PortalException {
+
+		return objectRelationshipPersistence.findByODI1_N(
+			objectDefinitionId1, name);
+	}
+
+	@Override
 	public List<ObjectRelationship> getObjectRelationships(
 		long objectDefinitionId1) {
 
@@ -283,11 +304,19 @@ public class ObjectRelationshipLocalServiceImpl
 			objectDefinitionId1, start, end);
 	}
 
+	@Override
+	public List<ObjectRelationship> getObjectRelationships(
+		long objectDefinitionId1, long objectDefinition2, String type) {
+
+		return objectRelationshipPersistence.findByODI1_ODI2_T(
+			objectDefinitionId1, objectDefinition2, type);
+	}
+
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public ObjectRelationship updateObjectRelationship(
-			long objectRelationshipId, String deletionType,
-			Map<Locale, String> labelMap)
+			long objectRelationshipId, long parameterObjectFieldId,
+			String deletionType, Map<Locale, String> labelMap)
 		throws PortalException {
 
 		if (Validator.isNull(deletionType)) {
@@ -303,6 +332,12 @@ public class ObjectRelationshipLocalServiceImpl
 				"Reverse object relationships cannot be updated");
 		}
 
+		_validateParameterObjectFieldId(
+			objectRelationship.getObjectDefinitionId1(),
+			objectRelationship.getObjectDefinitionId2(), parameterObjectFieldId,
+			objectRelationship.getType());
+
+		objectRelationship.setParameterObjectFieldId(parameterObjectFieldId);
 		objectRelationship.setDeletionType(deletionType);
 		objectRelationship.setLabelMap(labelMap);
 
@@ -371,11 +406,14 @@ public class ObjectRelationshipLocalServiceImpl
 
 	private ObjectRelationship _addObjectRelationship(
 			long userId, long objectDefinitionId1, long objectDefinitionId2,
-			String deletionType, Map<Locale, String> labelMap, String name,
-			boolean reverse, String type)
+			long parameterObjectFieldId, String deletionType,
+			Map<Locale, String> labelMap, String name, boolean reverse,
+			String type)
 		throws PortalException {
 
-		_validate(objectDefinitionId1, objectDefinitionId2, name, type);
+		_validate(
+			objectDefinitionId1, objectDefinitionId2, parameterObjectFieldId,
+			name, type);
 
 		ObjectRelationship objectRelationship =
 			objectRelationshipPersistence.create(
@@ -389,6 +427,7 @@ public class ObjectRelationshipLocalServiceImpl
 
 		objectRelationship.setObjectDefinitionId1(objectDefinitionId1);
 		objectRelationship.setObjectDefinitionId2(objectDefinitionId2);
+		objectRelationship.setParameterObjectFieldId(parameterObjectFieldId);
 		objectRelationship.setDeletionType(
 			GetterUtil.getString(
 				deletionType,
@@ -438,7 +477,8 @@ public class ObjectRelationshipLocalServiceImpl
 			ObjectRelationship reverseObjectRelationship =
 				_addObjectRelationship(
 					userId, objectDefinitionId2, objectDefinitionId1,
-					deletionType, labelMap, name, true, type);
+					parameterObjectFieldId, deletionType, labelMap, name, true,
+					type);
 
 			reverseObjectRelationship.setDBTableName(
 				objectRelationship.getDBTableName());
@@ -452,8 +492,8 @@ public class ObjectRelationshipLocalServiceImpl
 	}
 
 	private void _validate(
-			long objectDefinitionId1, long objectDefinitionId2, String name,
-			String type)
+			long objectDefinitionId1, long objectDefinitionId2,
+			long parameterObjectFieldId, String name, String type)
 		throws PortalException {
 
 		if (Validator.isNull(name)) {
@@ -498,12 +538,26 @@ public class ObjectRelationshipLocalServiceImpl
 			throw new ObjectRelationshipTypeException("Invalid type " + type);
 		}
 
-		ObjectDefinition objectDefinition =
-			_objectDefinitionPersistence.fetchByPrimaryKey(objectDefinitionId1);
+		if (Objects.equals(
+				type, ObjectRelationshipConstants.TYPE_MANY_TO_MANY) &&
+			(objectDefinitionId1 == objectDefinitionId2)) {
 
-		if (objectDefinition.isSystem() &&
-			!Objects.equals(
-				type, ObjectRelationshipConstants.TYPE_ONE_TO_MANY)) {
+			throw new ObjectRelationshipTypeException(
+				"Many to many self relationships are not allowed");
+		}
+
+		ObjectDefinition objectDefinition1 =
+			_objectDefinitionPersistence.fetchByPrimaryKey(objectDefinitionId1);
+		ObjectDefinition objectDefinition2 =
+			_objectDefinitionPersistence.fetchByPrimaryKey(objectDefinitionId2);
+
+		if (objectDefinition1.isSystem() && objectDefinition2.isSystem()) {
+			throw new ObjectRelationshipTypeException(
+				"Relationships are not allowed between system objects");
+		}
+
+		if (objectDefinition1.isSystem() &&
+			Objects.equals(type, ObjectRelationshipConstants.TYPE_ONE_TO_ONE)) {
 
 			throw new ObjectRelationshipTypeException(
 				"Invalid type for system object definition " +
@@ -520,6 +574,92 @@ public class ObjectRelationshipLocalServiceImpl
 			if (count > 0) {
 				throw new ObjectRelationshipTypeException(
 					"Inverse type already exists");
+			}
+		}
+
+		_validateParameterObjectFieldId(
+			objectDefinitionId1, objectDefinitionId2, parameterObjectFieldId,
+			type);
+	}
+
+	private void _validateParameterObjectFieldId(
+			long objectDefinitionId1, long objectDefinitionId2,
+			long parameterObjectFieldId, String type)
+		throws PortalException {
+
+		ObjectDefinition objectDefinition1 =
+			_objectDefinitionPersistence.fetchByPrimaryKey(objectDefinitionId1);
+
+		String restContextPath = StringPool.BLANK;
+
+		if (!objectDefinition1.isSystem()) {
+			restContextPath = objectDefinition1.getRESTContextPath();
+		}
+		else {
+			SystemObjectDefinitionMetadata systemObjectDefinitionMetadata =
+				_systemObjectDefinitionMetadataTracker.
+					getSystemObjectDefinitionMetadata(
+						objectDefinition1.getName());
+
+			if (systemObjectDefinitionMetadata != null) {
+				restContextPath =
+					systemObjectDefinitionMetadata.getRESTContextPath();
+			}
+		}
+
+		boolean parameterRequired = restContextPath.matches(".*/\\{\\w+}/.*");
+
+		if ((parameterObjectFieldId == 0) && parameterRequired) {
+			throw new ObjectRelationshipParameterObjectFieldIdException(
+				"Object definition " + objectDefinition1.getName() +
+					" requires a parameter object field ID");
+		}
+
+		if (parameterObjectFieldId > 0) {
+			if (!Objects.equals(
+					type, ObjectRelationshipConstants.TYPE_ONE_TO_MANY)) {
+
+				throw new ObjectRelationshipParameterObjectFieldIdException(
+					"Object relationship type " + type +
+						" does not allow a parameter object field ID");
+			}
+
+			if (!parameterRequired) {
+				throw new ObjectRelationshipParameterObjectFieldIdException(
+					"Object definition " + objectDefinition1.getName() +
+						" does not allow a parameter object field ID");
+			}
+
+			ObjectField objectField = _objectFieldLocalService.fetchObjectField(
+				parameterObjectFieldId);
+
+			if (objectField == null) {
+				throw new ObjectRelationshipParameterObjectFieldIdException(
+					"Parameter object field ID " + parameterObjectFieldId +
+						" does not exist");
+			}
+
+			ObjectDefinition objectDefinition2 =
+				_objectDefinitionPersistence.fetchByPrimaryKey(
+					objectDefinitionId2);
+
+			if (objectDefinition2.getObjectDefinitionId() !=
+					objectField.getObjectDefinitionId()) {
+
+				throw new ObjectRelationshipParameterObjectFieldIdException(
+					StringBundler.concat(
+						"Parameter object field ID ", parameterObjectFieldId,
+						" does not belong to object definition ",
+						objectDefinition2.getName()));
+			}
+
+			if (!Objects.equals(
+					objectField.getBusinessType(),
+					ObjectFieldConstants.BUSINESS_TYPE_RELATIONSHIP)) {
+
+				throw new ObjectRelationshipParameterObjectFieldIdException(
+					"Parameter object field ID " + parameterObjectFieldId +
+						" does not belong to a relationship object field");
 			}
 		}
 	}
@@ -545,6 +685,10 @@ public class ObjectRelationshipLocalServiceImpl
 
 	@Reference
 	private ObjectLayoutTabPersistence _objectLayoutTabPersistence;
+
+	@Reference
+	private SystemObjectDefinitionMetadataTracker
+		_systemObjectDefinitionMetadataTracker;
 
 	@Reference
 	private UserLocalService _userLocalService;

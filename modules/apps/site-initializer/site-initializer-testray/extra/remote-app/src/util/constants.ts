@@ -12,12 +12,48 @@
  * details.
  */
 
+import {StatusBarOptions} from '../components/StatusBadge/StatusBadge';
+
 export const DATA_COLORS = {
 	'metrics.blocked': '#F8D72E',
 	'metrics.failed': '#E73A45',
 	'metrics.incomplete': '#E3E9EE',
 	'metrics.passed': '#3CD587',
 	'metrics.test-fix': '#59BBFC',
+};
+
+export enum Statuses {
+	PASSED = 'PASSED',
+	FAILED = 'FAILED',
+	BLOCKED = 'BLOCKED',
+	TEST_FIX = 'TEST FIX',
+	INCOMPLETE = 'INCOMPLETE',
+	SELF = 'SELF',
+	OTHER = 'OTHER',
+}
+
+export enum StatusesProgressScore {
+	SELF = 'SELF',
+	OTHER = 'OTHER',
+	INCOMPLETE = 'INCOMPLETE',
+}
+
+export const chartColors = {
+	[Statuses.BLOCKED]: DATA_COLORS['metrics.blocked'],
+	[Statuses.FAILED]: DATA_COLORS['metrics.failed'],
+	[Statuses.INCOMPLETE]: DATA_COLORS['metrics.incomplete'],
+	[Statuses.PASSED]: DATA_COLORS['metrics.passed'],
+	[Statuses.TEST_FIX]: DATA_COLORS['metrics.test-fix'],
+};
+
+export const chartClassNames = {
+	[Statuses.BLOCKED]: 'blocked',
+	[Statuses.FAILED]: 'failed',
+	[Statuses.INCOMPLETE]: 'test-incomplete',
+	[Statuses.PASSED]: 'passed',
+	[Statuses.SELF]: 'self-completed',
+	[Statuses.TEST_FIX]: 'test-fix',
+	[Statuses.OTHER]: 'others-completed',
 };
 
 export const LABEL_GREATER_THAN_99 = '> 99';
@@ -50,8 +86,10 @@ export const TEST_STATUS_LABEL: any = {
 	7: 'Test Fix',
 };
 
-const getStatusLabel = (status: number): string =>
-	(TEST_STATUS_LABEL as any)[status];
+const getStatusLabel = (status: number): StatusBarOptions =>
+	String(
+		(TEST_STATUS_LABEL as any)[status]
+	)?.toLowerCase() as StatusBarOptions;
 
 export enum SUB_TASK_STATUS {
 	'ABANDONED' = 2,

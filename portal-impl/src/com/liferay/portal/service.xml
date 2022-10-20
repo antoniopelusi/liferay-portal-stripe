@@ -610,6 +610,7 @@
 		<column name="styleBookEntryId" type="long" />
 		<column name="css" type="String" />
 		<column name="priority" type="int" />
+		<column name="faviconFileEntryId" type="long" />
 		<column name="masterLayoutPlid" type="long" />
 		<column name="layoutPrototypeUuid" type="String" />
 		<column name="layoutPrototypeLinkEnabled" type="boolean" />
@@ -991,6 +992,7 @@
 		<column name="logoId" type="long" />
 		<column name="themeId" type="String" />
 		<column name="colorSchemeId" type="String" />
+		<column name="faviconFileEntryId" type="long" />
 		<column name="css" type="String" />
 		<column name="settings" type="String" />
 		<column name="layoutSetPrototypeUuid" type="String" />
@@ -1254,27 +1256,6 @@
 			<finder-column name="companyId" />
 			<finder-column name="parentOrganizationId" />
 			<finder-column case-sensitive="false" comparator="LIKE" name="name" />
-		</finder>
-	</entity>
-	<entity deprecated="true" local-service="false" name="OrgGroupRole" remote-service="false">
-
-		<!-- PK fields -->
-
-		<column name="organizationId" primary="true" type="long" />
-		<column name="groupId" primary="true" type="long" />
-		<column name="roleId" primary="true" type="long" />
-
-		<!-- Audit fields -->
-
-		<column name="companyId" type="long" />
-
-		<!-- Finder methods -->
-
-		<finder name="GroupId" return-type="Collection">
-			<finder-column name="groupId" />
-		</finder>
-		<finder name="RoleId" return-type="Collection">
-			<finder-column name="roleId" />
 		</finder>
 	</entity>
 	<entity local-service="true" name="OrgLabor" remote-service="true">
@@ -2961,12 +2942,19 @@
 
 		<!-- Finder methods -->
 
+		<finder name="CompanyId" return-type="Collection">
+			<finder-column name="companyId" />
+		</finder>
 		<finder name="Hostname" return-type="VirtualHost" unique="true">
 			<finder-column name="hostname" />
 		</finder>
 		<finder name="C_L" return-type="Collection">
 			<finder-column name="companyId" />
 			<finder-column name="layoutSetId" />
+		</finder>
+		<finder name="NotL_H" return-type="Collection">
+			<finder-column comparator="!=" name="layoutSetId" />
+			<finder-column arrayable-operator="OR" name="hostname" />
 		</finder>
 		<finder name="C_L_D" return-type="VirtualHost">
 			<finder-column name="companyId" />
@@ -3186,6 +3174,7 @@
 		<exception>DuplicateOpenId</exception>
 		<exception>DuplicateOrganization</exception>
 		<exception>DuplicatePasswordPolicy</exception>
+		<exception>DuplicateRegion</exception>
 		<exception>DuplicateRole</exception>
 		<exception>DuplicateTeam</exception>
 		<exception>DuplicateUserGroup</exception>

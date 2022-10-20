@@ -14,11 +14,12 @@
 
 package com.liferay.commerce.internal.upgrade.v4_5_1;
 
-import com.liferay.commerce.internal.upgrade.base.BaseCommerceServiceUpgradeProcess;
 import com.liferay.commerce.product.model.CommerceChannel;
+import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -28,8 +29,7 @@ import java.sql.Statement;
 /**
  * @author Marco Leo
  */
-public class CommerceShippingMethodUpgradeProcess
-	extends BaseCommerceServiceUpgradeProcess {
+public class CommerceShippingMethodUpgradeProcess extends UpgradeProcess {
 
 	public CommerceShippingMethodUpgradeProcess(
 		ClassNameLocalService classNameLocalService,
@@ -44,32 +44,30 @@ public class CommerceShippingMethodUpgradeProcess
 		try (Statement s = connection.createStatement();
 			ResultSet resultSet = s.executeQuery(
 				"select commerceShippingMethodId, groupId from " +
-					"CommerceShippingMethod")) {
-
-			PreparedStatement preparedStatement = null;
+					"CommerceShippingMethod");
+			PreparedStatement preparedStatement =
+				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
+					connection,
+					"update CommerceShippingMethod set groupId = ? where " +
+						"commerceShippingMethodId = ?")) {
 
 			while (resultSet.next()) {
-				long groupId = resultSet.getLong("groupId");
-
 				long commerceChannelGroupId =
-					_getCommerceChannelGroupIdBySiteGroupId(groupId);
+					_getCommerceChannelGroupIdBySiteGroupId(
+						resultSet.getLong("groupId"));
 
 				if (commerceChannelGroupId == 0) {
 					continue;
 				}
 
-				long commerceShippingMethodId = resultSet.getLong(
-					"commerceShippingMethodId");
-
-				preparedStatement = connection.prepareStatement(
-					"update CommerceShippingMethod set groupId = ? where " +
-						"commerceShippingMethodId = ?");
-
 				preparedStatement.setLong(1, commerceChannelGroupId);
-				preparedStatement.setLong(2, commerceShippingMethodId);
+				preparedStatement.setLong(
+					2, resultSet.getLong("commerceShippingMethodId"));
 
-				preparedStatement.executeUpdate();
+				preparedStatement.addBatch();
 			}
+
+			preparedStatement.executeBatch();
 		}
 	}
 

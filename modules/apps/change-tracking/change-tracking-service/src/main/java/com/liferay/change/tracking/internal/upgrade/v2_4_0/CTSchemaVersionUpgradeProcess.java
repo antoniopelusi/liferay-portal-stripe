@@ -16,6 +16,8 @@ package com.liferay.change.tracking.internal.upgrade.v2_4_0;
 
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
+import com.liferay.portal.kernel.upgrade.UpgradeProcessFactory;
+import com.liferay.portal.kernel.upgrade.UpgradeStep;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 /**
@@ -25,8 +27,6 @@ public class CTSchemaVersionUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		runSQL("alter table CTCollection add schemaVersionId LONG");
-
 		runSQL("update CTCollection set schemaVersionId = 0");
 
 		runSQL(
@@ -44,6 +44,14 @@ public class CTSchemaVersionUpgradeProcess extends UpgradeProcess {
 		runSQL(
 			"update CTPreferences set ctCollectionId = 0, " +
 				"previousCtCollectionId = 0");
+	}
+
+	@Override
+	protected UpgradeStep[] getPreUpgradeSteps() {
+		return new UpgradeStep[] {
+			UpgradeProcessFactory.addColumns(
+				"CTCollection", "schemaVersionId LONG")
+		};
 	}
 
 }

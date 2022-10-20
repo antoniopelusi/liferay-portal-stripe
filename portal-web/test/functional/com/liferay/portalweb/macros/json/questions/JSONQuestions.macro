@@ -8,7 +8,6 @@ definition {
 			categoryName = "${categoryName}",
 			groupName = "${groupName}",
 			titleField = "${titleField}");
-
 		var portalURL = JSONCompany.getPortalURL();
 
 		if (!(isSet(userEmailAddress))) {
@@ -81,14 +80,11 @@ definition {
 		var categoryId = JSONMBMessage.getCategoryIdByName(
 			categoryName = "${categoryName}",
 			groupName = "${groupName}");
-
 		var threadId = JSONMBMessage.getThreadIdByName(
 			categoryName = "${categoryName}",
 			groupName = "${groupName}",
 			threadSubject = "${titleField}");
-
 		var portalURL = JSONCompany.getPortalURL();
-
 		var groupId = JSONGroupSetter.setGroupId(groupName = "${groupName}");
 
 		var curl = '''
@@ -102,6 +98,7 @@ definition {
 			-d "end=-1"
 
 		''';
+
 		var commentTitle = JSONCurlUtil.post("${curl}", "$.[?(@['subject'] == 'RE: ${replyTitle}')]['subject']");
 
 		echo("## ${commentTitle}");
@@ -120,7 +117,6 @@ definition {
 			categoryName = "${categoryName}",
 			groupName = "${groupName}",
 			titleField = "${titleField}");
-
 		var portalURL = JSONCompany.getPortalURL();
 
 		var curl = '''
@@ -128,6 +124,7 @@ definition {
 			-H 'Content-Type: application/json' \
 			-u 'test@liferay.com:test'
 		''';
+
 		var status = JSONCurlUtil.get("${curl}", "$.[?(@['headline'] == '${titleField}')]['status']");
 
 		echo("## ${status}");
@@ -147,7 +144,6 @@ definition {
 			groupName = "${groupName}",
 			pending = "1",
 			titleField = "${titleField}");
-
 		var portalURL = JSONCompany.getPortalURL();
 
 		var curl = '''
@@ -155,6 +151,7 @@ definition {
 			-H 'Content-Type: application/json' \
 			-u 'test@liferay.com:test'
 		''';
+
 		var status = JSONCurlUtil.get("${curl}", "$.[?(@['headline'] == '${titleField}')]['status']");
 
 		echo("## ${status}");
@@ -174,9 +171,7 @@ definition {
 		var categoryId = JSONMBMessage.getCategoryIdByName(
 			categoryName = "${categoryName}",
 			groupName = "${groupName}");
-
 		var portalURL = JSONCompany.getPortalURL();
-
 		var groupId = JSONGroupSetter.setGroupId(groupName = "${groupName}");
 
 		var curl = '''
@@ -189,6 +184,7 @@ definition {
 			-d "end=-1"
 
 		''';
+
 		var questionId = JSONCurlUtil.post("${curl}", "$.[?(@['title'] == '${titleField}')]['rootMessageId']");
 
 		if ("${questionId}" == "") {
@@ -205,9 +201,7 @@ definition {
 		var categoryId = JSONMBMessage.getCategoryIdByName(
 			categoryName = "${categoryName}",
 			groupName = "${groupName}");
-
 		var portalURL = JSONCompany.getPortalURL();
-
 		var groupId = JSONGroupSetter.setGroupId(groupName = "${groupName}");
 
 		if (isSet(pending)) {
@@ -227,6 +221,7 @@ definition {
 			-d "end=-1"
 
 		''';
+
 		var questionId = JSONCurlUtil.post("${curl}", "$.[?(@['title'] == '${titleField}')]['threadId']");
 
 		if ("${questionId}" == "") {

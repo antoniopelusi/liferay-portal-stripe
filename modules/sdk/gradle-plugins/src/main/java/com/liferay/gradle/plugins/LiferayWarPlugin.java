@@ -15,7 +15,7 @@
 package com.liferay.gradle.plugins;
 
 import com.liferay.gradle.plugins.internal.util.GradleUtil;
-import com.liferay.gradle.plugins.tasks.WatchTask;
+import com.liferay.gradle.plugins.task.WatchTask;
 
 import java.io.File;
 

@@ -1,6 +1,6 @@
 Bundle-Name: Liferay Portal Spring Extender Implementation
 Bundle-SymbolicName: com.liferay.portal.spring.extender.impl
-Bundle-Version: 4.0.18
+Bundle-Version: 4.0.23
 Import-Package:\
 	com.liferay.portal.bean,\
 	com.liferay.portal.dao.orm.hibernate,\

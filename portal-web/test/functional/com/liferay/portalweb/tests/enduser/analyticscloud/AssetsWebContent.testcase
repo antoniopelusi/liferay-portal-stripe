@@ -1,6 +1,8 @@
 @component-name = "portal-analytics-cloud"
 definition {
 
+	property analytics.cloud.release = "true";
+	property analytics.cloud.upstream = "true";
 	property custom.properties = "jsonws.web.service.paths.excludes=";
 	property portal.release = "false";
 	property portal.upstream = "true";
@@ -30,6 +32,8 @@ definition {
 	tearDown {
 		var testPortalInstance = PropsUtil.get("test.portal.instance");
 
+		ACUtils.tearDownAC();
+
 		ACUtils.tearDownDXP();
 
 		if ("${testPortalInstance}" == "true") {
@@ -38,19 +42,16 @@ definition {
 		else {
 			JSONGroup.deleteGroupByName(groupName = "Site Name");
 		}
-
-		JSONUser.tearDownNonAdminUsers();
-
-		ACUtils.tearDownAC();
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8456 | Test Summary: Web content appears on card shows the pages that the web content appears on"
 	@priority = "5"
 	test AssertAppearsOnListShowsPagesWebContentExists {
-		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
 
 		task ("Go to the site page") {
 			ACUtils.navigateToSitePage(
+				actionType = "View WC",
 				pageName = "AC Page",
 				siteName = "Site Name");
 		}
@@ -62,7 +63,7 @@ definition {
 		task ("Switch to new property in AC and go to WC tab") {
 			ACUtils.launchAC();
 
-			ACProperties.switchProperty(propertyName = "${propertyName}");
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 
 			ACNavigation.goToAssets();
 
@@ -79,13 +80,12 @@ definition {
 
 		task ("Assert appears on metric") {
 			var portalURL = PropsUtil.get("portal.url");
-
-			var siteName = TestCase.getSiteName(siteName = "${siteName}");
+			var dataSourceName = StringUtil.extractFirst("${assignedPropertyName}", " ");
 
 			ACAssets.viewAssetAppearsOnMetric(
 				canonicalURL = "${portalURL}/web/site-name",
 				cardTitle = "Asset Appears On",
-				pageName = "AC Page - Site Name - ${siteName}");
+				pageName = "AC Page - Site Name - ${dataSourceName}");
 		}
 	}
 
@@ -98,7 +98,7 @@ definition {
 		// AC Refactor ticket: LRAC-8860
 
 		task ("Connect DXP to Analytics Cloud and get the property name") {
-			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+			ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
 		}
 
 		task ("Go to Site Page") {
@@ -114,7 +114,7 @@ definition {
 		}
 
 		task ("Navigate to Web Content tab in Assets") {
-			ACProperties.switchProperty(propertyName = "${propertyName}");
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 
 			ACNavigation.goToAssets();
 
@@ -146,6 +146,8 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8448 | Test Summary: Web content audience card shows expected amount of known and anonymous individuals"
 	@priority = "5"
 	test AudienceCardShowsExpectedAmountKnowAndAnonymousIndividualsInWC {
+		property analytics.cloud.upstream = "false";
+
 		var usernameList = "ac,liferay";
 		var emailList = "ac@liferay.com,liferay@liferay.com";
 
@@ -157,7 +159,7 @@ definition {
 				userScreenName = "${name}");
 		}
 
-		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
 
 		ACUtils.navigateToSitePageWithUser(
 			emailList = "${emailList}",
@@ -165,6 +167,8 @@ definition {
 			siteName = "Site Name");
 
 		User.logoutPG();
+
+		ACUtils.clearLocalStorage();
 
 		ACUtils.navigateToSitePage(
 			pageName = "AC Page",
@@ -174,7 +178,7 @@ definition {
 
 		ACUtils.launchAC();
 
-		ACProperties.switchProperty(propertyName = "${propertyName}");
+		ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 
 		ACNavigation.goToAssets();
 
@@ -217,7 +221,7 @@ definition {
 					userScreenName = "${name}");
 			}
 
-			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+			ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
 		}
 
 		task ("Go to page and get data for unsegmented individuals") {
@@ -242,7 +246,7 @@ definition {
 		task ("Go to AC and create segment for the user") {
 			ACUtils.launchAC();
 
-			ACProperties.switchProperty(propertyName = "${propertyName}");
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 
 			ACNavigation.goToSegments();
 
@@ -301,7 +305,7 @@ definition {
 		// AC Refactor ticket: LRAC-8817
 
 		task ("Connect DXP to Analytics Cloud and get the property name") {
-			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+			ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
 		}
 
 		task ("Go to Site Page") {
@@ -317,7 +321,7 @@ definition {
 		}
 
 		task ("Navigate to Web Content tab in Assets") {
-			ACProperties.switchProperty(propertyName = "${propertyName}");
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 
 			ACNavigation.goToAssets();
 
@@ -360,7 +364,7 @@ definition {
 	test CanNavigateToWebContentOverviewPage {
 		property test.name.skip.portal.instance = "AssetsWebContent#CanNavigateToWebContentOverviewPage";
 
-		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
 
 		JSONUser.addUser(
 			userEmailAddress = "ac@liferay.com",
@@ -375,7 +379,7 @@ definition {
 			userLoginFullName = "ac ac");
 
 		ACUtils.navigateToSitePage(
-			documentTitleList = "1,2,3",
+			actionType = "View WC",
 			pageName = "AC Page",
 			siteName = "Site Name");
 
@@ -383,7 +387,7 @@ definition {
 
 		ACUtils.launchAC();
 
-		ACProperties.switchProperty(propertyName = "${propertyName}");
+		ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 
 		ACNavigation.goToAssets();
 
@@ -405,7 +409,7 @@ definition {
 
 		ACAssets.viewVisitorsBehaviorMetric(
 			metricTitle = "Views",
-			metricValue = "3");
+			metricValue = "1");
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8441 | Test Summary: Web content list is searchable"
@@ -428,7 +432,7 @@ definition {
 		}
 
 		task ("Get site assigned property name") {
-			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+			ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
 		}
 
 		task ("Add a new user in DXP") {
@@ -450,6 +454,7 @@ definition {
 
 			for (var pageName : list "AC Page,AC Page 2,AC Page 3") {
 				ACUtils.navigateToSitePage(
+					actionType = "View WC",
 					pageName = "${pageName}",
 					siteName = "Site Name");
 			}
@@ -460,7 +465,7 @@ definition {
 
 			ACUtils.launchAC();
 
-			ACProperties.switchProperty(propertyName = "${propertyName}");
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 		}
 
 		task ("Go to Web Content assets") {
@@ -499,7 +504,7 @@ definition {
 		// AC Refactor ticket: LRAC-8861
 
 		task ("Connect DXP to Analytics Cloud and get the property name") {
-			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+			ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
 		}
 
 		// Use a macro that create the page in the last 180 days.
@@ -507,7 +512,7 @@ definition {
 		task ("Navigate to AC property") {
 			ACUtils.launchAC();
 
-			ACProperties.switchProperty(propertyName = "${propertyName}");
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 		}
 
 		task ("Navigate to Web Content tab in Assets") {
@@ -547,7 +552,7 @@ definition {
 		// AC Refactor ticket: LRAC-8865
 
 		task ("Connect DXP to Analytics Cloud and get the property name") {
-			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+			ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
 		}
 
 		// Use a macro that create the page in the custom range time.
@@ -557,7 +562,7 @@ definition {
 
 			ACUtils.launchAC();
 
-			ACProperties.switchProperty(propertyName = "${propertyName}");
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 		}
 
 		task ("Navigate to Web Content tab in Assets") {
@@ -602,13 +607,14 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8131 | Test Summary: Web content known individuals shows which individuals interact with the web content"
 	@priority = "5"
 	test KnownIndividualsShowsWhichIndividualsInteractWithWebContent {
+		property analytics.cloud.upstream = "false";
 		property test.name.skip.portal.instance = "AssetsWebContent#KnownIndividualsShowsWhichIndividualsInteractWithWebContent";
 
 		var nameList = "ac ac,liferay liferay,dxp dxp";
 		var usernameList = "ac,liferay,dxp";
 		var emailList = "ac@liferay.com,liferay@liferay.com,dxp@liferay.com";
 
-		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
 
 		for (var name : list "${usernameList}") {
 			JSONUser.addUser(
@@ -640,7 +646,7 @@ definition {
 
 		ACUtils.launchAC();
 
-		ACProperties.switchProperty(propertyName = "${propertyName}");
+		ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 
 		ACNavigation.goToAssets();
 
@@ -684,7 +690,7 @@ definition {
 				webContentTitle = "Web Content AC Title ${n}");
 		}
 
-		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
 
 		JSONUser.addUser(
 			userEmailAddress = "ac@liferay.com",
@@ -700,6 +706,7 @@ definition {
 
 		for (var pageName : list "AC Page,AC Page 2,AC Page 3") {
 			ACUtils.navigateToSitePage(
+				actionType = "View WC",
 				pageName = "${pageName}",
 				siteName = "Site Name");
 		}
@@ -708,7 +715,7 @@ definition {
 
 		ACUtils.launchAC();
 
-		ACProperties.switchProperty(propertyName = "${propertyName}");
+		ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 
 		ACNavigation.goToAssets();
 
@@ -727,12 +734,13 @@ definition {
 		property test.name.skip.portal.instance = "AssetsWebContent#VisitorBehaviorCardShowsExpectedAmountOfViewsInWC";
 
 		task ("Connect DXP to Analytics Cloud and get the property name") {
-			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+			ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
 		}
 
-		task ("Visit page 4 times on DXP") {
+		task ("Visit page 3 times on DXP") {
 			ACUtils.navigateToSitePage(
-				documentTitleList = "1,2,3,4",
+				actionType = "View WC",
+				documentTitleList = "1,2,3",
 				pageName = "AC Page",
 				siteName = "Site Name");
 
@@ -742,7 +750,7 @@ definition {
 		task ("Navigate to AC property") {
 			ACUtils.launchAC();
 
-			ACProperties.switchProperty(propertyName = "${propertyName}");
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 		}
 
 		task ("Navigate to Web Content tab in Assets") {
@@ -762,7 +770,7 @@ definition {
 		task ("Confirm the Views number is correct") {
 			ACAssets.viewVisitorsBehaviorMetric(
 				metricTitle = "Views",
-				metricValue = "4");
+				metricValue = "3");
 		}
 	}
 
@@ -789,7 +797,7 @@ definition {
 		}
 
 		task ("Connect the DXP to AC") {
-			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+			ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
 		}
 
 		task ("Sync the Contact Data") {
@@ -819,7 +827,7 @@ definition {
 		task ("Switch the property in AC") {
 			ACUtils.launchAC();
 
-			ACProperties.switchProperty(propertyName = "${propertyName}");
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 		}
 
 		task ("Navigate to Web Content tab") {
@@ -861,7 +869,7 @@ definition {
 	test WebContentTechnologyCardShowsViewsByExpectedBrowser {
 		property test.name.skip.portal.instance = "AssetsWebContent#WebContentTechnologyCardShowsViewsByExpectedBrowser";
 
-		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
 
 		JSONUser.addUser(
 			userEmailAddress = "ac@liferay.com",
@@ -876,7 +884,7 @@ definition {
 			userLoginFullName = "ac ac");
 
 		ACUtils.navigateToSitePage(
-			documentTitleList = "1,2,3",
+			actionType = "View WC",
 			pageName = "AC Page",
 			siteName = "Site Name");
 
@@ -884,7 +892,7 @@ definition {
 
 		ACUtils.launchAC();
 
-		ACProperties.switchProperty(propertyName = "${propertyName}");
+		ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 
 		ACNavigation.goToAssets();
 
@@ -916,7 +924,7 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8453 | Test Summary: Web content submissions by technology card shows views by expected device"
 	@priority = "5"
 	test WebContentTechnologyCardShowsViewsByExpectedDevice {
-		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
 
 		JSONUser.addUser(
 			userEmailAddress = "ac@liferay.com",
@@ -931,7 +939,8 @@ definition {
 			userLoginFullName = "ac ac");
 
 		ACUtils.navigateToSitePage(
-			documentTitleList = "1,2,3",
+			actionType = "View WC",
+			documentTitleList = "1,2",
 			pageName = "AC Page",
 			siteName = "Site Name");
 
@@ -939,7 +948,7 @@ definition {
 
 		ACUtils.launchAC();
 
-		ACProperties.switchProperty(propertyName = "${propertyName}");
+		ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 
 		ACNavigation.goToAssets();
 
@@ -956,7 +965,7 @@ definition {
 		ACNavigation.viewActiveSwitchTab(tabName = "Overview");
 
 		ACAssets.viewTechnologyDeviceViewsAndPercentage(
-			actionValue = "3 Views",
+			actionValue = "2 Views",
 			cardTitle = "Views by Technology",
 			deviceName = "Desktop",
 			percentageValue = "100%");

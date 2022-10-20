@@ -19,6 +19,8 @@ import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.bootstrap.log.BundleStartStopLogger;
+import com.liferay.portal.bootstrap.log.PortalSynchronousLogListener;
 import com.liferay.portal.kernel.concurrent.DefaultNoticeableFuture;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.io.unsync.UnsyncBufferedInputStream;
@@ -28,6 +30,7 @@ import com.liferay.portal.kernel.lpkg.StaticLPKGResolver;
 import com.liferay.portal.kernel.module.framework.ThrowableCollector;
 import com.liferay.portal.kernel.spring.osgi.OSGiBeanProperties;
 import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapDictionary;
 import com.liferay.portal.kernel.util.NamedThreadFactory;
 import com.liferay.portal.kernel.util.Props;
@@ -35,6 +38,7 @@ import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ReleaseInfo;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.SystemProperties;
 import com.liferay.portal.module.framework.ModuleFramework;
 import com.liferay.portal.util.PropsValues;
 
@@ -97,8 +101,10 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.BundleListener;
 import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkEvent;
+import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.framework.SynchronousBundleListener;
 import org.osgi.framework.Version;
@@ -109,8 +115,9 @@ import org.osgi.framework.startlevel.FrameworkStartLevel;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.framework.wiring.FrameworkWiring;
+import org.osgi.service.log.LogListener;
+import org.osgi.service.log.LogReaderService;
 
-import org.springframework.beans.factory.BeanIsAbstractException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 
@@ -208,6 +215,24 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 			currentThread.setContextClassLoader(classLoader);
 		}
 
+		BundleContext bundleContext = _framework.getBundleContext();
+
+		_bundleListener = new BundleStartStopLogger(bundleContext);
+
+		bundleContext.addBundleListener(_bundleListener);
+
+		ServiceReference<LogReaderService> serviceReference =
+			bundleContext.getServiceReference(LogReaderService.class);
+
+		if (serviceReference != null) {
+			LogReaderService logReaderService = bundleContext.getService(
+				serviceReference);
+
+			_logListener = new PortalSynchronousLogListener();
+
+			logReaderService.addLogListener(_logListener);
+		}
+
 		if (_log.isDebugEnabled()) {
 			_log.debug("Initialized the OSGi framework");
 		}
@@ -289,6 +314,20 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 		}
 
 		_framework.stop();
+
+		BundleContext bundleContext = _framework.getBundleContext();
+
+		ServiceReference<LogReaderService> serviceReference =
+			bundleContext.getServiceReference(LogReaderService.class);
+
+		if (serviceReference != null) {
+			LogReaderService logReaderService = bundleContext.getService(
+				serviceReference);
+
+			logReaderService.removeLogListener(_logListener);
+		}
+
+		bundleContext.removeBundleListener(_bundleListener);
 
 		frameworkEvent = _framework.waitForStop(timeout);
 
@@ -404,10 +443,17 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 			Constants.FRAMEWORK_STORAGE,
 			PropsValues.MODULE_FRAMEWORK_STATE_DIR);
 
-		properties.put("eclipse.security", null);
 		properties.put(
-			"equinox.resolver.revision.batch.size",
-			PropsValues.MODULE_FRAMEWORK_RESOLVER_REVISION_BATCH_SIZE);
+			"ds.lock.timeout.milliseconds",
+			GetterUtil.getString(
+				SystemProperties.get("ds.lock.timeout.milliseconds"),
+				"1800000"));
+		properties.put(
+			"ds.stop.timeout.milliseconds",
+			GetterUtil.getString(
+				SystemProperties.get("ds.stop.timeout.milliseconds"),
+				"1800000"));
+		properties.put("eclipse.security", null);
 		properties.put("java.security.manager", null);
 		properties.put("org.osgi.framework.security", null);
 
@@ -471,11 +517,10 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 			properties.put(key, value);
 		}
 
-		String systemPackagesExtra = _getSystemPackagesExtra(
-			attributes.getValue(Constants.EXPORT_PACKAGE));
-
 		properties.put(
-			Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA, systemPackagesExtra);
+			Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA,
+			_getSystemPackagesExtra(
+				attributes.getValue(Constants.EXPORT_PACKAGE)));
 
 		if (_log.isDebugEnabled()) {
 			for (Map.Entry<String, String> entry : properties.entrySet()) {
@@ -496,6 +541,7 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 
 		crc32.update(fileName.getBytes());
 
+		_calculateChecksum(file.canWrite() ? 1000L : -1000L, crc32);
 		_calculateChecksum(file.lastModified(), crc32);
 		_calculateChecksum(file.length(), crc32);
 
@@ -1163,11 +1209,6 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 				try {
 					bean = configurableApplicationContext.getBean(beanName);
 				}
-				catch (BeanIsAbstractException beanIsAbstractException) {
-					if (_log.isDebugEnabled()) {
-						_log.debug(beanIsAbstractException);
-					}
-				}
 				catch (Exception exception) {
 					_log.error(exception);
 				}
@@ -1366,7 +1407,7 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 			}
 		}
 
-		String deployDir = bundleContext.getProperty("lpkg.deployer.dir");
+		String deployDir = PropsValues.MODULE_FRAMEWORK_MARKETPLACE_DIR;
 
 		for (String staticFileName :
 				StaticLPKGResolver.getStaticLPKGFileNames()) {
@@ -1729,7 +1770,9 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 		Arrays.asList(
 			PropsValues.MODULE_FRAMEWORK_CONFIGURATION_BUNDLE_SYMBOLIC_NAMES);
 
+	private BundleListener _bundleListener;
 	private Framework _framework;
+	private LogListener _logListener;
 	private final Map
 		<ConfigurableApplicationContext, List<ServiceRegistration<?>>>
 			_springContextServices = new ConcurrentHashMap<>();

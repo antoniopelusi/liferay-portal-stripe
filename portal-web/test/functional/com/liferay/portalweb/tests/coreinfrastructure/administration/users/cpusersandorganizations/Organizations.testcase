@@ -281,8 +281,7 @@ definition {
 
 	@priority = "5"
 	test AddOrganizationSitePrivatePage {
-		property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-		property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 		property testray.component.names = "Training";
 
 		var portalURL = PropsUtil.get("portal.url");
@@ -547,6 +546,7 @@ definition {
 				orgType = "Organization");
 
 			var suborgName = StringUtil.replace("${suborgName}", " ", "-");
+
 			var suborgName = StringUtil.lowerCase("${suborgName}");
 
 			Site.openSiteSettingsAdmin(siteURLKey = "${suborgName}");
@@ -837,6 +837,14 @@ definition {
 		task ("Then a success message should display and the user should be listed under the organization") {
 			Alert.viewSuccessMessageText(successMessage = "The user was created successfully. You can now add additional information about the user.");
 
+			User.viewUserInfomation(
+				userEmailAddress = "userea@liferay.com",
+				userFirstName = "userfn",
+				userLastName = "userln",
+				userScreenName = "usersn");
+
+			Organization.openOrganizationsAdmin();
+
 			LexiconEntry.gotoEntry(rowEntry = "Organization Name");
 
 			LexiconEntry.viewEntryContent(
@@ -872,6 +880,8 @@ definition {
 		}
 
 		task ("Then the user should be created and associated under the organization") {
+			Organization.openOrganizationsAdmin();
+
 			LexiconEntry.gotoEntry(rowEntry = "Organization Name");
 
 			LexiconEntry.viewEntryContent(
@@ -989,14 +999,7 @@ definition {
 
 		Search.clearSearchResult();
 
-		AssertTextEquals(
-			key_roleTitle = "Organization Administrator",
-			locator1 = "UsersAndOrganizationsAssignOrganizationalRoles#ROLE_TITLE",
-			value1 = "Organization Administrator");
-
-		Click(
-			key_roleTitle = "Organization Administrator",
-			locator1 = "UsersAndOrganizationsAssignOrganizationalRoles#ROLE_TITLE");
+		LexiconTable.clickTableEntryTitle(tableEntry = "Organization Administrator");
 
 		Navigator.gotoNavItem(navItem = "Available");
 
@@ -1792,7 +1795,6 @@ definition {
 		property test.name.skip.portal.instance = "UsersandorganizationsUsecase#ViewContentInCustomOrganizationTypeSite";
 
 		var portalURL = PropsUtil.get("portal.url");
-
 		var siteName = TestCase.getSiteName(siteName = "${siteName}");
 
 		JSONRole.addOrganizationRole(roleTitle = "Canada Orgrole");

@@ -72,7 +72,9 @@ export const createCommentQuery = `
 			creator {
 				name
 			}
+			dateCreated
 			dateModified
+			friendlyUrlPath
 			id
 		}
 	}
@@ -320,6 +322,7 @@ export const getThreadQuery = `
 			friendlyUrlPath
 			headline
 			id
+			messageBoardRootMessageId
 			keywords
 			locked
 			messageBoardSection {
@@ -402,11 +405,12 @@ export const getMessagesQuery = `
 					postsNumber
 					rank
 				}
+				dateCreated
 				dateModified
 				encodingFormat
 				friendlyUrlPath
 				id
-				messageBoardMessages(flatten: true) {
+				messageBoardMessages(flatten: true, sort: "dateCreated:asc") {
 					items {
 						actions
 						articleBody
@@ -415,9 +419,11 @@ export const getMessagesQuery = `
 							image
 							name
 						}
+						dateCreated
 						dateModified
 						encodingFormat
 						id
+						friendlyUrlPath
 						showAsAnswer
 						status
 					}
@@ -946,6 +952,7 @@ export const getSubscriptionsQuery = `
 						myRating {
 							ratingValue
 						}
+						showAsQuestion
 						subscribed
 						viewCount
 					}

@@ -291,7 +291,7 @@ public class DLFileEntryLocalServiceTest {
 	public void testAddFileEntryWithoutExternalReferenceCode()
 		throws Exception {
 
-		DLFileEntry dlFileEntry = DLFileEntryLocalServiceUtil.addFileEntry(
+		DLFileEntry dlFileEntry1 = DLFileEntryLocalServiceUtil.addFileEntry(
 			null, TestPropsValues.getUserId(), _group.getGroupId(),
 			_group.getGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			StringUtil.randomString(), ContentTypes.TEXT_PLAIN,
@@ -301,18 +301,15 @@ public class DLFileEntryLocalServiceTest {
 			ServiceContextTestUtil.getServiceContext(
 				_group.getGroupId(), TestPropsValues.getUserId()));
 
-		String externalReferenceCode = String.valueOf(
-			dlFileEntry.getFileEntryId());
+		String externalReferenceCode = dlFileEntry1.getExternalReferenceCode();
 
-		Assert.assertEquals(
-			externalReferenceCode, dlFileEntry.getExternalReferenceCode());
+		Assert.assertEquals(externalReferenceCode, dlFileEntry1.getUuid());
 
-		dlFileEntry =
+		DLFileEntry dlFileEntry2 =
 			DLFileEntryLocalServiceUtil.getDLFileEntryByExternalReferenceCode(
 				_group.getGroupId(), externalReferenceCode);
 
-		Assert.assertEquals(
-			externalReferenceCode, dlFileEntry.getExternalReferenceCode());
+		Assert.assertEquals(dlFileEntry1, dlFileEntry2);
 	}
 
 	@Test

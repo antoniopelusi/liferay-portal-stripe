@@ -20,7 +20,9 @@ import com.liferay.batch.planner.service.BatchPlannerPlanServiceUtil;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.dao.search.EmptyOnClickRowChecker;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
+import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -58,6 +60,46 @@ public class BatchPlannerPlanTemplateDisplayContext extends BaseDisplayContext {
 	}
 
 	public SearchContainer<BatchPlannerPlan> getSearchContainer() {
+		try {
+			return _getSearchContainer();
+		}
+		catch (Exception exception) {
+			Class<? extends Exception> clazz = exception.getClass();
+
+			SessionErrors.add(renderRequest, clazz.getName());
+		}
+
+		return new SearchContainer<>(
+			renderRequest, getPortletURL(), null, "no-items-were-found");
+	}
+
+	private String _getOrderByCol() {
+		if (Validator.isNotNull(_orderByCol)) {
+			return _orderByCol;
+		}
+
+		_orderByCol = SearchOrderByUtil.getOrderByCol(
+			httpServletRequest, BatchPlannerPortletKeys.BATCH_PLANNER,
+			"template-order-by-col", "modifiedDate");
+
+		return _orderByCol;
+	}
+
+	private String _getOrderByType() {
+		if (Validator.isNotNull(_orderByType)) {
+			return _orderByType;
+		}
+
+		_orderByType = SearchOrderByUtil.getOrderByType(
+			httpServletRequest, BatchPlannerPortletKeys.BATCH_PLANNER,
+			"template-order-by-type", "desc");
+
+		return _orderByType;
+	}
+
+	private SearchContainer<BatchPlannerPlan> _getSearchContainer()
+		throws PortalException {
+
 		if (_searchContainer != null) {
 			return _searchContainer;
 		}
@@ -107,30 +149,6 @@ public class BatchPlannerPlanTemplateDisplayContext extends BaseDisplayContext {
 			new EmptyOnClickRowChecker(renderResponse));
 
 		return _searchContainer;
-	}
-
-	private String _getOrderByCol() {
-		if (Validator.isNotNull(_orderByCol)) {
-			return _orderByCol;
-		}
-
-		_orderByCol = SearchOrderByUtil.getOrderByCol(
-			httpServletRequest, BatchPlannerPortletKeys.BATCH_PLANNER,
-			"template-order-by-col", "modifiedDate");
-
-		return _orderByCol;
-	}
-
-	private String _getOrderByType() {
-		if (Validator.isNotNull(_orderByType)) {
-			return _orderByType;
-		}
-
-		_orderByType = SearchOrderByUtil.getOrderByType(
-			httpServletRequest, BatchPlannerPortletKeys.BATCH_PLANNER,
-			"template-order-by-type", "desc");
-
-		return _orderByType;
 	}
 
 	private String _orderByCol;

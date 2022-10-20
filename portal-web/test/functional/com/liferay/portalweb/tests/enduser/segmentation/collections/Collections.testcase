@@ -112,7 +112,6 @@ definition {
 				groupName = "Test Site Name",
 				title = "Category_1",
 				vocabularyName = "Vocabulary Name");
-
 			var categoryId2 = JSONCategory.addCategory(
 				groupName = "Test Site Name",
 				title = "Category_2",
@@ -244,7 +243,6 @@ definition {
 				groupName = "Test Site Name",
 				title = "Category_1",
 				vocabularyName = "Vocabulary Name");
-
 			var categoryId2 = JSONCategory.addCategory(
 				groupName = "Test Site Name",
 				title = "Category_2",
@@ -346,13 +344,13 @@ definition {
 		}
 
 		task ("Assert that all web contents are displayed") {
-			for (var i : list "1,2") {
+			for (var i : list "3,4") {
 				AssetPublisherPortlet.viewAssetPG(assetTitle = "WC_Title_${i}");
 			}
 
 			Click(locator1 = "Pagination#NEXT_LINK");
 
-			for (var i : list "3,4") {
+			for (var i : list "1,2") {
 				AssetPublisherPortlet.viewAssetPG(assetTitle = "WC_Title_${i}");
 			}
 		}
@@ -658,6 +656,8 @@ definition {
 	@description = "LPS-86283: Validate if, only the content matching the criteria of the assigned segment must be shown in asset publisher	"
 	@priority = "4"
 	test ContentMatchesSegmentCriteria {
+		property portal.acceptance = "true";
+
 		task ("Create a public page") {
 			JSONLayout.addPublicLayout(
 				groupName = "Test Site Name",
@@ -680,7 +680,6 @@ definition {
 				groupName = "Test Site Name",
 				title = "Category_1",
 				vocabularyName = "Vocabulary Name");
-
 			var categoryId2 = JSONCategory.addCategory(
 				groupName = "Test Site Name",
 				title = "Category_2",
@@ -773,6 +772,7 @@ definition {
 	test DefaultVariationForDynamicCollection {
 		property osgi.module.configuration.file.names = "com.liferay.asset.list.web.internal.configuration.FFCollectionsVariationsPrioritizationConfiguration.config";
 		property osgi.module.configurations = "enabled=B&quot;true&quot;";
+		property portal.acceptance = "true";
 
 		task ("Create a Segment") {
 			JSONSegmentsentry.addSegment(
@@ -812,6 +812,7 @@ definition {
 	test DefaultVariationForManualCollection {
 		property osgi.module.configuration.file.names = "com.liferay.asset.list.web.internal.configuration.FFCollectionsVariationsPrioritizationConfiguration.config";
 		property osgi.module.configurations = "enabled=B&quot;true&quot;";
+		property portal.acceptance = "true";
 
 		task ("Create a Segment") {
 			JSONSegmentsentry.addSegment(
@@ -1142,7 +1143,6 @@ definition {
 				groupName = "Test Site Name",
 				title = "Category_1",
 				vocabularyName = "Vocabulary Name");
-
 			var categoryId2 = JSONCategory.addCategory(
 				groupName = "Test Site Name",
 				title = "Category_2",
@@ -1241,6 +1241,7 @@ definition {
 	test DynamicCollectionInAssetPublisherSegmentPrioritized {
 		property osgi.module.configuration.file.names = "com.liferay.asset.list.web.internal.configuration.FFCollectionsVariationsPrioritizationConfiguration.config";
 		property osgi.module.configurations = "enabled=B&quot;true&quot;";
+		property portal.acceptance = "true";
 
 		task ("Create categories") {
 			JSONCategory.addVocabulary(
@@ -1251,7 +1252,6 @@ definition {
 				groupName = "Test Site Name",
 				title = "Category_1",
 				vocabularyName = "Vocabulary Name");
-
 			var categoryId2 = JSONCategory.addCategory(
 				groupName = "Test Site Name",
 				title = "Category_2",
@@ -1480,7 +1480,6 @@ definition {
 				groupName = "Test Site Name",
 				title = "Category_1",
 				vocabularyName = "Vocabulary Name");
-
 			var categoryId2 = JSONCategory.addCategory(
 				groupName = "Test Site Name",
 				title = "Category_2",
@@ -1567,7 +1566,7 @@ definition {
 			PageEditor.editCollectionDisplay(
 				assetListName = "Dynamic Collection Test",
 				fragmentName = "Collection Display",
-				listStyle = "Bulleted List");
+				styleDisplay = "Bulleted List");
 
 			Button.clickPublish();
 
@@ -1576,7 +1575,7 @@ definition {
 
 		task ("Assert the correct variation is shown") {
 			AssertTextEquals(
-				locator1 = "Fragment#CONTENT_DISPLAY_ASSET_SUMMARY_TEXT",
+				locator1 = "Fragment#CONTENT_DISPLAY_ASSET_BULLET_LIST_TEXT",
 				value1 = "WC_Title_1");
 		}
 	}
@@ -1588,6 +1587,7 @@ definition {
 	test DynamicCollectionInCollectionDisplaySegmentPrioritized {
 		property osgi.module.configuration.file.names = "com.liferay.asset.list.web.internal.configuration.FFCollectionsVariationsPrioritizationConfiguration.config";
 		property osgi.module.configurations = "enabled=B&quot;true&quot;";
+		property portal.acceptance = "true";
 
 		task ("Create categories") {
 			JSONCategory.addVocabulary(
@@ -1598,7 +1598,6 @@ definition {
 				groupName = "Test Site Name",
 				title = "Category_1",
 				vocabularyName = "Vocabulary Name");
-
 			var categoryId2 = JSONCategory.addCategory(
 				groupName = "Test Site Name",
 				title = "Category_2",
@@ -1689,7 +1688,7 @@ definition {
 			PageEditor.editCollectionDisplay(
 				assetListName = "Dynamic Collection Test",
 				fragmentName = "Collection Display",
-				listStyle = "Bulleted List");
+				styleDisplay = "Bulleted List");
 
 			Button.clickPublish();
 
@@ -1698,7 +1697,7 @@ definition {
 
 		task ("Assert the correct variation is shown") {
 			AssertTextEquals(
-				locator1 = "Fragment#CONTENT_DISPLAY_ASSET_SUMMARY_TEXT",
+				locator1 = "Fragment#CONTENT_DISPLAY_ASSET_BULLET_LIST_TEXT",
 				value1 = "WC_Title_2");
 		}
 	}
@@ -1812,7 +1811,7 @@ definition {
 			PageEditor.editCollectionDisplay(
 				assetListName = "Dynamic Collection Test",
 				fragmentName = "Collection Display",
-				listStyle = "Bulleted List");
+				styleDisplay = "Bulleted List");
 
 			Button.clickPublish();
 
@@ -1821,7 +1820,7 @@ definition {
 
 		task ("Assert the correct variation is shown") {
 			AssertTextEquals(
-				locator1 = "Fragment#CONTENT_DISPLAY_ASSET_SUMMARY_TEXT",
+				locator1 = "Fragment#CONTENT_DISPLAY_ASSET_BULLET_LIST_TEXT",
 				value1 = "Blog_1");
 		}
 	}
@@ -1829,6 +1828,8 @@ definition {
 	@description = "This is a test for LPS-131309. The user could filter collection items by global category."
 	@priority = "4"
 	test FilterCollectionItemsByGlobalCategory {
+		property portal.acceptance = "true";
+
 		task ("Add two web contents with different global category") {
 			var n = "1";
 
@@ -2009,6 +2010,7 @@ definition {
 	test ManualCollectionInAssetPublisherSegmentPrioritized {
 		property osgi.module.configuration.file.names = "com.liferay.asset.list.web.internal.configuration.FFCollectionsVariationsPrioritizationConfiguration.config";
 		property osgi.module.configurations = "enabled=B&quot;true&quot;";
+		property portal.acceptance = "true";
 
 		task ("Create web content articles") {
 			for (var i : list "1,2") {
@@ -2268,7 +2270,7 @@ definition {
 			PageEditor.editCollectionDisplay(
 				assetListName = "Manual Collection Test",
 				fragmentName = "Collection Display",
-				listStyle = "Bulleted List");
+				styleDisplay = "Bulleted List");
 
 			Button.clickPublish();
 
@@ -2289,6 +2291,7 @@ definition {
 	test ManualCollectionInCollectionDisplaySegmentPrioritized {
 		property osgi.module.configuration.file.names = "com.liferay.asset.list.web.internal.configuration.FFCollectionsVariationsPrioritizationConfiguration.config";
 		property osgi.module.configurations = "enabled=B&quot;true&quot;";
+		property portal.acceptance = "true";
 
 		task ("Create web content articles") {
 			for (var i : list "1,2") {
@@ -2361,7 +2364,7 @@ definition {
 			PageEditor.editCollectionDisplay(
 				assetListName = "Manual Collection Test",
 				fragmentName = "Collection Display",
-				listStyle = "Bulleted List");
+				styleDisplay = "Bulleted List");
 
 			Button.clickPublish();
 
@@ -2475,7 +2478,7 @@ definition {
 			PageEditor.editCollectionDisplay(
 				assetListName = "Manual Collection Test",
 				fragmentName = "Collection Display",
-				listStyle = "Bulleted List");
+				styleDisplay = "Bulleted List");
 
 			Button.clickPublish();
 
@@ -2496,6 +2499,7 @@ definition {
 	test NewVariationPriorityForDynamicCollection {
 		property osgi.module.configuration.file.names = "com.liferay.asset.list.web.internal.configuration.FFCollectionsVariationsPrioritizationConfiguration.config";
 		property osgi.module.configurations = "enabled=B&quot;true&quot;";
+		property portal.acceptance = "true";
 
 		task ("Create a Segment") {
 			JSONSegmentsentry.addSegment(
@@ -2539,6 +2543,7 @@ definition {
 	test NewVariationPriorityForManualCollection {
 		property osgi.module.configuration.file.names = "com.liferay.asset.list.web.internal.configuration.FFCollectionsVariationsPrioritizationConfiguration.config";
 		property osgi.module.configurations = "enabled=B&quot;true&quot;";
+		property portal.acceptance = "true";
 
 		task ("Create a Segment") {
 			JSONSegmentsentry.addSegment(
@@ -2600,7 +2605,6 @@ definition {
 				groupName = "Test Site Name",
 				title = "Category_1",
 				vocabularyName = "Vocabulary Name");
-
 			var categoryId2 = JSONCategory.addCategory(
 				groupName = "Test Site Name",
 				title = "Category_2",
@@ -3001,6 +3005,8 @@ definition {
 	@description = "LPS-86283: Validate if, when selecting a segment it is possible to filter and order, sorting and search	"
 	@priority = "4"
 	test SearchingSegments {
+		property portal.acceptance = "true";
+
 		task ("Create Segments") {
 			JSONSegmentsentry.addSegment(
 				fieldName = "Screen Name",
@@ -3179,6 +3185,8 @@ definition {
 	@description = "LPS-93726: Validate if, when the user creates one content set personalized, for Dynamic Content Sets, he can apply in some portlet (assert publisher) to use"
 	@priority = "5"
 	test UseDynamicCollectionAtPortlet {
+		property portal.acceptance = "true";
+
 		task ("Create a public page") {
 			JSONLayout.addPublicLayout(
 				groupName = "Test Site Name",
@@ -3270,6 +3278,8 @@ definition {
 	@description = "LPS-93726: Validate if, when the user creates one content set personalized, for Manual Content Sets, he can apply in some portlet (assert publisher) to use"
 	@priority = "5"
 	test UseManualCollectionAtPortlet {
+		property portal.acceptance = "true";
+
 		task ("Create a public page") {
 			JSONLayout.addPublicLayout(
 				groupName = "Test Site Name",
@@ -3385,6 +3395,8 @@ definition {
 	@description = "This is a test for LPS-132626. Able to select all vocabularies when creating a collection."
 	@priority = "4"
 	test ViewAllTwoCategoriesInDynamicCollection {
+		property portal.acceptance = "true";
+
 		task ("Add a vocabulary with Web Content Article") {
 			Category.openCategoriesAdmin(siteURLKey = "test-site-name");
 
@@ -3447,10 +3459,10 @@ definition {
 
 			AssetCategorization.gotoSelectCategory();
 
-			for (var vocabularyName : list "Language,Region") {
+			for (var vocabularyName : list "Language (Test Site Name),Region (Test Site Name)") {
 				AssertElementPresent(
 					key_nodeName = "${vocabularyName}",
-					locator1 = "Treeview#NODE_UNSELECTED");
+					locator1 = "Treeview#NODE_ITEM");
 			}
 		}
 	}
@@ -3459,6 +3471,8 @@ definition {
 	@priority = "4"
 	@uitest
 	test ViewAssetListContent {
+		property portal.acceptance = "true";
+
 		task ("Create a web content article") {
 			JSONWebcontent.addWebContent(
 				content = "WC WebContent Content",
@@ -3497,6 +3511,8 @@ definition {
 	@description = "This is a test for LPS-84331. Assert that Asset Lists correctly display where they are used."
 	@priority = "4"
 	test ViewAssetListUsages {
+		property portal.acceptance = "true";
+
 		task ("Create a public page") {
 			JSONLayout.addPublicLayout(
 				groupName = "Test Site Name",
@@ -3537,6 +3553,8 @@ definition {
 	@description = "LPS-86283: Validate if, is possible to preview the content of a dynamic content set variation in a modal window	"
 	@priority = "4"
 	test ViewContentOfAVariant {
+		property portal.acceptance = "true";
+
 		task ("Create categories") {
 			JSONCategory.addVocabulary(
 				groupName = "Test Site Name",
@@ -3599,9 +3617,65 @@ definition {
 		}
 	}
 
+	@description = "This is a test for LPS-145292. The user could view new icons on dropdown menu of collection."
+	@priority = "4"
+	test ViewDropdownMenuIconsInCollectionsAdmin {
+		task ("Given a Collection creator has a dynamic collection") {
+			JSONAssetlist.addDynamicAssetListEntryWithItemType(
+				groupName = "Test Site Name",
+				itemSubtype = "All Subtypes",
+				itemType = "Web Content Article",
+				title = "Dynamic Collection");
+		}
+
+		task ("When the Collection creator opens the dropdown menu of Anyone") {
+			AssetListsAdmin.openAssetListsAdmin(siteURLKey = "test-site-name");
+
+			AssetListsAdmin.editAssetList(assetListTitle = "Dynamic Collection");
+
+			Click.waitForMenuToggleJSClick(locator1 = "Icon#BODY_VERTICAL_ELLIPSIS");
+		}
+
+		task ("Then the Collection creator can see the new icon on the dropdown menu") {
+			DropdownMenuItem.viewIcon(iconList = "view");
+		}
+
+		task ("When the Collection creator opens the dropdown menu of dynamic collection") {
+			AssetListsAdmin.openAssetListsAdmin(siteURLKey = "test-site-name");
+
+			LexiconList.clickEllipsis(listEntry = "Dynamic Collection");
+		}
+
+		task ("Then the Collection creator can see the new icons on the dropdown menu") {
+			DropdownMenuItem.viewIcon(iconList = "pencil,list-ul,password-policies,trash");
+		}
+
+		task ("When the Collection creator opens the dropdown menu of management toolbar after selecting the new collection") {
+			LexiconEntry.selectEntry(key_rowEntry = "Dynamic Collection");
+
+			Click(locator1 = "ManagementBar#MORE_ACTIONS_ELLIPSIS");
+		}
+
+		task ("Then the Collection creator can see the new icon on the dropdown menu") {
+			DropdownMenuItem.viewIcon(iconList = "trash");
+		}
+
+		task ("When the Collection creator opens the dropdown menu of any collection providers") {
+			Navigator.gotoNavTab(navTab = "Collection Providers");
+
+			LexiconList.clickEllipsis(listEntry = "Most Viewed Assets");
+		}
+
+		task ("Then the Collection creator can see the new icon on the dropdown menu") {
+			DropdownMenuItem.viewIcon(iconList = "view");
+		}
+	}
+
 	@description = "This is for LPS-101228. Validate if web content articles matching with content sets based on grouped keywords displayed correctly in Asset Publisher."
 	@priority = "4"
 	test ViewWCViaAPWithAssetListBasedOnGroupedKeywords {
+		property portal.acceptance = "true";
+
 		task ("Create public page") {
 			JSONLayout.addPublicLayout(
 				groupName = "Test Site Name",

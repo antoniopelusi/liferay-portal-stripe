@@ -58,7 +58,7 @@ definition {
 				pageName = "Test Grand Child Page",
 				siteName = "Test Site Name");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a great grand child content page") {
@@ -72,7 +72,7 @@ definition {
 				pageName = "Test Great Grand Child Page",
 				siteName = "Test Site Name");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a custom master page") {
@@ -105,8 +105,6 @@ definition {
 				locator1 = "NavigationMenusWidget#CHILD_TOGGLE");
 
 			while (IsElementNotPresent(key_pageName = "Test Parent Page", locator1 = "NavigationMenusWidget#OPEN_DROPDOWN_MENU")) {
-				Pause(locator1 = "3000");
-
 				MouseOver(
 					key_pageName = "Test Parent Page",
 					locator1 = "NavigationMenusWidget#CHILD_TOGGLE");
@@ -130,7 +128,9 @@ definition {
 		task ("Assert the All is shown in Sublevels field") {
 			PageEditor.clickConfigurableField(fragmentName = "Menu Display");
 
-			Pause(locator1 = "3000");
+			AssertVisible(
+				key_sidebarButton = "Browser",
+				locator1 = "PageEditor#FRAGMENT_SIDEBAR_TITLE");
 
 			AssertSelectedLabel(
 				key_fieldLabel = "Sublevels",
@@ -152,8 +152,6 @@ definition {
 				locator1 = "NavigationMenusWidget#CHILD_TOGGLE");
 
 			while (IsElementNotPresent(key_pageName = "Test Parent Page", locator1 = "NavigationMenusWidget#OPEN_DROPDOWN_MENU")) {
-				Pause(locator1 = "3000");
-
 				MouseOver(
 					key_pageName = "Test Parent Page",
 					locator1 = "NavigationMenusWidget#CHILD_TOGGLE");
@@ -212,7 +210,7 @@ definition {
 				pageName = "Test Content Page",
 				siteName = "Test Site Name");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a custom master page") {
@@ -247,8 +245,6 @@ definition {
 				locator1 = "NavigationMenusWidget#CHILD_TOGGLE");
 
 			while (IsElementNotPresent(key_pageName = "Test Parent Page", locator1 = "NavigationMenusWidget#OPEN_DROPDOWN_MENU")) {
-				Pause(locator1 = "3000");
-
 				MouseOver(
 					key_pageName = "Test Parent Page",
 					locator1 = "NavigationMenusWidget#CHILD_TOGGLE");
@@ -262,7 +258,9 @@ definition {
 		task ("Assert the Horizontal is shown in Display Style field") {
 			PageEditor.clickConfigurableField(fragmentName = "Menu Display");
 
-			Pause(locator1 = "3000");
+			AssertVisible(
+				key_sidebarButton = "Browser",
+				locator1 = "PageEditor#FRAGMENT_SIDEBAR_TITLE");
 
 			AssertSelectedLabel(
 				key_fieldLabel = "Display Style",
@@ -340,9 +338,7 @@ definition {
 				locator2 = "color",
 				value1 = "rgba(185, 80, 0, 1)");
 
-			Button.click(button = "Publish Master");
-
-			Alert.viewSuccessMessage();
+			MastersPageTemplates.publishMaster();
 		}
 
 		task ("Add a page based on custom master page") {
@@ -364,7 +360,7 @@ definition {
 				locator2 = "color",
 				value1 = "rgba(185, 80, 0, 1)");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Assert the Test Content Page item color") {
@@ -398,9 +394,8 @@ definition {
 	@priority = "5"
 	@uitest
 	test SelectNavigationMenuFromExistingOnes {
-		property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-		property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 		property portal.acceptance = "true";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		task ("Add a public widget page") {
 			JSONLayout.addPublicLayout(
@@ -490,6 +485,80 @@ definition {
 			AssertVisible(
 				key_pageName = "Liferay",
 				locator1 = "Home#PAGE");
+		}
+	}
+
+	@description = "This is a test for LPS-140988. The Menu Display fragment should be visible to guest with default permissions."
+	@priority = "4"
+	test ViewMenuDisplayAsGuest {
+		task ("Given a page creator has a content page based on master template with a Menu Display") {
+			task ("Add a master template") {
+				JSONLayoutpagetemplate.addMasterPageTemplateEntry(
+					groupName = "Test Site Name",
+					masterPageTemplateEntryName = "Custom Masters Page Template");
+			}
+
+			task ("Add a Menu Display to master template") {
+				MastersPageTemplatesAdmin.openMastersAdmin(siteURLKey = "test-site-name");
+
+				MastersPageTemplatesAdmin.gotoMasters(masterLayoutName = "Custom Masters Page Template");
+
+				PageEditor.addFragment(
+					collectionName = "Menu Display",
+					dropTarget = "Header",
+					fragmentName = "Menu Display",
+					scope = "Master");
+
+				MastersPageTemplates.publishMaster();
+			}
+
+			task ("Add a content page based on master") {
+				PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+				ContentPages.addPage(
+					masterLayoutName = "Custom Masters Page Template",
+					pageName = "Test Page Name 1");
+
+				PageEditor.publish();
+			}
+
+			task ("Add a Heading fragment to second page") {
+				JSONLayout.addPublicLayout(
+					groupName = "Test Site Name",
+					layoutName = "Test Page Name 2",
+					type = "content");
+
+				ContentPagesNavigator.openEditContentPage(
+					pageName = "Test Page Name 2",
+					siteName = "Test Site Name");
+
+				PageEditor.addFragment(
+					collectionName = "Basic Components",
+					fragmentName = "Heading");
+
+				PageEditor.publish();
+			}
+		}
+
+		task ("When the guest accesses the new site") {
+			User.logoutPG();
+
+			Navigator.openSiteURL(siteName = "Test Site Name");
+		}
+
+		task ("Then the guest could navigate through pages via Menu Display") {
+			Click(
+				key_tab = "Test Page Name 2",
+				locator1 = "NavTab#TAB_LINK");
+
+			AssertVisible(
+				key_pageName = "Test Page Name 2",
+				locator1 = "Home#PAGE_ACTIVE");
+
+			ContentPages.viewFragmentText(
+				fragmentName = "heading",
+				id = "element-text",
+				text = "Heading Example");
 		}
 	}
 

@@ -55,6 +55,57 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 		axisTestClassGroups.add(axisTestClassGroup);
 	}
 
+	public long getAverageDuration() {
+		Job job = getJob();
+
+		Long averageDuration = job.getAverageBatchDuration(getBatchName());
+
+		if (averageDuration == null) {
+			return 0L;
+		}
+
+		return averageDuration;
+	}
+
+	public long getAverageOverheadDuration() {
+		Job job = getJob();
+
+		Long averageOverheadDuration = job.getAverageBatchOverheadDuration(
+			getBatchName());
+
+		if (averageOverheadDuration == null) {
+			return 0L;
+		}
+
+		return averageOverheadDuration;
+	}
+
+	public long getAverageTestDuration(String testName) {
+		Job job = getJob();
+
+		Long averageDuration = job.getAverageTestDuration(
+			getBatchName(), testName);
+
+		if (averageDuration != null) {
+			return averageDuration;
+		}
+
+		return _getDefaultTestDuration();
+	}
+
+	public long getAverageTestOverheadDuration(String testName) {
+		Job job = getJob();
+
+		Long averageOverheadDuration = job.getAverageTestOverheadDuration(
+			getBatchName(), testName);
+
+		if (averageOverheadDuration != null) {
+			return averageOverheadDuration;
+		}
+
+		return 0L;
+	}
+
 	public int getAxisCount() {
 		JobProperty jobProperty = getJobProperty("test.batch.axis.count");
 
@@ -136,6 +187,28 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 		return "test-1";
 	}
 
+	public String getDownstreamJobName() {
+		String topLevelJobName = portalTestClassJob.getJobName();
+
+		Matcher jobNameMatcher = _jobNamePattern.matcher(topLevelJobName);
+
+		String batchJobSuffix = "-downstream";
+
+		String slaveLabel = getSlaveLabel();
+
+		if (slaveLabel.contains("win")) {
+			batchJobSuffix = "-windows-downstream";
+		}
+
+		if (jobNameMatcher.find()) {
+			return JenkinsResultsParserUtil.combine(
+				jobNameMatcher.group("jobBaseName"), batchJobSuffix,
+				jobNameMatcher.group("jobVariant"));
+		}
+
+		return topLevelJobName + batchJobSuffix;
+	}
+
 	@Override
 	public Job getJob() {
 		return portalTestClassJob;
@@ -148,6 +221,13 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 
 		jsonObject = new JSONObject();
 
+		jsonObject.put("average_duration", getAverageDuration());
+		jsonObject.put(
+			"average_overhead_duration", getAverageOverheadDuration());
+		jsonObject.put("batch_name", getBatchName());
+		jsonObject.put("include_stable_test_suite", includeStableTestSuite);
+		jsonObject.put("job_properties", _getJobPropertiesMap());
+
 		JSONArray segmentJSONArray = new JSONArray();
 
 		for (SegmentTestClassGroup segmentTestClassGroup :
@@ -158,9 +238,6 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 
 		jsonObject.put("segments", segmentJSONArray);
 
-		jsonObject.put("batch_name", getBatchName());
-		jsonObject.put("include_stable_test_suite", includeStableTestSuite);
-		jsonObject.put("job_properties", _getJobPropertiesMap());
 		jsonObject.put("test_release_bundle", testReleaseBundle);
 		jsonObject.put("test_relevant_changes", testRelevantChanges);
 		jsonObject.put(
@@ -209,6 +286,10 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 	}
 
 	public SegmentTestClassGroup getSegmentTestClassGroup(int segmentId) {
+		if ((_segmentTestClassGroups.size() - 1) < segmentId) {
+			return null;
+		}
+
 		return _segmentTestClassGroups.get(segmentId);
 	}
 
@@ -322,7 +403,7 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 			return Integer.parseInt(jobPropertyValue);
 		}
 
-		return _AXES_SIZE_MAX_DEFAULT;
+		return AXES_SIZE_MAX_DEFAULT;
 	}
 
 	protected List<String> getGlobs(List<JobProperty> jobProperties) {
@@ -388,6 +469,15 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 
 		return _getJobProperty(
 			basePropertyName, testSuiteName, testBatchName, null, null, true);
+	}
+
+	protected JobProperty getJobProperty(
+		String basePropertyName, String testSuiteName, String testBatchName,
+		File testBaseDir, JobProperty.Type type) {
+
+		return _getJobProperty(
+			basePropertyName, testSuiteName, testBatchName, testBaseDir, type,
+			true);
 	}
 
 	protected JobProperty getJobProperty(
@@ -524,6 +614,21 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 		return _SEGMENT_MAX_CHILDREN_DEFAULT;
 	}
 
+	protected long getTargetAxisDuration() {
+		JobProperty jobProperty = getJobProperty(
+			"test.batch.target.axis.duration");
+
+		String jobPropertyValue = jobProperty.getValue();
+
+		if ((jobPropertyValue == null) || !jobPropertyValue.matches("\\d+")) {
+			return 0L;
+		}
+
+		recordJobProperty(jobProperty);
+
+		return Long.parseLong(jobPropertyValue);
+	}
+
 	protected String getTestSuiteName() {
 		return testSuiteName;
 	}
@@ -652,6 +757,8 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 		}
 	}
 
+	protected static final int AXES_SIZE_MAX_DEFAULT = 5000;
+
 	protected static final String NAME_STABLE_TEST_SUITE = "stable";
 
 	protected static final String SLAVE_LABEL_DEFAULT = "!master";
@@ -729,6 +836,25 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 
 	}
 
+	private long _getDefaultTestDuration() {
+		JobProperty jobProperty = getJobProperty(
+			"test.batch.default.test.duration");
+
+		if (jobProperty == null) {
+			return 0L;
+		}
+
+		String jobPropertyValue = jobProperty.getValue();
+
+		if (JenkinsResultsParserUtil.isNullOrEmpty(jobPropertyValue)) {
+			return 0L;
+		}
+
+		recordJobProperty(jobProperty);
+
+		return Long.valueOf(jobPropertyValue);
+	}
+
 	private Map<String, Properties> _getJobPropertiesMap() {
 		Map<String, Properties> batchProperties = new TreeMap<>();
 
@@ -801,7 +927,7 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 			}
 		}
 
-		return Lists.newArrayList(requiredModuleDirs);
+		return new ArrayList<>(requiredModuleDirs);
 	}
 
 	private List<List<AxisTestClassGroup>> _partitionByMaxChildren(
@@ -951,8 +1077,6 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 
 		testRelevantIntegrationUnitOnly = false;
 	}
-
-	private static final int _AXES_SIZE_MAX_DEFAULT = 5000;
 
 	private static final int _SEGMENT_MAX_CHILDREN_DEFAULT = 25;
 

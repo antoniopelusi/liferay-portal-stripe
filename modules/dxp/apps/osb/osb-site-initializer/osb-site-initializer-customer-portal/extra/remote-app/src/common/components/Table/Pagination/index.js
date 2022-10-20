@@ -10,7 +10,9 @@
  */
 
 import {ClayPaginationBarWithBasicItems} from '@clayui/pagination-bar';
-import {getIconSpriteMap} from '../../../providers/ClayProvider';
+import classNames from 'classnames';
+import i18n from '../../../../common/I18n';
+import getIconSpriteMap from '../../../utils/getIconSpriteMap';
 
 const TablePagination = ({
 	activePage,
@@ -25,9 +27,9 @@ const TablePagination = ({
 }) => {
 	if (showDeltasDropDown || totalItems > itemsPerPage) {
 		const defaultLabels = {
-			paginationResults: 'Showing {0} to {1} of {2}',
-			perPageItems: '{0} items',
-			selectPerPageItems: '{0} items',
+			paginationResults: 'showing-x-to-x-of-x',
+			perPageItems: 'show-x-items',
+			selectPerPageItems: 'x-items',
 		};
 
 		return (
@@ -35,6 +37,10 @@ const TablePagination = ({
 				<ClayPaginationBarWithBasicItems
 					activeDelta={itemsPerPage}
 					activePage={activePage}
+					className={classNames({
+						'cp-hide-pagination-activation-keys':
+							itemsPerPage >= totalItems,
+					})}
 					deltas={listItemsPerPage}
 					ellipsisBuffer={ellipsisBuffer}
 					labels={labels || defaultLabels}
@@ -49,9 +55,15 @@ const TablePagination = ({
 	}
 
 	return (
-		<p className="mb-4 mx-4 pagination-results">{`Showing ${
-			itemsPerPage * activePage + 1 - itemsPerPage
-		} to ${totalItems} of ${totalItems} entries.`}</p>
+		<>
+			<p className="mb-4 mx-4 pagination-results">
+				{i18n.sub('showing-x-to-x-of-x-entries', [
+					`${itemsPerPage * activePage + 1 - itemsPerPage}`,
+					totalItems,
+					totalItems,
+				])}
+			</p>
+		</>
 	);
 };
 

@@ -35,6 +35,10 @@
 		left: 0;
 	}
 }
+.sticker-circle {
+	min-height: 40px;
+	min-width: 40px;
+}
 
 .avatar-skeleton-loader:empty {
 	animation: shine 1s infinite;

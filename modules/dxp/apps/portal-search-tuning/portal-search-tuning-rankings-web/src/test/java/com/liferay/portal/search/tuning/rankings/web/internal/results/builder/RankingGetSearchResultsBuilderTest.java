@@ -35,10 +35,7 @@ public class RankingGetSearchResultsBuilderTest
 		LiferayUnitTestRule.INSTANCE;
 
 	@Before
-	@Override
 	public void setUp() throws Exception {
-		super.setUp();
-
 		_rankingGetSearchResultsBuilder = new RankingGetSearchResultsBuilder(
 			complexQueryPartBuilderFactory, dlAppLocalService,
 			fastDateFormatFactory, queries, resourceActions, resourceRequest,
@@ -92,7 +89,7 @@ public class RankingGetSearchResultsBuilderTest
 				))
 		).put(
 			"total", 1
-		).toJSONString();
+		).toString();
 	}
 
 	private RankingGetSearchResultsBuilder _rankingGetSearchResultsBuilder;

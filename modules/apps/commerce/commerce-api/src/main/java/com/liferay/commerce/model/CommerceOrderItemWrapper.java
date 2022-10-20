@@ -14,6 +14,7 @@
 
 package com.liferay.commerce.model;
 
+import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.wrapper.BaseModelWrapper;
 
@@ -45,6 +46,7 @@ public class CommerceOrderItemWrapper
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
 		attributes.put("mvccVersion", getMvccVersion());
+		attributes.put("uuid", getUuid());
 		attributes.put("externalReferenceCode", getExternalReferenceCode());
 		attributes.put("commerceOrderItemId", getCommerceOrderItemId());
 		attributes.put("groupId", getGroupId());
@@ -61,6 +63,7 @@ public class CommerceOrderItemWrapper
 		attributes.put("CProductId", getCProductId());
 		attributes.put(
 			"parentCommerceOrderItemId", getParentCommerceOrderItemId());
+		attributes.put("shippingAddressId", getShippingAddressId());
 		attributes.put("decimalQuantity", getDecimalQuantity());
 		attributes.put("deliveryGroup", getDeliveryGroup());
 		attributes.put(
@@ -109,7 +112,6 @@ public class CommerceOrderItemWrapper
 		attributes.put("promoPriceWithTaxAmount", getPromoPriceWithTaxAmount());
 		attributes.put("quantity", getQuantity());
 		attributes.put("requestedDeliveryDate", getRequestedDeliveryDate());
-		attributes.put("shippingAddressId", getShippingAddressId());
 		attributes.put("shipSeparately", isShipSeparately());
 		attributes.put("shippable", isShippable());
 		attributes.put("shippedQuantity", getShippedQuantity());
@@ -134,6 +136,12 @@ public class CommerceOrderItemWrapper
 
 		if (mvccVersion != null) {
 			setMvccVersion(mvccVersion);
+		}
+
+		String uuid = (String)attributes.get("uuid");
+
+		if (uuid != null) {
+			setUuid(uuid);
 		}
 
 		String externalReferenceCode = (String)attributes.get(
@@ -226,6 +234,12 @@ public class CommerceOrderItemWrapper
 
 		if (parentCommerceOrderItemId != null) {
 			setParentCommerceOrderItemId(parentCommerceOrderItemId);
+		}
+
+		Long shippingAddressId = (Long)attributes.get("shippingAddressId");
+
+		if (shippingAddressId != null) {
+			setShippingAddressId(shippingAddressId);
 		}
 
 		BigDecimal decimalQuantity = (BigDecimal)attributes.get(
@@ -430,12 +444,6 @@ public class CommerceOrderItemWrapper
 
 		if (requestedDeliveryDate != null) {
 			setRequestedDeliveryDate(requestedDeliveryDate);
-		}
-
-		Long shippingAddressId = (Long)attributes.get("shippingAddressId");
-
-		if (shippingAddressId != null) {
-			setShippingAddressId(shippingAddressId);
 		}
 
 		Boolean shipSeparately = (Boolean)attributes.get("shipSeparately");
@@ -1334,6 +1342,16 @@ public class CommerceOrderItemWrapper
 	}
 
 	/**
+	 * Returns the uuid of this commerce order item.
+	 *
+	 * @return the uuid of this commerce order item
+	 */
+	@Override
+	public String getUuid() {
+		return model.getUuid();
+	}
+
+	/**
 	 * Returns the weight of this commerce order item.
 	 *
 	 * @return the weight of this commerce order item
@@ -2107,6 +2125,16 @@ public class CommerceOrderItemWrapper
 	}
 
 	/**
+	 * Sets the uuid of this commerce order item.
+	 *
+	 * @param uuid the uuid of this commerce order item
+	 */
+	@Override
+	public void setUuid(String uuid) {
+		model.setUuid(uuid);
+	}
+
+	/**
 	 * Sets the weight of this commerce order item.
 	 *
 	 * @param weight the weight of this commerce order item
@@ -2124,6 +2152,11 @@ public class CommerceOrderItemWrapper
 	@Override
 	public void setWidth(double width) {
 		model.setWidth(width);
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return model.getStagedModelType();
 	}
 
 	@Override

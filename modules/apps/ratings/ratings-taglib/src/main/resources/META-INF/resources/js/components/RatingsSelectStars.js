@@ -20,6 +20,8 @@ import React, {useState} from 'react';
 
 import Lang from '../utils/lang';
 
+const ID_PREFIX = 'rsd_';
+
 export default function RatingsSelectStars({
 	averageScore,
 	disabled,
@@ -32,10 +34,17 @@ export default function RatingsSelectStars({
 	totalEntries,
 }) {
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+	const [focusId, setFocusId] = useState();
 
 	const handleOnClick = (index) => {
 		setIsDropdownOpen(false);
 		onVote(index);
+	};
+
+	const handleInitialFocus = () => {
+		if (!focusId) {
+			setFocusId(`${ID_PREFIX}0`);
+		}
 	};
 
 	return (
@@ -51,9 +60,13 @@ export default function RatingsSelectStars({
 						className: 'ratings-stars-dropdown',
 					}}
 					onActiveChange={(isActive) => setIsDropdownOpen(isActive)}
+					onFocus={handleInitialFocus}
+					role="listbox"
 					trigger={
 						<ClayButton
-							aria-pressed={!!score}
+							aria-expanded={isDropdownOpen}
+							aria-haspopup="listbox"
+							aria-label={getTitle()}
 							borderless
 							className="ratings-stars-dropdown-toggle"
 							disabled={disabled}
@@ -72,7 +85,10 @@ export default function RatingsSelectStars({
 						</ClayButton>
 					}
 				>
-					<ClayDropDown.ItemList>
+					<ClayDropDown.ItemList
+						aria-activedescendant={focusId}
+						role="listbox"
+					>
 						{starScores.map(({label}, index) => {
 							const srMessage =
 								index === 0
@@ -86,10 +102,15 @@ export default function RatingsSelectStars({
 							return (
 								<ClayDropDown.Item
 									active={label === score}
+									id={`${ID_PREFIX}index`}
 									key={index}
 									onClick={() => {
 										handleOnClick(index);
 									}}
+									onFocus={() => {
+										setFocusId(`${ID_PREFIX}index`);
+									}}
+									roleItem="option"
 								>
 									{label}
 
@@ -105,7 +126,16 @@ export default function RatingsSelectStars({
 
 						<ClayDropDown.Item
 							disabled={score === 0}
+							id={`${ID_PREFIX}${Liferay.Language.get('delete')}`}
 							onClick={handleOnClick}
+							onFocus={() => {
+								setFocusId(
+									`${ID_PREFIX}${Liferay.Language.get(
+										'delete'
+									)}`
+								);
+							}}
+							roleItem="option"
 						>
 							{Liferay.Language.get('delete')}
 						</ClayDropDown.Item>

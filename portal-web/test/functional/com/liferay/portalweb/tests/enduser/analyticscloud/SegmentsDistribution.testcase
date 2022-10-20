@@ -1,6 +1,8 @@
 @component-name = "portal-analytics-cloud"
 definition {
 
+	property analytics.cloud.release = "true";
+	property analytics.cloud.upstream = "true";
 	property portal.release = "false";
 	property portal.upstream = "true";
 	property property.group = "analytics.cloud.profile";
@@ -44,6 +46,8 @@ definition {
 	tearDown {
 		var testPortalInstance = PropsUtil.get("test.portal.instance");
 
+		ACUtils.tearDownAC();
+
 		ACUtils.tearDownDXP();
 
 		if ("${testPortalInstance}" == "true") {
@@ -52,19 +56,12 @@ definition {
 		else {
 			JSONGroup.deleteGroupByName(groupName = "Site Name");
 		}
-
-		JSONUser.tearDownNonAdminUsers();
-
-		ACUtils.tearDownAC();
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8626 | Test Summary: Segment distribution chart can be filtered by date property"
 	@priority = "5"
 	test CanDistributionChartFilteredDateProperty {
-		property portal.upstream = "quarantine";
-
-		// AC Quarantine Reason: The membership list takes a long time to update
-		// AC Refactor ticket: LRAC-10769
+		property analytics.cloud.upstream = "false";
 
 		task ("View AC Page as new user") {
 			User.logoutAndLoginPG(
@@ -113,7 +110,8 @@ definition {
 		}
 
 		task ("Get current date") {
-			var dayNum = DateUtil.getCurrentDate();
+			var dayNum = DateUtil.getDate("0");
+			var tomorrowNum = DateUtil.getDate("1");
 			var monthNum = DateUtil.getCurrentMonth();
 			var yearNum = DateUtil.getCurrentYear();
 
@@ -122,14 +120,21 @@ definition {
 			}
 
 			var i = ${dayNum} / 10;
+			var j = ${tomorrowNum} / 10;
 
 			if ("${i}" == "0") {
 				var dayNum = "0${dayNum}";
 			}
+
+			if ("${j}" == "0") {
+				var tomorrowNum = "0${tomorrowNum}";
+			}
 		}
 
 		task ("View Chart Entry") {
-			ACSegments.viewBreakdownChartsEntry(key_entry = "${yearNum}-${monthNum}-${dayNum}");
+			if (!(IsTextEqual.isPartialText(locator1 = "ACSegments#BREAKDOWN_CHART", value1 = "${yearNum}-${monthNum}-${dayNum}"))) {
+				ACSegments.viewBreakdownChartsEntry(key_entry = "${yearNum}-${monthNum}-${tomorrowNum}");
+			}
 
 			ACSegments.viewBreakdownChartsEntry(key_entry = "100.0%");
 		}
@@ -272,6 +277,8 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8625 | Test Summary: Search the Segment Profile Distribution"
 	@priority = "3"
 	test CanSearchTheSegmentProfileDistribution {
+		property analytics.cloud.upstream = "false";
+
 		var userList = "ac,dxp";
 		var emailList = "ac@liferay.com,dxp@liferay.com,userea@liferay.com";
 		var nameList = "ac ac,dxp dxp,userfn userln";
@@ -345,13 +352,15 @@ definition {
 		task ("Assert that a wrong word will be not found") {
 			ACSegments.searchTheSegmentProfile(searchTerm = "userfn");
 
-			ACUtils.viewNoResultsMessage(noResultMessage = "There are no items found.");
+			ACUtils.viewGenericText(textValueList = "There are no results found.,Try choosing a different breakdown.,Learn more about distribution.");
 		}
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8624 | Test Summary: Order the Segment Profile Distribution"
 	@priority = "3"
 	test OrderSegmentProfileDistribution {
+		property analytics.cloud.upstream = "false";
+
 		var userList = "ac,liferay";
 		var emailList = "ac@liferay.com,liferay@liferay.com";
 		var nameList = "ac ac,liferay liferay";

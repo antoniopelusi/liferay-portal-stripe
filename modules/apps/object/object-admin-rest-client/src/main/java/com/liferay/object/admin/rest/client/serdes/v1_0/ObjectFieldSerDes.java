@@ -95,6 +95,34 @@ public class ObjectFieldSerDes {
 			sb.append("\"");
 		}
 
+		if (objectField.getDefaultValue() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"defaultValue\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(objectField.getDefaultValue()));
+
+			sb.append("\"");
+		}
+
+		if (objectField.getExternalReferenceCode() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"externalReferenceCode\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(objectField.getExternalReferenceCode()));
+
+			sb.append("\"");
+		}
+
 		if (objectField.getId() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -220,6 +248,26 @@ public class ObjectFieldSerDes {
 			sb.append(objectField.getRequired());
 		}
 
+		if (objectField.getState() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"state\": ");
+
+			sb.append(objectField.getState());
+		}
+
+		if (objectField.getSystem() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"system\": ");
+
+			sb.append(objectField.getSystem());
+		}
+
 		if (objectField.getType() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -273,6 +321,23 @@ public class ObjectFieldSerDes {
 		else {
 			map.put(
 				"businessType", String.valueOf(objectField.getBusinessType()));
+		}
+
+		if (objectField.getDefaultValue() == null) {
+			map.put("defaultValue", null);
+		}
+		else {
+			map.put(
+				"defaultValue", String.valueOf(objectField.getDefaultValue()));
+		}
+
+		if (objectField.getExternalReferenceCode() == null) {
+			map.put("externalReferenceCode", null);
+		}
+		else {
+			map.put(
+				"externalReferenceCode",
+				String.valueOf(objectField.getExternalReferenceCode()));
 		}
 
 		if (objectField.getId() == null) {
@@ -355,6 +420,20 @@ public class ObjectFieldSerDes {
 			map.put("required", String.valueOf(objectField.getRequired()));
 		}
 
+		if (objectField.getState() == null) {
+			map.put("state", null);
+		}
+		else {
+			map.put("state", String.valueOf(objectField.getState()));
+		}
+
+		if (objectField.getSystem() == null) {
+			map.put("system", null);
+		}
+		else {
+			map.put("system", String.valueOf(objectField.getSystem()));
+		}
+
 		if (objectField.getType() == null) {
 			map.put("type", null);
 		}
@@ -402,6 +481,19 @@ public class ObjectFieldSerDes {
 					objectField.setBusinessType(
 						ObjectField.BusinessType.create(
 							(String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "defaultValue")) {
+				if (jsonParserFieldValue != null) {
+					objectField.setDefaultValue((String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(
+						jsonParserFieldName, "externalReferenceCode")) {
+
+				if (jsonParserFieldValue != null) {
+					objectField.setExternalReferenceCode(
+						(String)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "id")) {
@@ -472,6 +564,16 @@ public class ObjectFieldSerDes {
 			else if (Objects.equals(jsonParserFieldName, "required")) {
 				if (jsonParserFieldValue != null) {
 					objectField.setRequired((Boolean)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "state")) {
+				if (jsonParserFieldValue != null) {
+					objectField.setState((Boolean)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "system")) {
+				if (jsonParserFieldValue != null) {
+					objectField.setSystem((Boolean)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "type")) {

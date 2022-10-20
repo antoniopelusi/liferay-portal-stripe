@@ -15,7 +15,7 @@
 package com.liferay.server.admin.web.internal.portal.settings.configuration.admin.display;
 
 import com.liferay.configuration.admin.display.ConfigurationScreen;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 
 import java.io.IOException;
 
@@ -47,7 +47,7 @@ public class MailSettingsConfigurationScreen implements ConfigurationScreen {
 
 	@Override
 	public String getName(Locale locale) {
-		return LanguageUtil.get(locale, "mail-settings");
+		return _language.get(locale, "mail-settings");
 	}
 
 	@Override
@@ -79,8 +79,11 @@ public class MailSettingsConfigurationScreen implements ConfigurationScreen {
 	}
 
 	protected String getJspPath() {
-		return "/mail.jsp";
+		return "/company_mail.jsp";
 	}
+
+	@Reference
+	private Language _language;
 
 	@Reference(target = "(osgi.web.symbolicname=com.liferay.server.admin.web)")
 	private ServletContext _servletContext;

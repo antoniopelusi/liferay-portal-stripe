@@ -17,7 +17,7 @@ create index IX_E748358 on JournalArticle (groupId, classNameId, classPK, ctColl
 create index IX_6CA45D20 on JournalArticle (groupId, classNameId, layoutUuid[$COLUMN_LENGTH:75$], ctCollectionId);
 create index IX_1ED664C3 on JournalArticle (groupId, ctCollectionId);
 create index IX_DB98B996 on JournalArticle (groupId, externalReferenceCode[$COLUMN_LENGTH:75$], ctCollectionId);
-create index IX_D9F0782E on JournalArticle (groupId, externalReferenceCode[$COLUMN_LENGTH:75$], version, ctCollectionId);
+create unique index IX_D9F0782E on JournalArticle (groupId, externalReferenceCode[$COLUMN_LENGTH:75$], version, ctCollectionId);
 create index IX_8868DCD0 on JournalArticle (groupId, folderId, classNameId, status, ctCollectionId);
 create index IX_74060760 on JournalArticle (groupId, folderId, ctCollectionId);
 create index IX_D36D9846 on JournalArticle (groupId, folderId, status, ctCollectionId);
@@ -69,6 +69,7 @@ create index IX_6ADEEEBB on JournalFolder (companyId, ctCollectionId);
 create index IX_E6C2F4A1 on JournalFolder (companyId, status, ctCollectionId);
 create index IX_3C880149 on JournalFolder (ctCollectionId);
 create index IX_6CD2A47D on JournalFolder (groupId, ctCollectionId);
+create unique index IX_D67689C on JournalFolder (groupId, externalReferenceCode[$COLUMN_LENGTH:75$], ctCollectionId);
 create index IX_39FA42FC on JournalFolder (groupId, name[$COLUMN_LENGTH:100$], ctCollectionId);
 create index IX_766B0E24 on JournalFolder (groupId, parentFolderId, ctCollectionId);
 create unique index IX_A2109363 on JournalFolder (groupId, parentFolderId, name[$COLUMN_LENGTH:100$], ctCollectionId);

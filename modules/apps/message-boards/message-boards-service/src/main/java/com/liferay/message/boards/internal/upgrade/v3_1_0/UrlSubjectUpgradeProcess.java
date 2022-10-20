@@ -32,12 +32,10 @@ public class UrlSubjectUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		if (!hasColumn("MBMessage", "urlSubject")) {
-			alterTableAddColumn("MBMessage", "urlSubject", "VARCHAR(255) null");
-		}
+		alterTableAddColumn("MBMessage", "urlSubject", "VARCHAR(255) null");
 
-		try (SafeCloseable safeCloseable = addTempIndex(
-				"MBMessage", false, "subject", "messageId")) {
+		try (SafeCloseable safeCloseable = addTemporaryIndex(
+				"MBMessage", false, "subject")) {
 
 			_populateUrlSubject();
 		}
@@ -70,9 +68,9 @@ public class UrlSubjectUpgradeProcess extends UpgradeProcess {
 			ResultSet resultSet = preparedStatement1.executeQuery();
 			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.autoBatch(
-					connection.prepareStatement(
-						"update MBMessage set urlSubject = ? where messageId " +
-							"= ?"))) {
+					connection,
+					"update MBMessage set urlSubject = ? where messageId = " +
+						"?")) {
 
 			int count = 0;
 			String curURLSubject = null;

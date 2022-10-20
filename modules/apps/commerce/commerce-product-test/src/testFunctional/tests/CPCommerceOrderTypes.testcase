@@ -2,50 +2,27 @@
 definition {
 
 	property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
-	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "true";
 	property portal.upstream = "true";
+	property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 	property testray.main.component.name = "Order Management";
 
 	setUp {
-		task ("Setup: Setup portal instance") {
-			TestCase.setUpPortalInstance();
-		}
-
-		task ("Setup: Login") {
-			User.firstLoginPG();
-		}
-
-		task ("Setup: Create a Minium site") {
-			CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
-		}
+		CommerceConfiguration.commerceSetUp(minium = "true");
 
 		task ("Setup: Create an account with a buyer user") {
-			JSONAccountEntry.addAccountEntry(
-				accountEntryName = "Test Account",
-				accountEntryType = "Business");
-
-			ApplicationsMenu.gotoSite(site = "Minium");
-
-			CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Account Management");
-
-			LexiconEntry.gotoEntry(rowEntry = "Test Account");
-
-			CommerceAcceleratorsInitializer.inviteNewMemberWithRoleToAccount(
-				accountName = "Test Account",
-				emailAddress = "buyer@liferay.com",
-				role = "Buyer",
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
 				userFirstName = "Buyer",
 				userLastName = "User",
-				userScreenName = "buyeruser");
-
-			User.openUsersAdmin();
-
-			CommerceLogin.editPasswordCP(
-				newPassword = "ttest",
-				requirePasswordReset = "true",
-				userScreenName = "buyeruser");
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
 		}
 	}
 
@@ -61,12 +38,12 @@ definition {
 		task ("Given active and inactive order types") {
 			CommerceJSONOrdersAPI._addOrderType(
 				active = "true",
-				orderTypeDescription = "Test Order Type Descripiton",
+				orderTypeDescription = "Test Order Type Description",
 				orderTypeName = "Test Order Type");
 
 			CommerceJSONOrdersAPI._addOrderType(
 				active = "false",
-				orderTypeDescription = "Test Order Type Descripiton 2",
+				orderTypeDescription = "Test Order Type Description 2",
 				orderTypeName = "Test Order Type 2");
 		}
 
@@ -74,8 +51,7 @@ definition {
 			User.logoutPG();
 
 			CommerceLogin.miniumLogin(
-				newPassword = "test",
-				password = "ttest",
+				password = "test",
 				urlAppend = "web/minium",
 				userEmailAddress = "buyer@liferay.com");
 
@@ -97,12 +73,12 @@ definition {
 		task ("Given active and inactive order types") {
 			CommerceJSONOrdersAPI._addOrderType(
 				active = "true",
-				orderTypeDescription = "Test Order Type Descripiton",
+				orderTypeDescription = "Test Order Type Description",
 				orderTypeName = "Test Order Type");
 
 			CommerceJSONOrdersAPI._addOrderType(
 				active = "false",
-				orderTypeDescription = "Test Order Type Descripiton 2",
+				orderTypeDescription = "Test Order Type Description 2",
 				orderTypeName = "Test Order Type 2");
 		}
 
@@ -110,8 +86,7 @@ definition {
 			User.logoutPG();
 
 			CommerceLogin.miniumLogin(
-				newPassword = "test",
-				password = "ttest",
+				password = "test",
 				urlAppend = "web/minium",
 				userEmailAddress = "buyer@liferay.com");
 
@@ -133,7 +108,7 @@ definition {
 		task ("Given an inactive order type") {
 			CommerceJSONOrdersAPI._addOrderType(
 				active = "false",
-				orderTypeDescription = "Test Order Type Descripiton",
+				orderTypeDescription = "Test Order Type Description",
 				orderTypeName = "Test Order Type");
 		}
 
@@ -141,8 +116,7 @@ definition {
 			User.logoutPG();
 
 			CommerceLogin.miniumLogin(
-				newPassword = "test",
-				password = "ttest",
+				password = "test",
 				urlAppend = "web/minium",
 				userEmailAddress = "buyer@liferay.com");
 
@@ -164,7 +138,7 @@ definition {
 		task ("Given an inactive order type") {
 			CommerceJSONOrdersAPI._addOrderType(
 				active = "false",
-				orderTypeDescription = "Test Order Type Descripiton",
+				orderTypeDescription = "Test Order Type Description",
 				orderTypeName = "Test Order Type");
 		}
 
@@ -172,8 +146,7 @@ definition {
 			User.logoutPG();
 
 			CommerceLogin.miniumLogin(
-				newPassword = "test",
-				password = "ttest",
+				password = "test",
 				urlAppend = "web/minium",
 				userEmailAddress = "buyer@liferay.com");
 
@@ -195,7 +168,7 @@ definition {
 		task ("Given an active order type") {
 			CommerceJSONOrdersAPI._addOrderType(
 				active = "true",
-				orderTypeDescription = "Test Order Type Descripiton",
+				orderTypeDescription = "Test Order Type Description",
 				orderTypeName = "Test Order Type");
 		}
 
@@ -203,8 +176,7 @@ definition {
 			User.logoutPG();
 
 			CommerceLogin.miniumLogin(
-				newPassword = "test",
-				password = "ttest",
+				password = "test",
 				urlAppend = "web/minium",
 				userEmailAddress = "buyer@liferay.com");
 
@@ -226,7 +198,7 @@ definition {
 		task ("Given an active order type") {
 			CommerceJSONOrdersAPI._addOrderType(
 				active = "true",
-				orderTypeDescription = "Test Order Type Descripiton",
+				orderTypeDescription = "Test Order Type Description",
 				orderTypeName = "Test Order Type");
 		}
 
@@ -234,8 +206,7 @@ definition {
 			User.logoutPG();
 
 			CommerceLogin.miniumLogin(
-				newPassword = "test",
-				password = "ttest",
+				password = "test",
 				urlAppend = "web/minium",
 				userEmailAddress = "buyer@liferay.com");
 
@@ -279,7 +250,7 @@ definition {
 		task ("Given an order type is created through the Order Types Page") {
 			CommerceJSONOrdersAPI._addOrderType(
 				active = "true",
-				orderTypeDescription = "Test Order Type Descripiton",
+				orderTypeDescription = "Test Order Type Description",
 				orderTypeName = "Test Order Type");
 
 			CommerceOrders.openOrderTypesAdmin();
@@ -304,7 +275,7 @@ definition {
 		task ("Given an order type") {
 			CommerceJSONOrdersAPI._addOrderType(
 				active = "true",
-				orderTypeDescription = "Test Order Type Descripiton",
+				orderTypeDescription = "Test Order Type Description",
 				orderTypeName = "Test Order Type");
 		}
 
@@ -329,6 +300,142 @@ definition {
 		}
 	}
 
+	@description = "Verify the order type field is empty when creating a new order with no active order types"
+	@priority = "3"
+	test OrderTypeFieldIsEmptyWhenNoOrderTypesAreActive {
+		property portal.acceptance = "false";
+
+		task ("Given there are no active order types") {
+			CommerceOrders.openOrderTypesAdmin();
+
+			AssertElementPresent(locator1 = "Message#EMPTY_STATE_INFO");
+		}
+
+		task ("When the buyer logs in and adds a product to the cart") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "U-Joint",
+				productQuantity = "1");
+		}
+
+		task ("Then a new order is automatically created and the order type field is empty") {
+			CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Pending Orders");
+
+			Button.click(button = "View");
+
+			AssertElementPresent(
+				key_orderType = "",
+				locator1 = "CommerceOrders#PENDING_ORDERS_ORDER_TYPE");
+		}
+
+		task ("When the buyer creates an order from pending orders") {
+			CommerceAcceleratorsInitializer.createNewOrderFromPendingOrders();
+		}
+
+		task ("Then a new order is created and the order type field is empty") {
+			AssertElementPresent(
+				key_orderType = "",
+				locator1 = "CommerceOrders#PENDING_ORDERS_ORDER_TYPE");
+		}
+
+		task ("When the buyer creates an order from the account selector") {
+			CommerceAcceleratorsInitializer.createNewOrderFromAccountSelectorDropdown();
+		}
+
+		task ("Then a new order is created and the order type field is empty") {
+			AssertElementPresent(
+				key_orderType = "",
+				locator1 = "CommerceOrders#PENDING_ORDERS_ORDER_TYPE");
+		}
+	}
+
+	@description = "Verify when creating an order with add to cart and there are more than 1 active order types for the channel, the order type with the highest priority (lower display order) is set in the order"
+	@priority = "4"
+	test OrderTypeIsAutoAssignedByHighestPriorityToNewOrderWhenTheUserAddsToCart {
+		property portal.acceptance = "false";
+
+		task ("Given an active order type with display order 2") {
+			CommerceJSONOrdersAPI._addOrderType(
+				active = "true",
+				displayOrder = "2",
+				orderTypeDescription = "Test Order Type 1 Description",
+				orderTypeName = "Test Order Type 1");
+		}
+
+		task ("And given an active order type with display order 1") {
+			CommerceJSONOrdersAPI._addOrderType(
+				active = "true",
+				displayOrder = "1",
+				orderTypeDescription = "Test Order Type 2 Description",
+				orderTypeName = "Test Order Type 2");
+		}
+
+		task ("When the buyer logs in and adds a product to the cart") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "U-Joint",
+				productQuantity = "1");
+		}
+
+		task ("Then a new order is automatically created and the order type is set to Test Order Type 2 since it has higher priority") {
+			CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Pending Orders");
+
+			Button.click(button = "View");
+
+			AssertElementPresent(
+				key_orderType = "Test Order Type 2",
+				locator1 = "CommerceOrders#PENDING_ORDERS_ORDER_TYPE");
+		}
+	}
+
+	@description = "Verify when creating a new order with add to cart and there is only 1 order type active for the channel, that order type is set in the order"
+	@priority = "4"
+	test OrderTypeIsAutomaticallySetForNewOrderWhenTheUserAddsToCart {
+		property portal.acceptance = "false";
+
+		task ("Given an active order type") {
+			CommerceJSONOrdersAPI._addOrderType(
+				active = "true",
+				orderTypeDescription = "Test Order Type Description",
+				orderTypeName = "Test Order Type");
+		}
+
+		task ("When the buyer logs in and adds a product to the cart") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "U-Joint",
+				productQuantity = "1");
+		}
+
+		task ("Then a new order is automatically created and the order type is set as the Order Type for the order") {
+			CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Pending Orders");
+
+			Button.click(button = "View");
+
+			AssertElementPresent(
+				key_orderType = "Test Order Type",
+				locator1 = "CommerceOrders#PENDING_ORDERS_ORDER_TYPE");
+		}
+	}
+
 	@description = "Verify user can select order type when creating a new order via the account selector."
 	@priority = "3"
 	test SelectOrderTypeWhenCreatingNewOrderViaAccountSelector {
@@ -337,12 +444,12 @@ definition {
 		task ("Given two active order types") {
 			CommerceJSONOrdersAPI._addOrderType(
 				active = "true",
-				orderTypeDescription = "Test Order Type Descripiton",
+				orderTypeDescription = "Test Order Type Description",
 				orderTypeName = "Test Order Type");
 
 			CommerceJSONOrdersAPI._addOrderType(
 				active = "true",
-				orderTypeDescription = "Test Order Type Descripiton 2",
+				orderTypeDescription = "Test Order Type Description 2",
 				orderTypeName = "Test Order Type 2");
 		}
 
@@ -350,8 +457,7 @@ definition {
 			User.logoutPG();
 
 			CommerceLogin.miniumLogin(
-				newPassword = "test",
-				password = "ttest",
+				password = "test",
 				urlAppend = "web/minium",
 				userEmailAddress = "buyer@liferay.com");
 
@@ -367,6 +473,8 @@ definition {
 
 			Button.click(button = "Add Order");
 
+			SelectFrameTop();
+
 			AssertElementPresent(
 				key_orderType = "Test Order Type",
 				locator1 = "CommerceOrders#PENDING_ORDERS_ORDER_TYPE");
@@ -381,12 +489,12 @@ definition {
 		task ("Given two new order types") {
 			CommerceJSONOrdersAPI._addOrderType(
 				active = "true",
-				orderTypeDescription = "Test Order Type Descripiton",
+				orderTypeDescription = "Test Order Type Description",
 				orderTypeName = "Test Order Type");
 
 			CommerceJSONOrdersAPI._addOrderType(
 				active = "true",
-				orderTypeDescription = "Test Order Type Descripiton 2",
+				orderTypeDescription = "Test Order Type Description 2",
 				orderTypeName = "Test Order Type 2");
 		}
 
@@ -394,8 +502,7 @@ definition {
 			User.logoutPG();
 
 			CommerceLogin.miniumLogin(
-				newPassword = "test",
-				password = "ttest",
+				password = "test",
 				urlAppend = "web/minium",
 				userEmailAddress = "buyer@liferay.com");
 
@@ -412,6 +519,8 @@ definition {
 				value1 = "Test Order Type 2");
 
 			Button.click(button = "Add Order");
+
+			SelectFrameTop();
 
 			AssertElementPresent(
 				key_orderType = "Test Order Type 2",

@@ -98,6 +98,7 @@ definition {
 
 	@priority = "5"
 	test ApproveInDMFolderCustomWorkflow {
+		property portal.upstream = "quarantine";
 		property test.name.skip.portal.instance = "WorkflowDocumentsAndMedia#ApproveInDMFolderCustomWorkflow";
 		property test.run.environment = "EE";
 
@@ -395,7 +396,6 @@ definition {
 	@priority = "3"
 	test CanShareAFile {
 		var siteName = TestCase.getSiteName(siteName = "${siteName}");
-
 		var user = "DXP";
 
 		ProductMenu.gotoPortlet(
@@ -754,7 +754,6 @@ definition {
 	@priority = "3"
 	test StatusBecomeDraftAfterCheckout {
 		var siteName = TestCase.getSiteName(siteName = "${siteName}");
-
 		var documentTitle = "Document_1";
 
 		ProductMenu.gotoPortlet(

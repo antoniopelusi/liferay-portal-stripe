@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.4.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_4_0.dtd">
 
-<service-builder auto-namespace-tables="false" mvcc-enabled="true" package-path="com.liferay.commerce.inventory">
+<service-builder auto-import-default-references="false" auto-namespace-tables="false" dependency-injector="ds" mvcc-enabled="true" package-path="com.liferay.commerce.inventory">
 	<author>Luca Pellizzon</author>
 	<namespace>Commerce</namespace>
 	<entity local-service="true" name="CommerceInventoryAudit" remote-service="true" table="CIAudit">
@@ -75,7 +75,7 @@
 			<finder-column name="sku" />
 		</finder>
 	</entity>
-	<entity local-service="true" mvcc-enabled="true" name="CommerceInventoryReplenishmentItem" remote-service="true" table="CIReplenishmentItem">
+	<entity external-reference-code="true" local-service="true" mvcc-enabled="true" name="CommerceInventoryReplenishmentItem" remote-service="true" table="CIReplenishmentItem" uuid="true">
 
 		<!-- PK fields -->
 
@@ -116,7 +116,7 @@
 			<finder-column name="availabilityDate" />
 		</finder>
 	</entity>
-	<entity external-reference-code="true" local-service="true" mvcc-enabled="true" name="CommerceInventoryWarehouse" remote-service="true" table="CIWarehouse">
+	<entity external-reference-code="true" local-service="true" mvcc-enabled="true" name="CommerceInventoryWarehouse" remote-service="true" table="CIWarehouse" uuid="true">
 
 		<!-- PK fields -->
 
@@ -171,7 +171,7 @@
 			<finder-column name="countryTwoLettersISOCode" />
 		</finder>
 	</entity>
-	<entity external-reference-code="true" local-service="true" mvcc-enabled="true" name="CommerceInventoryWarehouseItem" remote-service="true" table="CIWarehouseItem">
+	<entity external-reference-code="true" local-service="true" mvcc-enabled="true" name="CommerceInventoryWarehouseItem" remote-service="true" table="CIWarehouseItem" uuid="true">
 
 		<!-- PK fields -->
 
@@ -210,9 +210,12 @@
 		</finder>
 	</entity>
 	<exceptions>
+		<exception>CommerceInventoryReplenishmentQuantity</exception>
+		<exception>CommerceInventoryReplenishmentSku</exception>
 		<exception>CommerceInventoryWarehouseActive</exception>
 		<exception>CommerceInventoryWarehouseItemQuantity</exception>
 		<exception>CommerceInventoryWarehouseName</exception>
+		<exception>DuplicateCommerceInventoryReplenishmentItem</exception>
 		<exception>DuplicateCommerceInventoryWarehouseItem</exception>
 		<exception>MVCC</exception>
 	</exceptions>

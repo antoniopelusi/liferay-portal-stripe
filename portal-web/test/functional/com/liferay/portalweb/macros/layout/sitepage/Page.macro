@@ -5,10 +5,12 @@ definition {
 
 		if ("${locale}" == "zh") {
 			var zhAlternate = '''" hreflang="zh-CN" rel="alternate">''';
+
 			var pageSource = StringUtil.add("${html}", "${portalURL}/zh/web/guest${zhAlternate}", "");
 		}
 		else if ("${locale}" == "es") {
 			var esAlternate = '''" hreflang="es-ES" rel="alternate">''';
+
 			var pageSource = StringUtil.add("${html}", "${portalURL}/es/web/guest${esAlternate}", "");
 		}
 
@@ -17,7 +19,6 @@ definition {
 
 	macro assertCanonicalURL {
 		var html = '''<link data-senna-track="temporary" href="''';
-
 		var html2 = '''" rel="canonical">''';
 
 		if (isSet(customCanonicalURL)) {
@@ -32,7 +33,9 @@ definition {
 
 		if (isSet(pageName)) {
 			var pageName = StringUtil.lowerCase("${pageName}");
+
 			var pageNameURL = StringUtil.replace("${pageName}", " ", "-");
+
 			var pageSource = StringUtil.add("${html}", "${portalURL}/${pageNameURL}${html2}", "");
 		}
 		else {
@@ -44,8 +47,8 @@ definition {
 
 	macro assertDefaultAlternateURL {
 		var html = '''<link data-senna-track="temporary" href="''';
-
 		var html2 = '''" hreflang="x-default" rel="alternate">''';
+
 		var pageSource = StringUtil.add("${html}", "${portalURL}${html2}", "");
 
 		AssertHTMLSourceTextPresent(value1 = "${pageSource}");
@@ -97,6 +100,7 @@ definition {
 
 		return authToken;
 		''';
+
 		var authToken = selenium.getEval("${javaScript}");
 
 		echo("## * Auth Token: ${authToken}");
@@ -110,6 +114,7 @@ definition {
 
 		return plid;
 		''';
+
 		var plid = selenium.getEval("${javaScript}");
 
 		echo("## * p_l_id: ${plid}");
@@ -145,6 +150,8 @@ definition {
 		LexiconTable.clickEllipsisItem(
 			item = "${item}",
 			tableEntry = "${tableEntry}");
+
+		SelectFrameTop();
 	}
 
 	macro gotoPagePanelPortlet {
@@ -206,12 +213,6 @@ definition {
 		if (isSet(multipleSelection)) {
 			for (var categoryName : list "${categoryNameList}") {
 				Check.checkNotVisible(
-					key_checkboxName = "${categoryName}",
-					locator1 = "MenuItem#ANY_CHECKBOX");
-
-				Pause(locator1 = "3000");
-
-				AssertChecked.assertCheckedNotVisible(
 					key_checkboxName = "${categoryName}",
 					locator1 = "MenuItem#ANY_CHECKBOX");
 			}
@@ -371,7 +372,9 @@ definition {
 			value1 = "${htmlTitle}");
 
 		var pageNameURL = StringUtil.lowerCase("${pageName}");
+
 		var pageNameURL = StringUtil.replace("${pageNameURL}", " ", "-");
+
 		var url = "${portalURL}/web/guest/${pageNameURL}";
 
 		if (isSet(siteNameURL)) {
@@ -486,6 +489,7 @@ definition {
 				value1 = "${siteName}");
 
 			var i = ${i} + 1;
+
 			var i = StringUtil.valueOf("${i}");
 		}
 	}
@@ -524,8 +528,6 @@ definition {
 	}
 
 	macro viewWithWorkflowPG {
-		Pause(locator1 = "5000");
-
 		if ("${workflowStatus}" == "Ready for Publication") {
 			AssertElementPresent(locator1 = "Staging#STAGING_MENU_READY_FOR_PUBLICATION");
 		}

@@ -240,7 +240,10 @@ export default function TrafficSources({dataProvider, onTrafficSourceClick}) {
 											entry.value !== undefined
 												? numberFormat(
 														languageTag,
-														entry.value
+														entry.value,
+														{
+															useCompact: true,
+														}
 												  )
 												: '-'}
 										</td>

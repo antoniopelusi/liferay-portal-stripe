@@ -22,11 +22,13 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.json.JSONFactoryImpl;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
+import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
+import com.liferay.portal.util.DateFormatFactoryImpl;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 
 import org.junit.Assert;
@@ -47,6 +49,7 @@ public class DateParameterUtilTest {
 
 	@BeforeClass
 	public static void setUpClass() {
+		_setUpDateFormatFactory();
 		_setUpJSONFactoryUtil();
 	}
 
@@ -64,11 +67,10 @@ public class DateParameterUtilTest {
 
 	@Test
 	public void testGetLocalDateTime() {
-		LocalDateTime localDateTime = DateParameterUtil.getLocalDateTime(
-			"2021-10-28 1:00");
-
-		Assert.assertEquals("2021-10-28T01:00", localDateTime.toString());
-
+		Assert.assertEquals(
+			"2021-10-28T01:00",
+			String.valueOf(
+				DateParameterUtil.getLocalDateTime("2021-10-28 1:00")));
 		Assert.assertNull(DateParameterUtil.getLocalDateTime(null));
 		Assert.assertNull(DateParameterUtil.getLocalDateTime(StringPool.BLANK));
 	}
@@ -182,6 +184,12 @@ public class DateParameterUtilTest {
 			"responseDate", null);
 	}
 
+	private static void _setUpDateFormatFactory() {
+		ReflectionTestUtil.setFieldValue(
+			DateFormatFactoryUtil.class, "_fastDateFormatFactory",
+			new DateFormatFactoryImpl());
+	}
+
 	private static void _setUpJSONFactoryUtil() {
 		JSONFactoryUtil jsonFactoryUtil = new JSONFactoryUtil();
 
@@ -220,7 +228,7 @@ public class DateParameterUtilTest {
 			).put(
 				"unit", unit
 			)
-		).toJSONString();
+		).toString();
 	}
 
 }

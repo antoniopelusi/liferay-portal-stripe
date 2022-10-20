@@ -51,12 +51,10 @@ definition {
 				groupName = "Test Site Name",
 				title = "Category Name 1",
 				vocabularyName = "Vocabulary Name");
-
 			var secondCategoryId = JSONCategory.addCategory(
 				groupName = "Test Site Name",
 				title = "Category Name 2",
 				vocabularyName = "Vocabulary Name");
-
 			var thirdCategoryId = JSONCategory.addCategory(
 				groupName = "Test Site Name",
 				title = "Category Name 3",
@@ -205,7 +203,7 @@ definition {
 			for (var title : list "Category Name 1,Category Name 2,Category Name 3") {
 				AssertTextEquals(
 					key_colPosition = "1",
-					key_element = "//div[@class='row'][${n}]//div[@aria-label='Button']//*[contains(@data-lfr-editable-id,'link')]",
+					key_element = "//div[contains(@class,'row')][${n}]//div[@aria-label='Button']//*[contains(@data-lfr-editable-id,'link')]",
 					key_fragmentName = "Collection Display",
 					key_rowPosition = "1",
 					locator1 = "PageEditor#COLLECTION_CELL_NESTED_ELEMENT",
@@ -219,7 +217,7 @@ definition {
 			for (var title : list "Category Name 1,Category Name 2") {
 				AssertTextEquals(
 					key_colPosition = "1",
-					key_element = "//div[@class='row'][${n}]//div[@aria-label='Button']//*[contains(@data-lfr-editable-id,'link')]",
+					key_element = "//div[contains(@class,'row')][${n}]//div[@aria-label='Button']//*[contains(@data-lfr-editable-id,'link')]",
 					key_fragmentName = "Collection Display",
 					key_rowPosition = "2",
 					locator1 = "PageEditor#COLLECTION_CELL_NESTED_ELEMENT",
@@ -230,13 +228,13 @@ definition {
 
 			AssertTextEquals(
 				key_colPosition = "1",
-				key_element = "//div[@class='row']//div[@aria-label='Button']//*[contains(@data-lfr-editable-id,'link')]",
+				key_element = "//div[contains(@class,'row')]//div[@aria-label='Button']//*[contains(@data-lfr-editable-id,'link')]",
 				key_fragmentName = "Collection Display",
 				key_rowPosition = "3",
 				locator1 = "PageEditor#COLLECTION_CELL_NESTED_ELEMENT",
 				value1 = "Category Name 1");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Navigate to page at view mode") {
@@ -410,7 +408,7 @@ definition {
 				fragmentName = "Button",
 				id = "link");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Select the display page template in web content") {
@@ -619,7 +617,7 @@ definition {
 			for (var title : list "Blogs Entry Title,Web Content Title") {
 				AssertTextEquals(
 					key_colPosition = "1",
-					key_element = "//div[@class='row'][${n}]//div[@aria-label='Button']//*[contains(@data-lfr-editable-id,'link')]",
+					key_element = "//div[contains(@class,'row')][${n}]//div[@aria-label='Button']//*[contains(@data-lfr-editable-id,'link')]",
 					key_fragmentName = "Collection Display",
 					key_rowPosition = "1",
 					locator1 = "PageEditor#COLLECTION_CELL_NESTED_ELEMENT",
@@ -633,7 +631,7 @@ definition {
 			for (var title : list "Document Title,Web Content Title") {
 				AssertTextEquals(
 					key_colPosition = "1",
-					key_element = "//div[@class='row'][${n}]//div[@aria-label='Button']//*[contains(@data-lfr-editable-id,'link')]",
+					key_element = "//div[contains(@class,'row')][${n}]//div[@aria-label='Button']//*[contains(@data-lfr-editable-id,'link')]",
 					key_fragmentName = "Collection Display",
 					key_rowPosition = "2",
 					locator1 = "PageEditor#COLLECTION_CELL_NESTED_ELEMENT",
@@ -647,7 +645,7 @@ definition {
 			for (var title : list "Document Title,Blogs Entry Title") {
 				AssertTextEquals(
 					key_colPosition = "1",
-					key_element = "//div[@class='row'][${n}]//div[@aria-label='Button']//*[contains(@data-lfr-editable-id,'link')]",
+					key_element = "//div[contains(@class,'row')][${n}]//div[@aria-label='Button']//*[contains(@data-lfr-editable-id,'link')]",
 					key_fragmentName = "Collection Display",
 					key_rowPosition = "3",
 					locator1 = "PageEditor#COLLECTION_CELL_NESTED_ELEMENT",
@@ -656,7 +654,7 @@ definition {
 				var n = ${n} + 1;
 			}
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Navigate to page at view mode") {
@@ -791,7 +789,7 @@ definition {
 				fragmentName = "Button",
 				id = "link");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a vocabulary") {
@@ -1577,7 +1575,7 @@ definition {
 				entryTitle = "Sample Collection Item",
 				fragmentName = "Content Display");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Associate the display page template to category") {
@@ -1689,9 +1687,9 @@ definition {
 			PageEditor.editCollectionDisplay(
 				fragmentName = "Collection Display",
 				infoItemRelatedListProviderName = "Basic Web Content",
-				listStyle = "Bordered List");
+				styleDisplay = "Bordered List");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Associate the display page template to category") {
@@ -1810,7 +1808,7 @@ definition {
 				fragmentName = "Heading",
 				id = "element-text");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Associate the display page template to category") {
@@ -1934,9 +1932,9 @@ definition {
 			PageEditor.editCollectionDisplay(
 				fragmentName = "Collection Display",
 				infoItemRelatedListProviderName = "DM Document Type Name",
-				listStyle = "Bordered List");
+				styleDisplay = "Bordered List");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Associate the display page template to category") {
@@ -2051,7 +2049,7 @@ definition {
 				webContentTitle = "WC Text Title");
 
 			WebContent.selectCategory(
-				categoryName = "Category Name",
+				categoryNameList = "Category Name",
 				vocabularyName = "Vocabulary Name");
 
 			PortletEntry.publish();
@@ -2078,9 +2076,9 @@ definition {
 			PageEditor.editCollectionDisplay(
 				fragmentName = "Collection Display",
 				infoItemRelatedListProviderName = "WC Structure Name",
-				listStyle = "Bordered List");
+				styleDisplay = "Bordered List");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Associate the display page template to category") {
@@ -2126,7 +2124,7 @@ definition {
 	@priority = "5"
 	test ViewRelatedAssetsInCollectionDisplay {
 		property portal.acceptance = "true";
-		property testray.main.component.name = "Display Pages";
+		property testray.component.names = "Display Pages,Fragments";
 
 		task ("Add a display page template for Web Content Article and Basic Web Content") {
 			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
@@ -2176,7 +2174,7 @@ definition {
 				fragmentName = "Heading",
 				id = "element-text");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a Web Content Article, a Blogs Entry and a Document") {
@@ -2269,9 +2267,9 @@ definition {
 			PageEditor.editCollectionDisplay(
 				fragmentName = "Collection Display",
 				infoItemRelatedListProviderName = "Related Assets",
-				listStyle = "Bordered List");
+				styleDisplay = "Bordered List");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Edit the blogs entry, Select display page template and Select related assets") {
@@ -2334,7 +2332,7 @@ definition {
 				entryTitle = "",
 				fragmentName = "Content Display");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Edit the document, Select display page template") {
@@ -2424,7 +2422,7 @@ definition {
 					fragmentName = "Heading",
 					id = "element-text");
 
-				PageEditor.clickPublish();
+				PageEditor.publish();
 			}
 		}
 
@@ -2439,12 +2437,10 @@ definition {
 				groupName = "Test Site Name",
 				title = "Category Name 1",
 				vocabularyName = "Vocabulary Name");
-
 			var secondCategoryId = JSONCategory.addCategory(
 				groupName = "Test Site Name",
 				title = "Category Name 2",
 				vocabularyName = "Vocabulary Name");
-
 			var thirdCategoryId = JSONCategory.addCategory(
 				groupName = "Test Site Name",
 				title = "Category Name 3",

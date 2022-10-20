@@ -20,6 +20,8 @@ import com.liferay.portal.json.JSONFactoryImpl;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
+import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoaderUtil;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -40,22 +42,13 @@ import java.util.stream.Stream;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.runner.RunWith;
 
-import org.mockito.Matchers;
-import org.mockito.Mock;
-
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.Mockito;
 
 /**
  * @author Leonardo Barros
  */
-@PrepareForTest({PortalClassLoaderUtil.class, ResourceBundleUtil.class})
-@RunWith(PowerMockRunner.class)
-public abstract class BaseDDMFormFieldTypeSettingsTestCase
-	extends PowerMockito {
+public abstract class BaseDDMFormFieldTypeSettingsTestCase {
 
 	@Before
 	public void setUp() throws Exception {
@@ -90,19 +83,19 @@ public abstract class BaseDDMFormFieldTypeSettingsTestCase
 		Set<Locale> availableLocales = new HashSet<>(
 			Arrays.asList(LocaleUtil.BRAZIL, LocaleUtil.US));
 
-		when(
+		Mockito.when(
 			language.getAvailableLocales()
 		).thenReturn(
 			availableLocales
 		);
 
-		when(
+		Mockito.when(
 			language.getLanguageId(LocaleUtil.BRAZIL)
 		).thenReturn(
 			"pt_BR"
 		);
 
-		when(
+		Mockito.when(
 			language.getLanguageId(LocaleUtil.US)
 		).thenReturn(
 			"en_US"
@@ -112,24 +105,18 @@ public abstract class BaseDDMFormFieldTypeSettingsTestCase
 	}
 
 	protected void setUpPortalClassLoaderUtil() {
-		mockStatic(PortalClassLoaderUtil.class);
-
-		when(
-			PortalClassLoaderUtil.getClassLoader()
-		).thenReturn(
-			_classLoader
-		);
+		PortalClassLoaderUtil.setClassLoader(Mockito.mock(ClassLoader.class));
 	}
 
 	protected void setUpPortalUtil() {
 		PortalUtil portalUtil = new PortalUtil();
 
-		Portal portal = mock(Portal.class);
+		Portal portal = Mockito.mock(Portal.class);
 
-		ResourceBundle resourceBundle = mock(ResourceBundle.class);
+		ResourceBundle resourceBundle = Mockito.mock(ResourceBundle.class);
 
-		when(
-			portal.getResourceBundle(Matchers.any(Locale.class))
+		Mockito.when(
+			portal.getResourceBundle(Mockito.any(Locale.class))
 		).thenReturn(
 			resourceBundle
 		);
@@ -138,25 +125,35 @@ public abstract class BaseDDMFormFieldTypeSettingsTestCase
 	}
 
 	protected void setUpResourceBundleUtil() {
-		mockStatic(ResourceBundleUtil.class);
+		ResourceBundleLoader resourceBundleLoader = Mockito.mock(
+			ResourceBundleLoader.class);
 
-		when(
-			ResourceBundleUtil.getBundle(
-				"content.Language", LocaleUtil.BRAZIL, _classLoader)
+		ResourceBundleLoaderUtil.setPortalResourceBundleLoader(
+			resourceBundleLoader);
+
+		Mockito.when(
+			resourceBundleLoader.loadResourceBundle(Mockito.any(Locale.class))
 		).thenReturn(
-			_resourceBundle
+			ResourceBundleUtil.EMPTY_RESOURCE_BUNDLE
 		);
 
-		when(
-			ResourceBundleUtil.getBundle(
-				"content.Language", LocaleUtil.US, _classLoader)
+		ResourceBundle mockResourceBundle = Mockito.mock(ResourceBundle.class);
+
+		Mockito.when(
+			resourceBundleLoader.loadResourceBundle(Mockito.eq(LocaleUtil.US))
 		).thenReturn(
-			_resourceBundle
+			mockResourceBundle
+		);
+
+		Mockito.when(
+			resourceBundleLoader.loadResourceBundle(
+				Mockito.eq(LocaleUtil.BRAZIL))
+		).thenReturn(
+			mockResourceBundle
 		);
 	}
 
-	@Mock
-	protected Language language;
+	protected Language language = Mockito.mock(Language.class);
 
 	private void _assertDDMFormLayoutColumn(
 		DDMFormLayoutColumn actualDDMFormLayoutColumn,
@@ -228,11 +225,5 @@ public abstract class BaseDDMFormFieldTypeSettingsTestCase
 				_getAssertDDMFormLayoutColumnsFunction(),
 				"getDDMFormLayoutColumns", null);
 	}
-
-	@Mock
-	private ClassLoader _classLoader;
-
-	@Mock
-	private ResourceBundle _resourceBundle;
 
 }

@@ -1,15 +1,13 @@
 definition {
 
 	macro AddDocument {
-		Alert.viewInfoMessageSpecific(infoMessage = "The document has been checked out, please on finish editing check in the document to save changes into the document library.");
+		Alert.viewInfoMessageSpecific(infoMessage = "The document has been checked out. Please check in the document after edits are made to save the changes into the document library.");
 
 		Type(
 			locator1 = "TextInput#TITLE",
 			value1 = "${dmDocumentTitle}");
 
 		Click(locator1 = "Button#SAVE");
-
-		Pause(locator1 = "10000");
 
 		SelectWindow.waitForSelectPopUp(
 			locator1 = "null",
@@ -32,8 +30,6 @@ definition {
 
 			Click(locator1 = "Button#SAVE");
 
-			Pause(locator1 = "10000");
-
 			SelectWindow.waitForSelectPopUp(
 				locator1 = "null",
 				value1 = "60000");
@@ -41,11 +37,9 @@ definition {
 
 		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#WEB_APPLICATION");
 
-		Pause(locator1 = "10000");
+		WaitForPageLoad();
 
 		if (isSet(dmDocumentContent)) {
-			WaitForElementPresent(locator1 = "OneDrive#DOCUMENTS_CONTENT");
-
 			Type.sendKeys(
 				locator1 = "OneDrive#DOCUMENTS_CONTENT",
 				value1 = "${dmDocumentContent}");
@@ -73,7 +67,7 @@ definition {
 					Click(locator1 = "OneDrive#DELETE_ANYWAY");
 				}
 
-				AssertElementPresent.pauseAssertVisible(locator1 = "OneDrive#DELETE_MESSAGE");
+				VerifyElementPresent(locator1 = "OneDrive#DELETE_MESSAGE");
 			}
 		}
 		else {
@@ -104,8 +98,6 @@ definition {
 	}
 
 	macro editTitle {
-		Pause(locator1 = "10000");
-
 		WaitForPageLoad();
 
 		SelectWindow.waitForSelectPopUp(
@@ -184,7 +176,7 @@ definition {
 	macro goToOneDrive {
 		Navigator.openSpecificURL(url = "https://liferaycolab-my.sharepoint.com/personal/sharepoint_liferaycolab_onmicrosoft_com/_layouts/15/onedrive.aspx");
 
-		Pause(locator1 = "10000");
+		WaitForPageLoad();
 
 		MicrosoftLogin.accountSignIn(
 			userEmail = "${userName}",
@@ -193,7 +185,7 @@ definition {
 
 		MicrosoftLogin.confirmMicrosoftApp();
 
-		Pause(locator1 = "30000");
+		WaitForPageLoad();
 
 		SelectWindow.selectPopUp(locator1 = "null");
 	}

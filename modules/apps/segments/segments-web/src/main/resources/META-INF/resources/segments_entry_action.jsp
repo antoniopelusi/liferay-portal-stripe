@@ -78,7 +78,7 @@ SegmentsEntry segmentsEntry = (SegmentsEntry)row.getObject();
 
 		String linkCssClass = "assign-site-roles-link dropdown-item";
 
-		if (!segmentsDisplayContext.isRoleSegmentationEnabled()) {
+		if (!segmentsDisplayContext.isRoleSegmentationEnabled(group.getCompanyId())) {
 			linkCssClass += " action disabled";
 		}
 		%>
@@ -93,7 +93,7 @@ SegmentsEntry segmentsEntry = (SegmentsEntry)row.getObject();
 			%>'
 			linkCssClass="<%= linkCssClass %>"
 			message="assign-site-roles"
-			url="javascript:;"
+			url="javascript:void(0);"
 		/>
 	</c:if>
 

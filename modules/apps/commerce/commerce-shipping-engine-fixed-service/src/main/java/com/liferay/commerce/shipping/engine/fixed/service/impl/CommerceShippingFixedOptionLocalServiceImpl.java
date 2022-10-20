@@ -21,6 +21,7 @@ import com.liferay.commerce.shipping.engine.fixed.exception.CommerceShippingFixe
 import com.liferay.commerce.shipping.engine.fixed.model.CommerceShippingFixedOption;
 import com.liferay.commerce.shipping.engine.fixed.model.CommerceShippingFixedOptionQualifierTable;
 import com.liferay.commerce.shipping.engine.fixed.model.CommerceShippingFixedOptionTable;
+import com.liferay.commerce.shipping.engine.fixed.service.CommerceShippingFixedOptionRelLocalService;
 import com.liferay.commerce.shipping.engine.fixed.service.base.CommerceShippingFixedOptionLocalServiceBaseImpl;
 import com.liferay.petra.sql.dsl.Column;
 import com.liferay.petra.sql.dsl.DSLQueryFactoryUtil;
@@ -28,6 +29,7 @@ import com.liferay.petra.sql.dsl.expression.Predicate;
 import com.liferay.petra.sql.dsl.query.FromStep;
 import com.liferay.petra.sql.dsl.query.GroupByStep;
 import com.liferay.petra.sql.dsl.query.JoinStep;
+import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
@@ -44,6 +46,8 @@ import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchException;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.SortFactoryUtil;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -51,7 +55,6 @@ import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.spring.extender.service.ServiceReference;
 
 import java.math.BigDecimal;
 
@@ -63,9 +66,17 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * @author Alessio Antonio Rendina
  */
+@Component(
+	enabled = false,
+	property = "model.class.name=com.liferay.commerce.shipping.engine.fixed.model.CommerceShippingFixedOption",
+	service = AopService.class
+)
 public class CommerceShippingFixedOptionLocalServiceImpl
 	extends CommerceShippingFixedOptionLocalServiceBaseImpl {
 
@@ -77,7 +88,7 @@ public class CommerceShippingFixedOptionLocalServiceImpl
 			Map<Locale, String> nameMap, double priority)
 		throws PortalException {
 
-		User user = userLocalService.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		long commerceShippingFixedOptionId = counterLocalService.increment();
 
@@ -123,7 +134,7 @@ public class CommerceShippingFixedOptionLocalServiceImpl
 
 		// Commerce shipping fixed option rels
 
-		commerceShippingFixedOptionRelLocalService.
+		_commerceShippingFixedOptionRelLocalService.
 			deleteCommerceShippingFixedOptionRels(
 				commerceShippingFixedOption.getCommerceShippingFixedOptionId());
 
@@ -425,7 +436,7 @@ public class CommerceShippingFixedOptionLocalServiceImpl
 			commerceShippingFixedOptionIdColumn) {
 
 		return classNameIdColumn.eq(
-			classNameLocalService.getClassNameId(className)
+			_classNameLocalService.getClassNameId(className)
 		).and(
 			commerceShippingFixedOptionIdColumn.eq(
 				CommerceShippingFixedOptionTable.INSTANCE.
@@ -452,10 +463,18 @@ public class CommerceShippingFixedOptionLocalServiceImpl
 		}
 	}
 
-	@ServiceReference(
-		type = CommerceShippingOptionAccountEntryRelLocalService.class
-	)
+	@Reference
+	private ClassNameLocalService _classNameLocalService;
+
+	@Reference
+	private CommerceShippingFixedOptionRelLocalService
+		_commerceShippingFixedOptionRelLocalService;
+
+	@Reference
 	private CommerceShippingOptionAccountEntryRelLocalService
 		_commerceShippingOptionAccountEntryRelLocalService;
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

@@ -19,6 +19,22 @@ definition {
 			locator1 = "CommerceAccelerators#MINI_CART_BUTTON_DATA_BADGE_COUNT");
 	}
 
+	macro addInitializerProductToCartFromProductDetails {
+		var newItemCount = FrontStore.getCurrentCartItemCount(productName = "${productName}");
+
+		Refresh();
+
+		Type(
+			locator1 = "CommerceAccelerators#PRODUCT_DETAILS_QUANTITY_SELECTOR_INPUT_FIELD",
+			value1 = "${productQuantity}");
+
+		Click(locator1 = "CommerceAccelerators#ADD_TO_CART_BUTTON_PRODUCT_DETAILS_PAGE");
+
+		WaitForElementPresent(
+			key_itemCount = "${newItemCount}",
+			locator1 = "CommerceAccelerators#MINI_CART_BUTTON_DATA_BADGE_COUNT");
+	}
+
 	macro addToCartFromProductDetails {
 		var newItemCount = FrontStore.getCurrentCartItemCount(productName = "${productName}");
 
@@ -46,6 +62,110 @@ definition {
 			locator1 = "CommerceAccelerators#MINI_CART_BUTTON_DATA_BADGE_COUNT");
 	}
 
+	@summary = "Set an invalid quantity for a product from its product card, click on add to cart button and assert that the product is not added to cart"
+	macro addToCartProductWithInvalidQuantityValue {
+		var currentCartItemCount = FrontStore.getCurrentCartDataBadgeCount();
+
+		Type(
+			key_productName = "${productName}",
+			locator1 = "CommerceAccelerators#PRODUCT_CARD_QUANTITY_SELECTOR_INPUT_FIELD",
+			value1 = "${productQuantity}");
+
+		Click(
+			key_productName = "${productName}",
+			locator1 = "CommerceAccelerators#ADD_TO_CART_BUTTON");
+
+		AssertElementPresent(
+			key_productName = "${productName}",
+			locator1 = "CommerceAccelerators#ADD_TO_CART_BUTTON_INVALID");
+
+		AssertElementPresent(
+			key_itemCount = "${currentCartItemCount}",
+			locator1 = "CommerceAccelerators#MINI_CART_BUTTON_DATA_BADGE_COUNT");
+	}
+
+	macro applyCouponCode {
+		AssertElementPresent(locator1 = "TextInput#DISCOUNT");
+
+		Type(
+			locator1 = "TextInput#DISCOUNT",
+			value1 = "${discountCouponCode}");
+
+		Click(
+			key_tab = "Apply",
+			locator1 = "Button#TAB_SUBMIT_BTN");
+
+		if (isSet(errorMessage)) {
+			Alert.viewErrorMessage(errorMessage = "${errorMessage}");
+		}
+		else {
+			AssertElementPresent(
+				key_couponCode = "${discountCouponCode}",
+				locator1 = "CommerceFrontStore#COUPON_CODE_BODY");
+		}
+	}
+
+	macro assertMiniCompareItems {
+		for (var product : list "${products}") {
+			var productImageId = CommerceJSONProductsAPI._getCommerceProductImageIds(productName = "${product}");
+
+			AssertElementPresent(
+				key_productMediaId = "${productImageId}",
+				locator1 = "CommerceFrontStore#MINI_COMPARE_ITEM_CUSTOM_IMAGE");
+		}
+	}
+
+	macro assertProductComparisonTable {
+		AssertLocation.assertPartialLocation(value1 = "web/minium/compare");
+
+		var columNumber = "1";
+
+		for (var product : list "${products}") {
+			var productSpecifications = CommerceJSONProductsAPI._getCommerceProductSpecifications(productName = "${product}");
+			var productOptions = CommerceJSONProductsAPI._getCommerceProductOptions(productName = "${product}");
+			var productName = StringUtil.lowerCase("${product}");
+
+			var productName = StringUtil.replace("${productName}", " ", "-");
+
+			AssertElementPresent(
+				key_productName = "${productName}",
+				locator1 = "CommerceFrontStore#PRODUCT_CARD_IMAGE");
+
+			for (var productOption : list "${productOptions}") {
+				if ("${productOption}" != "") {
+					var productOptionId = CommerceJSONProductsAPI._getCommerceProductOptionId(
+						productName = "${product}",
+						productOptionName = "${productOption}");
+
+					var productOptionValues = CommerceJSONProductsAPI._getCommerceProductOptionValues(productOptionId = "${productOptionId}");
+
+					var productOptionValues = StringUtil.replace("${productOptionValues}", ",", ", ");
+
+					AssertElementPresent(
+						key_columnNumber = "${columNumber}",
+						key_specification = "${productOption}",
+						key_value = "${productOptionValues}",
+						locator1 = "CommerceFrontStore#PRODUCT_COMPARISON_TABLE_SPECIFICATION");
+				}
+			}
+
+			for (var productSpecification : list "${productSpecifications}") {
+				var key_specification = StringUtil.extractFirst("${productSpecification}", ":");
+				var key_value = StringUtil.extractLast("${productSpecification}", ":");
+
+				var key_value = StringUtil.replace("${key_value}", "&comma;", ",");
+
+				AssertElementPresent(
+					key_columnNumber = "${columNumber}",
+					key_specification = "${key_specification}",
+					key_value = "${key_value}",
+					locator1 = "CommerceFrontStore#PRODUCT_COMPARISON_TABLE_SPECIFICATION");
+			}
+
+			var columNumber = ${columNumber} + 1;
+		}
+	}
+
 	macro assertProductDetails {
 		if (isSet(productName)) {
 			AssertElementPresent(
@@ -60,23 +180,62 @@ definition {
 		}
 
 		if (isSet(productAvailability)) {
+			if ("${productAvailability}" == "Discontinued") {
+				AssertElementPresent(locator1 = "CommerceFrontStore#FS_PRODUCT_AVAILABILITY_DISCONTINUED");
+			}
+			else {
+				AssertElementPresent(
+					key_availability = "${productAvailability}",
+					locator1 = "CommerceFrontStore#FS_PRODUCT_AVAILABILITY");
+			}
+		}
+
+		if (isSet(endOfLifeDate)) {
 			AssertElementPresent(
-				key_availability = "${productAvailability}",
-				locator1 = "CommerceFrontStore#FS_PRODUCT_AVAILABILITY");
+				key_detail = "End of Life",
+				locator1 = "CommerceFrontStore#FS_PRODUCT_DETAIL",
+				value1 = "${endOfLifeDate}");
 		}
 
 		if (isSet(productSKU)) {
 			AssertElementPresent(
-				key_detail = "SKU",
+				key_detail = "SKU:",
 				locator1 = "CommerceFrontStore#FS_PRODUCT_DETAIL",
 				value1 = "${productSKU}");
 		}
 
 		if (isSet(productMPN)) {
 			AssertElementPresent(
-				key_detail = "MPN",
+				key_detail = "MPN:",
 				locator1 = "CommerceFrontStore#FS_PRODUCT_DETAIL",
 				value1 = "${productMPN}");
+		}
+
+		if (isSet(productGTIN)) {
+			AssertElementPresent(
+				key_detail = "GTIN:",
+				locator1 = "CommerceFrontStore#FS_PRODUCT_DETAIL",
+				value1 = "${productGTIN}");
+		}
+
+		if (isSet(productShortDescription)) {
+			AssertElementPresent(
+				locator1 = "CommerceFrontStore#FS_PRODUCT_DESCRIPTION",
+				value1 = "${productShortDescription}");
+		}
+
+		if (isSet(paymentSubscriptionPeriod)) {
+			AssertTextEquals.assertPartialText(
+				key_subscriptionName = "Payment",
+				locator1 = "CommerceAccelerators#PRODUCT_DETAILS_SUBSCRIPTION_INFO",
+				value1 = "${paymentSubscriptionPeriod}");
+		}
+
+		if (isSet(deliverySubscriptionPeriod)) {
+			AssertTextEquals.assertPartialText(
+				key_subscriptionName = "Delivery",
+				locator1 = "CommerceAccelerators#PRODUCT_DETAILS_SUBSCRIPTION_INFO",
+				value1 = "${deliverySubscriptionPeriod}");
 		}
 
 		if (isSet(productListPrice)) {
@@ -84,10 +243,82 @@ definition {
 				locator1 = "CommerceAccelerators#PRODUCT_DETAILS_LIST_PRICE",
 				value1 = "${productListPrice}");
 		}
+		else if (isSet(productListPriceInactive)) {
+			AssertElementPresent(
+				locator1 = "CommerceAccelerators#PRODUCT_DETAILS_LIST_PRICE_INACTIVE",
+				value1 = "${productListPriceInactive}");
+		}
 
-		AssertElementPresent(
-			key_fsProductImage = "",
-			locator1 = "CommerceFrontStore#FS_PRODUCT_IMAGE");
+		if (isSet(productSalePrice)) {
+			AssertElementPresent(
+				locator1 = "CommerceAccelerators#PRODUCT_DETAILS_LIST_PRICE_PROMO",
+				value1 = "${productSalePrice}");
+		}
+		else if (isSet(productSalePriceInactive)) {
+			AssertElementPresent(
+				locator1 = "CommerceAccelerators#PRODUCT_DETAILS_PROMO_PRICE_INACTIVE",
+				value1 = "${productSalePricePriceInactive}");
+		}
+
+		if (isSet(discountPercentage) && isSet(productNetPrice)) {
+			AssertTextEquals.assertPartialText(
+				locator1 = "CommerceAccelerators#PRODUCT_DETAILS_DISCOUNT",
+				value1 = "${discountPercentage}");
+
+			AssertTextEquals.assertPartialText(
+				locator1 = "CommerceAccelerators#PRODUCT_DETAILS_NET_PRICE",
+				value1 = "${productNetPrice}");
+		}
+
+		if (isSet(minQuantity)) {
+			AssertElementPresent(
+				key_minQuantity = "${minQuantity}",
+				locator1 = "CommerceFrontStore#PRODUCT_DETAILS_MIN_QUANTITY_PER_ORDER");
+		}
+
+		if (isSet(groupedProductEntryNames)) {
+			FrontStore.viewGroupedProductEntries(productNames = "${groupedProductEntryNames}");
+		}
+
+		if (isSet(sampleFileName)) {
+			AssertElementPresent(
+				key_sampleFileName = "${sampleFileName}",
+				locator1 = "CommerceFrontStore#PRODUCT_DETAILS_DOWNLOAD_SAMPLE_FILE_BUTTON");
+		}
+
+		if (isSet(productFullDescription)) {
+			Click(
+				key_text = "Full Description",
+				locator1 = "Button#ANY");
+
+			AssertTextEquals.assertPartialText(
+				locator1 = "CommerceFrontStore#FS_PRODUCT_FULL_DESCRIPTION",
+				value1 = "${productFullDescription}");
+		}
+
+		if (isSet(productSpecifications)) {
+			Click(
+				key_text = "Specifications",
+				locator1 = "Button#ANY");
+
+			for (var productSpecification : list "${productSpecifications}") {
+				var specificationKey = StringUtil.extractFirst("${productSpecification}", ":");
+				var specificationValue = StringUtil.extractLast("${productSpecification}", ":");
+
+				AssertTextEquals.assertPartialText(
+					key_specification = "${specificationKey}",
+					locator1 = "CommerceFrontStore#FS_PRODUCT_SPECIFICATIONS",
+					value1 = "${specificationValue}");
+			}
+		}
+
+		if (isSet(productImages)) {
+			for (var productImage : list "${productImages}") {
+				AssertElementPresent(
+					key_fsProductImage = "${productImage}",
+					locator1 = "CommerceFrontStore#FS_PRODUCT_IMAGE");
+			}
+		}
 	}
 
 	macro assertPromoPrice {
@@ -102,10 +333,46 @@ definition {
 			value1 = "${basePrice}");
 	}
 
+	macro compareProducts {
+		var comparisonItems = "0";
+
+		for (var product : list "${products}") {
+			if (!(IsElementPresent(key_productName = "${product}", locator1 = "CommerceEntry#PRODUCT_CARD_COMPARE_CHECKBOX"))) {
+				CommerceNavigator.searchEntry(entryName = "${product}");
+			}
+
+			ScrollWebElementIntoView(
+				key_productName = "${product}",
+				locator1 = "CommerceEntry#PRODUCT_CARD_COMPARE_CHECKBOX");
+
+			Check.checkToggleSwitch(
+				key_productName = "${product}",
+				locator1 = "CommerceEntry#PRODUCT_CARD_COMPARE_CHECKBOX");
+
+			var comparisonItems = ${comparisonItems} + 1;
+
+			AssertElementPresent(
+				key_value = "${comparisonItems}",
+				locator1 = "CommerceFrontStore#MINI_COMPARE_ITEM_ACTIVE_N");
+
+			FrontStore.assertMiniCompareItems(products = "${product}");
+		}
+
+		if ("${clickCompare}" != "false") {
+			Click(locator1 = "CommerceFrontStore#MINI_COMPARE_COMPARE_BUTTON");
+		}
+	}
+
+	macro getCurrentCartDataBadgeCount {
+		var dataBadgeCount = selenium.getAttribute("//div[contains(@class,'mini-cart')]/button[contains(@class,'mini-cart-opener') and @data-badge-count]@data-badge-count");
+
+		return "${dataBadgeCount}";
+	}
+
 	macro getCurrentCartItemCount {
 		CommerceNavigator.gotoMiniCart();
 
-		var currentItemCount = selenium.getAttribute("//div[contains(@class,'mini-cart')]/button[contains(@class,'mini-cart-opener') and @data-badge-count]@data-badge-count");
+		var currentItemCount = FrontStore.getCurrentCartDataBadgeCount();
 
 		if (IsElementPresent(key_cartItemName = "${productName}", locator1 = "CommerceAccelerators#MINI_CART_ITEM_NAME")) {
 			var newItemCount = "${currentItemCount}";
@@ -125,6 +392,73 @@ definition {
 		Click(
 			key_optionValue = "${fsOptionValue}",
 			locator1 = "CommerceFrontStore#FS_PRODUCT_OPTION");
+	}
+
+	macro setMaxComparisonItems {
+		Portlet.gotoPortletOptions(
+			portletName = "Product Comparison",
+			portletOption = "Configuration");
+
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
+
+		Type(
+			key_fieldLabel = "Products Limit",
+			locator1 = "TextInput#GENERIC_NUMBER_INPUT",
+			value1 = "${maxItems}");
+
+		Button.clickSave();
+
+		AssertElementPresent(locator1 = "Message#SUCCESS");
+
+		Button.clickCancel();
+	}
+
+	@summary = "Depending on what value is passed as product configuration(min,max or multiple), return the corresponding expected text"
+	macro setQuantitySelectorPopoverListItemText {
+		if ("${quantityConfiguration}" == "min") {
+			var quantityConfigurationText = "Min quantity per order is ";
+		}
+		else {
+			if ("${quantityConfiguration}" == "max") {
+				var quantityConfigurationText = "Maximum quantity per order is ";
+			}
+			else {
+				if ("${quantityConfiguration}" == "multiple") {
+					var quantityConfigurationText = "Quantity must be a multiple of ";
+				}
+				else {
+					TestUtils.fail(message = "Selected quantity configuration is not valid.");
+				}
+			}
+		}
+
+		return "${quantityConfigurationText}";
+	}
+
+	macro viewGroupedProductEntries {
+		Variables.assertDefined(parameterList = "${productNames}");
+
+		for (var productName : list "${productNames}") {
+			var productImage = CommerceJSONProductsAPI._getCommerceProductImageIds(productName = "${productName}");
+
+			AssertElementPresent(
+				key_productName = "${productName}",
+				locator1 = "CommerceFrontStore#PRODUCT_DETAILS_GROUPED_PRODUCT_NAME");
+
+			AssertElementPresent(
+				key_productName = "${productName}",
+				key_productShortDescription = "${productName} Short Description",
+				locator1 = "CommerceFrontStore#PRODUCT_DETAILS_GROUPED_PRODUCT_SHORT_DESCRIPTION");
+
+			if ("${productImage}" == "") {
+				var productImage = "default";
+			}
+
+			AssertElementPresent(
+				key_productImage = "${productImage}",
+				key_productName = "${productName}",
+				locator1 = "CommerceFrontStore#PRODUCT_DETAILS_GROUPED_PRODUCT_IMAGE");
+		}
 	}
 
 	macro viewMiniCart {
@@ -221,6 +555,27 @@ definition {
 		}
 	}
 
+	macro viewProductAttachment {
+		Variables.assertDefined(parameterList = "${attachmentName}");
+
+		Click(
+			key_text = "Attachments",
+			locator1 = "Button#ANY");
+
+		AssertElementPresent(
+			key_entryName = "${attachmentName}",
+			locator1 = "CommerceFrontStore#PRODUCT_DETAILS_ATTACHMENTS_NAME");
+
+		AssertElementPresent(
+			key_entryName = "${attachmentName}",
+			locator1 = "CommerceFrontStore#PRODUCT_DETAILS_ATTACHMENTS_ICON_DEFAULT");
+
+		AssertElementPresent(
+			key_button = "Download",
+			key_entryName = "${attachmentName}",
+			locator1 = "CommerceFrontStore#PRODUCT_DETAILS_ATTACHMENTS_BUTTON");
+	}
+
 	macro viewProductDetail {
 		AssertTextEquals(
 			locator1 = "CommerceFrontStore#FS_PRODUCT_NAME",
@@ -255,6 +610,30 @@ definition {
 					locator1 = "CommerceFrontStore#FS_PRODUCT_IMAGE",
 					value1 = "${fsOptionValue}");
 			}
+		}
+	}
+
+	@summary = "Assert that the product configuration set is correctly shown on the quantity selector popover"
+	macro viewQuantitySelectorPopoverListItem {
+		Variables.assertDefined(parameterList = "${quantityConfiguration},${quantity}");
+
+		if (!(isSet(conditionNotSatisfied))) {
+			var conditionNotSatisfied = "false";
+		}
+
+		var quantityConfigurationText = FrontStore.setQuantitySelectorPopoverListItemText(quantityConfiguration = "${quantityConfiguration}");
+
+		if ("${conditionNotSatisfied}" == "true") {
+			AssertElementPresent(
+				key_quantity = "${quantity}",
+				key_quantityConfigurationText = "${quantityConfigurationText}",
+				locator1 = "CommerceFrontStore#QUANTITY_SELECTOR_POPOVER_LIST_ITEM_ERROR");
+		}
+		else {
+			AssertElementPresent(
+				key_quantity = "${quantity}",
+				key_quantityConfigurationText = "${quantityConfigurationText}",
+				locator1 = "CommerceFrontStore#QUANTITY_SELECTOR_POPOVER_LIST_ITEM");
 		}
 	}
 

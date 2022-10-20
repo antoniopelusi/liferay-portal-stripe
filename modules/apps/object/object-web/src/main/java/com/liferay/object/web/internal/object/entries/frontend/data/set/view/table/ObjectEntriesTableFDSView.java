@@ -35,6 +35,8 @@ import com.liferay.object.service.ObjectRelationshipLocalService;
 import com.liferay.object.service.ObjectViewLocalService;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
@@ -101,7 +103,7 @@ public class ObjectEntriesTableFDSView extends BaseTableFDSView {
 					label = objectField.getLabel(locale, true);
 				}
 
-				if (objectField == null) {
+				if ((objectField == null) || objectField.isSystem()) {
 					_addNonbjectField(
 						fdsTableSchemaBuilder, label,
 						objectViewColumn.getObjectFieldName());
@@ -118,7 +120,7 @@ public class ObjectEntriesTableFDSView extends BaseTableFDSView {
 	private void _addAllObjectFields(
 		FDSTableSchemaBuilder fdsTableSchemaBuilder, Locale locale) {
 
-		_addNonbjectField(fdsTableSchemaBuilder, "id", "id");
+		_addNonbjectField(fdsTableSchemaBuilder, "id", "externalReferenceCode");
 
 		List<ObjectField> objectFields =
 			_objectFieldLocalService.getObjectFields(
@@ -138,7 +140,7 @@ public class ObjectEntriesTableFDSView extends BaseTableFDSView {
 		FDSTableSchemaBuilder fdsTableSchemaBuilder, String fieldName,
 		String label, boolean sortable) {
 
-		FDSTableSchemaField fdsTableSchemaField = null;
+		FDSTableSchemaField fdsTableSchemaField = new FDSTableSchemaField();
 
 		if (Objects.equals(
 				businessType, ObjectFieldConstants.BUSINESS_TYPE_ATTACHMENT) ||
@@ -146,25 +148,33 @@ public class ObjectEntriesTableFDSView extends BaseTableFDSView {
 			Objects.equals(dbType, ObjectFieldConstants.DB_TYPE_STRING)) {
 
 			StringFDSTableSchemaField stringFDSTableSchemaField =
-				fdsTableSchemaBuilder.addFDSTableSchemaField(
-					StringFDSTableSchemaField.class, fieldName, label);
+				new StringFDSTableSchemaField();
 
+			stringFDSTableSchemaField.setFieldName(fieldName);
+			stringFDSTableSchemaField.setLabel(label);
 			stringFDSTableSchemaField.setTruncate(true);
+
+			fdsTableSchemaBuilder.add(stringFDSTableSchemaField);
 
 			fdsTableSchemaField = stringFDSTableSchemaField;
 		}
 		else if (Objects.equals(dbType, ObjectFieldConstants.DB_TYPE_DATE)) {
 			DateFDSTableSchemaField dateFDSTableSchemaField =
-				fdsTableSchemaBuilder.addFDSTableSchemaField(
-					DateFDSTableSchemaField.class, fieldName, label);
+				new DateFDSTableSchemaField();
 
+			dateFDSTableSchemaField.setFieldName(fieldName);
 			dateFDSTableSchemaField.setFormat("short");
+			dateFDSTableSchemaField.setLabel(label);
+
+			fdsTableSchemaBuilder.add(dateFDSTableSchemaField);
 
 			fdsTableSchemaField = dateFDSTableSchemaField;
 		}
 		else {
-			fdsTableSchemaField = fdsTableSchemaBuilder.addFDSTableSchemaField(
-				fieldName, label);
+			fdsTableSchemaField.setFieldName(fieldName);
+			fdsTableSchemaField.setLabel(label);
+
+			fdsTableSchemaBuilder.add(fdsTableSchemaField);
 
 			if (Objects.equals(dbType, ObjectFieldConstants.DB_TYPE_BOOLEAN)) {
 				fdsTableSchemaField.setContentRenderer("boolean");
@@ -181,7 +191,7 @@ public class ObjectEntriesTableFDSView extends BaseTableFDSView {
 			fdsTableSchemaField.setSortable(true);
 		}
 
-		fdsTableSchemaBuilder.addFDSTableSchemaField(fdsTableSchemaField);
+		fdsTableSchemaBuilder.add(fdsTableSchemaField);
 	}
 
 	private void _addNonbjectField(
@@ -193,19 +203,33 @@ public class ObjectEntriesTableFDSView extends BaseTableFDSView {
 				null, null, null, fdsTableSchemaBuilder, fieldName + ".name",
 				fieldLabel, true);
 		}
-		else if (Objects.equals(fieldName, "dateCreated")) {
+		else if (Objects.equals(fieldName, "createDate")) {
 			_addFDSTableSchemaField(
-				null, null, "Date", fdsTableSchemaBuilder, fieldName,
+				null, null, "Date", fdsTableSchemaBuilder, "dateCreated",
 				fieldLabel, true);
 		}
-		else if (Objects.equals(fieldName, "dateModified")) {
-			_addFDSTableSchemaField(
-				null, null, "Date", fdsTableSchemaBuilder, fieldName,
-				fieldLabel, true);
+		else if (Objects.equals(fieldName, "externalReferenceCode")) {
+			if (GetterUtil.getBoolean(
+					PropsUtil.get("feature.flag.LPS-158821"))) {
+
+				_addFDSTableSchemaField(
+					null, "actionLink", null, fdsTableSchemaBuilder,
+					"externalReferenceCode", fieldLabel, true);
+			}
+			else {
+				_addFDSTableSchemaField(
+					null, "actionLink", null, fdsTableSchemaBuilder, "id",
+					fieldLabel, true);
+			}
 		}
 		else if (Objects.equals(fieldName, "id")) {
 			_addFDSTableSchemaField(
-				null, "actionLink", null, fdsTableSchemaBuilder, fieldName,
+				null, "actionLink", null, fdsTableSchemaBuilder, "id",
+				fieldLabel, true);
+		}
+		else if (Objects.equals(fieldName, "modifiedDate")) {
+			_addFDSTableSchemaField(
+				null, null, "Date", fdsTableSchemaBuilder, "dateModified",
 				fieldLabel, true);
 		}
 		else if (Objects.equals(fieldName, "status")) {
@@ -219,13 +243,16 @@ public class ObjectEntriesTableFDSView extends BaseTableFDSView {
 		FDSTableSchemaBuilder fdsTableSchemaBuilder, String label,
 		ObjectField objectField) {
 
+		if (objectField.isSystem()) {
+			return;
+		}
+
 		if (Validator.isNull(objectField.getRelationshipType())) {
 			_addFDSTableSchemaField(
 				objectField.getBusinessType(), null, objectField.getDBType(),
 				fdsTableSchemaBuilder,
 				_getFieldName(
-					objectField.getListTypeDefinitionId(),
-					objectField.getName()),
+					objectField.getBusinessType(), objectField.getName()),
 				label, objectField.isIndexed());
 		}
 		else if (Objects.equals(
@@ -240,10 +267,6 @@ public class ObjectEntriesTableFDSView extends BaseTableFDSView {
 			ObjectDefinition objectDefinition =
 				_objectDefinitionLocalService.fetchObjectDefinition(
 					objectRelationship.getObjectDefinitionId1());
-
-			if (objectDefinition.isSystem()) {
-				return;
-			}
 
 			ObjectField titleObjectField =
 				_objectFieldLocalService.fetchObjectField(
@@ -260,7 +283,7 @@ public class ObjectEntriesTableFDSView extends BaseTableFDSView {
 					titleObjectField.getBusinessType(), null,
 					titleObjectField.getDBType(), fdsTableSchemaBuilder,
 					_getFieldName(
-						titleObjectField.getListTypeDefinitionId(),
+						titleObjectField.getBusinessType(),
 						StringBundler.concat(
 							StringUtil.replaceLast(
 								objectField.getName(), "Id", ""),
@@ -270,8 +293,12 @@ public class ObjectEntriesTableFDSView extends BaseTableFDSView {
 		}
 	}
 
-	private String _getFieldName(long listTypeDefinitionId, String fieldName) {
-		if (listTypeDefinitionId > 0) {
+	private String _getFieldName(String businessType, String fieldName) {
+		if (Objects.equals(
+				businessType, ObjectFieldConstants.BUSINESS_TYPE_ATTACHMENT) ||
+			Objects.equals(
+				businessType, ObjectFieldConstants.BUSINESS_TYPE_PICKLIST)) {
+
 			return fieldName + ".name";
 		}
 

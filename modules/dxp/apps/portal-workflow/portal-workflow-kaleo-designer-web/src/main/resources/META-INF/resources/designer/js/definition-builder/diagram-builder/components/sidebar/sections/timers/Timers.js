@@ -95,7 +95,11 @@ const Timers = ({setContentName, setErrors}) => {
 								({script}) => script
 							)[0];
 
-							reassignments.scriptLanguage = [DEFAULT_LANGUAGE];
+							reassignments.scriptLanguage = filteredTimerActions.map(
+								({scriptLanguage}) => [
+									scriptLanguage || DEFAULT_LANGUAGE,
+								]
+							)[0];
 						}
 						else if (
 							reassignments.assignmentType[0] === 'user' &&

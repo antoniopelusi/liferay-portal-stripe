@@ -11,9 +11,10 @@ definition {
 
 		OAuth2.addApplication(
 			applicationName = "${applicationName}",
-			callbackUri = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=${clientId}''',
+			callbackUri = "${callbackUri}",
+			checkboxUncheckList = "${checkboxUncheckList}",
 			clientAuthenticationMethod = "${clientAuthenticationMethod}",
-			clientProfile = "Web Application");
+			clientProfile = "${clientProfile}");
 
 		if (isSet(checkboxCheckList)) {
 			Check(
@@ -80,6 +81,22 @@ definition {
 			value1 = "Save");
 	}
 
+	macro addOAuth2AppCreatorRole {
+		JSONRole.addRegularRole(
+			roleKey = "OAuth2 App Creator",
+			roleTitle = "OAuth2 App Creator");
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "ACCESS_IN_CONTROL_PANEL",
+			resourceName = "com_liferay_oauth2_provider_web_internal_portlet_OAuth2AdminPortlet",
+			roleTitle = "OAuth2 App Creator");
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "CREATE_TOKEN",
+			resourceName = "com.liferay.oauth2.provider.model.OAuth2Application",
+			roleTitle = "OAuth2 App Creator");
+	}
+
 	macro addPrefixHandlerInSystemSettings {
 		ApplicationsMenu.gotoPortlet(
 			category = "Configuration",
@@ -94,7 +111,7 @@ definition {
 		Button.clickAdd();
 
 		FormFields.editTextMultiline(
-			fieldName = "osgi.jaxrs.name",
+			fieldName = "osgiJaxrsName",
 			fieldValue = "${osgiJaxrsName}");
 
 		if ("${symbolicName}" == "false") {
@@ -102,11 +119,11 @@ definition {
 		}
 
 		FormFields.editTextMultiline(
-			fieldName = "excluded.scopes",
+			fieldName = "excludedScopes",
 			fieldValue = "${excludedScopesName}");
 
 		FormFields.editTextMultiline(
-			fieldName = "service.properties",
+			fieldName = "serviceProperties",
 			fieldValue = "${serviceProperties}");
 
 		FormFields.editTextMultiline(
@@ -140,6 +157,7 @@ definition {
 			http://localhost:9080/o/oauth2/token \
 				--data client_id=abc123&client_secret=abc123&grant_type=authorization_code&code=${authorizationCode}
 		''';
+
 		var response = JSONCurlUtil.post("${curl}");
 
 		if (contains("${response}", "access_token")) {
@@ -171,18 +189,21 @@ definition {
 
 	macro authorizeMyApplication {
 		if ("${newTab}" == "true") {
-			Open.openInTheNewTab(locator1 = "http://martamedio.com/oauth2-tester/");
-
-			SelectWindow.selectPopUp(locator1 = "null");
+			Open.openInTheNewTab(locator1 = "https://localhost:8443/oauth2-tester/");
 		}
 		else {
-			Navigator.openSpecificURL(url = "http://martamedio.com/oauth2-tester/");
+			Navigator.openSpecificURL(url = "https://localhost:8443/oauth2-tester/");
 		}
 
 		if (isSet(portalURL)) {
 			Type(
 				locator1 = "OAuth2#OAUTH2_TESTER_PORTAL_URL",
 				value1 = "${portalURL}");
+		}
+		else {
+			Type(
+				locator1 = "OAuth2#OAUTH2_TESTER_PORTAL_URL",
+				value1 = "https://localhost:8443");
 		}
 
 		Type(
@@ -220,7 +241,42 @@ definition {
 			locator1 = "OAuth2#OAUTH2_TESTER_CLIENT_SECRET",
 			value1 = "${clientSecret}");
 
+		SelectFrameTop();
+
 		Button.click(button = "Obtain OAuth2 Access");
+	}
+
+	macro authorizePKCEApplication {
+		Navigator.openSpecificURL(url = "https://localhost:8443/oauth2-tester/pkce/");
+
+		if (isSet(portalURL)) {
+			Type(
+				locator1 = "OAuth2#OAUTH2_TESTER_PORTAL_URL",
+				value1 = "${portalURL}");
+		}
+		else {
+			Type(
+				locator1 = "OAuth2#OAUTH2_TESTER_PORTAL_URL",
+				value1 = "https://localhost:8443");
+		}
+
+		Type(
+			locator1 = "OAuth2#OAUTH2_TESTER_CLIENT_ID",
+			value1 = "${clientId}");
+
+		Button.click(button = "Generate a Code Challenge");
+
+		var codeChallenge = selenium.getElementValue("OAuth2#OAUTH2_TESTER_CODE_CHALLENGE");
+
+		Button.click(button = "Authorize My Application (PKCE)");
+
+		Button.click(button = "Authorize");
+
+		Type(
+			locator1 = "OAuth2#OAUTH2_TESTER_EXCHANGE_CODE",
+			value1 = "${codeChallenge}");
+
+		Button.click(button = "Obtain Access Token");
 	}
 
 	macro deleteApplication {
@@ -233,6 +289,14 @@ definition {
 		AssertElementNotPresent(
 			key_tableName = "${applicationName}",
 			locator1 = "OAuth2#ADMIN_TABLE_APP_NAME");
+	}
+
+	macro deployInstanceConfigFile {
+		var companyId = JSONCompany.getCompanyId();
+
+		AntCommand(
+			locator1 = "build-test-oauth2.xml",
+			value1 = "prepare-oauth2-osgi-configuration -Dosgi.config.file.name=${osgiConfigFileName} -DcompanyId=${companyId}");
 	}
 
 	macro editApplication {
@@ -380,12 +444,16 @@ definition {
 		if ("${grantFlow}" == "clientCredentials") {
 			var tokenCurl = '''
 				${portalURL}/o/oauth2/token \
-					--data grant_type=client_credentials&client_id=${clientId}&client_secret=${clientSecret}
+					-d client_id=${client_id} \
+					-d client_secret=${client_secret} \
+					-d grant_type=client_credentials
 			''';
 		}
 
 		var response = JSONCurlUtil.post("${tokenCurl}");
+
 		var partialResponse = StringUtil.extractFirst("${response}", "\",\"token_type");
+
 		var accessToken = StringUtil.extractLast("${partialResponse}", "access_token\":\"");
 
 		echo("## * Access Token: ${accessToken}");
@@ -395,7 +463,10 @@ definition {
 
 	macro getAuthorizationCode {
 		var generatedClientId = selenium.getElementValue("OAuth2#ADMIN_INPUT_FORM_CLIENT_ID");
-		var portalURL = PropsUtil.get("portal.url");
+
+		if (!(isSet(portalURL))) {
+			var portalURL = PropsUtil.get("portal.url");
+		}
 
 		Navigator.openSpecificURL(url = "${portalURL}/o/oauth2/authorize?client_id=${generatedClientId}&response_type=code");
 
@@ -414,6 +485,27 @@ definition {
 		echo("## * Authorization Code: ${authorizationCode}");
 
 		return "${authorizationCode}";
+	}
+
+	macro getDeleteOutput {
+		var portalURL = PropsUtil.get("portal.url");
+		var articleId = JSONWebcontentSetter.setArticleId(
+			groupName = "Guest",
+			title = "WC Title");
+		var groupId = JSONGroupAPI._getGroupIdByName(
+			groupName = "Guest",
+			site = "true");
+
+		var deleteCurl = '''
+			${portalURL}/api/jsonws/journal.journalarticle/delete-article -H 'Authorization: Bearer ${accessToken}' \
+				-d groupId=${groupId} \
+				-d articleId=${articleId} \
+				-d articleURL='wc-title'
+		''';
+
+		var deleteOutput = JSONCurlUtil.post("${deleteCurl}");
+
+		return "${deleteOutput}";
 	}
 
 	macro inputApplicationValues {
@@ -541,7 +633,10 @@ definition {
 
 			SelectFrame(locator1 = "IFrame#MODAL_BODY");
 
-			Pause(locator1 = "2000");
+			WaitForElementPresent(
+				key_clientCredentialsUser = "${clientCredentialsUser}",
+				locator1 = "OAuth2#ADMIN_CLIENT_CREDENTIALS_USER_SELECTED",
+				value1 = "${clientCredentialsUser}");
 
 			Click(
 				key_clientCredentialsUser = "${clientCredentialsUser}",
@@ -552,6 +647,16 @@ definition {
 		}
 
 		PortletEntry.save();
+	}
+
+	macro introspectAccessToken {
+		AssertElementPresent(locator1 = "OAuth2#OAUTH2_TESTER_REQUEST_URL");
+
+		Button.click(button = "Introspect Access Token");
+
+		AssertTextEquals.assertPartialText(
+			locator1 = "OAuth2#OAUTH2_TESTER_REQUEST_RESULTS",
+			value1 = "${requestResult}");
 	}
 
 	macro launchRequest {
@@ -582,10 +687,6 @@ definition {
 
 	macro obtainOAuth2AccessNotAuthorized {
 		AssertConfirm.assertConfirmationNoError(value1 = "There's a problem with your authorization access");
-
-		AssertTextEquals.assertPartialText(
-			locator1 = "OAuth2#OAUTH2_TESTER_REQUEST_RESULTS",
-			value1 = "");
 	}
 
 	macro openOAuth2Admin {
@@ -594,6 +695,12 @@ definition {
 			urlAppend = "group/guest/~/control_panel/manage?p_p_id=com_liferay_oauth2_provider_web_internal_portlet_OAuth2AdminPortlet");
 
 		WaitForVisible(locator1 = "Button#PLUS");
+	}
+
+	macro openSSLPage {
+		Navigator.openSpecificURL(url = "https://localhost:8443");
+
+		Alert.confirmSecurity();
 	}
 
 	@description = "Get ClientId and ClientSecret from the page then post client credential token via curl."
@@ -829,7 +936,7 @@ definition {
 
 	macro viewAuthorizationRequestResourceName {
 		AssertElementPresent(
-			key_resourceName = "resourceName",
+			key_resourceName = "${resourceName}",
 			locator1 = "OAuth2#AUTHORIZATION_REQUEST_RESOURCE_NAME");
 	}
 
@@ -957,7 +1064,9 @@ definition {
 		if (isSet(globalScopeLinkValue)) {
 			if (contains("${scopeTranslation}", "+")) {
 				var partialScopeTranslation = StringUtil.extractFirst("${scopeTranslation}", "+");
+
 				var partialScopeTranslation = StringUtil.trim("${partialScopeTranslation}");
+
 				var key_scopeText = "${partialScopeTranslation}";
 			}
 			else {

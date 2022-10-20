@@ -22,10 +22,14 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -58,6 +62,39 @@ public class TestrayRoutine {
 			throw new RuntimeException(
 				"Invalid Testray project URL " + urlString,
 				malformedURLException);
+		}
+	}
+
+	public TestrayRoutine(URL testrayRoutineURL) {
+		Matcher matcher = _testrayRoutineURLPattern.matcher(
+			testrayRoutineURL.toString());
+
+		if (!matcher.find()) {
+			throw new RuntimeException(
+				"Invalid Routine URL " + testrayRoutineURL);
+		}
+
+		_url = testrayRoutineURL;
+
+		String serverURL = matcher.group("serverURL");
+
+		_testrayServer = TestrayFactory.newTestrayServer(
+			matcher.group("serverURL"));
+
+		try {
+			JSONObject jsonObject = JenkinsResultsParserUtil.toJSONObject(
+				JenkinsResultsParserUtil.combine(
+					serverURL, "/home/-/testray/routines/",
+					matcher.group("routineID"), ".json"),
+				_testrayServer.getHTTPAuthorization());
+
+			_jsonObject = jsonObject.getJSONObject("data");
+
+			_testrayProject = _testrayServer.getTestrayProjectByID(
+				Integer.parseInt(_jsonObject.getString("testrayProjectId")));
+		}
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
 		}
 	}
 
@@ -117,7 +154,8 @@ public class TestrayRoutine {
 
 		try {
 			JSONObject jsonObject = JenkinsResultsParserUtil.toJSONObject(
-				buildAddURL, 2, 5, sb.toString());
+				buildAddURL, 2, 5, sb.toString(),
+				_testrayServer.getHTTPAuthorization());
 
 			if (jsonObject.has("data")) {
 				return new TestrayBuild(this, jsonObject.getJSONObject("data"));
@@ -158,7 +196,7 @@ public class TestrayRoutine {
 
 		try {
 			JSONObject jsonObject = JenkinsResultsParserUtil.toJSONObject(
-				buildAPIURL, true);
+				buildAPIURL, true, _testrayServer.getHTTPAuthorization());
 
 			if (!jsonObject.has("data")) {
 				return null;
@@ -203,7 +241,7 @@ public class TestrayRoutine {
 					String.valueOf(getID()));
 
 				JSONObject jsonObject = JenkinsResultsParserUtil.toJSONObject(
-					buildAPIURL, true);
+					buildAPIURL, true, _testrayServer.getHTTPAuthorization());
 
 				JSONArray dataJSONArray = jsonObject.getJSONArray("data");
 
@@ -274,7 +312,7 @@ public class TestrayRoutine {
 					String.valueOf(getID()));
 
 				JSONObject jsonObject = JenkinsResultsParserUtil.toJSONObject(
-					buildAPIURL, true);
+					buildAPIURL, true, _testrayServer.getHTTPAuthorization());
 
 				JSONArray dataJSONArray = jsonObject.getJSONArray("data");
 
@@ -355,9 +393,14 @@ public class TestrayRoutine {
 
 	private static final Log _log = LogFactory.getLog(TestrayRoutine.class);
 
+	private static final Pattern _testrayRoutineURLPattern = Pattern.compile(
+		JenkinsResultsParserUtil.combine(
+			"(?<serverURL>https://[^/]+)/home/-/testray/builds\\?",
+			"testrayRoutineId=(?<routineID>\\d+)"));
+
 	private final JSONObject _jsonObject;
-	private final Map<Integer, TestrayBuild> _testrayBuildsByID =
-		new HashMap<>();
+	private final Map<Integer, TestrayBuild> _testrayBuildsByID = new TreeMap<>(
+		Collections.reverseOrder());
 	private final Map<String, TestrayBuild> _testrayBuildsByName =
 		new HashMap<>();
 	private final TestrayProject _testrayProject;

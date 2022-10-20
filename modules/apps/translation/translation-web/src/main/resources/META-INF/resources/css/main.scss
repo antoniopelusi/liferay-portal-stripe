@@ -11,8 +11,26 @@ $productMenuWidth: 320px;
 	$component: &;
 
 	&-edit {
-		.languages-selector .autofit-col:not(:last-child) {
-			margin-right: 1em;
+		.experience-selector select {
+			max-width: 6.5rem;
+		}
+
+		.languages-selector {
+			color: $black;
+			font-size: 0.875rem;
+
+			.autofit-col:not(:last-child) {
+				margin-right: 1em;
+			}
+		}
+
+		.autotranslate-feedback {
+			flex-shrink: 1;
+			font-size: 0.875rem;
+
+			@include media-breakpoint-up(xl) {
+				max-width: 18rem;
+			}
 		}
 	}
 
@@ -63,15 +81,6 @@ $productMenuWidth: 320px;
 						order: 1;
 						width: 100%;
 					}
-
-					> .tbar-item:last-child {
-						flex-grow: 1;
-
-						> .tbar-section {
-							display: flex;
-							justify-content: flex-end;
-						}
-					}
 				}
 			}
 
@@ -81,10 +90,6 @@ $productMenuWidth: 320px;
 						border-top: none;
 						order: 0;
 						width: auto;
-					}
-
-					> .tbar-item:last-child {
-						flex-grow: 0;
 					}
 				}
 			}
@@ -203,4 +208,9 @@ $productMenuWidth: 320px;
 			}
 		}
 	}
+}
+
+.translation-languages-dropdown {
+	position: fixed;
+	z-index: $zindex-dropdown;
 }

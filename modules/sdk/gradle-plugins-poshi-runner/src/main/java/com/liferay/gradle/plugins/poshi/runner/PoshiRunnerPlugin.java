@@ -28,6 +28,7 @@ import java.io.IOException;
 
 import java.nio.charset.StandardCharsets;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -47,6 +48,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.DependencySet;
+import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.plugins.BasePlugin;
@@ -70,8 +72,8 @@ import org.gradle.util.GUtil;
  */
 public class PoshiRunnerPlugin implements Plugin<Project> {
 
-	public static final String DOWNLOAD_CHROME_DRIVER_TASK_NAME =
-		"downloadChromeDriver";
+	public static final String DOWNLOAD_WEB_DRIVER_BROWSER_BINARY_TASK_NAME =
+		"downloadWebDriverBrowserBinary";
 
 	public static final String EVALUATE_POSHI_CONSOLE_TASK_NAME =
 		"evaluatePoshiConsole";
@@ -114,11 +116,9 @@ public class PoshiRunnerPlugin implements Plugin<Project> {
 
 		_addTaskExpandPoshiRunner(project);
 
-		final Properties poshiProperties = _getPoshiProperties(
-			poshiRunnerExtension);
-
-		final Copy downloadChromeDriverTask = _addTaskDownloadChromeDriver(
-			project, poshiProperties);
+		final Task downloadWebDriverBrowserBinaryTask =
+			_addTaskDownloadWebDriverBrowserBinary(
+				project, poshiRunnerExtension);
 
 		final Test runPoshiTask = _addTaskRunPoshi(project);
 		final JavaExec validatePoshiTask = _addTaskValidatePoshi(project);
@@ -130,8 +130,11 @@ public class PoshiRunnerPlugin implements Plugin<Project> {
 
 				@Override
 				public void execute(Project project) {
-					_configureTaskDownloadChromeDriver(
-						downloadChromeDriverTask, poshiProperties);
+					Properties poshiProperties = _getPoshiProperties(
+						poshiRunnerExtension);
+
+					_configureTaskDownloadWebDriverBrowserBinary(
+						downloadWebDriverBrowserBinaryTask, poshiProperties);
 					_configureTaskExecutePQLQuery(
 						executePQLQueryTask, poshiProperties,
 						poshiRunnerExtension);
@@ -251,58 +254,48 @@ public class PoshiRunnerPlugin implements Plugin<Project> {
 			true);
 	}
 
-	private Copy _addTaskDownloadChromeDriver(
-		final Project project, Properties poshiProperties) {
+	private Task _addTaskDownloadWebDriverBrowserBinary(
+		final Project project, PoshiRunnerExtension poshiRunnerExtension) {
 
-		Copy copy = GradleUtil.addTask(
-			project, DOWNLOAD_CHROME_DRIVER_TASK_NAME, Copy.class);
+		Task task = GradleUtil.addTask(
+			project, DOWNLOAD_WEB_DRIVER_BROWSER_BINARY_TASK_NAME, Task.class);
 
-		final File webDriverDir = _getWebDriverDir(project);
-
-		copy.doFirst(
+		task.doLast(
 			new Action<Task>() {
 
 				@Override
 				public void execute(Task task) {
+					File webDriverDir = _getWebDriverDir(project);
+
 					project.delete(webDriverDir);
+
+					project.copy(
+						new Action<CopySpec>() {
+
+							@Override
+							public void execute(CopySpec copySpec) {
+								File file = _getWebDriverBrowserBinaryFile(
+									project,
+									_getPoshiProperties(poshiRunnerExtension));
+
+								String fileName = file.getName();
+
+								if (fileName.endsWith(".zip")) {
+									copySpec.from(project.zipTree(file));
+								}
+								else {
+									copySpec.from(project.tarTree(file));
+								}
+
+								copySpec.into(webDriverDir);
+							}
+
+						});
 				}
 
 			});
 
-		copy.from(
-			new Closure<Void>(project) {
-
-				@SuppressWarnings("unused")
-				public FileTree doCall() {
-					File chromeDriverFile = null;
-
-					String chromeBinaryPath = poshiProperties.getProperty(
-						"browser.chrome.bin.file");
-
-					String url = _getChromeDriverURL(
-						_getChromeDriverVersion(project, chromeBinaryPath));
-
-					try {
-						chromeDriverFile = FileUtil.get(project, url, null);
-					}
-					catch (IOException ioException) {
-						throw new UncheckedIOException(ioException);
-					}
-
-					String chromeDriverFileName = chromeDriverFile.getName();
-
-					if (chromeDriverFileName.endsWith(".zip")) {
-						return project.zipTree(chromeDriverFile);
-					}
-
-					return null;
-				}
-
-			});
-
-		copy.into(webDriverDir);
-
-		return copy;
+		return task;
 	}
 
 	private JavaExec _addTaskEvaluatePoshiConsole(Project project) {
@@ -375,7 +368,8 @@ public class PoshiRunnerPlugin implements Plugin<Project> {
 		test.dependsOn(
 			BasePlugin.CLEAN_TASK_NAME +
 				StringUtil.capitalize(RUN_POSHI_TASK_NAME),
-			DOWNLOAD_CHROME_DRIVER_TASK_NAME, EXPAND_POSHI_RUNNER_TASK_NAME);
+			DOWNLOAD_WEB_DRIVER_BROWSER_BINARY_TASK_NAME,
+			EXPAND_POSHI_RUNNER_TASK_NAME);
 
 		test.include("com/liferay/poshi/runner/PoshiRunner.class");
 		test.setClasspath(_getPoshiRunnerClasspath(project));
@@ -447,15 +441,15 @@ public class PoshiRunnerPlugin implements Plugin<Project> {
 		return javaExec;
 	}
 
-	private void _configureTaskDownloadChromeDriver(
-		Copy copy, Properties poshiProperties) {
+	private void _configureTaskDownloadWebDriverBrowserBinary(
+		Task task, Properties poshiProperties) {
 
-		copy.onlyIf(
+		task.onlyIf(
 			new Spec<Task>() {
 
 				@Override
 				public boolean isSatisfiedBy(Task task) {
-					return _isDownloadChromeDriver(poshiProperties);
+					return _isDownloadWebDriverBrowserBinary(poshiProperties);
 				}
 
 			});
@@ -538,6 +532,16 @@ public class PoshiRunnerPlugin implements Plugin<Project> {
 			javaExec.getProject(), poshiRunnerExtension);
 	}
 
+	private String _getBrowserType(Properties poshiProperties) {
+		String browserType = poshiProperties.getProperty("browser.type");
+
+		if (Validator.isNull(browserType)) {
+			return "chrome";
+		}
+
+		return browserType;
+	}
+
 	private String _getChromeDriverURL(String chromeDriverVersion) {
 		StringBuilder sb = new StringBuilder();
 
@@ -584,8 +588,8 @@ public class PoshiRunnerPlugin implements Plugin<Project> {
 			if (!chromeBinaryFile.exists()) {
 				throw new IllegalArgumentException(
 					"Unable to not find a Google Chrome binary. Manually set " +
-						"\"browser.chrome.bin.file\" in \"poshi.properties\"" +
-							" to a Google Chrome or Chromium binary.");
+						"\"browser.chrome.bin.file\" in \"poshi.properties\" " +
+							"to a Google Chrome or Chromium binary.");
 			}
 		}
 
@@ -635,6 +639,32 @@ public class PoshiRunnerPlugin implements Plugin<Project> {
 		return new File(project.getBuildDir(), "poshi-runner");
 	}
 
+	private String _getGeckoDriverURL(String geckoDriverVersion) {
+		StringBuilder sb = new StringBuilder();
+
+		sb.append("https://github.com/mozilla/geckodriver/releases/download/v");
+
+		sb.append(geckoDriverVersion);
+
+		sb.append("/geckodriver-v");
+
+		sb.append(geckoDriverVersion);
+
+		sb.append("-");
+
+		if (OSDetector.isApple()) {
+			sb.append("macos.tar.gz");
+		}
+		else if (OSDetector.isWindows()) {
+			sb.append("win32.zip");
+		}
+		else {
+			sb.append("linux64.tar.gz");
+		}
+
+		return sb.toString();
+	}
+
 	private File _getPoshiExtPropertiesFile(File poshiPropertiesFile) {
 		String fileName = poshiPropertiesFile.getName();
 
@@ -660,21 +690,27 @@ public class PoshiRunnerPlugin implements Plugin<Project> {
 
 		Properties poshiProperties = new Properties();
 
-		File poshiPropertiesFile =
-			poshiRunnerExtension.getPoshiPropertiesFile();
+		List<File> poshiPropertiesFiles = new ArrayList<>();
 
-		if (poshiPropertiesFile != null) {
-			if (poshiPropertiesFile.exists()) {
-				poshiProperties.putAll(
-					GUtil.loadProperties(poshiPropertiesFile));
-			}
+		poshiPropertiesFiles.add(poshiRunnerExtension.getPoshiPropertiesFile());
 
-			File poshiExtPropertiesFile = _getPoshiExtPropertiesFile(
-				poshiPropertiesFile);
+		poshiPropertiesFiles.addAll(
+			poshiRunnerExtension.getPoshiPropertiesFiles());
 
-			if (poshiExtPropertiesFile.exists()) {
-				poshiProperties.putAll(
-					GUtil.loadProperties(poshiExtPropertiesFile));
+		for (File poshiPropertiesFile : poshiPropertiesFiles) {
+			if (poshiPropertiesFile != null) {
+				if (poshiPropertiesFile.exists()) {
+					poshiProperties.putAll(
+						GUtil.loadProperties(poshiPropertiesFile));
+				}
+
+				File poshiExtPropertiesFile = _getPoshiExtPropertiesFile(
+					poshiPropertiesFile);
+
+				if (poshiExtPropertiesFile.exists()) {
+					poshiProperties.putAll(
+						GUtil.loadProperties(poshiExtPropertiesFile));
+				}
 			}
 		}
 
@@ -697,25 +733,65 @@ public class PoshiRunnerPlugin implements Plugin<Project> {
 			sikuliConfiguration);
 	}
 
+	private File _getWebDriverBrowserBinaryFile(
+		Project project, Properties poshiProperties) {
+
+		String url = null;
+
+		String browserType = _getBrowserType(poshiProperties);
+
+		if (browserType.equals("chrome")) {
+			String chromeBinaryPath = poshiProperties.getProperty(
+				"browser.chrome.bin.file");
+
+			url = _getChromeDriverURL(
+				_getChromeDriverVersion(project, chromeBinaryPath));
+		}
+
+		if (browserType.equals("firefox")) {
+			url = _getGeckoDriverURL(_DEFAULT_GECKO_DRIVER_VERSION);
+		}
+
+		if (Validator.isNull(url)) {
+			throw new RuntimeException("Unable to get browser driver URL");
+		}
+
+		try {
+			return FileUtil.get(project, url, null);
+		}
+		catch (IOException ioException) {
+			throw new UncheckedIOException(ioException);
+		}
+	}
+
+	private String _getWebDriverBrowserBinaryName(Properties poshiProperties) {
+		return _webDriverBrowserBinaryNames.get(
+			_getBrowserType(poshiProperties));
+	}
+
+	private String _getWebDriverBrowserBinaryPropertyName(
+		Properties poshiProperties) {
+
+		return _webDriverBrowserBinaryPropertyNames.get(
+			_getBrowserType(poshiProperties));
+	}
+
 	private File _getWebDriverDir(Project project) {
 		return new File(project.getBuildDir(), "webdriver");
 	}
 
-	private boolean _isDownloadChromeDriver(Properties poshiProperties) {
-		String browserType = poshiProperties.getProperty("browser.type");
+	private boolean _isDownloadWebDriverBrowserBinary(
+		Properties poshiProperties) {
 
-		if (Validator.isNull(browserType)) {
-			return true;
-		}
+		String webDriverBrowserBinaryPropertyName =
+			_getWebDriverBrowserBinaryPropertyName(poshiProperties);
 
-		if (!browserType.equals("chrome")) {
+		if (poshiProperties.containsKey(webDriverBrowserBinaryPropertyName)) {
 			return false;
 		}
 
-		String webDriverChromeDriver = System.getProperty(
-			"webdriver.chrome.driver");
-
-		return Validator.isNull(webDriverChromeDriver);
+		return Validator.isNull(
+			System.getProperty(webDriverBrowserBinaryPropertyName));
 	}
 
 	private void _populateSystemProperties(
@@ -782,30 +858,39 @@ public class PoshiRunnerPlugin implements Plugin<Project> {
 	private void _populateWebDriverSystemProperties(
 		Test test, Properties poshiProperties) {
 
-		Map<String, Object> systemProperties = test.getSystemProperties();
+		String webDriverBrowserBinaryPropertyName =
+			_getWebDriverBrowserBinaryPropertyName(poshiProperties);
 
-		if (_isDownloadChromeDriver(poshiProperties)) {
+		if (poshiProperties.containsKey(webDriverBrowserBinaryPropertyName)) {
+			return;
+		}
+
+		String webDriverBrowserBinaryPropertyValue = System.getProperty(
+			webDriverBrowserBinaryPropertyName);
+
+		if (Validator.isNull(webDriverBrowserBinaryPropertyValue)) {
+			webDriverBrowserBinaryPropertyValue =
+				_getWebDriverDir(test.getProject()) + "/" +
+					_getWebDriverBrowserBinaryName(poshiProperties);
+
 			if (OSDetector.isWindows()) {
-				systemProperties.put(
-					"webdriver.chrome.driver",
-					_getWebDriverDir(test.getProject()) + "/chromedriver.exe");
-			}
-			else {
-				systemProperties.put(
-					"webdriver.chrome.driver",
-					_getWebDriverDir(test.getProject()) + "/chromedriver");
+				webDriverBrowserBinaryPropertyValue =
+					webDriverBrowserBinaryPropertyValue + ".exe";
 			}
 		}
-		else if (Validator.isNotNull(
-					System.getProperty("webdriver.chrome.driver"))) {
+
+		if (Validator.isNotNull(webDriverBrowserBinaryPropertyValue)) {
+			Map<String, Object> systemProperties = test.getSystemProperties();
 
 			systemProperties.put(
-				"webdriver.chrome.driver",
-				System.getProperty("webdriver.chrome.driver"));
+				webDriverBrowserBinaryPropertyName,
+				webDriverBrowserBinaryPropertyValue);
 		}
 	}
 
 	private static final String _DEFAULT_CHROME_DRIVER_VERSION = "2.37";
+
+	private static final String _DEFAULT_GECKO_DRIVER_VERSION = "0.31.0";
 
 	private static final String _START_TESTABLE_TOMCAT_TASK_NAME =
 		"startTestableTomcat";
@@ -831,9 +916,27 @@ public class PoshiRunnerPlugin implements Plugin<Project> {
 				put("98", "98.0.4758.102");
 				put("99", "99.0.4844.51");
 				put("100", "100.0.4896.60");
+				put("101", "101.0.4951.15");
+				put("102", "102.0.5005.61");
+				put("103", "103.0.5060.53");
+				put("104", "104.0.5112.20");
 			}
 		};
 	private static final Pattern _chromeVersionPattern = Pattern.compile(
 		"[A-z=\\s]+(?<chromeMajorVersion>[0-9]+)\\.");
+	private static final Map<String, String> _webDriverBrowserBinaryNames =
+		new HashMap<String, String>() {
+			{
+				put("chrome", "chromedriver");
+				put("firefox", "geckodriver");
+			}
+		};
+	private static final Map<String, String>
+		_webDriverBrowserBinaryPropertyNames = new HashMap<String, String>() {
+			{
+				put("chrome", "webdriver.chrome.driver");
+				put("firefox", "webdriver.gecko.driver");
+			}
+		};
 
 }

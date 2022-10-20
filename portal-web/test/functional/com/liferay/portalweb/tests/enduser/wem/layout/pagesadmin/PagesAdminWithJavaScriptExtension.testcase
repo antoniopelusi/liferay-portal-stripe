@@ -1,0 +1,1103 @@
+@component-name = "portal-wcm"
+definition {
+
+	property custom.properties = "feature.flag.LPS-153457=true";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Site Pages Administration";
+
+	setUp {
+		task ("Set up instance and sign in") {
+			TestCase.setUpPortalInstance();
+
+			User.firstLoginPG();
+		}
+
+		task ("Add a site") {
+			JSONGroup.addGroup(groupName = "Test Site Name");
+		}
+
+		task ("Upload six JavaScript extension files to Documents and Media") {
+			JSONDocument.addFileWithUploadedFile(
+				dmDocumentTitle = "Text Color",
+				groupName = "Test Site Name",
+				mimeType = "application/javascript",
+				sourceFileName = "TextColor.js");
+
+			JSONDocument.addFileWithUploadedFile(
+				dmDocumentTitle = "Inner Text",
+				groupName = "Test Site Name",
+				mimeType = "application/javascript",
+				sourceFileName = "InnerText.js");
+
+			JSONDocument.addFileWithUploadedFile(
+				dmDocumentTitle = "Font Family",
+				groupName = "Test Site Name",
+				mimeType = "application/javascript",
+				sourceFileName = "FontFamily.js");
+
+			JSONDocument.addFileWithUploadedFile(
+				dmDocumentTitle = "Font Size",
+				groupName = "Test Site Name",
+				mimeType = "application/javascript",
+				sourceFileName = "FontSize.js");
+
+			JSONDocument.addFileWithUploadedFile(
+				dmDocumentTitle = "Font Weight",
+				groupName = "Test Site Name",
+				mimeType = "application/javascript",
+				sourceFileName = "FontWeight.js");
+
+			JSONDocument.addFileWithUploadedFile(
+				dmDocumentTitle = "Margin Top",
+				groupName = "Test Site Name",
+				mimeType = "application/javascript",
+				sourceFileName = "MarginTop.js");
+		}
+
+		task ("Get the latest version URL of six documents") {
+			var firstURL = JSONDocument.getLatestVersionURL(
+				dmDocumentTitle = "Text Color",
+				groupName = "Test Site Name");
+			var secondURL = JSONDocument.getLatestVersionURL(
+				dmDocumentTitle = "Inner Text",
+				groupName = "Test Site Name");
+			var thirdURL = JSONDocument.getLatestVersionURL(
+				dmDocumentTitle = "Font Family",
+				groupName = "Test Site Name");
+			var fourthURL = JSONDocument.getLatestVersionURL(
+				dmDocumentTitle = "Font Size",
+				groupName = "Test Site Name");
+			var fifthURL = JSONDocument.getLatestVersionURL(
+				dmDocumentTitle = "Font Weight",
+				groupName = "Test Site Name");
+			var sixthURL = JSONDocument.getLatestVersionURL(
+				dmDocumentTitle = "Margin Top",
+				groupName = "Test Site Name");
+		}
+
+		task ("Add six remote apps for JavaScript extension") {
+			JSONRemoteApp.addRemoteAppEntry(
+				name = "TextColor",
+				type = "globalJS",
+				url = "${firstURL}");
+
+			JSONRemoteApp.addRemoteAppEntry(
+				name = "InnerText",
+				type = "globalJS",
+				url = "${secondURL}");
+
+			JSONRemoteApp.addRemoteAppEntry(
+				name = "FontFamily",
+				type = "globalJS",
+				url = "${thirdURL}");
+
+			JSONRemoteApp.addRemoteAppEntry(
+				name = "FontSize",
+				type = "globalJS",
+				url = "${fourthURL}");
+
+			JSONRemoteApp.addRemoteAppEntry(
+				name = "FontWeight",
+				type = "globalJS",
+				url = "${fifthURL}");
+
+			JSONRemoteApp.addRemoteAppEntry(
+				name = "MarginTop",
+				type = "globalJS",
+				url = "${sixthURL}");
+		}
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
+
+			RemoteApps.tearDown();
+		}
+	}
+
+	@description = "This is a test for LPS-153655 and LPS-153658. The site designer could add JavaScript extension to page, page template, and group of pages. The site designer could add a JavaScript Extension to Page Head or Page Bottom."
+	@priority = "5"
+	test AddJavaScriptExtension {
+		task ("Given a site designer has a widget page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Page Name");
+		}
+
+		task ("When the site designer accesses to Advanced settings of widget page") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			PagesAdmin.gotoPageEllipsisMenuItem(
+				menuItem = "Configure",
+				pageName = "Test Page Name");
+
+			Navigator.gotoNavTab(navTab = "Advanced");
+
+			Panel.expandPanel(panel = "JavaScript");
+
+			AssertTextEquals(
+				key_sectionTitle = "JavaScript Extensions",
+				locator1 = "PagesAdmin#SECTION_SUBTITLE",
+				value1 = "No JavaScript extensions were loaded.");
+		}
+
+		task ("Then the site designer could add a JavaScript Extension to widget page") {
+			PagesAdmin.addJavaScriptExtensions(
+				extensionNameList = "FontFamily",
+				insertion = "In Page Head");
+
+			AssertVisible(
+				key_tableEntry = "FontFamily",
+				locator1 = "LexiconTable#TABLE_ENTRY");
+
+			PortletEntry.save();
+
+			Navigator.gotoBack();
+
+			PagesAdmin.gotoPageEllipsisMenuItem(
+				menuItem = "View",
+				pageName = "Test Page Name");
+
+			AssertCssValue(
+				locator1 = "ControlMenu#HEADING",
+				locator2 = "font-family",
+				value1 = "&quot;Times New Roman&quot;");
+		}
+
+		task ("Given a site designer has a content page template") {
+			JSONLayoutpagetemplate.addLayoutPageTemplateCollection(
+				groupName = "Test Site Name",
+				layoutPageTemplateCollectionName = "Page Template Collection");
+
+			PageTemplatesAdmin.openPageTemplatesAdmin(siteURLKey = "test-site-name");
+
+			Navigator.gotoNavNested(navNested = "Page Template Collection");
+
+			PageTemplatesAdmin.addPageTemplate(
+				pageTemplateName = "Page Template Name",
+				pageTemplateType = "Content Page Template");
+
+			PageEditor.assertFragmentSidebarLoaded();
+		}
+
+		task ("When the site designer accesses to Advanced settings of content page template") {
+			PageEditor.gotoTab(tabName = "Page Design Options");
+
+			Click(locator1 = "PageEditor#MORE_LINK");
+
+			WaitForPageLoad();
+
+			Navigator.gotoNavTab(navTab = "Advanced");
+
+			Panel.expandPanel(panel = "JavaScript");
+
+			AssertTextEquals(
+				key_sectionTitle = "JavaScript Extensions",
+				locator1 = "PagesAdmin#SECTION_SUBTITLE",
+				value1 = "No JavaScript extensions were loaded.");
+		}
+
+		task ("Then the site designer could add a JavaScript Extension to widget page") {
+			PagesAdmin.addJavaScriptExtensions(
+				extensionNameList = "InnerText",
+				insertion = "In Page Bottom");
+
+			AssertVisible(
+				key_tableEntry = "InnerText",
+				locator1 = "LexiconTable#TABLE_ENTRY");
+
+			PortletEntry.save();
+
+			Navigator.gotoBack();
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Welcome");
+		}
+
+		task ("When the site designer accesses to Advanced settings of Pages") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			WaitForPageLoad();
+
+			Click(locator1 = "Icon#HEADER_VERTICAL_ELLIPSIS");
+
+			DropdownMenuItem.click(menuItem = "Configuration");
+
+			WaitForPageLoad();
+
+			Navigator.gotoNavTab(navTab = "Advanced");
+
+			Panel.expandPanel(panel = "JavaScript");
+
+			AssertTextEquals(
+				key_sectionTitle = "JavaScript Extensions",
+				locator1 = "PagesAdmin#SECTION_SUBTITLE",
+				value1 = "No JavaScript extensions were loaded.");
+		}
+
+		task ("Then the site designer could add a JavaScript Extension to Pages") {
+			PagesAdmin.addJavaScriptExtensions(
+				extensionNameList = "TextColor",
+				insertion = "In Page Bottom");
+
+			AssertVisible(
+				key_tableEntry = "TextColor",
+				locator1 = "LexiconTable#TABLE_ENTRY");
+
+			PortletEntry.save();
+
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Content Page Name",
+				type = "content");
+
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			PagesAdmin.gotoPageEllipsisMenuItem(
+				menuItem = "Edit",
+				pageName = "Content Page Name");
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Content Page Name *");
+
+			AssertCssValue(
+				locator1 = "ControlMenu#HEADING",
+				locator2 = "color",
+				value1 = "rgba(255, 0, 0, 1)");
+
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			PagesAdmin.gotoPageEllipsisMenuItem(
+				menuItem = "View",
+				pageName = "Test Page Name");
+
+			AssertCssValue(
+				locator1 = "ControlMenu#HEADING",
+				locator2 = "font-family",
+				value1 = "&quot;Times New Roman&quot;");
+		}
+	}
+
+	@description = "This is a test for LPS-153658. The site designer could add same JavaScript Extension to Page Head or Page Bottom of different pages."
+	@priority = "4"
+	test AddSameJavaScriptExtensionToPageHeadOrPageBottomOfDifferentPages {
+		task ("Given a site designer has two content pages") {
+			for (var i : list "1,2") {
+				JSONLayout.addPublicLayout(
+					groupName = "Test Site Name",
+					layoutName = "Test Page Name ${i}",
+					type = "content");
+			}
+		}
+
+		task ("When the site designer add a JavaScript extension to page bottom of the first content page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name 1",
+				siteName = "Test Site Name");
+
+			PageEditor.gotoTab(tabName = "Page Design Options");
+
+			Click(locator1 = "PageEditor#MORE_LINK");
+
+			Navigator.gotoNavTab(navTab = "Advanced");
+
+			Panel.expandPanel(panel = "JavaScript");
+
+			PagesAdmin.addJavaScriptExtensions(
+				extensionNameList = "FontFamily",
+				insertion = "In Page Head");
+
+			PortletEntry.save();
+		}
+
+		task ("Then the site designer could add the same JavaScript extension to page head of the second content page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name 2",
+				siteName = "Test Site Name");
+
+			PageEditor.gotoTab(tabName = "Page Design Options");
+
+			Click(locator1 = "PageEditor#MORE_LINK");
+
+			Navigator.gotoNavTab(navTab = "Advanced");
+
+			Panel.expandPanel(panel = "JavaScript");
+
+			PagesAdmin.addJavaScriptExtensions(
+				extensionNameList = "FontFamily",
+				insertion = "In Page Bottom");
+
+			PortletEntry.save();
+
+			Navigator.gotoBack();
+
+			PageEditor.assertFragmentSidebarLoaded();
+
+			AssertCssValue(
+				locator1 = "ControlMenu#HEADING",
+				locator2 = "font-family",
+				value1 = "&quot;Times New Roman&quot;");
+
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name 1",
+				siteName = "Test Site Name");
+
+			AssertCssValue(
+				locator1 = "ControlMenu#HEADING",
+				locator2 = "font-family",
+				value1 = "&quot;Times New Roman&quot;");
+		}
+	}
+
+	@description = "This is a test for LPS-153655. The site designer could change JavaScript extension selection to an inheritor page from page template."
+	@priority = "5"
+	test ChangeJavaScriptExtensionOfInheritorPage {
+		task ("Given a site designer has a content page template with a JavaScript extension") {
+			JSONLayoutpagetemplate.addLayoutPageTemplateCollection(
+				groupName = "Test Site Name",
+				layoutPageTemplateCollectionName = "Page Template Collection");
+
+			JSONLayoutpagetemplate.addLayoutPageTemplateEntry(
+				groupName = "Test Site Name",
+				layoutPageTemplateCollectionName = "Page Template Collection",
+				layoutPageTemplateEntryName = "Content Page Template",
+				layoutPageTemplateStatus = "Draft",
+				layoutPageTemplateType = "Content Page Template");
+
+			PageTemplatesAdmin.openPageTemplatesAdmin(siteURLKey = "test-site-name");
+
+			Navigator.gotoNavNested(navNested = "Page Template Collection");
+
+			PageTemplatesAdmin.gotoPageTemplate(pageTemplateName = "Content Page Template");
+
+			PageEditor.assertFragmentSidebarLoaded();
+
+			PageEditor.gotoTab(tabName = "Page Design Options");
+
+			Click(locator1 = "PageEditor#MORE_LINK");
+
+			Navigator.gotoNavTab(navTab = "Advanced");
+
+			Panel.expandPanel(panel = "JavaScript");
+
+			PagesAdmin.addJavaScriptExtensions(
+				extensionNameList = "InnerText",
+				insertion = "In Page Bottom");
+
+			PortletEntry.save();
+
+			Navigator.gotoBack();
+
+			PageEditor.assertFragmentSidebarLoaded();
+
+			PageEditor.publish();
+		}
+
+		task ("When the site designer adds a content page based on content page template") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			ContentPages.addPage(
+				collectionName = "Page Template Collection",
+				pageName = "Test Page Name",
+				pageTemplateName = "Content Page Template");
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Welcome");
+		}
+
+		task ("Then the site designer could change the JavaScript extension of content page") {
+			PageEditor.gotoTab(tabName = "Page Design Options");
+
+			Click(locator1 = "PageEditor#MORE_LINK");
+
+			WaitForPageLoad();
+
+			Navigator.gotoNavTab(navTab = "Advanced");
+
+			Panel.expandPanel(panel = "JavaScript");
+
+			AssertVisible(
+				key_tableEntry = "InnerText",
+				locator1 = "LexiconTable#TABLE_ENTRY");
+
+			PagesAdmin.addJavaScriptExtensions(
+				extensionNameList = "TextColor",
+				insertion = "In Page Bottom");
+
+			PortletEntry.save();
+
+			Navigator.gotoBack();
+
+			PageEditor.assertFragmentSidebarLoaded();
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Welcome");
+
+			AssertCssValue(
+				locator1 = "ControlMenu#HEADING",
+				locator2 = "color",
+				value1 = "rgba(255, 0, 0, 1)");
+
+			PageEditor.gotoTab(tabName = "Page Design Options");
+
+			Click(locator1 = "PageEditor#MORE_LINK");
+
+			WaitForPageLoad();
+
+			Navigator.gotoNavTab(navTab = "Advanced");
+
+			Panel.expandPanel(panel = "JavaScript");
+
+			for (var extensionName : list "InnerText,TextColor") {
+				Click(
+					key_tableEntry = "${extensionName}",
+					locator1 = "LexiconTable#TABLE_ENTRY_ELLIPSIS");
+
+				DropdownMenuItem.click(menuItem = "Delete");
+			}
+
+			AssertTextEquals(
+				key_sectionTitle = "JavaScript Extensions",
+				locator1 = "PagesAdmin#SECTION_SUBTITLE",
+				value1 = "No JavaScript extensions were loaded.");
+
+			PortletEntry.save();
+
+			Navigator.gotoBack();
+
+			PageEditor.assertFragmentSidebarLoaded();
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Test Page Name *");
+
+			AssertCssValue(
+				locator1 = "ControlMenu#HEADING",
+				locator2 = "color",
+				value1 = "rgba(255, 255, 255, 1)");
+		}
+	}
+
+	@description = "This is a test for LPS-153655. The site designer could delete the JavaScript extenion selection."
+	@priority = "4"
+	test ClearJavaScriptExtensionSelection {
+		task ("Given a site designer has a content page with a JavaScript extension") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Page Name",
+				type = "content");
+
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.gotoTab(tabName = "Page Design Options");
+
+			Click(locator1 = "PageEditor#MORE_LINK");
+
+			Navigator.gotoNavTab(navTab = "Advanced");
+
+			Panel.expandPanel(panel = "JavaScript");
+
+			PagesAdmin.addJavaScriptExtensions(
+				extensionNameList = "InnerText",
+				insertion = "In Page Bottom");
+
+			PortletEntry.save();
+		}
+
+		task ("When the site designer accesses to the Advanced settings") {
+			Navigator.gotoBack();
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Welcome");
+
+			PageEditor.assertFragmentSidebarLoaded();
+
+			PageEditor.gotoTab(tabName = "Page Design Options");
+
+			Click(locator1 = "PageEditor#MORE_LINK");
+
+			WaitForPageLoad();
+		}
+
+		task ("Then the site designer could clear the JavaScript extension selection") {
+			Click(
+				key_tableEntry = "InnerText",
+				locator1 = "LexiconTable#TABLE_ENTRY_ELLIPSIS");
+
+			DropdownMenuItem.click(menuItem = "Delete");
+
+			AssertTextEquals(
+				key_sectionTitle = "JavaScript Extensions",
+				locator1 = "PagesAdmin#SECTION_SUBTITLE",
+				value1 = "No JavaScript extensions were loaded.");
+
+			PortletEntry.save();
+
+			Navigator.gotoBack();
+
+			PageEditor.assertFragmentSidebarLoaded();
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Test Page Name *");
+		}
+	}
+
+	@description = "This is a test for LPS-153658. The site designer could configure the load attribute of JavaScript Extension."
+	@priority = "5"
+	test ConfigureLoadAttributeOfJavaScriptExtension {
+		task ("Given a site designer has a page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Page Name");
+		}
+
+		task ("When the site designer adds a JavaScript extension to page") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			PagesAdmin.gotoPageEllipsisMenuItem(
+				menuItem = "Configure",
+				pageName = "Test Page Name");
+
+			Navigator.gotoNavTab(navTab = "Advanced");
+
+			Panel.expandPanel(panel = "JavaScript");
+
+			PagesAdmin.addJavaScriptExtensions(
+				extensionNameList = "FontSize",
+				insertion = "In Page Head");
+		}
+
+		task ("Then the site designer could configure the load attribute of JavaScript extension") {
+			Select(
+				key_tableEntry = "FontSize",
+				locator1 = "LexiconTable#TABLE_ENTRY_SELECT_FIELD",
+				value1 = "async");
+
+			PortletEntry.save();
+
+			Navigator.gotoBack();
+
+			PagesAdmin.gotoPageEllipsisMenuItem(
+				menuItem = "View",
+				pageName = "Test Page Name");
+
+			AssertCssValue(
+				locator1 = "ControlMenu#HEADING",
+				locator2 = "font-size",
+				value1 = "20px");
+
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			PagesAdmin.gotoPageEllipsisMenuItem(
+				menuItem = "Configure",
+				pageName = "Test Page Name");
+
+			Navigator.gotoNavTab(navTab = "Advanced");
+
+			Panel.expandPanel(panel = "JavaScript");
+
+			Select(
+				key_tableEntry = "FontSize",
+				locator1 = "LexiconTable#TABLE_ENTRY_SELECT_FIELD",
+				value1 = "defer");
+
+			PortletEntry.save();
+
+			Navigator.gotoBack();
+
+			PagesAdmin.gotoPageEllipsisMenuItem(
+				menuItem = "View",
+				pageName = "Test Page Name");
+
+			AssertCssValue(
+				locator1 = "ControlMenu#HEADING",
+				locator2 = "font-size",
+				value1 = "20px");
+		}
+
+		task ("Given a site designer has a content page template") {
+			JSONLayoutpagetemplate.addLayoutPageTemplateCollection(
+				groupName = "Test Site Name",
+				layoutPageTemplateCollectionName = "Page Template Collection");
+
+			PageTemplatesAdmin.openPageTemplatesAdmin(siteURLKey = "test-site-name");
+
+			Navigator.gotoNavNested(navNested = "Page Template Collection");
+
+			PageTemplatesAdmin.addPageTemplate(
+				pageTemplateName = "Page Template Name",
+				pageTemplateType = "Content Page Template");
+
+			PageEditor.assertFragmentSidebarLoaded();
+		}
+
+		task ("When the site designer adds a JavaScript extension to content page template") {
+			PageEditor.gotoTab(tabName = "Page Design Options");
+
+			Click(locator1 = "PageEditor#MORE_LINK");
+
+			WaitForPageLoad();
+
+			Navigator.gotoNavTab(navTab = "Advanced");
+
+			Panel.expandPanel(panel = "JavaScript");
+
+			PagesAdmin.addJavaScriptExtensions(
+				extensionNameList = "FontSize",
+				insertion = "In Page Head");
+		}
+
+		task ("Then the site designer could configure the load attribute of JavaScript extension") {
+			Select(
+				key_tableEntry = "FontSize",
+				locator1 = "LexiconTable#TABLE_ENTRY_SELECT_FIELD",
+				value1 = "async");
+
+			PortletEntry.save();
+
+			Navigator.gotoBack();
+
+			PageEditor.assertFragmentSidebarLoaded();
+
+			AssertCssValue(
+				locator1 = "ControlMenu#HEADING",
+				locator2 = "font-size",
+				value1 = "20px");
+
+			PageEditor.gotoTab(tabName = "Page Design Options");
+
+			Click(locator1 = "PageEditor#MORE_LINK");
+
+			WaitForPageLoad();
+
+			Navigator.gotoNavTab(navTab = "Advanced");
+
+			Panel.expandPanel(panel = "JavaScript");
+
+			Select(
+				key_tableEntry = "FontSize",
+				locator1 = "LexiconTable#TABLE_ENTRY_SELECT_FIELD",
+				value1 = "defer");
+
+			PortletEntry.save();
+
+			Navigator.gotoBack();
+
+			PageEditor.assertFragmentSidebarLoaded();
+
+			AssertCssValue(
+				locator1 = "ControlMenu#HEADING",
+				locator2 = "font-size",
+				value1 = "20px");
+		}
+
+		task ("Given a site designer has a master page") {
+			JSONLayoutpagetemplate.addMasterPageTemplateEntry(
+				groupName = "Test Site Name",
+				masterPageTemplateEntryName = "Master Page Template");
+
+			MastersPageTemplatesAdmin.openMastersAdmin(siteURLKey = "test-site-name");
+
+			MastersPageTemplatesAdmin.gotoMasters(masterLayoutName = "Master Page Template");
+		}
+
+		task ("When the site designer adds a JavaScript extension to master page") {
+			PageEditor.gotoTab(tabName = "Page Design Options");
+
+			Click(locator1 = "PageEditor#MORE_LINK");
+
+			Navigator.gotoNavTab(navTab = "Advanced");
+
+			PagesAdmin.addJavaScriptExtensions(
+				extensionNameList = "FontSize",
+				insertion = "In Page Head");
+		}
+
+		task ("Then the site designer could configure the load attribute of JavaScript extension") {
+			Select(
+				key_tableEntry = "FontSize",
+				locator1 = "LexiconTable#TABLE_ENTRY_SELECT_FIELD",
+				value1 = "async");
+
+			PortletEntry.save();
+
+			Navigator.gotoBack();
+
+			PageEditor.assertFragmentSidebarLoaded();
+
+			AssertCssValue(
+				locator1 = "ControlMenu#HEADING",
+				locator2 = "font-size",
+				value1 = "20px");
+
+			PageEditor.gotoTab(tabName = "Page Design Options");
+
+			Click(locator1 = "PageEditor#MORE_LINK");
+
+			Navigator.gotoNavTab(navTab = "Advanced");
+
+			Select(
+				key_tableEntry = "FontSize",
+				locator1 = "LexiconTable#TABLE_ENTRY_SELECT_FIELD",
+				value1 = "defer");
+
+			PortletEntry.save();
+
+			Navigator.gotoBack();
+
+			PageEditor.assertFragmentSidebarLoaded();
+
+			AssertCssValue(
+				locator1 = "ControlMenu#HEADING",
+				locator2 = "font-size",
+				value1 = "20px");
+		}
+
+		task ("Given a site designer accesses to the Advanced settings of Pages") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			WaitForPageLoad();
+
+			Click(locator1 = "Icon#HEADER_VERTICAL_ELLIPSIS");
+
+			DropdownMenuItem.click(menuItem = "Configuration");
+
+			WaitForPageLoad();
+
+			Navigator.gotoNavTab(navTab = "Advanced");
+		}
+
+		task ("When the site designer adds a JavaScript extension to Pages") {
+			Panel.expandPanel(panel = "JavaScript");
+
+			PagesAdmin.addJavaScriptExtensions(
+				extensionNameList = "FontSize",
+				insertion = "In Page Head");
+		}
+
+		task ("Then the site designer could configure the load attribute of JavaScript extension") {
+			Select(
+				key_tableEntry = "FontSize",
+				locator1 = "LexiconTable#TABLE_ENTRY_SELECT_FIELD",
+				value1 = "async");
+
+			PortletEntry.save();
+
+			ContentPages.addPage(pageName = "Content Page Name");
+
+			AssertCssValue(
+				locator1 = "ControlMenu#HEADING",
+				locator2 = "font-size",
+				value1 = "20px");
+
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			WaitForPageLoad();
+
+			Click(locator1 = "Icon#HEADER_VERTICAL_ELLIPSIS");
+
+			DropdownMenuItem.click(menuItem = "Configuration");
+
+			WaitForPageLoad();
+
+			Navigator.gotoNavTab(navTab = "Advanced");
+
+			Panel.expandPanel(panel = "JavaScript");
+
+			Select(
+				key_tableEntry = "FontSize",
+				locator1 = "LexiconTable#TABLE_ENTRY_SELECT_FIELD",
+				value1 = "defer");
+
+			PortletEntry.save();
+
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
+
+			AssertCssValue(
+				locator1 = "ControlMenu#HEADING",
+				locator2 = "font-size",
+				value1 = "20px");
+		}
+	}
+
+	@description = "This is a test for LPS-153655 and LPS-153658. Page should inherit the JavaScript extension from master page. The inherited JavaScript extensions from master should be read-only mode and keep insertion configuration."
+	@priority = "4"
+	test ViewInheritedJavaScriptExtensionFromMasterPage {
+		task ("Given a site designer has a master page with a JavaScript extension") {
+			JSONLayoutpagetemplate.addMasterPageTemplateEntry(
+				groupName = "Test Site Name",
+				masterPageTemplateEntryName = "Master Page Template");
+
+			MastersPageTemplatesAdmin.openMastersAdmin(siteURLKey = "test-site-name");
+
+			MastersPageTemplatesAdmin.gotoMasters(masterLayoutName = "Master Page Template");
+
+			PageEditor.gotoTab(tabName = "Page Design Options");
+
+			Click(locator1 = "PageEditor#MORE_LINK");
+
+			Navigator.gotoNavTab(navTab = "Advanced");
+
+			PagesAdmin.addJavaScriptExtensions(
+				extensionNameList = "InnerText",
+				insertion = "In Page Bottom");
+
+			PortletEntry.save();
+
+			Navigator.gotoBack();
+
+			MastersPageTemplates.publishMaster();
+		}
+
+		task ("When the site designer adds a content page based on master page") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			ContentPages.addPage(
+				masterLayoutName = "Master Page Template",
+				pageName = "Test Page Name");
+		}
+
+		task ("Then the site designer could see the inherited JavaScript extension") {
+			ControlMenu.viewHeaderTitle(headerTitle = "Welcome");
+
+			PageEditor.gotoTab(tabName = "Page Design Options");
+
+			Click(locator1 = "PageEditor#MORE_LINK");
+
+			Navigator.gotoNavTab(navTab = "Advanced");
+
+			Panel.expandPanel(panel = "JavaScript");
+
+			AssertVisible(
+				key_groupHeader = "Page bottom JS extensions",
+				key_tableEntry = "InnerText",
+				locator1 = "LexiconTable#GROUPED_TABLE_ENTRY");
+
+			LexiconTable.viewTableEntryInfo(
+				index = "3",
+				tableEntry = "InnerText",
+				tableEntryInfo = "From Master");
+
+			AssertNotEditable(
+				key_tableEntry = "InnerText",
+				locator1 = "LexiconTable#TABLE_ENTRY_SELECT_FIELD");
+		}
+	}
+
+	@description = "This is a test for LPS-153658. The inherited JavaScript extensions from Pages should be read-only mode and keep insertion configuration."
+	@priority = "4"
+	test ViewInheritedJavaScriptExtensionFromPages {
+		task ("Given a site designer has the Pages with a JavaScript extension") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			WaitForPageLoad();
+
+			Click(locator1 = "Icon#HEADER_VERTICAL_ELLIPSIS");
+
+			DropdownMenuItem.click(menuItem = "Configuration");
+
+			WaitForPageLoad();
+
+			Navigator.gotoNavTab(navTab = "Advanced");
+
+			Panel.expandPanel(panel = "JavaScript");
+
+			PagesAdmin.addJavaScriptExtensions(
+				extensionNameList = "FontFamily",
+				insertion = "In Page Head");
+
+			PortletEntry.save();
+		}
+
+		task ("When the site designer adds a page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Page Name");
+		}
+
+		task ("Then the site designer could see the inherited JavaScript extension on the Advanced settings of page") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			PagesAdmin.gotoPageEllipsisMenuItem(
+				menuItem = "Configure",
+				pageName = "Test Page Name");
+
+			Navigator.gotoNavTab(navTab = "Advanced");
+
+			Panel.expandPanel(panel = "JavaScript");
+
+			AssertVisible(
+				key_groupHeader = "Page Head JS Extensions",
+				key_tableEntry = "FontFamily",
+				locator1 = "LexiconTable#GROUPED_TABLE_ENTRY");
+
+			LexiconTable.viewTableEntryInfo(
+				index = "3",
+				tableEntry = "FontFamily",
+				tableEntryInfo = "From Pages");
+
+			AssertNotEditable(
+				key_tableEntry = "FontFamily",
+				locator1 = "LexiconTable#TABLE_ENTRY_SELECT_FIELD");
+		}
+	}
+
+	@description = "This is a test for LPS-153658. View the loading order of applied JavaScript Extensions to page."
+	@priority = "4"
+	test ViewLoadingOrderOfAppliedJavaScriptExtensions {
+		task ("Given a site designer has a page with multiple JavaScript extensions") {
+			task ("Add JavaScript extensions and embedded JavaScript to Pages") {
+				PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+				WaitForPageLoad();
+
+				Click(locator1 = "Icon#HEADER_VERTICAL_ELLIPSIS");
+
+				DropdownMenuItem.click(menuItem = "Configuration");
+
+				WaitForPageLoad();
+
+				Navigator.gotoNavTab(navTab = "Advanced");
+
+				Panel.expandPanel(panel = "JavaScript");
+
+				PagesAdmin.addJavaScriptExtensions(
+					extensionNameList = "FontFamily",
+					insertion = "In Page Head");
+
+				PagesAdmin.addJavaScriptExtensions(
+					extensionNameList = "TextColor",
+					insertion = "In Page Bottom");
+
+				var javaScript = '''document.evaluate("//*[@data-qa-id='headerTitle']", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.style.textAlign = "right";''';
+
+				Type(
+					key_text = "javascript",
+					locator1 = "TextArea#ANY",
+					value1 = "${javaScript}");
+
+				PortletEntry.save();
+			}
+
+			task ("Add JavaScript extensions and embedded JavaScript to a master page") {
+				JSONLayoutpagetemplate.addMasterPageTemplateEntry(
+					groupName = "Test Site Name",
+					masterPageTemplateEntryName = "Master Page Template");
+
+				MastersPageTemplatesAdmin.openMastersAdmin(siteURLKey = "test-site-name");
+
+				MastersPageTemplatesAdmin.gotoMasters(masterLayoutName = "Master Page Template");
+
+				PageEditor.gotoTab(tabName = "Page Design Options");
+
+				Click(locator1 = "PageEditor#MORE_LINK");
+
+				Navigator.gotoNavTab(navTab = "Advanced");
+
+				PagesAdmin.addJavaScriptExtensions(
+					extensionNameList = "FontSize",
+					insertion = "In Page Head");
+
+				PagesAdmin.addJavaScriptExtensions(
+					extensionNameList = "InnerText",
+					insertion = "In Page Bottom");
+
+				var javaScript = '''document.body.style.backgroundColor = "olive";''';
+
+				Type(
+					key_text = "javascript",
+					locator1 = "TextArea#ANY",
+					value1 = "${javaScript}");
+
+				PortletEntry.save();
+
+				Navigator.gotoBack();
+
+				MastersPageTemplates.publishMaster();
+			}
+
+			task ("Add JavaScript extensions and embedded JavaScript to a content page based on master page") {
+				PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+				ContentPages.addPage(
+					masterLayoutName = "Master Page Template",
+					pageName = "Test Page Name");
+
+				PageEditor.gotoTab(tabName = "Page Design Options");
+
+				Click(locator1 = "PageEditor#MORE_LINK");
+
+				Navigator.gotoNavTab(navTab = "Advanced");
+
+				Panel.expandPanel(panel = "JavaScript");
+
+				PagesAdmin.addJavaScriptExtensions(
+					extensionNameList = "FontWeight",
+					insertion = "In Page Head");
+
+				PagesAdmin.addJavaScriptExtensions(
+					extensionNameList = "MarginTop",
+					insertion = "In Page Bottom");
+
+				var javaScript = '''document.body.style.marginBottom = "1px";''';
+
+				Type(
+					key_text = "javascript",
+					locator1 = "TextArea#ANY",
+					value1 = "${javaScript}");
+
+				PortletEntry.save();
+
+				Navigator.gotoBack();
+
+				PageEditor.assertFragmentSidebarLoaded();
+			}
+		}
+
+		task ("When the site designer accesses to view source page") {
+			var currentURL = Navigator.getCurrentURL();
+
+			Navigator.openSpecificURL(url = "view-source:${currentURL}");
+
+			WaitForPageLoad();
+		}
+
+		task ("Then the site designer could see the loading order of JavaScript extensions") {
+			var n = "1";
+
+			for (var extensionName : list "font-family,font-size,font-weight,text-color,inner-text,margin-top") {
+				AssertTextEquals.assertPartialText(
+					locator1 = "xpath=(//a[contains(@class,'html-resource-link')][contains(@href,'documents/d/test-site-name')])[${n}]",
+					value1 = "${extensionName}");
+
+				var n = ${n} + 1;
+			}
+
+			var fontWeight = selenium.getElementValue("//tr[td[contains(@class,'line-content')][contains(.,'/font-weight')]]/td[contains(@class,'line-number')]");
+			var pages = selenium.getElementValue("//tr[td[contains(@class,'line-content')][contains(.,'textAlign = \"right\"')]]/td[contains(@class,'line-number')]");
+			var master = selenium.getElementValue("//tr[td[contains(@class,'line-content')][contains(.,'backgroundColor = \"olive\"')]]/td[contains(@class,'line-number')]");
+			var contentPage = selenium.getElementValue("//tr[td[contains(@class,'line-content')][contains(.,'marginBottom = \"1px\"')]]/td[contains(@class,'line-number')]");
+			var textColor = selenium.getElementValue("//tr[td[contains(@class,'line-content')][contains(.,'/text-color')]]/td[contains(@class,'line-number')]");
+
+			TestUtils.isLessThan(
+				actual = "${fontWeight}",
+				expected = "${pages}");
+
+			TestUtils.isLessThan(
+				actual = "${pages}",
+				expected = "${master}");
+
+			TestUtils.isLessThan(
+				actual = "${master}",
+				expected = "${contentPage}");
+
+			TestUtils.isLessThan(
+				actual = "${contentPage}",
+				expected = "${textColor}");
+		}
+	}
+
+}

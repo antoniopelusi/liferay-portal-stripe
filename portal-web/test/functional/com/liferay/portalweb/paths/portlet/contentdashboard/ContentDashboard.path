@@ -150,6 +150,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>CONTENT_PERFORMANCE_SIDEBAR</td>
+	<td>//div[contains(@class, 'sidebar ') and descendant-or-self::p[contains(.,'Content Performance')]]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>CONTENT_PERFORMANCE_TITLE_PANEL</td>
 	<td>//*[contains(@class, 'font-weight-bold mb-0 pr-2') and contains(text(), 'Content Performance')]</td>
 	<td></td>
@@ -190,6 +195,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>FILTER_BAR</td>
+	<td>//nav[contains(@class,'subnav-tbar')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>FILTER_BY_EXTENSION_EMPTY</td>
 	<td>//*[contains(@class, 'sheet-text') and contains(@class, 'text-center') and contains(text(), '${noResultMessage}')]</td>
 	<td></td>
@@ -201,7 +211,7 @@
 </tr>
 <tr>
 	<td>FILTER_CATEGORY_NAME</td>
-	<td>//*[contains(@class,'label') and contains(text(),'Category:${categoryName}')]</td>
+	<td>//*[contains(@class,'label') and contains(text(),'Category: ${categoryName}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -261,7 +271,12 @@
 </tr>
 <tr>
 	<td>ICON_VIEW_LISTED_MODIFIED_DATE</td>
-	<td>//a[contains(@label,'View')]</td>
+	<td>//a[contains(@title,'View')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ICON_VIEW_METRICS</td>
+	<td>//button[contains(@title,'View Metrics')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -275,8 +290,13 @@
 	<td></td>
 </tr>
 <tr>
+	<td>INFO_PANEL_ASSET_TYPE</td>
+	<td>//*[@data-qa-id='assetTypeInfo']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>INFO_PANEL_AUTHOR</td>
-	<td>//span[contains(@class,'text-secondary') and contains (.,'${assetAuthor}')]</td>
+	<td>//*[contains(@class,'component-title username')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -340,6 +360,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>PREVIEW_IMAGE</td>
+	<td>//*[contains(@class,'document-preview-figure')] //img[contains(@src,'${assetName}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>QUICK_ACTION_MENU</td>
 	<td>//a[contains(@class, 'component-action quick-action-item') and contains(@label, '${keyAction}')]</td>
 	<td></td>
@@ -362,6 +387,11 @@
 <tr>
 	<td>ROW_PANEL_WC</td>
 	<td>//tr[contains(@data-qa-id, 'row')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ROW_PANEL_ASSET_NAME</td>
+	<td>//tr[contains(@data-qa-id, 'row') and contains(.,'${key_assetName}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -405,6 +435,16 @@
 	<td></td>
 </tr>
 <tr>
+	<td>TREEVIEW_OPTION_CHECKBOX</td>
+	<td>//div[(@class='autofit-row') and contains (normalize-space(.),'${key_optionName}')] //input[@type='checkbox']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TREEVIEW_OPTION_ROW</td>
+	<td>//div[(@class='autofit-row') and contains (normalize-space(.),'${optionName}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>TYPE_COLUMN_VALUE</td>
 	<td>//td[contains(@class,'lfr-type-column') and contains(text(),'${assetType}')]</td>
 	<td></td>
@@ -417,6 +457,11 @@
 <tr>
 	<td>VIEW_OPTION</td>
 	<td>//*[contains(@class, 'dropdown-item') and contains(text(),'View')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VIEW_TRANSLATED_ASSET_ICON</td>
+	<td>//div[contains(@class,'sidebar-section')] //div[contains(.,'${key_language}')] //div[a]</td>
 	<td></td>
 </tr>
 <tr>

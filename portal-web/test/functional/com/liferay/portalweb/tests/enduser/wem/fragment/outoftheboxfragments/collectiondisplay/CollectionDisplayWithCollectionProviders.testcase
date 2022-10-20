@@ -106,7 +106,7 @@ definition {
 				columnNumber = "1",
 				fragmentName = "Collection Display",
 				infoListProviderName = "Recent Content",
-				listStyle = "Bordered List");
+				styleDisplay = "Bordered List");
 		}
 
 		task ("Add a Collection Display to the second module") {
@@ -136,7 +136,7 @@ definition {
 				assetListName = "Manual Collection",
 				fragmentName = "Collection Display",
 				index = "3",
-				listStyle = "Bulleted List");
+				styleDisplay = "Bulleted List");
 		}
 
 		task ("View the title of assets are shown in the first module") {
@@ -158,7 +158,7 @@ definition {
 				AssertVisible(locator1 = "xpath=(//div[@aria-label='Collection Display']//div[contains(@class,'page-editor__collection')]//ul[not(contains(@class,'list-group'))]/li[1][normalize-space(text())='Web Content Title'])[${n}]");
 			}
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Navigate to page at view mode") {
@@ -257,7 +257,7 @@ definition {
 				assetListName = "Manual Collection",
 				columnNumber = "1",
 				fragmentName = "Collection Display",
-				listStyle = "Bordered List");
+				styleDisplay = "Bordered List");
 		}
 
 		task ("Add a Collection Display to the second module") {
@@ -287,7 +287,7 @@ definition {
 				fragmentName = "Collection Display",
 				index = "3",
 				infoListProviderName = "Most Viewed Assets",
-				listStyle = "Bulleted List");
+				styleDisplay = "Bulleted List");
 		}
 
 		task ("View the title of web content shown in the first module") {
@@ -311,7 +311,7 @@ definition {
 				var n = ${n} + 1;
 			}
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Navigate to page at view mode") {
@@ -1040,7 +1040,7 @@ definition {
 				var n = ${n} + 1;
 			}
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View the description of assets shown in Content Display at view mode") {
@@ -1083,13 +1083,9 @@ definition {
 				navTab = "Blog Images",
 				uploadFileName = "Document_1.jpg");
 
-			Pause(locator1 = "3000");
-
 			Panel.expandPanel(panel = "Configuration");
 
 			BlogsEntry.addCustomAbstract(entryAbstractDescription = "This is a description for blogs entry");
-
-			Pause(locator1 = "3000");
 
 			PortletEntry.publish();
 
@@ -1116,7 +1112,7 @@ definition {
 				fragmentName = "Collection Display",
 				infoListProviderName = "Highest Rated Assets",
 				listItemStyle = "Abstract",
-				listStyle = "Bordered List");
+				styleDisplay = "Bordered List");
 		}
 
 		task ("Assert the Abstract of collection items are shown in Bordered List") {
@@ -1146,7 +1142,7 @@ definition {
 		}
 
 		task ("Assert the Abstract of collection items are shown in Bordered List at view mode") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Content Page Name",
@@ -1183,8 +1179,8 @@ definition {
 			PageEditor.editCollectionDisplay(
 				fragmentName = "Collection Display",
 				listItemStyle = "Abstract",
-				listStyle = "Bulleted List",
-				selectedName = "Highest Rated Assets");
+				selectedName = "Highest Rated Assets",
+				styleDisplay = "Bulleted List");
 		}
 
 		task ("Assert the Abstract of collection items are shown in Bulleted List") {
@@ -1214,7 +1210,7 @@ definition {
 		}
 
 		task ("Assert the Abstract of collection items are shown in Bulleted List at view mode") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			var n = "1";
 
@@ -1247,8 +1243,8 @@ definition {
 			PageEditor.editCollectionDisplay(
 				fragmentName = "Collection Display",
 				listItemStyle = "Abstract",
-				listStyle = "Inline List",
-				selectedName = "Highest Rated Assets");
+				selectedName = "Highest Rated Assets",
+				styleDisplay = "Inline List");
 		}
 
 		task ("Assert the Abstract of collection items are shown in Inline List") {
@@ -1278,7 +1274,7 @@ definition {
 		}
 
 		task ("Assert the Abstract of collection items are shown in Inline List at view mode") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			var n = "1";
 
@@ -1311,8 +1307,8 @@ definition {
 			PageEditor.editCollectionDisplay(
 				fragmentName = "Collection Display",
 				listItemStyle = "Abstract",
-				listStyle = "Numbered List",
-				selectedName = "Highest Rated Assets");
+				selectedName = "Highest Rated Assets",
+				styleDisplay = "Numbered List");
 		}
 
 		task ("Assert the Abstract of collection items are shown in Numbered List") {
@@ -1342,7 +1338,7 @@ definition {
 		}
 
 		task ("Assert the Abstract of collection items are shown in Numbered List at view mode") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			var n = "1";
 
@@ -1375,8 +1371,8 @@ definition {
 			PageEditor.editCollectionDisplay(
 				fragmentName = "Collection Display",
 				listItemStyle = "Abstract",
-				listStyle = "Unstyled List",
-				selectedName = "Highest Rated Assets");
+				selectedName = "Highest Rated Assets",
+				styleDisplay = "Unstyled List");
 		}
 
 		task ("Assert the Abstract of collection items are shown in Unstyled List") {
@@ -1406,7 +1402,7 @@ definition {
 		}
 
 		task ("Assert the Abstract of collection items are shown in Unstyled List at view mode") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			var n = "1";
 
@@ -1489,7 +1485,7 @@ definition {
 				var n = ${n} + 1;
 			}
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View the title of assets shown in Content Display at view mode") {
@@ -1573,7 +1569,7 @@ definition {
 				fragmentName = "Content Display",
 				text = "Web Content Content");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View full content are shown in Content Display at view mode") {
@@ -1618,8 +1614,6 @@ definition {
 				navTab = "Blog Images",
 				uploadFileName = "Document_1.jpg");
 
-			Pause(locator1 = "3000");
-
 			PortletEntry.publish();
 
 			JSONDocument.addFileWithUploadedFile(
@@ -1644,7 +1638,7 @@ definition {
 				fragmentName = "Collection Display",
 				infoListProviderName = "Highest Rated Assets",
 				listItemStyle = "Full Content",
-				listStyle = "Bordered List");
+				styleDisplay = "Bordered List");
 		}
 
 		task ("Assert the Full Content of collection items are shown in Bordered List") {
@@ -1674,7 +1668,7 @@ definition {
 		}
 
 		task ("Assert the Full Content of collection items are shown in Bordered List at view mode") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Content Page Name",
@@ -1711,8 +1705,8 @@ definition {
 			PageEditor.editCollectionDisplay(
 				fragmentName = "Collection Display",
 				listItemStyle = "Full Content",
-				listStyle = "Bulleted List",
-				selectedName = "Highest Rated Assets");
+				selectedName = "Highest Rated Assets",
+				styleDisplay = "Bulleted List");
 		}
 
 		task ("Assert the Full Content of collection items are shown in Bulleted List") {
@@ -1742,7 +1736,7 @@ definition {
 		}
 
 		task ("Assert the Full Content of collection items are shown in Bulleted List at view mode") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			var n = "2";
 
@@ -1775,8 +1769,8 @@ definition {
 			PageEditor.editCollectionDisplay(
 				fragmentName = "Collection Display",
 				listItemStyle = "Full Content",
-				listStyle = "Inline List",
-				selectedName = "Highest Rated Assets");
+				selectedName = "Highest Rated Assets",
+				styleDisplay = "Inline List");
 		}
 
 		task ("Assert the Full Content of collection items are shown in Inline List") {
@@ -1806,7 +1800,7 @@ definition {
 		}
 
 		task ("Assert the Full Content of collection items are shown in Inline List at view mode") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			var n = "2";
 
@@ -1839,8 +1833,8 @@ definition {
 			PageEditor.editCollectionDisplay(
 				fragmentName = "Collection Display",
 				listItemStyle = "Full Content",
-				listStyle = "Numbered List",
-				selectedName = "Highest Rated Assets");
+				selectedName = "Highest Rated Assets",
+				styleDisplay = "Numbered List");
 		}
 
 		task ("Assert the Full Content of collection items are shown in Numbered List") {
@@ -1870,7 +1864,7 @@ definition {
 		}
 
 		task ("Assert the Full Content of collection items are shown in Numbered List at view mode") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			var n = "2";
 
@@ -1903,8 +1897,8 @@ definition {
 			PageEditor.editCollectionDisplay(
 				fragmentName = "Collection Display",
 				listItemStyle = "Full Content",
-				listStyle = "Unstyled List",
-				selectedName = "Highest Rated Assets");
+				selectedName = "Highest Rated Assets",
+				styleDisplay = "Unstyled List");
 		}
 
 		task ("Assert the Full Content of collection items are shown in Unstyled List") {
@@ -1934,7 +1928,7 @@ definition {
 		}
 
 		task ("Assert the Full Content of collection items are shown in Unstyled List at view mode") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			var n = "2";
 
@@ -2038,7 +2032,7 @@ definition {
 		}
 
 		task ("Rate Third Web Content as 1, Second Web Content as 3, First Web Content as 5") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Content Page Name",
@@ -2229,7 +2223,7 @@ definition {
 		}
 
 		task ("View Web Content Article one time via Asset Publisher") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Content Page Name",
@@ -2471,7 +2465,9 @@ definition {
 				entry = "First Web Content",
 				menuItem = "View History");
 
-			Pause(locator1 = "3000");
+			WaitForElementPresent(
+				key_webContentTitle = "First Web Content",
+				locator1 = "WCEditWebContent#VIEW_HISTORY_VERSION_TITLE");
 
 			var firstModifiedDate = selenium.getAttribute("//td[contains(@class,'modified-date')]/span[contains(@class,'tooltip')]@title");
 
@@ -2481,7 +2477,9 @@ definition {
 				entry = "Second Web Content",
 				menuItem = "View History");
 
-			Pause(locator1 = "3000");
+			WaitForElementPresent(
+				key_webContentTitle = "Second Web Content",
+				locator1 = "WCEditWebContent#VIEW_HISTORY_VERSION_TITLE");
 
 			var secondModifiedDate = selenium.getAttribute("//td[contains(@class,'modified-date')]/span[contains(@class,'tooltip')]@title");
 
@@ -2491,7 +2489,9 @@ definition {
 				entry = "Third Web Content",
 				menuItem = "View History");
 
-			Pause(locator1 = "3000");
+			WaitForElementPresent(
+				key_webContentTitle = "Third Web Content",
+				locator1 = "WCEditWebContent#VIEW_HISTORY_VERSION_TITLE");
 
 			var thirdModifiedDate = selenium.getAttribute("//td[contains(@class,'modified-date')]/span[contains(@class,'tooltip')]@title");
 		}
@@ -2567,7 +2567,7 @@ definition {
 		}
 
 		task ("Assert the display order of collection items") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Content Page Name",
@@ -2620,7 +2620,9 @@ definition {
 				entry = "First Web Content",
 				menuItem = "View History");
 
-			Pause(locator1 = "3000");
+			WaitForElementPresent(
+				key_webContentTitle = "First Web Content",
+				locator1 = "WCEditWebContent#VIEW_HISTORY_VERSION_TITLE");
 
 			var firstModifiedDate = selenium.getAttribute("//tr[2]//td[contains(@class,'modified-date')]/span[contains(@class,'tooltip')]@title");
 		}

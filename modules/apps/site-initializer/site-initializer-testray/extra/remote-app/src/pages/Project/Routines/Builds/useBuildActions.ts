@@ -1,0 +1,86 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
+import {useRef} from 'react';
+import {useNavigate} from 'react-router-dom';
+
+import useFormModal from '../../../../hooks/useFormModal';
+import useMutate from '../../../../hooks/useMutate';
+import i18n from '../../../../i18n';
+import {
+	TestrayBuild,
+	deleteResource,
+	updateBuild,
+} from '../../../../services/rest';
+import {Action, ActionsHookParameter} from '../../../../types';
+
+const useBuildActions = ({isHeaderActions}: ActionsHookParameter = {}) => {
+	const formModal = useFormModal();
+	const {removeItemFromList, updateItemFromList} = useMutate();
+	const navigate = useNavigate();
+
+	const modal = formModal.modal;
+
+	const actionsRef = useRef([
+		{
+			action: () => alert('Archive'),
+			icon: 'archive',
+			name: i18n.translate('archive'),
+		},
+		{
+			action: (testrayBuild: TestrayBuild) =>
+				navigate(
+					isHeaderActions
+						? 'update'
+						: `build/${testrayBuild.id}/update`
+				),
+			icon: 'pencil',
+			name: i18n.translate(isHeaderActions ? 'edit-build' : 'edit'),
+			permission: 'UPDATE',
+		},
+		{
+			action: ({id, promoted}: TestrayBuild, mutate) =>
+				updateBuild(id, {
+					promoted: !promoted,
+				})
+					.then(() =>
+						updateItemFromList(mutate, id, {
+							promoted: !promoted,
+						})
+					)
+					.then(modal.onSuccess),
+			icon: 'star',
+			name: ({promoted}) =>
+				i18n.translate(promoted ? 'demote' : 'promote'),
+			permission: 'UPDATE',
+		},
+		{
+			action: ({id}: TestrayBuild, mutate) =>
+				deleteResource(`/builds/${id}`)
+					?.then(() => removeItemFromList(mutate, id))
+					.then(modal.onSave)
+					.catch(modal.onError),
+			icon: 'trash',
+			name: i18n.translate(isHeaderActions ? 'delete-build' : 'delete'),
+			permission: 'DELETE',
+		},
+	] as Action[]);
+
+	return {
+		actions: actionsRef.current,
+		formModal,
+	};
+};
+
+export default useBuildActions;

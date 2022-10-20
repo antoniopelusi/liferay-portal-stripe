@@ -14,34 +14,29 @@
 
 import {useModal} from '@clayui/modal';
 import {Observer} from '@clayui/modal/src/types';
-import {DocumentNode} from 'graphql';
 import {Dispatch, useState} from 'react';
+import {KeyedMutator} from 'swr';
 
-import client from '../graphql/apolloClient';
-import i18n from '../i18n';
-import {Liferay} from '../services/liferay/liferay';
+import useFormActions, {FormOptions} from './useFormActions';
 
-type OnSubmitOptions = {
-	createMutation: DocumentNode;
-	updateMutation: DocumentNode;
+type onSaveOptions = {
+	forceRefetch?: boolean;
 };
 
 export type FormModalOptions = {
 	modalState: any;
 	observer: Observer;
-	onChange: (state: any) => (event: any) => void;
 	onClose: () => void;
-	onError: (error?: any) => void;
-	onSave: (param?: any) => void;
-	onSubmit: (data: any, options: OnSubmitOptions) => Promise<void>;
+	onSave: (param?: any, options?: onSaveOptions) => void;
 	open: (state?: any) => void;
 	setVisible: Dispatch<boolean>;
 	visible: boolean;
-};
+} & FormOptions;
 
 export type FormModal = {
 	forceRefetch: number;
 	modal: FormModalOptions;
+	mutate?: KeyedMutator<any>;
 };
 
 export type FormModalComponent = Omit<FormModal, 'forceRefetch'>;
@@ -55,6 +50,7 @@ const useFormModal = ({
 	isVisible = false,
 	onSave: onSaveModal = () => {},
 }: UseFormModal = {}): FormModal => {
+	const {form} = useFormActions();
 	const [modalState, setModalState] = useState();
 	const [visible, setVisible] = useState(isVisible);
 	const {observer, onClose} = useModal({
@@ -63,23 +59,19 @@ const useFormModal = ({
 
 	const [forceRefetch, setForceRefetch] = useState(0);
 
-	const onError = (error: any) => {
-		console.error(error);
+	const onSave = (
+		state?: any,
+		options: onSaveOptions = {forceRefetch: true}
+	) => {
+		form.onSuccess();
 
-		Liferay.Util.openToast({
-			message: i18n.translate('an-unexpected-error-occurred'),
-			type: 'danger',
-		});
-	};
+		if (visible) {
+			onClose();
+		}
 
-	const onSave = (state?: any) => {
-		Liferay.Util.openToast({
-			message: i18n.translate('your-request-completed-successfully'),
-			type: 'success',
-		});
-
-		onClose();
-		setForceRefetch(new Date().getTime());
+		if (options.forceRefetch) {
+			setForceRefetch(new Date().getTime());
+		}
 
 		if (state) {
 			setModalState(state);
@@ -87,59 +79,14 @@ const useFormModal = ({
 		}
 	};
 
-	const onSubmit = async (
-		data: any,
-		{createMutation, updateMutation}: OnSubmitOptions
-	) => {
-		const variables: any = {
-			data,
-		};
-
-		if (data.id) {
-			variables.id = data.id;
-		}
-
-		delete variables.data.id;
-
-		try {
-			await client.mutate({
-				mutation: variables.id ? updateMutation : createMutation,
-				variables,
-			});
-
-			onSave();
-		} catch (error) {
-			onError(error);
-
-			throw error;
-		}
-	};
-
 	return {
 		forceRefetch,
 		modal: {
+			...form,
 			modalState,
 			observer,
-			onChange: ({form, setForm}: any) => (event: any) => {
-				const {
-					target: {checked, name, type},
-				} = event;
-
-				let {value} = event.target;
-
-				if (type === 'checkbox') {
-					value = checked;
-				}
-
-				setForm({
-					...form,
-					[name]: value,
-				});
-			},
 			onClose,
-			onError,
 			onSave,
-			onSubmit,
 			open: (state?: any) => {
 				setModalState(state);
 

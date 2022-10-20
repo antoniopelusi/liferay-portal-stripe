@@ -145,6 +145,9 @@ public class ObjectRelationshipPersistenceTest {
 
 		newObjectRelationship.setObjectFieldId2(RandomTestUtil.nextLong());
 
+		newObjectRelationship.setParameterObjectFieldId(
+			RandomTestUtil.nextLong());
+
 		newObjectRelationship.setDeletionType(RandomTestUtil.randomString());
 
 		newObjectRelationship.setDBTableName(RandomTestUtil.randomString());
@@ -197,6 +200,9 @@ public class ObjectRelationshipPersistenceTest {
 		Assert.assertEquals(
 			existingObjectRelationship.getObjectFieldId2(),
 			newObjectRelationship.getObjectFieldId2());
+		Assert.assertEquals(
+			existingObjectRelationship.getParameterObjectFieldId(),
+			newObjectRelationship.getParameterObjectFieldId());
 		Assert.assertEquals(
 			existingObjectRelationship.getDeletionType(),
 			newObjectRelationship.getDeletionType());
@@ -266,6 +272,16 @@ public class ObjectRelationshipPersistenceTest {
 	}
 
 	@Test
+	public void testCountByODI1_ODI2_T() throws Exception {
+		_persistence.countByODI1_ODI2_T(
+			RandomTestUtil.nextLong(), RandomTestUtil.nextLong(), "");
+
+		_persistence.countByODI1_ODI2_T(0L, 0L, "null");
+
+		_persistence.countByODI1_ODI2_T(0L, 0L, (String)null);
+	}
+
+	@Test
 	public void testCountByODI1_ODI2_N_T() throws Exception {
 		_persistence.countByODI1_ODI2_N_T(
 			RandomTestUtil.nextLong(), RandomTestUtil.nextLong(), "", "");
@@ -318,8 +334,9 @@ public class ObjectRelationshipPersistenceTest {
 			"objectRelationshipId", true, "companyId", true, "userId", true,
 			"userName", true, "createDate", true, "modifiedDate", true,
 			"objectDefinitionId1", true, "objectDefinitionId2", true,
-			"objectFieldId2", true, "deletionType", true, "dbTableName", true,
-			"label", true, "name", true, "reverse", true, "type", true);
+			"objectFieldId2", true, "parameterObjectFieldId", true,
+			"deletionType", true, "dbTableName", true, "label", true, "name",
+			true, "reverse", true, "type", true);
 	}
 
 	@Test
@@ -666,6 +683,8 @@ public class ObjectRelationshipPersistenceTest {
 		objectRelationship.setObjectDefinitionId2(RandomTestUtil.nextLong());
 
 		objectRelationship.setObjectFieldId2(RandomTestUtil.nextLong());
+
+		objectRelationship.setParameterObjectFieldId(RandomTestUtil.nextLong());
 
 		objectRelationship.setDeletionType(RandomTestUtil.randomString());
 

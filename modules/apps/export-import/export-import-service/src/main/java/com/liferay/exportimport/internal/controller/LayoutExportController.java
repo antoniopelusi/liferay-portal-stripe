@@ -35,7 +35,7 @@ import com.liferay.exportimport.kernel.model.ExportImportConfiguration;
 import com.liferay.portal.background.task.model.BackgroundTask;
 import com.liferay.portal.background.task.service.BackgroundTaskLocalService;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskThreadLocal;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
@@ -218,7 +218,7 @@ public class LayoutExportController implements ExportController {
 		headerElement.addAttribute(
 			"available-locales",
 			StringUtil.merge(
-				LanguageUtil.getAvailableLocales(
+				_language.getAvailableLocales(
 					portletDataContext.getScopeGroupId())));
 
 		headerElement.addAttribute(
@@ -324,10 +324,12 @@ public class LayoutExportController implements ExportController {
 		_portletExportController.exportAssetLinks(portletDataContext);
 		_portletExportController.exportLocks(portletDataContext);
 
-		portletDataContext.addDeletionSystemEventStagedModelTypes(
-			new StagedModelType(SegmentsExperience.class, Layout.class));
-		portletDataContext.addDeletionSystemEventStagedModelTypes(
-			new StagedModelType(StagedAssetLink.class));
+		if (Objects.equals(portletDataContext.getType(), "layout-set")) {
+			portletDataContext.addDeletionSystemEventStagedModelTypes(
+				new StagedModelType(SegmentsExperience.class, Layout.class));
+			portletDataContext.addDeletionSystemEventStagedModelTypes(
+				new StagedModelType(StagedAssetLink.class));
+		}
 
 		_deletionSystemEventExporter.exportDeletionSystemEvents(
 			portletDataContext);
@@ -427,6 +429,9 @@ public class LayoutExportController implements ExportController {
 
 	@Reference
 	private GroupLocalService _groupLocalService;
+
+	@Reference
+	private Language _language;
 
 	@Reference
 	private LayoutPrototypeLocalService _layoutPrototypeLocalService;

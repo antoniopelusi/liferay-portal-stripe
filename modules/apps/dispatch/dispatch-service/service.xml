@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.4.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_4_0.dtd">
 
-<service-builder auto-namespace-tables="false" mvcc-enabled="true" package-path="com.liferay.dispatch">
+<service-builder auto-import-default-references="false" auto-namespace-tables="false" mvcc-enabled="true" package-path="com.liferay.dispatch">
 	<author>Matija Petanjek</author>
 	<namespace>Dispatch</namespace>
 	<entity local-service="true" name="DispatchLog" remote-service="true">
@@ -43,7 +43,7 @@
 			<finder-column name="status" />
 		</finder>
 	</entity>
-	<entity external-reference-code="true" local-service="true" name="DispatchTrigger" remote-service="true">
+	<entity external-reference-code="true" local-service="true" name="DispatchTrigger" remote-service="true" uuid="true">
 
 		<!-- PK fields -->
 
@@ -69,6 +69,7 @@
 		<column name="overlapAllowed" type="boolean" />
 		<column name="startDate" type="Date" />
 		<column name="system" type="boolean" />
+		<column name="timeZoneId" type="String" />
 
 		<!-- Order -->
 

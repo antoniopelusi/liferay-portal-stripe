@@ -12,6 +12,8 @@
  * details.
  */
 
+import _axios from 'axios';
+
 import {Liferay} from './liferay';
 
 const {REACT_APP_LIFERAY_HOST = window.location.origin} = process.env;
@@ -26,5 +28,14 @@ const baseFetch = async (url: string, options = {}) => {
 		...options,
 	});
 };
+
+const axios = _axios.create({
+	baseURL: REACT_APP_LIFERAY_HOST,
+	headers: {
+		'x-csrf-token': Liferay.authToken,
+	},
+});
+
+export {axios};
 
 export default baseFetch;

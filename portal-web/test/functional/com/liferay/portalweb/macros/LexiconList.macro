@@ -35,6 +35,13 @@ definition {
 		Confirm();
 	}
 
+	macro viewAnyList {
+		AssertTextEquals.assertPartialText(
+			key_listEntry = "${listEntry}",
+			locator1 = "LexiconList#ANY_LIST",
+			value1 = "${listEntry}");
+	}
+
 	macro viewListEntryLabel {
 		AssertTextEquals(
 			key_listEntry = "${listEntry}",
@@ -53,6 +60,14 @@ definition {
 		AssertVisible(
 			key_listEntry = "${listEntry}",
 			locator1 = "LexiconList#LIST_ENTRY");
+	}
+
+	macro viewListEntrySpecific {
+		AssertTextEquals.assertPartialText(
+			key_listEntry = "${listEntry}",
+			key_position = "${position}",
+			locator1 = "LexiconList#LIST_ENTRY_SPECIFIC",
+			value1 = "${listEntry}");
 	}
 
 	macro viewListEntrySubtitle {
@@ -78,7 +93,7 @@ definition {
 	}
 
 	macro viewListEntryTitleLinkSpecific {
-		AssertTextEquals(
+		AssertTextEquals.assertPartialText(
 			key_listEntry = "${listEntry}",
 			key_position = "${position}",
 			locator1 = "LexiconList#LIST_ENTRY_TITLE_LINK_SPECIFIC",

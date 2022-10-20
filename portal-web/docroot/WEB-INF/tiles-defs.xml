@@ -17,12 +17,6 @@
 		<put name="selectable" value="false" />
 	</definition>
 
-	<definition extends="portal" name="portal.api.jsonws">
-		<put name="pop_up" value="true" />
-		<put name="title" value="json-web-services-api" />
-		<put name="content" value="/portal/api/jsonws/index.jsp" />
-	</definition>
-
 	<definition extends="portal" name="portal.error">
 		<put name="title" value="error" />
 		<put name="content" value="/portal/error.jsp" />
@@ -67,16 +61,6 @@
 		<put name="pop_up" value="true" />
 		<put name="title" value="basic-configuration" />
 		<put name="content" value="/portal/setup_wizard.jsp" />
-	</definition>
-
-	<definition extends="portal" name="portal.status">
-		<put name="title" value="status" />
-		<put name="content" value="/portal/status.jsp" />
-	</definition>
-
-	<definition extends="portal" name="portal.terms_of_use">
-		<put name="title" value="terms-of-use" />
-		<put name="content" value="/portal/terms_of_use.jsp" />
 	</definition>
 
 	<definition extends="portal" name="portal.test">

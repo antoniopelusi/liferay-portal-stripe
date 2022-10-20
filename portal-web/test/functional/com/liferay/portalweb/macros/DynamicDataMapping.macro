@@ -524,6 +524,7 @@ definition {
 			SelectFrame(value1 = "relative=top");
 
 			var urlTitle = StringUtil.replace("${fieldPredefinedValue}", " ", "-");
+
 			var urlTitle = StringUtil.lowerCase("${urlTitle}");
 
 			var resourcePrimKey = JSONWebcontentAPI._getResourcePrimKeyByURLTitle(

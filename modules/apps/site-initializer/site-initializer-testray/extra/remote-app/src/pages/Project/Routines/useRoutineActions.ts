@@ -12,59 +12,48 @@
  * details.
  */
 
-import {useMutation} from '@apollo/client';
+import {useRef} from 'react';
+import {useNavigate} from 'react-router-dom';
 
-import {DeleteRoutine} from '../../../graphql/mutations';
-import {TestrayRoutine} from '../../../graphql/queries';
-import useFormModal from '../../../hooks/useFormModal';
+import useFormActions from '../../../hooks/useFormActions';
+import useMutate from '../../../hooks/useMutate';
 import i18n from '../../../i18n';
+import {TestrayRoutine, deleteResource} from '../../../services/rest';
+import {Action, ActionsHookParameter} from '../../../types';
 
-const useRoutineActions = () => {
-	const [onDeleteRoutine] = useMutation(DeleteRoutine);
+const useRoutineActions = ({isHeaderActions}: ActionsHookParameter = {}) => {
+	const {form} = useFormActions();
+	const navigate = useNavigate();
+	const {removeItemFromList} = useMutate();
 
-	const formModal = useFormModal();
-	const modal = formModal.modal;
+	const actionsRef = useRef([
+		{
+			action: (routine: TestrayRoutine) =>
+				navigate(isHeaderActions ? 'update' : `${routine.id}/update`),
+			icon: 'pencil',
+			name: i18n.translate(isHeaderActions ? 'edit-routine' : 'edit'),
+			permission: 'UPDATE',
+		},
+		{
+			action: () => alert('Select Default Environment Factors'),
+			icon: 'display',
+			name: i18n.translate('select-default-environment-factors'),
+		},
+		{
+			action: ({id}: TestrayRoutine, mutate) =>
+				deleteResource(`/routines/${id}`)
+					?.then(() => removeItemFromList(mutate, id))
+					.then(form.onSuccess)
+					.catch(form.onError),
+			icon: 'trash',
+			name: i18n.translate(isHeaderActions ? 'delete-routine' : 'delete'),
+			permission: 'DELETE',
+		},
+	] as Action[]);
 
 	return {
-		actions: [
-			{
-				action: modal.open,
-				name: i18n.translate('edit'),
-			},
-			{
-				action: () => alert('Select Default Environment Factors'),
-				name: i18n.translate('select-default-environment-factors'),
-			},
-			{
-				action: ({id: routineId}: TestrayRoutine) =>
-					onDeleteRoutine({variables: {routineId}})
-						.then(() => modal.onSave())
-						.catch(modal.onError),
-				name: i18n.translate('delete'),
-			},
-		],
-		actionsRoutine: [
-			{
-				action: () => alert('Archive'),
-				name: i18n.translate('archive'),
-			},
-			{
-				action: modal.open,
-				name: i18n.translate('edit'),
-			},
-			{
-				action: () => alert('Promote'),
-				name: i18n.translate('promote'),
-			},
-			{
-				action: ({id: routineId}: any) =>
-					onDeleteRoutine({variables: {routineId}})
-						.then(() => modal.onSave())
-						.catch(modal.onError),
-				name: i18n.translate('delete'),
-			},
-		],
-		formModal,
+		actions: actionsRef.current,
+		navigate,
 	};
 };
 

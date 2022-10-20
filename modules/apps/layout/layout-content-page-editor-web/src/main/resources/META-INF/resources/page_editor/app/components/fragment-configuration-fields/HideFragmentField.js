@@ -12,16 +12,24 @@
  * details.
  */
 
-import ClayButton from '@clayui/button';
+import ClayButton, {ClayButtonWithIcon} from '@clayui/button';
+import ClayForm, {ClayCheckbox} from '@clayui/form';
+import {openToast} from 'frontend-js-web';
 import PropTypes from 'prop-types';
 import React from 'react';
 
+import useControlledState from '../../../core/hooks/useControlledState';
 import {ConfigurationFieldPropTypes} from '../../../prop-types/index';
-import {config} from '../../config/index';
+import {VIEWPORT_SIZES} from '../../config/constants/viewportSizes';
 import {useSelectItem} from '../../contexts/ControlsContext';
 import {useSelector} from '../../contexts/StoreContext';
+import {
+	FORM_ERROR_TYPES,
+	getFormErrorDescription,
+} from '../../utils/getFormErrorDescription';
 import {getResponsiveConfig} from '../../utils/getResponsiveConfig';
-import {CheckboxField} from './CheckboxField';
+import useHasRequiredChild from '../../utils/useHasRequiredChild';
+import hasDropZoneChild from '../layout-data-items/hasDropZoneChild';
 
 function getHiddenAncestorId(layoutData, item, selectedViewportSize) {
 	const parent = layoutData.items[item.parentId];
@@ -52,7 +60,12 @@ export function HideFragmentField({
 	const selectedViewportSize = useSelector(
 		(state) => state.selectedViewportSize
 	);
+	const hasRequiredChild = useHasRequiredChild(item.itemId);
 	const selectItem = useSelectItem();
+
+	const [nextValue, setNextValue] = useControlledState(value || false);
+
+	const customValues = field.typeOptions?.customValues;
 
 	const hiddenAncestorId = getHiddenAncestorId(
 		layoutData,
@@ -62,23 +75,66 @@ export function HideFragmentField({
 
 	return (
 		<>
-			<CheckboxField
-				disabled={Boolean(hiddenAncestorId) || disabled}
-				field={field}
-				onValueSelect={onValueSelect}
-				title={title}
-				value={value}
-			/>
+			<ClayForm.Group className="mb-0 mt-1">
+				<div
+					className="align-items-center d-flex justify-content-between page-editor__sidebar__fieldset__field-checkbox"
+					data-tooltip-align="bottom"
+					title={title}
+				>
+					<ClayCheckbox
+						aria-label={field.label}
+						checked={
+							customValues
+								? nextValue === customValues.checked
+								: nextValue
+						}
+						containerProps={{className: 'mb-0'}}
+						disabled={
+							Boolean(hiddenAncestorId) ||
+							hasDropZoneChild(item, layoutData) ||
+							disabled
+						}
+						label={field.label}
+						onChange={(event) => {
+							let eventValue = event.target.checked;
 
-			{value === 'none' &&
-				!hiddenAncestorId &&
-				config.fragmentAdvancedOptionsEnabled && (
-					<p className="small text-secondary">
-						{Liferay.Language.get(
-							'this-fragment-is-still-visible-on-search-.you-can-hide-it-from-search-in-the-advanced-tab'
+							if (customValues) {
+								eventValue = eventValue
+									? customValues.checked
+									: customValues.unchecked;
+							}
+
+							setNextValue(eventValue);
+							onValueSelect(field.name, eventValue);
+
+							if (eventValue && hasRequiredChild()) {
+								const {message} = getFormErrorDescription({
+									type: FORM_ERROR_TYPES.hiddenFragment,
+								});
+
+								openToast({
+									message,
+									type: 'warning',
+								});
+							}
+						}}
+					/>
+
+					{field.responsive &&
+						selectedViewportSize !== VIEWPORT_SIZES.desktop && (
+							<ClayButtonWithIcon
+								data-tooltip-align="bottom"
+								displayType="secondary"
+								onClick={() => {
+									onValueSelect(field.name, null);
+								}}
+								small
+								symbol="restore"
+								title={Liferay.Language.get('restore-default')}
+							/>
 						)}
-					</p>
-				)}
+				</div>
+			</ClayForm.Group>
 
 			{hiddenAncestorId && (
 				<>

@@ -174,7 +174,8 @@ public class WikiEngineRendererImpl implements WikiEngineRenderer {
 				public void keyEmitted(
 					ServiceTrackerMap<String, List<WikiEngine>>
 						serviceTrackerMap,
-					String key, WikiEngine service, List<WikiEngine> content) {
+					String key, WikiEngine serviceWikiEngine,
+					List<WikiEngine> contentWikiEngines) {
 
 					_portalCache.removeAll();
 				}
@@ -183,7 +184,8 @@ public class WikiEngineRendererImpl implements WikiEngineRenderer {
 				public void keyRemoved(
 					ServiceTrackerMap<String, List<WikiEngine>>
 						serviceTrackerMap,
-					String key, WikiEngine service, List<WikiEngine> content) {
+					String key, WikiEngine serviceWikiEngine,
+					List<WikiEngine> contentWikiEngines) {
 
 					_portalCache.removeAll();
 				}

@@ -31,6 +31,7 @@ import SearchForm from '../../../common/components/SearchForm';
 export function DropdownColorPicker({
 	active,
 	colors,
+	fieldLabel = null,
 	label = null,
 	onValueChange = () => {},
 	onSetActive,
@@ -110,12 +111,31 @@ export function DropdownColorPicker({
 		}
 	};
 
+	const containerRef = useMemo(() => {
+		const ref = React.createRef();
+
+		ref.current = document.querySelector(
+			Liferay.FeatureFlags['LPS-153452']
+				? 'page-editor__item-configuration-sidebar'
+				: '.page-editor__sidebar'
+		);
+
+		return ref;
+	}, []);
+
 	return (
 		<div className="page-editor__dropdown-color-picker w-100">
 			{showSelector ? (
 				<ClayButton
 					aria-label={label}
-					className="align-items-center border-0 d-flex page-editor__dropdown-color-picker__selector w-100"
+					className={classNames(
+						'align-items-center border-0 d-flex page-editor__dropdown-color-picker__selector w-100',
+						{
+							'font-weight-normal':
+								Liferay.FeatureFlags['LPS-143206'],
+							'text-body': Liferay.FeatureFlags['LPS-143206'],
+						}
+					)}
 					displayType="secondary"
 					onClick={() => onSetActive((active) => !active)}
 					ref={triggerElementRef}
@@ -123,10 +143,12 @@ export function DropdownColorPicker({
 				>
 					<span className="c-inner" tabIndex="-1">
 						<span
-							className="page-editor__dropdown-color-picker__selector-splotch rounded-circle"
-							style={{
-								background: `${value}`,
-							}}
+							className={classNames(
+								'page-editor__dropdown-color-picker__selector-splotch rounded-circle',
+								{'lfr-portal-tooltip': fieldLabel}
+							)}
+							data-title={fieldLabel}
+							style={{background: `${value}`}}
 						/>
 
 						<span className="text-truncate">{label}</span>
@@ -150,6 +172,7 @@ export function DropdownColorPicker({
 				className="clay-color-dropdown-menu px-0"
 				containerProps={{
 					className: 'cadmin',
+					containerRef,
 				}}
 				onSetActive={onSetActive}
 				ref={dropdownContainerRef}
@@ -246,11 +269,12 @@ const Wrapper = ({
 				))
 			) : (
 				<ClayEmptyState
-					className="mt-4 page-editor__dropdown-color-picker__empty-result"
+					className="mt-4"
 					description={Liferay.Language.get(
 						'try-again-with-a-different-search'
 					)}
 					imgSrc={`${themeDisplay.getPathThemeImages()}/states/empty_state.gif`}
+					small
 					title={Liferay.Language.get('no-results-found')}
 				/>
 			)}

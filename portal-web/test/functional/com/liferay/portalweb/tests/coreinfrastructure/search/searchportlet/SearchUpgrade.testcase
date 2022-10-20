@@ -73,6 +73,15 @@ definition {
 	}
 
 	@priority = "5"
+	test ViewClassicSearchPortletConfigurationArchive740 {
+		property data.archive.type = "data-archive-classic-search-portlet";
+		property database.types = "mariadb,mysql,postgresql";
+		property portal.version = "7.4.0";
+
+		Upgrade.viewClassicSearchPortletConfiguration();
+	}
+
+	@priority = "5"
 	test ViewClassicSearchPortletConfigurationArchive7110 {
 		property data.archive.type = "data-archive-classic-search-portlet";
 		property portal.version = "7.1.10";
@@ -84,6 +93,24 @@ definition {
 	test ViewClassicSearchPortletConfigurationArchive7210 {
 		property data.archive.type = "data-archive-classic-search-portlet";
 		property portal.version = "7.2.10";
+		property test.run.environment = "EE";
+
+		Upgrade.viewClassicSearchPortletConfiguration();
+	}
+
+	@priority = "5"
+	test ViewClassicSearchPortletConfigurationArchive7310 {
+		property data.archive.type = "data-archive-classic-search-portlet";
+		property portal.version = "7.3.10";
+		property test.run.environment = "EE";
+
+		Upgrade.viewClassicSearchPortletConfiguration();
+	}
+
+	@priority = "5"
+	test ViewClassicSearchPortletConfigurationArchive7413 {
+		property data.archive.type = "data-archive-classic-search-portlet";
+		property portal.version = "7.4.13";
 		property test.run.environment = "EE";
 
 		Upgrade.viewClassicSearchPortletConfiguration();
@@ -220,6 +247,15 @@ definition {
 	}
 
 	@priority = "5"
+	test ViewResultRankingsEntryArchive7413 {
+		property data.archive.type = "data-archive-search-result-rankings";
+		property portal.version = "7.4.13";
+		property test.run.environment = "EE";
+
+		Upgrade.viewResultRankingsEntry();
+	}
+
+	@priority = "5"
 	test ViewSearchPortletsConfigurationArchive713 {
 		property data.archive.type = "data-archive-search-portlets";
 		property database.types = "mariadb,mysql,postgresql";
@@ -257,6 +293,15 @@ definition {
 	}
 
 	@priority = "5"
+	test ViewSearchPortletsConfigurationArchive740 {
+		property data.archive.type = "data-archive-search-portlets";
+		property database.types = "mariadb,mysql,postgresql";
+		property portal.version = "7.4.0";
+
+		Upgrade.viewSearchPortletsConfiguration();
+	}
+
+	@priority = "5"
 	test ViewSearchPortletsConfigurationArchive7110 {
 		property data.archive.type = "data-archive-search-portlets";
 		property portal.version = "7.1.10";
@@ -268,6 +313,26 @@ definition {
 	test ViewSearchPortletsConfigurationArchive7210 {
 		property data.archive.type = "data-archive-search-portlets";
 		property portal.version = "7.2.10";
+		property test.assert.warning.exceptions = "true";
+		property test.run.environment = "EE";
+
+		Upgrade.viewSearchPortletsConfiguration();
+	}
+
+	@priority = "5"
+	test ViewSearchPortletsConfigurationArchive7310 {
+		property data.archive.type = "data-archive-search-portlets";
+		property portal.version = "7.3.10";
+		property test.assert.warning.exceptions = "true";
+		property test.run.environment = "EE";
+
+		Upgrade.viewSearchPortletsConfiguration();
+	}
+
+	@priority = "5"
+	test ViewSearchPortletsConfigurationArchive7413 {
+		property data.archive.type = "data-archive-search-portlets";
+		property portal.version = "7.4.13";
 		property test.assert.warning.exceptions = "true";
 		property test.run.environment = "EE";
 
@@ -346,6 +411,42 @@ definition {
 		property test.run.environment = "EE";
 
 		Upgrade.viewSearchPortletsConfiguration();
+	}
+
+	test ViewSXPBlueprintsAndElementsArchive7310U6 {
+		property data.archive.type = "data-archive-sxp";
+		property portal.version = "7.3.10.u6";
+		property test.assert.warning.exceptions = "true";
+		property test.run.environment = "EE";
+
+		Upgrade.viewSXPBlueprintAndElements();
+	}
+
+	test ViewSXPBlueprintsAndElementsArchive7413U33 {
+		property data.archive.type = "data-archive-sxp";
+		property portal.version = "7.4.13.u33";
+		property test.assert.warning.exceptions = "true";
+		property test.run.environment = "EE";
+
+		Upgrade.viewSXPBlueprintAndElements();
+	}
+
+	@priority = "5"
+	test ViewSynonymsEntryArchive7310 {
+		property data.archive.type = "data-archive-search-synonyms";
+		property portal.version = "7.3.10";
+		property test.run.environment = "EE";
+
+		Upgrade.viewSynonymsEntry();
+	}
+
+	@priority = "5"
+	test ViewSynonymsEntryArchive7413 {
+		property data.archive.type = "data-archive-search-synonyms";
+		property portal.version = "7.4.13";
+		property test.run.environment = "EE";
+
+		Upgrade.viewSynonymsEntry();
 	}
 
 }

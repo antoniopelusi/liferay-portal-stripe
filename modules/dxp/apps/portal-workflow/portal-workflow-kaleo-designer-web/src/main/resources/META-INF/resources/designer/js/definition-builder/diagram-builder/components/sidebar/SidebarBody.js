@@ -39,6 +39,7 @@ export default function SidebarBody({children, displayDefaultContent = true}) {
 			{displayDefaultContent
 				? Object.entries(nodeTypes).map(([key, Component], index) => (
 						<Component
+							className="btn-sm"
 							descriptionSidebar={nodeDescription[key]}
 							draggable
 							key={index}

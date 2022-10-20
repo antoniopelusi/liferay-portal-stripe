@@ -13,59 +13,73 @@
  * details.
  */
 
-import {createContext, useReducer} from 'react';
+import {ReactNode, createContext, useReducer} from 'react';
 
-import {ActionMap, SortOption} from '../types';
-
-type ViewType = 'cards' | 'list' | 'table';
+import {ActionMap, SortDirection, SortOption} from '../types';
 
 export type Sort = {
-	direction: SortOption;
+	direction: SortDirection;
 	key: string;
 };
 
-type InitialState = {
-	filters: any;
+export type Entry = {
+	label: string;
+	name: string;
+	value: string;
+};
+
+export type InitialState = {
+	columns: {
+		[key: string]: boolean;
+	};
+	filters: {
+		entries: Entry[];
+		filter: {
+			[key: string]: string;
+		};
+	};
 	keywords: string;
 	page: number;
 	pageSize: number;
 	selectedRows: number[];
 	sort: Sort;
-	viewType: ViewType;
 };
 
 const initialState: InitialState = {
-	filters: {},
+	columns: {},
+	filters: {
+		entries: [],
+		filter: {},
+	},
 	keywords: '',
 	page: 1,
 	pageSize: 20,
 	selectedRows: [],
 	sort: {direction: SortOption.ASC, key: ''},
-	viewType: 'table',
 };
 
 export enum ListViewTypes {
 	SET_CHECKED_ROW = 'SET_CHECKED_ROW',
 	SET_CLEAR = 'SET_CLEAR',
+	SET_COLUMNS = 'SET_COLUMNS',
 	SET_PAGE = 'SET_PAGE',
 	SET_PAGE_SIZE = 'SET_PAGE_SIZE',
 	SET_REMOVE_FILTER = 'SET_REMOVE_FILTER',
 	SET_SEARCH = 'SET_SEARCH',
 	SET_SORT = 'SET_SORT',
 	SET_UPDATE_FILTERS_AND_SORT = 'SET_UPDATE_FILTERS_AND_SORT',
-	SET_VIEW_TYPE = 'SET_VIEW_TYPE',
 }
 
 type ListViewPayload = {
 	[ListViewTypes.SET_CHECKED_ROW]: number;
 	[ListViewTypes.SET_CLEAR]: null;
+	[ListViewTypes.SET_COLUMNS]: {columns: any};
 	[ListViewTypes.SET_PAGE]: number;
 	[ListViewTypes.SET_PAGE_SIZE]: number;
 	[ListViewTypes.SET_REMOVE_FILTER]: string;
 	[ListViewTypes.SET_SEARCH]: string;
 	[ListViewTypes.SET_SORT]: Sort;
 	[ListViewTypes.SET_UPDATE_FILTERS_AND_SORT]: {filters?: any};
-	[ListViewTypes.SET_VIEW_TYPE]: ViewType;
 };
 
 type AppActions = ActionMap<ListViewPayload>[keyof ActionMap<ListViewPayload>];
@@ -76,45 +90,6 @@ export const ListViewContext = createContext<
 
 const reducer = (state: InitialState, action: AppActions) => {
 	switch (action.type) {
-		case ListViewTypes.SET_PAGE:
-			return {
-				...state,
-				page: action.payload,
-			};
-
-		case ListViewTypes.SET_PAGE_SIZE:
-			return {
-				...state,
-				page: 1,
-				pageSize: action.payload,
-			};
-
-		case ListViewTypes.SET_CLEAR:
-			return {
-				...state,
-				filters: {},
-				keywords: '',
-			};
-
-		case ListViewTypes.SET_REMOVE_FILTER: {
-			const filterKey = action.payload;
-			const updatedFilters = {...state.filters};
-
-			delete updatedFilters[filterKey];
-
-			return {
-				...state,
-				filters: updatedFilters,
-			};
-		}
-
-		case ListViewTypes.SET_SEARCH:
-			return {
-				...state,
-				keywords: action.payload,
-				page: 1,
-			};
-
 		case ListViewTypes.SET_CHECKED_ROW:
 			const rowId = action.payload;
 			const rowAlreadyInserted = state.selectedRows.includes(rowId);
@@ -132,6 +107,58 @@ const reducer = (state: InitialState, action: AppActions) => {
 				selectedRows,
 			};
 
+		case ListViewTypes.SET_CLEAR:
+			return {
+				...state,
+				filters: initialState.filters,
+				keywords: '',
+			};
+
+		case ListViewTypes.SET_COLUMNS:
+			return {
+				...state,
+				columns: action.payload.columns,
+			};
+
+		case ListViewTypes.SET_PAGE:
+			return {
+				...state,
+				page: action.payload,
+			};
+
+		case ListViewTypes.SET_PAGE_SIZE:
+			return {
+				...state,
+				page: 1,
+				pageSize: action.payload,
+			};
+
+		case ListViewTypes.SET_REMOVE_FILTER: {
+			const filterKey = action.payload;
+			const updatedFilters = {...state.filters};
+
+			delete updatedFilters.filter[filterKey];
+
+			const filterEntries = updatedFilters.entries.filter(
+				({name}) => name !== filterKey
+			);
+
+			return {
+				...state,
+				filters: {
+					entries: filterEntries,
+					filter: updatedFilters.filter,
+				},
+			};
+		}
+
+		case ListViewTypes.SET_SEARCH:
+			return {
+				...state,
+				keywords: action.payload,
+				page: 1,
+			};
+
 		case ListViewTypes.SET_SORT:
 			return {
 				...state,
@@ -145,12 +172,6 @@ const reducer = (state: InitialState, action: AppActions) => {
 				page: 1,
 			};
 
-		case ListViewTypes.SET_VIEW_TYPE:
-			return {
-				...state,
-				viewType: action.payload,
-			};
-
 		default:
 			return state;
 	}
@@ -158,10 +179,9 @@ const reducer = (state: InitialState, action: AppActions) => {
 
 export type ListViewContextProviderProps = Partial<InitialState>;
 
-const ListViewContextProvider: React.FC<ListViewContextProviderProps> = ({
-	children,
-	...initialStateProps
-}) => {
+const ListViewContextProvider: React.FC<
+	ListViewContextProviderProps & {children: ReactNode}
+> = ({children, ...initialStateProps}) => {
 	const [state, dispatch] = useReducer(reducer, {
 		...initialState,
 		...initialStateProps,

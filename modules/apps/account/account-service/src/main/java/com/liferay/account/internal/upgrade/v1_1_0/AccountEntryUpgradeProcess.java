@@ -26,14 +26,9 @@ public class AccountEntryUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		if (!hasColumn("AccountEntry", "externalReferenceCode")) {
-			alterTableAddColumn(
-				"AccountEntry", "externalReferenceCode", "VARCHAR(75)");
-		}
-
-		if (!hasColumn("AccountEntry", "taxIdNumber")) {
-			alterTableAddColumn("AccountEntry", "taxIdNumber", "VARCHAR(75)");
-		}
+		alterTableAddColumn(
+			"AccountEntry", "externalReferenceCode", "VARCHAR(75)");
+		alterTableAddColumn("AccountEntry", "taxIdNumber", "VARCHAR(75)");
 
 		if (!hasColumn("AccountEntry", "type_")) {
 			alterTableAddColumn("AccountEntry", "type_", "VARCHAR(75)");

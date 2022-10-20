@@ -14,6 +14,8 @@
 
 package com.liferay.portal.instance.lifecycle.internal;
 
+import com.liferay.petra.lang.SafeCloseable;
+import com.liferay.portal.aop.AopService;
 import com.liferay.portal.instance.lifecycle.Clusterable;
 import com.liferay.portal.instance.lifecycle.PortalInstanceLifecycleListener;
 import com.liferay.portal.kernel.cluster.ClusterMasterExecutor;
@@ -23,6 +25,10 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.CompanyLocalService;
+import com.liferay.portal.kernel.transaction.Propagation;
+import com.liferay.portal.kernel.transaction.TransactionConfig;
+import com.liferay.portal.kernel.transaction.TransactionInvokerUtil;
+import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.LocaleThreadLocal;
 
 import java.util.ArrayList;
@@ -40,9 +46,19 @@ import org.osgi.service.component.annotations.ReferencePolicyOption;
 /**
  * @author Michael C. Han
  */
-@Component(immediate = true, service = PortalInstanceLifecycleManager.class)
+@Component(immediate = true, service = AopService.class)
+@Transactional(propagation = Propagation.REQUIRED)
 public class PortalInstanceLifecycleListenerManagerImpl
-	implements PortalInstanceLifecycleManager {
+	implements AopService, PortalInstanceLifecycleManager {
+
+	@Override
+	public void preregisterCompany(Company company) {
+		for (PortalInstanceLifecycleListener portalInstanceLifecycleListener :
+				_portalInstanceLifecycleListeners) {
+
+			preregisterCompany(portalInstanceLifecycleListener, company);
+		}
+	}
 
 	@Override
 	public void preunregisterCompany(Company company) {
@@ -81,7 +97,8 @@ public class PortalInstanceLifecycleListenerManagerImpl
 		policyOption = ReferencePolicyOption.GREEDY
 	)
 	protected void addPortalInstanceLifecycleListener(
-		PortalInstanceLifecycleListener portalInstanceLifecycleListener) {
+			PortalInstanceLifecycleListener portalInstanceLifecycleListener)
+		throws Throwable {
 
 		_portalInstanceLifecycleListeners.add(portalInstanceLifecycleListener);
 
@@ -94,17 +111,67 @@ public class PortalInstanceLifecycleListenerManagerImpl
 		while (iterator.hasNext()) {
 			Company company = iterator.next();
 
-			if (_companyLocalService.fetchCompanyById(company.getCompanyId()) ==
-					null) {
+			Company fetchedCompany = _companyLocalService.fetchCompanyById(
+				company.getCompanyId());
 
-				unregisterCompany(company);
+			if (fetchedCompany == null) {
+				TransactionInvokerUtil.invoke(
+					_transactionConfig,
+					() -> {
+						unregisterCompany(company);
+
+						return null;
+					});
 			}
 		}
 
 		_companyLocalService.forEachCompany(
-			company -> registerCompany(
-				portalInstanceLifecycleListener, company),
-			new ArrayList<Company>(_companies));
+			company -> {
+				try {
+					TransactionInvokerUtil.invoke(
+						_transactionConfig,
+						() -> {
+							preregisterCompany(
+								portalInstanceLifecycleListener, company);
+
+							registerCompany(
+								portalInstanceLifecycleListener, company);
+
+							return null;
+						});
+				}
+				catch (Throwable throwable) {
+					throw new Exception(throwable);
+				}
+			},
+			new ArrayList<>(_companies));
+	}
+
+	protected void preregisterCompany(
+		PortalInstanceLifecycleListener portalInstanceLifecycleListener,
+		Company company) {
+
+		if (!(portalInstanceLifecycleListener instanceof Clusterable) &&
+			!clusterMasterExecutor.isMaster()) {
+
+			if (_log.isDebugEnabled()) {
+				_log.debug("Skipping " + portalInstanceLifecycleListener);
+			}
+
+			return;
+		}
+
+		try {
+			portalInstanceLifecycleListener.portalInstancePreregistered(
+				company);
+		}
+		catch (Exception exception) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					"Unable to preregister portal instance " + company,
+					exception);
+			}
+		}
 	}
 
 	protected void preunregisterCompany(
@@ -151,7 +218,9 @@ public class PortalInstanceLifecycleListenerManagerImpl
 		Long companyId = CompanyThreadLocal.getCompanyId();
 		Locale siteDefaultLocale = LocaleThreadLocal.getSiteDefaultLocale();
 
-		try {
+		try (SafeCloseable safeCloseable =
+				CompanyThreadLocal.setInitializingPortalInstance(true)) {
+
 			CompanyThreadLocal.setCompanyId(company.getCompanyId());
 			LocaleThreadLocal.setSiteDefaultLocale(null);
 
@@ -217,6 +286,10 @@ public class PortalInstanceLifecycleListenerManagerImpl
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		PortalInstanceLifecycleListenerManagerImpl.class);
+
+	private static final TransactionConfig _transactionConfig =
+		TransactionConfig.Factory.create(
+			Propagation.REQUIRED, new Class<?>[] {Exception.class});
 
 	private final Set<Company> _companies = new CopyOnWriteArraySet<>();
 

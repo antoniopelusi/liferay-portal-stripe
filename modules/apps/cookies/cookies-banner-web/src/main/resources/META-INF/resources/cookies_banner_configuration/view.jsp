@@ -16,8 +16,13 @@
 
 <%@ include file="/init.jsp" %>
 
+<%
+CookiesBannerConfigurationDisplayContext cookiesBannerConfigurationDisplayContext = (CookiesBannerConfigurationDisplayContext)request.getAttribute(CookiesBannerWebKeys.COOKIES_BANNER_CONFIGURATION_DISPLAY_CONTEXT);
+%>
+
 <clay:container-fluid
 	cssClass="container-view p-md-4"
+	id='<%= liferayPortletResponse.getNamespace() + "cookiesBannerConfigurationForm" %>'
 >
 	<clay:row>
 		<clay:col
@@ -25,125 +30,130 @@
 			size="12"
 		>
 			<p>
-				<%= LanguageUtil.get(request, "cookies-banner-configuration-message") %>
+				<%= cookiesBannerConfigurationDisplayContext.getDescription(locale) %>
+
+				<clay:link
+					href="<%= cookiesBannerConfigurationDisplayContext.getCookiePolicyLink() %>"
+					label="<%= cookiesBannerConfigurationDisplayContext.getLinkDisplayText(locale) %>"
+					target="_blank"
+				/>
 			</p>
 		</clay:col>
 
 		<clay:col
 			size="12"
 		>
-			<clay:content-row
-				noGutters="true"
-				verticalAlign="center"
-			>
-				<clay:content-col
-					expand="<%= true %>"
+
+			<%
+			for (ConsentCookieType requiredConsentCookieType : cookiesBannerConfigurationDisplayContext.getRequiredConsentCookieTypes(scopeGroupId)) {
+			%>
+
+				<clay:content-row
+					noGutters="true"
+					verticalAlign="center"
 				>
-					<h2><%= LanguageUtil.get(request, "strictly-necessary-cookies") %></h2>
-				</clay:content-col>
+					<clay:content-col
+						expand="<%= true %>"
+					>
+						<h2><%= cookiesBannerConfigurationDisplayContext.getCookieTitle(requiredConsentCookieType.getName(), request) %></h2>
+					</clay:content-col>
 
-				<clay:content-col>
-					<span class="pr-2 text-primary"><%= LanguageUtil.get(request, "always-active") %></span>
-				</clay:content-col>
-			</clay:content-row>
+					<clay:content-col>
+						<span class="pr-2 text-primary"><liferay-ui:message key="always-active" /></span>
+					</clay:content-col>
+				</clay:content-row>
 
-			<clay:content-row
-				cssClass="mb-3"
-			>
-				<p><%= LanguageUtil.get(request, "strictly-necessary-cookies-description") %></p>
-			</clay:content-row>
-
-			<clay:content-row
-				noGutters="true"
-				verticalAlign="center"
-			>
-				<clay:content-col
-					expand="<%= true %>"
+				<clay:content-row
+					cssClass="mb-3"
 				>
-					<h2><%= LanguageUtil.get(request, "performance-cookies") %></h2>
-				</clay:content-col>
+					<p><%= requiredConsentCookieType.getDescription(locale) %></p>
+				</clay:content-row>
 
-				<clay:content-col>
-					<label class="toggle-switch">
-						<span class="toggle-switch-check-bar">
-							<input class="toggle-switch-check toggle-switch-check-performance" disabled type="checkbox" />
+			<%
+			}
 
-							<span aria-hidden="true" class="toggle-switch-bar">
-								<span class="toggle-switch-handle"></span>
+			for (ConsentCookieType optionalConsentCookieType : cookiesBannerConfigurationDisplayContext.getOptionalConsentCookieTypes(scopeGroupId)) {
+			%>
+
+				<clay:content-row
+					noGutters="true"
+					verticalAlign="center"
+				>
+					<clay:content-col
+						expand="<%= true %>"
+					>
+						<h2><%= cookiesBannerConfigurationDisplayContext.getCookieTitle(optionalConsentCookieType.getName(), request) %></h2>
+					</clay:content-col>
+
+					<clay:content-col>
+						<label class="toggle-switch">
+							<span class="toggle-switch-check-bar">
+								<input class="toggle-switch-check" data-cookie-key="<%= optionalConsentCookieType.getName() %>" data-prechecked="<%= optionalConsentCookieType.isPrechecked() %>" disabled type="checkbox" />
+
+								<span aria-hidden="true" class="toggle-switch-bar">
+									<span class="toggle-switch-handle"></span>
+								</span>
 							</span>
-						</span>
-					</label>
-				</clay:content-col>
-			</clay:content-row>
+						</label>
+					</clay:content-col>
+				</clay:content-row>
 
-			<clay:content-row
-				cssClass="mb-3"
-			>
-				<p><%= LanguageUtil.get(request, "performance-cookies-description") %></p>
-			</clay:content-row>
-
-			<clay:content-row
-				noGutters="true"
-				verticalAlign="center"
-			>
-				<clay:content-col
-					expand="<%= true %>"
+				<clay:content-row
+					cssClass="mb-3"
 				>
-					<h2><%= LanguageUtil.get(request, "functional-cookies") %></h2>
-				</clay:content-col>
+					<p><%= optionalConsentCookieType.getDescription(locale) %></p>
+				</clay:content-row>
 
-				<clay:content-col>
-					<label class="toggle-switch">
-						<span class="toggle-switch-check-bar">
-							<input class="toggle-switch-check toggle-switch-check-functional" disabled type="checkbox" />
+			<%
+			}
+			%>
 
-							<span aria-hidden="true" class="toggle-switch-bar">
-								<span class="toggle-switch-handle"></span>
-							</span>
-						</span>
-					</label>
-				</clay:content-col>
-			</clay:content-row>
-
-			<clay:content-row
-				cssClass="mb-3"
-			>
-				<p><%= LanguageUtil.get(request, "functional-cookies-description") %></p>
-			</clay:content-row>
-
-			<clay:content-row
-				noGutters="true"
-				verticalAlign="center"
-			>
-				<clay:content-col
-					expand="<%= true %>"
-				>
-					<h2><%= LanguageUtil.get(request, "personalization-cookies") %></h2>
-				</clay:content-col>
-
-				<clay:content-col>
-					<label class="toggle-switch">
-						<span class="toggle-switch-check-bar">
-							<input class="toggle-switch-check toggle-switch-check-personalization" disabled type="checkbox" />
-
-							<span aria-hidden="true" class="toggle-switch-bar">
-								<span class="toggle-switch-handle"></span>
-							</span>
-						</span>
-					</label>
-				</clay:content-col>
-			</clay:content-row>
-
-			<clay:content-row
-				cssClass="mb-3"
-			>
-				<p><%= LanguageUtil.get(request, "personalization-cookies-description") %></p>
-			</clay:content-row>
 		</clay:col>
 	</clay:row>
+
+	<c:if test="<%= cookiesBannerConfigurationDisplayContext.isShowButtons() %>">
+		<clay:row
+			cssClass="d-flex justify-content-end"
+		>
+			<clay:content-row
+				noGutters="true"
+				verticalAlign="center"
+			>
+				<clay:content-col>
+					<clay:button
+						displayType="secondary"
+						id='<%= liferayPortletResponse.getNamespace() + "confirmButton" %>'
+						label='<%= LanguageUtil.get(request, "confirm") %>'
+						small="<%= true %>"
+					/>
+				</clay:content-col>
+
+				<clay:content-col>
+					<clay:button
+						displayType="secondary"
+						id='<%= liferayPortletResponse.getNamespace() + "acceptAllButton" %>'
+						label='<%= LanguageUtil.get(request, "accept-all") %>'
+						small="<%= true %>"
+					/>
+				</clay:content-col>
+
+				<c:if test="<%= cookiesBannerConfigurationDisplayContext.isIncludeDeclineAllButton() %>">
+					<clay:content-col>
+						<clay:button
+							displayType="secondary"
+							id='<%= liferayPortletResponse.getNamespace() + "declineAllButton" %>'
+							label='<%= LanguageUtil.get(request, "decline-all") %>'
+							small="<%= true %>"
+						/>
+					</clay:content-col>
+				</c:if>
+			</clay:content-row>
+		</clay:row>
+	</c:if>
 </clay:container-fluid>
 
 <liferay-frontend:component
 	componentId="CookiesBannerConfiguration"
+	context="<%= cookiesBannerConfigurationDisplayContext.getContext(scopeGroupId) %>"
 	module="cookies_banner_configuration/js/CookiesBannerConfiguration"
 />

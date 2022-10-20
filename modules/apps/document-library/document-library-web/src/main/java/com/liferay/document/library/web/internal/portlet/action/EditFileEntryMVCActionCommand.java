@@ -19,7 +19,6 @@ import com.liferay.asset.kernel.exception.AssetCategoryException;
 import com.liferay.asset.kernel.exception.AssetTagException;
 import com.liferay.asset.kernel.model.AssetVocabulary;
 import com.liferay.document.library.configuration.DLConfiguration;
-import com.liferay.document.library.configuration.FFFriendlyURLEntryFileEntryConfiguration;
 import com.liferay.document.library.constants.DLPortletKeys;
 import com.liferay.document.library.exception.DLStorageQuotaExceededException;
 import com.liferay.document.library.kernel.antivirus.AntivirusScannerException;
@@ -56,6 +55,8 @@ import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.dynamic.data.mapping.util.DDMBeanTranslator;
 import com.liferay.dynamic.data.mapping.validator.DDMFormValuesValidationException;
+import com.liferay.friendly.url.model.FriendlyURLEntry;
+import com.liferay.friendly.url.service.FriendlyURLEntryLocalService;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -80,6 +81,7 @@ import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.repository.capabilities.TrashCapability;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextFactory;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
@@ -98,8 +100,9 @@ import com.liferay.portal.kernel.upload.UploadPortletRequest;
 import com.liferay.portal.kernel.upload.UploadRequestSizeException;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.FileUtil;
-import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.FriendlyURLNormalizer;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.Html;
 import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.KeyValuePair;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -111,7 +114,6 @@ import com.liferay.portal.kernel.util.TempFileEntryUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
-import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.util.RepositoryUtil;
 import com.liferay.trash.service.TrashEntryService;
@@ -155,10 +157,7 @@ import org.osgi.service.component.annotations.Reference;
  * @author Kenneth Chang
  */
 @Component(
-	configurationPid = {
-		"com.liferay.document.library.configuration.DLConfiguration",
-		"com.liferay.document.library.configuration.FFFriendlyURLEntryFileEntryConfiguration"
-	},
+	configurationPid = "com.liferay.document.library.configuration.DLConfiguration",
 	property = {
 		"javax.portlet.name=" + DLPortletKeys.DOCUMENT_LIBRARY,
 		"javax.portlet.name=" + DLPortletKeys.DOCUMENT_LIBRARY_ADMIN,
@@ -178,9 +177,6 @@ public class EditFileEntryMVCActionCommand extends BaseMVCActionCommand {
 	protected void activate(Map<String, Object> properties) {
 		_dlConfiguration = ConfigurableUtil.createConfigurable(
 			DLConfiguration.class, properties);
-		_ffFriendlyURLEntryFileEntryConfiguration =
-			ConfigurableUtil.createConfigurable(
-				FFFriendlyURLEntryFileEntryConfiguration.class, properties);
 	}
 
 	@Override
@@ -356,7 +352,9 @@ public class EditFileEntryMVCActionCommand extends BaseMVCActionCommand {
 			String portletResource = ParamUtil.getString(
 				actionRequest, "portletResource");
 
-			if (Validator.isNotNull(portletResource)) {
+			if (Validator.isNotNull(portletResource) ||
+				cmd.equals(Constants.ADD_DYNAMIC)) {
+
 				hideDefaultSuccessMessage(actionRequest);
 
 				MultiSessionMessages.add(
@@ -543,6 +541,41 @@ public class EditFileEntryMVCActionCommand extends BaseMVCActionCommand {
 		}
 	}
 
+	private void _addUrlTitleChangedMessage(
+		ActionRequest actionRequest, String originalUrlTitle,
+		long fileEntryId) {
+
+		FriendlyURLEntry friendlyURLEntry =
+			_friendlyURLEntryLocalService.fetchMainFriendlyURLEntry(
+				_classNameLocalService.getClassNameId(FileEntry.class),
+				fileEntryId);
+
+		if (friendlyURLEntry == null) {
+			return;
+		}
+
+		String currentUrlTitle = friendlyURLEntry.getUrlTitle();
+
+		if (Validator.isNull(originalUrlTitle) ||
+			currentUrlTitle.equals(
+				_friendlyURLNormalizer.normalizeWithPeriodsAndSlashes(
+					originalUrlTitle))) {
+
+			return;
+		}
+
+		MultiSessionMessages.add(
+			actionRequest, "friendlyURLChanged",
+			_language.format(
+				_portal.getHttpServletRequest(actionRequest),
+				"the-friendly-url-x-was-changed-to-x-to-ensure-uniqueness",
+				new Object[] {
+					"<strong>" + _html.escapeURL(originalUrlTitle) +
+						"</strong>",
+					"<strong>" + currentUrlTitle + "</strong>"
+				}));
+	}
+
 	private void _cancelFileEntriesCheckOut(ActionRequest actionRequest)
 		throws PortalException {
 
@@ -623,11 +656,9 @@ public class EditFileEntryMVCActionCommand extends BaseMVCActionCommand {
 
 		_setUpDDMFormValues(serviceContext);
 
-		if (GetterUtil.getBoolean(PropsUtil.get("feature.flag.LPS-150762"))) {
-			serviceContext.setAttribute(
-				"updateAutoTags",
-				ParamUtil.getBoolean(httpServletRequest, "updateAutoTags"));
-		}
+		serviceContext.setAttribute(
+			"updateAutoTags",
+			ParamUtil.getBoolean(httpServletRequest, "updateAutoTags"));
 
 		String cmd = ParamUtil.getString(httpServletRequest, Constants.CMD);
 
@@ -1003,6 +1034,10 @@ public class EditFileEntryMVCActionCommand extends BaseMVCActionCommand {
 			String cmd, Exception exception)
 		throws Exception {
 
+		if (_log.isWarnEnabled()) {
+			_log.warn(exception);
+		}
+
 		if (exception instanceof AssetCategoryException ||
 			exception instanceof AssetTagException) {
 
@@ -1058,6 +1093,10 @@ public class EditFileEntryMVCActionCommand extends BaseMVCActionCommand {
 
 				JSONPortletResponseUtil.writeJSON(
 					actionRequest, actionResponse, jsonObject);
+
+				if (cmd.equals(Constants.ADD_DYNAMIC)) {
+					hideDefaultErrorMessage(actionRequest);
+				}
 			}
 
 			if (exception instanceof AntivirusScannerException ||
@@ -1092,6 +1131,26 @@ public class EditFileEntryMVCActionCommand extends BaseMVCActionCommand {
 				"mvcPath", "/document_library/error.jsp");
 		}
 		else {
+			SessionErrors.add(actionRequest, exception.getClass());
+
+			if (cmd.equals(Constants.ADD_DYNAMIC)) {
+				JSONObject jsonObject;
+
+				if (exception instanceof PortalException) {
+					jsonObject = _multipleUploadResponseHandler.onFailure(
+						actionRequest, (PortalException)exception);
+				}
+				else {
+					jsonObject = _multipleUploadResponseHandler.onFailure(
+						actionRequest, new PortalException(exception));
+				}
+
+				JSONPortletResponseUtil.writeJSON(
+					actionRequest, actionResponse, jsonObject);
+
+				hideDefaultErrorMessage(actionRequest);
+			}
+
 			throw exception;
 		}
 	}
@@ -1177,11 +1236,7 @@ public class EditFileEntryMVCActionCommand extends BaseMVCActionCommand {
 			uploadPortletRequest.getFileName("file"));
 		String title = ParamUtil.getString(uploadPortletRequest, "title");
 
-		String urlTitle = StringPool.BLANK;
-
-		if (_ffFriendlyURLEntryFileEntryConfiguration.enabled()) {
-			urlTitle = ParamUtil.getString(uploadPortletRequest, "urlTitle");
-		}
+		String urlTitle = ParamUtil.getString(uploadPortletRequest, "urlTitle");
 
 		String description = ParamUtil.getString(
 			uploadPortletRequest, "description");
@@ -1340,6 +1395,11 @@ public class EditFileEntryMVCActionCommand extends BaseMVCActionCommand {
 					actionRequest, portletResource + "requestProcessed");
 			}
 
+			if (Validator.isNotNull(urlTitle)) {
+				_addUrlTitleChangedMessage(
+					actionRequest, urlTitle, fileEntry.getFileEntryId());
+			}
+
 			return fileEntry;
 		}
 	}
@@ -1364,6 +1424,9 @@ public class EditFileEntryMVCActionCommand extends BaseMVCActionCommand {
 	@Reference
 	private AssetDisplayPageEntryFormProcessor
 		_assetDisplayPageEntryFormProcessor;
+
+	@Reference
+	private ClassNameLocalService _classNameLocalService;
 
 	@Reference
 	private DDMBeanTranslator _ddmBeanTranslator;
@@ -1391,8 +1454,14 @@ public class EditFileEntryMVCActionCommand extends BaseMVCActionCommand {
 	@Reference
 	private DLValidator _dlValidator;
 
-	private volatile FFFriendlyURLEntryFileEntryConfiguration
-		_ffFriendlyURLEntryFileEntryConfiguration;
+	@Reference
+	private FriendlyURLEntryLocalService _friendlyURLEntryLocalService;
+
+	@Reference
+	private FriendlyURLNormalizer _friendlyURLNormalizer;
+
+	@Reference
+	private Html _html;
 
 	@Reference
 	private Language _language;

@@ -28,9 +28,9 @@ const props = {
 		'photo-1526434426615-1abe81efcb0b',
 		'photo-1518131672697-613becd4fab5',
 	].map((image) => ({
+		URL: getImgUrl(image, 800),
 		thumbnailURL: getImgUrl(image, 100),
 		title: image,
-		URL: getImgUrl(image, 800),
 	})),
 };
 

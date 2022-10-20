@@ -19,6 +19,7 @@ import com.liferay.expando.kernel.model.ExpandoColumn;
 import com.liferay.expando.kernel.model.ExpandoColumnConstants;
 import com.liferay.expando.kernel.model.ExpandoTable;
 import com.liferay.expando.kernel.model.adapter.StagedExpandoColumn;
+import com.liferay.expando.kernel.service.ExpandoColumnLocalService;
 import com.liferay.expando.kernel.service.ExpandoColumnLocalServiceUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.exportimport.staged.model.repository.StagedModelRepository;
@@ -32,7 +33,6 @@ import com.liferay.portal.kernel.model.StagedModel;
 import com.liferay.portal.kernel.model.Team;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.adapter.ModelAdapterUtil;
-import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.TeamLocalServiceUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
@@ -119,6 +119,8 @@ public class SegmentsEntryStagedModelDataHandlerTest
 		StagedModelDataHandlerUtil.exportStagedModel(
 			portletDataContext, segmentsEntry);
 
+		_expandoColumnLocalService.deleteColumn(expandoColumn.getColumnId());
+
 		initImport();
 
 		StagedExpandoColumn exportedStagedExpandoColumn =
@@ -163,14 +165,11 @@ public class SegmentsEntryStagedModelDataHandlerTest
 
 		initExport();
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(
-				stagingGroup.getGroupId(), TestPropsValues.getUserId());
-
 		Team team = TeamLocalServiceUtil.addTeam(
 			TestPropsValues.getUserId(), stagingGroup.getGroupId(),
 			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
-			serviceContext);
+			ServiceContextTestUtil.getServiceContext(
+				stagingGroup.getGroupId(), TestPropsValues.getUserId()));
 
 		StagedModelDataHandlerUtil.exportStagedModel(portletDataContext, team);
 
@@ -301,6 +300,9 @@ public class SegmentsEntryStagedModelDataHandlerTest
 
 		return criterion.getFilterString();
 	}
+
+	@Inject
+	private ExpandoColumnLocalService _expandoColumnLocalService;
 
 	@DeleteAfterTestRun
 	private ExpandoTable _expandoTable;

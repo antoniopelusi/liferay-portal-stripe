@@ -14,7 +14,7 @@
 
 package com.liferay.journal.web.internal.servlet.taglib.clay;
 
-import com.liferay.frontend.taglib.clay.servlet.taglib.soy.VerticalCard;
+import com.liferay.frontend.taglib.clay.servlet.taglib.VerticalCard;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.StringPool;
@@ -91,13 +91,13 @@ public class JournalArticleItemSelectorVerticalCard implements VerticalCard {
 		String title = _article.getTitle(_themeDisplay.getLocale());
 
 		if (Validator.isNotNull(title)) {
-			return HtmlUtil.escape(title);
+			return title;
 		}
 
 		Locale defaultLanguage = LocaleUtil.fromLanguageId(
 			_article.getDefaultLanguageId());
 
-		return HtmlUtil.escape(_article.getTitle(defaultLanguage));
+		return _article.getTitle(defaultLanguage);
 	}
 
 	@Override

@@ -22,10 +22,12 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.SetUtil;
+import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
 import java.util.List;
 import java.util.Map;
@@ -33,20 +35,22 @@ import java.util.ResourceBundle;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
-import org.mockito.Matchers;
-
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.Mockito;
 
 /**
  * @author Carolina Barbosa
  */
-@RunWith(PowerMockRunner.class)
 public class NumericInputMaskDDMFormFieldTemplateContextContributorTest
 	extends BaseDDMFormFieldTypeSettingsTestCase {
+
+	@ClassRule
+	@Rule
+	public static final LiferayUnitTestRule liferayUnitTestRule =
+		LiferayUnitTestRule.INSTANCE;
 
 	@Before
 	@Override
@@ -55,6 +59,9 @@ public class NumericInputMaskDDMFormFieldTemplateContextContributorTest
 
 		_setUpJSONFactory();
 		_setUpJSONFactoryUtil();
+
+		_setUpLanguage();
+
 		_setUpLanguageUtil();
 		_setUpPortal();
 	}
@@ -177,14 +184,10 @@ public class NumericInputMaskDDMFormFieldTemplateContextContributorTest
 		return ddmFormFieldRenderingContext;
 	}
 
-	private void _setUpJSONFactory() throws Exception {
-		PowerMockito.field(
-			NumericInputMaskDDMFormFieldTemplateContextContributor.class,
-			"_jsonFactory"
-		).set(
+	private void _setUpJSONFactory() {
+		ReflectionTestUtil.setFieldValue(
 			_numericInputMaskDDMFormFieldTemplateContextContributor,
-			new JSONFactoryImpl()
-		);
+			"_jsonFactory", new JSONFactoryImpl());
 	}
 
 	private void _setUpJSONFactoryUtil() {
@@ -193,42 +196,44 @@ public class NumericInputMaskDDMFormFieldTemplateContextContributorTest
 		jsonFactoryUtil.setJSONFactory(new JSONFactoryImpl());
 	}
 
-	private void _setUpLanguageUtil() {
-		LanguageUtil languageUtil = new LanguageUtil();
+	private void _setUpLanguage() {
+		language = Mockito.mock(Language.class);
 
-		Language language = mock(Language.class);
-
-		when(
-			language.get(
-				Matchers.any(ResourceBundle.class), Matchers.eq("none"))
+		Mockito.when(
+			language.get(Mockito.any(ResourceBundle.class), Mockito.eq("none"))
 		).thenReturn(
 			"None"
 		);
 
-		when(
+		Mockito.when(
 			language.getAvailableLocales()
 		).thenReturn(
 			SetUtil.fromArray(LocaleUtil.US)
 		);
 
-		when(
+		Mockito.when(
 			language.getLanguageId(LocaleUtil.US)
 		).thenReturn(
 			"en_US"
 		);
 
+		ReflectionTestUtil.setFieldValue(
+			_numericInputMaskDDMFormFieldTemplateContextContributor,
+			"_language", language);
+	}
+
+	private void _setUpLanguageUtil() {
+		LanguageUtil languageUtil = new LanguageUtil();
+
 		languageUtil.setLanguage(language);
 	}
 
-	private void _setUpPortal() throws Exception {
-		Portal portal = mock(Portal.class);
+	private void _setUpPortal() {
+		Portal portal = Mockito.mock(Portal.class);
 
-		PowerMockito.field(
-			NumericInputMaskDDMFormFieldTemplateContextContributor.class,
-			"_portal"
-		).set(
-			_numericInputMaskDDMFormFieldTemplateContextContributor, portal
-		);
+		ReflectionTestUtil.setFieldValue(
+			_numericInputMaskDDMFormFieldTemplateContextContributor, "_portal",
+			portal);
 	}
 
 	private final NumericInputMaskDDMFormFieldTemplateContextContributor

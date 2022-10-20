@@ -3,7 +3,9 @@ definition {
 	macro gotoDefineCustomLanguages {
 		DepotNavigator.openDepotLanguages(depotName = "${depotName}");
 
-		Pause(locator1 = "3000");
+		WaitForElementPresent(
+			key_languagesOption = "Define a custom default language and additional active languages for this asset library.",
+			locator1 = "Radio#DEPOT_LANGUAGES_OPTION");
 
 		Click.clickNoMouseOverNoWaitForVisible(
 			key_languagesOption = "Define a custom default language and additional active languages for this asset library.",
@@ -137,10 +139,6 @@ definition {
 				portlet = "${portlet}");
 		}
 
-		if (("${portlet}" == "Export") || ("${portlet}" == "Import")) {
-			Pause(locator1 = "2000");
-		}
-
 		AssertTextEquals(
 			locator1 = "Breadcrumb#BREADCRUMB_ENTRY_ACTIVE_ENTRY",
 			value1 = "${portlet}");
@@ -196,7 +194,7 @@ definition {
 	macro gotoShare {
 		LexiconEntry.changeDisplayStyle(displayStyle = "list");
 
-		AssertElementPresent.pauseAssertVisible(
+		WaitForVisible(
 			key_dmDocumentTitle = "${dmDocumentTitle}",
 			locator1 = "DocumentsAndMedia#DESCRIPTIVE_LIST_DOCUMENT_VERTICAL_ELLIPSIS");
 
@@ -336,7 +334,12 @@ definition {
 	macro openDepotStagingConfiguration {
 		var depotId = JSONGroupAPI._getDepotIdByName(depotName = "${depotName}");
 
-		Navigator.openWithAppendToBaseURL(urlAppend = "group/asset-library-${depotId}-staging/~/control_panel/manage?p_p_id=com_liferay_staging_processes_web_portlet_StagingProcessesPortlet");
+		if (isSet(remoteStaging)) {
+			Navigator.openWithAppendToBaseURL(urlAppend = "group/asset-library-${depotId}/~/control_panel/manage?p_p_id=com_liferay_staging_processes_web_portlet_StagingProcessesPortlet");
+		}
+		else {
+			Navigator.openWithAppendToBaseURL(urlAppend = "group/asset-library-${depotId}-staging/~/control_panel/manage?p_p_id=com_liferay_staging_processes_web_portlet_StagingProcessesPortlet");
+		}
 	}
 
 	macro openDepotTranslationProcesses {
@@ -371,7 +374,6 @@ definition {
 
 	macro openToAddDMEntry {
 		var depotId = JSONGroupAPI._getDepotIdByName(depotName = "${depotName}");
-
 		var groupId = JSONGroupAPI._getGroupIdByName(
 			groupName = "${depotName}",
 			site = "false");
@@ -418,7 +420,9 @@ definition {
 	}
 
 	macro openToDMEntryInDepot {
-		var depotId = JSONGroupAPI._getDepotIdByName(depotName = "${depotName}");
+		var depotId = JSONGroupAPI._getDepotIdByName(
+			depotName = "${depotName}",
+			portalURL = "${baseURL}");
 
 		if (isSet(folderName)) {
 			Variables.assertDefined(parameterList = "${folderName},${depotName}");
@@ -474,6 +478,43 @@ definition {
 		}
 	}
 
+	macro openToEditDMEntryInDepot {
+		var depotId = JSONGroupAPI._getDepotIdByName(depotName = "${depotName}");
+
+		if (isSet(staging)) {
+			if (isSet(folderName)) {
+				var folderId = JSONDocumentAPI._getFolderIdByFolderName(
+					groupName = "${depotName}-staging",
+					name = "${folderName}");
+			}
+
+			var fileEntryId = JSONDocument.getFileEntryId(
+				dmDocumentTitle = "${dmDocumentTitle}",
+				folderId = "${folderId}",
+				groupName = "${depotName} (Staging)",
+				portalURL = "${baseURL}",
+				site = "false");
+
+			Navigator.openWithAppendToBaseURL(urlAppend = "group/asset-library-${depotId}-staging/~/control_panel/manage?p_p_id=com_liferay_document_library_web_portlet_DLAdminPortlet&_com_liferay_document_library_web_portlet_DLAdminPortlet_mvcRenderCommandName=%2Fdocument_library%2Fedit_file_entry&_com_liferay_document_library_web_portlet_DLAdminPortlet_fileEntryId=${fileEntryId}");
+		}
+		else {
+			if (isSet(folderName)) {
+				var folderId = JSONDocumentAPI._getFolderIdByFolderName(
+					groupName = "${depotName}",
+					name = "${folderName}");
+			}
+
+			var fileEntryId = JSONDocument.getFileEntryId(
+				dmDocumentTitle = "${dmDocumentTitle}",
+				folderId = "${folderId}",
+				groupName = "${depotName}",
+				portalURL = "${baseURL}",
+				site = "false");
+
+			Navigator.openWithAppendToBaseURL(urlAppend = "group/asset-library-${depotId}/~/control_panel/manage?p_p_id=com_liferay_document_library_web_portlet_DLAdminPortlet&_com_liferay_document_library_web_portlet_DLAdminPortlet_mvcRenderCommandName=%2Fdocument_library%2Fedit_file_entry&_com_liferay_document_library_web_portlet_DLAdminPortlet_fileEntryId=${fileEntryId}");
+		}
+	}
+
 	macro openToEditWCEntry {
 		var baseURL = "${baseURL}";
 
@@ -482,11 +523,9 @@ definition {
 		}
 
 		var depotId = JSONGroupAPI._getDepotIdByName(depotName = "${depotName}");
-
 		var groupId = JSONWebcontentSetter.setGroupId(
 			groupName = "${depotName}",
 			site = "false");
-
 		var articleId = JSONWebcontentSetter.setArticleId(
 			groupName = "${depotName}",
 			site = "false",

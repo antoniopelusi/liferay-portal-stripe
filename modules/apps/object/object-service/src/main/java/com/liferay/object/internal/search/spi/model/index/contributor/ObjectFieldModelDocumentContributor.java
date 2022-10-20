@@ -45,6 +45,7 @@ public class ObjectFieldModelDocumentContributor
 				0));
 		document.addKeyword(
 			"objectDefinitionId", objectField.getObjectDefinitionId());
+		document.addKeyword("state", objectField.isState());
 		document.remove(Field.USER_NAME);
 	}
 

@@ -17,6 +17,16 @@ definition {
 		IFrame.closeFrame();
 	}
 
+	macro clearSearchBar {
+		DoubleClick(locator1 = "CommerceEntry#SEARCH_PRODUCT_RELATIONS");
+
+		KeyPress(
+			locator1 = "CommerceEntry#SEARCH_PRODUCT_RELATIONS",
+			value1 = "\BACK_SPACE");
+
+		Click(locator1 = "AppBuilder#SEARCH_BUTTON");
+	}
+
 	macro editMiniCartItemQuantity {
 		Type(
 			key_cartItemSku = "${cartItemSku}",
@@ -43,6 +53,7 @@ definition {
 	macro gotoFrontStoreProductPage {
 		var baseURL = PropsUtil.get("portal.url");
 		var productName = StringUtil.replace("${productName}", " ", "-");
+
 		var productName = StringUtil.lowerCase("${productName}");
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/guest/p/${productName}");
@@ -59,6 +70,14 @@ definition {
 			key_cartItemSku = "${cartItemSku}",
 			locator1 = "CommerceAccelerators#MINI_CART_ITEM_NAME_USING_SKU",
 			value1 = "${entryName}");
+	}
+
+	macro gotoMiniumAccountOrderDefaults {
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/minium/account-management");
+
+		CommerceNavigator.gotoEntry(entryName = "${accountName}");
+
+		CommerceEntry.gotoMenuTab(menuTab = "Order Defaults");
 	}
 
 	macro gotoMiniumSidebarItem {
@@ -95,10 +114,12 @@ definition {
 			category = "${category}",
 			panel = "Commerce",
 			portlet = "${portlet}");
+
+		WaitForPageLoad();
 	}
 
 	macro gotoProductDetails {
-		var productName = StringUtil.lowerCase("${productName}");
+		var productName = CommerceUtilities.convertStringToKey(string = "${productName}");
 
 		Click(
 			key_productName = "${productName}",
@@ -131,6 +152,10 @@ definition {
 		Click(
 			key_entryName = "${entryName}",
 			locator1 = "CommerceEntry#TABLE_LIST_TITLE");
+	}
+
+	macro goToWishLists {
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/minium/lists");
 	}
 
 	macro searchCatalog {

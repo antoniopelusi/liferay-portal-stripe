@@ -19,6 +19,8 @@ import com.liferay.headless.delivery.dto.v1_0.FragmentStyle;
 import com.liferay.headless.delivery.dto.v1_0.FragmentViewport;
 import com.liferay.headless.delivery.dto.v1_0.PageWidgetInstanceDefinition;
 import com.liferay.headless.delivery.internal.dto.v1_0.mapper.WidgetInstanceMapper;
+import com.liferay.headless.delivery.internal.dto.v1_0.mapper.util.StyledLayoutStructureItemUtil;
+import com.liferay.layout.util.structure.FragmentStyledLayoutStructureItem;
 import com.liferay.portal.kernel.util.Validator;
 
 /**
@@ -29,6 +31,7 @@ public class PageWidgetInstanceDefinitionUtil {
 
 	public static PageWidgetInstanceDefinition toPageWidgetInstanceDefinition(
 		FragmentEntryLink fragmentEntryLink,
+		FragmentStyledLayoutStructureItem fragmentStyledLayoutStructureItem,
 		FragmentStyle pageWidgetInstanceDefinitionFragmentStyle,
 		FragmentViewport[] pageWidgetInstanceDefinitionFragmentViewports,
 		String portletId, WidgetInstanceMapper widgetInstanceMapper) {
@@ -39,6 +42,13 @@ public class PageWidgetInstanceDefinitionUtil {
 
 		return new PageWidgetInstanceDefinition() {
 			{
+				cssClasses = StyledLayoutStructureItemUtil.getCssClasses(
+					fragmentStyledLayoutStructureItem);
+				customCSS = StyledLayoutStructureItemUtil.getCustomCSS(
+					fragmentStyledLayoutStructureItem);
+				customCSSViewports =
+					StyledLayoutStructureItemUtil.getCustomCSSViewports(
+						fragmentStyledLayoutStructureItem);
 				fragmentStyle = pageWidgetInstanceDefinitionFragmentStyle;
 				fragmentViewports =
 					pageWidgetInstanceDefinitionFragmentViewports;

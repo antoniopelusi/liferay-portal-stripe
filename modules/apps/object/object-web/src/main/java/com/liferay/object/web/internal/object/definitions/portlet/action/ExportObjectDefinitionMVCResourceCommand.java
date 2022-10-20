@@ -14,9 +14,11 @@
 
 package com.liferay.object.web.internal.object.definitions.portlet.action;
 
+import com.liferay.object.admin.rest.dto.v1_0.ObjectAction;
 import com.liferay.object.admin.rest.dto.v1_0.ObjectDefinition;
 import com.liferay.object.admin.rest.dto.v1_0.ObjectField;
 import com.liferay.object.admin.rest.resource.v1_0.ObjectDefinitionResource;
+import com.liferay.object.constants.ObjectFieldConstants;
 import com.liferay.object.constants.ObjectPortletKeys;
 import com.liferay.object.web.internal.object.definitions.portlet.action.util.ExportImportObjectDefinitiontUtil;
 import com.liferay.petra.string.StringPool;
@@ -30,12 +32,18 @@ import com.liferay.portal.kernel.portlet.bridges.mvc.MVCResourceCommand;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
+import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.util.PropsUtil;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import javax.portlet.ResourceRequest;
@@ -80,14 +88,38 @@ public class ExportObjectDefinitionMVCResourceCommand
 		ObjectDefinition objectDefinition =
 			objectDefinitionResource.getObjectDefinition(objectDefinitionId);
 
+		for (ObjectAction objectAction : objectDefinition.getObjectActions()) {
+			Map<String, Object> parameters =
+				(Map<String, Object>)objectAction.getParameters();
+
+			Object object = parameters.get("predefinedValues");
+
+			if (object == null) {
+				continue;
+			}
+
+			parameters.put(
+				"predefinedValues",
+				ListUtil.toList(
+					(ArrayList<LinkedHashMap>)object,
+					JSONFactoryUtil::createJSONObject));
+		}
+
 		objectDefinition.setObjectFields(
 			ArrayUtil.filter(
 				objectDefinition.getObjectFields(),
-				objectField -> Validator.isNull(
-					objectField.getRelationshipType())));
+				objectField ->
+					Validator.isNull(objectField.getRelationshipType()) &&
+					!Objects.equals(
+						objectField.getBusinessTypeAsString(),
+						ObjectFieldConstants.BUSINESS_TYPE_AGGREGATION)));
 
 		JSONObject objectDefinitionJSONObject =
 			JSONFactoryUtil.createJSONObject(objectDefinition.toString());
+
+		if (!GetterUtil.getBoolean(PropsUtil.get("feature.flag.LPS-135430"))) {
+			objectDefinitionJSONObject.remove("storageType");
+		}
 
 		for (ObjectField objectField : objectDefinition.getObjectFields()) {
 			if (Objects.equals(
@@ -139,9 +171,9 @@ public class ExportObjectDefinitionMVCResourceCommand
 		_sanitizeJSON(
 			objectDefinitionJSONObject,
 			new String[] {
-				"dateCreated", "dateModified", "id", "listTypeDefinitionId",
-				"objectDefinitionId", "objectFieldId", "objectRelationshipId",
-				"titleObjectFieldId"
+				"dateCreated", "dateModified", "externalReferenceCode", "id",
+				"listTypeDefinitionId", "objectDefinitionId", "objectFieldId",
+				"objectRelationshipId", "titleObjectFieldId"
 			});
 
 		String objectDefinitionJSON = objectDefinitionJSONObject.toString();

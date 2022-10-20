@@ -64,7 +64,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
@@ -141,7 +141,7 @@ public class MiniumSiteInitializer implements SiteInitializer {
 		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
 			"content.Language", locale, getClass());
 
-		return LanguageUtil.get(resourceBundle, "minium-description");
+		return _language.get(resourceBundle, "minium-description");
 	}
 
 	@Override
@@ -154,7 +154,7 @@ public class MiniumSiteInitializer implements SiteInitializer {
 		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
 			"content.Language", locale, getClass());
 
-		return LanguageUtil.get(resourceBundle, "minium");
+		return _language.get(resourceBundle, "minium");
 	}
 
 	@Override
@@ -432,7 +432,7 @@ public class MiniumSiteInitializer implements SiteInitializer {
 		serviceContext.setAddGroupPermissions(true);
 		serviceContext.setAddGuestPermissions(true);
 		serviceContext.setCompanyId(group.getCompanyId());
-		serviceContext.setLanguageId(LanguageUtil.getLanguageId(locale));
+		serviceContext.setLanguageId(_language.getLanguageId(locale));
 		serviceContext.setScopeGroupId(groupId);
 		serviceContext.setTimeZone(user.getTimeZone());
 		serviceContext.setUserId(user.getUserId());
@@ -570,9 +570,21 @@ public class MiniumSiteInitializer implements SiteInitializer {
 			_log.info("Importing commerce price entries...");
 		}
 
+		JSONArray jsonArray = _getJSONArray("price-entries.json");
+
+		for (int i = 0; i < jsonArray.length(); i++) {
+			JSONObject jsonObject = jsonArray.getJSONObject(i);
+
+			String sku = jsonObject.getString("sku");
+
+			String externalReferenceCode =
+				sku + _siteInitializerDependencyResolver.getKey();
+
+			jsonObject.put("externalReferenceCode", externalReferenceCode);
+		}
+
 		_commercePriceEntriesImporter.importCommercePriceEntries(
-			_getJSONArray("price-entries.json"), catalogGroupId,
-			serviceContext.getUserId());
+			jsonArray, catalogGroupId, serviceContext.getUserId());
 
 		if (_log.isInfoEnabled()) {
 			_log.info("Commerce price entries successfully imported");
@@ -637,6 +649,26 @@ public class MiniumSiteInitializer implements SiteInitializer {
 
 				jsonObject.put(
 					"externalReferenceCode", newExternalReferenceCode);
+
+				JSONArray skusJSONArray = jsonObject.getJSONArray("skus");
+
+				if (skusJSONArray != null) {
+					for (int j = 0; j < skusJSONArray.length(); j++) {
+						JSONObject skuJSONObject = skusJSONArray.getJSONObject(
+							j);
+
+						String skuExternalReferenceCode =
+							skuJSONObject.getString("externalReferenceCode");
+
+						String newSkuExternalReferenceCode =
+							skuExternalReferenceCode +
+								_siteInitializerDependencyResolver.getKey();
+
+						skuJSONObject.put(
+							"externalReferenceCode",
+							newSkuExternalReferenceCode);
+					}
+				}
 			}
 		}
 
@@ -870,7 +902,7 @@ public class MiniumSiteInitializer implements SiteInitializer {
 				HashMapBuilder.put(
 					locale, commerceShippingEngine.getDescription(locale)
 				).build(),
-				null, shippingMethod, 0, true);
+				true, shippingMethod, null, 0, StringPool.BLANK);
 
 		_setCommerceShippingOption(
 			commerceShippingMethod, "Standard Delivery", StringPool.BLANK,
@@ -1121,6 +1153,9 @@ public class MiniumSiteInitializer implements SiteInitializer {
 
 	@Reference
 	private KBArticleImporter _kbArticleImporter;
+
+	@Reference
+	private Language _language;
 
 	@Reference
 	private MiniumLayoutsInitializer _miniumLayoutsInitializer;

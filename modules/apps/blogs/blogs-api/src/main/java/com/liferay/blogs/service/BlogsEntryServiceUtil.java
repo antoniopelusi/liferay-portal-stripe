@@ -100,6 +100,14 @@ public class BlogsEntryServiceUtil {
 			groupId, externalReferenceCode);
 	}
 
+	public static BlogsEntry getBlogsEntryByExternalReferenceCode(
+			long groupId, String externalReferenceCode)
+		throws PortalException {
+
+		return getService().getBlogsEntryByExternalReferenceCode(
+			groupId, externalReferenceCode);
+	}
+
 	public static List<BlogsEntry> getCompanyEntries(
 			long companyId, java.util.Date displayDate, int status, int max)
 		throws PortalException {

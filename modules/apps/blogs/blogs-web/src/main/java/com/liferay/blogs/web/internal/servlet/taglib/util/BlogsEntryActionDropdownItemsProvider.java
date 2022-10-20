@@ -238,7 +238,6 @@ public class BlogsEntryActionDropdownItemsProvider {
 				"mvcRenderCommandName", "/blogs/edit_entry", "redirect",
 				_getRedirectURL(), "portletResource", portletResource,
 				"entryId", blogsEntry.getEntryId());
-
 			dropdownItem.setIcon("edit");
 			dropdownItem.setLabel(LanguageUtil.get(_resourceBundle, "edit"));
 		};
@@ -263,7 +262,7 @@ public class BlogsEntryActionDropdownItemsProvider {
 					"entryId", blogsEntry.getEntryId()
 				).buildString());
 			dropdownItem.setLabel(
-				LanguageUtil.get(_httpServletRequest, "move-to-recycle-bin"));
+				LanguageUtil.get(_httpServletRequest, "delete"));
 		};
 	}
 

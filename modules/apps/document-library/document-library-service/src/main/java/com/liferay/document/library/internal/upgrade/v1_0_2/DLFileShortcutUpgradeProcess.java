@@ -15,7 +15,6 @@
 package com.liferay.document.library.internal.upgrade.v1_0_2;
 
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
-import com.liferay.portal.kernel.util.LoggingTimer;
 
 /**
  * @author Sergio González
@@ -24,11 +23,9 @@ public class DLFileShortcutUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		try (LoggingTimer loggingTimer = new LoggingTimer()) {
-			runSQL(
-				"update DLFileShortcut set repositoryId = groupId where " +
-					"repositoryId = 0");
-		}
+		runSQL(
+			"update DLFileShortcut set repositoryId = groupId where " +
+				"repositoryId = 0");
 	}
 
 }

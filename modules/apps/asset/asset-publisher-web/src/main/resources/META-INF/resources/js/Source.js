@@ -12,7 +12,12 @@
  * details.
  */
 
-import {delegate} from 'frontend-js-web';
+import {
+	delegate,
+	openSelectionModal,
+	sub,
+	toggleSelectBox,
+} from 'frontend-js-web';
 
 const ANY = 'any';
 const SELECT_MORE_THAN_ONE = 'select-more-than-one';
@@ -208,7 +213,7 @@ export default function ({assetPublisherNamespace, classTypes, namespace}) {
 	};
 
 	classTypes.forEach(({className, classSubtypes}) => {
-		Liferay.Util.toggleSelectBox(
+		toggleSelectBox(
 			`${namespace}anyClassType${className}`,
 			SELECT_MORE_THAN_ONE,
 			`${namespace}${className}Boxes`
@@ -376,7 +381,7 @@ export default function ({assetPublisherNamespace, classTypes, namespace}) {
 			url
 		);
 
-		Liferay.Util.openSelectionModal({
+		openSelectionModal({
 			customSelectEvent: true,
 			id: `${namespace}selectDDMStructure${delegateTarget.id}`,
 			iframeBodyCssClass: '',
@@ -390,7 +395,7 @@ export default function ({assetPublisherNamespace, classTypes, namespace}) {
 				});
 			},
 			selectEventName: `${namespace}selectDDMStructureField`,
-			title: Liferay.Util.sub(
+			title: sub(
 				Liferay.Language.get('select-x'),
 				Liferay.Language.get('structure-field')
 			),
@@ -407,7 +412,7 @@ export default function ({assetPublisherNamespace, classTypes, namespace}) {
 
 	eventDelegates.push(clickOpenModal);
 
-	Liferay.Util.toggleSelectBox(
+	toggleSelectBox(
 		`${namespace}anyAssetType`,
 		SELECT_MORE_THAN_ONE,
 		`${namespace}classNamesBoxes`

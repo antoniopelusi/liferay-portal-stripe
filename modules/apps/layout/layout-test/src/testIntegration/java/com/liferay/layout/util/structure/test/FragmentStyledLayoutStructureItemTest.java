@@ -88,7 +88,7 @@ public class FragmentStyledLayoutStructureItemTest {
 				StringUtil.randomString(), StringUtil.randomString(),
 				RandomTestUtil.randomString(), RandomTestUtil.randomString(),
 				RandomTestUtil.randomString(), false, "{fieldSets: []}", null,
-				0, FragmentConstants.TYPE_COMPONENT,
+				0, FragmentConstants.TYPE_COMPONENT, null,
 				WorkflowConstants.STATUS_APPROVED, serviceContext);
 		long defaultSegmentsExperienceId =
 			_segmentsExperienceLocalService.fetchDefaultSegmentsExperienceId(
@@ -99,7 +99,7 @@ public class FragmentStyledLayoutStructureItemTest {
 			defaultSegmentsExperienceId, _layout.getPlid(),
 			fragmentEntry.getCss(), fragmentEntry.getHtml(),
 			fragmentEntry.getJs(), fragmentEntry.getConfiguration(), null,
-			StringPool.BLANK, 0, null, serviceContext);
+			StringPool.BLANK, 0, null, fragmentEntry.getType(), serviceContext);
 
 		FragmentEntry contributedFragmentEntry =
 			_fragmentCollectionContributorTracker.getFragmentEntry(
@@ -115,7 +115,8 @@ public class FragmentStyledLayoutStructureItemTest {
 				contributedFragmentEntry.getJs(),
 				contributedFragmentEntry.getConfiguration(), null,
 				StringPool.BLANK, 0,
-				contributedFragmentEntry.getFragmentEntryKey(), serviceContext);
+				contributedFragmentEntry.getFragmentEntryKey(),
+				contributedFragmentEntry.getType(), serviceContext);
 	}
 
 	@Test

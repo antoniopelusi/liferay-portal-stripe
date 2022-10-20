@@ -14,49 +14,49 @@
 
 import ClayButton from '@clayui/button';
 import ClayIcon from '@clayui/icon';
-import ClayManagementToolbar from '@clayui/management-toolbar';
+import {ManagementToolbar} from 'frontend-js-components-web';
 import PropTypes from 'prop-types';
 import React, {useContext, useState} from 'react';
 
-import DataSetContext from '../../DataSetContext';
+import FrontendDataSetContext from '../../FrontendDataSetContext';
 import ViewsContext from '../../views/ViewsContext';
 import ActiveViewSelector from './ActiveViewSelector';
 import CreationMenu from './CreationMenu';
-import CustomViewDropdown from './CustomViewDropdown';
+import CustomViewsControls from './CustomViewsControls';
 import FiltersDropdown from './FiltersDropdown';
 import MainSearch from './MainSearch';
 
 function NavBar({creationMenu, showSearch}) {
-	const {filters} = useContext(DataSetContext);
+	const {filters} = useContext(FrontendDataSetContext);
 	const [{customViewsEnabled, views}] = useContext(ViewsContext);
 	const [showMobile, setShowMobile] = useState(false);
 
 	return (
-		<ClayManagementToolbar className="c-mb-0 justify-content-space-between">
-			<ClayManagementToolbar.ItemList>
+		<ManagementToolbar.Container className="justify-content-space-between">
+			<ManagementToolbar.ItemList>
 				{!!filters.length && (
-					<ClayManagementToolbar.Item>
+					<ManagementToolbar.Item>
 						<FiltersDropdown />
-					</ClayManagementToolbar.Item>
+					</ManagementToolbar.Item>
 				)}
-			</ClayManagementToolbar.ItemList>
+			</ManagementToolbar.ItemList>
 
 			{showSearch && (
 				<>
-					<ClayManagementToolbar.Search
+					<ManagementToolbar.Search
 						onSubmit={(event) => {
 							event.preventDefault();
 						}}
 						showMobile={showMobile}
 					>
 						<MainSearch setShowMobile={setShowMobile} />
-					</ClayManagementToolbar.Search>
+					</ManagementToolbar.Search>
 				</>
 			)}
 
-			<ClayManagementToolbar.ItemList>
+			<ManagementToolbar.ItemList>
 				{showSearch && (
-					<ClayManagementToolbar.Item className="navbar-breakpoint-d-none">
+					<ManagementToolbar.Item className="navbar-breakpoint-d-none">
 						<ClayButton
 							className="nav-link nav-link-monospaced"
 							displayType="unstyled"
@@ -64,28 +64,24 @@ function NavBar({creationMenu, showSearch}) {
 						>
 							<ClayIcon symbol="search" />
 						</ClayButton>
-					</ClayManagementToolbar.Item>
+					</ManagementToolbar.Item>
 				)}
 
 				{views?.length > 1 && (
-					<ClayManagementToolbar.Item>
+					<ManagementToolbar.Item>
 						<ActiveViewSelector views={views} />
-					</ClayManagementToolbar.Item>
+					</ManagementToolbar.Item>
 				)}
 
-				{customViewsEnabled && (
-					<ClayManagementToolbar.Item>
-						<CustomViewDropdown />
-					</ClayManagementToolbar.Item>
-				)}
+				{customViewsEnabled && <CustomViewsControls />}
 
 				{creationMenu && (
-					<ClayManagementToolbar.Item>
+					<ManagementToolbar.Item>
 						<CreationMenu {...creationMenu} />
-					</ClayManagementToolbar.Item>
+					</ManagementToolbar.Item>
 				)}
-			</ClayManagementToolbar.ItemList>
-		</ClayManagementToolbar>
+			</ManagementToolbar.ItemList>
+		</ManagementToolbar.Container>
 	);
 }
 

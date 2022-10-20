@@ -68,6 +68,7 @@ definition {
 	@priority = "4"
 	test HypersonicToMySQL {
 		property database.types = "mysql";
+		property test.assert.warning.exceptions = "true";
 		property test.name.skip.portal.instance = "SetupWizard#HypersonicToMySQL";
 
 		SetupWizard.configurePG(
@@ -207,6 +208,7 @@ definition {
 			value1 = "Custom");
 
 		var liferayHome = PropsUtil.get("liferay.home.dir.name");
+
 		var fileContent = FileUtil.read("${liferayHome}/portal-setup-wizard.properties");
 
 		if (contains("${fileContent}", "admin.email.from.address=user@liferay.com") && contains("${fileContent}", "admin.email.from.name=User User") && contains("${fileContent}", "default.admin.email.address.prefix=user") && contains("${fileContent}", "default.admin.first.name=User") && contains("${fileContent}", "default.admin.last.name=User") && contains("${fileContent}", "company.default.locale=es_ES") && contains("${fileContent}", "company.default.name=Custom")) {

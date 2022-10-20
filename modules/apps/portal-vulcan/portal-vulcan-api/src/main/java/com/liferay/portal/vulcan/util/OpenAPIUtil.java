@@ -80,7 +80,7 @@ public class OpenAPIUtil {
 		Map<String, Field> fields = new HashMap<>();
 
 		List<String> requiredPropertySchemaNames =
-			schema.getRequiredPropertySchemaNames();
+			_getRequiredPropertySchemaNames(schema);
 
 		Map<String, Schema> propertySchemas = schema.getPropertySchemas();
 
@@ -145,6 +145,17 @@ public class OpenAPIUtil {
 		).collect(
 			Collectors.joining(",")
 		);
+	}
+
+	private static List<String> _getRequiredPropertySchemaNames(Schema schema) {
+		List<String> requiredPropertySchemaNames =
+			schema.getRequiredPropertySchemaNames();
+
+		if (requiredPropertySchemaNames == null) {
+			requiredPropertySchemaNames = Collections.emptyList();
+		}
+
+		return requiredPropertySchemaNames;
 	}
 
 	private static boolean _hasOKResponseContentSchemaReferenceLike(

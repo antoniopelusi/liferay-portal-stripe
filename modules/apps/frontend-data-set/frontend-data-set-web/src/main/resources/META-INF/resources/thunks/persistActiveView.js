@@ -12,8 +12,8 @@
  * details.
  */
 
-import {updateActiveView} from '../actions/updateActiveView';
 import {saveViewSettings} from '../utils/saveViewSettings';
+import {updateActiveView} from '../views/viewsReducer';
 
 export default function persistActiveView({
 	activeViewName,

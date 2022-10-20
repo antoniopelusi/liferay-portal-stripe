@@ -19,12 +19,13 @@ import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 
-import com.liferay.gradle.plugins.workspace.configurators.ExtProjectConfigurator;
-import com.liferay.gradle.plugins.workspace.configurators.ModulesProjectConfigurator;
-import com.liferay.gradle.plugins.workspace.configurators.PluginsProjectConfigurator;
-import com.liferay.gradle.plugins.workspace.configurators.RootProjectConfigurator;
-import com.liferay.gradle.plugins.workspace.configurators.ThemesProjectConfigurator;
-import com.liferay.gradle.plugins.workspace.configurators.WarsProjectConfigurator;
+import com.liferay.gradle.plugins.workspace.configurator.ClientExtensionProjectConfigurator;
+import com.liferay.gradle.plugins.workspace.configurator.ExtProjectConfigurator;
+import com.liferay.gradle.plugins.workspace.configurator.ModulesProjectConfigurator;
+import com.liferay.gradle.plugins.workspace.configurator.PluginsProjectConfigurator;
+import com.liferay.gradle.plugins.workspace.configurator.RootProjectConfigurator;
+import com.liferay.gradle.plugins.workspace.configurator.ThemesProjectConfigurator;
+import com.liferay.gradle.plugins.workspace.configurator.WarsProjectConfigurator;
 import com.liferay.gradle.plugins.workspace.internal.util.GradleUtil;
 import com.liferay.gradle.util.Validator;
 import com.liferay.portal.tools.bundle.support.commands.DownloadCommand;
@@ -62,6 +63,7 @@ import org.gradle.api.logging.Logger;
  * @author David Truong
  * @author Andrea Di Giorgi
  * @author Simon Jiang
+ * @author Gregory Amerson
  */
 public class WorkspaceExtension {
 
@@ -71,6 +73,8 @@ public class WorkspaceExtension {
 
 		_product = _getProperty(settings, "product", (String)null);
 
+		_projectConfigurators.add(
+			new ClientExtensionProjectConfigurator(settings));
 		_projectConfigurators.add(new ExtProjectConfigurator(settings));
 		_projectConfigurators.add(new ModulesProjectConfigurator(settings));
 		_projectConfigurators.add(new PluginsProjectConfigurator(settings));
@@ -109,6 +113,13 @@ public class WorkspaceExtension {
 		_dockerDir = _getProperty(settings, "docker.dir", _DOCKER_DIR);
 		_dockerImageLiferay = _getProperty(
 			settings, "docker.image.liferay", _getDefaultDockerImage());
+		_dockerLocalRegistryAddress = _getProperty(
+			settings, "docker.local.registry.address");
+		_dockerPullPolicy = _getProperty(
+			settings, "docker.pull.policy", _DOCKER_PULL_POLICY);
+		_dockerUserAccessToken = _getProperty(
+			settings, "docker.user.access.token");
+		_dockerUserName = _getProperty(settings, "docker.username");
 		_environment = _getProperty(
 			settings, "environment",
 			BundleSupportConstants.DEFAULT_ENVIRONMENT);
@@ -121,7 +132,7 @@ public class WorkspaceExtension {
 			settings, "target.platform.version",
 			_getDefaultTargetplatformVersion());
 
-		_gradle.afterProject(
+		_gradle.projectsEvaluated(
 			new Closure<Void>(_gradle) {
 
 				@SuppressWarnings("unused")
@@ -277,6 +288,22 @@ public class WorkspaceExtension {
 		return GradleUtil.toString(_dockerImageLiferay);
 	}
 
+	public String getDockerLocalRegistryAddress() {
+		return GradleUtil.toString(_dockerLocalRegistryAddress);
+	}
+
+	public boolean getDockerPullPolicy() {
+		return GradleUtil.toBoolean(_dockerPullPolicy);
+	}
+
+	public String getDockerUserAccessToken() {
+		return GradleUtil.toString(_dockerUserAccessToken);
+	}
+
+	public String getDockerUserName() {
+		return GradleUtil.toString(_dockerUserName);
+	}
+
 	public String getEnvironment() {
 		return GradleUtil.toString(_environment);
 	}
@@ -389,6 +416,24 @@ public class WorkspaceExtension {
 
 	public void setDockerImageLiferay(Object dockerImageLiferay) {
 		_dockerImageLiferay = dockerImageLiferay;
+	}
+
+	public void setDockerLocalRegistryAddress(
+		Object dockerLocalRegistryAddress) {
+
+		_dockerLocalRegistryAddress = dockerLocalRegistryAddress;
+	}
+
+	public void setDockerPullPolicy(Object dockerPullPolicy) {
+		_dockerPullPolicy = dockerPullPolicy;
+	}
+
+	public void setDockerUserAccessToken(Object dockerUserAccessToken) {
+		_dockerUserAccessToken = dockerUserAccessToken;
+	}
+
+	public void setDockerUserName(Object dockerUserName) {
+		_dockerUserName = dockerUserName;
 	}
 
 	public void setEnvironment(Object environment) {
@@ -505,6 +550,19 @@ public class WorkspaceExtension {
 		);
 	}
 
+	private ProductInfo _getProductInfo(Path downloadPath, String product)
+		throws Exception {
+
+		try (JsonReader jsonReader = new JsonReader(
+				Files.newBufferedReader(downloadPath))) {
+
+			Map<String, ProductInfo> productInfos = _getProductInfos(
+				jsonReader);
+
+			return productInfos.get(product);
+		}
+	}
+
 	private ProductInfo _getProductInfo(String product) {
 		if (product == null) {
 			return null;
@@ -513,45 +571,49 @@ public class WorkspaceExtension {
 		return _productInfos.computeIfAbsent(
 			product,
 			key -> {
-				try {
-					DownloadCommand downloadCommand = new DownloadCommand();
+				DownloadCommand downloadCommand = new DownloadCommand();
 
-					downloadCommand.setCacheDir(_workspaceCacheDir);
-					downloadCommand.setPassword(null);
-					downloadCommand.setToken(false);
+				downloadCommand.setCacheDir(_workspaceCacheDir);
+				downloadCommand.setConnectionTimeout(5 * 1000);
+				downloadCommand.setPassword(null);
+				downloadCommand.setQuiet(true);
+				downloadCommand.setToken(false);
+				downloadCommand.setUserName(null);
+
+				try {
 					downloadCommand.setUrl(new URL(_PRODUCT_INFO_URL));
-					downloadCommand.setUserName(null);
-					downloadCommand.setQuiet(true);
 
 					downloadCommand.execute();
 
-					Path downloadPath = downloadCommand.getDownloadPath();
-
-					try (JsonReader jsonReader = new JsonReader(
-							Files.newBufferedReader(downloadPath))) {
-
-						Map<String, ProductInfo> productInfos =
-							_getProductInfos(jsonReader);
-
-						return productInfos.get(product);
-					}
+					return _getProductInfo(
+						downloadCommand.getDownloadPath(), product);
 				}
 				catch (Exception exception1) {
-					try (InputStream inputStream =
-							WorkspaceExtension.class.getResourceAsStream(
-								"/.product_info.json");
-						JsonReader jsonReader = new JsonReader(
-							new InputStreamReader(inputStream))) {
+					try {
+						downloadCommand.setUrl(new URL(_CDN_PRODUCT_INFO_URL));
 
-						Map<String, ProductInfo> productInfos =
-							_getProductInfos(jsonReader);
+						downloadCommand.execute();
 
-						return productInfos.get(product);
+						return _getProductInfo(
+							downloadCommand.getDownloadPath(), product);
 					}
 					catch (Exception exception2) {
-						throw new GradleException(
-							"Unable to get product info for :" + product,
-							exception2);
+						try (InputStream inputStream =
+								WorkspaceExtension.class.getResourceAsStream(
+									"/.product_info.json");
+							JsonReader jsonReader = new JsonReader(
+								new InputStreamReader(inputStream))) {
+
+							Map<String, ProductInfo> productInfos =
+								_getProductInfos(jsonReader);
+
+							return productInfos.get(product);
+						}
+						catch (Exception exception3) {
+							throw new GradleException(
+								"Unable to get product info for :" + product,
+								exception3);
+						}
 					}
 				}
 			});
@@ -565,6 +627,11 @@ public class WorkspaceExtension {
 			};
 
 		return gson.fromJson(jsonReader, typeToken.getType());
+	}
+
+	private Object _getProperty(Object object, String keySuffix) {
+		return GradleUtil.getProperty(
+			object, WorkspacePlugin.PROPERTY_PREFIX + keySuffix);
 	}
 
 	private boolean _getProperty(
@@ -616,11 +683,16 @@ public class WorkspaceExtension {
 
 	private static final String _BUNDLE_TOKEN_PASSWORD_FILE = null;
 
+	private static final String _CDN_PRODUCT_INFO_URL =
+		"https://releases-cdn.liferay.com/tools/workspace/.product_info.json";
+
 	private static final String _DEFAULT_WORKSPACE_CACHE_DIR_NAME =
 		".liferay/workspace";
 
 	private static final File _DOCKER_DIR = new File(
 		Project.DEFAULT_BUILD_DIR_NAME + File.separator + "docker");
+
+	private static final boolean _DOCKER_PULL_POLICY = true;
 
 	private static final String _NODE_PACKAGE_MANAGER = "yarn";
 
@@ -643,6 +715,10 @@ public class WorkspaceExtension {
 	private Object _dockerDir;
 	private Object _dockerImageId;
 	private Object _dockerImageLiferay;
+	private Object _dockerLocalRegistryAddress;
+	private Object _dockerPullPolicy;
+	private Object _dockerUserAccessToken;
+	private Object _dockerUserName;
 	private Object _environment;
 	private final Gradle _gradle;
 	private Object _homeDir;

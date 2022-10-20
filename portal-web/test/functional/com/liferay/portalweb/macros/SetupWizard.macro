@@ -23,6 +23,7 @@ definition {
 
 		if (isSet(databaseName)) {
 			var originalDatabaseName = PropsUtil.get("database.mysql.schema");
+
 			var jdbcURL = StringUtil.replace("${jdbcURL}", "${originalDatabaseName}", "${databaseName}");
 		}
 
@@ -134,7 +135,9 @@ definition {
 			Navigator.openSpecificURL(url = "${virtualHostsURL}");
 		}
 		else {
-			Navigator.openURL();
+			var baseURL = PropsUtil.get("portal.url");
+
+			Open.openNoError(locator1 = "${baseURL}/web/guest/home");
 		}
 
 		User.acceptEndUserLicenseAgreement();
@@ -222,7 +225,7 @@ definition {
 			AssertConsoleTextPresent(value1 = "Using dialect com.liferay.portal.dao.orm.hibernate.MariaDBDialect for MariaDB");
 		}
 		else if ("${databaseType}" == "MySQL") {
-			AssertConsoleTextPresent(value1 = "Using dialect org.hibernate.dialect.MySQLDialect for MySQL");
+			AssertConsoleTextPresent(value1 = "Using dialect org.hibernate.dialect.MySQL57Dialect for MySQL");
 		}
 		else if ("${databaseType}" == "Oracle") {
 			AssertConsoleTextPresent(value1 = "Using dialect org.hibernate.dialect.Oracle10gDialect for Oracle");
@@ -415,6 +418,7 @@ definition {
 
 	macro viewSampleDataEnabledInPropertiesFile {
 		var liferayHome = PropsUtil.get("liferay.home.dir.name");
+
 		var fileContent = FileUtil.read("${liferayHome}/portal-setup-wizard.properties");
 
 		if (contains("${fileContent}", "setup.wizard.add.sample.data=on")) {

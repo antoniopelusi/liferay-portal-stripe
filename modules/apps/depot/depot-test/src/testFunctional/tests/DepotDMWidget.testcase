@@ -1,8 +1,6 @@
 @component-name = "portal-document-management"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.document.library.item.selector.web.internal.configuration.FFFolderItemSelectorGroupSelectorConfiguration.config";
-	property osgi.module.configurations = "enabled=B&quot;true&quot;";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Depot";
@@ -198,7 +196,6 @@ definition {
 		JSONDocument.addFileWithUploadedFile(
 			dmDocumentDescription = "DM Document Description",
 			dmDocumentTitle = "DM Document Title",
-			folderName = "Depot Folder Name",
 			groupName = "Test Depot Name",
 			mimeType = "application/msword",
 			sourceFileName = "Document_1.doc");
@@ -209,7 +206,7 @@ definition {
 
 		DMDocument.setRootFolder(
 			depotName = "Test Depot Name",
-			dmRootFolderName = "Depot Folder Name");
+			selectRootFolder = "Home");
 
 		Navigator.openSitePage(
 			pageName = "Documents and Media Page",
@@ -217,15 +214,17 @@ definition {
 
 		DMDocument.deletePG(dmDocumentTitle = "DM Document Title");
 
+		LexiconEntry.changeDisplayStyle(displayStyle = "list");
+
+		DMFolder.deletePG(dmFolderName = "Depot Folder Name");
+
 		Navigator.openSitePage(
 			pageName = "Documents and Media Page",
 			siteName = "Site Name");
 
 		DMPortlet.viewDefaultPG();
 
-		DepotNavigator.openToDMFolder(
-			depotName = "Test Depot Name",
-			folderName = "Depot Folder Name");
+		DepotNavigator.openDepotDocumentsAndMediaAdmin(depotName = "Test Depot Name");
 
 		DMDocument.viewDefault();
 	}

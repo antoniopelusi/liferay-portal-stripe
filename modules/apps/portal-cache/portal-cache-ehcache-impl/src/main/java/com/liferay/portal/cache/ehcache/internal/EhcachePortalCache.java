@@ -14,22 +14,12 @@
 
 package com.liferay.portal.cache.ehcache.internal;
 
-import com.liferay.portal.cache.BasePortalCache;
 import com.liferay.portal.cache.ehcache.internal.event.PortalCacheCacheEventListener;
-import com.liferay.portal.kernel.cache.PortalCacheListener;
-import com.liferay.portal.kernel.cache.PortalCacheListenerScope;
-import com.liferay.portal.kernel.cache.PortalCacheManager;
 
 import java.io.Serializable;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Ehcache;
-import net.sf.ehcache.Element;
-import net.sf.ehcache.event.CacheEventListener;
 import net.sf.ehcache.event.NotificationScope;
 import net.sf.ehcache.event.RegisteredEventListeners;
 
@@ -39,156 +29,55 @@ import net.sf.ehcache.event.RegisteredEventListeners;
  * @author Shuyang Zhou
  */
 public class EhcachePortalCache<K extends Serializable, V>
-	extends BasePortalCache<K, V> implements EhcacheWrapper {
+	extends BaseEhcachePortalCache<K, V> {
 
 	public EhcachePortalCache(
-		PortalCacheManager<K, V> portalCacheManager, Ehcache ehcache) {
+		EhcachePortalCacheManager<K, V> ehcachePortalCacheManager,
+		EhcachePortalCacheConfiguration ehcachePortalCacheConfiguration) {
 
-		super(portalCacheManager);
+		super(ehcachePortalCacheManager, ehcachePortalCacheConfiguration);
 
-		this.ehcache = ehcache;
-
-		RegisteredEventListeners registeredEventListeners =
-			ehcache.getCacheEventNotificationService();
-
-		registeredEventListeners.registerListener(
-			new PortalCacheCacheEventListener<>(
-				aggregatedPortalCacheListener, this),
-			NotificationScope.ALL);
+		_cacheManager = ehcachePortalCacheManager.getEhcacheManager();
 	}
 
 	@Override
 	public Ehcache getEhcache() {
-		return ehcache;
-	}
+		if (_ehcache == null) {
+			synchronized (this) {
+				if (_ehcache == null) {
+					synchronized (_cacheManager) {
+						if (!_cacheManager.cacheExists(getPortalCacheName())) {
+							_cacheManager.addCache(getPortalCacheName());
+						}
+					}
 
-	@Override
-	public List<K> getKeys() {
-		return ehcache.getKeys();
-	}
+					_ehcache = _cacheManager.getCache(getPortalCacheName());
 
-	@Override
-	public String getPortalCacheName() {
-		return ehcache.getName();
-	}
+					RegisteredEventListeners registeredEventListeners =
+						_ehcache.getCacheEventNotificationService();
 
-	@Override
-	public void removeAll() {
-		ehcache.removeAll();
-	}
-
-	@Override
-	protected V doGet(K key) {
-		Element element = ehcache.get(key);
-
-		if (element == null) {
-			return null;
+					registeredEventListeners.registerListener(
+						new PortalCacheCacheEventListener<>(
+							aggregatedPortalCacheListener, this),
+						NotificationScope.ALL);
+				}
+			}
 		}
 
-		return (V)element.getObjectValue();
+		return _ehcache;
 	}
 
 	@Override
-	protected void doPut(K key, V value, int timeToLive) {
-		Element element = new Element(key, value);
-
-		if (timeToLive != DEFAULT_TIME_TO_LIVE) {
-			element.setTimeToLive(timeToLive);
-		}
-
-		ehcache.put(element);
+	protected void dispose() {
+		_cacheManager.removeCache(getPortalCacheName());
 	}
 
 	@Override
-	protected V doPutIfAbsent(K key, V value, int timeToLive) {
-		Element element = new Element(key, value);
-
-		if (timeToLive != DEFAULT_TIME_TO_LIVE) {
-			element.setTimeToLive(timeToLive);
-		}
-
-		Element oldElement = ehcache.putIfAbsent(element);
-
-		if (oldElement == null) {
-			return null;
-		}
-
-		return (V)oldElement.getObjectValue();
+	protected void resetEhcache() {
+		_ehcache = null;
 	}
 
-	@Override
-	protected void doRemove(K key) {
-		ehcache.remove(key);
-	}
-
-	@Override
-	protected boolean doRemove(K key, V value) {
-		Element element = new Element(key, value);
-
-		return ehcache.removeElement(element);
-	}
-
-	@Override
-	protected V doReplace(K key, V value, int timeToLive) {
-		Element element = new Element(key, value);
-
-		if (timeToLive != DEFAULT_TIME_TO_LIVE) {
-			element.setTimeToLive(timeToLive);
-		}
-
-		Element oldElement = ehcache.replace(element);
-
-		if (oldElement == null) {
-			return null;
-		}
-
-		return (V)oldElement.getObjectValue();
-	}
-
-	@Override
-	protected boolean doReplace(K key, V oldValue, V newValue, int timeToLive) {
-		Element oldElement = new Element(key, oldValue);
-
-		Element newElement = new Element(key, newValue);
-
-		if (timeToLive != DEFAULT_TIME_TO_LIVE) {
-			newElement.setTimeToLive(timeToLive);
-		}
-
-		return ehcache.replace(oldElement, newElement);
-	}
-
-	protected Map<PortalCacheListener<K, V>, PortalCacheListenerScope>
-		getPortalCacheListeners() {
-
-		return Collections.unmodifiableMap(
-			aggregatedPortalCacheListener.getPortalCacheListeners());
-	}
-
-	protected void reconfigEhcache(Ehcache ehcache) {
-		RegisteredEventListeners registeredEventListeners =
-			ehcache.getCacheEventNotificationService();
-
-		registeredEventListeners.registerListener(
-			new PortalCacheCacheEventListener<>(
-				aggregatedPortalCacheListener, this),
-			NotificationScope.ALL);
-
-		Ehcache oldEhcache = this.ehcache;
-
-		this.ehcache = ehcache;
-
-		registeredEventListeners =
-			oldEhcache.getCacheEventNotificationService();
-
-		Set<CacheEventListener> cacheEventListeners =
-			registeredEventListeners.getCacheEventListeners();
-
-		for (CacheEventListener cacheEventListener : cacheEventListeners) {
-			registeredEventListeners.unregisterListener(cacheEventListener);
-		}
-	}
-
-	protected volatile Ehcache ehcache;
+	private final CacheManager _cacheManager;
+	private volatile Ehcache _ehcache;
 
 }

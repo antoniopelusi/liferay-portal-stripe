@@ -316,6 +316,12 @@ public class FragmentCollectionContributorTrackerImpl
 				modified = true;
 			}
 
+			if (fragmentEntryLink.getType() != fragmentEntry.getType()) {
+				fragmentEntryLink.setType(fragmentEntry.getType());
+
+				modified = true;
+			}
+
 			if (modified) {
 				_fragmentEntryLinkLocalService.updateFragmentEntryLink(
 					fragmentEntryLink);
@@ -327,6 +333,8 @@ public class FragmentCollectionContributorTrackerImpl
 		try {
 			fragmentEntryValidator.validateConfiguration(
 				fragmentEntry.getConfiguration());
+			fragmentEntryValidator.validateTypeOptions(
+				fragmentEntry.getType(), fragmentEntry.getTypeOptions());
 
 			fragmentEntryProcessorRegistry.validateFragmentEntryHTML(
 				fragmentEntry.getHtml(), fragmentEntry.getConfiguration());
@@ -341,7 +349,8 @@ public class FragmentCollectionContributorTrackerImpl
 	}
 
 	private static final int[] _SUPPORTED_FRAGMENT_TYPES = {
-		FragmentConstants.TYPE_COMPONENT, FragmentConstants.TYPE_SECTION
+		FragmentConstants.TYPE_COMPONENT, FragmentConstants.TYPE_INPUT,
+		FragmentConstants.TYPE_SECTION
 	};
 
 	private static final Log _log = LogFactoryUtil.getLog(

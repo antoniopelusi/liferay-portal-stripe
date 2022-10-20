@@ -16,7 +16,7 @@ import {
 	WEB_CONTENT_DXP_VERSION_TYPES,
 } from './constants';
 
-export function getWebContents({dxpVersion, slaCurrent, subscriptionGroups}) {
+export function getWebContents(dxpVersion, slaCurrent, subscriptionGroups) {
 	const webContents = [];
 	const hasProjectSLA = Object.values(SLA_TYPES).some((slaType) =>
 		slaCurrent?.includes(slaType)
@@ -47,10 +47,31 @@ export function getWebContents({dxpVersion, slaCurrent, subscriptionGroups}) {
 		Object.fromEntries(initialSubscriptions)
 	);
 
+	const hasAnalyticsCloudNotActive = subscriptionGroups.find(
+		(subscriptionGroup) =>
+			subscriptionGroup.name === 'Analytics Cloud' &&
+			(subscriptionGroup.activationStatus === 'In-Progress' ||
+				!subscriptionGroup.activationStatus)
+	);
+
+	const hasPortalOrPartnershipNotActive = subscriptionGroups.find(
+		(subscriptionGroup) =>
+			subscriptionGroup.name === 'Portal' ||
+			(subscriptionGroup.name === 'Partnership' &&
+				(subscriptionGroup.activationStatus === 'In-Progress' ||
+					!subscriptionGroup.activationStatus))
+	);
+	const hasDXPOrDXPCloudActive = subscriptionGroups.find(
+		(subscriptionGroup) =>
+			subscriptionGroup.name === 'DXP' ||
+			(subscriptionGroup.name === 'LXC - SM' &&
+				subscriptionGroup.activationStatus === 'Active')
+	);
+
 	const hasAccessToActivateAnalyticsCloudContent =
-		!hasSubscriptionGroup.analyticsCloud &&
-		(hasSubscriptionGroup.portal || hasSubscriptionGroup.partnership) &&
-		(hasSubscriptionGroup.dxp || hasSubscriptionGroup.dxpCloud);
+		(hasAnalyticsCloudNotActive && hasPortalOrPartnershipNotActive) ||
+		(hasAnalyticsCloudNotActive && hasDXPOrDXPCloudActive) ||
+		hasAnalyticsCloudNotActive;
 
 	const hasAccessToSourceCodeContent =
 		hasSubscriptionGroup.partnership ||

@@ -15,7 +15,7 @@
 package com.liferay.gradle.plugins.node;
 
 import com.liferay.gradle.plugins.node.internal.util.GradleUtil;
-import com.liferay.gradle.plugins.node.tasks.YarnInstallTask;
+import com.liferay.gradle.plugins.node.task.YarnInstallTask;
 
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
@@ -54,13 +54,12 @@ public class YarnPlugin implements Plugin<Project> {
 
 				@Override
 				public void execute(YarnInstallTask yarnInstallTask) {
-					boolean frozenLockfile = Boolean.parseBoolean(
-						System.getProperty(
-							"frozen.lockfile", Boolean.TRUE.toString()));
-
 					yarnInstallTask.setDescription(
 						"Installs Node packages from package.json.");
-					yarnInstallTask.setFrozenLockFile(frozenLockfile);
+					yarnInstallTask.setFrozenLockFile(
+						Boolean.parseBoolean(
+							System.getProperty(
+								"frozen.lockfile", Boolean.TRUE.toString())));
 				}
 
 			});

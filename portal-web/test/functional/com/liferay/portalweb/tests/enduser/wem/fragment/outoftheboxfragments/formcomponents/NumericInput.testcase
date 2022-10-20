@@ -1,0 +1,609 @@
+@component-name = "portal-wcm"
+definition {
+
+	property custom.properties = "feature.flag.LPS-150277=true";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Fragments";
+
+	setUp {
+		task ("Set up instance and sign in") {
+			TestCase.setUpPortalInstance();
+
+			User.firstLoginPG();
+		}
+
+		task ("Add a new site") {
+			JSONGroup.addGroup(groupName = "Test Site Name");
+		}
+
+		task ("Add a company Object with a Long Integer, Integer, Precision Decimal and Decimal fields") {
+			ObjectAdmin.addObjectViaAPI(
+				labelName = "Purchase Order",
+				objectName = "PurchaseOrder",
+				pluralLabelName = "Purchase Orders");
+
+			ObjectAdmin.addObjectFieldViaAPI(
+				fieldBusinessType = "LongInteger",
+				fieldLabelName = "Amount",
+				fieldName = "amount",
+				fieldType = "Long",
+				isRequired = "false",
+				objectName = "PurchaseOrder");
+
+			ObjectAdmin.addObjectFieldViaAPI(
+				fieldBusinessType = "Integer",
+				fieldLabelName = "Ticket Number",
+				fieldName = "ticketNumber",
+				fieldType = "Integer",
+				isRequired = "false",
+				objectName = "PurchaseOrder");
+
+			ObjectAdmin.addObjectFieldViaAPI(
+				fieldBusinessType = "PrecisionDecimal",
+				fieldLabelName = "Price",
+				fieldName = "price",
+				fieldType = "BigDecimal",
+				isRequired = "false",
+				objectName = "PurchaseOrder");
+
+			ObjectAdmin.addObjectFieldViaAPI(
+				fieldBusinessType = "Decimal",
+				fieldLabelName = "Tax",
+				fieldName = "tax",
+				fieldType = "Double",
+				isRequired = "false",
+				objectName = "PurchaseOrder");
+
+			ObjectAdmin.publishObjectViaAPI(objectName = "PurchaseOrder");
+		}
+
+		task ("Enable Inputs Fragment collection in Gogo Shell") {
+			GogoShell.openGogoShellAdmin();
+
+			GogoShell.executeCommand(commandName = "scr:enable com.liferay.fragment.collection.contributor.inputs.InputsFragmentCollectionContributor");
+
+			GogoShell.viewOutput(outputContent = "true");
+		}
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			task ("Disable Inputs Fragment collection in Gogo Shell") {
+				GogoShell.openGogoShellAdmin();
+
+				GogoShell.executeCommand(commandName = "scr:disable com.liferay.fragment.collection.contributor.inputs.InputsFragmentCollectionContributor");
+
+				GogoShell.viewOutput(outputContent = "true");
+			}
+
+			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
+
+			ObjectAdmin.deleteObjectViaAPI(objectName = "PurchaseOrder");
+		}
+	}
+
+	@description = "This is a test for LPS-155169. The page creator could configure the Numeric Input framgent."
+	@priority = "4"
+	test ConfigureNumericInput {
+		property test.name.skip.portal.instance = "NumericInput#ConfigureNumericInput";
+
+		task ("Given a page creator has a Form Container mapped to an entity with Integer field") {
+			task ("Add a Form Container framgment to content page") {
+				JSONLayout.addPublicLayout(
+					groupName = "Test Site Name",
+					layoutName = "Test Page Name",
+					type = "content");
+
+				ContentPagesNavigator.openEditContentPage(
+					pageName = "Test Page Name",
+					siteName = "Test Site Name");
+
+				PageEditor.addFragment(
+					collectionName = "Form Components",
+					fragmentName = "Form Container");
+			}
+
+			task ("Map the Form Container to new Object") {
+				PageEditor.editFormContainer(
+					contentType = "Purchase Order",
+					panel = "General");
+			}
+		}
+
+		task ("When the page creator adds a Numeric Input fragment into the Form Container") {
+			PageEditor.addFragmentToFormContainer(
+				collectionName = "Form Components",
+				fragmentName = "Numeric Input");
+		}
+
+		task ("Then the page creator could configure the Numeric Input fragment") {
+			task ("Mark the Numeric Input as required") {
+				PageEditor.editInput(
+					field = "Ticket Number",
+					fragmentName = "Numeric Input",
+					markAsRequired = "true");
+
+				PageEditor.viewInputStyle(
+					label = "Ticket Number",
+					markAsRequired = "true",
+					type = "numeric-input");
+			}
+
+			task ("Rename the label") {
+				PageEditor.editInput(
+					fragmentName = "Numeric Input",
+					label = "Purchase Ticket Number");
+
+				PageEditor.viewInputStyle(
+					label = "Purchase Ticket Number",
+					showLabel = "true",
+					type = "numeric-input");
+			}
+
+			task ("Hide the label") {
+				PageEditor.editInput(
+					fragmentName = "Numeric Input",
+					hideLabel = "true");
+
+				PageEditor.viewInputStyle(
+					label = "Purchase Ticket Number",
+					showLabel = "false",
+					type = "numeric-input");
+			}
+
+			task ("Show the Help Text") {
+				PageEditor.editInput(
+					fragmentName = "Numeric Input",
+					hideHelpText = "false");
+
+				PageEditor.viewInputStyle(
+					helpText = "Add your help text here.",
+					showHelpText = "true",
+					type = "numeric-input");
+			}
+
+			task ("Clear the Help Text") {
+				PageEditor.editInput(
+					fragmentName = "Numeric Input",
+					helpText = "");
+
+				PageEditor.viewInputStyle(
+					showHelpText = "false",
+					type = "numeric-input");
+			}
+
+			task ("Add a placeholder to Numeric Input") {
+				PageEditor.editInput(
+					fragmentName = "Numeric Input",
+					placeholder = "Type your ticket number");
+
+				PageEditor.viewInputStyle(
+					placeholder = "Type your ticket number",
+					type = "numeric-input");
+			}
+		}
+	}
+
+	@description = "This is a test for LPS-155169. The user could submit successfully when a Form Container has Numeric Input fragments"
+	@priority = "4"
+	test SubmitFormWithNumericInput {
+		property test.name.skip.portal.instance = "NumericInput#SubmitFormWithNumericInput";
+
+		task ("Given a user has a content page with Numeric Input fragments inside Form Container") {
+			task ("Add a Form Container framgment to content page") {
+				JSONLayout.addPublicLayout(
+					groupName = "Test Site Name",
+					layoutName = "Test Page Name",
+					type = "content");
+
+				ContentPagesNavigator.openEditContentPage(
+					pageName = "Test Page Name",
+					siteName = "Test Site Name");
+
+				PageEditor.addFragment(
+					collectionName = "Form Components",
+					fragmentName = "Form Container");
+			}
+
+			task ("Map the Form Container to new Object") {
+				PageEditor.editFormContainer(
+					contentType = "Purchase Order",
+					panel = "General");
+			}
+
+			task ("Add four Numeric Input and a Submit Button fragments into the Form Container") {
+				PageEditor.addFragmentToFormContainer(
+					collectionName = "Form Components",
+					fragmentName = "Numeric Input");
+
+				PageEditor.addFragmentToFormContainer(
+					collectionName = "Form Components",
+					fragmentName = "Numeric Input",
+					targetFragmentName = "Numeric Input");
+
+				PageEditor.addFragmentToFormContainer(
+					collectionName = "Form Components",
+					fragmentName = "Numeric Input",
+					index = "2",
+					targetFragmentName = "Numeric Input");
+
+				PageEditor.addFragmentToFormContainer(
+					collectionName = "Form Components",
+					fragmentName = "Numeric Input",
+					index = "3",
+					targetFragmentName = "Numeric Input");
+
+				PageEditor.addFragmentToFormContainer(
+					collectionName = "Form Components",
+					fragmentName = "Submit Button",
+					index = "4",
+					targetFragmentName = "Numeric Input");
+			}
+
+			task ("Map the Numeric Input fragments to different fields") {
+				PageEditor.editInput(
+					field = "Amount",
+					fragmentName = "Numeric Input");
+
+				PageEditor.editInput(
+					field = "Ticket Number",
+					fragmentName = "Numeric Input",
+					index = "2");
+
+				PageEditor.editInput(
+					field = "Price",
+					fragmentName = "Numeric Input",
+					index = "3");
+
+				PageEditor.editInput(
+					field = "Tax",
+					fragmentName = "Numeric Input",
+					index = "4");
+
+				PageEditor.publish();
+			}
+		}
+
+		task ("When the user accesses to the content page at view mode") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+		}
+
+		task ("Then the user can submit the form with Numeric Inputs successfully") {
+			Type(
+				key_text = "Amount",
+				locator1 = "TextInput#ANY",
+				value1 = "2e5");
+
+			Type(
+				key_text = "Ticket Number",
+				locator1 = "TextInput#ANY",
+				value1 = "100");
+
+			Type(
+				key_text = "Price",
+				locator1 = "TextInput#ANY",
+				value1 = "3.14");
+
+			Type(
+				key_text = "Tax",
+				locator1 = "TextInput#ANY",
+				value1 = "-1");
+
+			Button.clickSubmitButton();
+
+			AssertTextPresent(value1 = "Thank you. Your information was successfully received.");
+
+			Refresh();
+
+			AssertTextEquals(
+				key_text = "Amount",
+				locator1 = "TextInput#ANY",
+				value1 = "");
+
+			AssertTextEquals(
+				key_text = "Ticket Number",
+				locator1 = "TextInput#ANY",
+				value1 = "");
+
+			AssertTextEquals(
+				key_text = "Price",
+				locator1 = "TextInput#ANY",
+				value1 = "");
+
+			AssertTextEquals(
+				key_text = "Tax",
+				locator1 = "TextInput#ANY",
+				value1 = "");
+		}
+	}
+
+	@description = "This is a test for LPS-155169. The Numeric Input only allow numbers and some special characters."
+	@priority = "5"
+	test ViewAllowedCharacters {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "NumericInput#ViewAllowedCharacters";
+
+		task ("Given a user has a content page with a Numeric Input inside Form Container") {
+			task ("Add a Form Container framgment to content page") {
+				JSONLayout.addPublicLayout(
+					groupName = "Test Site Name",
+					layoutName = "Test Page Name",
+					type = "content");
+
+				ContentPagesNavigator.openEditContentPage(
+					pageName = "Test Page Name",
+					siteName = "Test Site Name");
+
+				PageEditor.addFragment(
+					collectionName = "Form Components",
+					fragmentName = "Form Container");
+			}
+
+			task ("Map the Form Container to new Object") {
+				PageEditor.editFormContainer(
+					contentType = "Purchase Order",
+					panel = "General");
+			}
+
+			task ("Add a Numeric Input fragment into the Form Container") {
+				PageEditor.addFragmentToFormContainer(
+					collectionName = "Form Components",
+					fragmentName = "Numeric Input");
+			}
+
+			task ("Map the Numeric Input fragment to the decimal field") {
+				PageEditor.editInput(
+					field = "Tax",
+					fragmentName = "Numeric Input");
+
+				PageEditor.publish(objectName = "Purchase Order");
+			}
+		}
+
+		task ("When the user accesses to the content page at view mode") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+		}
+
+		task ("Then the user can only be allowed to type numbers and some special characters") {
+			task ("Type -123.456789 in Numeric Input") {
+				Type(
+					key_text = "Tax",
+					locator1 = "TextInput#ANY",
+					value1 = "-123.456789");
+
+				AssertTextEquals(
+					key_text = "Tax",
+					locator1 = "TextInput#ANY",
+					value1 = "-123.456789");
+			}
+
+			task ("Type 10e5 in Numeric Input") {
+				Type(
+					key_text = "Tax",
+					locator1 = "TextInput#ANY",
+					value1 = "10e5");
+
+				AssertTextEquals(
+					key_text = "Tax",
+					locator1 = "TextInput#ANY",
+					value1 = "10e5");
+			}
+
+			task ("Type 3E2 in Numeric Input") {
+				Type(
+					key_text = "Tax",
+					locator1 = "TextInput#ANY",
+					value1 = "3E2");
+
+				AssertTextEquals(
+					key_text = "Tax",
+					locator1 = "TextInput#ANY",
+					value1 = "3E2");
+			}
+
+			task ("Type China#& in Numeric Input") {
+				Refresh();
+
+				Type.sendKeys(
+					key_text = "Tax",
+					locator1 = "TextInput#ANY",
+					value1 = "China#&");
+
+				AssertTextEquals(
+					key_text = "Tax",
+					locator1 = "TextInput#ANY",
+					value1 = "");
+			}
+
+			task ("Type 12@12 in Numeric Input") {
+				Refresh();
+
+				Type.sendKeys(
+					key_text = "Tax",
+					locator1 = "TextInput#ANY",
+					value1 = "12@12");
+
+				AssertTextEquals(
+					key_text = "Tax",
+					locator1 = "TextInput#ANY",
+					value1 = "1212");
+			}
+
+			task ("Type 1.2? in Numeric Input") {
+				Refresh();
+
+				Type.sendKeys(
+					key_text = "Tax",
+					locator1 = "TextInput#ANY",
+					value1 = "1.2?");
+
+				AssertTextEquals(
+					key_text = "Tax",
+					locator1 = "TextInput#ANY",
+					value1 = "1.2");
+			}
+
+			task ("Type Ch1n4 in Numeric Input") {
+				Refresh();
+
+				Type.sendKeys(
+					key_text = "Tax",
+					locator1 = "TextInput#ANY",
+					value1 = "Ch1n4");
+
+				AssertTextEquals(
+					key_text = "Tax",
+					locator1 = "TextInput#ANY",
+					value1 = "14");
+			}
+		}
+	}
+
+	@description = "This is a test for LPS-151402. The user could see error message when submit a form with value exceeding the maximum or minimum value of field."
+	@priority = "4"
+	test ViewErrorMessageWhenSubmitFormWithValueExceedingTheMaxOrMinValueOfField {
+		property test.name.skip.portal.instance = "NumericInput#ViewErrorMessageWhenSubmitFormWithValueExceedingTheMaxOrMinValueOfField";
+
+		task ("Given a user has a content page where a Numeric Input and Submit Button fragments are inside a Form Container") {
+			task ("Add a Form Container framgment to content page") {
+				JSONLayout.addPublicLayout(
+					groupName = "Test Site Name",
+					layoutName = "Test Page Name",
+					type = "content");
+
+				ContentPagesNavigator.openEditContentPage(
+					pageName = "Test Page Name",
+					siteName = "Test Site Name");
+
+				PageEditor.addFragment(
+					collectionName = "Form Components",
+					fragmentName = "Form Container");
+
+				PageEditor.editFormContainer(
+					contentType = "Purchase Order",
+					panel = "General");
+			}
+
+			task ("Add a Numeric Input and Submit Button fragment into Form Container") {
+				PageEditor.addFragmentToFormContainer(
+					collectionName = "Form Components",
+					fragmentName = "Numeric Input");
+
+				PageEditor.addFragmentToFormContainer(
+					collectionName = "Form Components",
+					fragmentName = "Submit Button",
+					targetFragmentName = "Numeric Input");
+			}
+
+			task ("Map the Numeric Input fragment to Integer field") {
+				PageEditor.editInput(
+					field = "Ticket Number",
+					fragmentName = "Numeric Input");
+
+				PageEditor.publish();
+			}
+		}
+
+		task ("When the user submits form with value exceeding the maximum value of Numeric Input") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			Type(
+				key_text = "Ticket Number",
+				locator1 = "TextInput#ANY",
+				value1 = "10000000000");
+
+			Button.clickSubmitButton();
+		}
+
+		task ("Then the user should see an error message") {
+			AssertAttributeValue(
+				attribute1 = "validationMessage",
+				key_text = "Ticket Number",
+				locator1 = "TextInput#ANY",
+				value1 = "Value must be less than or equal to 2147483647.");
+		}
+
+		task ("When the user submits form with value exceeding the minimum value of Numeric Input") {
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			Type(
+				key_text = "Ticket Number",
+				locator1 = "TextInput#ANY",
+				value1 = "-10000000000");
+
+			Button.clickSubmitButton();
+		}
+
+		task ("Then the user should see an error message") {
+			AssertAttributeValue(
+				attribute1 = "validationMessage",
+				key_text = "Ticket Number",
+				locator1 = "TextInput#ANY",
+				value1 = "Value must be greater than or equal to -2147483648.");
+		}
+	}
+
+	@description = "This is a test for LPS-155169. The Numeric Input could be mapped to Long Integer, Integer, Precision Decimal and Decimal fields."
+	@priority = "5"
+	test ViewMappableFields {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "NumericInput#ViewMappableFields";
+
+		task ("Given a page creator has a content page with a Numeric Input inside Form Container") {
+			task ("Add a Form Container framgment to content page") {
+				JSONLayout.addPublicLayout(
+					groupName = "Test Site Name",
+					layoutName = "Test Page Name",
+					type = "content");
+
+				ContentPagesNavigator.openEditContentPage(
+					pageName = "Test Page Name",
+					siteName = "Test Site Name");
+
+				PageEditor.addFragment(
+					collectionName = "Form Components",
+					fragmentName = "Form Container");
+			}
+
+			task ("Map the Form Container to new Object") {
+				PageEditor.editFormContainer(
+					contentType = "Purchase Order",
+					panel = "General");
+			}
+
+			task ("Add a Numeric Input fragment into the Form Container") {
+				PageEditor.addFragmentToFormContainer(
+					collectionName = "Form Components",
+					fragmentName = "Numeric Input");
+			}
+		}
+
+		task ("When the page creator accesses to the General panel of Numeric Input") {
+			PageEditor.gotoConfiguration(fragmentName = "Numeric Input");
+		}
+
+		task ("Then the page creator could see mappable fields in mapping field selector") {
+			for (var fieldName : list "Amount,Ticket Number,Price,Tax") {
+				AssertElementPresent(
+					key_fieldLabel = "Field",
+					key_value = "${fieldName}",
+					locator1 = "Select#GENERIC_SELECT_VALUE");
+			}
+		}
+	}
+
+}

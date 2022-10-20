@@ -1,6 +1,8 @@
 @component-name = "portal-analytics-cloud"
 definition {
 
+	property analytics.cloud.release = "true";
+	property analytics.cloud.upstream = "true";
 	property custom.properties = "jsonws.web.service.paths.excludes=";
 	property portal.release = "false";
 	property portal.upstream = "true";
@@ -45,6 +47,8 @@ definition {
 	tearDown {
 		var testPortalInstance = PropsUtil.get("test.portal.instance");
 
+		ACUtils.tearDownAC();
+
 		ACUtils.tearDownDXP();
 
 		if ("${testPortalInstance}" == "true") {
@@ -52,16 +56,14 @@ definition {
 		}
 		else {
 			JSONGroup.deleteGroupByName(groupName = "Site Name");
-
-			JSONUser.tearDownNonAdminUsers();
 		}
-
-		ACUtils.tearDownAC();
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8907 | Test Summary: Expand activity in individual overview"
 	@priority = "3"
 	test CanExpandActivityInIndividualOverview {
+		property analytics.cloud.upstream = "false";
+
 		task ("Create Blog to Add to Page") {
 			ACUtils.createBlogsAndAddToPage();
 		}
@@ -298,7 +300,9 @@ definition {
 
 		task ("View only the last 5 activities shown in page 1") {
 			var portalURL = PropsUtil.get("portal.url");
+
 			var portalURL = StringUtil.replace("${portalURL}", "http://", "");
+
 			var portalURL = StringUtil.replace("${portalURL}", ":8080", "");
 			var n = "0";
 
@@ -357,6 +361,8 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8902 | Test Summary: As an Business User, I should be able to assert the cards on the Overview tab of an Individual's page"
 	@priority = "4"
 	test ViewCardsInTheOverviewTabOfIndividualsPage {
+		property analytics.cloud.upstream = "false";
+
 		task ("View the site page with new user") {
 			ACUtils.navigateToSitePageWithUser(
 				emailList = "userea@liferay.com",
@@ -406,6 +412,8 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8904 | Test Summary: As a Business User, I should be able to view individuals name at top of page"
 	@priority = "4"
 	test ViewIndividualNameAtTheTopOfIndividualsPage {
+		property analytics.cloud.upstream = "false";
+
 		task ("View the site page with new user") {
 			ACUtils.navigateToSitePageWithUser(
 				emailList = "userea@liferay.com",

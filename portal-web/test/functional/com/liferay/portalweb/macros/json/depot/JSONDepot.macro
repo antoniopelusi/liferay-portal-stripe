@@ -33,7 +33,6 @@ definition {
 		var groupId = JSONGroupAPI._getGroupIdByName(
 			groupName = "${groupName}",
 			site = "${site}");
-
 		var portalURL = JSONCompany.getPortalURL();
 
 		var curl = '''
@@ -55,7 +54,6 @@ definition {
 	@summary = "This calls the JSON WS API to delete a Depot entry"
 	macro deleteDepot {
 		var depotId = JSONGroupAPI._getDepotIdByName(depotName = "${depotName}");
-
 		var portalURL = JSONCompany.getPortalURL();
 
 		var curl = '''
@@ -80,7 +78,6 @@ definition {
 		var depotEntryGroupRelId = JSONGroupAPI._getDepotEntryGroupRelIdByGroupName(
 			groupName = "${groupName}",
 			site = "${site}");
-
 		var portalURL = JSONCompany.getPortalURL();
 
 		var curl = '''
@@ -139,7 +136,6 @@ definition {
 		var depotEntryGroupRelId = JSONGroupAPI._getDepotEntryGroupRelIdByGroupName(
 			groupName = "${groupName}",
 			site = "${site}");
-
 		var portalURL = JSONCompany.getPortalURL();
 
 		var curl = '''

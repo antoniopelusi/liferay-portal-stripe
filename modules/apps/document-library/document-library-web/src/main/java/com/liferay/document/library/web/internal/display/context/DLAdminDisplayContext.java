@@ -39,9 +39,11 @@ import com.liferay.document.library.web.internal.util.DLFolderUtil;
 import com.liferay.item.selector.ItemSelector;
 import com.liferay.item.selector.criteria.FolderItemSelectorReturnType;
 import com.liferay.item.selector.criteria.folder.criterion.FolderItemSelectorCriterion;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.change.tracking.CTCollectionThreadLocal;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -88,7 +90,6 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
-import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.trash.TrashHelper;
 
@@ -389,10 +390,6 @@ public class DLAdminDisplayContext {
 	}
 
 	public boolean isAutoTaggingEnabled() {
-		if (!GetterUtil.getBoolean(PropsUtil.get("feature.flag.LPS-150762"))) {
-			return false;
-		}
-
 		return _assetAutoTaggerConfiguration.isEnabled();
 	}
 
@@ -413,6 +410,10 @@ public class DLAdminDisplayContext {
 			_httpServletRequest, "mvcRenderCommandName");
 
 		return mvcRenderCommandName.equals("/document_library/search");
+	}
+
+	public boolean isUpdateAutoTags() {
+		return _assetAutoTaggerConfiguration.isUpdateAutoTags();
 	}
 
 	public boolean isVersioningStrategyOverridable() {
@@ -599,7 +600,6 @@ public class DLAdminDisplayContext {
 		dlSearchContainer.setHeaderNames(
 			ListUtil.fromArray(
 				_dlPortletInstanceSettingsHelper.getEntryColumns()));
-
 		dlSearchContainer.setOrderByCol(getOrderByCol());
 
 		boolean orderByModel = false;
@@ -654,7 +654,6 @@ public class DLAdminDisplayContext {
 				new Sort(
 					fieldName, type,
 					!StringUtil.equalsIgnoreCase(getOrderByType(), "asc")));
-
 			searchContext.setStart(dlSearchContainer.getStart());
 
 			Hits hits = indexer.search(searchContext);
@@ -801,12 +800,10 @@ public class DLAdminDisplayContext {
 
 		searchContext.setAttribute("searchRepositoryId", searchRepositoryId);
 		searchContext.setEnd(searchContainer.getEnd());
-
 		searchContext.setFolderIds(
 			new long[] {
 				ParamUtil.getLong(_httpServletRequest, "searchFolderId")
 			});
-
 		searchContext.setIncludeDiscussions(true);
 		searchContext.setIncludeInternalAssetCategories(true);
 		searchContext.setKeywords(
@@ -824,9 +821,15 @@ public class DLAdminDisplayContext {
 
 	private String _getPortletPreference(String name, String defaultValue) {
 		if (_themeDisplay.isSignedIn()) {
-			PortletPreferences portletPreferences = _getPortletPreferences();
+			try (SafeCloseable safeCloseable =
+					CTCollectionThreadLocal.
+						setProductionModeWithSafeCloseable()) {
 
-			return portletPreferences.getValue(name, defaultValue);
+				PortletPreferences portletPreferences =
+					_getPortletPreferences();
+
+				return portletPreferences.getValue(name, defaultValue);
+			}
 		}
 
 		return GetterUtil.getString(

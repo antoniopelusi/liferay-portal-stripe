@@ -1,4 +1,5 @@
 @import 'atlas-variables';
+@import 'cadmin-variables';
 
 @import 'image_editor_modal';
 
@@ -28,18 +29,19 @@ $productMenuWidth: 320px;
 	@import 'document_library_preview';
 
 	.bulk-status-container {
-		height: 32px;
-		margin-bottom: -32px;
-
 		.bulk-status {
 			background: #2e5aac;
 			color: #fff;
 			font-size: 0.875rem;
+			left: 0;
 			line-height: 32px;
 			max-height: 32px;
 			opacity: 1;
+			position: absolute;
+			right: 0;
 			text-align: center;
 			width: 100%;
+			z-index: $zindex-modal;
 
 			@include transition(all 0.4s ease-in-out);
 
@@ -548,26 +550,6 @@ $productMenuWidth: 320px;
 		.entry-title-text {
 			background: no-repeat 0 50%;
 		}
-
-		&.upload-error,
-		&.upload-success,
-		&.upload-warning {
-			.entry-title-text {
-				padding-left: 20px;
-			}
-		}
-
-		&.upload-error .entry-title-text {
-			background-image: url(@theme_image_path@/messages/error.png);
-		}
-
-		&.upload-success .entry-title-text {
-			background-image: url(@theme_image_path@/messages/success.png);
-		}
-
-		&.upload-warning .entry-title-text {
-			background-image: url(@theme_image_path@/messages/alert.png);
-		}
 	}
 
 	.app-view-entry-taglib.entry-display-style.display-descriptive {
@@ -825,6 +807,12 @@ $productMenuWidth: 320px;
 	background-color: #ffffe0;
 	font-size: 1.2em;
 	padding: 0.3em;
+}
+
+html#{$cadmin-selector} .cadmin {
+	.alert.alert-full {
+		width: $cadmin-alert-notifications-max-width;
+	}
 }
 
 .autocomplete-dropdown-menu {

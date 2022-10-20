@@ -115,6 +115,12 @@ public interface OrderRuleChannelResource {
 			return new OrderRuleChannelResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -160,6 +166,7 @@ public interface OrderRuleChannelResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -244,7 +251,7 @@ public interface OrderRuleChannelResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-order/v1.0/order-rule-channels/{orderRuleChannelId}");
 
 			httpInvoker.path("orderRuleChannelId", orderRuleChannelId);
@@ -322,7 +329,7 @@ public interface OrderRuleChannelResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-order/v1.0/order-rule-channels/batch");
 
 			httpInvoker.userNameAndPassword(
@@ -412,7 +419,7 @@ public interface OrderRuleChannelResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-order/v1.0/order-rules/by-externalReferenceCode/{externalReferenceCode}/order-rule-channels");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -501,7 +508,7 @@ public interface OrderRuleChannelResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-order/v1.0/order-rules/by-externalReferenceCode/{externalReferenceCode}/order-rule-channels");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -606,7 +613,7 @@ public interface OrderRuleChannelResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-order/v1.0/order-rules/{id}/order-rule-channels");
 
 			httpInvoker.path("id", id);
@@ -692,7 +699,7 @@ public interface OrderRuleChannelResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-order/v1.0/order-rules/{id}/order-rule-channels");
 
 			httpInvoker.path("id", id);
@@ -772,7 +779,7 @@ public interface OrderRuleChannelResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-order/v1.0/order-rules/order-rule-channels/batch");
 
 			httpInvoker.path("id", id);

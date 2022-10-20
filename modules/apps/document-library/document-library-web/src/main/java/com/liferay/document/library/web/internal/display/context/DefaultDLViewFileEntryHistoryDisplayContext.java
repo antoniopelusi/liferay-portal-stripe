@@ -21,12 +21,11 @@ import com.liferay.document.library.web.internal.display.context.helper.DLPortle
 import com.liferay.document.library.web.internal.display.context.helper.DLRequestHelper;
 import com.liferay.document.library.web.internal.display.context.logic.UIItemsBuilder;
 import com.liferay.document.library.web.internal.helper.DLTrashHelper;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemListBuilder;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.repository.model.FileVersion;
-import com.liferay.portal.kernel.servlet.taglib.ui.Menu;
-import com.liferay.portal.kernel.servlet.taglib.ui.MenuItem;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.UUID;
@@ -58,39 +57,44 @@ public class DefaultDLViewFileEntryHistoryDisplayContext
 	}
 
 	@Override
-	public Menu getMenu() throws PortalException {
-		Menu menu = new Menu();
+	public List<DropdownItem> getActionDropdownItems() throws PortalException {
+		if (!_dlPortletInstanceSettingsHelper.isShowActions()) {
+			return null;
+		}
 
-		menu.setDirection("left-side");
-		menu.setMarkupView("lexicon");
-		menu.setMenuItems(_getMenuItems());
-		menu.setScroll(false);
-		menu.setShowWhenSingleIcon(true);
-
-		return menu;
+		return DropdownItemListBuilder.addGroup(
+			dropdownGroupItem -> {
+				dropdownGroupItem.setDropdownItems(
+					DropdownItemListBuilder.add(
+						_uiItemsBuilder::isDownloadActionAvailable,
+						_uiItemsBuilder.createDownloadDropdownItem()
+					).add(
+						_uiItemsBuilder::isViewVersionActionAvailable,
+						_uiItemsBuilder.createViewVersionDropdownItem()
+					).add(
+						_uiItemsBuilder::isRevertToVersionActionAvailable,
+						_uiItemsBuilder.createRevertVersionDropdownItem()
+					).add(
+						_uiItemsBuilder::isCompareToActionAvailable,
+						_uiItemsBuilder.createCompareToDropdownItem()
+					).build());
+				dropdownGroupItem.setSeparator(true);
+			}
+		).addGroup(
+			dropdownGroupItem -> {
+				dropdownGroupItem.setDropdownItems(
+					DropdownItemListBuilder.add(
+						_uiItemsBuilder::isDeleteVersionActionAvailable,
+						_uiItemsBuilder.createDeleteVersionDropdownItem()
+					).build());
+				dropdownGroupItem.setSeparator(true);
+			}
+		).build();
 	}
 
 	@Override
 	public UUID getUuid() {
 		return _UUID;
-	}
-
-	private List<MenuItem> _getMenuItems() throws PortalException {
-		List<MenuItem> menuItems = new ArrayList<>();
-
-		if (_dlPortletInstanceSettingsHelper.isShowActions()) {
-			_uiItemsBuilder.addDownloadMenuItem(menuItems);
-
-			_uiItemsBuilder.addViewVersionMenuItem(menuItems);
-
-			_uiItemsBuilder.addRevertToVersionMenuItem(menuItems);
-
-			_uiItemsBuilder.addDeleteVersionMenuItem(menuItems);
-
-			_uiItemsBuilder.addCompareToMenuItem(menuItems);
-		}
-
-		return menuItems;
 	}
 
 	private static final UUID _UUID = UUID.fromString(

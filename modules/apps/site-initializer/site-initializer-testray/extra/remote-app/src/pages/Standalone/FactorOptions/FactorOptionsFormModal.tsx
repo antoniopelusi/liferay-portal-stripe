@@ -12,25 +12,20 @@
  * details.
  */
 
-import {useQuery} from '@apollo/client';
-import ClayButton from '@clayui/button';
 import {useForm} from 'react-hook-form';
 
-import Input from '../../../components/Input';
+import Form from '../../../components/Form';
 import Modal from '../../../components/Modal';
-import {
-	CreateFactorOption,
-	UpdateFactorOption,
-} from '../../../graphql/mutations';
-import {
-	CTypePagination,
-	TestrayFactorCategory,
-	getFactorCategories,
-} from '../../../graphql/queries';
 import {withVisibleContent} from '../../../hoc/withVisibleContent';
+import {useFetch} from '../../../hooks/useFetch';
 import {FormModalOptions} from '../../../hooks/useFormModal';
 import i18n from '../../../i18n';
 import yupSchema, {yupResolver} from '../../../schema/yup';
+import {
+	createFactorOption,
+	getFactorOptionsTransformData,
+	updateFactorOption,
+} from '../../../services/rest';
 
 type FactorOptionsForm = {
 	factorCategoryId: string;
@@ -43,32 +38,44 @@ type FactorOptionsProps = {
 };
 
 const FactorOptionsFormModal: React.FC<FactorOptionsProps> = ({
-	modal: {modalState, observer, onClose, onSubmit},
+	modal: {modalState, observer, onClose, onError, onSave, onSubmit},
 }) => {
 	const {
 		formState: {errors},
 		handleSubmit,
 		register,
+		watch,
 	} = useForm<FactorOptionsForm>({
-		defaultValues: modalState,
+		defaultValues: modalState
+			? {
+					factorCategoryId: modalState?.factorCategory?.id,
+					id: modalState.id,
+					name: modalState.name,
+			  }
+			: {},
 		resolver: yupResolver(yupSchema.factorOption),
 	});
 
-	const {data} = useQuery<
-		CTypePagination<'factorCategories', TestrayFactorCategory>
-	>(getFactorCategories);
+	const {data} = useFetch('/factorcategories', getFactorOptionsTransformData);
 
-	const factorCategories = data?.c.factorCategories.items || [];
+	const factorCategories = data?.items || [];
 
 	const _onSubmit = (form: FactorOptionsForm) => {
 		onSubmit(
-			{id: form.id, name: form.name},
+			{...form},
+
 			{
-				createMutation: CreateFactorOption,
-				updateMutation: UpdateFactorOption,
+				create: createFactorOption,
+				update: updateFactorOption,
 			}
-		);
+		)
+			.then(onSave)
+			.catch(onError);
 	};
+
+	const factorCategoryId = watch('factorCategoryId');
+
+	const name = watch('name');
 
 	const inputProps = {
 		errors,
@@ -79,18 +86,11 @@ const FactorOptionsFormModal: React.FC<FactorOptionsProps> = ({
 	return (
 		<Modal
 			last={
-				<ClayButton.Group spaced>
-					<ClayButton displayType="secondary" onClick={onClose}>
-						{i18n.translate('close')}
-					</ClayButton>
-
-					<ClayButton
-						displayType="primary"
-						onClick={handleSubmit(_onSubmit)}
-					>
-						{i18n.translate('save')}
-					</ClayButton>
-				</ClayButton.Group>
+				<Form.Footer
+					isModal
+					onClose={onClose}
+					onSubmit={handleSubmit(_onSubmit)}
+				/>
 			}
 			observer={observer}
 			size="lg"
@@ -99,25 +99,24 @@ const FactorOptionsFormModal: React.FC<FactorOptionsProps> = ({
 			)}
 			visible
 		>
-			<Input label={i18n.translate('name')} name="name" {...inputProps} />
+			<Form.Input
+				label={i18n.translate('name')}
+				name="name"
+				{...inputProps}
+				value={name}
+			/>
 
-			<label htmlFor="category-type">
-				{i18n.translate('category-type')}
-			</label>
-
-			<select
-				className="form-control"
-				id="category-type"
-				{...register('factorCategoryId')}
-			>
-				<option>{i18n.translate('choose-an-option')}</option>
-
-				{factorCategories.map(({id, name}) => (
-					<option key={id} value={id}>
-						{name}
-					</option>
-				))}
-			</select>
+			<Form.Select
+				{...inputProps}
+				label={i18n.translate('category')}
+				name="factorCategoryId"
+				options={factorCategories.map(({id: value, name: label}) => ({
+					label,
+					value,
+				}))}
+				required={false}
+				value={factorCategoryId}
+			/>
 		</Modal>
 	);
 };

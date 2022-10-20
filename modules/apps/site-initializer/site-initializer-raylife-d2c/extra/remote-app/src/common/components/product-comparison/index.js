@@ -16,7 +16,7 @@ import ClayButton from '@clayui/button';
 import ClayIcon from '@clayui/icon';
 import classNames from 'classnames';
 
-var currencyIntl = new Intl.NumberFormat('en-US', {
+const currencyIntl = new Intl.NumberFormat('en-US', {
 	currency: 'USD',
 });
 
@@ -116,7 +116,10 @@ const ProductComparison = ({
 	product,
 	purchasable = true,
 }) => {
-	const {category, mostPopular, price, promo, ...productDetails} = product;
+	const {category, mostPopular, price, promo, ...productDetails} = JSON.parse(
+		product.dataJSON
+	);
+
 	const promoPrice = Number(promo);
 
 	return (

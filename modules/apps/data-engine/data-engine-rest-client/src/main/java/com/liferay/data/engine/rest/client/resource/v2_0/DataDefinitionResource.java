@@ -173,6 +173,12 @@ public interface DataDefinitionResource {
 			return new DataDefinitionResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -218,6 +224,7 @@ public interface DataDefinitionResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -323,7 +330,7 @@ public interface DataDefinitionResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/data-engine/v2.0/data-definitions/by-content-type/{contentType}");
 
 			httpInvoker.path("contentType", contentType);
@@ -409,7 +416,7 @@ public interface DataDefinitionResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/data-engine/v2.0/data-definitions/by-content-type/{contentType}");
 
 			httpInvoker.path("contentType", contentType);
@@ -490,7 +497,7 @@ public interface DataDefinitionResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/data-engine/v2.0/data-definitions/data-definition-fields/field-types");
 
 			httpInvoker.userNameAndPassword(
@@ -569,7 +576,7 @@ public interface DataDefinitionResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/data-engine/v2.0/data-definitions/{dataDefinitionId}");
 
 			httpInvoker.path("dataDefinitionId", dataDefinitionId);
@@ -646,7 +653,7 @@ public interface DataDefinitionResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/data-engine/v2.0/data-definitions/batch");
 
 			httpInvoker.userNameAndPassword(
@@ -725,7 +732,7 @@ public interface DataDefinitionResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/data-engine/v2.0/data-definitions/{dataDefinitionId}");
 
 			httpInvoker.path("dataDefinitionId", dataDefinitionId);
@@ -810,7 +817,7 @@ public interface DataDefinitionResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/data-engine/v2.0/data-definitions/{dataDefinitionId}");
 
 			httpInvoker.path("dataDefinitionId", dataDefinitionId);
@@ -894,7 +901,7 @@ public interface DataDefinitionResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/data-engine/v2.0/data-definitions/{dataDefinitionId}");
 
 			httpInvoker.path("dataDefinitionId", dataDefinitionId);
@@ -971,7 +978,7 @@ public interface DataDefinitionResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/data-engine/v2.0/data-definitions/batch");
 
 			httpInvoker.userNameAndPassword(
@@ -1057,7 +1064,7 @@ public interface DataDefinitionResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/data-engine/v2.0/data-definitions/{dataDefinitionId}/permissions");
 
 			httpInvoker.path("dataDefinitionId", dataDefinitionId);
@@ -1151,7 +1158,7 @@ public interface DataDefinitionResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/data-engine/v2.0/data-definitions/{dataDefinitionId}/permissions");
 
 			httpInvoker.path("dataDefinitionId", dataDefinitionId);
@@ -1253,7 +1260,7 @@ public interface DataDefinitionResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/data-engine/v2.0/sites/{siteId}/data-definitions/by-content-type/{contentType}");
 
 			httpInvoker.path("siteId", siteId);
@@ -1341,7 +1348,7 @@ public interface DataDefinitionResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/data-engine/v2.0/sites/{siteId}/data-definitions/by-content-type/{contentType}");
 
 			httpInvoker.path("siteId", siteId);
@@ -1427,7 +1434,7 @@ public interface DataDefinitionResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/data-engine/v2.0/sites/{siteId}/data-definitions/by-content-type/{contentType}/by-data-definition-key/{dataDefinitionKey}");
 
 			httpInvoker.path("siteId", siteId);

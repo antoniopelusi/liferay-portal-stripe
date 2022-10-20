@@ -19,6 +19,7 @@ import com.liferay.frontend.icons.web.internal.model.FrontendIconsResource;
 import com.liferay.frontend.icons.web.internal.model.FrontendIconsResourcePack;
 import com.liferay.frontend.icons.web.internal.repository.FrontendIconsResourcePackRepository;
 import com.liferay.frontend.icons.web.internal.util.SVGUtil;
+import com.liferay.frontend.icons.web.internal.validator.FrontendIconsPackValidator;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONUtil;
@@ -91,6 +92,10 @@ public class SaveFrontendIconsPackFromSpritemapMVCActionCommand
 
 		String name = ParamUtil.getString(actionRequest, "name");
 
+		if (!FrontendIconsPackValidator.isValidName(name)) {
+			return;
+		}
+
 		FrontendIconsResourcePack frontendIconsResourcePack =
 			_frontendIconsResourcePackRepository.getFrontendIconsResourcePack(
 				companyId, name);
@@ -98,6 +103,8 @@ public class SaveFrontendIconsPackFromSpritemapMVCActionCommand
 		if (frontendIconsResourcePack == null) {
 			frontendIconsResourcePack = new FrontendIconsResourcePack(name);
 		}
+
+		frontendIconsResourcePack = new FrontendIconsResourcePack(name);
 
 		InputStream inputStream = uploadPortletRequest.getFileAsStream(
 			"svgFile");

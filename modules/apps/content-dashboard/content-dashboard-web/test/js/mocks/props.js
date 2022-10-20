@@ -35,6 +35,11 @@ export const mockedProps = {
 		},
 	},
 	subType: 'Basic Web Content',
+	subscribe: {
+		icon: 'bell-on',
+		label: 'Subscribe',
+		url: 'http://localhost:8080/subscribe-url',
+	},
 	tags: ['tag1', 'tag2'],
 	title: 'Basic Web Content Title',
 	type: 'Web Content Article',
@@ -252,8 +257,8 @@ export const mockedImageDocumentProps = {
 		url: 'mocked/view/url/in/portal',
 	},
 	description: 'Mocked description',
+	downloadURL: 'mocked/download/url/demo.jpg&download=true',
 	preview: {
-		downloadURL: 'mocked/download/url/demo.jpg&download=true',
 		imageURL: 'mocked/preview/url/demo.jpg',
 		url: 'mocked/vuew/url/',
 	},
@@ -309,8 +314,8 @@ export const mockedFileDocumentProps = {
 		url: 'mocked/view/url/in/portal',
 	},
 	description: 'Mocked description',
+	downloadURL: 'mocked/download/url/demo.jpg&download=true',
 	preview: {
-		downloadURL: 'mocked/download/url/demo.jpg&download=true',
 		imageURL: '',
 		url: 'mocked/vuew/url/',
 	},
@@ -324,6 +329,61 @@ export const mockedFileDocumentProps = {
 			title: 'Size',
 			type: 'string',
 			value: '9 KB',
+		},
+	},
+	subType: 'Basic Document',
+	type: 'Document',
+	viewURLs: [],
+};
+
+export const mockedContentWithPreview = {
+	className: 'com.liferay.portal.kernel.repository.model.FileEntry',
+	clipboard: {
+		name: 'demo.jpg',
+		url: 'mocked/view/url/in/portal',
+	},
+	description: 'Mocked description',
+	preview: {
+		imageURL: 'mocked/preview/url/demo.jpg',
+		url: 'mocked/vuew/url/',
+	},
+	specificFields: {
+		extension: {
+			title: 'Extension',
+			type: 'string',
+			value: 'jpg',
+		},
+		size: {
+			title: 'Size',
+			type: 'string',
+			value: '200 KB',
+		},
+	},
+	subType: 'Basic Document',
+	type: 'Document',
+	viewURLs: [],
+};
+
+export const mockedContentWithPreviewWithoutLink = {
+	className: 'com.liferay.portal.kernel.repository.model.FileEntry',
+	clipboard: {
+		name: 'demo.jpg',
+		url: 'mocked/view/url/in/portal',
+	},
+	description: 'Mocked description',
+	preview: {
+		imageURL: 'mocked/preview/url/demo.jpg',
+	},
+	specificFields: {
+		extension: {
+			title: 'Extension',
+			type: 'string',
+			value: 'zip',
+		},
+		size: {
+			title: 'Size',
+			type: 'string',
+			value: '200 KB',
 		},
 	},
 	subType: 'Basic Document',

@@ -14,8 +14,7 @@
 
 package com.liferay.layout.content.page.editor.web.internal.util.layout.structure;
 
-import com.liferay.layout.content.page.editor.listener.ContentPageEditorListenerTracker;
-import com.liferay.layout.content.page.editor.web.internal.util.FragmentEntryLinkUtil;
+import com.liferay.layout.content.page.editor.web.internal.util.FragmentEntryLinkManager;
 import com.liferay.layout.page.template.model.LayoutPageTemplateStructure;
 import com.liferay.layout.page.template.model.LayoutPageTemplateStructureRel;
 import com.liferay.layout.page.template.service.LayoutPageTemplateStructureLocalServiceUtil;
@@ -42,8 +41,8 @@ import java.util.Objects;
 public class LayoutStructureUtil {
 
 	public static void deleteMarkedForDeletionItems(
-			ContentPageEditorListenerTracker contentPageEditorListenerTracker,
-			long groupId, long plid)
+			FragmentEntryLinkManager fragmentEntryLinkManager, long groupId,
+			long plid)
 		throws PortalException {
 
 		LayoutPageTemplateStructure layoutPageTemplateStructure =
@@ -76,9 +75,8 @@ public class LayoutStructureUtil {
 				for (long fragmentEntryLinkId :
 						getFragmentEntryLinkIds(deletedLayoutStructureItems)) {
 
-					FragmentEntryLinkUtil.deleteFragmentEntryLink(
-						contentPageEditorListenerTracker, fragmentEntryLinkId,
-						plid);
+					fragmentEntryLinkManager.deleteFragmentEntryLink(
+						fragmentEntryLinkId, plid);
 				}
 			}
 
@@ -108,6 +106,10 @@ public class LayoutStructureUtil {
 		LayoutStructureItem currentLayoutStructureItem =
 			layoutStructure.getLayoutStructureItem(
 				layoutStructureItem.getParentItemId());
+
+		if (currentLayoutStructureItem == null) {
+			return Collections.emptyList();
+		}
 
 		List<String> collectionStyledLayoutStructureItemIds = new ArrayList<>();
 

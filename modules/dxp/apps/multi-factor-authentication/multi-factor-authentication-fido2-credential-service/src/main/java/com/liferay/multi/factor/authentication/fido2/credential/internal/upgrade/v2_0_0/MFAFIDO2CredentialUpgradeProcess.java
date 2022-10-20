@@ -30,10 +30,8 @@ public class MFAFIDO2CredentialUpgradeProcess extends UpgradeProcess {
 	protected void doUpgrade() throws Exception {
 		dropIndexes("MFAFIDO2CredentialEntry", "credentialKey");
 
-		if (hasColumn("MFAFIDO2CredentialEntry", "credentialKey")) {
-			alterColumnType(
-				"MFAFIDO2CredentialEntry", "credentialKey", "TEXT null");
-		}
+		alterColumnType(
+			"MFAFIDO2CredentialEntry", "credentialKey", "TEXT null");
 
 		if (!hasColumn("MFAFIDO2CredentialEntry", "credentialKeyHash")) {
 			alterTableAddColumn(

@@ -1076,8 +1076,6 @@ definition {
 
 	@priority = "4"
 	test ViewPublishedContentAfterStagingUndo {
-		property portal.release = "false";
-
 		Portlet.addPG(portletName = "Calendar");
 
 		Staging.gotoPublishToLive();
@@ -1127,6 +1125,7 @@ definition {
 		var currentURL = Navigator.getCurrentURL();
 
 		var keywordsParameterName = StringUtil.extractLast("${currentURL}", "?");
+
 		var keywordsParameter = StringUtil.extractFirst("${keywordsParameterName}", "=");
 
 		echo("## Keywords Parameter: ${keywordsParameter}");

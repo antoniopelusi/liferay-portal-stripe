@@ -117,7 +117,13 @@ public class ResourceOpenAPIParser {
 
 							javaMethodSignatures.add(javaMethodSignature);
 
-							if (configYAML.isGenerateBatch()) {
+							List<String> disabledBatchSchemaNames =
+								configYAML.getDisabledBatchSchemaNames();
+
+							if (configYAML.isGenerateBatch() &&
+								!disabledBatchSchemaNames.contains(
+									schemaName)) {
+
 								_addBatchJavaMethodSignature(
 									javaMethodSignature, javaMethodSignatures);
 							}
@@ -174,25 +180,15 @@ public class ResourceOpenAPIParser {
 					sb.toString() + "})");
 		}
 
-		List<JavaMethodParameter> javaMethodParameters =
-			javaMethodSignature.getJavaMethodParameters();
-
 		StringBundler sb = new StringBundler("");
 
-		for (JavaMethodParameter javaMethodParameter : javaMethodParameters) {
-			String parameterName = javaMethodParameter.getParameterName();
+		for (Parameter parameter : operation.getParameters()) {
+			if (StringUtil.equals(parameter.getIn(), "header")) {
+				continue;
+			}
 
-			if (parameterName.equals("pagination")) {
-				sb.append(_addParameter(_findParameter(operation, "page")));
-				sb.append(_addParameter(_findParameter(operation, "pageSize")));
-			}
-			else if (parameterName.equals("sorts")) {
-				sb.append(_addParameter(_findParameter(operation, "sort")));
-			}
-			else {
-				sb.append(
-					_addParameter(_findParameter(operation, parameterName)));
-			}
+			sb.append(
+				_addParameter(_findParameter(operation, parameter.getName())));
 		}
 
 		if (sb.length() > 0) {
@@ -238,11 +234,9 @@ public class ResourceOpenAPIParser {
 					javaMethodParameter, openAPIYAML, operation);
 			}
 
-			String parameter = OpenAPIParserUtil.getParameter(
-				javaMethodParameter, parameterAnnotation);
-
-			sb.append(parameter);
-
+			sb.append(
+				OpenAPIParserUtil.getParameter(
+					javaMethodParameter, parameterAnnotation));
 			sb.append(',');
 		}
 
@@ -251,6 +245,114 @@ public class ResourceOpenAPIParser {
 		}
 
 		return sb.toString();
+	}
+
+	public static Set<String> getVulcanBatchImplementationCreateStrategies(
+		List<JavaMethodSignature> javaMethodSignatures,
+		Map<String, String> properties) {
+
+		Set<String> createStrategies = new HashSet<>();
+
+		Set<String> propertyNames = properties.keySet();
+
+		for (JavaMethodSignature javaMethodSignature : javaMethodSignatures) {
+			String methodName = javaMethodSignature.getMethodName();
+			String parentSchemaName = javaMethodSignature.getParentSchemaName();
+			String schemaName = javaMethodSignature.getSchemaName();
+
+			if (parentSchemaName == null) {
+				parentSchemaName = "";
+			}
+
+			if (methodName.equals("post" + parentSchemaName + schemaName)) {
+				createStrategies.add("INSERT");
+			}
+			else if ((methodName.equals("putByExternalReferenceCode") ||
+					  methodName.equals(
+						  StringBundler.concat(
+							  "put", parentSchemaName, schemaName,
+							  "ByExternalReferenceCode"))) &&
+					 propertyNames.contains("externalReferenceCode")) {
+
+				createStrategies.add("UPSERT");
+			}
+		}
+
+		return createStrategies;
+	}
+
+	public static Set<String> getVulcanBatchImplementationUpdateStrategies(
+		List<JavaMethodSignature> javaMethodSignatures) {
+
+		Set<String> updateStrategies = new HashSet<>();
+
+		for (JavaMethodSignature javaMethodSignature : javaMethodSignatures) {
+			String methodName = javaMethodSignature.getMethodName();
+			String schemaName = javaMethodSignature.getSchemaName();
+
+			if (methodName.equals("patch" + schemaName)) {
+				updateStrategies.add("PARTIAL_UPDATE");
+			}
+			else if (methodName.equals("put" + schemaName)) {
+				updateStrategies.add("UPDATE");
+			}
+		}
+
+		return updateStrategies;
+	}
+
+	public static boolean hasReadVulcanBatchImplementation(
+		List<JavaMethodSignature> javaMethodSignatures) {
+
+		for (JavaMethodSignature javaMethodSignature : javaMethodSignatures) {
+			String methodName = javaMethodSignature.getMethodName();
+			String parentSchemaName = javaMethodSignature.getParentSchemaName();
+			String schemaName = javaMethodSignature.getSchemaName();
+
+			if (parentSchemaName == null) {
+				parentSchemaName = "";
+			}
+
+			if (methodName.equals(
+					StringBundler.concat(
+						"get", parentSchemaName, schemaName, "sPage"))) {
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public static boolean hasResourceBatchJavaMethodSignatures(
+		List<JavaMethodSignature> javaMethodSignatures) {
+
+		for (JavaMethodSignature javaMethodSignature : javaMethodSignatures) {
+			String methodName = javaMethodSignature.getMethodName();
+
+			if (methodName.endsWith("Batch")) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public static boolean hasResourceGetPageJavaMethodSignature(
+		String javaDataType, List<JavaMethodSignature> javaMethodSignatures) {
+
+		String pageJavaDataType = StringBundler.concat(
+			Page.class.getName(), "<", javaDataType, ">");
+
+		for (JavaMethodSignature javaMethodSignature : javaMethodSignatures) {
+			if (StringUtil.equals(
+					pageJavaDataType, javaMethodSignature.getReturnType())) {
+
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private static void _addBatchJavaMethodSignature(
@@ -492,7 +594,10 @@ public class ResourceOpenAPIParser {
 
 			if (StringUtil.equals(parameterName, "Accept-Language") ||
 				StringUtil.equals(parameterName, "aggregationTerms") ||
+				StringUtil.equals(parameterName, "fields") ||
 				StringUtil.equals(parameterName, "filter") ||
+				StringUtil.equals(parameterName, "nestedFields") ||
+				StringUtil.equals(parameterName, "restrictFields") ||
 				StringUtil.equals(parameterName, "sort")) {
 
 				continue;
@@ -878,13 +983,22 @@ public class ResourceOpenAPIParser {
 	private static String _getParentSchema(
 		String path, Map<String, PathItem> pathItems, String schemaName) {
 
-		int lastIndexOfSlash = path.lastIndexOf("/");
+		String basePath = path;
+
+		if (basePath.endsWith(
+				"/by-external-reference-code/{externalReferenceCode}")) {
+
+			basePath = StringUtil.removeLast(
+				path, "/by-external-reference-code/{externalReferenceCode}");
+		}
+
+		int lastIndexOfSlash = basePath.lastIndexOf("/");
 
 		if (lastIndexOfSlash < 1) {
 			return null;
 		}
 
-		String basePath = path.substring(0, lastIndexOfSlash);
+		basePath = basePath.substring(0, lastIndexOfSlash);
 
 		if (basePath.equals("/asset-libraries/{assetLibraryId}")) {
 			return "AssetLibrary";

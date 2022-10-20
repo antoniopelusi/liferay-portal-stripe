@@ -12,7 +12,7 @@
  * details.
  */
 
-import '../../utils/polyfills';
+import '../../tests_utilities/polyfills';
 
 import '@testing-library/jest-dom/extend-expect';
 import {
@@ -27,8 +27,11 @@ import React from 'react';
 
 import ServiceProvider from '../../../src/main/resources/META-INF/resources/ServiceProvider/index';
 import AccountSelector from '../../../src/main/resources/META-INF/resources/components/account_selector/AccountSelector';
-import {accountTemplate, getAccounts} from '../../utils/fake_data/accounts';
-import {getOrders} from '../../utils/fake_data/orders';
+import {
+	accountTemplate,
+	getAccounts,
+} from '../../tests_utilities/fake_data/accounts';
+import {getOrders} from '../../tests_utilities/fake_data/orders';
 
 const ACCOUNTS_HEADLESS_API_ENDPOINT = ServiceProvider.AdminAccountAPI('v1')
 	.baseURL;

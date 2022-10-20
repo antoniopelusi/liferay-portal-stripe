@@ -30,6 +30,7 @@ export default function DropdownMenu({
 	items,
 	label,
 	locale: _locale,
+	menuProps,
 	portletId: _portletId,
 	portletNamespace: _portletNamespace,
 	...otherProps
@@ -41,6 +42,7 @@ export default function DropdownMenu({
 					'dropdown-action': actionsDropdown,
 				})}
 				items={normalizeDropdownItems(items) || []}
+				menuElementAttrs={menuProps}
 				trigger={
 					<ClayButton
 						className={classNames(cssClass, {
@@ -64,7 +66,7 @@ export default function DropdownMenu({
 			/>
 
 			<div className="quick-action-menu">
-				{items.map(({data, href, icon, quickAction, ...rest}) =>
+				{items.map(({data, href, icon, label, quickAction, ...rest}) =>
 					data?.action && quickAction ? (
 						<ClayButtonWithIcon
 							className="component-action quick-action-item"
@@ -72,6 +74,7 @@ export default function DropdownMenu({
 							key={data.action}
 							small={true}
 							symbol={icon}
+							title={label}
 							{...rest}
 						/>
 					) : (
@@ -82,6 +85,7 @@ export default function DropdownMenu({
 								className="component-action quick-action-item"
 								href={href}
 								key={href}
+								title={label}
 								{...rest}
 							>
 								<ClayIcon symbol={icon} />

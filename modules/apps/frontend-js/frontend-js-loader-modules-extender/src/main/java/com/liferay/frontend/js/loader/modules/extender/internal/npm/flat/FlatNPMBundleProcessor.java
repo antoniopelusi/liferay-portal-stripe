@@ -23,24 +23,24 @@ import com.liferay.petra.executor.PortalExecutorManager;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.io.Deserializer;
-import com.liferay.portal.kernel.io.Serializer;
 import com.liferay.portal.kernel.json.JSONFactory;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 
 import java.net.URL;
-
-import java.nio.ByteBuffer;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -225,15 +225,24 @@ public class FlatNPMBundleProcessor implements JSBundleProcessor {
 
 		File cacheFile = bundleContext.getDataFile("cache_json_objects");
 
-		Path cacheFilePath = cacheFile.toPath();
+		if (cacheFile.exists()) {
+			try (InputStream inputStream = new FileInputStream(cacheFile);
+				DataInputStream dataInputStream = new DataInputStream(
+					inputStream)) {
 
-		if (Files.exists(cacheFilePath)) {
-			try {
-				Deserializer deserializer = new Deserializer(
-					ByteBuffer.wrap(Files.readAllBytes(cacheFilePath)));
+				if (dataInputStream.readLong() == bundle.getLastModified()) {
+					Map<URL, JSONObject> jsonObjects = new HashMap<>();
 
-				if (deserializer.readLong() == bundle.getLastModified()) {
-					return deserializer.readObject();
+					int size = dataInputStream.readInt();
+
+					for (int i = 0; i < size; i++) {
+						jsonObjects.put(
+							new URL(dataInputStream.readUTF()),
+							JSONFactoryUtil.createJSONObject(
+								dataInputStream.readUTF()));
+					}
+
+					return jsonObjects;
 				}
 			}
 			catch (Exception exception) {
@@ -290,14 +299,23 @@ public class FlatNPMBundleProcessor implements JSBundleProcessor {
 			}
 		}
 
-		Serializer serializer = new Serializer();
+		try (OutputStream outputStream = new FileOutputStream(cacheFile);
+			DataOutputStream dataOutputStream = new DataOutputStream(
+				outputStream)) {
 
-		serializer.writeLong(bundle.getLastModified());
+			dataOutputStream.writeLong(bundle.getLastModified());
 
-		try (OutputStream outputStream = Files.newOutputStream(cacheFilePath)) {
-			serializer.writeObject(jsonObjects);
+			dataOutputStream.writeInt(jsonObjects.size());
 
-			serializer.writeTo(outputStream);
+			for (Map.Entry<URL, JSONObject> entry : jsonObjects.entrySet()) {
+				URL url = entry.getKey();
+
+				dataOutputStream.writeUTF(url.toExternalForm());
+
+				JSONObject jsonObject = entry.getValue();
+
+				dataOutputStream.writeUTF(jsonObject.toString());
+			}
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
@@ -315,15 +333,25 @@ public class FlatNPMBundleProcessor implements JSBundleProcessor {
 
 		File cacheFile = bundleContext.getDataFile("cache_model_dependencies");
 
-		Path cacheFilePath = cacheFile.toPath();
+		if (cacheFile.exists()) {
+			try (InputStream inputStream = new FileInputStream(cacheFile);
+				DataInputStream dataInputStream = new DataInputStream(
+					inputStream)) {
 
-		if (Files.exists(cacheFilePath)) {
-			try {
-				Deserializer deserializer = new Deserializer(
-					ByteBuffer.wrap(Files.readAllBytes(cacheFilePath)));
+				if (dataInputStream.readLong() == bundle.getLastModified()) {
+					Map<URL, Collection<String>> moduleDependenciesMap =
+						new HashMap<>();
 
-				if (deserializer.readLong() == bundle.getLastModified()) {
-					return deserializer.readObject();
+					int size = dataInputStream.readInt();
+
+					for (int i = 0; i < size; i++) {
+						moduleDependenciesMap.put(
+							new URL(dataInputStream.readUTF()),
+							Arrays.asList(
+								StringUtil.split(dataInputStream.readUTF())));
+					}
+
+					return moduleDependenciesMap;
 				}
 			}
 			catch (Exception exception) {
@@ -368,14 +396,23 @@ public class FlatNPMBundleProcessor implements JSBundleProcessor {
 			}
 		}
 
-		Serializer serializer = new Serializer();
+		try (OutputStream outputStream = new FileOutputStream(cacheFile);
+			DataOutputStream dataOutputStream = new DataOutputStream(
+				outputStream)) {
 
-		serializer.writeLong(bundle.getLastModified());
+			dataOutputStream.writeLong(bundle.getLastModified());
 
-		try (OutputStream outputStream = Files.newOutputStream(cacheFilePath)) {
-			serializer.writeObject(moduleDependenciesMap);
+			dataOutputStream.writeInt(moduleDependenciesMap.size());
 
-			serializer.writeTo(outputStream);
+			for (Map.Entry<URL, Collection<String>> entry :
+					moduleDependenciesMap.entrySet()) {
+
+				URL url = entry.getKey();
+
+				dataOutputStream.writeUTF(url.toExternalForm());
+
+				dataOutputStream.writeUTF(StringUtil.merge(entry.getValue()));
+			}
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {

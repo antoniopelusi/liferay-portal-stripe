@@ -102,6 +102,12 @@ public interface FormRecordResource {
 			return new FormRecordResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -147,6 +153,7 @@ public interface FormRecordResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -228,7 +235,7 @@ public interface FormRecordResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-form/v1.0/form-records/{formRecordId}");
 
 			httpInvoker.path("formRecordId", formRecordId);
@@ -312,7 +319,7 @@ public interface FormRecordResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-form/v1.0/form-records/{formRecordId}");
 
 			httpInvoker.path("formRecordId", formRecordId);
@@ -389,7 +396,7 @@ public interface FormRecordResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-form/v1.0/form-records/batch");
 
 			httpInvoker.userNameAndPassword(
@@ -476,7 +483,7 @@ public interface FormRecordResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-form/v1.0/forms/{formId}/form-records");
 
 			httpInvoker.path("formId", formId);
@@ -559,7 +566,7 @@ public interface FormRecordResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-form/v1.0/forms/{formId}/form-records");
 
 			httpInvoker.path("formId", formId);
@@ -638,7 +645,7 @@ public interface FormRecordResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-form/v1.0/forms/{formId}/form-records/batch");
 
 			httpInvoker.path("formId", formId);
@@ -719,7 +726,7 @@ public interface FormRecordResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-form/v1.0/forms/{formId}/form-records/by-latest-draft");
 
 			httpInvoker.path("formId", formId);

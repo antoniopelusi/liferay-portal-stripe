@@ -1,10 +1,9 @@
 @component-name = "portal-commerce"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "true";
 	property portal.upstream = "true";
+	property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 	property testray.main.component.name = "Shopping Experience";
 
 	setUp {
@@ -45,7 +44,7 @@ definition {
 		task ("Then I should be redirected to the product detail page") {
 			ControlMenu.viewHeaderTitle(headerTitle = "Product Detail");
 
-			AssertLocation.assertPartialLocation(value1 = "group/minium/p/u-joint");
+			AssertLocation.assertPartialLocation(value1 = "web/minium/p/u-joint");
 
 			FrontStore.assertProductDetails(
 				productListPrice = "24.00",
@@ -206,7 +205,7 @@ definition {
 
 			PageEditor.addWidget(portletName = "Product Details");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("And given the Minium site has a public widget page with a Product Details widget") {
@@ -640,7 +639,7 @@ definition {
 
 			ControlMenu.viewHeaderTitle(headerTitle = "Test Public Content Page");
 
-			AssertLocation.assertPartialLocation(value1 = "group/minium/p/u-joint");
+			AssertLocation.assertPartialLocation(value1 = "web/minium/p/u-joint");
 		}
 	}
 
@@ -894,7 +893,7 @@ definition {
 
 			ControlMenu.viewHeaderTitle(headerTitle = "Test Public Content Page");
 
-			AssertLocation.assertPartialLocation(value1 = "group/minium/p/u-joint");
+			AssertLocation.assertPartialLocation(value1 = "web/minium/p/u-joint");
 		}
 
 		task ("Given the Minium site has a public widget page with a Product Details widget") {

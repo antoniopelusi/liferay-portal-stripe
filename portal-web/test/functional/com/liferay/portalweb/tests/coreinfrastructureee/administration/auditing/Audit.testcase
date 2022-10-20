@@ -21,16 +21,10 @@ definition {
 		property test.name.skip.portal.instance = "Audit#AssertAuditConsoleInformationIsPresentAfterEnabledLog";
 
 		var companyId = JSONCompany.getCompanyId();
-
 		var userId = JSONUserAPI._getUserIdByEmailAddress(userEmailAddress = "test@liferay.com");
 
 		task ("Enable log context and Incoming X-Request-ID") {
-			SystemSettings.openSystemSettingsAdmin();
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "Audit",
-				configurationName = "Audit Log Context",
-				configurationScope = "System Scope");
+			Audit.gotoSystemSettings(portlet = "Audit Log Context");
 
 			Click(locator1 = "Audit#AUDIT_LOG_CONTEXT_ENABLED_BUTTON");
 
@@ -43,6 +37,7 @@ definition {
 			Navigator.openURL(baseURL = "http://localhost:8080/api/jsonws/user/get-user-by-email-address/company-id/email-address");
 
 			var curl = '''http://localhost:8080/api/jsonws/user/get-user-by-email-address/company-id/email-address''';
+
 			var runGet = JSONCurlUtil.get("${curl}");
 
 			for (var logString : list "xRequestId,sessionId,companyId=${companyId},virtualHostName,clientIP,emailAddress,serverName,userId=${userId}") {
@@ -59,7 +54,6 @@ definition {
 		property test.name.skip.portal.instance = "Audit#AssertInvalidXRequestId";
 
 		var companyId = JSONCompany.getCompanyId();
-
 		var userId = JSONUserAPI._getUserIdByEmailAddress(userEmailAddress = "test@liferay.com");
 
 		task ("Assert that console outputs a different X-Request-ID than invalid inputted X-Request-ID") {
@@ -68,6 +62,7 @@ definition {
 			var invalidXRequestId = "invalidXRID";
 
 			var curl = '''http://localhost:8080/api/jsonws/user/get-user-by-email-address/company-id/email-address -H 'X-Request-Id:${invalidXRequestId}' ''';
+
 			var userId = JSONCurlUtil.get("${curl}");
 
 			AssertConsoleTextNotPresent(value1 = "${invalidXRequestId}");
@@ -85,7 +80,6 @@ definition {
 		property test.name.skip.portal.instance = "Audit#AssertValidXRequestId";
 
 		var companyId = JSONCompany.getCompanyId();
-
 		var userId = JSONUserAPI._getUserIdByEmailAddress(userEmailAddress = "test@liferay.com");
 
 		task ("Assert that console outputs the same X-Request-ID as inputted X-Request-ID") {
@@ -94,9 +88,41 @@ definition {
 			var validXRequestId = StringUtil.randomString("40");
 
 			var curl = '''http://localhost:8080/api/jsonws/user/get-user-by-email-address/company-id/email-address -H 'X-Request-Id:${validXRequestId}' ''';
+
 			var userId = JSONCurlUtil.get("${curl}");
 
 			AuditLog.viewLogFileContent(logString = "${validXRequestId}");
+		}
+	}
+
+	@description = "This is a use case for LPS-150300. Verify that Console outputs the correct clientIP when reading of the X-Forwarded-For http header."
+	@priority = "5"
+	test VerifyCorrectClientIP {
+		property osgi.module.configuration.file.names = "com.liferay.portal.security.audit.wiring.internal.configuration.AuditLogContextConfiguration.config";
+		property osgi.module.configurations = "enabled=&quot;true&quot;${line.separator}useIncomingXRequestId=&quot;true&quot;";
+		property test.name.skip.portal.instance = "Audit#VerifyCorrectClientIP";
+
+		task ("Add the OSGI configuration file") {
+			OSGiConfig.copyOSGiConfigFile(
+				osgiConfigFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructureee/administration/auditing/dependencies",
+				osgiConfigFileName = "com.liferay.portal.security.audit.router.configuration.LoggingAuditMessageProcessorConfiguration.config");
+
+			Audit.verifyConfigurationElementIsConfigured(
+				element = "Audit#AUDIT_LOG_MESSAGE_FORMAT",
+				portlet = "Logging Message Audit",
+				text = "JSON");
+		}
+
+		task ("Verify that console outputs the correct clientIP when reading of the X-Forwarded-For http header") {
+			var ipAddress = PropsUtil.get("ip.address");
+
+			var curl = '''http://localhost:8080/api/jsonws/user/get-user-by-email-address/company-id/email-address -H 'X-Forwarded-For: ${ipAddress}' ''';
+
+			echo("## * Read of the X-Forwarded-For http header:");
+
+			var runGet = JSONCurlUtil.get("${curl}");
+
+			AuditLog.viewLogFileContent(logString = "clientIP=127.0.0.1");
 		}
 	}
 

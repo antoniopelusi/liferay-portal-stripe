@@ -68,6 +68,7 @@ definition {
 				locator1 = "Home#PAGE_COLUMN_LAYOUT");
 
 			var i = ${i} + 1;
+
 			var i = StringUtil.valueOf("${i}");
 		}
 	}

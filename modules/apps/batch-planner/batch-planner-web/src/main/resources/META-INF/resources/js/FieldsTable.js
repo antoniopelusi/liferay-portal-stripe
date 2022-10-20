@@ -60,7 +60,6 @@ function FieldsTable({portletNamespace}) {
 
 				setSelectedFields(
 					Object.keys(template.mappings).map((fields) => ({
-						label: fields,
 						name: fields,
 					}))
 				);
@@ -92,7 +91,7 @@ function FieldsTable({portletNamespace}) {
 	return (
 		<div className="card d-flex flex-column">
 			<h4 className="card-header py-3">
-				{Liferay.Language.get('field-mapping')}
+				{Liferay.Language.get('fields')}
 			</h4>
 
 			<ClayAlert
@@ -102,7 +101,7 @@ function FieldsTable({portletNamespace}) {
 				variant="inline"
 			>
 				{Liferay.Language.get(
-					'check-out-fields-that-would-be-exported'
+					'select-fields-to-include-in-the-exported-file'
 				)}
 			</ClayAlert>
 
@@ -113,11 +112,11 @@ function FieldsTable({portletNamespace}) {
 							<ClayTable.Cell headingCell>
 								<ClayCheckbox
 									checked={
-										selectedFields.length > 0 &&
+										!!selectedFields.length &&
 										selectedFields.length === fields.length
 									}
 									indeterminate={
-										selectedFields.length > 0 &&
+										!!selectedFields.length &&
 										selectedFields.length < fields.length
 									}
 									onChange={() => {
@@ -151,11 +150,11 @@ function FieldsTable({portletNamespace}) {
 							);
 
 							return (
-								<ClayTable.Row key={field.label}>
+								<ClayTable.Row key={field.name}>
 									<ClayTable.Cell>
 										<ClayCheckbox
 											checked={included}
-											id={`${portletNamespace}fieldName_${field.label}`}
+											id={`${portletNamespace}fieldName_${field.name}`}
 											name={`${portletNamespace}fieldName`}
 											onChange={() => {
 												Liferay.fire(
@@ -184,9 +183,9 @@ function FieldsTable({portletNamespace}) {
 
 									<ClayTable.Cell>
 										<label
-											htmlFor={`${portletNamespace}fieldName_${field.label}`}
+											htmlFor={`${portletNamespace}fieldName_${field.name}`}
 										>
-											{field.label}
+											{field.name}
 										</label>
 									</ClayTable.Cell>
 								</ClayTable.Row>

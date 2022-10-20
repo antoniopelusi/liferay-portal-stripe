@@ -86,6 +86,7 @@ export default function BulkReassignModal() {
 			onCloseModal(true);
 			setSelectedItems([]);
 			setSelectAll(false);
+			window.location.reload();
 		},
 		url: '/workflow-tasks/assign-to-user',
 	});
@@ -165,7 +166,7 @@ export default function BulkReassignModal() {
 			},
 			component: SelectTasksStep,
 			nextBtn: {
-				disabled: tasks.length === 0 || fetching,
+				disabled: !tasks.length || fetching,
 				handle: handleNext,
 				text: Liferay.Language.get('next'),
 			},

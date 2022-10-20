@@ -11,6 +11,16 @@
 
 <tbody>
 <tr>
+	<td>ANY_ICON</td>
+	<td>//*[@data-qa-id='row'][contains(.,'${key_listEntry}')]//*[*[name()='svg'][contains(@class,'lexicon-icon-${key_text}')]]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ANY_LIST</td>
+	<td>//*[@data-qa-id='row'][contains(@class,'list') and contains(.,'${key_listEntry}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>LIST_ENTRY</td>
 	<td>//*[@data-qa-id='row'][contains(.,'${key_listEntry}')]</td>
 	<td></td>
@@ -18,6 +28,11 @@
 <tr>
 	<td>LIST_ENTRY_CHECKBOX</td>
 	<td>//*[@data-qa-id='row'][contains(.,'${key_listEntry}')]//input[@type='checkbox']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>LIST_ENTRY_SPECIFIC</td>
+	<td>//*[@data-qa-id='row'][${key_position}][contains(.,'${key_listEntry}')]</td>
 	<td></td>
 </tr>
 <tr>

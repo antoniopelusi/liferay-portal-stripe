@@ -17,7 +17,9 @@ definition {
 
 		LexiconEntry.changeDisplayStyle(displayStyle = "list");
 
-		AssertElementPresent.pauseAssertVisible(locator1 = "WC#ENTRY_LIST_THUMBNAIL");
+		LexiconEntry.viewActiveDisplayStyle(displayStyle = "list");
+
+		AssertElementPresent(locator1 = "WC#ENTRY_LIST_THUMBNAIL");
 
 		AssertTextEquals.assertPartialText(
 			locator1 = "WC#ENTRY_LIST_TITLE",
@@ -53,7 +55,7 @@ definition {
 
 		Alert.viewSuccessMessage();
 
-		AssertElementPresent.pauseAssertVisible(locator1 = "WC#ENTRY_LIST_THUMBNAIL");
+		AssertElementPresent(locator1 = "WC#ENTRY_LIST_THUMBNAIL");
 
 		AssertTextEquals.assertPartialText(
 			locator1 = "WC#ENTRY_LIST_TITLE",
@@ -106,15 +108,15 @@ definition {
 
 			SelectFrame(locator1 = "IFrame#MODAL_BODY");
 
-			var key_ddlDataDefinitionName = "${structureName}";
-
 			AssertClickNoError(
-				locator1 = "DDMSelectStructure#DDM_STRUCTURE_TABLE_NAME_LINK",
+				key_tableEntry = "${structureName}",
+				locator1 = "LexiconTable#TABLE_ENTRY_TITLE_LINK",
 				value1 = "${structureName}");
 
 			SelectFrame(value1 = "relative=top");
 
 			Select(
+				key_ddlDataDefinitionName = "${structureName}",
 				locator1 = "WCEditFolder#WORKFLOW_SPECIFIC_RESTRICTIONS_STRUCTURE_WORKFLOW_SELECT",
 				value1 = "${workflowDefinition}");
 		}
@@ -172,9 +174,7 @@ definition {
 
 		WebContentNavigator.gotoEntryMenuItem(
 			entry = "${folderName}",
-			menuItem = "Move to Recycle Bin");
-
-		AssertConfirm(value1 = "Are you sure you want to move this to the Recycle Bin?");
+			menuItem = "Delete");
 
 		VerifyElementPresent(locator1 = "Message#SUCCESS");
 	}

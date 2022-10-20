@@ -1,6 +1,8 @@
 @component-name = "portal-analytics-cloud"
 definition {
 
+	property analytics.cloud.release = "true";
+	property analytics.cloud.upstream = "true";
 	property portal.release = "false";
 	property portal.upstream = "true";
 	property property.group = "analytics.cloud.profile";
@@ -31,6 +33,8 @@ definition {
 	tearDown {
 		var testPortalInstance = PropsUtil.get("test.portal.instance");
 
+		ACUtils.tearDownAC();
+
 		ACUtils.tearDownDXP();
 
 		if ("${testPortalInstance}" == "true") {
@@ -39,10 +43,6 @@ definition {
 		else {
 			JSONGroup.deleteGroupByName(groupName = "Site Name");
 		}
-
-		JSONUser.tearDownNonAdminUsers();
-
-		ACUtils.tearDownAC();
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8344 | Test Summary: Site overview acquisition card shows which channels individuals are coming from"
@@ -267,7 +267,9 @@ definition {
 	test AssertSitesAcquisitionCardReferrersHighestSession {
 		task ("Get the portal URL") {
 			var portalURL = PropsUtil.get("portal.url");
+
 			var portalURL = StringUtil.replace("${portalURL}", "http://", "");
+
 			var portalURL = StringUtil.replace("${portalURL}", ":8080", "");
 		}
 
@@ -341,7 +343,9 @@ definition {
 	test AssertSitesAcquisitionCardSourceAndMediumHighestSession {
 		task ("Get the portal URL") {
 			var portalURL = PropsUtil.get("portal.url");
+
 			var portalURL = StringUtil.replace("${portalURL}", "http://", "");
+
 			var portalURL = StringUtil.replace("${portalURL}", ":8080", "");
 		}
 

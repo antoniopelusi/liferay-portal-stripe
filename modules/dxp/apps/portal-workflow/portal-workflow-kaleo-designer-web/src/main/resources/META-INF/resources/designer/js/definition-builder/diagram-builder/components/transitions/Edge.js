@@ -11,17 +11,12 @@
 
 import PropTypes from 'prop-types';
 import React, {useContext, useMemo} from 'react';
-import {
-	EdgeText,
-	getBezierPath,
-	getEdgeCenter,
-	getSmoothStepPath,
-	useStoreState,
-} from 'react-flow-renderer';
+import {EdgeText, getBezierPath, useStoreState} from 'react-flow-renderer';
 
 import {DefinitionBuilderContext} from '../../../DefinitionBuilderContext';
 import {defaultLanguageId} from '../../../constants';
 import {DiagramBuilderContext} from '../../DiagramBuilderContext';
+import getBezierEdgeCenter from '../../util/getBezierEdgeCenter';
 import MarkerEndDefinition, {markerEndId} from './MarkerEndDefinition';
 import {getEdgeParams} from './utils';
 
@@ -30,15 +25,10 @@ function Edge(props) {
 		data: {defaultEdge = true, label = {}},
 		id,
 		source,
-		sourceX,
-		sourceY,
-		sourcePosition,
 		style = {},
 		target,
-		targetPosition,
-		targetX,
-		targetY,
 	} = props;
+
 	const {elements, selectedLanguageId} = useContext(DefinitionBuilderContext);
 	const {selectedItem, setSelectedItem} = useContext(DiagramBuilderContext);
 
@@ -46,47 +36,6 @@ function Edge(props) {
 
 	if (selectedLanguageId && label[selectedLanguageId]) {
 		edgeLabel = label[selectedLanguageId];
-	}
-
-	const edgePath = getSmoothStepPath({
-		sourcePosition,
-		sourceX,
-		sourceY,
-		targetPosition,
-		targetX,
-		targetY,
-	});
-
-	const [edgeCenterX, edgeCenterY] = getEdgeCenter({
-		sourceX,
-		sourceY,
-		targetX,
-		targetY,
-	});
-
-	let labelPositionX = edgeCenterX;
-	let labelPositionY = edgeCenterY;
-
-	if (
-		edgePath.indexOf(`${edgeCenterX}`) === -1 &&
-		edgePath.indexOf(`${edgeCenterY}`) === -1
-	) {
-		const substring1 = edgePath.substring(0, edgePath.lastIndexOf(','));
-
-		const substring2 = substring1.substring(0, substring1.lastIndexOf(','));
-
-		const substring3 = substring2.substring(
-			substring2.lastIndexOf(',') + 1
-		);
-
-		const index = substring3.indexOf(' ');
-
-		const y = substring3.substring(0, index);
-
-		const x = substring3.substring(index + 1);
-
-		labelPositionX = parseFloat(x);
-		labelPositionY = parseFloat(y);
 	}
 
 	const nodes = useStoreState((state) => state.nodes);
@@ -110,20 +59,19 @@ function Edge(props) {
 			element.source === props.target && element.target === props.source
 	).length;
 
+	const collidedTransitionIndex = elements.findIndex(
+		(element) =>
+			element.source === props.target && element.target === props.source
+	);
+
+	const currentTransitionIndex = elements.findIndex(
+		(element) => element.id === props.id
+	);
+
 	let newSourceX = sx;
 	let newTargetX = tx;
 
 	if (hasCollidingNode) {
-		const currentTransitionIndex = elements.findIndex(
-			(element) => element.id === props.id
-		);
-
-		const collidedTransitionIndex = elements.findIndex(
-			(element) =>
-				element.source === props.target &&
-				element.target === props.source
-		);
-
 		newSourceX =
 			currentTransitionIndex > collidedTransitionIndex
 				? newSourceX + 40
@@ -132,16 +80,6 @@ function Edge(props) {
 			currentTransitionIndex > collidedTransitionIndex
 				? newTargetX + 40
 				: newTargetX - 40;
-
-		labelPositionX =
-			currentTransitionIndex > collidedTransitionIndex
-				? newSourceX + 40
-				: newSourceX - 40;
-
-		labelPositionY =
-			labelPositionY === targetY || labelPositionY === sourceY
-				? labelPositionY + Math.abs(sourceY - targetY)
-				: labelPositionY;
 	}
 
 	const drawn = getBezierPath({
@@ -152,6 +90,24 @@ function Edge(props) {
 		targetX: newTargetX,
 		targetY: ty,
 	});
+
+	// eslint-disable-next-line prefer-const
+	let [edgeCenterX, edgeCenterY] = getBezierEdgeCenter({
+		curvature: 0.25,
+		sourcePosition: sourcePos,
+		sourceX: newSourceX,
+		sourceY: sy,
+		targetPosition: targetPos,
+		targetX: newTargetX,
+		targetY: ty,
+	});
+
+	if (hasCollidingNode) {
+		edgeCenterY =
+			currentTransitionIndex > collidedTransitionIndex
+				? edgeCenterY + 21
+				: edgeCenterY - 21;
+	}
 
 	const [strokeColor, labelBg] =
 		selectedItem?.id === id
@@ -192,8 +148,8 @@ function Edge(props) {
 				labelShowBg={true}
 				labelStyle={{fill: '#FFF', fontWeight: 600}}
 				onClick={() => setSelectedItem(props)}
-				x={labelPositionX}
-				y={labelPositionY}
+				x={edgeCenterX}
+				y={edgeCenterY}
 			/>
 		</g>
 	);

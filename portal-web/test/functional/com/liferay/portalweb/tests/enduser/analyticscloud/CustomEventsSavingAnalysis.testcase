@@ -1,6 +1,8 @@
 @component-name = "portal-analytics-cloud"
 definition {
 
+	property analytics.cloud.release = "true";
+	property analytics.cloud.upstream = "true";
 	property custom.properties = "jsonws.web.service.paths.excludes=";
 	property portal.release = "false";
 	property portal.upstream = "true";
@@ -61,6 +63,8 @@ definition {
 	tearDown {
 		var testPortalInstance = PropsUtil.get("test.portal.instance");
 
+		ACUtils.tearDownAC();
+
 		ACUtils.tearDownDXP();
 
 		if ("${testPortalInstance}" == "true") {
@@ -69,10 +73,6 @@ definition {
 		else {
 			JSONGroup.deleteGroupByName(groupName = "Site Name");
 		}
-
-		JSONUser.tearDownNonAdminUsers();
-
-		ACUtils.tearDownAC();
 	}
 
 	@description = "Feature ID: LRAC-6280 | Automation ID: LRAC-10563 | Test Summary: Search for analysis report"
@@ -240,6 +240,7 @@ definition {
 			}
 
 			var i = ${i} + 1;
+
 			var i = StringUtil.valueOf("${i}");
 		}
 
@@ -269,6 +270,7 @@ definition {
 			while ("${i}" != "${size}") {
 				var attributeName = ListUtil.get("${list1}", "${i}");
 				var oldDataType = ListUtil.get("${list3}", "${i}");
+
 				var oldDataType = StringUtil.upperCase("${oldDataType}");
 
 				Click(
@@ -281,6 +283,7 @@ definition {
 					value1 = "${oldDataType}");
 
 				var i = ${i} + 1;
+
 				var i = StringUtil.valueOf("${i}");
 			}
 		}
@@ -289,7 +292,7 @@ definition {
 	@description = "Feature ID: LRAC-6280 | Automation ID: LRAC-10558 | Test Summary: Viewing newly created analysis report"
 	@priority = "5"
 	test CanCreateAnalysisReport {
-		var attributeName = "category";
+		var attributeNameList = "category,url";
 		var filterName = "like";
 
 		task ("Fill fields and create custom event") {
@@ -317,7 +320,7 @@ definition {
 		}
 
 		task ("Add the breakdown to analysis") {
-			ACEventAnalysis.addBreakdown(attributeNameList = "${attributeName}");
+			ACEventAnalysis.addBreakdown(attributeNameList = "${attributeNameList}");
 		}
 
 		task ("Add the filter to analysis") {
@@ -352,7 +355,7 @@ definition {
 
 		task ("Check that the analysis dashboard contains the event,attribute and filter") {
 			ACEventAnalysis.viewAnalysisDashboard(
-				attributeNameList = "${attributeName}",
+				attributeNameList = "${attributeNameList}",
 				eventName = "${customEventName}",
 				filterNameList = "${filterName}");
 		}
@@ -696,6 +699,7 @@ definition {
 			}
 
 			var i = ${i} + 1;
+
 			var i = StringUtil.valueOf("${i}");
 		}
 	}
@@ -843,6 +847,7 @@ definition {
 					name = "${eventAnalysisName}");
 
 				var i = ${i} + 1;
+
 				var i = StringUtil.valueOf("${i}");
 			}
 		}
@@ -880,9 +885,9 @@ definition {
 		}
 
 		task ("Check that the empty page message and check the hyperlink taking user to event analysis document") {
-			ACUtils.viewNoResultsMessage(noResultMessage = "No analysis found");
+			ACUtils.viewGenericText(textValueList = "There are no analysis found.,Create an analysis to get started.,Access our documentation to learn more.");
 
-			ACUtils.clickGenericHyperlink(hyperlinkText = "documentation");
+			ACUtils.clickGenericHyperlink(hyperlinkText = "Access our documentation to learn more.");
 
 			task ("Switch to the documentation tab") {
 				SelectWindow(locator1 = "title=Events Analysis — Liferay Learn");

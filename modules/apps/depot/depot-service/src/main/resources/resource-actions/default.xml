@@ -32,10 +32,12 @@
 				<action-key>ASSIGN_MEMBERS</action-key>
 				<action-key>ASSIGN_USER_ROLES</action-key>
 				<action-key>DELETE</action-key>
+				<action-key>PUBLISH_STAGING</action-key>
 				<action-key>UPDATE</action-key>
 				<action-key>VIEW</action-key>
 				<action-key>VIEW_MEMBERS</action-key>
 				<action-key>VIEW_SITE_ADMINISTRATION</action-key>
+				<action-key>VIEW_STAGING</action-key>
 			</supports>
 		</permissions>
 	</model-resource>

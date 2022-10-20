@@ -4,7 +4,6 @@ definition {
 		Variables.assertDefined(parameterList = "${userId}");
 
 		var companyId = JSONCompany.getCompanyId(authenticationMethod = "${authenticationMethod}");
-
 		var portalURL = JSONCompany.getPortalURL();
 
 		if ("${authenticationMethod}" == "By Screen Name") {

@@ -1,8 +1,24 @@
 definition {
 
-	macro createRoutineTestray {
-		Click(locator1 = "Testray#ADD_PROJECT");
+	macro assertStatusBuildDisabled {
+		AssertElementPresent(
+			key_item = "${key_item}",
+			locator1 = "TestrayRoutines#STATUS_BUILD_HISTORY_DISABLED");
+	}
 
+	macro clickStatusBuildHistory {
+		Click(
+			key_item = "${key_item}",
+			locator1 = "TestrayRoutines#STATUS_BUILD_HISTORY");
+	}
+
+	macro goToRoutine {
+		Click(
+			key_projectName = "${routineName}",
+			locator1 = "Testray#PROJECT_NAME");
+	}
+
+	macro typeRoutineField {
 		Type(
 			locator1 = "TestrayManage#NEW_OPTION_NAME",
 			value1 = "${key_name}");

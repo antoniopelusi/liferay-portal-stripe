@@ -16,9 +16,12 @@ package com.liferay.release.feature.flag.web.internal.configuration;
 
 import aQute.bnd.annotation.metatype.Meta;
 
+import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClassDefinition;
+
 /**
  * @author Alejandro Tardín
  */
+@ExtendedObjectClassDefinition(category = "release-feature-flags")
 @Meta.OCD(
 	id = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration",
 	localization = "content/Language",

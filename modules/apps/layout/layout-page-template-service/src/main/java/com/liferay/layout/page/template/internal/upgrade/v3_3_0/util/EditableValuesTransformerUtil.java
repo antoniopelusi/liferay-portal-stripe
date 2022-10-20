@@ -14,6 +14,7 @@
 
 package com.liferay.layout.page.template.internal.upgrade.v3_3_0.util;
 
+import com.liferay.fragment.entry.processor.constants.FragmentEntryProcessorConstants;
 import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -56,30 +57,27 @@ public class EditableValuesTransformerUtil {
 				JSONObject editableProcessorJSONObject =
 					(JSONObject)editableProcessorObject;
 
-				if (editableProcessorJSONObject.length() <= 0) {
-					newEditableValuesJSONObject.put(
-						editableProcessorKey,
-						JSONFactoryUtil.createJSONObject());
-
-					continue;
-				}
-
 				if (Objects.equals(
 						editableProcessorKey,
-						_KEY_FREE_MARKER_FRAGMENT_ENTRY_PROCESSOR)) {
+						FragmentEntryProcessorConstants.
+							KEY_FREEMARKER_FRAGMENT_ENTRY_PROCESSOR)) {
 
-					newEditableValuesJSONObject.put(
-						editableProcessorKey,
+					editableProcessorJSONObject =
 						_getFreeMarkerFragmentEntryProcessorJSONObject(
-							editableProcessorJSONObject, segmentsExperienceId));
+							editableProcessorJSONObject, segmentsExperienceId);
+				}
+				else if (editableProcessorJSONObject.length() > 0) {
+					editableProcessorJSONObject =
+						_getFragmentEntryProcessorJSONObject(
+							editableProcessorJSONObject, segmentsExperienceId);
+				}
 
+				if (editableProcessorJSONObject.length() <= 0) {
 					continue;
 				}
 
 				newEditableValuesJSONObject.put(
-					editableProcessorKey,
-					_getFragmentEntryProcessorJSONObject(
-						editableProcessorJSONObject, segmentsExperienceId));
+					editableProcessorKey, editableProcessorJSONObject);
 			}
 		}
 		catch (JSONException jsonException) {
@@ -88,7 +86,7 @@ public class EditableValuesTransformerUtil {
 			}
 		}
 
-		return newEditableValuesJSONObject.toJSONString();
+		return newEditableValuesJSONObject.toString();
 	}
 
 	private static JSONObject _getFragmentEntryProcessorJSONObject(
@@ -185,10 +183,6 @@ public class EditableValuesTransformerUtil {
 	}
 
 	private static final String _ID_PREFIX = "segments-experience-id-";
-
-	private static final String _KEY_FREE_MARKER_FRAGMENT_ENTRY_PROCESSOR =
-		"com.liferay.fragment.entry.processor.freemarker." +
-			"FreeMarkerFragmentEntryProcessor";
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		EditableValuesTransformerUtil.class);

@@ -11,6 +11,7 @@ definition {
 			  -u test@liferay.com:test \
 			  -d groupIds=[${groupId}]
 		''';
+
 		var fileEntryTypeId = JSONCurlUtil.post("${curl}", "$.[?(@['nameCurrentValue'] == '${fileEntryTypeName}')]['fileEntryTypeId']");
 
 		if ("${fileEntryTypeId}" == "") {
@@ -31,6 +32,7 @@ definition {
 			  -u test@liferay.com:test \
 			  -d groupIds=[${groupId}]
 		''';
+
 		var fileEntryTypeIds = JSONCurlUtil.post("${curl}", "$..fileEntryTypeId");
 
 		return "${fileEntryTypeIds}";

@@ -27,9 +27,54 @@ import java.util.List;
  */
 public class TransformUtil {
 
-	public static <T, R> List<R> transform(
-		Collection<T> collection,
-		UnsafeFunction<T, R, Exception> unsafeFunction) {
+	public static <T, R, E extends Throwable> List<R> transform(
+		Collection<T> collection, UnsafeFunction<T, R, E> unsafeFunction) {
+
+		try {
+			return unsafeTransform(collection, unsafeFunction);
+		}
+		catch (Throwable throwable) {
+			throw new RuntimeException(throwable);
+		}
+	}
+
+	public static <T, R, E extends Throwable> R[] transform(
+		T[] array, UnsafeFunction<T, R, E> unsafeFunction, Class<?> clazz) {
+
+		try {
+			return unsafeTransform(array, unsafeFunction, clazz);
+		}
+		catch (Throwable throwable) {
+			throw new RuntimeException(throwable);
+		}
+	}
+
+	public static <T, R, E extends Throwable> R[] transformToArray(
+		Collection<T> collection, UnsafeFunction<T, R, E> unsafeFunction,
+		Class<?> clazz) {
+
+		try {
+			return unsafeTransformToArray(collection, unsafeFunction, clazz);
+		}
+		catch (Throwable throwable) {
+			throw new RuntimeException(throwable);
+		}
+	}
+
+	public static <T, R, E extends Throwable> List<R> transformToList(
+		T[] array, UnsafeFunction<T, R, E> unsafeFunction) {
+
+		try {
+			return unsafeTransformToList(array, unsafeFunction);
+		}
+		catch (Throwable throwable) {
+			throw new RuntimeException(throwable);
+		}
+	}
+
+	public static <T, R, E extends Throwable> List<R> unsafeTransform(
+			Collection<T> collection, UnsafeFunction<T, R, E> unsafeFunction)
+		throws E {
 
 		if (collection == null) {
 			return new ArrayList<>();
@@ -38,44 +83,38 @@ public class TransformUtil {
 		List<R> list = new ArrayList<>(collection.size());
 
 		for (T item : collection) {
-			try {
-				R newItem = unsafeFunction.apply(item);
+			R newItem = unsafeFunction.apply(item);
 
-				if (newItem != null) {
-					list.add(newItem);
-				}
-			}
-			catch (RuntimeException runtimeException) {
-				throw runtimeException;
-			}
-			catch (Exception exception) {
-				throw new RuntimeException(exception);
+			if (newItem != null) {
+				list.add(newItem);
 			}
 		}
 
 		return list;
 	}
 
-	public static <T, R> R[] transform(
-		T[] array, UnsafeFunction<T, R, Exception> unsafeFunction,
-		Class<?> clazz) {
+	public static <T, R, E extends Throwable> R[] unsafeTransform(
+			T[] array, UnsafeFunction<T, R, E> unsafeFunction, Class<?> clazz)
+		throws E {
 
-		List<R> list = transformToList(array, unsafeFunction);
-
-		return list.toArray((R[])Array.newInstance(clazz, 0));
-	}
-
-	public static <T, R> R[] transformToArray(
-		Collection<T> collection,
-		UnsafeFunction<T, R, Exception> unsafeFunction, Class<?> clazz) {
-
-		List<R> list = transform(collection, unsafeFunction);
+		List<R> list = unsafeTransformToList(array, unsafeFunction);
 
 		return list.toArray((R[])Array.newInstance(clazz, 0));
 	}
 
-	public static <T, R> List<R> transformToList(
-		T[] array, UnsafeFunction<T, R, Exception> unsafeFunction) {
+	public static <T, R, E extends Throwable> R[] unsafeTransformToArray(
+			Collection<T> collection, UnsafeFunction<T, R, E> unsafeFunction,
+			Class<?> clazz)
+		throws E {
+
+		List<R> list = unsafeTransform(collection, unsafeFunction);
+
+		return list.toArray((R[])Array.newInstance(clazz, 0));
+	}
+
+	public static <T, R, E extends Throwable> List<R> unsafeTransformToList(
+			T[] array, UnsafeFunction<T, R, E> unsafeFunction)
+		throws E {
 
 		if (array == null) {
 			return new ArrayList<>();
@@ -84,18 +123,10 @@ public class TransformUtil {
 		List<R> list = new ArrayList<>(array.length);
 
 		for (T item : array) {
-			try {
-				R newItem = unsafeFunction.apply(item);
+			R newItem = unsafeFunction.apply(item);
 
-				if (newItem != null) {
-					list.add(newItem);
-				}
-			}
-			catch (RuntimeException runtimeException) {
-				throw runtimeException;
-			}
-			catch (Exception exception) {
-				throw new RuntimeException(exception);
+			if (newItem != null) {
+				list.add(newItem);
 			}
 		}
 

@@ -74,7 +74,7 @@ definition {
 			panel = "Control Panel",
 			portlet = "Roles");
 
-		Role.definePermissionCmdCP(
+		Role.definePermissionsCP(
 			permissionDefinitionKey = "SITE_ADMIN_CONTENT_DOCUMENTS_AND_MEDIA_GENERAL_PERMISSIONS_ACCESS_IN_SITE_ADMINISTRATION_CHECKBOX",
 			permissionDefinitionValue = "Access in Site and Asset Library Administration",
 			roleTitle = "Roles Regrole Name",
@@ -113,7 +113,7 @@ definition {
 			panel = "Control Panel",
 			portlet = "Roles");
 
-		Role.definePermissionCmdCP(
+		Role.definePermissionsCP(
 			permissionDefinitionKey = "SITE_ADMIN_APPLICATIONS_DOCUMENTS_AND_MEDIA_RESOURCE_PERMISSIONS_DOCUMENT_VIEW_CHECKBOX",
 			permissionDefinitionValue = "View",
 			roleTitle = "Remove Permission Scope",
@@ -129,7 +129,7 @@ definition {
 			panel = "Control Panel",
 			portlet = "Roles");
 
-		Role.definePermissionCmdCP(
+		Role.definePermissionsCP(
 			permissionDefinitionKey = "SITE_ADMIN_APPLICATIONS_DOCUMENTS_AND_MEDIA_RESOURCE_PERMISSIONS_DOCUMENT_VIEW_CHECKBOX",
 			permissionDefinitionValue = "View",
 			removeSiteScope = "${siteName}",
@@ -157,7 +157,7 @@ definition {
 			panel = "Control Panel",
 			portlet = "Roles");
 
-		Role.definePermissionCmdCP(
+		Role.definePermissionsCP(
 			permissionDefinitionKey = "SITE_ADMIN_APPLICATIONS_DOCUMENTS_AND_MEDIA_RESOURCE_PERMISSIONS_DOCUMENT_VIEW_CHECKBOX",
 			permissionDefinitionValue = "View",
 			roleTitle = "Permission Scope",
@@ -169,6 +169,63 @@ definition {
 			siteNameScope = "${siteName}");
 
 		AssertConsoleTextNotPresent(value1 = "java.lang.NumberFormatException");
+	}
+
+	@description = "This is a test for LPS-148855. The default site role shouldn't be inherited by Guest."
+	@priority = "5"
+	test DefaultSiteRoleIsNotInheritedByGuestUser {
+		task ("Assign default site to a new regular Role") {
+			JSONRole.addRegularRole(
+				roleKey = "Document Viewer",
+				roleTitle = "Document Viewer");
+
+			JSONRole.assignRoleToGroup(
+				groupName = "Guest",
+				roleTitle = "Document Viewer");
+		}
+
+		task ("Add the DM portlet with a file to a public page on a new site") {
+			JSONGroup.addGroup(groupName = "Site Name");
+
+			JSONLayout.addPublicLayout(
+				groupName = "Site Name",
+				layoutName = "Public Widget Page");
+
+			JSONDocument.addFileWithUploadedFile(
+				dmDocumentTitle = "For Document Viewers Eyes Only",
+				groupName = "Site Name",
+				mimeType = "image/jpeg",
+				sourceFileName = "Document_4.jpg");
+
+			JSONLayout.addWidgetToPublicLayout(
+				groupName = "Site Name",
+				layoutName = "Public Widget Page",
+				widgetName = "Documents and Media");
+		}
+
+		task ("Define view permission for Guest and Document Viewer Roles on the DM portlet") {
+			DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "Site Name");
+
+			DMNavigator.gotoDocumentPermissionsCP(dmDocumentTitle = "For Document Viewers Eyes Only");
+
+			PermissionsInline.addOrRemoveViewPermissionFromAllRoles(
+				addOrRemoveViewPermission = "Add",
+				roleList = "Document Viewer");
+
+			PermissionsInline.addOrRemoveViewPermissionFromAllRoles(
+				addOrRemoveViewPermission = "Remove",
+				roleList = "Guest");
+		}
+
+		task ("Assert guest user cannot view the file") {
+			User.logoutPG();
+
+			Navigator.gotoSitePage(
+				pageName = "Public Widget Page",
+				siteName = "Site Name");
+
+			DMDocument.cannotViewCP(dmDocumentTitle = "For Document Viewers Eyes Only");
+		}
 	}
 
 	@priority = "4"
@@ -400,8 +457,6 @@ definition {
 
 	@priority = "4"
 	test GroupScopePermissionCheck {
-		property osgi.app.includes = "bookmarks";
-		property portal.release = "false";
 		property test.name.skip.portal.instance = "RolesandpermissionsUsecase#GroupScopePermissionCheck";
 
 		var siteName = TestCase.getSiteName(siteName = "${siteName}");
@@ -418,7 +473,7 @@ definition {
 			panel = "Control Panel",
 			portlet = "Roles");
 
-		Role.definePermissionCmdCP(
+		Role.definePermissionsCP(
 			permissionDefinitionKey = "SITE_ADMIN_APPLICATIONS_BOOKMARKS_RESOURCE_PERMISSIONS_BOOKMARKS_ENTRY_VIEW_CHECKBOX",
 			permissionDefinitionValue = "View",
 			roleTitle = "Group Scope Role Name",
@@ -554,8 +609,7 @@ definition {
 	@priority = "3"
 	test NoGuestRolePermissionsFromPrivateLayout {
 		property custom.properties = "permissions.check.guest.enabled=false";
-		property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-		property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		ApplicationsMenu.gotoPortlet(
 			category = "Sites",
@@ -974,9 +1028,6 @@ definition {
 
 	@priority = "4"
 	test SiteRoleBookmarksInlinePermissions {
-		property osgi.app.includes = "bookmarks";
-		property portal.release = "false";
-
 		var siteName = TestCase.getSiteName(siteName = "${siteName}");
 
 		ApplicationsMenu.gotoPortlet(
@@ -993,7 +1044,7 @@ definition {
 			panel = "Control Panel",
 			portlet = "Roles");
 
-		Role.definePermissionCmdCP(
+		Role.definePermissionsCP(
 			permissionDefinitionKey = "SITE_ADMIN_APPLICATIONS_BOOKMARKS_RESOURCE_PERMISSIONS_BOOKMARKS_ENTRY_VIEW_CHECKBOX",
 			permissionDefinitionValue = "View",
 			roleTitle = "Roles Siterole Name",
@@ -1334,9 +1385,9 @@ definition {
 			pageName = "Search Page",
 			siteName = "Organization Name");
 
-		SearchPortlets.searchWidget(searchTerm = "Test Blog");
+		SearchPortlets.searchWidget(searchTerm = "&quot;Test Blog&quot;");
 
-		SearchResultPortlet.viewNoSearchResults(searchTerm = "Test Blog");
+		SearchResultPortlet.viewNoSearchResults(searchTerm = "&quot;Test Blog&quot;");
 
 		User.logoutPG();
 
@@ -1626,8 +1677,7 @@ definition {
 
 	@priority = "4"
 	test ViewPrivatePageSiteMemberRole {
-		property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-		property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		var siteName = TestCase.getSiteName(siteName = "${siteName}");
 
@@ -1688,8 +1738,7 @@ definition {
 
 	@priority = "4"
 	test ViewRegRolePermissionsDefaultView {
-		property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-		property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		JSONRole.addRegularRole(
 			roleKey = "Roles Regrole Name",
@@ -1792,11 +1841,7 @@ definition {
 
 		AssertVisible(locator1 = "Button#PLUS");
 
-		Pause(locator1 = "3000");
-
 		LexiconEntry.gotoAdd();
-
-		Pause(locator1 = "3000");
 
 		WebContent.viewWCViewableByPermissions();
 	}

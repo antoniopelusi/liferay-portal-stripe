@@ -209,6 +209,21 @@ public interface ObjectDefinitionModel
 	public void setModifiedDate(Date modifiedDate);
 
 	/**
+	 * Returns the account entry restricted object field ID of this object definition.
+	 *
+	 * @return the account entry restricted object field ID of this object definition
+	 */
+	public long getAccountEntryRestrictedObjectFieldId();
+
+	/**
+	 * Sets the account entry restricted object field ID of this object definition.
+	 *
+	 * @param accountEntryRestrictedObjectFieldId the account entry restricted object field ID of this object definition
+	 */
+	public void setAccountEntryRestrictedObjectFieldId(
+		long accountEntryRestrictedObjectFieldId);
+
+	/**
 	 * Returns the description object field ID of this object definition.
 	 *
 	 * @return the description object field ID of this object definition
@@ -235,6 +250,27 @@ public interface ObjectDefinitionModel
 	 * @param titleObjectFieldId the title object field ID of this object definition
 	 */
 	public void setTitleObjectFieldId(long titleObjectFieldId);
+
+	/**
+	 * Returns the account entry restricted of this object definition.
+	 *
+	 * @return the account entry restricted of this object definition
+	 */
+	public boolean getAccountEntryRestricted();
+
+	/**
+	 * Returns <code>true</code> if this object definition is account entry restricted.
+	 *
+	 * @return <code>true</code> if this object definition is account entry restricted; <code>false</code> otherwise
+	 */
+	public boolean isAccountEntryRestricted();
+
+	/**
+	 * Sets whether this object definition is account entry restricted.
+	 *
+	 * @param accountEntryRestricted the account entry restricted of this object definition
+	 */
+	public void setAccountEntryRestricted(boolean accountEntryRestricted);
 
 	/**
 	 * Returns the active of this object definition.
@@ -597,6 +633,21 @@ public interface ObjectDefinitionModel
 	 * @param scope the scope of this object definition
 	 */
 	public void setScope(String scope);
+
+	/**
+	 * Returns the storage type of this object definition.
+	 *
+	 * @return the storage type of this object definition
+	 */
+	@AutoEscape
+	public String getStorageType();
+
+	/**
+	 * Sets the storage type of this object definition.
+	 *
+	 * @param storageType the storage type of this object definition
+	 */
+	public void setStorageType(String storageType);
 
 	/**
 	 * Returns the system of this object definition.

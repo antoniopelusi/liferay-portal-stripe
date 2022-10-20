@@ -26,6 +26,7 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.odata.entity.EntityModel;
@@ -51,12 +52,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Generated;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import javax.ws.rs.NotSupportedException;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -75,8 +78,8 @@ public abstract class Base${schemaName}ResourceImpl
 
 	<#assign
 		javaDataType = freeMarkerTool.getJavaDataType(configYAML, openAPIYAML, schemaName)!""
-
-		generateBatch = configYAML.generateBatch && javaDataType?has_content
+		javaMethodSignatures = freeMarkerTool.getResourceJavaMethodSignatures(configYAML, openAPIYAML, schemaName)
+		generateBatch = freeMarkerTool.generateBatch(configYAML, javaDataType, javaMethodSignatures, schemaName)
 	/>
 
 	<#if generateBatch>
@@ -88,7 +91,8 @@ public abstract class Base${schemaName}ResourceImpl
 	<#assign
 		generateGetPermissionCheckerMethods = false
 		generatePatchMethods = false
-		javaMethodSignatures = freeMarkerTool.getResourceJavaMethodSignatures(configYAML, openAPIYAML, schemaName)
+		getParentBatchJavaMethodSignatures = []
+		postParentBatchJavaMethodSignatures = []
 	/>
 
 	<#list javaMethodSignatures as javaMethodSignature>
@@ -103,19 +107,31 @@ public abstract class Base${schemaName}ResourceImpl
 				<#assign getAssetLibraryBatchJavaMethodSignature = javaMethodSignature />
 			<#elseif stringUtil.equals(javaMethodSignature.methodName, "getSite" + schemaName + "sPage")>
 				<#assign getSiteBatchJavaMethodSignature = javaMethodSignature />
-			<#elseif !getBatchJavaMethodSignature??>
-				<#assign getBatchJavaMethodSignature = javaMethodSignature />
+			<#elseif stringUtil.equals(javaMethodSignature.methodName, "get" + parentSchemaName + schemaName + "sPage")>
+				<#if parentSchemaName?has_content>
+					<#assign getParentBatchJavaMethodSignatures = getParentBatchJavaMethodSignatures + [javaMethodSignature] />
+				<#else>
+					<#assign getBatchJavaMethodSignature = javaMethodSignature />
+				</#if>
 			</#if>
+		<#elseif stringUtil.equals(javaMethodSignature.methodName, "patch" + schemaName)>
+			<#assign patchBatchJavaMethodSignature = javaMethodSignature />
 		<#elseif stringUtil.equals(javaMethodSignature.methodName, "post" + parentSchemaName + schemaName)>
 			<#if stringUtil.equals(javaMethodSignature.methodName, "postAssetLibrary" + schemaName)>
 				<#assign postAssetLibraryBatchJavaMethodSignature = javaMethodSignature />
 			<#elseif stringUtil.equals(javaMethodSignature.methodName, "postSite" + schemaName)>
 				<#assign postSiteBatchJavaMethodSignature = javaMethodSignature />
-			<#elseif !postBatchJavaMethodSignature??>
-				<#assign postBatchJavaMethodSignature = javaMethodSignature />
+			<#elseif stringUtil.equals(javaMethodSignature.methodName, "post" + parentSchemaName + schemaName)>
+				<#if parentSchemaName?has_content>
+					<#assign postParentBatchJavaMethodSignatures = postParentBatchJavaMethodSignatures + [javaMethodSignature] />
+				<#else>
+					<#assign postBatchJavaMethodSignature = javaMethodSignature />
+				</#if>
 			</#if>
 		<#elseif stringUtil.equals(javaMethodSignature.methodName, "put" + schemaName)>
 			<#assign putBatchJavaMethodSignature = javaMethodSignature />
+		<#elseif stringUtil.equals(javaMethodSignature.methodName, "putByExternalReferenceCode") || stringUtil.equals(javaMethodSignature.methodName, "put" + parentSchemaName + schemaName + "ByExternalReferenceCode")>
+			<#assign putByERCBatchJavaMethodSignature = javaMethodSignature />
 		</#if>
 
 		<#if configYAML.application??>
@@ -327,46 +343,131 @@ public abstract class Base${schemaName}ResourceImpl
 	</#list>
 
 	<#if generateBatch>
+		<#assign
+			properties = freeMarkerTool.getDTOProperties(configYAML, openAPIYAML, schema)
+
+			createStrategies = freeMarkerTool.getVulcanBatchImplementationCreateStrategies(javaMethodSignatures, properties)
+			updateStrategies = freeMarkerTool.getVulcanBatchImplementationUpdateStrategies(javaMethodSignatures)
+		/>
 		@Override
 		@SuppressWarnings("PMD.UnusedLocalVariable")
 		public void create(java.util.Collection<${javaDataType}> ${schemaVarNames}, Map<String, Serializable> parameters) throws Exception {
-			<#if postAssetLibraryBatchJavaMethodSignature?? || postSiteBatchJavaMethodSignature?? || postBatchJavaMethodSignature??>
-				UnsafeConsumer<${javaDataType}, Exception> ${schemaVarName}UnsafeConsumer =
-				<#if postBatchJavaMethodSignature??>
-					${schemaVarName} -> ${postBatchJavaMethodSignature.methodName}(
-						<@getPOSTBatchJavaMethodParameters
-							javaMethodParameters=postBatchJavaMethodSignature.javaMethodParameters
-							schemaVarName=schemaVarName
-						/>
-					);
-				<#else>
-					${schemaVarName} -> {};
-				</#if>
 
-				<#if postAssetLibraryBatchJavaMethodSignature??>
-					if (parameters.containsKey("assetLibraryId")) {
-						${schemaVarName}UnsafeConsumer = ${schemaVarName} -> ${postAssetLibraryBatchJavaMethodSignature.methodName}(
+			<#if createStrategies?has_content>
+				UnsafeConsumer<${javaDataType}, Exception> ${schemaVarName}UnsafeConsumer = null;
+
+				String createStrategy = (String) parameters.getOrDefault("createStrategy", "INSERT");
+			</#if>
+
+			<#if createStrategies?seq_contains("INSERT")>
+				<#assign parentParameterNames = []/>
+
+				if ("INSERT".equalsIgnoreCase(createStrategy)) {
+
+					<#if postBatchJavaMethodSignature??>
+						${schemaVarName}UnsafeConsumer = ${schemaVarName} -> ${postBatchJavaMethodSignature.methodName}(
 							<@getPOSTBatchJavaMethodParameters
-								javaMethodParameters=postAssetLibraryBatchJavaMethodSignature.javaMethodParameters
+								javaMethodParameters=postBatchJavaMethodSignature.javaMethodParameters
 								schemaVarName=schemaVarName
 							/>
 						);
-					}
-				</#if>
-
-				<#if postSiteBatchJavaMethodSignature??>
-					<#if postAssetLibraryBatchJavaMethodSignature??>
-						else
 					</#if>
-					if (parameters.containsKey("siteId")) {
-						${schemaVarName}UnsafeConsumer = ${schemaVarName} -> ${postSiteBatchJavaMethodSignature.methodName}(
-							<@getPOSTBatchJavaMethodParameters
-								javaMethodParameters=postSiteBatchJavaMethodSignature.javaMethodParameters
-								schemaVarName=schemaVarName
+
+					<#if postParentBatchJavaMethodSignatures?has_content>
+						<#list postParentBatchJavaMethodSignatures as parentBatchJavaMethodSignature>
+							<#assign parentParameterNames = parentParameterNames + [parentBatchJavaMethodSignature.parentSchemaName!?uncap_first + "Id"]/>
+
+							if (parameters.containsKey("${parentBatchJavaMethodSignature.parentSchemaName?uncap_first}Id")) {
+								${schemaVarName}UnsafeConsumer = ${schemaVarName} -> ${parentBatchJavaMethodSignature.methodName}(
+									<@getPOSTBatchJavaMethodParameters
+										javaMethodParameters=parentBatchJavaMethodSignature.javaMethodParameters
+										schemaVarName=schemaVarName
+									/>
+								);
+							}
+
+							<#if parentBatchJavaMethodSignature?has_next>
+								else
+							</#if>
+						</#list>
+					</#if>
+
+					<#if postAssetLibraryBatchJavaMethodSignature??>
+						<#assign parentParameterNames = parentParameterNames + ["assetLibraryId"]/>
+
+						<#if postParentBatchJavaMethodSignatures?has_content>
+							else
+						</#if>
+
+						if (parameters.containsKey("assetLibraryId")) {
+							${schemaVarName}UnsafeConsumer = ${schemaVarName} -> ${postAssetLibraryBatchJavaMethodSignature.methodName}(
+								<@getPOSTBatchJavaMethodParameters
+									javaMethodParameters=postAssetLibraryBatchJavaMethodSignature.javaMethodParameters
+									schemaVarName=schemaVarName
+								/>
+							);
+						}
+					</#if>
+
+					<#if postSiteBatchJavaMethodSignature??>
+						<#assign parentParameterNames = parentParameterNames + ["siteId"]/>
+
+						<#if postParentBatchJavaMethodSignatures?has_content || postAssetLibraryBatchJavaMethodSignature??>
+							else
+						</#if>
+
+						if (parameters.containsKey("siteId")) {
+							${schemaVarName}UnsafeConsumer = ${schemaVarName} -> ${postSiteBatchJavaMethodSignature.methodName}(
+								<@getPOSTBatchJavaMethodParameters
+									javaMethodParameters=postSiteBatchJavaMethodSignature.javaMethodParameters
+									schemaVarName=schemaVarName
+								/>
+							);
+						}
+					</#if>
+
+					<#if !postBatchJavaMethodSignature?? && parentParameterNames?has_content>
+						else {
+							throw new NotSupportedException("One of the following parameters must be specified: [${parentParameterNames?join(", ")}]");
+						}
+					</#if>
+				}
+			</#if>
+
+			<#if createStrategies?seq_contains("UPSERT")>
+				if ("UPSERT".equalsIgnoreCase(createStrategy)) {
+					${schemaVarName}UnsafeConsumer = ${schemaVarName} -> ${putByERCBatchJavaMethodSignature.methodName}(
+
+					<#list putByERCBatchJavaMethodSignature.javaMethodParameters as javaMethodParameter>
+						<#if stringUtil.equals(javaMethodParameter.parameterName, "externalReferenceCode")>
+							${schemaVarName}.get${javaMethodParameter.parameterName?cap_first}()
+						<#elseif putByERCBatchJavaMethodSignature.parentSchemaName?? && stringUtil.equals(javaMethodParameter.parameterName, putByERCBatchJavaMethodSignature.parentSchemaName!?uncap_first + "Id")>
+							<#if properties?keys?seq_contains(javaMethodParameter.parameterName)>
+								${schemaVarName}.get${javaMethodParameter.parameterName?cap_first}() != null ?
+								${schemaVarName}.get${javaMethodParameter.parameterName?cap_first}() :
+							</#if>
+
+							<@castParameters
+								type=javaMethodParameter.parameterType
+								value="${javaMethodParameter.parameterName}"
 							/>
-						);
-					}
-				</#if>
+						<#elseif stringUtil.equals(javaMethodParameter.parameterName, schemaVarName)>
+							${schemaVarName}
+						<#else>
+							null
+						</#if>
+
+						<#sep>, </#sep>
+					</#list>
+
+					);
+				}
+			</#if>
+
+			<#if createStrategies?has_content>
+				if (${schemaVarName}UnsafeConsumer == null) {
+					throw new NotSupportedException("Create strategy \"" + createStrategy + "\" is not supported for ${schemaVarName?cap_first}");
+				}
 
 				if (contextBatchUnsafeConsumer != null) {
 					contextBatchUnsafeConsumer.accept(${schemaVarNames}, ${schemaVarName}UnsafeConsumer);
@@ -376,13 +477,13 @@ public abstract class Base${schemaName}ResourceImpl
 						${schemaVarName}UnsafeConsumer.accept(${schemaVarName});
 					}
 				}
+			<#else>
+				throw new UnsupportedOperationException("This method needs to be implemented");
 			</#if>
 		}
 
 		@Override
 		public void delete(java.util.Collection<${javaDataType}> ${schemaVarNames}, Map<String, Serializable> parameters) throws Exception {
-			<#assign properties = freeMarkerTool.getDTOProperties(configYAML, openAPIYAML, schema) />
-
 			<#if deleteBatchJavaMethodSignature?? && properties?keys?seq_contains("id")>
 				for (${javaDataType} ${schemaVarName} : ${schemaVarNames}) {
 					delete${schemaName}(${schemaVarName}.getId());
@@ -391,7 +492,25 @@ public abstract class Base${schemaName}ResourceImpl
 				for (${javaDataType} ${schemaVarName} : ${schemaVarNames}) {
 					delete${schemaName}(${schemaVarName}.get${schemaName}Id());
 				}
+			<#else>
+				throw new UnsupportedOperationException("This method needs to be implemented");
 			</#if>
+		}
+
+		public Set<String> getAvailableCreateStrategies() {
+			return SetUtil.fromArray(
+				<#if createStrategies?has_content>
+					"${createStrategies?join("\", \"")}"
+				</#if>
+			);
+		}
+
+		public Set<String> getAvailableUpdateStrategies() {
+			return SetUtil.fromArray(
+				<#if updateStrategies?has_content>
+					"${updateStrategies?join("\", \"")}"
+				</#if>
+			);
 		}
 
 		@Override
@@ -410,8 +529,12 @@ public abstract class Base${schemaName}ResourceImpl
 
 		@Override
 		public Page<${javaDataType}> read(Filter filter, Pagination pagination, Sort[] sorts, Map<String, Serializable> parameters, String search) throws Exception {
-			<#if getAssetLibraryBatchJavaMethodSignature?? || getBatchJavaMethodSignature?? || getSiteBatchJavaMethodSignature??>
+			<#if freeMarkerTool.hasReadVulcanBatchImplementation(javaMethodSignatures)>
+				<#assign parentParameterNames = []/>
+
 				<#if getAssetLibraryBatchJavaMethodSignature??>
+					<#assign parentParameterNames = parentParameterNames + ["assetLibraryId"]/>
+
 					if (parameters.containsKey("assetLibraryId")) {
 						return ${getAssetLibraryBatchJavaMethodSignature.methodName}(
 							<@getGETBatchJavaMethodParameters javaMethodParameters=getAssetLibraryBatchJavaMethodSignature.javaMethodParameters />
@@ -419,8 +542,9 @@ public abstract class Base${schemaName}ResourceImpl
 					}
 					else
 				</#if>
-
 				<#if getSiteBatchJavaMethodSignature??>
+					<#assign parentParameterNames = parentParameterNames + ["siteId"]/>
+
 					if (parameters.containsKey("siteId")) {
 						return ${getSiteBatchJavaMethodSignature.methodName}(
 							<@getGETBatchJavaMethodParameters javaMethodParameters=getSiteBatchJavaMethodSignature.javaMethodParameters />
@@ -429,8 +553,23 @@ public abstract class Base${schemaName}ResourceImpl
 					else
 				</#if>
 
+				<#if getParentBatchJavaMethodSignatures?has_content>
+					<#list getParentBatchJavaMethodSignatures as parentBatchJavaMethodSignature>
+						<#assign
+							parentParameterNames = parentParameterNames + [parentBatchJavaMethodSignature.parentSchemaName!?uncap_first + "Id"]
+						/>
+
+						if (parameters.containsKey("${parentBatchJavaMethodSignature.parentSchemaName!?uncap_first + "Id"}")) {
+							return ${parentBatchJavaMethodSignature.methodName}(
+								<@getGETBatchJavaMethodParameters javaMethodParameters=parentBatchJavaMethodSignature.javaMethodParameters />
+							);
+						}
+						else
+					</#list>
+				</#if>
+
 				<#if getBatchJavaMethodSignature??>
-					<#if getAssetLibraryBatchJavaMethodSignature?? || getSiteBatchJavaMethodSignature??>
+					<#if getAssetLibraryBatchJavaMethodSignature?? || getSiteBatchJavaMethodSignature?? || getParentBatchJavaMethodSignatures?has_content>
 						{
 					</#if>
 
@@ -438,16 +577,16 @@ public abstract class Base${schemaName}ResourceImpl
 						<@getGETBatchJavaMethodParameters javaMethodParameters=getBatchJavaMethodSignature.javaMethodParameters />
 					);
 
-					<#if getAssetLibraryBatchJavaMethodSignature?? || getSiteBatchJavaMethodSignature??>
+					<#if getAssetLibraryBatchJavaMethodSignature?? || getSiteBatchJavaMethodSignature?? || getParentBatchJavaMethodSignatures?has_content>
 						}
 					</#if>
 				<#else>
 					{
-						return null;
+						throw new NotSupportedException("One of the following parameters must be specified: [${parentParameterNames?join(", ")}]");
 					}
 				</#if>
 			<#else>
-				return null;
+				throw new UnsupportedOperationException("This method needs to be implemented");
 			</#if>
 		}
 
@@ -475,42 +614,96 @@ public abstract class Base${schemaName}ResourceImpl
 
 		@Override
 		public void update(java.util.Collection<${javaDataType}> ${schemaVarNames}, Map<String, Serializable> parameters) throws Exception {
-			<#if putBatchJavaMethodSignature??>
-				for (${javaDataType} ${schemaVarName} : ${schemaVarNames}) {
-					put${schemaName}(
-						<#list putBatchJavaMethodSignature.javaMethodParameters as javaMethodParameter>
-							<#if stringUtil.equals(javaMethodParameter.parameterName, "flatten")>
-								(Boolean)parameters.get("flatten")
-							<#elseif stringUtil.equals(javaMethodParameter.parameterName, schemaVarName)>
-								${schemaVarName}
-							<#elseif stringUtil.equals(javaMethodParameter.parameterName, schemaVarName + "Id") || stringUtil.equals(javaMethodParameter.parameterName, "id")>
-								<#assign properties = freeMarkerTool.getDTOProperties(configYAML, openAPIYAML, schema) />
+			<#if updateStrategies?has_content>
+				UnsafeConsumer<${javaDataType}, Exception> ${schemaVarName}UnsafeConsumer = null;
 
-								<#if properties?keys?seq_contains("id")>
-									${schemaVarName}.getId() != null ? ${schemaVarName}.getId() :
-								<#elseif properties?keys?seq_contains(schemaVarName + "Id")>
-									(${schemaVarName}.get${schemaName}Id() != null) ? ${schemaVarName}.get${schemaName}Id() :
-								</#if>
+				String updateStrategy = (String) parameters.getOrDefault("updateStrategy", "UPDATE");
+			</#if>
 
-								<@castParameters
-									type=javaMethodParameter.parameterType
-									value="${schemaVarName}Id"
-								/>
-							<#elseif putBatchJavaMethodSignature.parentSchemaName?? && stringUtil.equals(javaMethodParameter.parameterName, putBatchJavaMethodSignature.parentSchemaName?uncap_first + "Id")>
-								<@castParameters
-									type=javaMethodParameter.parameterType
-									value="${javaMethodSignature.parentSchemaName?uncap_first}Id"
-								/>
-							<#elseif stringUtil.equals(javaMethodParameter.parameterName, "multipartBody")>
-								null
-							<#else>
-								${javaMethodParameter.parameterName}
+			<#if updateStrategies?seq_contains("PARTIAL_UPDATE")>
+				if ("PARTIAL_UPDATE".equalsIgnoreCase(updateStrategy)) {
+					${schemaVarName}UnsafeConsumer = ${schemaVarName} -> patch${schemaName}(
+
+					<#list patchBatchJavaMethodSignature.javaMethodParameters as javaMethodParameter>
+						<#if stringUtil.equals(javaMethodParameter.parameterName, schemaVarName)>
+							${schemaVarName}
+						<#elseif stringUtil.equals(javaMethodParameter.parameterName, schemaVarName + "Id") || stringUtil.equals(javaMethodParameter.parameterName, "id")>
+							<#if properties?keys?seq_contains("id")>
+								${schemaVarName}.getId() != null ? ${schemaVarName}.getId() :
+							<#elseif properties?keys?seq_contains(schemaVarName + "Id")>
+								(${schemaVarName}.get${schemaName}Id() != null) ? ${schemaVarName}.get${schemaName}Id() :
 							</#if>
 
-							<#sep>, </#sep>
-						</#list>
+							<@castParameters
+								type=javaMethodParameter.parameterType
+								value="${schemaVarName}Id"
+							/>
+						<#elseif stringUtil.equals(javaMethodParameter.parameterName, "multipartBody")>
+							null
+						<#else>
+							${javaMethodParameter.parameterName}
+						</#if>
+
+						<#sep>, </#sep>
+					</#list>
+
 					);
 				}
+			</#if>
+
+			<#if updateStrategies?seq_contains("UPDATE")>
+				if ("UPDATE".equalsIgnoreCase(updateStrategy)) {
+					${schemaVarName}UnsafeConsumer = ${schemaVarName} -> put${schemaName}(
+
+					<#list putBatchJavaMethodSignature.javaMethodParameters as javaMethodParameter>
+						<#if stringUtil.equals(javaMethodParameter.parameterName, "flatten")>
+							(Boolean)parameters.get("flatten")
+						<#elseif stringUtil.equals(javaMethodParameter.parameterName, schemaVarName)>
+							${schemaVarName}
+						<#elseif stringUtil.equals(javaMethodParameter.parameterName, schemaVarName + "Id") || stringUtil.equals(javaMethodParameter.parameterName, "id")>
+							<#if properties?keys?seq_contains("id")>
+								${schemaVarName}.getId() != null ? ${schemaVarName}.getId() :
+							<#elseif properties?keys?seq_contains(schemaVarName + "Id")>
+								(${schemaVarName}.get${schemaName}Id() != null) ? ${schemaVarName}.get${schemaName}Id() :
+							</#if>
+
+							<@castParameters
+								type=javaMethodParameter.parameterType
+								value="${schemaVarName}Id"
+							/>
+						<#elseif putBatchJavaMethodSignature.parentSchemaName?? && stringUtil.equals(javaMethodParameter.parameterName, putBatchJavaMethodSignature.parentSchemaName?uncap_first + "Id")>
+							<@castParameters
+								type=javaMethodParameter.parameterType
+								value="${javaMethodSignature.parentSchemaName?uncap_first}Id"
+							/>
+						<#elseif stringUtil.equals(javaMethodParameter.parameterName, "multipartBody")>
+							null
+						<#else>
+							${javaMethodParameter.parameterName}
+						</#if>
+
+						<#sep>, </#sep>
+					</#list>
+
+					);
+				}
+			</#if>
+
+			<#if updateStrategies?has_content>
+				if (${schemaVarName}UnsafeConsumer == null) {
+					throw new NotSupportedException("Update strategy \"" + updateStrategy + "\" is not supported for ${schemaVarName?cap_first}");
+				}
+
+				if (contextBatchUnsafeConsumer != null) {
+					contextBatchUnsafeConsumer.accept(${schemaVarNames}, ${schemaVarName}UnsafeConsumer);
+				}
+				else {
+					for (${javaDataType} ${schemaVarName} : ${schemaVarNames}) {
+						${schemaVarName}UnsafeConsumer.accept(${schemaVarName});
+					}
+				}
+			<#else>
+				throw new UnsupportedOperationException("This method needs to be implemented");
 			</#if>
 		}
 	</#if>
@@ -654,20 +847,36 @@ public abstract class Base${schemaName}ResourceImpl
 		}
 	</#if>
 
-	protected <T, R> List<R> transform(java.util.Collection<T> collection, UnsafeFunction<T, R, Exception> unsafeFunction) {
+	protected <T, R, E extends Throwable> List<R> transform(java.util.Collection<T> collection, UnsafeFunction<T, R, E> unsafeFunction) {
 		return TransformUtil.transform(collection, unsafeFunction);
 	}
 
-	protected <T, R> R[] transform(T[] array, UnsafeFunction<T, R, Exception> unsafeFunction, Class<?> clazz) {
+	protected <T, R, E extends Throwable> R[] transform(T[] array, UnsafeFunction<T, R, E> unsafeFunction, Class<?> clazz) {
 		return TransformUtil.transform(array, unsafeFunction, clazz);
 	}
 
-	protected <T, R> R[] transformToArray(java.util.Collection<T> collection, UnsafeFunction<T, R, Exception> unsafeFunction, Class<?> clazz) {
+	protected <T, R, E extends Throwable> R[] transformToArray(java.util.Collection<T> collection, UnsafeFunction<T, R, E> unsafeFunction, Class<?> clazz) {
 		return TransformUtil.transformToArray(collection, unsafeFunction, clazz);
 	}
 
-	protected <T, R> List<R> transformToList(T[] array, UnsafeFunction<T, R, Exception> unsafeFunction) {
+	protected <T, R, E extends Throwable> List<R> transformToList(T[] array, UnsafeFunction<T, R, E> unsafeFunction) {
 		return TransformUtil.transformToList(array, unsafeFunction);
+	}
+
+	protected <T, R, E extends Throwable> List<R> unsafeTransform(java.util.Collection<T> collection, UnsafeFunction<T, R, E> unsafeFunction) throws E {
+		return TransformUtil.unsafeTransform(collection, unsafeFunction);
+	}
+
+	protected <T, R, E extends Throwable> R[] unsafeTransform(T[] array, UnsafeFunction<T, R, E> unsafeFunction, Class<?> clazz) throws E {
+		return TransformUtil.unsafeTransform(array, unsafeFunction, clazz);
+	}
+
+	protected <T, R, E extends Throwable> R[] unsafeTransformToArray(java.util.Collection<T> collection, UnsafeFunction<T, R, E> unsafeFunction, Class<?> clazz) throws E {
+		return TransformUtil.unsafeTransformToArray(collection, unsafeFunction, clazz);
+	}
+
+	protected <T, R, E extends Throwable> List<R> unsafeTransformToList(T[] array, UnsafeFunction<T, R, E> unsafeFunction) throws E {
+		return TransformUtil.unsafeTransformToList(array, unsafeFunction);
 	}
 
 	protected AcceptLanguage contextAcceptLanguage;

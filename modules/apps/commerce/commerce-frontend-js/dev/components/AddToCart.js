@@ -29,11 +29,11 @@ const commonProps = {
 	},
 	settings: {
 		iconOnly: false,
-		quantityDetails: {
-			allowedQuantities: [],
-			maxQuantity: 10000,
-			minQuantity: 1,
-			multipleQuantity: 1,
+		productConfiguration: {
+			allowedOrderQuantities: [],
+			maxOrderQuantity: 50,
+			minOrderQuantity: 4,
+			multipleOrderQuantity: 3,
 		},
 	},
 	size: 'sm',
@@ -45,7 +45,7 @@ const addToCartProps = {
 		inCart: false,
 		quantity: 3,
 		skuId: 42633,
-		skuOptions: 'null',
+		skuOptions: [],
 	},
 };
 
@@ -56,7 +56,7 @@ const addToCartButtonProps = {
 			inCart: false,
 			quantity: 3,
 			skuId: 42633,
-			skuOptions: 'null',
+			skuOptions: [],
 		},
 	],
 };
@@ -81,9 +81,9 @@ launcher(AddToCart, 'add_to_cart', 'add-to-cart-card-select', {
 		...addToCartProps.settings,
 		alignment: 'full-width',
 		inline: false,
-		quantityDetails: {
-			...addToCartProps.settings.quantityDetails,
-			allowedQuantities: [3, 5, 10, 100],
+		productConfiguration: {
+			...addToCartProps.settings.productConfiguration,
+			allowedOrderQuantities: [3, 5, 10, 100],
 		},
 		size: 'md',
 	},
@@ -103,9 +103,9 @@ launcher(AddToCart, 'add_to_cart', 'add-to-cart-product-detail-select', {
 	settings: {
 		...addToCartProps.settings,
 		inline: true,
-		quantityDetails: {
-			...addToCartProps.settings.quantityDetails,
-			allowedQuantities: [3, 5, 10, 100],
+		productConfiguration: {
+			...addToCartProps.settings.productConfiguration,
+			allowedOrderQuantities: [3, 5, 10, 100],
 		},
 		size: 'lg',
 	},
@@ -129,9 +129,9 @@ launcher(AddToCart, 'add_to_cart', 'add-to-cart-sbd-select', {
 		alignment: 'full-width',
 		iconOnly: true,
 		inline: false,
-		quantityDetails: {
-			...addToCartProps.settings.quantityDetails,
-			allowedQuantities: [3, 5, 10, 100],
+		productConfiguration: {
+			...addToCartProps.settings.productConfiguration,
+			allowedOrderQuantities: [3, 5, 10, 100],
 		},
 		size: 'sm',
 	},
@@ -144,9 +144,9 @@ launcher(AddToCart, 'add_to_cart', 'add-to-cart-sbd-select', {
 		alignment: 'full-width',
 		iconOnly: true,
 		inline: false,
-		quantityDetails: {
-			...addToCartProps.settings.quantityDetails,
-			allowedQuantities: [3, 5, 10, 100],
+		productConfiguration: {
+			...addToCartProps.settings.productConfiguration,
+			allowedOrderQuantities: [3, 5, 10, 100],
 		},
 		size: 'sm',
 	},
@@ -159,9 +159,9 @@ launcher(AddToCartButton, 'add_to_cart_button', 'add-to-cart-button', {
 		alignment: 'full-width',
 		iconOnly: true,
 		inline: false,
-		quantityDetails: {
-			...addToCartButtonProps.settings.quantityDetails,
-			allowedQuantities: [3, 5, 10, 100],
+		productConfiguration: {
+			...addToCartButtonProps.settings.productConfiguration,
+			allowedOrderQuantities: [3, 5, 10, 100],
 		},
 		size: 'sm',
 	},

@@ -154,6 +154,16 @@ public class PoshiLogger {
 		_commandLogger.logSeleniumCommand(element, arguments);
 	}
 
+	public void ocularCommand(Element element)
+		throws PoshiRunnerLoggerException {
+
+		_commandLogger.ocularCommand(element, _syntaxLogger);
+
+		LoggerElement syntaxLoggerElement = _getSyntaxLoggerElement();
+
+		syntaxLoggerElement.setAttribute("data-status01", "fail");
+	}
+
 	public void passCommand(Element element) throws PoshiRunnerLoggerException {
 		_commandLogger.passCommand(element, _syntaxLogger);
 

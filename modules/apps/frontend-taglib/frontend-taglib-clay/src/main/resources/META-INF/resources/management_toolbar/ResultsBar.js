@@ -14,8 +14,8 @@
 
 import ClayLabel from '@clayui/label';
 import ClayLink from '@clayui/link';
-import {ClayResultsBar} from '@clayui/management-toolbar';
-import {navigate} from 'frontend-js-web';
+import {ManagementToolbar} from 'frontend-js-components-web';
+import {navigate, sub} from 'frontend-js-web';
 import React from 'react';
 
 const ResultsBar = ({
@@ -26,12 +26,16 @@ const ResultsBar = ({
 }) => {
 	return (
 		<>
-			<ClayResultsBar>
-				<ClayResultsBar.Item expand={!(filterLabelItems?.length > 0)}>
+			<ManagementToolbar.ResultsBar>
+				<ManagementToolbar.ResultsBarItem
+					expand={!(filterLabelItems?.length > 0)}
+				>
 					<span className="component-text text-truncate-inline">
 						<span className="text-truncate">
-							{Liferay.Util.sub(
-								Liferay.Language.get('x-results-for'),
+							{sub(
+								itemsTotal === 1
+									? Liferay.Language.get('x-result-for')
+									: Liferay.Language.get('x-results-for'),
 								itemsTotal
 							)}
 
@@ -40,10 +44,10 @@ const ResultsBar = ({
 							)}
 						</span>
 					</span>
-				</ClayResultsBar.Item>
+				</ManagementToolbar.ResultsBarItem>
 
 				{filterLabelItems?.map((item, index) => (
-					<ClayResultsBar.Item
+					<ManagementToolbar.ResultsBarItem
 						expand={index === filterLabelItems.length - 1}
 						key={index}
 					>
@@ -60,18 +64,18 @@ const ResultsBar = ({
 						>
 							{item.label}
 						</ClayLabel>
-					</ClayResultsBar.Item>
+					</ManagementToolbar.ResultsBarItem>
 				))}
 
-				<ClayResultsBar.Item>
+				<ManagementToolbar.ResultsBarItem>
 					<ClayLink
 						className="component-link tbar-link"
 						href={clearResultsURL}
 					>
 						{Liferay.Language.get('clear')}
 					</ClayLink>
-				</ClayResultsBar.Item>
-			</ClayResultsBar>
+				</ManagementToolbar.ResultsBarItem>
+			</ManagementToolbar.ResultsBar>
 		</>
 	);
 };

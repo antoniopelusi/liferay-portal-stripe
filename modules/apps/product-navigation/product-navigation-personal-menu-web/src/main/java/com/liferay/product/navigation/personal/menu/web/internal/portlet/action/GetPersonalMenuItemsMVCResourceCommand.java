@@ -20,7 +20,7 @@ import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.User;
@@ -131,7 +131,7 @@ public class GetPersonalMenuItemsMVCResourceCommand
 				"href", realUserURL
 			).put(
 				"label",
-				LanguageUtil.get(themeDisplay.getLocale(), "be-yourself-again")
+				_language.get(themeDisplay.getLocale(), "be-yourself-again")
 			).put(
 				"symbolRight", "change"
 			));
@@ -150,7 +150,7 @@ public class GetPersonalMenuItemsMVCResourceCommand
 				Objects.equals(
 					locale.getCountry(), realUserLocale.getCountry())) {
 
-				changeLanguageLabel = LanguageUtil.format(
+				changeLanguageLabel = _language.format(
 					realUserLocale, "use-x's-preferred-language-(x)",
 					new String[] {
 						_html.escape(user.getFullName()),
@@ -162,7 +162,7 @@ public class GetPersonalMenuItemsMVCResourceCommand
 					userLocale.getLanguage() + "_" + userLocale.getCountry();
 			}
 			else {
-				changeLanguageLabel = LanguageUtil.format(
+				changeLanguageLabel = _language.format(
 					realUserLocale, "use-your-preferred-language-(x)",
 					realUserLocale.getDisplayLanguage(realUserLocale), false);
 
@@ -211,10 +211,18 @@ public class GetPersonalMenuItemsMVCResourceCommand
 					ParamUtil.getString(portletRequest, "portletId")));
 
 			try {
-				jsonObject.put(
-					"href",
-					personalMenuEntry.getPortletURL(
-						_portal.getHttpServletRequest(portletRequest)));
+				String href = personalMenuEntry.getPortletURL(
+					_portal.getHttpServletRequest(portletRequest));
+
+				if (href != null) {
+					jsonObject.put("href", href);
+				}
+				else {
+					jsonObject.put(
+						"jsOnClickConfig",
+						personalMenuEntry.getJSOnClickConfigJSONObject(
+							_portal.getHttpServletRequest(portletRequest)));
+				}
 			}
 			catch (PortalException portalException) {
 				_log.error(portalException);
@@ -257,7 +265,7 @@ public class GetPersonalMenuItemsMVCResourceCommand
 
 						return StringUtil.appendParentheticalSuffix(
 							user.getFullName(),
-							LanguageUtil.get(
+							_language.get(
 								themeDisplay.getLocale(), "impersonated"));
 					}
 				).put(
@@ -306,6 +314,9 @@ public class GetPersonalMenuItemsMVCResourceCommand
 
 	@Reference
 	private Html _html;
+
+	@Reference
+	private Language _language;
 
 	@Reference
 	private PersonalMenuEntryRegistry _personalMenuEntryRegistry;

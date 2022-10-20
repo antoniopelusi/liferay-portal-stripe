@@ -1,5 +1,26 @@
 definition {
 
+	macro activeProductPaymentSubscription {
+		ApplicationsMenu.gotoPortlet(
+			category = "Product Management",
+			panel = "Commerce",
+			portlet = "Products");
+
+		CommerceNavigator.searchEntry(entryName = "${productName}");
+
+		CommerceNavigator.gotoEntry(entryName = "${productName}");
+
+		CommerceEntry.gotoMenuTab(menuTab = "Subscription");
+
+		if (IsElementNotPresent(locator1 = "CommerceEntry#PAYMENT_SUBSCRIPTION_TOGGLE_ACTIVE")) {
+			Click(locator1 = "CommerceEntry#PAYMENT_SUBSCRIPTION_TOGGLE");
+
+			Button.clickPublish();
+		}
+
+		AssertElementPresent(locator1 = "CommerceEntry#PAYMENT_SUBSCRIPTION_TOGGLE_ACTIVE");
+	}
+
 	@summary = "Add a new user that is part of an account(the creation of a new account, the membership and the user's role are optional)"
 	macro addAccountEntryUser {
 		Variables.assertDefined(parameterList = "${accountName},${userEmailAddress},${userFirstName},${userLastName},${userScreenName}");
@@ -10,17 +31,30 @@ definition {
 				accountEntryType = "${accountType}");
 		}
 
-		JSONAccountEntryUser.addAccountEntryUser(
-			accountEntryName = "${accountName}",
-			userEmailAddress = "${userEmailAddress}",
-			userFirstName = "${userFirstName}",
-			userLastName = "${userLastName}",
-			userScreenName = "${userScreenName}");
+		if (isSet(existingUser) && ("${existingUser}" == "true")) {
+			Accounts.openAccountsAdmin();
 
-		JSONUser.setFirstPassword(
-			agreeToTermsAndAnswerReminderQuery = "${agreeToTermsAndAnswerReminderQuery}",
-			requireReset = "${requireReset}",
-			userEmailAddress = "${userEmailAddress}");
+			LexiconEntry.gotoEntry(rowEntry = "${accountName}");
+
+			Accounts.assignUsers(
+				accountName = "${accountName}",
+				assigneeName = "${userEmailAddress}");
+		}
+		else {
+			JSONAccountEntryUser.addAccountEntryUser(
+				accountEntryName = "${accountName}",
+				userEmailAddress = "${userEmailAddress}",
+				userFirstName = "${userFirstName}",
+				userLastName = "${userLastName}",
+				userScreenName = "${userScreenName}");
+		}
+
+		if (isSet(requireReset) || isSet(agreeToTermsAndAnswerReminderQuery)) {
+			JSONUser.setFirstPassword(
+				agreeToTermsAndAnswerReminderQuery = "${agreeToTermsAndAnswerReminderQuery}",
+				requireReset = "${requireReset}",
+				userEmailAddress = "${userEmailAddress}");
+		}
 
 		if (isSet(userSiteMembership)) {
 			JSONUser.addUserToSite(
@@ -103,11 +137,11 @@ definition {
 	}
 
 	macro addNewChannelsEntry {
-		Pause(locator1 = "6000");
+		WaitForElementPresent(locator1 = "IFrame#MODAL_IFRAME");
 
 		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_IFRAME");
 
-		Pause(locator1 = "3000");
+		WaitForElementPresent(locator1 = "TextInput#NAME");
 
 		Type(
 			locator1 = "TextInput#NAME",
@@ -125,6 +159,8 @@ definition {
 		Click(
 			key_text = "Add",
 			locator1 = "Button#ANY");
+
+		SelectFrameTop();
 
 		WaitForPageLoad();
 
@@ -148,7 +184,7 @@ definition {
 			Button.clickSave();
 		}
 
-		Pause(locator1 = "5000");
+		WaitForPageLoad();
 	}
 
 	macro addNewCountriesEntry {
@@ -229,7 +265,7 @@ definition {
 	}
 
 	macro addNewDiscountsEntry {
-		Pause(locator1 = "3000");
+		WaitForElementPresent(locator1 = "IFrame#MODAL_IFRAME");
 
 		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_IFRAME");
 
@@ -248,6 +284,12 @@ definition {
 			value1 = "${discountTarget}");
 
 		Button.click(button = "Submit");
+
+		SelectFrameTop();
+
+		WaitForElementPresent(locator1 = "CommerceEntry#DISCOUNT_AMOUNT");
+
+		Refresh();
 
 		Type(
 			locator1 = "CommerceEntry#DISCOUNT_AMOUNT",
@@ -388,7 +430,9 @@ definition {
 			locator1 = "CommerceEntry#FIELD_TYPE_SELECT",
 			value1 = "${optionFieldType}");
 
-		Button.click(button = "Submit");
+		Button.clickSubmitButton();
+
+		SelectFrameTop();
 
 		Type(
 			locator1 = "CommerceEntry#DESCRIPTION_FIELD",
@@ -419,6 +463,23 @@ definition {
 			value1 = "${price}");
 	}
 
+	macro addProductDescription {
+		Type(
+			locator1 = "CommerceEntry#SHORT_DESCRIPTION_FIELD",
+			value1 = "${productShortDescription}");
+
+		CommerceEntry.addFullDescriptionViaCKEditor(entryFullDescription = "${productFullDescription}");
+
+		if (isSet(publishProduct) && ("${publishProduct}" == "true")) {
+			CommerceEntry.publishEntry(status = "Approved");
+		}
+		else {
+			Click(
+				key_text = "Save as Draft",
+				locator1 = "Button#ANY");
+		}
+	}
+
 	macro addProductsEntry {
 		WaitForElementPresent(locator1 = "IFrame#MODAL_BODY");
 
@@ -432,9 +493,15 @@ definition {
 			entryName = "${productCatalog}",
 			label = "Catalog");
 
-		Click(locator1 = "Button#SUBMIT");
+		Button.clickSubmitButton();
 
-		WaitForPageLoad();
+		WaitForElementPresent(
+			key_title = "${productName}",
+			locator1 = "Header#H3_TITLE");
+
+		AssertElementPresent(
+			key_status = "Draft",
+			locator1 = "CommerceEntry#WORKFLOW_STATUS");
 
 		AssertSelectedLabel(
 			key_fieldLabel = "Catalog",
@@ -445,11 +512,15 @@ definition {
 			locator1 = "CommerceEntry#NAME_FIELD",
 			value1 = "${productName}");
 
-		Type(
-			locator1 = "CommerceEntry#SHORT_DESCRIPTION_FIELD",
-			value1 = "${productShortDescription}");
+		if (!(isSet(compileDescription)) || ("${compileDescription}" == "true")) {
+			CommerceEntry.addProductDescription(
+				productFullDescription = "${productFullDescription}",
+				productShortDescription = "${productShortDescription}");
+		}
 
-		CommerceEntry.addFullDescriptionViaCKEditor(entryFullDescription = "${productFullDescription}");
+		if (!(isSet(publishProduct)) || ("${publishProduct}" == "true")) {
+			CommerceEntry.publishEntry(status = "Approved");
+		}
 	}
 
 	macro AddShippingOptionSettingsVariableRate {
@@ -562,25 +633,16 @@ definition {
 			value1 = "${keyDescription}");
 
 		Button.clickSave();
+	}
 
-		CommerceNavigator.gotoEntry(entryName = "${keyName}");
+	macro assertCheckedSpecificToggle {
+		task ("Check if the Toggle is checked") {
+			AssertElementPresent(
+				key_name = "${name}",
+				locator1 = "CommerceEntry#CHECK_SPECIFIC_TOGGLE_SWITCH");
 
-		AssertTextEquals(
-			key_fieldLabel = "External Reference Code",
-			locator1 = "TextInput#GENERIC_TEXT_INPUT",
-			value1 = "${keyReferenceCode}");
-
-		AssertTextEquals(
-			key_fieldLabel = "Name",
-			locator1 = "TextInput#GENERIC_TEXT_INPUT",
-			value1 = "${keyName}");
-
-		AssertTextEquals(
-			key_fieldLabel = "Description",
-			locator1 = "TextInput#GENERIC_TEXT_INPUT",
-			value1 = "${keyDescription}");
-
-		Click(locator1 = "Button#BACK");
+			echo("The toggle for the ${name} is active");
+		}
 	}
 
 	macro assertDefaultDisplayPage {
@@ -624,18 +686,37 @@ definition {
 	}
 
 	macro checkImageName {
-		echo("number is: ${number} image is: ${image} uploadFileName is: ${uploadFileName}");
+		if (isSet(number)) {
+			if ("${number}" != "") {
+				echo("number is: ${number} image is: ${image} uploadFileName is: ${uploadFileName}");
 
-		if ("${number}" != "") {
-			AssertElementPresent(
-				key_entry = "Commerce_${image} (${number}).jpg",
-				locator1 = "CommerceNavigation#ANY_ENTRY_NAME_WITHOUT_CONTAINS");
+				AssertElementPresent(
+					key_entry = "Commerce_${image} (${number}).jpg",
+					locator1 = "CommerceNavigation#ANY_ENTRY_NAME_WITHOUT_CONTAINS");
+			}
 		}
 		else {
+			echo("uploadFileName is: ${uploadFileName}");
+
 			AssertElementPresent(
 				key_entry = "${uploadFileName}",
 				locator1 = "CommerceNavigation#ANY_ENTRY_NAME_WITHOUT_CONTAINS");
 		}
+	}
+
+	macro clickButtonWithName {
+		Click.javaScriptClick(
+			key_buttonName = "${buttonName}",
+			key_text = "${text}",
+			locator1 = "CommerceEntry#BUTTON_WITH_NAME");
+	}
+
+	macro clickEntryDropdownMenuItem {
+		Click(
+			key_value = "${entryName}",
+			locator1 = "CommerceEntry#BODY_VERTICAL_ELLIPSIS");
+
+		DropdownMenuItem.click(menuItem = "${menuItem}");
 	}
 
 	macro clickNoError {
@@ -645,10 +726,19 @@ definition {
 	}
 
 	macro clickTableEntryEditButton {
-		Click(
-			key_entryName = "${entryName}",
-			key_table = "${table}",
-			locator1 = "CommerceEntry#TABLE_ENTRY_EDIT_BUTTON");
+		WaitForPageLoad();
+
+		if (IsElementPresent(key_value = "${entryName}", locator1 = "CommerceEntry#BODY_VERTICAL_ELLIPSIS")) {
+			CommerceEntry.clickEntryDropdownMenuItem(
+				entryName = "${entryName}",
+				menuItem = "Edit");
+		}
+		else {
+			Click(
+				key_entryName = "${entryName}",
+				key_table = "${table}",
+				locator1 = "CommerceEntry#TABLE_ENTRY_EDIT_BUTTON");
+		}
 	}
 
 	macro createNewAccountGroup {
@@ -739,7 +829,9 @@ definition {
 		WaitForElementPresent(locator1 = "CommerceEntry#PAGINATION_RESULTS");
 
 		var paginationResults = selenium.getText("CommerceEntry#PAGINATION_RESULTS");
+
 		var numberOfEntries = StringUtil.extractLast("${paginationResults}", " ");
+
 		var numberOfEntriesAfterDeletion = ${numberOfEntries} - 1;
 
 		if (!(isSet(entryName))) {
@@ -836,6 +928,53 @@ definition {
 		Click(locator1 = "Button#BACK");
 	}
 
+	macro editWarehousesQuantity {
+		Search.searchCP(searchTerm = "${productName}");
+
+		CommerceNavigator.gotoTableListEntry(entryName = "${productName}");
+
+		CommerceEntry.gotoMenuTab(menuTab = "SKUs");
+
+		CommerceNavigator.gotoTableListEntry(entryName = "${productSku}");
+
+		SelectFrame(locator1 = "IFrame#IFRAME");
+
+		CommerceEntry.gotoMenuTab(menuTab = "Inventory");
+
+		if (isSet(italyQuantity)) {
+			Type(
+				key_value1 = "0",
+				locator1 = "CommerceEntry#WAREHOUSE_INVENTORY_ITEM_QUANTITY",
+				value1 = "${italyQuantity}");
+
+			Click(
+				key_value1 = "0",
+				locator1 = "CommerceEntry#WAREHOUSE_INVENTORY_SAVE_BUTTON");
+		}
+
+		if (isSet(northeastQuantity)) {
+			Type(
+				key_value1 = "1",
+				locator1 = "CommerceEntry#WAREHOUSE_INVENTORY_ITEM_QUANTITY",
+				value1 = "${northeastQuantity}");
+
+			Click(
+				key_value1 = "1",
+				locator1 = "CommerceEntry#WAREHOUSE_INVENTORY_SAVE_BUTTON");
+		}
+
+		if (isSet(southwestQuantity)) {
+			Type(
+				key_value1 = "2",
+				locator1 = "CommerceEntry#WAREHOUSE_INVENTORY_ITEM_QUANTITY",
+				value1 = "${southwestQuantity}");
+
+			Click(
+				key_value1 = "2",
+				locator1 = "CommerceEntry#WAREHOUSE_INVENTORY_SAVE_BUTTON");
+		}
+	}
+
 	macro getFileEntryIDFromProductMedia {
 		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
 
@@ -872,17 +1011,9 @@ definition {
 	macro publishEntry {
 		Button.clickPublish();
 
-		if (IsElementPresent(locator1 = "Message#SUCCESS")) {
-			AssertElementPresent(locator1 = "Message#SUCCESS");
-		}
-		else {
-			AssertTextEquals(
-				key_status = "${status}",
-				locator1 = "CommerceEntry#WORKFLOW_STATUS",
-				value1 = "${status}");
-		}
-
-		Pause(locator1 = "3000");
+		AssertElementPresent(
+			key_status = "${status}",
+			locator1 = "CommerceEntry#WORKFLOW_STATUS");
 	}
 
 	macro publishProductImage {
@@ -890,7 +1021,7 @@ definition {
 
 		AssertElementPresent(locator1 = "Message#SUCCESS");
 
-		Pause(locator1 = "3000");
+		WaitForElementNotPresent(locator1 = "Message#SUCCESS");
 	}
 
 	macro saveEntry {
@@ -898,7 +1029,7 @@ definition {
 
 		AssertElementPresent(locator1 = "Message#SUCCESS");
 
-		Pause(locator1 = "3000");
+		WaitForElementNotPresent(locator1 = "Message#SUCCESS");
 	}
 
 	macro saveEntryAsDraft {
@@ -913,8 +1044,6 @@ definition {
 				locator1 = "CommerceEntry#WORKFLOW_STATUS",
 				value1 = "${status}");
 		}
-
-		Pause(locator1 = "3000");
 	}
 
 	macro selectAssociatedOptionsValue {
@@ -947,12 +1076,44 @@ definition {
 	}
 
 	macro setEntryEligibility {
+		if (isSet(paymentMethod)) {
+			CommerceEntry.clickTableEntryEditButton(
+				entryName = "${paymentMethod}",
+				table = "Payment Methods");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+			CommerceEntry.gotoMenuTab(menuTab = "Eligibility");
+		}
+
+		if (isSet(shippingOption)) {
+			if (isSet(shippingMethod)) {
+				CommerceEntry.clickTableEntryEditButton(
+					entryName = "${shippingMethod}",
+					table = "Shipping Methods");
+
+				SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+				CommerceEntry.gotoMenuTab(menuTab = "Shipping Options");
+			}
+
+			CommerceNavigator.gotoEntry(entryName = "${shippingOption}");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+			Click(
+				key_panel = "Details",
+				locator1 = "Panel#PANEL_COLLAPSED");
+
+			CommerceEntry.gotoMenuTab(menuTab = "Eligibility");
+		}
+
 		if (isSet(accountGroupsEligibility)) {
 			var title = "Add Account Groups";
 
 			Click(
-				key_radioOption = "Specific Account Groups",
-				locator1 = "CommerceEntry#RADIO_BUTTON");
+				locator1 = "Radio#ANY",
+				radioLabel = "Specific Account Groups");
 
 			for (var accountGroup : list "${accountGroupsEligibility}") {
 				CommerceRelations.assignSingleRelationToProductsEntry(
@@ -968,8 +1129,8 @@ definition {
 			var title = "Add Accounts";
 
 			Click(
-				key_radioOption = "Specific Accounts",
-				locator1 = "CommerceEntry#RADIO_BUTTON");
+				locator1 = "Radio#ANY",
+				radioLabel = "Specific Accounts");
 
 			for (var account : list "${accountsEligibility}") {
 				CommerceRelations.assignSingleRelationToProductsEntry(
@@ -981,18 +1142,13 @@ definition {
 					locator1 = "CommerceEntry#ADD_RELATION_CLEAN_INPUT_BUTTON");
 			}
 		}
-		else {
-			Click(
-				key_radioOption = "All Accounts",
-				locator1 = "CommerceEntry#RADIO_BUTTON");
-		}
 
 		if (isSet(channelsEligibility)) {
 			var title = "Add Channels";
 
 			Click(
-				key_radioOption = "Specific Channels",
-				locator1 = "CommerceEntry#RADIO_BUTTON");
+				locator1 = "Radio#ANY",
+				radioLabel = "Specific Channels");
 
 			for (var channel : list "${channelsEligibility}") {
 				CommerceRelations.assignSingleRelationToProductsEntry(
@@ -1004,27 +1160,136 @@ definition {
 					locator1 = "CommerceEntry#ADD_RELATION_CLEAN_INPUT_BUTTON");
 			}
 		}
-		else {
-			Click(
-				key_radioOption = "All Channels",
-				locator1 = "CommerceEntry#RADIO_BUTTON");
+
+		if (isSet(paymentTermsEligibility)) {
+			if ("${paymentTermsEligibility}" == "No Payment Terms") {
+				Click(
+					locator1 = "Radio#ANY",
+					radioLabel = "No Payment Terms");
+			}
+			else {
+				var title = "Add Payment Terms";
+
+				Click(
+					locator1 = "Radio#ANY",
+					radioLabel = "Specific Payment Terms");
+
+				var paymentTermsEligibility = StringUtil.lowerCase("${paymentTermsEligibility}");
+
+				var paymentTermsEligibility = StringUtil.replace("${paymentTermsEligibility}", " ", "-");
+
+				for (var paymentTerm : list "${paymentTermsEligibility}") {
+					CommerceRelations.assignSingleRelationToEligibility(
+						entryName = "${paymentTerm}",
+						title = "${title}");
+
+					Click(
+						key_title = "${title}",
+						locator1 = "CommerceEntry#ADD_RELATION_CLEAN_INPUT_BUTTON");
+
+					WaitForElementPresent(
+						key_entryName = "${paymentTerm}",
+						key_table = "Payment Terms",
+						locator1 = "CommerceEntry#TABLE_ELIGIBILITY_ENTRY");
+				}
+			}
+		}
+
+		if (isSet(deliveryTermsEligibility)) {
+			if ("${deliveryTermsEligibility}" == "No Delivery Terms") {
+				Click(
+					key_radioOption = "No Delivery Terms",
+					locator1 = "CommerceEntry#RADIO_BUTTON");
+			}
+			else {
+				var title = "Add Delivery Terms";
+
+				Click(
+					key_radioOption = "Specific Delivery Terms",
+					locator1 = "CommerceEntry#RADIO_BUTTON");
+
+				var deliveryTermsEligibility = StringUtil.lowerCase("${deliveryTermsEligibility}");
+
+				var deliveryTermsEligibility = StringUtil.replace("${deliveryTermsEligibility}", " ", "-");
+
+				for (var deliveryTerm : list "${deliveryTermsEligibility}") {
+					CommerceRelations.assignSingleRelationToEligibility(
+						entryName = "${deliveryTerm}",
+						title = "${title}");
+
+					Click(
+						key_title = "${title}",
+						locator1 = "CommerceEntry#ADD_RELATION_CLEAN_INPUT_BUTTON");
+
+					WaitForElementPresent(
+						key_entryName = "${deliveryTerm}",
+						key_table = "Delivery Terms",
+						locator1 = "CommerceEntry#TABLE_ELIGIBILITY_ENTRY");
+				}
+			}
+		}
+
+		if (isSet(orderTypesEligibility)) {
+			if ("${orderTypesEligibility}" == "All Order Types") {
+				Click(
+					key_radioOption = "All Order Types",
+					locator1 = "CommerceEntry#RADIO_BUTTON");
+			}
+			else {
+				var title = "Add Order Types";
+
+				Click(
+					key_radioOption = "Specific Order Types",
+					locator1 = "CommerceEntry#RADIO_BUTTON");
+
+				for (var orderType : list "${orderTypesEligibility}") {
+					CommerceRelations.assignSingleRelationToEligibility(
+						entryName = "${orderType}",
+						title = "${title}");
+
+					Click(
+						key_title = "${title}",
+						locator1 = "CommerceEntry#ADD_RELATION_CLEAN_INPUT_BUTTON");
+
+					WaitForElementPresent(
+						key_entryName = "${orderType}",
+						key_table = "Order Types",
+						locator1 = "CommerceEntry#TABLE_ELIGIBILITY_ENTRY");
+				}
+			}
 		}
 
 		if (isSet(unpublish)) {
 			echo("Do not need to click Publish button");
 		}
 		else {
-			Button.clickPublish();
+			if (IsElementPresent(key_text = "Publish", locator1 = "Button#ANY")) {
+				Button.clickPublish();
+			}
+			else if (IsElementPresent(key_text = "Save", locator1 = "Button#ANY")) {
+				Button.clickSave();
+			}
+		}
+
+		if (isSet(shippingOption)) {
+			Click(locator1 = "Icon#CLOSE");
+
+			SelectFrame.selectFrameTop();
+
+			SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
 		}
 	}
 
 	macro setExpirationTime {
 		var timeString = selenium.getElementValue("TextInput#DISPLAY_DATE_TIME");
+
 		var ampm = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "3");
 		var hours = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "1");
 		var minutes = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "2");
 		var minutesToExpire = "${minutesToExpire}";
+
 		var minutes = ${minutes} + ${minutesToExpire};
+
 		var changeHour = MathUtil.isGreaterThan("${minutes}", "59");
 
 		if ("${changeHour}" == "true") {
@@ -1059,11 +1324,14 @@ definition {
 
 	macro setPublishTime {
 		var timeString = selenium.getElementValue("TextInput#DISPLAY_DATE_TIME");
+
 		var ampm = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "3");
 		var hours = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "1");
 		var minutes = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "2");
 		var minutesToPublish = "${minutesToPublish}";
+
 		var minutes = ${minutes} + ${minutesToPublish};
+
 		var changeHour = MathUtil.isGreaterThan("${minutes}", "59");
 
 		if ("${changeHour}" == "true") {
@@ -1272,8 +1540,8 @@ definition {
 			var title = "Add Account Groups";
 
 			AssertChecked(
-				key_radioOption = "Specific Account Groups",
-				locator1 = "CommerceEntry#RADIO_BUTTON");
+				locator1 = "Radio#ANY",
+				radioLabel = "Specific Account Groups");
 
 			AssertElementPresent(
 				key_title = "${title}",
@@ -1290,8 +1558,8 @@ definition {
 			var title = "Add Accounts";
 
 			AssertChecked(
-				key_radioOption = "Specific Accounts",
-				locator1 = "CommerceEntry#RADIO_BUTTON");
+				locator1 = "Radio#ANY",
+				radioLabel = "Specific Accounts");
 
 			AssertElementPresent(
 				key_title = "${title}",
@@ -1306,16 +1574,16 @@ definition {
 		}
 		else {
 			AssertChecked(
-				key_radioOption = "All Accounts",
-				locator1 = "CommerceEntry#RADIO_BUTTON");
+				locator1 = "Radio#ANY",
+				radioLabel = "All Accounts");
 		}
 
 		if (isSet(channelsEligibility)) {
 			var title = "Add Channels";
 
 			AssertChecked(
-				key_radioOption = "Specific Channels",
-				locator1 = "CommerceEntry#RADIO_BUTTON");
+				locator1 = "Radio#ANY",
+				radioLabel = "Specific Channels");
 
 			AssertElementPresent(
 				key_title = "${title}",
@@ -1330,8 +1598,8 @@ definition {
 		}
 		else {
 			AssertChecked(
-				key_radioOption = "All Channels",
-				locator1 = "CommerceEntry#RADIO_BUTTON");
+				locator1 = "Radio#ANY",
+				radioLabel = "All Channels");
 		}
 	}
 
@@ -1495,6 +1763,27 @@ definition {
 				key_rowEntry = "${specificationLabelsEntry}",
 				locator1 = "ContentRow#ENTRY_CONTENT_ENTRY_NAME_LINK");
 		}
+	}
+
+	macro viewTaxCategory {
+		CommerceNavigator.gotoEntry(entryName = "${keyName}");
+
+		AssertTextEquals(
+			key_fieldLabel = "External Reference Code",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "${keyReferenceCode}");
+
+		AssertTextEquals(
+			key_fieldLabel = "Name",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "${keyName}");
+
+		AssertTextEquals(
+			key_fieldLabel = "Description",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "${keyDescription}");
+
+		Click(locator1 = "Button#BACK");
 	}
 
 }

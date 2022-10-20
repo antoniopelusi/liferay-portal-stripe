@@ -12,19 +12,14 @@ definition {
 		var groupId = JSONCategorySetter.setGroupId(
 			groupName = "${groupName}",
 			site = "${site}");
-
 		var parentCategoryId = JSONCategorySetter.setParentCategoryId();
-
 		var titleMap = JSONCategorySetter.setTitleMap(
 			title = "${title}",
 			titleMap = "${titleMap}");
-
 		var descriptionMap = JSONCategorySetter.setDescriptionMap(
 			description = "${description}",
 			descriptionMap = "${descriptionMap}");
-
 		var serviceContext = JSONCategorySetter.setServiceContext(serviceContext = "${serviceContext}");
-
 		var vocabularyId = JSONCategorySetter.setVocabularyId(
 			groupId = "${groupId}",
 			vocabularyName = "${vocabularyName}");
@@ -61,13 +56,10 @@ definition {
 			groupId = "${groupId}",
 			parentCategoryName = "${parentCategoryName}",
 			vocabularyId = "${vocabularyId}");
-
 		var serviceContext = JSONCategorySetter.setServiceContext(serviceContext = "${serviceContext}");
-
 		var titleMap = JSONCategorySetter.setTitleMap(
 			title = "${title}",
 			titleMap = "${titleMap}");
-
 		var descriptionMap = JSONCategorySetter.setDescriptionMap(
 			description = "${description}",
 			descriptionMap = "${descriptionMap}");
@@ -93,13 +85,10 @@ definition {
 		var groupId = JSONCategorySetter.setGroupId(
 			groupName = "${groupName}",
 			site = "${site}");
-
 		var serviceContext = JSONCategorySetter.setServiceContext(serviceContext = "${serviceContext}");
-
 		var titleMap = JSONCategorySetter.setTitleMap(
 			title = "${title}",
 			titleMap = "${titleMap}");
-
 		var descriptionMap = JSONCategorySetter.setDescriptionMap(
 			description = "${description}",
 			descriptionMap = "${descriptionMap}");
@@ -198,15 +187,12 @@ definition {
 			categoryName = "${categoryName}",
 			groupId = "${groupId}",
 			vocabularyId = "${vocabularyId}");
-
 		var descriptionMap = JSONCategorySetter.setDescriptionMap(
 			description = "${description}",
 			descriptionMap = "${descriptionMap}");
-
 		var parentCategoryId = JSONCategorySetter.setParentCategoryId(
 			groupId = "${groupId}",
 			vocabularyId = "${vocabularyId}");
-
 		var titleMap = JSONCategorySetter.setTitleMap(
 			title = "${title}",
 			titleMap = "${titleMap}");

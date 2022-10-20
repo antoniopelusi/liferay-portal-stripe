@@ -29,10 +29,7 @@ import com.liferay.dynamic.data.mapping.test.util.DDMFormInstanceTestUtil;
 import com.liferay.dynamic.data.mapping.test.util.DDMStructureTestUtil;
 import com.liferay.dynamic.data.mapping.test.util.DDMTemplateTestUtil;
 import com.liferay.exportimport.kernel.configuration.ExportImportConfigurationParameterMapFactoryUtil;
-import com.liferay.exportimport.kernel.lar.ExportImportDateUtil;
 import com.liferay.exportimport.kernel.lar.PortletDataHandlerKeys;
-import com.liferay.exportimport.kernel.service.StagingLocalServiceUtil;
-import com.liferay.exportimport.kernel.staging.StagingUtil;
 import com.liferay.journal.constants.JournalContentPortletKeys;
 import com.liferay.journal.constants.JournalPortletKeys;
 import com.liferay.journal.model.JournalArticle;
@@ -41,26 +38,15 @@ import com.liferay.journal.test.util.JournalTestUtil;
 import com.liferay.layout.test.util.LayoutTestUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.test.util.ConfigurationTestUtil;
-import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.model.Group;
-import com.liferay.portal.kernel.model.Layout;
-import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
-import com.liferay.portal.kernel.service.ServiceContext;
-import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
-import com.liferay.portal.kernel.test.rule.Sync;
-import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
-import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
-import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 import com.liferay.staging.configuration.StagingConfiguration;
 import com.liferay.wiki.constants.WikiPortletKeys;
 import com.liferay.wiki.model.WikiNode;
@@ -69,15 +55,12 @@ import com.liferay.wiki.service.WikiNodeLocalService;
 import com.liferay.wiki.service.WikiPageLocalService;
 import com.liferay.wiki.test.util.WikiTestUtil;
 
-import java.io.Serializable;
-
 import java.util.Map;
 
 import javax.portlet.PortletPreferences;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -88,15 +71,13 @@ import org.junit.runner.RunWith;
  * @author Tamas Molnar
  */
 @RunWith(Arquillian.class)
-@Sync(cleanTransaction = true)
-public class StagingDataPortletPreferencesTest {
+public class StagingDataPortletPreferencesTest
+	extends BaseLocalStagingTestCase {
 
 	@ClassRule
 	@Rule
-	public static final AggregateTestRule aggregateTestRule =
-		new AggregateTestRule(
-			new LiferayIntegrationTestRule(),
-			PermissionCheckerMethodTestRule.INSTANCE);
+	public static final LiferayIntegrationTestRule liferayIntegrationTestRule =
+		new LiferayIntegrationTestRule();
 
 	@BeforeClass
 	public static void setUpClass() throws Exception {
@@ -111,19 +92,6 @@ public class StagingDataPortletPreferencesTest {
 	public static void tearDownClass() throws Exception {
 		ConfigurationTestUtil.deleteConfiguration(
 			StagingConfiguration.class.getName());
-	}
-
-	@Before
-	public void setUp() throws Exception {
-		UserTestUtil.setUser(TestPropsValues.getUser());
-
-		liveGroup = GroupTestUtil.addGroup();
-
-		enableLocalStaging();
-
-		stagingGroup = liveGroup.getStagingGroup();
-
-		stagingLayout = LayoutTestUtil.addTypePortletLayout(stagingGroup);
 	}
 
 	@Test
@@ -175,7 +143,7 @@ public class StagingDataPortletPreferencesTest {
 			String.valueOf(ddlRecordSet.getRecordSetId()),
 			livePortletPreferences.getValue("recordSetId", StringPool.BLANK));
 
-		publishPortletData(DDLPortletKeys.DYNAMIC_DATA_LISTS);
+		publishPortlet(DDLPortletKeys.DYNAMIC_DATA_LISTS);
 
 		publishLayoutWithDisplayPortlet(portletId, preferenceMap, false);
 
@@ -224,7 +192,7 @@ public class StagingDataPortletPreferencesTest {
 			livePortletPreferences.getValue(
 				"formInstanceId", StringPool.BLANK));
 
-		publishPortletData(DDMPortletKeys.DYNAMIC_DATA_MAPPING_FORM_ADMIN);
+		publishPortlet(DDMPortletKeys.DYNAMIC_DATA_MAPPING_FORM_ADMIN);
 
 		publishLayoutWithDisplayPortlet(portletId, preferenceMap, false);
 
@@ -258,7 +226,7 @@ public class StagingDataPortletPreferencesTest {
 			journalArticle.getArticleId(),
 			livePortletPreferences.getValue("articleId", StringPool.BLANK));
 
-		publishPortletData(JournalPortletKeys.JOURNAL);
+		publishPortlet(JournalPortletKeys.JOURNAL);
 
 		publishLayoutWithDisplayPortlet(portletId, preferenceMap, false);
 
@@ -294,7 +262,7 @@ public class StagingDataPortletPreferencesTest {
 			wikiPage.getTitle(),
 			livePortletPreferences.getValue("title", StringPool.BLANK));
 
-		publishPortletData(WikiPortletKeys.WIKI);
+		publishPortlet(WikiPortletKeys.WIKI);
 
 		publishLayoutWithDisplayPortlet(portletId, preferenceMap, false);
 
@@ -312,21 +280,6 @@ public class StagingDataPortletPreferencesTest {
 		Assert.assertEquals(
 			liveWikiPage.getTitle(),
 			livePortletPreferences.getValue("title", StringPool.BLANK));
-	}
-
-	protected void enableLocalStaging() throws PortalException {
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(liveGroup.getGroupId());
-
-		Map<String, Serializable> attributes = serviceContext.getAttributes();
-
-		attributes.putAll(
-			ExportImportConfigurationParameterMapFactoryUtil.
-				buildParameterMap());
-
-		StagingLocalServiceUtil.enableLocalStaging(
-			TestPropsValues.getUserId(), liveGroup, false, false,
-			serviceContext);
 	}
 
 	protected String publishLayoutWithDisplayPortlet(
@@ -347,15 +300,7 @@ public class StagingDataPortletPreferencesTest {
 			PortletDataHandlerKeys.PORTLET_DATA,
 			new String[] {Boolean.FALSE.toString()});
 
-		StagingUtil.publishLayouts(
-			TestPropsValues.getUserId(), stagingGroup.getGroupId(),
-			liveGroup.getGroupId(), false, parameterMap);
-
-		if (liveLayout == null) {
-			liveLayout = LayoutLocalServiceUtil.getLayoutByUuidAndGroupId(
-				stagingLayout.getUuid(), liveGroup.getGroupId(),
-				stagingLayout.isPrivateLayout());
-		}
+		publishLayouts(parameterMap);
 
 		livePortletPreferences = LayoutTestUtil.getPortletPreferences(
 			liveLayout, portletId);
@@ -363,28 +308,7 @@ public class StagingDataPortletPreferencesTest {
 		return portletId;
 	}
 
-	protected void publishPortletData(String portletId) throws PortalException {
-		Map<String, String[]> parameterMap =
-			ExportImportConfigurationParameterMapFactoryUtil.
-				buildParameterMap();
-
-		parameterMap.put(
-			ExportImportDateUtil.RANGE,
-			new String[] {ExportImportDateUtil.RANGE_ALL});
-
-		StagingUtil.publishPortlet(
-			TestPropsValues.getUserId(), stagingGroup.getGroupId(),
-			liveGroup.getGroupId(), stagingLayout.getPlid(),
-			liveLayout.getPlid(), portletId, parameterMap);
-	}
-
-	@DeleteAfterTestRun
-	protected Group liveGroup;
-
-	protected Layout liveLayout;
 	protected PortletPreferences livePortletPreferences;
-	protected Group stagingGroup;
-	protected Layout stagingLayout;
 
 	@Inject
 	private DDLRecordSetLocalService _ddlRecordSetLocalService;

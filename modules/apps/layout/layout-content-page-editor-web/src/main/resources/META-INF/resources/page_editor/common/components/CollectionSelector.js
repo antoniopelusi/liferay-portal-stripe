@@ -29,8 +29,8 @@ export default function CollectionSelector({
 	itemSelectorURL,
 	label,
 	onCollectionSelect,
+	onPreventCollectionSelect,
 	optionsMenuItems = DEFAULT_OPTION_MENU_ITEMS,
-	shouldPreventCollectionSelect,
 }) {
 	const eventName = `${config.portletNamespace}selectInfoList`;
 
@@ -38,7 +38,7 @@ export default function CollectionSelector({
 
 	const filterConfig = collectionItem?.config ?? {};
 
-	const isPrefiltered = Object.keys(filterConfig).length > 0;
+	const isPrefiltered = !!Object.keys(filterConfig).length;
 
 	return (
 		<>
@@ -52,12 +52,12 @@ export default function CollectionSelector({
 				}
 				label={label}
 				onItemSelect={onCollectionSelect}
+				onPreventCollectionSelect={onPreventCollectionSelect}
 				optionsMenuItems={optionsMenuItems}
 				quickMappedInfoItems={
 					config.selectedMappingTypes?.linkedCollection
 				}
 				selectedItem={collectionItem}
-				shouldPreventItemSelect={shouldPreventCollectionSelect}
 				showMappedItems={
 					!!config.selectedMappingTypes?.linkedCollection
 				}
@@ -81,5 +81,5 @@ CollectionSelector.propTypes = {
 	collectionItem: PropTypes.shape({title: PropTypes.string}),
 	label: PropTypes.string,
 	onCollectionSelect: PropTypes.func.isRequired,
-	shouldPreventCollectionSelect: PropTypes.func,
+	onPreventCollectionSelect: PropTypes.func,
 };

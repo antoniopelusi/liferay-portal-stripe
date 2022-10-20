@@ -16,6 +16,7 @@ package com.liferay.commerce.product.tax.category.web.internal.portlet.action;
 
 import com.liferay.commerce.product.constants.CPPortletKeys;
 import com.liferay.commerce.product.exception.CPTaxCategoryNameException;
+import com.liferay.commerce.product.exception.DuplicateCPTaxCategoryException;
 import com.liferay.commerce.product.exception.NoSuchCPTaxCategoryException;
 import com.liferay.commerce.product.model.CPTaxCategory;
 import com.liferay.commerce.product.service.CPTaxCategoryService;
@@ -29,7 +30,6 @@ import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.StringUtil;
 
 import java.util.Locale;
 import java.util.Map;
@@ -78,7 +78,9 @@ public class EditCPTaxCategoryMVCActionCommand extends BaseMVCActionCommand {
 
 				actionResponse.setRenderParameter("mvcPath", "/error.jsp");
 			}
-			else if (exception instanceof CPTaxCategoryNameException) {
+			else if (exception instanceof CPTaxCategoryNameException ||
+					 exception instanceof DuplicateCPTaxCategoryException) {
+
 				hideDefaultErrorMessage(actionRequest);
 				hideDefaultSuccessMessage(actionRequest);
 
@@ -106,9 +108,8 @@ public class EditCPTaxCategoryMVCActionCommand extends BaseMVCActionCommand {
 			deleteCPTaxCategoryIds = new long[] {cpTaxCategoryId};
 		}
 		else {
-			deleteCPTaxCategoryIds = StringUtil.split(
-				ParamUtil.getString(actionRequest, "deleteCPTaxCategoryIds"),
-				0L);
+			deleteCPTaxCategoryIds = ParamUtil.getLongValues(
+				actionRequest, "rowIds");
 		}
 
 		for (long deleteCPTaxCategoryId : deleteCPTaxCategoryIds) {

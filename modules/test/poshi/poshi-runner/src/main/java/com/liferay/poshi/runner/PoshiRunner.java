@@ -21,6 +21,7 @@ import com.liferay.poshi.core.PoshiStackTraceUtil;
 import com.liferay.poshi.core.PoshiValidation;
 import com.liferay.poshi.core.PoshiVariablesUtil;
 import com.liferay.poshi.core.util.FileUtil;
+import com.liferay.poshi.core.util.GetterUtil;
 import com.liferay.poshi.core.util.PropsValues;
 import com.liferay.poshi.runner.logger.PoshiLogger;
 import com.liferay.poshi.runner.logger.SummaryLogger;
@@ -37,6 +38,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.dom4j.Element;
 
@@ -180,7 +182,15 @@ public class PoshiRunner {
 
 			SummaryLogger.startRunning();
 
-			SeleniumUtil.startSelenium();
+			Properties properties =
+				PoshiContext.getNamespacedClassCommandNameProperties(
+					_testNamespacedClassCommandName);
+
+			if (!GetterUtil.getBoolean(
+					properties.getProperty("disable-webdriver"))) {
+
+				SeleniumUtil.startSelenium();
+			}
 
 			_runSetUp();
 		}
@@ -225,7 +235,14 @@ public class PoshiRunner {
 
 			SummaryLogger.stopRunning();
 
-			_poshiLogger.createPoshiReport();
+			try {
+				_poshiLogger.createPoshiReport();
+			}
+			catch (OutOfMemoryError outOfMemoryError) {
+				System.out.println(
+					"Unable to create Poshi syntax logger. See POSHI-378 for " +
+						"details. Use the summary.html log instead.");
+			}
 
 			SeleniumUtil.stopSelenium();
 		}

@@ -73,13 +73,13 @@
 		</attribute>
 		<attribute>
 			<name>itemsPerPage</name>
-			<required>true</required>
+			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<type>int</type>
 		</attribute>
 		<attribute>
 			<name>namespace</name>
-			<required>true</required>
+			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 		<attribute>
@@ -94,13 +94,14 @@
 		</attribute>
 		<attribute>
 			<name>pageNumber</name>
-			<required>true</required>
+			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<type>int</type>
 		</attribute>
 		<attribute>
+			<description>Deprecated as of 7.4.0, with no direct replacement.</description>
 			<name>portletURL</name>
-			<required>true</required>
+			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<type>javax.portlet.PortletURL</type>
 		</attribute>
@@ -164,7 +165,7 @@
 		</attribute>
 		<attribute>
 			<name>apiURL</name>
-			<required>false</required>
+			<required>true</required>
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 		<attribute>
@@ -191,6 +192,12 @@
 			<type>java.util.List</type>
 		</attribute>
 		<attribute>
+			<name>fdsFilters</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<type>java.util.List</type>
+		</attribute>
+		<attribute>
 			<name>fdsSortItemList</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -198,10 +205,12 @@
 		</attribute>
 		<attribute>
 			<name>formId</name>
+			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 		<attribute>
 			<name>formName</name>
+			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 		<attribute>
@@ -211,13 +220,13 @@
 		</attribute>
 		<attribute>
 			<name>itemsPerPage</name>
-			<required>true</required>
+			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<type>int</type>
 		</attribute>
 		<attribute>
 			<name>namespace</name>
-			<required>true</required>
+			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 		<attribute>
@@ -232,13 +241,14 @@
 		</attribute>
 		<attribute>
 			<name>pageNumber</name>
-			<required>true</required>
+			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<type>int</type>
 		</attribute>
 		<attribute>
+			<description>Deprecated as of 7.4.0, with no direct replacement.</description>
 			<name>portletURL</name>
-			<required>true</required>
+			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<type>javax.portlet.PortletURL</type>
 		</attribute>

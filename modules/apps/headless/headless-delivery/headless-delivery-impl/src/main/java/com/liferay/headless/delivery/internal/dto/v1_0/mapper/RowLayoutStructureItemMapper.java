@@ -18,6 +18,7 @@ import com.liferay.headless.delivery.dto.v1_0.PageElement;
 import com.liferay.headless.delivery.dto.v1_0.PageRowDefinition;
 import com.liferay.headless.delivery.dto.v1_0.RowViewport;
 import com.liferay.headless.delivery.dto.v1_0.RowViewportDefinition;
+import com.liferay.headless.delivery.internal.dto.v1_0.mapper.util.StyledLayoutStructureItemUtil;
 import com.liferay.layout.responsive.ViewportSize;
 import com.liferay.layout.util.structure.LayoutStructureItem;
 import com.liferay.layout.util.structure.RowStyledLayoutStructureItem;
@@ -54,6 +55,14 @@ public class RowLayoutStructureItemMapper
 			{
 				definition = new PageRowDefinition() {
 					{
+						cssClasses =
+							StyledLayoutStructureItemUtil.getCssClasses(
+								rowStyledLayoutStructureItem);
+						customCSS = StyledLayoutStructureItemUtil.getCustomCSS(
+							rowStyledLayoutStructureItem);
+						customCSSViewports =
+							StyledLayoutStructureItemUtil.getCustomCSSViewports(
+								rowStyledLayoutStructureItem);
 						gutters = rowStyledLayoutStructureItem.isGutters();
 						indexed = rowStyledLayoutStructureItem.isIndexed();
 						modulesPerRow =
@@ -80,6 +89,7 @@ public class RowLayoutStructureItemMapper
 							() -> getFragmentViewPorts(
 								rowStyledLayoutStructureItem.
 									getItemConfigJSONObject()));
+						setName(rowStyledLayoutStructureItem::getName);
 						setRowViewports(
 							() -> {
 								Map<String, JSONObject>

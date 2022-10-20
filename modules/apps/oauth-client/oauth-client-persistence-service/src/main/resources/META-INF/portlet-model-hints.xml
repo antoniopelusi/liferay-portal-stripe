@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+
+<model-hints>
+	<model name="com.liferay.oauth.client.persistence.model.OAuthClientASLocalMetadata">
+		<field name="mvccVersion" type="long" />
+		<field name="oAuthClientASLocalMetadataId" type="long" />
+		<field name="companyId" type="long" />
+		<field name="userId" type="long" />
+		<field name="userName" type="String" />
+		<field name="createDate" type="Date" />
+		<field name="modifiedDate" type="Date" />
+		<field name="localWellKnownURI" type="String">
+			<hint name="max-length">256</hint>
+		</field>
+		<field name="metadataJSON" type="String">
+			<hint-collection name="CLOB" />
+		</field>
+	</model>
+	<model name="com.liferay.oauth.client.persistence.model.OAuthClientEntry">
+		<field name="mvccVersion" type="long" />
+		<field name="oAuthClientEntryId" type="long" />
+		<field name="companyId" type="long" />
+		<field name="userId" type="long" />
+		<field name="userName" type="String" />
+		<field name="createDate" type="Date" />
+		<field name="modifiedDate" type="Date" />
+		<field name="authRequestParametersJSON" type="String">
+			<hint name="max-length">3999</hint>
+		</field>
+		<field name="authServerWellKnownURI" type="String">
+			<hint name="max-length">256</hint>
+		</field>
+		<field name="clientId" type="String">
+			<hint name="max-length">256</hint>
+		</field>
+		<field name="infoJSON" type="String">
+			<hint-collection name="CLOB" />
+		</field>
+		<field name="tokenRequestParametersJSON" type="String">
+			<hint name="max-length">3999</hint>
+		</field>
+	</model>
+</model-hints>

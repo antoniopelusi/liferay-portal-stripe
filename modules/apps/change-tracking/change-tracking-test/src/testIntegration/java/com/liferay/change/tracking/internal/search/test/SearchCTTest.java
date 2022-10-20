@@ -211,7 +211,7 @@ public class SearchCTTest {
 		_assertCollectionHits(
 			_ctCollection1.getCtCollectionId(), _JOURNAL_ARTICLE_CLASS,
 			new JournalArticle[] {addedJournalArticle, modifiedJournalArticle2},
-			new JournalArticle[] {modifiedJournalArticle1});
+			new JournalArticle[0]);
 
 		_assertProductionHits(_LAYOUT_CLASS, deletedLayout, modifiedLayout);
 
@@ -409,7 +409,6 @@ public class SearchCTTest {
 				searchContext -> {
 					searchContext.setAttribute(
 						Field.GROUP_ID, _group.getGroupId());
-
 					searchContext.setAttribute(
 						Field.TYPE,
 						new String[] {LayoutConstants.TYPE_PORTLET});

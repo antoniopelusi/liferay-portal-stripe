@@ -106,7 +106,7 @@ definition {
 		task ("View displayed contents in Content Flags, Content Ratings and Content Display in page editor") {
 			for (var i : list "1,2,3") {
 				AssertAttributeValue(
-					attribute1 = "aria-pressed",
+					attribute1 = "aria-expanded",
 					index = "${i}",
 					locator1 = "Fragment#CONTENT_RATINGS_YOUR_RATING_STAR",
 					value1 = "false");
@@ -134,7 +134,7 @@ definition {
 				var n = ${n} + 1;
 			}
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View displayed contents in Content Flags, Content Ratings and Content Display at view mode in Staging site") {
@@ -144,7 +144,7 @@ definition {
 
 			for (var i : list "1,2,3") {
 				AssertAttributeValue(
-					attribute1 = "aria-pressed",
+					attribute1 = "aria-expanded",
 					index = "${i}",
 					locator1 = "Fragment#CONTENT_RATINGS_YOUR_RATING_STAR",
 					value1 = "false");
@@ -312,7 +312,7 @@ definition {
 	@description = "This is a use case for LPS-86193. Can export display page template and import to Staging site via UI."
 	@priority = "3"
 	test ExportImportDisplayPageTemplateWithCollectionDisplay {
-		property testray.main.component.name = "Display Pages";
+		property testray.component.names = "Display Pages,Fragments";
 
 		task ("Add a display page template with Web Content Article type and Basic Web Content subtype") {
 			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
@@ -337,7 +337,7 @@ definition {
 				fragmentName = "Display Page Content",
 				targetFragmentName = "Collection Display");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Export display page template") {
@@ -456,7 +456,7 @@ definition {
 				locator1 = "Select#GENERIC_SELECT_FIELD",
 				value1 = "Default Template");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View contents of web contents at view mode in staging site") {

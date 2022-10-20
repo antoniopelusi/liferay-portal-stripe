@@ -9,15 +9,18 @@
  * distribution rights of the Software.
  */
 
+import i18n from '../../../../common/I18n';
 import {Button} from '../../../../common/components';
 import Layout from '../../../../common/containers/setup-forms/Layout';
+import {useAppPropertiesContext} from '../../../../common/contexts/AppPropertiesContext';
 import {useOnboarding} from '../../context';
 import {actionTypes} from '../../context/reducer';
 import {ONBOARDING_STEP_TYPES} from '../../utils/constants';
 import WelcomeSkeleton from './Skeleton';
 
 const Welcome = () => {
-	const [{assetsPath}, dispatch] = useOnboarding();
+	const [, dispatch] = useOnboarding();
+	const {liferayWebDAV} = useAppPropertiesContext();
 
 	return (
 		<Layout
@@ -33,27 +36,27 @@ const Welcome = () => {
 							})
 						}
 					>
-						Start Project Setup
+						{i18n.translate('start-project-setup')}
 					</Button>
 				),
 			}}
 			headerProps={{
-				greetings: `Ready, set, go!`,
-				title: 'Let’s set up your project',
+				greetings: i18n.translate('ready-set-go'),
+				title: i18n.translate('let-s-set-up-your-project'),
 			}}
 		>
 			<img
-				alt="Costumer Service Intro"
 				className="mb-4 pb-1"
 				draggable={false}
 				height={237}
-				src={`${assetsPath}/assets/intro_onboarding.svg`}
+				src={`${liferayWebDAV}/assets/intro_onboarding.svg`}
 				width={331}
 			/>
 
 			<p className="mb-0 px-1 text-center text-neutral-8">
-				We&apos;ll start by adding any team members to your project and
-				complete your product activation.
+				{i18n.translate(
+					'we-ll-start-by-adding-any-team-members-to-your-project-and-complete-your-product-activation'
+				)}
 			</p>
 		</Layout>
 	);

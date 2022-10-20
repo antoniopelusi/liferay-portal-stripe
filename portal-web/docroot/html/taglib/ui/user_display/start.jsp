@@ -16,28 +16,46 @@
 
 <%@ include file="/html/taglib/ui/user_display/init.jsp" %>
 
-<div class="display-style-<%= displayStyle %> taglib-user-display">
+<liferay-util:buffer
+	var="html"
+>
+	<liferay-ui:user-portrait
+		imageCssClass="<%= imageCssClass %>"
+		user="<%= userDisplay %>"
+		userName="<%= (userDisplay != null) ? userDisplay.getFullName() : userName %>"
+	/>
+</liferay-util:buffer>
 
-	<%
-	if (Validator.isNull(url) && (userDisplay != null)) {
-		url = userDisplay.getDisplayURL(themeDisplay);
-	}
-	%>
+<c:choose>
+	<c:when test="<%= showUserDetails || showUserName %>">
+		<div class="profile-header">
+			<div class="nameplate">
+				<div class="nameplate-field">
+					<%= html %>
+				</div>
 
-	<aui:a href="<%= url %>">
-		<liferay-ui:user-portrait
-			imageCssClass="<%= imageCssClass %>"
-			user="<%= userDisplay %>"
-			userName="<%= (userDisplay != null) ? userDisplay.getFullName() : userName %>"
-		/>
+				<c:if test="<%= showUserName %>">
+					<div class="nameplate-content">
+						<div class="heading4">
 
-		<c:if test="<%= showUserName %>">
-			<span class="user-name">
-				<%= (userDisplay != null) ? HtmlUtil.escape(userDisplay.getFullName()) : HtmlUtil.escape(userName) %>
-			</span>
-		</c:if>
-	</aui:a>
+							<%
+							if (Validator.isNull(url) && (userDisplay != null)) {
+								url = userDisplay.getDisplayURL(themeDisplay);
+							}
+							%>
 
-	<c:if test="<%= showUserDetails %>">
-		<div class="user-details">
-	</c:if>
+							<aui:a href="<%= showLink ? url : null %>">
+								<%= (userDisplay != null) ? HtmlUtil.escape(userDisplay.getFullName()) : HtmlUtil.escape(userName) %>
+							</aui:a>
+						</div>
+					</div>
+				</c:if>
+
+				<c:if test="<%= showUserDetails %>">
+					<div class="nameplate-content">
+				</c:if>
+	</c:when>
+	<c:otherwise>
+		<%= html %>
+	</c:otherwise>
+</c:choose>

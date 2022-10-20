@@ -1,164 +1,208 @@
 $toolbarHeight: 112px;
 $sidebarButtonHeight: $sidebarButtonWidth;
 $desktopToolbarHeight: 64px;
+$changeTrackingBarHeight: 23px;
+$toolbarBorders: 2px;
 
-// z-indexes for childern of page-editor-sidebar (which is a stacking context).
+// z-indexes for children of page-editor-sidebar (which is a stacking context).
 
 $zIndexButtons: 1;
 $zIndexContent: 0;
 
-html#{$cadmin-selector} {
-	.cadmin {
-		&.page-editor__sidebar {
-			display: flex;
-			height: calc(100vh - #{$desktopToolbarHeight});
-			position: fixed;
-			right: 0;
-			top: $desktopToolbarHeight;
-			z-index: $sidebarZIndex;
-		}
+@mixin sidebar {
+	display: flex;
+	/* stylelint-disable */
+	height: calc(
+		100vh -
+			(
+				var(--control-menu-height) + var(--toolbar-height) +
+					var(--change-tracking-indicator-height, 0px)
+			)
+	);
+	position: fixed;
+	top: calc(
+		var(--control-menu-height) + var(--toolbar-height) +
+			var(--change-tracking-indicator-height, 0px)
+	);
+	/* stylelint-enable */
+	z-index: $sidebarZIndex;
+}
 
-		.page-editor__sidebar {
-			&__buttons {
-				background-color: $cadmin-secondary-d1;
-				flex-direction: column;
-				padding-top: 16px;
-				width: $sidebarButtonWidth;
-				z-index: $zIndexButtons;
+html#{$cadmin-selector} .cadmin .page-editor__item-configuration-sidebar {
+	@include sidebar;
+	background: $cadmin-white;
+	border-left: 1px solid $cadmin-secondary-l3;
+	right: 0;
+	transition: transform ease $defaultTransitionDuration;
+	width: $sidebarContentWidth;
 
-				&.light {
-					background-color: $cadmin-gray-200;
-					font-size: 14px;
-					padding: 16px 5px;
-					width: 42px;
+	transform: translateX(100%);
 
-					button {
-						color: $cadmin-secondary;
-						margin-bottom: 4px;
+	&--open {
+		transform: translateX(0);
+	}
+}
 
-						&.active,
-						&:active,
-						&:focus,
-						&:hover {
-							background-color: $cadmin-light-d1;
-							color: $cadmin-secondary-d2;
-						}
-					}
+html#{$cadmin-selector} .cadmin .page-editor__sidebar {
+	@include sidebar;
+	left: 0;
 
-					a {
-						color: $cadmin-secondary;
-						height: 32px;
+	transition: left ease $defaultTransitionDuration,
+		right ease $defaultTransitionDuration;
 
-						&.active,
-						&:active,
-						&:focus,
-						&:hover {
-							background-color: $cadmin-light-d1;
-							color: $cadmin-secondary-d2;
-						}
-					}
-				}
+	&.page-editor__sidebar-old {
+		left: unset;
+		right: 0;
 
-				a {
-					align-items: center;
-					border-radius: 4px;
-					color: $cadmin-secondary-l1;
-					display: flex;
-					height: 2.5em;
-					justify-content: center;
+		.page-editor__sidebar__content {
+			left: unset;
+			right: $sidebarButtonWidth;
 
-					&.active,
-					&:active,
-					&:focus,
-					&:hover {
-						color: $cadmin-white;
-					}
+			border-left: 1px solid $cadmin-secondary-l3;
+			border-right: none;
 
-					&:focus {
-						box-shadow: 0 0 0 2px $cadmin-white,
-							0 0 0 4px $cadmin-primary-l1,
-							inset 0 0 rgba(0, 0, 0, 0);
-						outline: none;
-					}
-				}
-
-				button {
-					color: $cadmin-secondary-l1;
-
-					&.active,
-					&:active,
-					&:focus,
-					&:hover {
-						color: $cadmin-white;
-					}
-				}
-
-				hr {
-					border-color: $cadmin-secondary;
-					margin: 12px 8px;
-				}
-			}
-
-			&__content {
-				background-color: $cadmin-white;
-				border-left: 1px solid $cadmin-secondary-l3;
-				height: calc(100vh - #{$controlMenuHeight + $toolbarHeight});
-				overflow-x: hidden;
-				position: fixed;
-				right: $sidebarButtonWidth;
+			&:not(.page-editor__sidebar__content--open) {
 				transform: translateX(100%);
-				transition: transform ease $defaultTransitionDuration;
-				width: $sidebarContentWidth;
-				z-index: $zIndexContent;
-
-				&--open.page-editor__sidebar__content {
-					transform: translateX(0%);
-				}
-
-				@include media-breakpoint-up(sm, $cadmin-grid-breakpoints) {
-					height: calc(
-						100vh - #{$desktopControlMenuHeight + $toolbarHeight}
-					);
-				}
-
-				@include media-breakpoint-up(xl, $cadmin-grid-breakpoints) {
-					height: calc(
-						100vh - #{$desktopControlMenuHeight +
-							$desktopToolbarHeight}
-					);
-				}
 			}
 		}
 	}
 
-	.page-editor__wrapper {
-		padding-right: $sidebarButtonWidth;
-		position: relative;
-		transition: padding-left ease $defaultTransitionDuration,
-			padding-right ease $defaultTransitionDuration;
-		will-change: padding-left, padding-right;
+	&__buttons {
+		background-color: $cadmin-gray-200;
+		display: flex;
+		flex-direction: column;
+		font-size: 0.875rem;
+		padding: 16px 5px;
+		width: $sidebarButtonWidth;
+		z-index: $zIndexButtons;
 
-		&--padded {
-			@include media-breakpoint-up(sm) {
-				padding-right: $sidebarButtonWidth + $sidebarContentWidth;
+		a {
+			align-items: center;
+			border-radius: 4px;
+			color: $cadmin-secondary;
+			display: flex;
+			height: 32px;
+			justify-content: center;
+
+			&.active,
+			&:active,
+			&:focus,
+			&:hover {
+				background-color: $cadmin-light-d1;
+				color: $cadmin-secondary-d2;
 			}
+
+			&:focus {
+				box-shadow: 0 0 0 2px $cadmin-white,
+					0 0 0 4px $cadmin-primary-l1, inset 0 0 rgba(0, 0, 0, 0);
+				outline: none;
+			}
+		}
+
+		button {
+			color: $cadmin-secondary;
+			margin-bottom: 4px;
+
+			&.active,
+			&:active,
+			&:focus,
+			&:hover {
+				background-color: $cadmin-light-d1;
+				color: $cadmin-secondary-d2;
+			}
+		}
+
+		hr {
+			border-color: $cadmin-secondary;
+			margin: 12px 8px;
 		}
 	}
 
-	body.has-control-menu .cadmin.page-editor__sidebar {
-		height: calc(100vh - #{$controlMenuHeight + $toolbarHeight});
-		top: $controlMenuHeight + $toolbarHeight;
+	&__content {
+		background-color: $cadmin-white;
+		border-right: 1px solid $cadmin-secondary-l3;
+		display: flex;
+		flex-direction: column;
+		/* stylelint-disable */
+		height: calc(
+			100vh -
+				(
+					var(--control-menu-height) + var(--toolbar-height) +
+						var(--change-tracking-indicator-height, 0px)
+				)
+		);
+		/* stylelint-enable */
+		left: $sidebarButtonWidth;
+		overflow: hidden;
+		position: fixed;
+		transform: translateX(-100%);
+		transition: transform ease $defaultTransitionDuration;
+		width: $sidebarContentWidth;
+		z-index: $zIndexContent;
+
+		&--open {
+			transform: translateX(0);
+		}
+	}
+}
+
+html#{$cadmin-selector} body {
+	--toolbar-height: #{$toolbarHeight};
+	/* stylelint-disable */
+	--control-menu-height: 0px;
+	/* stylelint-enable */
+
+	&.has-control-menu {
+		--control-menu-height: #{$controlMenuHeight};
 
 		@include media-breakpoint-up(sm, $cadmin-grid-breakpoints) {
-			height: calc(100vh - #{$desktopControlMenuHeight + $toolbarHeight});
-			top: $desktopControlMenuHeight + $toolbarHeight;
+			--control-menu-height: #{$desktopControlMenuHeight};
 		}
+	}
 
-		@include media-breakpoint-up(xl, $cadmin-grid-breakpoints) {
-			height: calc(
-				100vh - #{$desktopControlMenuHeight + $desktopToolbarHeight}
-			);
-			top: $desktopControlMenuHeight + $desktopToolbarHeight;
+	@include media-breakpoint-up(xl, $cadmin-grid-breakpoints) {
+		--toolbar-height: #{$desktopToolbarHeight};
+	}
+}
+
+html#{$cadmin-selector} .page-editor__wrapper {
+	padding-left: $sidebarButtonWidth;
+	position: relative;
+	transition: padding-left ease $defaultTransitionDuration,
+		margin-right ease $defaultTransitionDuration;
+	will-change: padding-left, margin-right;
+	/* stylelint-disable */
+	max-height: calc(
+		100vh -
+			(
+				var(--control-menu-height) + var(--toolbar-height) +
+					var(--change-tracking-indicator-height, 0px) + #{$toolbarBorders}
+			)
+	);
+	/* stylelint-enable */
+	overflow: auto;
+
+	&.page-editor__wrapper-old {
+		margin-right: $sidebarButtonWidth;
+		padding-left: 0;
+
+		&.page-editor__wrapper--padded {
+			@include media-breakpoint-up(sm) {
+				margin-right: $sidebarButtonWidth + $sidebarContentWidth;
+				padding-left: 0;
+			}
+		}
+	}
+
+	&--padded-start {
+		@include media-breakpoint-up(sm) {
+			padding-left: $sidebarButtonWidth + $sidebarContentWidth;
+		}
+	}
+
+	&--padded-end {
+		@include media-breakpoint-up(sm) {
+			margin-right: $sidebarContentWidth;
 		}
 	}
 }

@@ -38,6 +38,7 @@ import com.liferay.jenkins.results.parser.PortalRelease;
 import com.liferay.jenkins.results.parser.PortalReleaseBuild;
 import com.liferay.jenkins.results.parser.PullRequest;
 import com.liferay.jenkins.results.parser.PullRequestBuild;
+import com.liferay.jenkins.results.parser.PullRequestSubrepositoryTopLevelBuild;
 import com.liferay.jenkins.results.parser.QAWebsitesBranchInformationBuild;
 import com.liferay.jenkins.results.parser.QAWebsitesGitRepositoryJob;
 import com.liferay.jenkins.results.parser.QAWebsitesTopLevelBuild;
@@ -1069,6 +1070,8 @@ public class TestrayImporter {
 
 								warningsPropertyElement.addAttribute(
 									"name", "testray.testcase.warnings");
+								warningsPropertyElement.addAttribute(
+									"value", String.valueOf(warnings.length));
 
 								for (String warning : warnings) {
 									Element warningPropertyElement =
@@ -1544,8 +1547,20 @@ public class TestrayImporter {
 	}
 
 	private PortalGitWorkingDirectory _getPortalGitWorkingDirectory() {
+		String portalUpstreamBranchName = _topLevelBuild.getBranchName();
+
+		if (_topLevelBuild instanceof PullRequestSubrepositoryTopLevelBuild) {
+			PullRequestSubrepositoryTopLevelBuild
+				pullRequestSubrepositoryTopLevelBuild =
+					(PullRequestSubrepositoryTopLevelBuild)_topLevelBuild;
+
+			portalUpstreamBranchName =
+				pullRequestSubrepositoryTopLevelBuild.
+					getPortalUpstreamBranchName();
+		}
+
 		return GitWorkingDirectoryFactory.newPortalGitWorkingDirectory(
-			_topLevelBuild.getBranchName());
+			portalUpstreamBranchName);
 	}
 
 	private String _getSlackBody(File testBaseDir) {
@@ -1786,13 +1801,16 @@ public class TestrayImporter {
 		PortalRelease portalRelease = getPortalRelease();
 
 		if (portalRelease != null) {
-			String tomcatURL = String.valueOf(portalRelease.getTomcatURL());
+			String portalBundleTomcatURLString = String.valueOf(
+				portalRelease.getPortalBundleTomcatURL());
 
-			string = string.replace("$(portal.release.tomcat.url)", tomcatURL);
+			string = string.replace(
+				"$(portal.release.tomcat.url)", portalBundleTomcatURLString);
 			string = string.replace(
 				"$(portal.release.version)", portalRelease.getPortalVersion());
 
-			Matcher matcher = _releaseArtifactURLPattern.matcher(tomcatURL);
+			Matcher matcher = _releaseArtifactURLPattern.matcher(
+				portalBundleTomcatURLString);
 
 			if (matcher.find()) {
 				string = string.replace(
@@ -2073,27 +2091,32 @@ public class TestrayImporter {
 		parameters.put(
 			"liferay.portal.bundle", portalRelease.getPortalVersion());
 
-		String tomcatURL = String.valueOf(portalRelease.getTomcatURL());
+		String portalBundleTomcatURLString = String.valueOf(
+			portalRelease.getPortalBundleTomcatURL());
 
-		if (tomcatURL.startsWith("https://release.liferay.com")) {
+		if (portalBundleTomcatURLString.startsWith(
+				"https://release.liferay.com")) {
+
 			try {
-				tomcatURL = tomcatURL.replaceAll(
-					"https://(release\\.liferay\\.com.*)",
-					JenkinsResultsParserUtil.combine(
-						"https://",
-						JenkinsResultsParserUtil.getBuildProperty(
-							"jenkins.admin.user.name"),
-						":",
-						JenkinsResultsParserUtil.getBuildProperty(
-							"jenkins.admin.user.password"),
-						"@$1"));
+				portalBundleTomcatURLString =
+					portalBundleTomcatURLString.replaceAll(
+						"https://(release\\.liferay\\.com.*)",
+						JenkinsResultsParserUtil.combine(
+							"https://",
+							JenkinsResultsParserUtil.getBuildProperty(
+								"jenkins.admin.user.name"),
+							":",
+							JenkinsResultsParserUtil.getBuildProperty(
+								"jenkins.admin.user.password"),
+							"@$1"));
 			}
 			catch (IOException ioException) {
 				throw new RuntimeException(ioException);
 			}
 		}
 
-		parameters.put("test.build.bundle.zip.url", tomcatURL);
+		parameters.put(
+			"test.build.bundle.zip.url", portalBundleTomcatURLString);
 
 		PortalFixpackRelease portalFixpackRelease = getPortalFixpackRelease();
 		PortalHotfixRelease portalHotfixRelease = getPortalHotfixRelease();

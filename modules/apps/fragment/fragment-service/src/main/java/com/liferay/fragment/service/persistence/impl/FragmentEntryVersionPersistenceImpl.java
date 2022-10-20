@@ -15471,7 +15471,9 @@ public class FragmentEntryVersionPersistenceImpl
 	 */
 	@Override
 	public FragmentEntryVersion fetchByPrimaryKey(Serializable primaryKey) {
-		if (ctPersistenceHelper.isProductionMode(FragmentEntryVersion.class)) {
+		if (ctPersistenceHelper.isProductionMode(
+				FragmentEntryVersion.class, primaryKey)) {
+
 			return super.fetchByPrimaryKey(primaryKey);
 		}
 
@@ -15884,6 +15886,7 @@ public class FragmentEntryVersionPersistenceImpl
 		ctStrictColumnNames.add("previewFileEntryId");
 		ctStrictColumnNames.add("readOnly");
 		ctStrictColumnNames.add("type_");
+		ctStrictColumnNames.add("typeOptions");
 		ctStrictColumnNames.add("lastPublishDate");
 		ctStrictColumnNames.add("status");
 		ctStrictColumnNames.add("statusByUserId");

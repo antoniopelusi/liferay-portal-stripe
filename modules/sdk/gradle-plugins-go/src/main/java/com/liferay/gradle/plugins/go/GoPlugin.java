@@ -17,8 +17,8 @@ package com.liferay.gradle.plugins.go;
 import com.liferay.gradle.plugins.go.internal.util.FileUtil;
 import com.liferay.gradle.plugins.go.internal.util.GradleUtil;
 import com.liferay.gradle.plugins.go.internal.util.StringUtil;
-import com.liferay.gradle.plugins.go.tasks.DownloadGoTask;
-import com.liferay.gradle.plugins.go.tasks.ExecuteGoTask;
+import com.liferay.gradle.plugins.go.task.DownloadGoTask;
+import com.liferay.gradle.plugins.go.task.ExecuteGoTask;
 
 import java.io.File;
 

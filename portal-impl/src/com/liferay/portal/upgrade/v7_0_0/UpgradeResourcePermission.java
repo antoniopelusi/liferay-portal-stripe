@@ -39,7 +39,7 @@ public class UpgradeResourcePermission extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		try (SafeCloseable safeCloseable = addTempIndex(
+		try (SafeCloseable safeCloseable = addTemporaryIndex(
 				"ResourcePermission", false, "name")) {
 
 			upgradeResourcePermissions();

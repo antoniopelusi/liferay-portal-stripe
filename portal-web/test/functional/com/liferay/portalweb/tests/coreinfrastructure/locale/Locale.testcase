@@ -194,7 +194,7 @@ definition {
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/guest");
 
-		AssertLocation(value1 = "http://localhost:8080/en/web/guest");
+		AssertLocation(value1 = "http://localhost:8080/fr/web/guest");
 	}
 
 	@priority = "4"
@@ -317,6 +317,8 @@ definition {
 
 	@priority = "3"
 	test LocaleNotAppendedToAlternateDefaultLocaleURL {
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+
 		User.firstLoginPG();
 
 		JSONLayout.addPublicLayout(
@@ -885,6 +887,7 @@ definition {
 			UserBar.gotoDropdown();
 
 			var dropdownItem = "我的个人资料";
+
 			var key_dropdownItem = "${dropdownItem}";
 
 			AssertTextEquals(

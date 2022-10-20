@@ -14,12 +14,22 @@
 
 package com.liferay.portal.vulcan.internal.resource;
 
+import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
+import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.MapUtil;
+import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.TextFormatter;
+import com.liferay.portal.vulcan.extension.ExtensionProviderRegistry;
+import com.liferay.portal.vulcan.extension.PropertyDefinition;
 import com.liferay.portal.vulcan.internal.configuration.util.ConfigurationUtil;
+import com.liferay.portal.vulcan.internal.extension.EntityExtensionHandler;
+import com.liferay.portal.vulcan.internal.extension.util.ExtensionUtil;
+import com.liferay.portal.vulcan.jaxrs.JaxRsResourceRegistry;
 import com.liferay.portal.vulcan.openapi.DTOProperty;
 import com.liferay.portal.vulcan.openapi.OpenAPISchemaFilter;
 import com.liferay.portal.vulcan.resource.OpenAPIResource;
+import com.liferay.portal.vulcan.util.TransformUtil;
 import com.liferay.portal.vulcan.util.UriInfoUtil;
 
 import io.swagger.v3.core.filter.AbstractSpecFilter;
@@ -47,8 +57,10 @@ import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.servers.Server;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -107,12 +119,25 @@ public class OpenAPIResourceImpl implements OpenAPIResource {
 
 		OpenAPI openAPI = openApiContext.read();
 
-		if (openAPISchemaFilter != null) {
+		OpenAPISchemaFilter mergedOpenAPISchemaFilter =
+			_mergeOpenAPISchemaFilters(
+				openAPISchemaFilter,
+				_getOpenAPISchemaFilter(
+					_getBasePath(uriInfo), _extensionProviderRegistry,
+					resourceClasses));
+
+		if (mergedOpenAPISchemaFilter != null) {
 			SpecFilter specFilter = new SpecFilter();
 
+			Map<String, List<String>> queryParameters = null;
+
+			if (uriInfo != null) {
+				queryParameters = uriInfo.getQueryParameters();
+			}
+
 			openAPI = specFilter.filter(
-				openAPI, _toOpenAPISpecFilter(openAPISchemaFilter),
-				uriInfo.getQueryParameters(), null, null);
+				openAPI, _toOpenAPISpecFilter(mergedOpenAPISchemaFilter),
+				queryParameters, null, null);
 		}
 
 		if (openAPI == null) {
@@ -124,7 +149,7 @@ public class OpenAPIResourceImpl implements OpenAPIResource {
 		if (uriInfo != null) {
 			Server server = new Server();
 
-			server.setUrl(UriInfoUtil.getBasePath(uriInfo));
+			server.setUrl(_getBasePath(uriInfo));
 
 			openAPI.setServers(Collections.singletonList(server));
 		}
@@ -163,8 +188,237 @@ public class OpenAPIResourceImpl implements OpenAPIResource {
 		return getOpenAPI(null, resourceClasses, type, uriInfo);
 	}
 
+	private String _getBasePath(UriInfo uriInfo) {
+		String basePath = null;
+
+		if (uriInfo != null) {
+			basePath = UriInfoUtil.getBasePath(uriInfo);
+		}
+
+		return basePath;
+	}
+
+	private Set<String> _getDTOClassNames(Set<Class<?>> resourceClasses) {
+		Set<String> classNames = new HashSet<>();
+
+		for (Class<?> resourceClass : resourceClasses) {
+			String className = resourceClass.getName();
+
+			Object propertyValue = _jaxRsResourceRegistry.getPropertyValue(
+				className, "entity.class.name");
+
+			if (propertyValue != null) {
+				classNames.add((String)propertyValue);
+			}
+		}
+
+		return classNames;
+	}
+
+	private DTOProperty _getDTOProperty(PropertyDefinition propertyDefinition) {
+		PropertyDefinition.PropertyType propertyType =
+			propertyDefinition.getPropertyType();
+
+		DTOProperty dtoProperty;
+
+		String type = null;
+
+		if ((propertyType ==
+				PropertyDefinition.PropertyType.MULTIPLE_ELEMENT) ||
+			(propertyType == PropertyDefinition.PropertyType.SINGLE_ELEMENT)) {
+
+			if (propertyType ==
+					PropertyDefinition.PropertyType.MULTIPLE_ELEMENT) {
+
+				type = "Array";
+			}
+			else {
+				type = "Object";
+			}
+
+			dtoProperty = new DTOProperty(
+				null, propertyDefinition.getPropertyName(), type);
+
+			DTOProperty objectDTOProperty = new DTOProperty(
+				null, propertyDefinition.getPropertyClassName(), "Object");
+
+			dtoProperty.setDTOProperties(Arrays.asList(objectDTOProperty));
+
+			if (ListUtil.isNotEmpty(
+					propertyDefinition.getPropertyDefinitions())) {
+
+				List<DTOProperty> dtoProperties = new ArrayList<>();
+
+				for (PropertyDefinition definition :
+						propertyDefinition.getPropertyDefinitions()) {
+
+					dtoProperties.add(_getDTOProperty(definition));
+				}
+
+				objectDTOProperty.setDTOProperties(dtoProperties);
+			}
+		}
+		else {
+			if (propertyType == PropertyDefinition.PropertyType.BIG_DECIMAL) {
+				type = "Double";
+			}
+			else if (propertyType == PropertyDefinition.PropertyType.BOOLEAN) {
+				type = "Boolean";
+			}
+			else if (propertyType ==
+						PropertyDefinition.PropertyType.DATE_TIME) {
+
+				type = "Date";
+			}
+			else if (propertyType == PropertyDefinition.PropertyType.DECIMAL) {
+				type = "Float";
+			}
+			else if (propertyType == PropertyDefinition.PropertyType.DOUBLE) {
+				type = "Double";
+			}
+			else if (propertyType == PropertyDefinition.PropertyType.INTEGER) {
+				type = "Integer";
+			}
+			else if (propertyType == PropertyDefinition.PropertyType.LONG) {
+				type = "Long";
+			}
+			else if (propertyType == PropertyDefinition.PropertyType.TEXT) {
+				type = "String";
+			}
+			else {
+				type = "Object";
+			}
+
+			dtoProperty = new DTOProperty(
+				null, propertyDefinition.getPropertyName(), type);
+		}
+
+		dtoProperty.setDescription(propertyDefinition.getPropertyDescription());
+
+		return dtoProperty;
+	}
+
+	private List<PropertyDefinition> _getExtendedPropertyDefinitions(
+		String className, long companyId,
+		ExtensionProviderRegistry extensionProviderRegistry) {
+
+		List<PropertyDefinition> propertyDefinitions = null;
+
+		EntityExtensionHandler entityExtensionHandler =
+			ExtensionUtil.getEntityExtensionHandler(
+				className, companyId, extensionProviderRegistry);
+
+		if (entityExtensionHandler != null) {
+			Map<String, PropertyDefinition> extendedPropertyDefinitions =
+				entityExtensionHandler.getExtendedPropertyDefinitions(
+					companyId, className);
+
+			propertyDefinitions = new ArrayList<>(
+				extendedPropertyDefinitions.values());
+		}
+
+		return propertyDefinitions;
+	}
+
+	private OpenAPISchemaFilter _getOpenAPISchemaFilter(
+		String basePath, ExtensionProviderRegistry extensionProviderRegistry,
+		Set<Class<?>> resourceClasses) {
+
+		Set<String> classNames = _getDTOClassNames(resourceClasses);
+
+		if (SetUtil.isEmpty(classNames)) {
+			return null;
+		}
+
+		long companyId = CompanyThreadLocal.getCompanyId();
+
+		Map<String, List<PropertyDefinition>> propertyDefinitionsMap =
+			new HashMap<>();
+
+		for (String className : classNames) {
+			List<PropertyDefinition> propertyDefinitions =
+				_getExtendedPropertyDefinitions(
+					className, companyId, extensionProviderRegistry);
+
+			if (ListUtil.isNotEmpty(propertyDefinitions)) {
+				propertyDefinitionsMap.put(className, propertyDefinitions);
+			}
+		}
+
+		if (MapUtil.isNotEmpty(propertyDefinitionsMap)) {
+			return _getOpenAPISchemaFilter(basePath, propertyDefinitionsMap);
+		}
+
+		return null;
+	}
+
+	private OpenAPISchemaFilter _getOpenAPISchemaFilter(
+		String applicationPath,
+		Map<String, List<PropertyDefinition>> propertyDefinitions) {
+
+		List<DTOProperty> dtoProperties = new ArrayList<>();
+
+		for (Map.Entry<String, List<PropertyDefinition>> entry :
+				propertyDefinitions.entrySet()) {
+
+			String name = entry.getKey();
+
+			DTOProperty dtoProperty = new DTOProperty(
+				null, StringUtil.extractLast(name, "."), "object");
+
+			dtoProperty.setDTOProperties(
+				TransformUtil.transform(
+					entry.getValue(), this::_getDTOProperty));
+
+			dtoProperties.add(dtoProperty);
+		}
+
+		return new OpenAPISchemaFilter() {
+			{
+				setApplicationPath(applicationPath);
+				setDTOProperties(dtoProperties);
+			}
+		};
+	}
+
+	private OpenAPISchemaFilter _mergeOpenAPISchemaFilters(
+		OpenAPISchemaFilter openAPISchemaFilter1,
+		OpenAPISchemaFilter openAPISchemaFilter2) {
+
+		if (openAPISchemaFilter1 == null) {
+			return openAPISchemaFilter2;
+		}
+
+		if (openAPISchemaFilter2 == null) {
+			return openAPISchemaFilter1;
+		}
+
+		OpenAPISchemaFilter mergedOpenAPISchemaFilter =
+			new OpenAPISchemaFilter();
+
+		mergedOpenAPISchemaFilter.setApplicationPath(
+			openAPISchemaFilter1.getApplicationPath());
+
+		List<DTOProperty> dtoProperties =
+			mergedOpenAPISchemaFilter.getDTOProperties();
+
+		dtoProperties.addAll(openAPISchemaFilter1.getDTOProperties());
+		dtoProperties.addAll(openAPISchemaFilter2.getDTOProperties());
+
+		Map<String, String> schemaMappings =
+			mergedOpenAPISchemaFilter.getSchemaMappings();
+
+		schemaMappings.putAll(openAPISchemaFilter1.getSchemaMappings());
+		schemaMappings.putAll(openAPISchemaFilter2.getSchemaMappings());
+
+		return mergedOpenAPISchemaFilter;
+	}
+
 	private OpenAPISpecFilter _toOpenAPISpecFilter(
 		OpenAPISchemaFilter openAPISchemaFilter) {
+
+		List<DTOProperty> dtoProperties =
+			openAPISchemaFilter.getDTOProperties();
 
 		Map<String, String> schemaMappings =
 			openAPISchemaFilter.getSchemaMappings();
@@ -193,6 +447,21 @@ public class OpenAPIResourceImpl implements OpenAPIResource {
 					schemas.remove(key);
 
 					_replaceParameters(key, openAPI.getPaths());
+				}
+
+				for (DTOProperty dtoProperty : dtoProperties) {
+					Map<DTOProperty, Schema> newSchemas = _getNewSchemas(
+						dtoProperty);
+
+					if (MapUtil.isEmpty(newSchemas)) {
+						continue;
+					}
+
+					_fixNewSchemaNames(newSchemas, schemas);
+
+					for (Schema schema : newSchemas.values()) {
+						openAPI.schema(schema.getName(), schema);
+					}
 				}
 
 				return super.filterOpenAPI(openAPI, params, cookies, headers);
@@ -325,15 +594,23 @@ public class OpenAPIResourceImpl implements OpenAPIResource {
 					schema.addProperties("x-schema-name", stringSchema);
 				}
 
-				DTOProperty dtoProperty = openAPISchemaFilter.getDTOProperty();
+				for (DTOProperty dtoProperty : dtoProperties) {
+					if (!StringUtil.equals(
+							dtoProperty.getName(), schema.getName())) {
 
-				if (Objects.equals(dtoProperty.getName(), schema.getName())) {
+						continue;
+					}
+
 					for (DTOProperty childDTOProperty :
 							dtoProperty.getDTOProperties()) {
 
 						schema.addProperties(
 							childDTOProperty.getName(),
 							_addSchema(childDTOProperty));
+
+						if (childDTOProperty.isRequired()) {
+							schema.addRequiredItem(childDTOProperty.getName());
+						}
 					}
 
 					return Optional.of(schema);
@@ -365,12 +642,47 @@ public class OpenAPIResourceImpl implements OpenAPIResource {
 			}
 
 			private Schema<Object> _addSchema(DTOProperty dtoProperty) {
+				String type = dtoProperty.getType();
+
+				if (type.equals("Array")) {
+					ArraySchema arraySchema = new ArraySchema();
+
+					arraySchema.setDescription(dtoProperty.getDescription());
+					arraySchema.setExtensions(dtoProperty.getExtensions());
+					arraySchema.setName(dtoProperty.getName());
+					arraySchema.setType("array");
+
+					List<DTOProperty> dtoProperties =
+						dtoProperty.getDTOProperties();
+
+					if (ListUtil.isNotEmpty(dtoProperties)) {
+						DTOProperty childDTOProperty = dtoProperties.get(0);
+
+						String childType = childDTOProperty.getType();
+
+						if (childType.equals("Object")) {
+							arraySchema.setItems(
+								new Schema() {
+									{
+										set$ref(
+											"#/components/schemas/" +
+												childDTOProperty.getName());
+									}
+								});
+						}
+						else {
+							arraySchema.setItems(_addSchema(childDTOProperty));
+						}
+					}
+
+					return arraySchema;
+				}
+
 				Schema<Object> schema = new Schema<>();
 
+				schema.setDescription(dtoProperty.getDescription());
 				schema.setExtensions(dtoProperty.getExtensions());
 				schema.setName(dtoProperty.getName());
-
-				String type = dtoProperty.getType();
 
 				if (type.equals("Boolean")) {
 					schema.setType("boolean");
@@ -383,6 +695,10 @@ public class OpenAPIResourceImpl implements OpenAPIResource {
 					schema.setFormat("double");
 					schema.setType("number");
 				}
+				else if (type.equals("Float")) {
+					schema.setFormat("float");
+					schema.setType("number");
+				}
 				else if (type.equals("Integer")) {
 					schema.setFormat("int32");
 					schema.setType("integer");
@@ -391,6 +707,31 @@ public class OpenAPIResourceImpl implements OpenAPIResource {
 					schema.setFormat("int64");
 					schema.setType("integer");
 				}
+				else if (type.equals("Object")) {
+					schema.setType("object");
+
+					for (DTOProperty childDTOProperty :
+							dtoProperty.getDTOProperties()) {
+
+						if (StringUtil.equals(
+								childDTOProperty.getType(), "Object")) {
+
+							schema.set$ref(
+								"#/components/schemas/" +
+									childDTOProperty.getName());
+						}
+						else {
+							schema.addProperties(
+								childDTOProperty.getName(),
+								_addSchema(childDTOProperty));
+
+							if (childDTOProperty.isRequired()) {
+								schema.addRequiredItem(
+									childDTOProperty.getName());
+							}
+						}
+					}
+				}
 				else if (type.equals("String")) {
 					schema.setType("string");
 				}
@@ -398,15 +739,82 @@ public class OpenAPIResourceImpl implements OpenAPIResource {
 					schema.setType("object");
 				}
 
-				for (DTOProperty childDTOProperty :
-						dtoProperty.getDTOProperties()) {
+				return schema;
+			}
 
-					schema.addProperties(
-						childDTOProperty.getName(),
-						_addSchema(childDTOProperty));
+			private void _fixNewSchemaNames(
+				Map<DTOProperty, Schema> newSchemas,
+				Map<String, Schema> schemas) {
+
+				for (Map.Entry<DTOProperty, Schema> entry :
+						newSchemas.entrySet()) {
+
+					Schema schema = entry.getValue();
+
+					if (schemas.containsKey(schema.getName())) {
+						String newName = "C." + schema.getName();
+
+						schema.setName(newName);
+
+						DTOProperty dtoProperty = entry.getKey();
+
+						dtoProperty.setName(newName);
+					}
+				}
+			}
+
+			private Map<DTOProperty, Schema> _getNewSchemas(
+				DTOProperty dtoProperty) {
+
+				Map<DTOProperty, Schema> schemas = new HashMap<>();
+
+				if (StringUtil.equals(dtoProperty.getType(), "Array") ||
+					StringUtil.equals(dtoProperty.getType(), "Object")) {
+
+					for (DTOProperty childDTOProperty1 :
+							dtoProperty.getDTOProperties()) {
+
+						if (StringUtil.equals(
+								childDTOProperty1.getType(), "Object")) {
+
+							Schema schema = new Schema();
+
+							schema.setDescription(
+								childDTOProperty1.getDescription());
+							schema.setExtensions(
+								childDTOProperty1.getExtensions());
+							schema.setName(childDTOProperty1.getName());
+							schema.setType("object");
+
+							for (DTOProperty childDTOProperty2 :
+									childDTOProperty1.getDTOProperties()) {
+
+								schema.addProperties(
+									childDTOProperty2.getName(),
+									_addSchema(childDTOProperty2));
+
+								if (childDTOProperty2.isRequired()) {
+									schema.addRequiredItem(
+										childDTOProperty2.getName());
+								}
+
+								schemas.putAll(
+									_getNewSchemas(childDTOProperty2));
+							}
+
+							schemas.put(childDTOProperty1, schema);
+						}
+					}
+				}
+				else {
+					for (DTOProperty childDTOProperty :
+							dtoProperty.getDTOProperties()) {
+
+						schemas.putAll(_getNewSchemas(childDTOProperty));
+					}
 				}
 
-				return schema;
+				return schemas;
 			}
 
 			private void _replaceContentReference(Content content) {
@@ -468,5 +876,11 @@ public class OpenAPIResourceImpl implements OpenAPIResource {
 
 	@Reference
 	private ConfigurationAdmin _configurationAdmin;
+
+	@Reference
+	private ExtensionProviderRegistry _extensionProviderRegistry;
+
+	@Reference
+	private JaxRsResourceRegistry _jaxRsResourceRegistry;
 
 }

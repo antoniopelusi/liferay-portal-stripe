@@ -6,7 +6,7 @@
 	xsi:schemaLocation="urn:liferay.com:liferay-workflow_7.4.0 http://www.liferay.com/dtd/liferay-workflow-definition_7_4_0.xsd"
 >
 	<name>Test Workflow Definition 1</name>
-	<description>This is a description for Test Workflow Definition 1.</description>
+	<description>This is the description for Test Workflow Definition 1.</description>
 	<version>1</version>
 	<state>
 		<name>StartNode</name>

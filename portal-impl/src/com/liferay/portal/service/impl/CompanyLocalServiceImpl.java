@@ -19,8 +19,6 @@ import com.liferay.expando.kernel.model.ExpandoColumn;
 import com.liferay.expando.kernel.model.ExpandoTable;
 import com.liferay.expando.kernel.service.ExpandoColumnLocalService;
 import com.liferay.expando.kernel.service.ExpandoTableLocalService;
-import com.liferay.petra.encryptor.Encryptor;
-import com.liferay.petra.encryptor.EncryptorException;
 import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.sql.dsl.DSLQueryFactoryUtil;
@@ -28,12 +26,16 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.db.partition.DBPartitionUtil;
 import com.liferay.portal.kernel.bean.BeanReference;
+import com.liferay.portal.kernel.cache.PortalCacheHelperUtil;
+import com.liferay.portal.kernel.cache.PortalCacheManagerNames;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.Disjunction;
 import com.liferay.portal.kernel.dao.orm.EntityCacheUtil;
 import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.encryptor.EncryptorException;
+import com.liferay.portal.kernel.encryptor.EncryptorUtil;
 import com.liferay.portal.kernel.exception.CompanyMxException;
 import com.liferay.portal.kernel.exception.CompanyNameException;
 import com.liferay.portal.kernel.exception.CompanyVirtualHostException;
@@ -256,7 +258,8 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 			// Company info
 
 			try {
-				company.setKey(Encryptor.serializeKey(Encryptor.generateKey()));
+				company.setKey(
+					EncryptorUtil.serializeKey(EncryptorUtil.generateKey()));
 			}
 			catch (EncryptorException encryptorException) {
 				throw new SystemException(encryptorException);
@@ -271,10 +274,6 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 			}
 
 			_addDefaultUser(company);
-
-			if (webId.equals(PropsValues.COMPANY_DEFAULT_WEB_ID)) {
-				return company;
-			}
 
 			company = _checkCompany(company, mx);
 
@@ -375,7 +374,8 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 		}
 
 		try {
-			company.setKey(Encryptor.serializeKey(Encryptor.generateKey()));
+			company.setKey(
+				EncryptorUtil.serializeKey(EncryptorUtil.generateKey()));
 		}
 		catch (EncryptorException encryptorException) {
 			throw new SystemException(encryptorException);
@@ -1442,14 +1442,27 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 		return company;
 	}
 
-	protected void preregisterCompany(long companyId) {
+	protected void preregisterCompany(Company company) {
 		try {
-			SearchEngineHelperUtil.initialize(companyId);
+			SearchEngineHelperUtil.initialize(company.getCompanyId());
 		}
 		catch (Exception exception) {
 			_log.error(
-				"Unable to initialize search engine for company " + companyId,
+				"Unable to initialize search engine for company " +
+					company.getCompanyId(),
 				exception);
+		}
+
+		PortalInstanceLifecycleManager portalInstanceLifecycleManager =
+			_serviceTracker.getService();
+
+		if (portalInstanceLifecycleManager != null) {
+			portalInstanceLifecycleManager.preregisterCompany(company);
+		}
+		else {
+			synchronized (_preregisterPendingCompanies) {
+				_preregisterPendingCompanies.add(company);
+			}
 		}
 	}
 
@@ -1550,12 +1563,10 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 				LocaleException localeException = new LocaleException(
 					LocaleException.TYPE_DISPLAY_SETTINGS);
 
-				localeException.setSourceAvailableLocales(
-					Arrays.asList(
-						LocaleUtil.fromLanguageIds(PropsValues.LOCALES)));
-				localeException.setTargetAvailableLocales(
-					Arrays.asList(
-						LocaleUtil.fromLanguageIds(languageIdsArray)));
+				localeException.setSourceAvailableLanguageIds(
+					Arrays.asList(PropsValues.LOCALES));
+				localeException.setTargetAvailableLanguageIds(
+					Arrays.asList(languageIdsArray));
 
 				throw localeException;
 			}
@@ -1951,7 +1962,7 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 			LocaleThreadLocal.getSiteDefaultLocale();
 
 		try {
-			preregisterCompany(company.getCompanyId());
+			preregisterCompany(company);
 
 			Locale companyDefaultLocale = LocaleUtil.fromLanguageId(
 				PropsValues.COMPANY_DEFAULT_LOCALE);
@@ -2052,6 +2063,9 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 				() -> {
 					EntityCacheUtil.removeResult(
 						company.getClass(), company.getPrimaryKeyObj());
+
+					PortalCacheHelperUtil.removePortalCaches(
+						PortalCacheManagerNames.MULTI_VM, companyId);
 
 					return null;
 				});
@@ -2234,6 +2248,8 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 	@BeanReference(type = PortletPersistence.class)
 	private PortletPersistence _portletPersistence;
 
+	private final Set<Company> _preregisterPendingCompanies = new HashSet<>();
+
 	@BeanReference(type = RoleLocalService.class)
 	private RoleLocalService _roleLocalService;
 
@@ -2269,6 +2285,15 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 
 			PortalInstanceLifecycleManager portalInstanceLifecycleManager =
 				_bundleContext.getService(serviceReference);
+
+			synchronized (_preregisterPendingCompanies) {
+				forEachCompany(
+					company -> portalInstanceLifecycleManager.registerCompany(
+						company),
+					new ArrayList<Company>(_preregisterPendingCompanies));
+
+				_preregisterPendingCompanies.clear();
+			}
 
 			synchronized (_pendingCompanies) {
 				forEachCompany(

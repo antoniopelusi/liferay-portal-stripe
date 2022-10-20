@@ -23,7 +23,7 @@ import com.liferay.commerce.product.type.virtual.web.internal.display.context.he
 import com.liferay.commerce.service.CommerceOrderItemService;
 import com.liferay.commerce.service.CommerceOrderService;
 import com.liferay.document.library.kernel.service.DLAppService;
-import com.liferay.document.library.kernel.util.DLUtil;
+import com.liferay.document.library.util.DLURLHelperUtil;
 import com.liferay.item.selector.ItemSelector;
 import com.liferay.item.selector.ItemSelectorReturnType;
 import com.liferay.item.selector.criteria.FileEntryItemSelectorReturnType;
@@ -136,7 +136,7 @@ public class CommerceVirtualOrderItemEditDisplayContext {
 		FileEntry fileEntry = _dlAppService.getFileEntry(
 			_commerceVirtualOrderItem.getFileEntryId());
 
-		return DLUtil.getDownloadURL(
+		return DLURLHelperUtil.getDownloadURL(
 			fileEntry, fileEntry.getLatestFileVersion(),
 			_cpDefinitionVirtualSettingRequestHelper.getThemeDisplay(),
 			StringPool.BLANK, true, true);
@@ -166,11 +166,10 @@ public class CommerceVirtualOrderItemEditDisplayContext {
 			Collections.<ItemSelectorReturnType>singletonList(
 				new FileEntryItemSelectorReturnType()));
 
-		PortletURL itemSelectorURL = _itemSelector.getItemSelectorURL(
-			requestBackedPortletURLFactory, "uploadCommerceVirtualOrderItem",
-			fileItemSelectorCriterion);
-
-		return itemSelectorURL.toString();
+		return String.valueOf(
+			_itemSelector.getItemSelectorURL(
+				requestBackedPortletURLFactory,
+				"uploadCommerceVirtualOrderItem", fileItemSelectorCriterion));
 	}
 
 	private final CommerceOrder _commerceOrder;

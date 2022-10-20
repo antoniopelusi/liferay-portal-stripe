@@ -1,6 +1,8 @@
 @component-name = "portal-analytics-cloud"
 definition {
 
+	property analytics.cloud.release = "true";
+	property analytics.cloud.upstream = "true";
 	property custom.properties = "jsonws.web.service.paths.excludes=";
 	property portal.release = "false";
 	property portal.upstream = "true";
@@ -55,6 +57,8 @@ definition {
 	tearDown {
 		var testPortalInstance = PropsUtil.get("test.portal.instance");
 
+		ACUtils.tearDownAC();
+
 		ACUtils.tearDownDXP();
 
 		if ("${testPortalInstance}" == "true") {
@@ -63,8 +67,6 @@ definition {
 		else {
 			JSONGroup.deleteGroupByName(groupName = "Site Name");
 		}
-
-		ACUtils.tearDownAC();
 	}
 
 	@description = "Feature ID: LRAC-7532 | Automation ID: LRAC-8538 | Test Summary: Create custom asset report"
@@ -78,6 +80,7 @@ definition {
 
 		task ("View the site page") {
 			ACUtils.navigateToSitePage(
+				actionType = "View WC",
 				pageName = "AC Page",
 				siteName = "Site Name");
 		}
@@ -112,6 +115,7 @@ definition {
 	@priority = "5"
 	test CanCreateMultipleCustomAssetReport {
 		property portal.acceptance = "true";
+		property portal.release = "true";
 
 		task ("Sign in as new user") {
 			User.logoutAndLoginPG(
@@ -139,14 +143,14 @@ definition {
 		task ("Add three custom asset reports") {
 			var n = "1";
 
-			for (var metric : list "Asset Views (sum),Asset Interaction Time (sum),Asset Downloads (sum)") {
+			for (var metricName : list "Asset Views (sum),Asset Interaction Time (average),Asset Downloads (sum)") {
 				ACNavigation.goToAssets();
 
 				ACNavigation.switchTab(tabName = "Custom");
 
 				ACAssets.addCustomAssetReport(
 					assetName = "Custom Asset Analytics Cloud",
-					metric = "Asset Views (sum)",
+					metric = "${metricName}",
 					reportName = "Test Custom Asset Report ${n}");
 
 				var n = ${n} + 1;
@@ -161,19 +165,15 @@ definition {
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8095 | Test Summary: Can delete a custom asset report"
-	@ignore = "true"
 	@priority = "5"
 	test CanDeleteCustomAssetReport {
-
-		// AC Refactor: Data doesn't appear on time
-		// AC Refactor ticket: LRAC-9174
-
 		task ("Access the Custom Asset") {
 			User.logoutAndLoginPG(
 				userLoginEmailAddress = "userea@liferay.com",
 				userLoginFullName = "userfn userln");
 
 			ACUtils.navigateToSitePage(
+				actionType = "View WC",
 				pageName = "AC Page",
 				siteName = "Site Name");
 		}
@@ -192,8 +192,6 @@ definition {
 			ACNavigation.goToAssets();
 
 			ACNavigation.switchTab(tabName = "Custom");
-
-			// Custom asset data doesn't appear, so the custom asset report cannot be added.
 
 			ACAssets.addCustomAssetReport(
 				assetName = "Custom Asset Analytics Cloud",
@@ -246,14 +244,14 @@ definition {
 		task ("Add three custom asset reports") {
 			var n = "1";
 
-			for (var metric : list "Asset Views (sum),Asset Interaction Time (sum),Asset Downloads (sum)") {
+			for (var metricName : list "Asset Views (sum),Asset Interaction Time (average),Asset Downloads (sum)") {
 				ACNavigation.goToAssets();
 
 				ACNavigation.switchTab(tabName = "Custom");
 
 				ACAssets.addCustomAssetReport(
 					assetName = "Custom Asset Analytics Cloud",
-					metric = "Asset Views (sum)",
+					metric = "${metricName}",
 					reportName = "Test Custom Asset Report ${n}");
 
 				var n = ${n} + 1;
@@ -307,14 +305,14 @@ definition {
 		task ("Add three custom asset reports") {
 			var n = "1";
 
-			for (var metric : list "Asset Views (sum),Asset Interaction Time (sum),Asset Downloads (sum)") {
+			for (var metricName : list "Asset Views (sum),Asset Interaction Time (average),Asset Downloads (sum)") {
 				ACNavigation.goToAssets();
 
 				ACNavigation.switchTab(tabName = "Custom");
 
 				ACAssets.addCustomAssetReport(
 					assetName = "Custom Asset Analytics Cloud",
-					metric = "Asset Views (sum)",
+					metric = "${metricName}",
 					reportName = "Test Custom Asset Report ${n}");
 
 				var n = ${n} + 1;
@@ -341,6 +339,8 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8132 | Test Summary: Custom asset list shows a list of custom assets"
 	@priority = "5"
 	test CanShowsCustomAssetList {
+		property analytics.cloud.upstream = "false";
+
 		var assetName = "Custom Asset Analytics Cloud,Custom Asset Analytics Cloud 2,Custom Asset Analytics Cloud 3";
 
 		for (var layoutName : list "AC Page 2,AC Page 3") {

@@ -16,13 +16,32 @@
 
 <%@ include file="/init.jsp" %>
 
+<%
+LayoutLookAndFeelDisplayContext layoutLookAndFeelDisplayContext = new LayoutLookAndFeelDisplayContext(request, layoutsAdminDisplayContext, liferayPortletResponse);
+
+LayoutSet selLayoutSet = layoutsAdminDisplayContext.getSelLayoutSet();
+%>
+
 <liferay-ui:error-marker
 	key="<%= WebKeys.ERROR_SECTION %>"
 	value="look-and-feel"
 />
 
-<aui:model-context bean="<%= layoutsAdminDisplayContext.getSelLayoutSet() %>" model="<%= Layout.class %>" />
+<aui:model-context bean="<%= selLayoutSet %>" model="<%= Layout.class %>" />
 
 <aui:input name="devices" type="hidden" value="regular" />
 
 <liferay-util:include page="/look_and_feel_themes.jsp" servletContext="<%= application %>" />
+
+<c:if test='<%= GetterUtil.getBoolean(PropsUtil.get("feature.flag.LPS-153457")) %>'>
+	<div class="mt-5">
+		<liferay-util:include page="/look_and_feel_theme_css.jsp" servletContext="<%= application %>" />
+	</div>
+
+	<clay:sheet-section>
+		<react:component
+			module="js/layout/look_and_feel/GlobalCSSCETsConfiguration"
+			props="<%= layoutLookAndFeelDisplayContext.getGlobalCSSCETsConfigurationProps(LayoutSet.class.getName(), selLayoutSet.getLayoutSetId()) %>"
+		/>
+	</clay:sheet-section>
+</c:if>

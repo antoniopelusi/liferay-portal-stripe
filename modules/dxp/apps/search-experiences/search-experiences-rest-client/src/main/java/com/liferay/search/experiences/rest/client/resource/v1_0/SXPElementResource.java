@@ -121,6 +121,12 @@ public interface SXPElementResource {
 			return new SXPElementResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -166,6 +172,7 @@ public interface SXPElementResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -272,7 +279,7 @@ public interface SXPElementResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/search-experiences-rest/v1.0/sxp-elements");
 
 			httpInvoker.userNameAndPassword(
@@ -353,7 +360,7 @@ public interface SXPElementResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/search-experiences-rest/v1.0/sxp-elements");
 
 			httpInvoker.userNameAndPassword(
@@ -430,7 +437,7 @@ public interface SXPElementResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/search-experiences-rest/v1.0/sxp-elements/batch");
 
 			httpInvoker.userNameAndPassword(
@@ -511,7 +518,7 @@ public interface SXPElementResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/search-experiences-rest/v1.0/sxp-elements/validate");
 
 			httpInvoker.userNameAndPassword(
@@ -588,7 +595,7 @@ public interface SXPElementResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/search-experiences-rest/v1.0/sxp-elements/{sxpElementId}");
 
 			httpInvoker.path("sxpElementId", sxpElementId);
@@ -667,7 +674,7 @@ public interface SXPElementResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/search-experiences-rest/v1.0/sxp-elements/{sxpElementId}/batch");
 
 			httpInvoker.path("sxpElementId", sxpElementId);
@@ -746,7 +753,7 @@ public interface SXPElementResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/search-experiences-rest/v1.0/sxp-elements/{sxpElementId}");
 
 			httpInvoker.path("sxpElementId", sxpElementId);
@@ -830,7 +837,7 @@ public interface SXPElementResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/search-experiences-rest/v1.0/sxp-elements/{sxpElementId}");
 
 			httpInvoker.path("sxpElementId", sxpElementId);
@@ -911,7 +918,7 @@ public interface SXPElementResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/search-experiences-rest/v1.0/sxp-elements/{sxpElementId}/copy");
 
 			httpInvoker.path("sxpElementId", sxpElementId);
@@ -979,7 +986,7 @@ public interface SXPElementResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/search-experiences-rest/v1.0/sxp-elements/{sxpElementId}/export");
 
 			httpInvoker.path("sxpElementId", sxpElementId);

@@ -172,11 +172,6 @@ public class PageIteratorTag extends IncludeTag {
 	@Override
 	protected String getEndPage() {
 		if (_pages > 1) {
-			if (Validator.isNotNull(_markupView)) {
-				return "/html/taglib/ui/page_iterator/" + _markupView +
-					"/end.jsp";
-			}
-
 			return "/html/taglib/ui/page_iterator/end.jsp";
 		}
 
@@ -185,9 +180,8 @@ public class PageIteratorTag extends IncludeTag {
 
 	@Override
 	protected String getStartPage() {
-		if (Validator.isNotNull(_markupView)) {
-			return "/html/taglib/ui/page_iterator/" + _markupView +
-				"/start.jsp";
+		if (Validator.isNull(_markupView)) {
+			return "/html/taglib/ui/page_iterator/deprecated/start.jsp";
 		}
 
 		return "/html/taglib/ui/page_iterator/start.jsp";

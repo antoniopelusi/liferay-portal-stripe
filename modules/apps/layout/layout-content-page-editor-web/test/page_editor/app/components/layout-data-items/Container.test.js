@@ -21,25 +21,6 @@ import {LAYOUT_DATA_ITEM_TYPES} from '../../../../../src/main/resources/META-INF
 import {VIEWPORT_SIZES} from '../../../../../src/main/resources/META-INF/resources/page_editor/app/config/constants/viewportSizes';
 import {StoreAPIContextProvider} from '../../../../../src/main/resources/META-INF/resources/page_editor/app/contexts/StoreContext';
 
-jest.mock(
-	'../../../../../src/main/resources/META-INF/resources/page_editor/app/config',
-	() => ({
-		config: {
-			commonStyles: [
-				{
-					styles: [
-						{
-							defaultValue: 'left',
-							name: 'textAlign',
-						},
-					],
-				},
-			],
-			frontendTokens: {},
-		},
-	})
-);
-
 const renderContainer = (config) => {
 	return render(
 		<StoreAPIContextProvider
@@ -56,7 +37,6 @@ const renderContainer = (config) => {
 					itemId: 'containerId',
 					type: LAYOUT_DATA_ITEM_TYPES.container,
 				}}
-				withinTopper={false}
 			>
 				Container
 			</Container>
@@ -78,5 +58,17 @@ describe('Container', () => {
 		expect(link.href).toBe('https://sandro.vero.victor.com/');
 		expect(link.target).toBe('_blank');
 		expect(link.textContent).toBe('Container');
+	});
+
+	it('adds content-visibility: auto when that configuration is set', () => {
+		renderContainer({
+			contentVisibility: 'auto',
+		});
+
+		const container = document.querySelector(
+			'.lfr-layout-structure-item-container'
+		);
+
+		expect(container.style.contentVisibility).toBe('auto');
 	});
 });

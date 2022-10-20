@@ -69,6 +69,17 @@ public class ObjectEntryLocalServiceUtil {
 		return getService().addObjectEntry(objectEntry);
 	}
 
+	public static void addOrUpdateExtensionDynamicObjectDefinitionTableValues(
+			long userId,
+			com.liferay.object.model.ObjectDefinition objectDefinition,
+			long primaryKey, Map<String, Serializable> values,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws PortalException {
+
+		getService().addOrUpdateExtensionDynamicObjectDefinitionTableValues(
+			userId, objectDefinition, primaryKey, values, serviceContext);
+	}
+
 	public static ObjectEntry addOrUpdateObjectEntry(
 			String externalReferenceCode, long userId, long groupId,
 			long objectDefinitionId, Map<String, Serializable> values,
@@ -98,6 +109,15 @@ public class ObjectEntryLocalServiceUtil {
 		throws PortalException {
 
 		return getService().createPersistedModel(primaryKeyObj);
+	}
+
+	public static void deleteExtensionDynamicObjectDefinitionTableValues(
+			com.liferay.object.model.ObjectDefinition objectDefinition,
+			long primaryKey)
+		throws PortalException {
+
+		getService().deleteExtensionDynamicObjectDefinitionTableValues(
+			objectDefinition, primaryKey);
 	}
 
 	/**
@@ -268,12 +288,32 @@ public class ObjectEntryLocalServiceUtil {
 		return getService().getActionableDynamicQuery();
 	}
 
+	public static Map<Object, Long> getAggregationCounts(
+			long objectDefinitionId, String aggregationTerm,
+			com.liferay.petra.sql.dsl.expression.Predicate predicate, int start,
+			int end)
+		throws PortalException {
+
+		return getService().getAggregationCounts(
+			objectDefinitionId, aggregationTerm, predicate, start, end);
+	}
+
 	public static com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery
 		getExportActionableDynamicQuery(
 			com.liferay.exportimport.kernel.lar.PortletDataContext
 				portletDataContext) {
 
 		return getService().getExportActionableDynamicQuery(portletDataContext);
+	}
+
+	public static Map<String, Serializable>
+			getExtensionDynamicObjectDefinitionTableValues(
+				com.liferay.object.model.ObjectDefinition objectDefinition,
+				long primaryKey)
+		throws PortalException {
+
+		return getService().getExtensionDynamicObjectDefinitionTableValues(
+			objectDefinition, primaryKey);
 	}
 
 	public static
@@ -450,6 +490,15 @@ public class ObjectEntryLocalServiceUtil {
 		return getService().getPersistedModel(primaryKeyObj);
 	}
 
+	public static Map<String, Object> getSystemModelAttributes(
+			com.liferay.object.model.ObjectDefinition objectDefinition,
+			long primaryKey)
+		throws PortalException {
+
+		return getService().getSystemModelAttributes(
+			objectDefinition, primaryKey);
+	}
+
 	public static Map<String, Serializable> getValues(long objectEntryId)
 		throws PortalException {
 
@@ -463,11 +512,26 @@ public class ObjectEntryLocalServiceUtil {
 	}
 
 	public static List<Map<String, Serializable>> getValuesList(
-			long objectDefinitionId, int[] statuses, int start, int end)
+			long objectDefinitionId, long groupId, long[] accountEntryIds,
+			com.liferay.petra.sql.dsl.expression.Predicate predicate,
+			String search, int start, int end,
+			com.liferay.petra.sql.dsl.query.sort.OrderByExpression[]
+				orderByExpressions)
 		throws PortalException {
 
 		return getService().getValuesList(
-			objectDefinitionId, statuses, start, end);
+			objectDefinitionId, groupId, accountEntryIds, predicate, search,
+			start, end, orderByExpressions);
+	}
+
+	public static int getValuesListCount(
+			long objectDefinitionId, long groupId, long[] accountEntryIds,
+			com.liferay.petra.sql.dsl.expression.Predicate predicate,
+			String search)
+		throws PortalException {
+
+		return getService().getValuesListCount(
+			objectDefinitionId, groupId, accountEntryIds, predicate, search);
 	}
 
 	public static void insertIntoOrUpdateExtensionTable(

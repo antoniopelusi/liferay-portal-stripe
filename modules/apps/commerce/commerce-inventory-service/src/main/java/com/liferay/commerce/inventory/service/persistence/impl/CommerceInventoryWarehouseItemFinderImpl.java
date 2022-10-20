@@ -14,6 +14,7 @@
 
 package com.liferay.commerce.inventory.service.persistence.impl;
 
+import com.liferay.commerce.inventory.model.CommerceInventoryWarehouse;
 import com.liferay.commerce.inventory.model.CommerceInventoryWarehouseItem;
 import com.liferay.commerce.inventory.model.impl.CommerceInventoryWarehouseItemImpl;
 import com.liferay.commerce.inventory.service.persistence.CommerceInventoryWarehouseItemFinder;
@@ -25,18 +26,24 @@ import com.liferay.portal.kernel.dao.orm.SQLQuery;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.Type;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.security.permission.InlineSQLHelperUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.spring.extender.service.ServiceReference;
 
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * @author Luca Pellizzon
  * @author Alessio Antonio Rendina
  */
+@Component(
+	enabled = false, service = CommerceInventoryWarehouseItemFinder.class
+)
 public class CommerceInventoryWarehouseItemFinderImpl
 	extends CommerceInventoryWarehouseItemFinderBaseImpl
 	implements CommerceInventoryWarehouseItemFinder {
@@ -123,6 +130,13 @@ public class CommerceInventoryWarehouseItemFinderImpl
 
 	@Override
 	public int countStockQuantityByC_S(long companyId, String sku) {
+		return countStockQuantityByC_S(companyId, sku, false);
+	}
+
+	@Override
+	public int countStockQuantityByC_S(
+		long companyId, String sku, boolean inlineSQLHelper) {
+
 		Session session = null;
 
 		try {
@@ -130,6 +144,13 @@ public class CommerceInventoryWarehouseItemFinderImpl
 
 			String sql = _customSQL.get(
 				getClass(), COUNT_STOCK_QUANTITY_BY_C_S);
+
+			if (inlineSQLHelper) {
+				sql = InlineSQLHelperUtil.replacePermissionCheck(
+					sql, CommerceInventoryWarehouse.class.getName(),
+					"CIWarehouse.ciwarehouseid", null, null, new long[] {0},
+					null);
+			}
 
 			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
@@ -164,6 +185,15 @@ public class CommerceInventoryWarehouseItemFinderImpl
 	public int countStockQuantityByC_G_S(
 		long companyId, long commerceChannelGroupId, String sku) {
 
+		return countStockQuantityByC_G_S(
+			companyId, commerceChannelGroupId, sku, false);
+	}
+
+	@Override
+	public int countStockQuantityByC_G_S(
+		long companyId, long commerceChannelGroupId, String sku,
+		boolean inlineSQLHelper) {
+
 		Session session = null;
 
 		try {
@@ -171,6 +201,13 @@ public class CommerceInventoryWarehouseItemFinderImpl
 
 			String sql = _customSQL.get(
 				getClass(), COUNT_STOCK_QUANTITY_BY_C_G_S);
+
+			if (inlineSQLHelper) {
+				sql = InlineSQLHelperUtil.replacePermissionCheck(
+					sql, CommerceInventoryWarehouse.class.getName(),
+					"CIWarehouse.ciwarehouseid", null, null, new long[] {0},
+					null);
+			}
 
 			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
@@ -333,7 +370,7 @@ public class CommerceInventoryWarehouseItemFinderImpl
 		}
 	}
 
-	@ServiceReference(type = CustomSQL.class)
+	@Reference
 	private CustomSQL _customSQL;
 
 }

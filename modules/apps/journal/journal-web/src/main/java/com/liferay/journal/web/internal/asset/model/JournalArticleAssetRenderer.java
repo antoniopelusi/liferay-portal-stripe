@@ -16,6 +16,7 @@ package com.liferay.journal.web.internal.asset.model;
 
 import com.liferay.asset.display.page.portlet.AssetDisplayPageFriendlyURLProvider;
 import com.liferay.asset.display.page.util.AssetDisplayPageUtil;
+import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.model.AssetRendererFactory;
 import com.liferay.asset.kernel.model.BaseJSPAssetRenderer;
 import com.liferay.asset.kernel.model.DDMFormValuesReader;
@@ -30,10 +31,10 @@ import com.liferay.journal.util.JournalContent;
 import com.liferay.journal.util.JournalConverter;
 import com.liferay.journal.web.internal.asset.JournalArticleDDMFormValuesReader;
 import com.liferay.journal.web.internal.security.permission.resource.JournalArticlePermission;
+import com.liferay.journal.web.internal.util.JournalHelperUtil;
 import com.liferay.layout.model.LayoutClassedModelUsage;
 import com.liferay.layout.service.LayoutClassedModelUsageLocalServiceUtil;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
-import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
@@ -50,7 +51,6 @@ import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
-import com.liferay.portal.kernel.service.LayoutSetLocalServiceUtil;
 import com.liferay.portal.kernel.service.permission.LayoutPermissionUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.trash.TrashRenderer;
@@ -392,16 +392,23 @@ public class JournalArticleAssetRenderer
 		Layout layout = _article.getLayout();
 
 		if (layout == null) {
-			return noSuchEntryRedirect;
+			AssetRendererFactory<JournalArticle> assetRendererFactory =
+				getAssetRendererFactory();
+
+			AssetEntry assetEntry = assetRendererFactory.getAssetEntry(
+				getClassName(), getClassPK());
+
+			layout = _getArticleLayout(
+				assetEntry.getLayoutUuid(), assetEntry.getGroupId());
+
+			if (layout == null) {
+				return noSuchEntryRedirect;
+			}
 		}
 
-		String friendlyURL = StringBundler.concat(
-			PortalUtil.getGroupFriendlyURL(
-				LayoutSetLocalServiceUtil.getLayoutSet(
-					_article.getGroupId(), layout.isPrivateLayout()),
-				themeDisplay, false, false),
-			JournalArticleConstants.CANONICAL_URL_SEPARATOR,
-			_article.getUrlTitle(themeDisplay.getLocale()));
+		String friendlyURL = JournalHelperUtil.createURLPattern(
+			_article, themeDisplay.getLocale(), layout.isPrivateLayout(),
+			JournalArticleConstants.CANONICAL_URL_SEPARATOR, themeDisplay);
 
 		if (!_article.isApproved()) {
 			friendlyURL = HttpComponentsUtil.addParameter(
@@ -568,6 +575,22 @@ public class JournalArticleAssetRenderer
 			portletRequestModel, themeDisplay);
 	}
 
+	private Layout _getArticleLayout(String layoutUuid, long groupId) {
+		if (Validator.isNull(layoutUuid)) {
+			return null;
+		}
+
+		Layout layout = LayoutLocalServiceUtil.fetchLayoutByUuidAndGroupId(
+			layoutUuid, groupId, false);
+
+		if (layout == null) {
+			layout = LayoutLocalServiceUtil.fetchLayoutByUuidAndGroupId(
+				layoutUuid, groupId, true);
+		}
+
+		return layout;
+	}
+
 	private String _getHitLayoutURL(
 			String noSuchEntryRedirect, ThemeDisplay themeDisplay)
 		throws Exception {
@@ -618,7 +641,11 @@ public class JournalArticleAssetRenderer
 		AssetRendererFactory<JournalArticle> assetRendererFactory =
 			getAssetRendererFactory();
 
+		AssetEntry assetEntry = assetRendererFactory.getAssetEntry(
+			getClassName(), getClassPK());
+
 		if (Validator.isNull(article.getLayoutUuid()) &&
+			Validator.isNull(assetEntry.getLayoutUuid()) &&
 			!AssetDisplayPageUtil.hasAssetDisplayPage(
 				groupId,
 				assetRendererFactory.getAssetEntry(

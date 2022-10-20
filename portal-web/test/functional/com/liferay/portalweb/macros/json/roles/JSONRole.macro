@@ -4,11 +4,8 @@ definition {
 		Variables.assertDefined(parameterList = "${roleTitle}");
 
 		var descriptionMap = JSONRoleSetter.setDescriptionMap(description = "${roleDescription}");
-
 		var name = JSONRoleSetter.setName(name = "${roleTitle}");
-
 		var titleMap = JSONRoleSetter.setTitleMap(title = "${roleKey}");
-
 		var type = JSONRoleSetter.setType(roleType = "organization");
 
 		JSONRoleAPI._addRole(
@@ -22,11 +19,8 @@ definition {
 		Variables.assertDefined(parameterList = "${roleTitle}");
 
 		var descriptionMap = JSONRoleSetter.setDescriptionMap(description = "${roleDescription}");
-
 		var name = JSONRoleSetter.setName(name = "${roleTitle}");
-
 		var titleMap = JSONRoleSetter.setTitleMap(title = "${roleKey}");
-
 		var type = JSONRoleSetter.setType(roleType = "regular");
 
 		JSONRoleAPI._addRole(
@@ -40,11 +34,8 @@ definition {
 		Variables.assertDefined(parameterList = "${roleTitle}");
 
 		var descriptionMap = JSONRoleSetter.setDescriptionMap(description = "${roleDescription}");
-
 		var name = JSONRoleSetter.setName(name = "${roleTitle}");
-
 		var titleMap = JSONRoleSetter.setTitleMap(title = "${roleKey}");
-
 		var type = JSONRoleSetter.setType(roleType = "site");
 
 		JSONRoleAPI._addRole(
@@ -58,7 +49,6 @@ definition {
 		Variables.assertDefined(parameterList = "${groupName},${roleTitle}");
 
 		var groupId = JSONUserSetter.setGroupId(groupName = "${groupName}");
-
 		var roleId = JSONRoleSetter.setRoleId(name = "${roleTitle}");
 
 		JSONRoleAPI._assignRoleToGroup(
@@ -70,7 +60,6 @@ definition {
 		Variables.assertDefined(parameterList = "${roleTitle},${userEmailAddress}");
 
 		var roleId = JSONRoleSetter.setRoleId(name = "${roleTitle}");
-
 		var userId = JSONRoleSetter.setUserId(userEmailAddress = "${userEmailAddress}");
 
 		JSONRoleAPI._assignRoleToUser(
@@ -82,9 +71,7 @@ definition {
 		Variables.assertDefined(parameterList = "${groupName},${roleTitle},${userEmailAddress}");
 
 		var groupId = JSONUserSetter.setGroupId(groupName = "${groupName}");
-
 		var roleId = JSONRoleSetter.setRoleId(name = "${roleTitle}");
-
 		var userId = JSONRoleSetter.setUserId(userEmailAddress = "${userEmailAddress}");
 
 		JSONRoleAPI._assignSiteRoleToUser(

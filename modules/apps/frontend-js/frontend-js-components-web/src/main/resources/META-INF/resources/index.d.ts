@@ -18,23 +18,9 @@ import type {Atom} from '@liferay/frontend-js-state-web';
 
 export const activeLanguageIdsAtom: Atom<any>;
 
-export function ResultsBar(
-	children: React.ReactElement | Array<React.ReactElement>
-): ReactElement;
+export {default as ManagementToolbar} from './management_toolbar/ManagementToolbar';
 
-export function Treeview(
-	NodeComponent: () => void,
-	filter: string | (() => void),
-	inheritSelection: boolean,
-	initialSelectedNodeIds: string[],
-	multiSelection: boolean,
-	nodes: Array<{
-		children: [];
-		expanded: boolean;
-		id: string;
-	}>,
-	onSelectedNodesChange: () => void
-): ReactElement;
+export {default as Treeview} from './treeview/Treeview';
 
 export function TranslationAdminModal(
 	activeLanguageIds: string[],

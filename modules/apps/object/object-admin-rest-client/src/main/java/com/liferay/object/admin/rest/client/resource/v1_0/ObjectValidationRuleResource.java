@@ -132,6 +132,12 @@ public interface ObjectValidationRuleResource {
 			return new ObjectValidationRuleResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -177,6 +183,7 @@ public interface ObjectValidationRuleResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -278,7 +285,7 @@ public interface ObjectValidationRuleResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/object-admin/v1.0/object-definitions/{objectDefinitionId}/object-validation-rules");
 
 			httpInvoker.path("objectDefinitionId", objectDefinitionId);
@@ -367,7 +374,7 @@ public interface ObjectValidationRuleResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/object-admin/v1.0/object-definitions/{objectDefinitionId}/object-validation-rules");
 
 			httpInvoker.path("objectDefinitionId", objectDefinitionId);
@@ -447,7 +454,7 @@ public interface ObjectValidationRuleResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/object-admin/v1.0/object-definitions/{objectDefinitionId}/object-validation-rules/batch");
 
 			httpInvoker.path("objectDefinitionId", objectDefinitionId);
@@ -528,7 +535,7 @@ public interface ObjectValidationRuleResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/object-admin/v1.0/object-validation-rules/{objectValidationRuleId}");
 
 			httpInvoker.path("objectValidationRuleId", objectValidationRuleId);
@@ -608,7 +615,7 @@ public interface ObjectValidationRuleResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/object-admin/v1.0/object-validation-rules/batch");
 
 			httpInvoker.userNameAndPassword(
@@ -688,7 +695,7 @@ public interface ObjectValidationRuleResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/object-admin/v1.0/object-validation-rules/{objectValidationRuleId}");
 
 			httpInvoker.path("objectValidationRuleId", objectValidationRuleId);
@@ -776,7 +783,7 @@ public interface ObjectValidationRuleResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/object-admin/v1.0/object-validation-rules/{objectValidationRuleId}");
 
 			httpInvoker.path("objectValidationRuleId", objectValidationRuleId);
@@ -864,7 +871,7 @@ public interface ObjectValidationRuleResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/object-admin/v1.0/object-validation-rules/{objectValidationRuleId}");
 
 			httpInvoker.path("objectValidationRuleId", objectValidationRuleId);
@@ -943,7 +950,7 @@ public interface ObjectValidationRuleResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/object-admin/v1.0/object-validation-rules/batch");
 
 			httpInvoker.userNameAndPassword(

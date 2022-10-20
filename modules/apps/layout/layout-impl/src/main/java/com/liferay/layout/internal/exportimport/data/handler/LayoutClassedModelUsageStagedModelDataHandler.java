@@ -129,11 +129,19 @@ public class LayoutClassedModelUsageStagedModelDataHandler
 				(assetRenderer.getStatus() ==
 					WorkflowConstants.STATUS_APPROVED)) {
 
-				StagedModelDataHandlerUtil.exportReferenceStagedModel(
-					portletDataContext, layoutClassedModelUsage,
-					(StagedModel)assetRenderer.getAssetObject(),
-					PortletDataContext.REFERENCE_TYPE_DEPENDENCY,
-					assetRendererFactory.getPortletId());
+				if (ExportImportThreadLocal.isStagingInProcess()) {
+					portletDataContext.addReferenceElement(
+						layoutClassedModelUsage, element,
+						(StagedModel)assetRenderer.getAssetObject(),
+						PortletDataContext.REFERENCE_TYPE_WEAK, true);
+				}
+				else {
+					StagedModelDataHandlerUtil.exportReferenceStagedModel(
+						portletDataContext, layoutClassedModelUsage,
+						(StagedModel)assetRenderer.getAssetObject(),
+						PortletDataContext.REFERENCE_TYPE_DEPENDENCY,
+						assetRendererFactory.getPortletId());
+				}
 			}
 		}
 

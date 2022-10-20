@@ -16,25 +16,18 @@ import ClayAlert from '@clayui/alert';
 import ClayButton from '@clayui/button';
 import ClayForm from '@clayui/form';
 import ClayModal, {ClayModalProvider, useModal} from '@clayui/modal';
-import {fetch} from 'frontend-js-web';
+import {Observer} from '@clayui/modal/lib/types';
+import {API, Input} from '@liferay/object-js-components-web';
 import React, {useEffect, useState} from 'react';
 
-import {ERRORS} from '../utils/errors';
 import {toCamelCase} from '../utils/string';
-import Input from './Form/Input';
 import ObjectFieldFormBase, {useObjectFieldForm} from './ObjectFieldFormBase';
 
-const defaultLanguageId = Liferay.ThemeDisplay.getDefaultLanguageId() as Liferay.Language.Locale;
-
-const headers = new Headers({
-	'Accept': 'application/json',
-	'Content-Type': 'application/json',
-});
+const defaultLanguageId = Liferay.ThemeDisplay.getDefaultLanguageId();
 
 function ModalAddObjectField({
-	allowMaxLength,
-	allowUploadDocAndMedia,
 	apiURL,
+	objectDefinitionId,
 	objectFieldTypes,
 	objectName,
 	observer,
@@ -51,31 +44,23 @@ function ModalAddObjectField({
 	};
 
 	const onSubmit = async (field: ObjectField) => {
-		const response = await fetch(apiURL, {
-			body: JSON.stringify({
-				...field,
-				name:
-					field.name ||
-					toCamelCase(field.label[defaultLanguageId] as string),
-			}),
-			headers,
-			method: 'POST',
-		});
+		try {
+			await API.save(
+				apiURL,
+				{
+					...field,
+					name:
+						field.name ||
+						toCamelCase(field.label[defaultLanguageId] as string),
+				},
+				'POST'
+			);
 
-		if (response.status === 401) {
-			window.location.reload();
-		}
-		else if (response.ok) {
 			onClose();
-
 			window.location.reload();
 		}
-		else {
-			const {type} = (await response.json()) as any;
-			const errorMessage =
-				ERRORS[type] ?? Liferay.Language.get('an-error-occurred');
-
-			setError(errorMessage);
+		catch (error) {
+			setError((error as Error).message);
 		}
 	};
 
@@ -114,10 +99,9 @@ function ModalAddObjectField({
 					/>
 
 					<ObjectFieldFormBase
-						allowMaxLength={allowMaxLength}
-						allowUploadDocAndMedia={allowUploadDocAndMedia}
 						errors={errors}
 						handleChange={handleChange}
+						objectDefinitionId={objectDefinitionId}
 						objectField={values}
 						objectFieldTypes={objectFieldTypes}
 						objectName={objectName}
@@ -147,9 +131,8 @@ function ModalAddObjectField({
 }
 
 export default function ModalWithProvider({
-	allowMaxLength,
-	allowUploadDocAndMedia,
 	apiURL,
+	objectDefinitionId,
 	objectFieldTypes,
 	objectName,
 }: IProps) {
@@ -166,10 +149,17 @@ export default function ModalWithProvider({
 		<ClayModalProvider>
 			{isVisible && (
 				<ModalAddObjectField
-					allowMaxLength={allowMaxLength}
-					allowUploadDocAndMedia={allowUploadDocAndMedia}
 					apiURL={apiURL}
-					objectFieldTypes={objectFieldTypes}
+					objectDefinitionId={objectDefinitionId}
+					objectFieldTypes={
+						!Liferay.FeatureFlags['LPS-149625']
+							? objectFieldTypes.filter(
+									(filterType) =>
+										filterType.businessType !==
+										'Aggregation'
+							  )
+							: objectFieldTypes
+					}
 					objectName={objectName}
 					observer={observer}
 					onClose={onClose}
@@ -180,16 +170,13 @@ export default function ModalWithProvider({
 }
 
 interface IModal extends IProps {
-	allowMaxLength: boolean;
-	allowUploadDocAndMedia: boolean;
-	observer: any;
+	observer: Observer;
 	onClose: () => void;
 }
 
 interface IProps {
-	allowMaxLength: boolean;
-	allowUploadDocAndMedia: boolean;
 	apiURL: string;
+	objectDefinitionId: number;
 	objectFieldTypes: ObjectFieldType[];
 	objectName: string;
 }

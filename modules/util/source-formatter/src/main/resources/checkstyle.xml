@@ -300,7 +300,7 @@
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.check.ConstructorMissingEmptyLineCheck">
 			<property name="category" value="Styling" />
-			<property name="description" value="Checks for line breaks when assiging variables in constructor." />
+			<property name="description" value="Checks for line breaks when assigning variables in constructor." />
 			<message key="empty.line.missing" value="There should be an empty line before line ''{0}''" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.check.ConsumerTypeAnnotationCheck">
@@ -459,7 +459,8 @@
 			<property name="description" value="Checks for utilization of class `JSONUtil`." />
 			<message key="json.util.put.all.use" value="Use ''JSONUtil.putAll'' instead of chaining on ''JSONUtil.put''" />
 			<message key="json.util.put.use" value="Combine calls ''{0}'' ({1}) and ''{2}'' ({3}) into single call ''{4}''" />
-			<message key="json.util.to.string.use" value="Use ''toString'' instead of ''String.valueOf''" />
+			<message key="json.util.to.string.use.1" value="Use ''toString'' instead of ''String.valueOf''" />
+			<message key="json.util.to.string.use.2" value="Use ''toString'' instead of ''toJSONString''" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.check.LambdaCheck">
 			<property name="category" value="Styling" />
@@ -543,6 +544,7 @@
 			<message key="empty.line.missing.after.method.name" value="There should be an empty line after ''{0}''" />
 			<message key="empty.line.missing.after.variable.definition" value="There should be an empty line after variable definition of type ''{0}''" />
 			<message key="empty.line.missing.after.variable.reference" value="There should be an empty line before line ''{0}'', as we finished referencing variable ''{1}''" />
+			<message key="empty.line.missing.before.method.name" value="There should be an empty line before ''{0}''" />
 			<message key="empty.line.missing.before.variable.assign" value="There should be an empty line before assigning value to variable ''{0}''" />
 			<message key="empty.line.missing.before.variable.use" value="There should be an empty line between assigning and using variable ''{0}''" />
 			<message key="empty.line.missing.line.number" value="There should be an empty line {0} line ''{1}''" />
@@ -649,10 +651,17 @@
 			<property name="description" value="Finds unnecessary branching (`break`, `continue` or `return`) statements." />
 			<message key="branching.statement.redundant" value="Redundant ''{0}'' statement" />
 		</module>
+		<module name="com.liferay.source.formatter.checkstyle.check.RedundantLogCheck">
+			<property name="category" value="Performance" />
+			<property name="description" value="Finds unnecessary logs." />
+			<property name="enabled" value="false" />
+			<message key="log.redundant" value="Redundant log between line ''{0}'' and line ''{1}''." />
+		</module>
 		<module name="com.liferay.source.formatter.checkstyle.check.ReferenceAnnotationCheck">
 			<property name="category" value="Bug Prevention" />
 			<property name="description" value="Performs several checks on classes with @Reference annotation." />
 			<message key="default.unbind.redundant" value="No need to specify default ''unbind'' method. See https://osgi.org/javadoc/r4v43/cmpn/org/osgi/service/component/annotations/Reference.html#unbind()" />
+			<message key="dynamic.policy.missing" value="When using ''cardinality = ReferenceCardinality.OPTIONAL'' and ''policyOption = ReferencePolicyOption.GREEDY'', always use ''policy = ReferencePolicy.DYNAMIC'' as well" />
 			<message key="reference.move" value="Move @Reference from method ''{0}'' to field ''{1}''" />
 			<message key="target.value.incorrect" value="Do not use ''target = {0}''" />
 			<message key="unbind.dynamic.policy.missing" value="Always specify a valid ''unbind'' method when using ''policy = ReferencePolicy.DYNAMIC'' policy. See https://osgi.org/javadoc/r4v43/cmpn/org/osgi/service/component/annotations/Reference.html#unbind()" />

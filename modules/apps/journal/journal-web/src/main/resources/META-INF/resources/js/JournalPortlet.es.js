@@ -12,7 +12,14 @@
  * details.
  */
 
-import {debounce, fetch, navigate, openToast} from 'frontend-js-web';
+import {
+	debounce,
+	fetch,
+	navigate,
+	openConfirmModal,
+	openToast,
+	sub,
+} from 'frontend-js-web';
 
 import {LocaleChangedHandler} from './LocaleChangedHandler.es';
 
@@ -81,7 +88,7 @@ export default function _JournalPortlet({
 
 		if (!titleInputComponent?.getValue(defaultLanguageId)) {
 			showAlert(
-				Liferay.Util.sub(
+				sub(
 					Liferay.Language.get(
 						'please-enter-a-valid-title-for-the-default-language-x'
 					),
@@ -135,7 +142,7 @@ export default function _JournalPortlet({
 		else {
 			if (showErrors) {
 				showAlert(
-					Liferay.Util.sub(
+					sub(
 						Liferay.Language.get(
 							'please-enter-a-valid-title-for-the-default-language-x'
 						),
@@ -166,6 +173,12 @@ export default function _JournalPortlet({
 		}
 
 		if (editingDefaultValues) {
+			Liferay.component(`${namespace}dataEngineLayoutRenderer`)
+				.reactComponentRef.current.getFields()
+				.forEach((field) => {
+					field.required = false;
+				});
+
 			actionInput.value = articleId
 				? '/journal/update_data_engine_default_values'
 				: '/journal/add_data_engine_default_values';
@@ -207,24 +220,28 @@ export default function _JournalPortlet({
 	const handleResetValuesButtonClick = (event) => {
 		publishingLock.lock();
 
-		if (
-			confirm(
-				Liferay.Language.get(
-					'are-you-sure-you-want-to-reset-the-default-values'
-				)
-			)
-		) {
-			if (editingDefaultValues) {
-				actionInput.value = articleId
-					? '/journal/update_data_engine_default_values'
-					: '/journal/add_data_engine_default_values';
-			}
+		openConfirmModal({
+			message: Liferay.Language.get(
+				'are-you-sure-you-want-to-reset-the-default-values'
+			),
+			onConfirm: (isConfirmed) => {
+				if (isConfirmed) {
+					if (editingDefaultValues) {
+						actionInput.value = articleId
+							? '/journal/update_data_engine_default_values'
+							: '/journal/add_data_engine_default_values';
+					}
 
-			submitForm(document.hrefFm, event.currentTarget.dataset.url);
-		}
-		else {
-			publishingLock.unlock();
-		}
+					submitForm(
+						document.hrefFm,
+						event.currentTarget.dataset.url
+					);
+				}
+				else {
+					publishingLock.unlock();
+				}
+			},
+		});
 	};
 
 	const showAlert = (message) => {
@@ -413,7 +430,7 @@ function attachFormChangeListener(
 			})
 			.filter((mutationRecord) => acceptMutationRecord(mutationRecord));
 
-		if (observedMutationRecords.length > 0) {
+		if (observedMutationRecords.length) {
 			handleChange();
 		}
 	});

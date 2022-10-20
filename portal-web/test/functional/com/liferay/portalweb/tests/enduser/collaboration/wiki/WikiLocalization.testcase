@@ -84,12 +84,30 @@ definition {
 	}
 
 	@description = "This test covers LPS-144498. It validates that once localized, the Table of Contents uses the current language translation."
-	@ignore = "Test Stub"
 	@priority = "3"
-	test CanViewTableOfContentsInNorwegian {
+	test CanViewTableOfContentsInJapanese {
+		JSONWiki.addWikiPage(
+			groupName = "Guest",
+			wikiNodeName = "Main",
+			wikiPageContent = "<<TableOfContents>>",
+			wikiPageName = "Wiki Page Title");
 
-		// TODO LPS-149401
+		PortalSettings.openToConfigInInstanceSettings(portlet = "Language");
 
+		PortalSettings.configureCurrentLanguagesCP(
+			currentPortalLanguages = "English (United Kingdom),Japanese (Japan)",
+			defaultPortalLanguage = "Japanese (Japan)");
+
+		WikiNavigator.openToWikiPage(
+			layoutURLKey = "wiki-test-page",
+			siteURLKey = "guest",
+			wikiNodeName = "Main",
+			wikiPageTitle = "Wiki Page Title");
+
+		WikiPage.viewPG(
+			wikiPageContent = "目次 [-]",
+			wikiPageContentGeneric = "true",
+			wikiPageTitle = "Wiki Page Title");
 	}
 
 }

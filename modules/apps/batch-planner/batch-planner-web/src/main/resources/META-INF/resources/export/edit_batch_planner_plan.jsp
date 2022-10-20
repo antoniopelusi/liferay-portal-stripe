@@ -47,10 +47,10 @@ renderResponse.setTitle(editable ? LanguageUtil.get(request, "edit-template") : 
 							md="6"
 						>
 							<clay:select
-								id='<%= liferayPortletResponse.getNamespace() + "headlessEndpoint" %>'
-								label="headless-endpoint"
-								name="headlessEndpoint"
-								options="<%= editBatchPlannerPlanDisplayContext.getSelectOptions() %>"
+								id='<%= liferayPortletResponse.getNamespace() + "internalClassName" %>'
+								label="entity-type"
+								name="internalClassName"
+								options="<%= editBatchPlannerPlanDisplayContext.getInternalClassNameSelectOptions() %>"
 							/>
 						</clay:col>
 
@@ -58,42 +58,34 @@ renderResponse.setTitle(editable ? LanguageUtil.get(request, "edit-template") : 
 							md="6"
 						>
 							<clay:select
-								disabled="<%= true %>"
-								id='<%= liferayPortletResponse.getNamespace() + "internalClassName" %>'
-								label="entity-type"
-								name="internalClassName"
-								options="<%= Arrays.asList(new SelectOption(StringPool.BLANK, StringPool.BLANK)) %>"
+								id='<%= liferayPortletResponse.getNamespace() + "externalType" %>'
+								label="export-file-format"
+								name="externalType"
+								options="<%=
+									editBatchPlannerPlanDisplayContext.getExternalTypeSelectOptions()
+								%>"
 							/>
 						</clay:col>
 					</clay:row>
 
-					<clay:content-section>
-						<clay:row>
-							<clay:col>
-								<clay:select
-									id='<%= liferayPortletResponse.getNamespace() + "externalType" %>'
-									label="export-file-format"
-									name="externalType"
-									options="<%=
-										editBatchPlannerPlanDisplayContext.getExternalTypeSelectOptions()
-									%>"
-								/>
-							</clay:col>
-						</clay:row>
+					<clay:row>
+						<clay:col
+							md="6"
+						>
+							<react:component
+								module="js/components/Scope"
+							/>
+						</clay:col>
+					</clay:row>
 
-						<clay:row>
-							<clay:col
-								md="6"
-							>
-								<clay:checkbox
-									checked="<%= true %>"
-									id='<%= liferayPortletResponse.getNamespace() + "containsHeaders" %>'
-									label="contains-headers"
-									name='<%= liferayPortletResponse.getNamespace() + "containsHeaders" %>'
-								/>
-							</clay:col>
-						</clay:row>
-					</clay:content-section>
+					<div class="contains-headers-wrapper">
+						<clay:checkbox
+							checked="<%= true %>"
+							id='<%= liferayPortletResponse.getNamespace() + "containsHeaders" %>'
+							label="include-headers"
+							name='<%= liferayPortletResponse.getNamespace() + "containsHeaders" %>'
+						/>
+					</div>
 				</liferay-frontend:edit-form-body>
 			</div>
 		</div>
@@ -187,9 +179,9 @@ renderResponse.setTitle(editable ? LanguageUtil.get(request, "edit-template") : 
 		).put(
 			"initialTemplateClassName", editBatchPlannerPlanDisplayContext.getSelectedInternalClassName()
 		).put(
-			"initialTemplateHeadlessEndpoint", editBatchPlannerPlanDisplayContext.getSelectedHeadlessEndpoint()
-		).put(
 			"initialTemplateMapping", editBatchPlannerPlanDisplayContext.getSelectedBatchPlannerPlanMappings()
+		).put(
+			"isExport", true
 		).put(
 			"templatesOptions", editBatchPlannerPlanDisplayContext.getTemplateSelectOptions()
 		).build()

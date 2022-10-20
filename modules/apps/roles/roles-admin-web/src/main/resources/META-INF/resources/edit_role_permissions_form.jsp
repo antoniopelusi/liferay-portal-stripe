@@ -135,6 +135,7 @@ if (Validator.isNotNull(portletResource)) {
 					<aui:input name="relatedPortletResources" type="hidden" value="<%= StringUtil.merge(editRolePermissionsFormDisplayContext.getRelatedPortletResources()) %>" />
 
 					<liferay-ui:search-iterator
+						markupView="deprecated"
 						paginate="<%= false %>"
 						searchContainer="<%= editRolePermissionsFormDisplayContext.getSearchContainer() %>"
 					/>
@@ -143,7 +144,7 @@ if (Validator.isNotNull(portletResource)) {
 		</c:if>
 
 		<clay:sheet-footer>
-			<aui:button cssClass="btn-primary" onClick='<%= liferayPortletResponse.getNamespace() + "updateActions();" %>' value="save" />
+			<aui:button onClick='<%= liferayPortletResponse.getNamespace() + "updateActions();" %>' primary="<%= true %>" value="save" />
 		</clay:sheet-footer>
 	</clay:sheet>
 </aui:form>

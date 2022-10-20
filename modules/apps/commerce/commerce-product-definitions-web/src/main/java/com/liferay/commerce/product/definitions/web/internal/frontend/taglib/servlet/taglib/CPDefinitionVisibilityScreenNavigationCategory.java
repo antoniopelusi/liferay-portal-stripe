@@ -31,10 +31,11 @@ import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationEntry;
 import com.liferay.frontend.taglib.servlet.taglib.util.JSPRenderer;
 import com.liferay.item.selector.ItemSelector;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
@@ -78,7 +79,7 @@ public class CPDefinitionVisibilityScreenNavigationCategory
 
 	@Override
 	public String getLabel(Locale locale) {
-		return LanguageUtil.get(
+		return _language.get(
 			locale,
 			CPDefinitionScreenNavigationConstants.CATEGORY_KEY_VISIBILITY);
 	}
@@ -127,8 +128,8 @@ public class CPDefinitionVisibilityScreenNavigationCategory
 			new CPDefinitionsDisplayContext(
 				_actionHelper, httpServletRequest,
 				_commerceAccountGroupRelService, _commerceCatalogService,
-				_commerceChannelRelService, _cpDefinitionService,
-				_cpFriendlyURL, _itemSelector);
+				_commerceChannelRelService, _configurationProvider,
+				_cpDefinitionService, _cpFriendlyURL, _itemSelector);
 
 		httpServletRequest.setAttribute(
 			WebKeys.PORTLET_DISPLAY_CONTEXT, cpDefinitionsDisplayContext);
@@ -160,6 +161,9 @@ public class CPDefinitionVisibilityScreenNavigationCategory
 	private CommerceChannelRelService _commerceChannelRelService;
 
 	@Reference
+	private ConfigurationProvider _configurationProvider;
+
+	@Reference
 	private CPDefinitionService _cpDefinitionService;
 
 	@Reference
@@ -173,6 +177,9 @@ public class CPDefinitionVisibilityScreenNavigationCategory
 
 	@Reference
 	private JSPRenderer _jspRenderer;
+
+	@Reference
+	private Language _language;
 
 	@Reference(
 		target = "(osgi.web.symbolicname=com.liferay.commerce.product.definitions.web)"

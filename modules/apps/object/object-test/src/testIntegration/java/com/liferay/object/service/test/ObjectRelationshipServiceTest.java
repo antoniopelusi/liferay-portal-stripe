@@ -72,6 +72,7 @@ public class ObjectRelationshipServiceTest {
 				LocalizedMapUtil.getLocalizedMap("Able"), "Able", null, null,
 				LocalizedMapUtil.getLocalizedMap("Ables"),
 				ObjectDefinitionConstants.SCOPE_COMPANY,
+				ObjectDefinitionConstants.STORAGE_TYPE_DEFAULT,
 				Arrays.asList(
 					ObjectFieldUtil.createObjectField(
 						"Text", "String", RandomTestUtil.randomString(),
@@ -88,6 +89,7 @@ public class ObjectRelationshipServiceTest {
 				LocalizedMapUtil.getLocalizedMap("Baker"), "Baker", null, null,
 				LocalizedMapUtil.getLocalizedMap("Bakers"),
 				ObjectDefinitionConstants.SCOPE_COMPANY,
+				ObjectDefinitionConstants.STORAGE_TYPE_DEFAULT,
 				Arrays.asList(
 					ObjectFieldUtil.createObjectField(
 						"Text", "String", RandomTestUtil.randomString(),
@@ -209,7 +211,7 @@ public class ObjectRelationshipServiceTest {
 
 		return _objectRelationshipLocalService.addObjectRelationship(
 			user.getUserId(), _objectDefinition1.getObjectDefinitionId(),
-			_objectDefinition2.getObjectDefinitionId(),
+			_objectDefinition2.getObjectDefinitionId(), 0,
 			ObjectRelationshipConstants.DELETION_TYPE_PREVENT,
 			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			StringUtil.randomId(),
@@ -232,7 +234,7 @@ public class ObjectRelationshipServiceTest {
 			objectRelationship =
 				_objectRelationshipService.addObjectRelationship(
 					_objectDefinition1.getObjectDefinitionId(),
-					_objectDefinition2.getObjectDefinitionId(),
+					_objectDefinition2.getObjectDefinitionId(), 0,
 					ObjectRelationshipConstants.DELETION_TYPE_PREVENT,
 					LocalizedMapUtil.getLocalizedMap(
 						RandomTestUtil.randomString()),
@@ -317,7 +319,7 @@ public class ObjectRelationshipServiceTest {
 
 			objectRelationship =
 				_objectRelationshipService.updateObjectRelationship(
-					objectRelationship.getObjectRelationshipId(),
+					objectRelationship.getObjectRelationshipId(), 0,
 					objectRelationship.getDeletionType(),
 					LocalizedMapUtil.getLocalizedMap("Baker"));
 		}

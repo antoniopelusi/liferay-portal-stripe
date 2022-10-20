@@ -245,7 +245,7 @@ public class ServletResponseUtil {
 					contentLength = bytes.length;
 				}
 
-				httpServletResponse.setContentLength(contentLength);
+				setContentLength(httpServletResponse, contentLength);
 
 				httpServletResponse.flushBuffer();
 
@@ -403,7 +403,8 @@ public class ServletResponseUtil {
 
 		try {
 			StreamUtil.transfer(
-				inputStream, httpServletResponse.getOutputStream());
+				inputStream, httpServletResponse.getOutputStream(),
+				contentLength);
 		}
 		catch (IOException ioException) {
 			_checkSocketException(ioException);

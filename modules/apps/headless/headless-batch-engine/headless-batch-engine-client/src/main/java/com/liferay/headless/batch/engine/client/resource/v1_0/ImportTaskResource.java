@@ -90,51 +90,55 @@ public interface ImportTaskResource {
 		throws Exception;
 
 	public ImportTask postImportTask(
-			String className, String callbackURL, String externalReferenceCode,
-			String fieldNameMapping, String importStrategy,
-			String taskItemDelegateName, Object object)
+			String className, String callbackURL, String createStrategy,
+			String externalReferenceCode, String fieldNameMapping,
+			String importStrategy, String taskItemDelegateName, Object object)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse postImportTaskHttpResponse(
-			String className, String callbackURL, String externalReferenceCode,
-			String fieldNameMapping, String importStrategy,
-			String taskItemDelegateName, Object object)
+			String className, String callbackURL, String createStrategy,
+			String externalReferenceCode, String fieldNameMapping,
+			String importStrategy, String taskItemDelegateName, Object object)
 		throws Exception;
 
 	public ImportTask postFormDataImportTask(
-			String className, String callbackURL, String externalReferenceCode,
-			String fieldNameMapping, String importStrategy,
-			String taskItemDelegateName, ImportTask importTask,
-			Map<String, File> multipartFiles)
+			String className, String callbackURL, String createStrategy,
+			String externalReferenceCode, String fieldNameMapping,
+			String importStrategy, String taskItemDelegateName,
+			ImportTask importTask, Map<String, File> multipartFiles)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse postFormDataImportTaskHttpResponse(
-			String className, String callbackURL, String externalReferenceCode,
-			String fieldNameMapping, String importStrategy,
-			String taskItemDelegateName, ImportTask importTask,
-			Map<String, File> multipartFiles)
+			String className, String callbackURL, String createStrategy,
+			String externalReferenceCode, String fieldNameMapping,
+			String importStrategy, String taskItemDelegateName,
+			ImportTask importTask, Map<String, File> multipartFiles)
 		throws Exception;
 
 	public ImportTask putImportTask(
 			String className, String callbackURL, String externalReferenceCode,
-			String importStrategy, String taskItemDelegateName, Object object)
+			String importStrategy, String taskItemDelegateName,
+			String updateStrategy, Object object)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse putImportTaskHttpResponse(
 			String className, String callbackURL, String externalReferenceCode,
-			String importStrategy, String taskItemDelegateName, Object object)
+			String importStrategy, String taskItemDelegateName,
+			String updateStrategy, Object object)
 		throws Exception;
 
 	public ImportTask putFormDataImportTask(
 			String className, String callbackURL, String externalReferenceCode,
 			String importStrategy, String taskItemDelegateName,
-			ImportTask importTask, Map<String, File> multipartFiles)
+			String updateStrategy, ImportTask importTask,
+			Map<String, File> multipartFiles)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse putFormDataImportTaskHttpResponse(
 			String className, String callbackURL, String externalReferenceCode,
 			String importStrategy, String taskItemDelegateName,
-			ImportTask importTask, Map<String, File> multipartFiles)
+			String updateStrategy, ImportTask importTask,
+			Map<String, File> multipartFiles)
 		throws Exception;
 
 	public ImportTask getImportTask(Long importTaskId) throws Exception;
@@ -166,6 +170,12 @@ public interface ImportTaskResource {
 
 		public ImportTaskResource build() {
 			return new ImportTaskResourceImpl(this);
+		}
+
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
 		}
 
 		public Builder endpoint(String host, int port, String scheme) {
@@ -213,6 +223,7 @@ public interface ImportTaskResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -299,7 +310,7 @@ public interface ImportTaskResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-batch-engine/v1.0/import-task/by-external-reference-code/{externalReferenceCode}");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -372,7 +383,7 @@ public interface ImportTaskResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-batch-engine/v1.0/import-task/by-external-reference-code/{externalReferenceCode}/content");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -445,7 +456,7 @@ public interface ImportTaskResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-batch-engine/v1.0/import-task/by-external-reference-code/{externalReferenceCode}/failed-items/report");
 
 			httpInvoker.path("externalReferenceCode", externalReferenceCode);
@@ -557,7 +568,7 @@ public interface ImportTaskResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-batch-engine/v1.0/import-task/{className}");
 
 			httpInvoker.path("className", className);
@@ -678,7 +689,7 @@ public interface ImportTaskResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-batch-engine/v1.0/import-task/{className}");
 
 			httpInvoker.path("className", className);
@@ -690,15 +701,15 @@ public interface ImportTaskResource {
 		}
 
 		public ImportTask postImportTask(
-				String className, String callbackURL,
+				String className, String callbackURL, String createStrategy,
 				String externalReferenceCode, String fieldNameMapping,
 				String importStrategy, String taskItemDelegateName,
 				Object object)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse = postImportTaskHttpResponse(
-				className, callbackURL, externalReferenceCode, fieldNameMapping,
-				importStrategy, taskItemDelegateName, object);
+				className, callbackURL, createStrategy, externalReferenceCode,
+				fieldNameMapping, importStrategy, taskItemDelegateName, object);
 
 			String content = httpResponse.getContent();
 
@@ -738,7 +749,7 @@ public interface ImportTaskResource {
 		}
 
 		public HttpInvoker.HttpResponse postImportTaskHttpResponse(
-				String className, String callbackURL,
+				String className, String callbackURL, String createStrategy,
 				String externalReferenceCode, String fieldNameMapping,
 				String importStrategy, String taskItemDelegateName,
 				Object object)
@@ -772,6 +783,11 @@ public interface ImportTaskResource {
 					"callbackURL", String.valueOf(callbackURL));
 			}
 
+			if (createStrategy != null) {
+				httpInvoker.parameter(
+					"createStrategy", String.valueOf(createStrategy));
+			}
+
 			if (externalReferenceCode != null) {
 				httpInvoker.parameter(
 					"externalReferenceCode",
@@ -796,7 +812,7 @@ public interface ImportTaskResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-batch-engine/v1.0/import-task/{className}");
 
 			httpInvoker.path("className", className);
@@ -808,7 +824,7 @@ public interface ImportTaskResource {
 		}
 
 		public ImportTask postFormDataImportTask(
-				String className, String callbackURL,
+				String className, String callbackURL, String createStrategy,
 				String externalReferenceCode, String fieldNameMapping,
 				String importStrategy, String taskItemDelegateName,
 				ImportTask importTask, Map<String, File> multipartFiles)
@@ -816,9 +832,9 @@ public interface ImportTaskResource {
 
 			HttpInvoker.HttpResponse httpResponse =
 				postFormDataImportTaskHttpResponse(
-					className, callbackURL, externalReferenceCode,
-					fieldNameMapping, importStrategy, taskItemDelegateName,
-					importTask, multipartFiles);
+					className, callbackURL, createStrategy,
+					externalReferenceCode, fieldNameMapping, importStrategy,
+					taskItemDelegateName, importTask, multipartFiles);
 
 			String content = httpResponse.getContent();
 
@@ -858,7 +874,7 @@ public interface ImportTaskResource {
 		}
 
 		public HttpInvoker.HttpResponse postFormDataImportTaskHttpResponse(
-				String className, String callbackURL,
+				String className, String callbackURL, String createStrategy,
 				String externalReferenceCode, String fieldNameMapping,
 				String importStrategy, String taskItemDelegateName,
 				ImportTask importTask, Map<String, File> multipartFiles)
@@ -898,6 +914,11 @@ public interface ImportTaskResource {
 					"callbackURL", String.valueOf(callbackURL));
 			}
 
+			if (createStrategy != null) {
+				httpInvoker.parameter(
+					"createStrategy", String.valueOf(createStrategy));
+			}
+
 			if (externalReferenceCode != null) {
 				httpInvoker.parameter(
 					"externalReferenceCode",
@@ -922,7 +943,7 @@ public interface ImportTaskResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-batch-engine/v1.0/import-task/{className}");
 
 			httpInvoker.path("className", className);
@@ -936,12 +957,13 @@ public interface ImportTaskResource {
 		public ImportTask putImportTask(
 				String className, String callbackURL,
 				String externalReferenceCode, String importStrategy,
-				String taskItemDelegateName, Object object)
+				String taskItemDelegateName, String updateStrategy,
+				Object object)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse = putImportTaskHttpResponse(
 				className, callbackURL, externalReferenceCode, importStrategy,
-				taskItemDelegateName, object);
+				taskItemDelegateName, updateStrategy, object);
 
 			String content = httpResponse.getContent();
 
@@ -983,7 +1005,8 @@ public interface ImportTaskResource {
 		public HttpInvoker.HttpResponse putImportTaskHttpResponse(
 				String className, String callbackURL,
 				String externalReferenceCode, String importStrategy,
-				String taskItemDelegateName, Object object)
+				String taskItemDelegateName, String updateStrategy,
+				Object object)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
@@ -1031,9 +1054,14 @@ public interface ImportTaskResource {
 					String.valueOf(taskItemDelegateName));
 			}
 
+			if (updateStrategy != null) {
+				httpInvoker.parameter(
+					"updateStrategy", String.valueOf(updateStrategy));
+			}
+
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-batch-engine/v1.0/import-task/{className}");
 
 			httpInvoker.path("className", className);
@@ -1047,15 +1075,15 @@ public interface ImportTaskResource {
 		public ImportTask putFormDataImportTask(
 				String className, String callbackURL,
 				String externalReferenceCode, String importStrategy,
-				String taskItemDelegateName, ImportTask importTask,
-				Map<String, File> multipartFiles)
+				String taskItemDelegateName, String updateStrategy,
+				ImportTask importTask, Map<String, File> multipartFiles)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
 				putFormDataImportTaskHttpResponse(
 					className, callbackURL, externalReferenceCode,
-					importStrategy, taskItemDelegateName, importTask,
-					multipartFiles);
+					importStrategy, taskItemDelegateName, updateStrategy,
+					importTask, multipartFiles);
 
 			String content = httpResponse.getContent();
 
@@ -1097,8 +1125,8 @@ public interface ImportTaskResource {
 		public HttpInvoker.HttpResponse putFormDataImportTaskHttpResponse(
 				String className, String callbackURL,
 				String externalReferenceCode, String importStrategy,
-				String taskItemDelegateName, ImportTask importTask,
-				Map<String, File> multipartFiles)
+				String taskItemDelegateName, String updateStrategy,
+				ImportTask importTask, Map<String, File> multipartFiles)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
@@ -1152,9 +1180,14 @@ public interface ImportTaskResource {
 					String.valueOf(taskItemDelegateName));
 			}
 
+			if (updateStrategy != null) {
+				httpInvoker.parameter(
+					"updateStrategy", String.valueOf(updateStrategy));
+			}
+
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-batch-engine/v1.0/import-task/{className}");
 
 			httpInvoker.path("className", className);
@@ -1233,7 +1266,7 @@ public interface ImportTaskResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-batch-engine/v1.0/import-task/{importTaskId}");
 
 			httpInvoker.path("importTaskId", importTaskId);
@@ -1301,7 +1334,7 @@ public interface ImportTaskResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-batch-engine/v1.0/import-task/{importTaskId}/content");
 
 			httpInvoker.path("importTaskId", importTaskId);
@@ -1371,7 +1404,7 @@ public interface ImportTaskResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-batch-engine/v1.0/import-task/{importTaskId}/failed-items/report");
 
 			httpInvoker.path("importTaskId", importTaskId);

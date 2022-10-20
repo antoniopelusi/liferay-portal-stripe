@@ -37,12 +37,12 @@ public class ConditionNodeValidator extends BaseNodeValidator<Condition> {
 
 		if (condition.getIncomingTransitionsCount() == 0) {
 			throw new KaleoDefinitionValidationException.
-				MustSetIncomingTransition(condition.getName());
+				MustSetIncomingTransition(condition.getDefaultLabel());
 		}
 
 		if (condition.getOutgoingTransitionsCount() < 2) {
 			throw new KaleoDefinitionValidationException.
-				MustSetMultipleOutgoingTransition(condition.getName());
+				MustSetMultipleOutgoingTransition(condition.getDefaultLabel());
 		}
 	}
 

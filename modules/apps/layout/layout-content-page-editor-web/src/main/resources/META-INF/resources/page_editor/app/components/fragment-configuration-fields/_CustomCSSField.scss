@@ -1,0 +1,20 @@
+html#{$cadmin-selector} .cadmin .page-editor__custom-css-field {
+	textarea {
+		min-height: 200px;
+		white-space: pre-wrap;
+	}
+
+	.page-editor__custom-css-field__expand-button {
+		height: 16px;
+		width: 16px;
+	}
+}
+
+.page-editor__custom-css-field__editor-modal {
+	border: 1px solid $light-l1;
+	border-radius: 4px;
+}
+
+.has-edit-mode-menu .CodeMirror-hints {
+	z-index: 1051;
+}

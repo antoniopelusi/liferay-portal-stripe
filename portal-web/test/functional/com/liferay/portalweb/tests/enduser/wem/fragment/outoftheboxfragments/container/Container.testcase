@@ -88,8 +88,6 @@ definition {
 			AssertTextEquals.assertPartialText(
 				locator1 = "Message#ERROR",
 				value1 = "The layout could not be duplicated because it contains a widget (Language Selector) that can only appear once in the page.");
-
-			Pause(locator1 = "3000");
 		}
 	}
 
@@ -132,8 +130,6 @@ definition {
 
 			PageEditor.viewContainerStyle(
 				containerWidth = "Fluid",
-				paddingLeft = "0",
-				paddingRight = "0",
 				position = "1");
 		}
 
@@ -177,34 +173,44 @@ definition {
 		}
 
 		task ("Assert Fixed Width of Container works in view mode") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Content Page Name",
 				siteName = "Test Site Name");
 
+			SetWindowSize(value1 = "1800,1040");
+
 			var screenWidth = selenium.getElementWidth("//body");
-			var containerWidth = selenium.getElementWidth("//div[contains(@class,'container')][contains(@class,'pb-4')][contains(@class,'pt-2')]");
+			var containerWidth = selenium.getElementWidth("//div[contains(@class,'lfr-layout-structure-item-container')]");
 
 			TestUtils.assertNotEquals(
 				actual = "${containerWidth}",
 				expected = "${screenWidth}");
 
-			AssertVisible(locator1 = "//div[contains(@class,'container')][contains(@class,'pb-4')][contains(@class,'pt-2')]");
+			ContentPages.viewFragmentCommonStyle(
+				fragmentName = "container",
+				styleName = "backgroundColor",
+				styleValue = "success");
+
+			ContentPages.viewFragmentCommonStyle(
+				fragmentName = "container",
+				styleName = "paddingBottom",
+				styleValue = "4");
+
+			ContentPages.viewFragmentCommonStyle(
+				fragmentName = "container",
+				styleName = "paddingTop",
+				styleValue = "2");
 
 			AssertCssValue(
-				locator1 = "//div[contains(@class,'container')][contains(@class,'pb-4')][contains(@class,'pt-2')]",
-				locator2 = "background-color",
-				value1 = "rgba(40, 125, 60, 1)");
-
-			AssertCssValue(
-				locator1 = "//div[contains(@class,'container')][contains(@class,'pb-4')][contains(@class,'pt-2')]",
+				locator1 = "//div[contains(@class,'lfr-layout-structure-item-container')]",
 				locator2 = "max-width",
 				value1 = "${containerWidth}px");
 
-			AssertElementNotPresent(locator1 = "//div[contains(@class,'container')][contains(@class,'ml-0')]");
+			AssertElementNotPresent(locator1 = "//div[contains(@class,'lfr-layout-structure-item-container')][contains(@class,'ml-0')]");
 
-			AssertElementNotPresent(locator1 = "//div[contains(@class,'container')][contains(@class,'mr-0')]");
+			AssertElementNotPresent(locator1 = "//div[contains(@class,'lfr-layout-structure-item-container')][contains(@class,'mr-0')]");
 		}
 	}
 
@@ -297,8 +303,6 @@ definition {
 				composition = "true",
 				dropTarget = "Up",
 				fragmentName = "Banner Center",
-				index = "2",
-				layoutElementName = "Container",
 				navTab = "Fragments",
 				targetElementName = "Heading");
 
@@ -440,9 +444,6 @@ definition {
 	@description = "This is a test for LPS-147394. View warning message and view change in DOM and Page Elements panel."
 	@priority = "4"
 	test ConfigureHTMLTagOfContainer {
-		property osgi.module.configuration.file.names = "com.liferay.layout.content.page.editor.web.internal.configuration.FFLayoutContentPageEditorConfiguration.config";
-		property osgi.module.configurations = "fragmentAdvancedOptionsEnabled=&quot;true&quot;";
-
 		task ("Add a Container to page") {
 			ContentPagesNavigator.openEditContentPage(
 				pageName = "Content Page Name",
@@ -460,10 +461,10 @@ definition {
 		}
 
 		task ("View the warning message shown below the HTML Tag field") {
-			AssertVisible(
-				key_fieldLabel = "HTML Tag",
-				key_subtitle = "Misusing this setup might impact SEO.",
-				locator1 = "Message#SUBTITLE");
+			AssertTextEquals(
+				fieldLabel = "HTML Tag",
+				locator1 = "Message#SUBTITLE_WITH_LABEL",
+				value1 = "Misusing this setup might impact SEO.");
 		}
 
 		task ("View the HTML tag of Container is section") {
@@ -478,6 +479,77 @@ definition {
 				key_info = "section",
 				key_nodeName = "Container",
 				locator1 = "Treeview#PAGE_STRUCTURE_TREE_NODE_NAME_INFO");
+		}
+	}
+
+	@description = "This is a test for LPS-154980. Can drag and drop a fragment outside the container."
+	@priority = "3"
+	test DragAndDropFragmentFromContainerToOutside {
+		task ("Given a page creator has two Containers on a content page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Layout Elements",
+				fragmentName = "Container");
+
+			PageEditor.editLayoutContainer(
+				containerWidth = "Fixed Width",
+				width = "200px");
+
+			PageEditor.addFragment(
+				collectionName = "Layout Elements",
+				fragmentName = "Container",
+				targetFragmentName = "Container");
+		}
+
+		task ("When the page creator drags and drops the second Container into the first one") {
+			PageEditor.clickConfigurableField(
+				fragmentName = "Container",
+				index = "2");
+
+			DragAndDrop.javaScriptDragAndDropToObject(
+				key_dragFragmentName = "Container",
+				key_elementType = "Container",
+				key_position = "1",
+				locator1 = "Fragment#FRAGMENT_HEADER_DRAG_HANDLER",
+				locator2 = "PageEditor#CONTAINER_CONTAINER");
+
+			PageEditor.waitForAutoSave();
+		}
+
+		task ("Then the page creator sees the second Container inside the first one") {
+			AssertElementPresent(
+				key_elementHeader = "//div[@aria-label='Container']",
+				key_elementType = "Container",
+				key_position = "1",
+				locator1 = "PageEditor#CONTAINER_CONTAINER_NESTED_ELEMENT");
+		}
+
+		task ("When the page creator drags and drops the second Container outside the first one") {
+			DragAndDrop.javaScriptDragAndDropToBottom(
+				index = "1",
+				key_dragFragmentName = "Container",
+				key_targetFragmentName = "Container",
+				locator1 = "Fragment#FRAGMENT_HEADER_DRAG_HANDLER",
+				locator2 = "PageEditor#ANY_FRAGMENT_DROP_TARGET");
+
+			PageEditor.waitForAutoSave();
+		}
+
+		task ("Then the page creator sees the second Container outside the first one") {
+			AssertElementNotPresent(
+				key_elementHeader = "//div[@aria-label='Container']",
+				key_elementType = "Container",
+				key_position = "1",
+				locator1 = "PageEditor#CONTAINER_CONTAINER_NESTED_ELEMENT");
+
+			PageEditor.viewFragment(fragmentName = "Container");
+
+			PageEditor.viewFragment(
+				fragmentName = "Container",
+				position = "2");
 		}
 	}
 
@@ -537,7 +609,7 @@ definition {
 				collectionName = "Content Display",
 				fragmentName = "Display Page Content");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a web content article and select the display page template") {
@@ -588,7 +660,7 @@ definition {
 				key_url = "${baseURL}/web/test-site-name/w/web-content-title",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Assert mapped link work in view mode") {
@@ -650,7 +722,7 @@ definition {
 				paddingTop = "2",
 				panel = "Styles");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View the mapped image shown in Container at view mode") {
@@ -694,7 +766,7 @@ definition {
 				key_url = "https://liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Assert mapped URL work in view mode") {
@@ -781,7 +853,7 @@ definition {
 				navItem = "Web Content",
 				panel = "Styles");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("View the mapped image shown in Container at view mode") {
@@ -864,9 +936,9 @@ definition {
 		}
 
 		task ("Assert the mapped image is shown in background image field") {
-			ContentPages.viewFragmentBackgroundImage(image = "Document_2.jpeg");
+			ContentPages.viewFragmentBackgroundImage(image = "Document_2\.jpeg");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a content page based on content page template") {
@@ -879,9 +951,9 @@ definition {
 		}
 
 		task ("Assert the mapped image is shown in background image field in edit mode") {
-			ContentPages.viewFragmentBackgroundImage(image = "Document_2.jpeg");
+			ContentPages.viewFragmentBackgroundImage(image = "Document_2\.jpeg");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Assert the mapped image is shown in background image in view mode") {
@@ -931,7 +1003,7 @@ definition {
 				fieldName = "Image",
 				panel = "Styles");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a web content based on new structure") {
@@ -1007,7 +1079,7 @@ definition {
 			PageEditor.configureFragment(textColor = "White");
 
 			PageEditor.viewFragmentStyle(
-				fragmentName = "heading",
+				fragmentName = "Heading",
 				textColor = "white");
 		}
 
@@ -1018,8 +1090,13 @@ definition {
 				backgroundColor = "success",
 				position = "2");
 
+			PageEditor.viewFragmentStyle(
+				fragmentName = "Heading",
+				position = "2",
+				textColor = "white");
+
 			AssertElementPresent(
-				key_elementHeader = "//div[@aria-label='Heading']//div[contains(@class,'page-editor__topper__content')]//div[contains(@style,'color: var(--white)')]",
+				key_elementHeader = "//div[@aria-label='Heading']",
 				key_position = "2",
 				locator1 = "PageEditor#CONTAINER_CONTAINER_NESTED_ELEMENT");
 		}
@@ -1061,6 +1138,101 @@ definition {
 				key_elementHeader = "//div[contains(.,'New editable fragment text') and contains(@id,'fragment-')]",
 				key_position = "2",
 				locator1 = "PageEditor#CONTAINER_CONTAINER_NESTED_ELEMENT");
+		}
+	}
+
+	@description = "This is a test for LPS-154980. Lower the opacity of the rest of the layout elements when a container is hovered to drop inside a fragment."
+	@priority = "3"
+	test ViewLowerOpacityOfRestOfLayoutElementsWhenDraggingFragmentOverContainer {
+		task ("Given a page creator has three Containers on a content page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Layout Elements",
+				fragmentName = "Container");
+
+			PageEditor.addFragment(
+				collectionName = "Layout Elements",
+				fragmentName = "Container",
+				targetFragmentName = "Container");
+
+			PageEditor.addFragment(
+				collectionName = "Layout Elements",
+				fragmentName = "Container",
+				index = "2",
+				targetFragmentName = "Container");
+
+			PageEditor.addElementToContainer(
+				collectionName = "Basic Components",
+				fragmentName = "Button",
+				navTab = "Fragments");
+
+			PageEditor.addElementToContainer(
+				collectionName = "Basic Components",
+				fragmentName = "Tabs",
+				navTab = "Fragments",
+				position = "3");
+		}
+
+		task ("When the page creator dragging a new HTML fragment over the second Container") {
+			DragOver(
+				key_collectionName = "Basic Components",
+				key_elementType = "Container",
+				key_fragmentName = "HTML",
+				key_position = "2",
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_TAB_FRAGMENT",
+				locator2 = "PageEditor#CONTAINER_CONTAINER");
+		}
+
+		task ("Then the opacity of rest Containers is lower than the second Container's") {
+			AssertCssValue(
+				locator1 = "xpath=(//div[contains(@class,'lfr-layout-structure-item-container')])[2]",
+				locator2 = "opacity",
+				value1 = "1");
+
+			AssertCssValue(
+				locator1 = "//div[contains(@class,'lfr-layout-structure-item-basic-component-button')]",
+				locator2 = "opacity",
+				value1 = "0.5");
+
+			AssertCssValue(
+				locator1 = "//div[contains(@class,'lfr-layout-structure-item-basic-component-tabs')]",
+				locator2 = "opacity",
+				value1 = "0.5");
+		}
+
+		task ("When the page creator dragging a new Paragraph fragment over the Tabs fragment inside the third Container") {
+			Refresh();
+
+			PageEditor.assertFragmentSidebarLoaded();
+
+			DragOver(
+				index = "1",
+				key_collectionName = "Basic Components",
+				key_fragmentName = "Paragraph",
+				key_targetFragmentName = "Tabs",
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_TAB_FRAGMENT",
+				locator2 = "PageEditor#ANY_FRAGMENT_DROP_TARGET",
+				ratio = "9 / 8");
+		}
+
+		task ("Then the opacity of rest Containers is lower than the third Container's") {
+			AssertCssValue(
+				locator1 = "xpath=(//div[contains(@class,'lfr-layout-structure-item-container')])[3]",
+				locator2 = "opacity",
+				value1 = "1");
+
+			AssertCssValue(
+				locator1 = "//div[contains(@class,'lfr-layout-structure-item-basic-component-button')]",
+				locator2 = "opacity",
+				value1 = "0.5");
+
+			AssertCssValue(
+				locator1 = "xpath=(//div[contains(@class,'lfr-layout-structure-item-container')])[2]",
+				locator2 = "opacity",
+				value1 = "0.5");
 		}
 	}
 
@@ -1123,6 +1295,103 @@ definition {
 				key_elementHeader = "//div[contains(.,'WC WebContent Content') and contains(@id,'fragment-')]",
 				key_position = "2",
 				locator1 = "PageEditor#CONTAINER_CONTAINER_NESTED_ELEMENT");
+		}
+	}
+
+	@description = "This is a test for LPS-149591. The user could view topper of Container when dragging fragment inside it."
+	@priority = "5"
+	test ViewTopperOfContainerWhenDragFragmentInsideIt {
+		task ("Given a Page designer has a content page with fragment compositions") {
+			task ("Add the first Container to page") {
+				ContentPagesNavigator.openEditContentPage(
+					pageName = "Content Page Name",
+					siteName = "Test Site Name");
+
+				PageEditor.addFragment(
+					collectionName = "Layout Elements",
+					fragmentName = "Container");
+			}
+
+			task ("Add a Heading fragment into Container") {
+				PageEditor.addElementToContainer(
+					collectionName = "Basic Components",
+					fragmentName = "Heading",
+					navTab = "Fragments");
+			}
+
+			task ("Add the second Container below the first one") {
+				PageEditor.addFragment(
+					collectionName = "Layout Elements",
+					fragmentName = "Container",
+					targetFragmentName = "Container");
+			}
+
+			task ("Add a Button fragment into the second Container") {
+				PageEditor.addElementToContainer(
+					collectionName = "Basic Components",
+					fragmentName = "Button",
+					navTab = "Fragments",
+					position = "2");
+			}
+		}
+
+		task ("When the Page designer dragging a new Heading fragment inside the first Container") {
+			DragOver.dragOverAtBottom(
+				index = "1",
+				key_collectionName = "Basic Components",
+				key_fragmentName = "Heading",
+				key_targetFragmentName = "Heading",
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_TAB_FRAGMENT",
+				locator2 = "PageEditor#ANY_FRAGMENT_DROP_TARGET");
+		}
+
+		task ("Then the Page designer view the topper of the first Container") {
+			AssertElementPresent(
+				index = "1",
+				key_fragmentName = "Container",
+				locator1 = "Fragment#ACTIVE_FRAGMENT_LABEL");
+		}
+
+		task ("When the Page designer dragging a new Heading fragment between Containers") {
+			Refresh();
+
+			WaitForPageLoad();
+
+			DragOver(
+				key_collectionName = "Basic Components",
+				key_fragmentName = "Heading",
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_TAB_FRAGMENT",
+				locator2 = "PageEditor#FRAGMENT_DROP_TARGET");
+		}
+
+		task ("Then the Page designer cannot view any topper of Container") {
+			for (var i : list "1,2") {
+				AssertElementNotPresent(
+					index = "${i}",
+					key_fragmentName = "Container",
+					locator1 = "Fragment#ACTIVE_FRAGMENT_LABEL");
+			}
+		}
+
+		task ("When the Page designer dragging a new Heading fragment inside the second Container") {
+			Refresh();
+
+			WaitForPageLoad();
+
+			DragOver.dragOverAtBottom(
+				index = "1",
+				key_collectionName = "Basic Components",
+				key_fragmentName = "Heading",
+				key_targetFragmentName = "Button",
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_TAB_FRAGMENT",
+				locator2 = "PageEditor#ANY_FRAGMENT_DROP_TARGET");
+		}
+
+		task ("Then the Page designer view the topper of the second Container") {
+			AssertElementPresent(
+				index = "2",
+				key_fragmentName = "Container",
+				locator1 = "Fragment#ACTIVE_FRAGMENT_LABEL");
 		}
 	}
 

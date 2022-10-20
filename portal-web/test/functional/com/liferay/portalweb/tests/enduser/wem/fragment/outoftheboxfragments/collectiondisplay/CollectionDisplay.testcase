@@ -197,6 +197,36 @@ definition {
 		}
 	}
 
+	@description = "This is a test for LPS-157740. View error message when dropping a fragment to unmapped Collection Display fragment."
+	@priority = "3"
+	test CannotAddFragmentToUnmappedCollectionDisplay {
+		task ("Given a page creator has a content page with an unmapped Collection Display") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
+
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display");
+
+			PageEditor.viewFragmentMessageInfo(fragmentName = "Collection Display");
+		}
+
+		task ("When the page creator tries to add a Heading fragment inside an unmapped Collection Display") {
+			DragAndDrop.javaScriptDragAndDropToObject(
+				key_collectionName = "Basic Components",
+				key_fragmentName = "Heading",
+				locator1 = "PageEditor#FRAGMENTS_AND_WIDGETS_TAB_FRAGMENT",
+				locator2 = "//div[@aria-label='Collection Display']//div[contains(@class,'page-editor__collection__message')]");
+		}
+
+		task ("Then the page creator should see an error message") {
+			Alert.viewErrorMessage(errorMessage = "Fragments cannot be placed inside an unmapped collection display fragment.");
+
+			PageEditor.viewFragmentNotPresent(fragmentName = "Heading");
+		}
+	}
+
 	@description = "This is a use case for LPS-86141. The mapped content of asset entries in selected collection should be respectively shown in each cell of the Collection Display when map content to editable field of one fragment in one cell."
 	@priority = "4"
 	test MapContentToTextFragment {
@@ -376,7 +406,7 @@ definition {
 				fragmentName = "Heading",
 				id = "element-text");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Content Page Name",
@@ -416,7 +446,7 @@ definition {
 				fragmentName = "Paragraph",
 				id = "element-text");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Content Page Name",
@@ -513,12 +543,12 @@ definition {
 
 		task ("Assert the mapping image is shown in Container") {
 			PageEditor.viewContainerStyle(
-				backgroundImage = "Document_1.jpg",
+				backgroundImage = "Document_1\.jpg",
 				position = "1");
 		}
 
 		task ("Assert the image is shown in view mode") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Content Page Name",
@@ -621,7 +651,7 @@ definition {
 		}
 
 		task ("Assert the image is shown in view mode") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Content Page Name",
@@ -1161,7 +1191,7 @@ definition {
 
 			AssertTextEquals(
 				locator1 = "PageEditor#MAPPING_PANEL_TYPE_LABEL",
-				value1 = "Type:Asset");
+				value1 = "Content Type:Asset");
 		}
 
 		task ("View available mappable fields") {
@@ -1191,7 +1221,7 @@ definition {
 
 			AssertTextEquals(
 				locator1 = "PageEditor#MAPPING_PANEL_TYPE_LABEL",
-				value1 = "Type:Asset");
+				value1 = "Content Type:Asset");
 		}
 
 		task ("View available mappable fields") {
@@ -1280,7 +1310,7 @@ definition {
 
 			AssertTextEquals(
 				locator1 = "PageEditor#MAPPING_PANEL_TYPE_LABEL",
-				value1 = "Type:Web Content Article");
+				value1 = "Content Type:Web Content Article");
 
 			AssertTextEquals(
 				locator1 = "PageEditor#MAPPING_PANEL_SUB_TYPE_LABEL",
@@ -1305,7 +1335,7 @@ definition {
 
 			AssertTextEquals(
 				locator1 = "PageEditor#MAPPING_PANEL_TYPE_LABEL",
-				value1 = "Type:Document");
+				value1 = "Content Type:Document");
 
 			AssertTextEquals(
 				locator1 = "PageEditor#MAPPING_PANEL_SUB_TYPE_LABEL",
@@ -1401,7 +1431,7 @@ definition {
 
 			AssertTextEquals(
 				locator1 = "PageEditor#MAPPING_PANEL_TYPE_LABEL",
-				value1 = "Type:Web Content Article");
+				value1 = "Content Type:Web Content Article");
 		}
 
 		task ("Change to the second dynamic collection in Collection Display") {
@@ -1422,7 +1452,7 @@ definition {
 
 			AssertTextEquals(
 				locator1 = "PageEditor#MAPPING_PANEL_TYPE_LABEL",
-				value1 = "Type:Blogs Entry");
+				value1 = "Content Type:Blogs Entry");
 		}
 
 		task ("Change to the manual collection in Collection Display") {
@@ -1443,7 +1473,7 @@ definition {
 
 			AssertTextEquals(
 				locator1 = "PageEditor#MAPPING_PANEL_TYPE_LABEL",
-				value1 = "Type:Document");
+				value1 = "Content Type:Document");
 		}
 	}
 
@@ -1631,7 +1661,9 @@ definition {
 				key_rowPosition = "1",
 				locator1 = "PageEditor#COLLECTION_CELL_NESTED_ELEMENT");
 
-			Pause(locator1 = "3000");
+			WaitForElementPresent(
+				key_nodeName = "element-text",
+				locator1 = "Treeview#PAGE_STRUCTURE_TREE_NODE_ACTIVE");
 
 			AssertClick(
 				key_navItem = "Mapping",
@@ -1704,7 +1736,9 @@ definition {
 				key_rowPosition = "1",
 				locator1 = "PageEditor#COLLECTION_CELL_NESTED_ELEMENT");
 
-			Pause(locator1 = "3000");
+			WaitForElementPresent(
+				key_nodeName = "element-text",
+				locator1 = "Treeview#PAGE_STRUCTURE_TREE_NODE_ACTIVE");
 
 			AssertClick(
 				key_navItem = "Mapping",
@@ -1767,7 +1801,9 @@ definition {
 				key_rowPosition = "1",
 				locator1 = "PageEditor#COLLECTION_CELL_NESTED_ELEMENT");
 
-			Pause(locator1 = "3000");
+			WaitForElementPresent(
+				key_nodeName = "element-text",
+				locator1 = "Treeview#PAGE_STRUCTURE_TREE_NODE_ACTIVE");
 
 			AssertClick(
 				key_navItem = "Mapping",
@@ -1944,7 +1980,7 @@ definition {
 				assetListName = "Dynamic Collection",
 				fragmentName = "Collection Display",
 				listItemStyle = "Title",
-				listStyle = "Bordered List");
+				styleDisplay = "Bordered List");
 		}
 
 		task ("Assert the Title of collection items are shown in Bordered List") {
@@ -1962,7 +1998,7 @@ definition {
 		}
 
 		task ("Assert the Title of collection items are shown in Bordered List at view mode") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Content Page Name",
@@ -1987,8 +2023,8 @@ definition {
 			PageEditor.editCollectionDisplay(
 				fragmentName = "Collection Display",
 				listItemStyle = "Title",
-				listStyle = "Bulleted List",
-				selectedName = "Dynamic Collection");
+				selectedName = "Dynamic Collection",
+				styleDisplay = "Bulleted List");
 		}
 
 		task ("Assert the Title of collection items are shown in Bulleted List") {
@@ -2006,7 +2042,7 @@ definition {
 		}
 
 		task ("Assert the Title of collection items are shown in Bulleted List at view mode") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			var n = "1";
 
@@ -2027,8 +2063,8 @@ definition {
 			PageEditor.editCollectionDisplay(
 				fragmentName = "Collection Display",
 				listItemStyle = "Title",
-				listStyle = "Inline List",
-				selectedName = "Dynamic Collection");
+				selectedName = "Dynamic Collection",
+				styleDisplay = "Inline List");
 		}
 
 		task ("Assert the Title of collection items are shown in Inline List") {
@@ -2046,7 +2082,7 @@ definition {
 		}
 
 		task ("Assert the Title of collection items are shown in Inline List at view mode") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			var n = "1";
 
@@ -2067,8 +2103,8 @@ definition {
 			PageEditor.editCollectionDisplay(
 				fragmentName = "Collection Display",
 				listItemStyle = "Title",
-				listStyle = "Numbered List",
-				selectedName = "Dynamic Collection");
+				selectedName = "Dynamic Collection",
+				styleDisplay = "Numbered List");
 		}
 
 		task ("Assert the Title of collection items are shown in Numbered List") {
@@ -2086,7 +2122,7 @@ definition {
 		}
 
 		task ("Assert the Title of collection items are shown in Numbered List at view mode") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			var n = "1";
 
@@ -2107,8 +2143,8 @@ definition {
 			PageEditor.editCollectionDisplay(
 				fragmentName = "Collection Display",
 				listItemStyle = "Title",
-				listStyle = "Unstyled List",
-				selectedName = "Dynamic Collection");
+				selectedName = "Dynamic Collection",
+				styleDisplay = "Unstyled List");
 		}
 
 		task ("Assert the Title of collection items are shown in Unstyled List") {
@@ -2126,7 +2162,7 @@ definition {
 		}
 
 		task ("Assert the Title of collection items are shown in Unstyled List at view mode") {
-			PageEditor.clickPublish();
+			PageEditor.publish();
 
 			var n = "1";
 
@@ -2184,8 +2220,14 @@ definition {
 
 			AssetListsAdmin.selectAsset(
 				assetListName = "Manual Collection",
-				assetType = "Blogs Entry",
-				entryList = "First Blogs Entry,Second Blogs Entry,Third Blogs Entry");
+				assetName = "First Blogs Entry",
+				assetType = "Blogs Entry");
+
+			for (var title : list "Second Blogs Entry,Third Blogs Entry") {
+				AssetListsAdmin.selectAsset(
+					assetName = "${title}",
+					assetType = "Blogs Entry");
+			}
 		}
 
 		task ("Add a Collection Display to a content page") {
@@ -2232,6 +2274,213 @@ definition {
 
 				var n = ${n} + 1;
 			}
+		}
+	}
+
+	@description = "This is a test for LPS-150318 and LPS-152245. Fragments used in nested elements and nested tabs within collection display are not given unique fragment ids."
+	@priority = "3"
+	test ViewUniqueFragmentIdsInNestedElementsAndNestedTabs {
+		task ("Given a fragment is given unique ID") {
+			task ("Add a fragment collection via JSON") {
+				JSONFragment.addFragmentCollection(
+					groupName = "Test Site Name",
+					name = "Collection Name");
+			}
+
+			task ("Add a section fragment to the fragment collection via JSON") {
+				JSONFragment.addSection(
+					collectionName = "Collection Name",
+					groupName = "Test Site Name",
+					name = "Fragment Name");
+			}
+
+			task ("Navigate to fragments admin") {
+				FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = "test-site-name");
+			}
+
+			task ("Edit this  fragment with the following codes") {
+				FragmentsAdminNavigator.gotoCollection(collectionName = "Collection Name");
+
+				FragmentsAdminNavigator.gotoEntryEllipsisItem(
+					entry = "Fragment Name",
+					item = "Edit");
+
+				var htmlContent = '''<div class="fragment_name">${fragmentElementId}</div>''';
+
+				FragmentsEditor.typeHtmlEditor(content = "${htmlContent}");
+
+				FragmentsEditor.waitForAutoSave();
+
+				FragmentsEditor.publish();
+			}
+		}
+
+		task ("When deploy it to nexted elements and nested tabs within collection display") {
+			task ("Add three web contents") {
+				for (var i : list "1,2,3") {
+					JSONWebcontent.addWebContent(
+						content = "WC WebContent Content ${i}",
+						groupName = "Test Site Name",
+						title = "WC WebContent Title ${i}");
+				}
+			}
+
+			task ("Add a Collection Display fragment to content page") {
+				ContentPagesNavigator.openEditContentPage(
+					pageName = "Content Page Name",
+					siteName = "Test Site Name");
+
+				PageEditor.addFragment(
+					collectionName = "Content Display",
+					fragmentName = "Collection Display");
+			}
+
+			task ("Add a Collection Display fragment to another content page") {
+				JSONLayout.addPublicLayout(
+					groupName = "Test Site Name",
+					layoutName = "Content Page Name 2",
+					type = "content");
+
+				ContentPagesNavigator.openEditContentPage(
+					pageName = "Content Page Name 2",
+					siteName = "Test Site Name");
+
+				PageEditor.addFragment(
+					collectionName = "Content Display",
+					fragmentName = "Collection Display");
+			}
+
+			task ("Select the Recent Content in Collection Display") {
+				ContentPagesNavigator.openEditContentPage(
+					pageName = "Content Page Name",
+					siteName = "Test Site Name");
+
+				PageEditor.editCollectionDisplay(
+					fragmentName = "Collection Display",
+					infoListProviderName = "Recent Content");
+			}
+
+			task ("Add the created fragment into one cell of Collection Display") {
+				PageEditor.addFragmentToCollectionDisplay(
+					collectionName = "Collection Name",
+					entryTitle = "WC WebContent Title 3",
+					fragmentName = "Fragment Name");
+			}
+
+			task ("Select the Recent Content in Collection Display in the second page") {
+				ContentPagesNavigator.openEditContentPage(
+					pageName = "Content Page Name 2",
+					siteName = "Test Site Name");
+
+				PageEditor.editCollectionDisplay(
+					fragmentName = "Collection Display",
+					infoListProviderName = "Recent Content");
+			}
+
+			task ("Add the created fragment into tabs fragment of Collection Display") {
+				PageEditor.addFragmentToCollectionDisplay(
+					collectionName = "Basic Components",
+					entryTitle = "WC WebContent Title 3",
+					fragmentName = "Tabs");
+
+				PageEditor.addElementToTab(
+					collectionName = "Collection Name",
+					fragmentName = "Fragment Name",
+					index = "2",
+					navItem = "Tab 1",
+					navTab = "Fragments",
+					position = "1");
+			}
+		}
+
+		task ("Then the unique id is shown in edit and view mode") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
+
+			var fragmentId = selenium.getText("//div[@aria-label='Fragment Name']");
+
+			AssertTextNotEquals(
+				key_columnNumber = "1",
+				key_position = "1",
+				key_rowNumber = "2",
+				locator1 = "PageEditor#COLLECTION_DISPLAY_COLUMN",
+				value1 = "${fragmentId}");
+
+			AssertTextNotEquals(
+				key_columnNumber = "1",
+				key_position = "1",
+				key_rowNumber = "3",
+				locator1 = "PageEditor#COLLECTION_DISPLAY_COLUMN",
+				value1 = "${fragmentId}");
+
+			PageEditor.publish();
+
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Content Page Name 2",
+				siteName = "Test Site Name");
+
+			var fragmentId2 = selenium.getText("//div[@aria-label='Fragment Name']//div[contains(@id,'fragment-')]");
+
+			AssertTextNotEquals.assertNotPartialText(
+				key_columnNumber = "1",
+				key_position = "1",
+				key_rowNumber = "2",
+				locator1 = "PageEditor#COLLECTION_DISPLAY_COLUMN",
+				value1 = "${fragmentId2}");
+
+			AssertTextNotEquals.assertNotPartialText(
+				key_columnNumber = "1",
+				key_position = "1",
+				key_rowNumber = "3",
+				locator1 = "PageEditor#COLLECTION_DISPLAY_COLUMN",
+				value1 = "${fragmentId2}");
+
+			PageEditor.publish();
+
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Content Page Name",
+				siteName = "Test Site Name");
+
+			AssertTextEquals(
+				key_colPosition = "1",
+				key_rowPosition = "1",
+				locator1 = "PageEditor#COLLECTION_ITEM",
+				value1 = "${fragmentId}");
+
+			AssertTextNotEquals(
+				key_colPosition = "1",
+				key_rowPosition = "2",
+				locator1 = "PageEditor#COLLECTION_ITEM",
+				value1 = "${fragmentId}");
+
+			AssertTextNotEquals(
+				key_colPosition = "1",
+				key_rowPosition = "3",
+				locator1 = "PageEditor#COLLECTION_ITEM",
+				value1 = "${fragmentId}");
+
+			ContentPagesNavigator.openViewContentPage(
+				pageName = "Content Page Name 2",
+				siteName = "Test Site Name");
+
+			AssertTextEquals.assertPartialText(
+				key_colPosition = "1",
+				key_rowPosition = "1",
+				locator1 = "PageEditor#COLLECTION_ITEM",
+				value1 = "${fragmentId2}");
+
+			AssertTextNotEquals.assertNotPartialText(
+				key_colPosition = "1",
+				key_rowPosition = "2",
+				locator1 = "PageEditor#COLLECTION_ITEM",
+				value1 = "${fragmentId2}");
+
+			AssertTextNotEquals.assertNotPartialText(
+				key_colPosition = "1",
+				key_rowPosition = "3",
+				locator1 = "PageEditor#COLLECTION_ITEM",
+				value1 = "${fragmentId2}");
 		}
 	}
 

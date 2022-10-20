@@ -14,7 +14,7 @@
 
 package com.liferay.trash.web.internal.servlet.taglib.clay;
 
-import com.liferay.frontend.taglib.clay.servlet.taglib.soy.BaseVerticalCard;
+import com.liferay.frontend.taglib.clay.servlet.taglib.BaseVerticalCard;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
 import com.liferay.portal.kernel.dao.search.RowChecker;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -26,7 +26,6 @@ import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
 import com.liferay.portal.kernel.trash.TrashRenderer;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.trash.model.TrashEntry;
-import com.liferay.trash.web.internal.constants.TrashWebKeys;
 import com.liferay.trash.web.internal.servlet.taglib.util.TrashEntryActionDropdownItemsProvider;
 import com.liferay.trash.web.internal.servlet.taglib.util.TrashViewContentActionDropdownItemsProvider;
 
@@ -86,11 +85,6 @@ public class TrashEntryVerticalCard extends BaseVerticalCard {
 		}
 
 		return Collections.emptyList();
-	}
-
-	@Override
-	public String getDefaultEventHandler() {
-		return TrashWebKeys.TRASH_ENTRIES_DEFAULT_EVENT_HANDLER;
 	}
 
 	@Override

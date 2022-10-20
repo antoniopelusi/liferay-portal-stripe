@@ -17,8 +17,8 @@ package com.liferay.gradle.plugins.target.platform;
 import com.liferay.gradle.plugins.target.platform.extensions.TargetPlatformExtension;
 import com.liferay.gradle.plugins.target.platform.internal.util.GradleUtil;
 import com.liferay.gradle.plugins.target.platform.internal.util.TargetPlatformPluginUtil;
-import com.liferay.gradle.plugins.target.platform.tasks.DependencyManagementTask;
-import com.liferay.gradle.plugins.target.platform.tasks.ResolveTask;
+import com.liferay.gradle.plugins.target.platform.task.DependencyManagementTask;
+import com.liferay.gradle.plugins.target.platform.task.ResolveTask;
 
 import groovy.lang.Closure;
 

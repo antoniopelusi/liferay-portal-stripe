@@ -72,6 +72,12 @@ public interface SiteResource {
 			return new SiteResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -117,6 +123,7 @@ public interface SiteResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -207,7 +214,7 @@ public interface SiteResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/my-user-account/sites");
 
 			httpInvoker.userNameAndPassword(
@@ -286,7 +293,7 @@ public interface SiteResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/sites/by-friendly-url-path/{friendlyUrlPath}");
 
 			httpInvoker.path("friendlyUrlPath", friendlyUrlPath);
@@ -363,7 +370,7 @@ public interface SiteResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/sites/{siteId}");
 
 			httpInvoker.path("siteId", siteId);

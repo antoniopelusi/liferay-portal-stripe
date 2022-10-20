@@ -16,7 +16,7 @@ definition {
 
 	macro assertNoCurrentInterests {
 		AssertVisible(
-			key_cardTitle = "Interests",
+			key_cardTitle = "interests",
 			locator1 = "ACCards#NO_RESULTS_TITLE");
 	}
 
@@ -188,12 +188,6 @@ definition {
 		AssertTextEquals(
 			locator1 = "ACInterests#INTEREST_TOPIC_VIA_POSITION",
 			value1 = "${interestTopic}");
-	}
-
-	macro viewNoInterestResults {
-		AssertTextEquals(
-			locator1 = "ACInterests#NO_INTEREST_TITLE",
-			value1 = "There are no items found.");
 	}
 
 }

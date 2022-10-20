@@ -41,6 +41,7 @@ definition {
 	@description = "This checks that users can configure the cache control as private."
 	@priority = "4"
 	test CanConfigureCacheControlAsPrivate {
+		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "DMCache#CanConfigureCacheControlAsPrivate";
 
 		DMDocument.configureCacheControl(
@@ -60,6 +61,8 @@ definition {
 
 		DMNavigator.gotoDocumentPG(dmDocumentTitle = "DM Document Title");
 
+		WaitForPageLoad();
+
 		var responseHeader = DMDocument.getFileResponseHeader(dmDocumentFileName = "Commerce_Blue.jpg");
 
 		DMDocument.viewCacheControlConfigurationInConsole(
@@ -69,8 +72,9 @@ definition {
 	}
 
 	@description = "This checks that users can configure the cache control as public."
-	@priority = "3"
+	@priority = "4"
 	test CanConfigureCacheControlAsPublic {
+		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "DMCache#CanConfigureCacheControlAsPublic";
 
 		DMDocument.configureCacheControl(

@@ -7,7 +7,6 @@ definition {
 			folderId = "${folderId}",
 			groupName = "${groupName}",
 			portalURL = "${baseURL}");
-
 		var portalURL = JSONCompany.getPortalURL();
 
 		if (!(isSet(parentCommentId))) {
@@ -37,7 +36,6 @@ definition {
 	@summary = "This calls the JSON WS API to add a Document entry"
 	macro addFile {
 		var portalURL = JSONCompany.getPortalURL();
-
 		var repositoryId = JSONGroupAPI._getSiteIdByGroupKey(groupName = "${groupName}");
 
 		if (isSet(folderName)) {
@@ -100,7 +98,6 @@ definition {
 		Variables.assertDefined(parameterList = "${groupName},${mimeType},${sourceFileName}");
 
 		var portalURL = JSONCompany.getPortalURL();
-
 		var repositoryId = JSONGroupAPI._getSiteIdByGroupKey(groupName = "${groupName}");
 
 		if (isSet(folderName)) {
@@ -211,6 +208,74 @@ definition {
 		return "${fileEntryId}";
 	}
 
+	@summary = "This calls the JSON WS API to add a document shortcut"
+	macro addShortcut {
+		Variables.assertDefined(parameterList = "${targetGroupName},${sourceGroupName},${dmDocumentTitle}");
+
+		var portalURL = JSONCompany.getPortalURL();
+		var targetRepositoryId = JSONGroupAPI._getSiteIdByGroupKey(groupName = "${targetGroupName}");
+		var sourceRepositoryId = JSONGroupAPI._getSiteIdByGroupKey(groupName = "${sourceGroupName}");
+
+		if (isSet(sourceFolderName)) {
+			Variables.assertDefined(parameterList = "${sourceFolderName}");
+
+			if (isSet(sourceParentFolderName)) {
+				var sourceParentFolderId = JSONDocumentAPI._getFolderIdByFolderName(
+					groupName = "${sourceGroupName}",
+					name = "${sourceParentFolderName}");
+			}
+			else {
+				var sourceParentFolderId = "0";
+			}
+
+			var sourceFolderId = JSONDocumentAPI._getFolderIdByFolderName(
+				groupName = "${targetGroupName}",
+				name = "${targetFolderName}",
+				parentFolderId = "${sourceParentFolderNames}");
+		}
+		else {
+			var sourceFolderId = "0";
+		}
+
+		var fileEntryId = JSONDocument.getFileEntryId(
+			dmDocumentTitle = "${dmDocumentTitle}",
+			folderId = "${sourceFolderId}",
+			groupName = "${sourceGroupName}",
+			portalURL = "${baseURL}");
+
+		if (isSet(targetFolderName)) {
+			Variables.assertDefined(parameterList = "${targetFolderName}");
+
+			if (isSet(targetParentFolderName)) {
+				var targetParentFolderId = JSONDocumentAPI._getFolderIdByFolderName(
+					groupName = "${targetGroupName}",
+					name = "${targetParentFolderName}");
+			}
+			else {
+				var targetParentFolderId = "0";
+			}
+
+			var targetFolderId = JSONDocumentAPI._getFolderIdByFolderName(
+				groupName = "${targetGroupName}",
+				name = "${targetFolderName}",
+				parentFolderId = "${targetParentFolderId}");
+		}
+		else {
+			var targetFolderId = "0";
+		}
+
+		var curl = '''
+			${portalURL}/api/jsonws/dlfileshortcut/add-file-shortcut  \
+                -u test@liferay.com:test \
+                -d groupId=${targetRepositoryId} \
+                -d repositoryId=${sourceRepositoryId} \
+                -d folderId=${targetFolderId} \
+                -d toFileEntryId=${fileEntryId}
+        ''';
+
+		com.liferay.poshi.runner.util.JSONCurlUtil.post("${curl}");
+	}
+
 	@summary = "This calls the JSON WS API to delete a Document entry"
 	macro deleteFile {
 		var portalURL = JSONCompany.getPortalURL();
@@ -268,6 +333,7 @@ definition {
 			  -d folderId=${folderId} \
 			  -d title=${dmDocumentTitle}
 		''';
+
 		var fileEntryId = JSONCurlUtil.post("${curl}", "$.[?(@['title'] == '${dmDocumentTitle}')]['fileEntryId']");
 
 		return "${fileEntryId}";
@@ -300,9 +366,24 @@ definition {
 			  -d folderId=${folderId} \
 			  -d title=${dmDocumentTitle}
 		''';
+
 		var fileEntryUuid = JSONCurlUtil.post("${curl}", "$.[?(@['title'] == '${dmDocumentTitle}')]['uuid']");
 
 		return "${fileEntryUuid}";
+	}
+
+	macro getLatestVersionURL {
+		Variables.assertDefined(parameterList = "${dmDocumentTitle},${groupName}");
+
+		var portalURL = JSONCompany.getPortalURL();
+		var fileName = StringUtil.replace("${dmDocumentTitle}", " ", "-");
+
+		var fileName = StringUtil.lowerCase("${fileName}");
+		var siteURLKey = StringUtil.replace("${groupName}", " ", "-");
+
+		var siteURLKey = StringUtil.lowerCase("${siteURLKey}");
+
+		return "${portalURL}/documents/d/${siteURLKey}/${fileName}";
 	}
 
 	@summary = "This calls the JSON WS API to move a document to a folder"
@@ -311,10 +392,9 @@ definition {
 			dmDocumentTitle = "${dmDocumentTitle}",
 			folderId = "${folderId}",
 			groupName = "${groupName}",
-			portalURL = "${baseURL}");
-
+			portalURL = "${baseURL}",
+			site = "${site}");
 		var portalURL = JSONCompany.getPortalURL();
-
 		var newFolderId = JSONDocumentAPI._getFolderIdByFolderName(
 			groupName = "${groupName}",
 			name = "${folderName}");
@@ -356,7 +436,6 @@ definition {
 			groupName = "${groupName}",
 			portalURL = "${baseURL}",
 			site = "${site}");
-
 		var portalURL = JSONCompany.getPortalURL();
 
 		var curl = '''

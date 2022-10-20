@@ -20,7 +20,11 @@ import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.service.ObjectEntryService;
 import com.liferay.object.web.internal.object.entries.display.context.ObjectEntryDisplayContextFactory;
+import com.liferay.object.web.internal.util.ObjectDefinitionPermissionUtil;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
 
 import javax.servlet.ServletContext;
 
@@ -62,6 +66,27 @@ public class ObjectEntryAssetRendererFactory
 	public String getType() {
 		return _objectDefinition.getClassName();
 	}
+
+	@Override
+	public boolean hasPermission(
+			PermissionChecker permissionChecker, long classPK, String actionId)
+		throws Exception {
+
+		try {
+			return ObjectDefinitionPermissionUtil.hasModelResourcePermission(
+				_objectDefinition, classPK, _objectEntryService, actionId);
+		}
+		catch (PortalException portalException) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(portalException);
+			}
+
+			return false;
+		}
+	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		ObjectEntryAssetRendererFactory.class);
 
 	private final ObjectDefinition _objectDefinition;
 	private final ObjectEntryDisplayContextFactory

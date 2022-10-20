@@ -53,9 +53,10 @@ public class ObjectFieldServiceHttp {
 	public static com.liferay.object.model.ObjectField addCustomObjectField(
 			HttpPrincipal httpPrincipal, long listTypeDefinitionId,
 			long objectDefinitionId, String businessType, String dbType,
-			boolean indexed, boolean indexedAsKeyword, String indexedLanguageId,
+			String defaultValue, boolean indexed, boolean indexedAsKeyword,
+			String indexedLanguageId,
 			java.util.Map<java.util.Locale, String> labelMap, String name,
-			boolean required,
+			boolean required, boolean state,
 			java.util.List<com.liferay.object.model.ObjectFieldSetting>
 				objectFieldSettings)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -67,8 +68,8 @@ public class ObjectFieldServiceHttp {
 
 			MethodHandler methodHandler = new MethodHandler(
 				methodKey, listTypeDefinitionId, objectDefinitionId,
-				businessType, dbType, indexed, indexedAsKeyword,
-				indexedLanguageId, labelMap, name, required,
+				businessType, dbType, defaultValue, indexed, indexedAsKeyword,
+				indexedLanguageId, labelMap, name, required, state,
 				objectFieldSettings);
 
 			Object returnObj = null;
@@ -176,25 +177,27 @@ public class ObjectFieldServiceHttp {
 		}
 	}
 
-	public static com.liferay.object.model.ObjectField updateCustomObjectField(
+	public static com.liferay.object.model.ObjectField updateObjectField(
 			HttpPrincipal httpPrincipal, long objectFieldId,
-			long listTypeDefinitionId, String businessType, String dbType,
+			String externalReferenceCode, long listTypeDefinitionId,
+			String businessType, String dbType, String defaultValue,
 			boolean indexed, boolean indexedAsKeyword, String indexedLanguageId,
 			java.util.Map<java.util.Locale, String> labelMap, String name,
-			boolean required,
+			boolean required, boolean state,
 			java.util.List<com.liferay.object.model.ObjectFieldSetting>
 				objectFieldSettings)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		try {
 			MethodKey methodKey = new MethodKey(
-				ObjectFieldServiceUtil.class, "updateCustomObjectField",
-				_updateCustomObjectFieldParameterTypes3);
+				ObjectFieldServiceUtil.class, "updateObjectField",
+				_updateObjectFieldParameterTypes3);
 
 			MethodHandler methodHandler = new MethodHandler(
-				methodKey, objectFieldId, listTypeDefinitionId, businessType,
-				dbType, indexed, indexedAsKeyword, indexedLanguageId, labelMap,
-				name, required, objectFieldSettings);
+				methodKey, objectFieldId, externalReferenceCode,
+				listTypeDefinitionId, businessType, dbType, defaultValue,
+				indexed, indexedAsKeyword, indexedLanguageId, labelMap, name,
+				required, state, objectFieldSettings);
 
 			Object returnObj = null;
 
@@ -229,19 +232,20 @@ public class ObjectFieldServiceHttp {
 
 	private static final Class<?>[] _addCustomObjectFieldParameterTypes0 =
 		new Class[] {
-			long.class, long.class, String.class, String.class, boolean.class,
-			boolean.class, String.class, java.util.Map.class, String.class,
-			boolean.class, java.util.List.class
+			long.class, long.class, String.class, String.class, String.class,
+			boolean.class, boolean.class, String.class, java.util.Map.class,
+			String.class, boolean.class, boolean.class, java.util.List.class
 		};
 	private static final Class<?>[] _deleteObjectFieldParameterTypes1 =
 		new Class[] {long.class};
 	private static final Class<?>[] _getObjectFieldParameterTypes2 =
 		new Class[] {long.class};
-	private static final Class<?>[] _updateCustomObjectFieldParameterTypes3 =
+	private static final Class<?>[] _updateObjectFieldParameterTypes3 =
 		new Class[] {
-			long.class, long.class, String.class, String.class, boolean.class,
-			boolean.class, String.class, java.util.Map.class, String.class,
-			boolean.class, java.util.List.class
+			long.class, String.class, long.class, String.class, String.class,
+			String.class, boolean.class, boolean.class, String.class,
+			java.util.Map.class, String.class, boolean.class, boolean.class,
+			java.util.List.class
 		};
 
 }

@@ -305,8 +305,8 @@ public class SitesImpl implements Sites {
 				targetLayout.getDescriptionMap(), targetLayout.getKeywordsMap(),
 				targetLayout.getRobotsMap(), layoutPrototypeLayout.getType(),
 				targetLayout.isHidden(), targetLayout.getFriendlyURLMap(),
-				layoutPrototypeLayout.isIconImage(), iconBytes,
-				layoutPrototypeLayout.getMasterLayoutPlid(), 0, serviceContext);
+				layoutPrototypeLayout.isIconImage(), iconBytes, 0, 0,
+				layoutPrototypeLayout.getMasterLayoutPlid(), serviceContext);
 		}
 		finally {
 			if (originalLayoutPrototypeLinkEnabled == null) {
@@ -1622,11 +1622,10 @@ public class SitesImpl implements Sites {
 				null, false, true, null);
 		}
 
-		String portletTitle = PortalUtil.getPortletTitle(
-			PortletIdCodec.decodePortletName(sourcePortletId), languageId);
-
 		String newPortletTitle = PortalUtil.getNewPortletTitle(
-			portletTitle, String.valueOf(sourceLayout.getLayoutId()),
+			PortalUtil.getPortletTitle(
+				PortletIdCodec.decodePortletName(sourcePortletId), languageId),
+			String.valueOf(sourceLayout.getLayoutId()),
 			targetLayout.getName(languageId));
 
 		targetPreferences.setValue(
@@ -1977,14 +1976,8 @@ public class SitesImpl implements Sites {
 			PortletDataHandlerKeys.DELETE_MISSING_LAYOUTS,
 			new String[] {Boolean.FALSE.toString()}
 		).put(
-			PortletDataHandlerKeys.DELETE_LAYOUTS,
-			new String[] {Boolean.TRUE.toString()}
-		).put(
 			PortletDataHandlerKeys.DELETE_PORTLET_DATA,
 			new String[] {Boolean.FALSE.toString()}
-		).put(
-			PortletDataHandlerKeys.DELETIONS,
-			new String[] {Boolean.TRUE.toString()}
 		).put(
 			PortletDataHandlerKeys.IGNORE_LAST_PUBLISH_DATE,
 			new String[] {Boolean.TRUE.toString()}
@@ -2041,6 +2034,13 @@ public class SitesImpl implements Sites {
 				new String[] {Boolean.TRUE.toString()});
 		}
 		else {
+			parameterMap.put(
+				PortletDataHandlerKeys.DELETE_LAYOUTS,
+				new String[] {Boolean.TRUE.toString()});
+			parameterMap.put(
+				PortletDataHandlerKeys.DELETIONS,
+				new String[] {Boolean.TRUE.toString()});
+
 			if (PropsValues.LAYOUT_SET_PROTOTYPE_PROPAGATE_LOGO) {
 				parameterMap.put(
 					PortletDataHandlerKeys.LOGO,
@@ -2327,12 +2327,9 @@ public class SitesImpl implements Sites {
 
 		// Force propagation from site template to site. See LPS-48206.
 
-		Group group = GroupLocalServiceUtil.getGroup(groupId);
-
-		LayoutSet layoutSet = LayoutSetLocalServiceUtil.getLayoutSet(
-			groupId, privateLayout);
-
-		mergeLayoutSetPrototypeLayouts(group, layoutSet);
+		mergeLayoutSetPrototypeLayouts(
+			GroupLocalServiceUtil.getGroup(groupId),
+			LayoutSetLocalServiceUtil.getLayoutSet(groupId, privateLayout));
 	}
 
 	private String _acquireLock(

@@ -27,18 +27,16 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.JSONPortletResponseUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.portal.util.PropsUtil;
 
 import java.util.Objects;
 
@@ -80,7 +78,7 @@ public class AddItemMVCActionCommand extends BaseMVCActionCommand {
 
 			jsonObject.put(
 				"error",
-				LanguageUtil.get(
+				_language.get(
 					_portal.getHttpServletRequest(actionRequest),
 					errorMessage));
 		}
@@ -94,22 +92,17 @@ public class AddItemMVCActionCommand extends BaseMVCActionCommand {
 	private LayoutStructureItem _addCollectionStyledLayoutStructureItem(
 		LayoutStructure layoutStructure, String parentItemId, int position) {
 
-		if (GetterUtil.getBoolean(PropsUtil.get("feature.flag.LPS-119551"))) {
-			CollectionStyledLayoutStructureItem
-				collectionStyledLayoutStructureItem =
-					(CollectionStyledLayoutStructureItem)
-						layoutStructure.addCollectionStyledLayoutStructureItem(
-							parentItemId, position);
+		CollectionStyledLayoutStructureItem
+			collectionStyledLayoutStructureItem =
+				(CollectionStyledLayoutStructureItem)
+					layoutStructure.addCollectionStyledLayoutStructureItem(
+						parentItemId, position);
 
-			collectionStyledLayoutStructureItem.setViewportConfiguration(
-				ViewportSize.MOBILE_LANDSCAPE.getViewportSizeId(),
-				JSONUtil.put("numberOfColumns", 1));
+		collectionStyledLayoutStructureItem.setViewportConfiguration(
+			ViewportSize.MOBILE_LANDSCAPE.getViewportSizeId(),
+			JSONUtil.put("numberOfColumns", 1));
 
-			return collectionStyledLayoutStructureItem;
-		}
-
-		return layoutStructure.addCollectionStyledLayoutStructureItem(
-			parentItemId, position);
+		return collectionStyledLayoutStructureItem;
 	}
 
 	private JSONObject _addItemToLayoutData(ActionRequest actionRequest)
@@ -182,52 +175,38 @@ public class AddItemMVCActionCommand extends BaseMVCActionCommand {
 	private LayoutStructureItem _addRowSyledLayoutStructureItem(
 		LayoutStructure layoutStructure, String parentItemId, int position) {
 
-		if (GetterUtil.getBoolean(PropsUtil.get("feature.flag.LPS-119551"))) {
-			RowStyledLayoutStructureItem rowStyledLayoutStructureItem =
-				(RowStyledLayoutStructureItem)
-					layoutStructure.addRowStyledLayoutStructureItem(
-						parentItemId, position, _DEFAULT_ROW_COLUMNS);
+		RowStyledLayoutStructureItem rowStyledLayoutStructureItem =
+			(RowStyledLayoutStructureItem)
+				layoutStructure.addRowStyledLayoutStructureItem(
+					parentItemId, position, _DEFAULT_ROW_COLUMNS);
 
-			rowStyledLayoutStructureItem.setViewportConfiguration(
-				ViewportSize.MOBILE_LANDSCAPE.getViewportSizeId(),
-				JSONUtil.put("modulesPerRow", 1));
-
-			for (int i = 0; i < _DEFAULT_ROW_COLUMNS; i++) {
-				ColumnLayoutStructureItem columnLayoutStructureItem =
-					(ColumnLayoutStructureItem)
-						layoutStructure.addColumnLayoutStructureItem(
-							rowStyledLayoutStructureItem.getItemId(), i);
-
-				columnLayoutStructureItem.setViewportConfiguration(
-					ViewportSize.MOBILE_LANDSCAPE.getViewportSizeId(),
-					JSONUtil.put("size", 12));
-
-				columnLayoutStructureItem.setSize(4);
-			}
-
-			return rowStyledLayoutStructureItem;
-		}
-
-		LayoutStructureItem layoutStructureItem =
-			layoutStructure.addRowStyledLayoutStructureItem(
-				parentItemId, position, _DEFAULT_ROW_COLUMNS);
+		rowStyledLayoutStructureItem.setViewportConfiguration(
+			ViewportSize.MOBILE_LANDSCAPE.getViewportSizeId(),
+			JSONUtil.put("modulesPerRow", 1));
 
 		for (int i = 0; i < _DEFAULT_ROW_COLUMNS; i++) {
 			ColumnLayoutStructureItem columnLayoutStructureItem =
 				(ColumnLayoutStructureItem)
 					layoutStructure.addColumnLayoutStructureItem(
-						layoutStructureItem.getItemId(), i);
+						rowStyledLayoutStructureItem.getItemId(), i);
+
+			columnLayoutStructureItem.setViewportConfiguration(
+				ViewportSize.MOBILE_LANDSCAPE.getViewportSizeId(),
+				JSONUtil.put("size", 12));
 
 			columnLayoutStructureItem.setSize(4);
 		}
 
-		return layoutStructureItem;
+		return rowStyledLayoutStructureItem;
 	}
 
 	private static final int _DEFAULT_ROW_COLUMNS = 3;
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		AddItemMVCActionCommand.class);
+
+	@Reference
+	private Language _language;
 
 	@Reference
 	private Portal _portal;

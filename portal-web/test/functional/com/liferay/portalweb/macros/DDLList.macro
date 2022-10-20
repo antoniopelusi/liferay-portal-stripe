@@ -138,14 +138,37 @@ definition {
 			value1 = "Save");
 	}
 
+	macro expandCollapsedIcon {
+		if (isSet(classNameList)) {
+			for (var className : list "${classNameList}") {
+				var key_sectionName = "${className}";
+
+				if (IsElementPresent(key_tab = "${className}", locator1 = "StyleBookEditor#STYLE_BOOK_EDITOR_SIDEBAR_EXPANDED")) {
+					AssertElementPresent(locator1 = "StyleBookEditor#STYLE_BOOK_EDITOR_SIDEBAR_EXPANDED");
+				}
+				else {
+					Click(locator1 = "StyleBookEditor#STYLE_BOOK_EDITOR_SIDEBAR_COLLAPSED");
+				}
+			}
+		}
+		else {
+			var key_sectionName = "${className}";
+
+			if (IsElementPresent(key_tab = "${className}", locator1 = "StyleBookEditor#STYLE_BOOK_EDITOR_SIDEBAR_EXPANDED")) {
+				AssertElementPresent(locator1 = "StyleBookEditor#STYLE_BOOK_EDITOR_SIDEBAR_EXPANDED");
+			}
+			else {
+				Click(locator1 = "StyleBookEditor#STYLE_BOOK_EDITOR_SIDEBAR_COLLAPSED");
+			}
+		}
+	}
+
 	macro openDynamicDataListsAdmin {
 		Navigator.openWithAppendToBaseURL(urlAppend = "group/${siteURLKey}/~/control_panel/manage?p_p_id=com_liferay_dynamic_data_lists_web_portlet_DDLPortlet");
 	}
 
 	macro saveViaDDLDisplayPG {
 		DDLDataDefinition.save();
-
-		Pause(locator1 = "5000");
 	}
 
 	macro selectViaDDLDisplayPG {

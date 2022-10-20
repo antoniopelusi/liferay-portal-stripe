@@ -16,24 +16,22 @@ package com.liferay.layout.seo.kernel;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ListMergeable;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Cristina González
  */
 public interface LayoutSEOLinkManager {
 
-	public default LayoutSEOLink getCanonicalLayoutSEOLink(
+	public LayoutSEOLink getCanonicalLayoutSEOLink(
 			Layout layout, Locale locale, String canonicalURL,
-			Map<Locale, String> alternateURLs)
-		throws PortalException {
-
-		throw new UnsupportedOperationException();
-	}
+			ThemeDisplay themeDisplay)
+		throws PortalException;
 
 	public default String getFullPageTitle(
 			Layout layout, String portletId, String tilesTitle,
@@ -47,7 +45,7 @@ public interface LayoutSEOLinkManager {
 
 	public List<LayoutSEOLink> getLocalizedLayoutSEOLinks(
 			Layout layout, Locale locale, String canonicalURL,
-			Map<Locale, String> alternateURLs)
+			Set<Locale> availableLocales)
 		throws PortalException;
 
 	public default String getPageTitle(
@@ -63,17 +61,6 @@ public interface LayoutSEOLinkManager {
 		throws PortalException {
 
 		throw new UnsupportedOperationException();
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             OpenGraphConfiguration#isOpenGraphEnabled(Group)}
-	 */
-	@Deprecated
-	public default boolean isOpenGraphEnabled(Layout layout)
-		throws PortalException {
-
-		return false;
 	}
 
 }

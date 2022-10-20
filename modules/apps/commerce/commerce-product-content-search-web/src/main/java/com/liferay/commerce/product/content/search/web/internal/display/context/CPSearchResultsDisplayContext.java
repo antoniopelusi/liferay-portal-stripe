@@ -206,6 +206,24 @@ public class CPSearchResultsDisplayContext {
 		return _displayStyleGroupId;
 	}
 
+	public String getNames() {
+		StringBundler sb = new StringBundler();
+
+		List<CPType> cpTypes = getCPTypes();
+
+		for (int i = 0; i < cpTypes.size(); i++) {
+			CPType cpType = cpTypes.get(i);
+
+			sb.append(cpType.getLabel(_cpRequestHelper.getLocale()));
+
+			if ((i + 1) < cpTypes.size()) {
+				sb.append(",");
+			}
+		}
+
+		return sb.toString();
+	}
+
 	public String getOrderByCol() {
 		HttpServletRequest originalHttpServletRequest =
 			PortalUtil.getOriginalServletRequest(_httpServletRequest);

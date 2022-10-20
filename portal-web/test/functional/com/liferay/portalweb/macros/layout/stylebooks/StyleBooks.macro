@@ -5,7 +5,7 @@ definition {
 	}
 
 	macro clickPublish {
-		Button.clickNoError(button = "Publish");
+		Button.click(button = "Publish");
 
 		if (IsTextEqual(locator1 = "Modal#HEADER", value1 = "Style Errors Detected")) {
 			AssertTextEquals(
@@ -27,7 +27,7 @@ definition {
 					value1 = "Once published, these changes will affect all instances of the site using these properties. Do you want to publish now?");
 
 				Click(
-					key_text = "Continue",
+					key_text = "Publish",
 					locator1 = "Modal#MODAL_FOOTER_BUTTON");
 			}
 		}
@@ -37,14 +37,26 @@ definition {
 				value1 = "Once published, these changes will affect all instances of the site using these properties. Do you want to publish now?");
 
 			Click(
-				key_text = "Continue",
+				key_text = "Publish",
 				locator1 = "Modal#MODAL_FOOTER_BUTTON");
 		}
 
 		Alert.viewSuccessMessage();
 	}
 
+	macro configureUnit {
+		Click(
+			key_fieldLabel = "${fieldLabel}",
+			locator1 = "Dropdown#DROPDOWN_TOGGLE_BUTTON_WITH_LABEL");
+
+		MenuItem.click(menuItem = "${unit}");
+	}
+
 	macro expandSection {
+		WaitForVisible(
+			key_panel = "${sectionName}",
+			locator1 = "Panel#PANEL");
+
 		if (IsElementPresent(key_sectionName = "${sectionName}", locator1 = "StyleBookEditor#STYLE_BOOK_EDITOR_SIDEBAR_COLLAPSED")) {
 			AssertClick(
 				key_sectionName = "${sectionName}",
@@ -101,7 +113,16 @@ definition {
 				NavItem.click(navItem = "${scope}");
 			}
 
-			LexiconCard.clickCard(card = "${previewItem}");
+			if ("${previewType}" == "Pages") {
+				Portlet.expandTree();
+
+				Click(
+					key_nodeName = "${previewItem}",
+					locator1 = "Treeview#NODE_UNSELECTED");
+			}
+			else {
+				LexiconCard.clickCard(card = "${previewItem}");
+			}
 
 			SelectFrameTop();
 		}
@@ -159,7 +180,7 @@ definition {
 	}
 
 	macro waitForAutoSave {
-		Pause(locator1 = "1000");
+		WaitForElementNotPresent(locator1 = "StyleBookEditor#DRAFT_SAVING_MESSAGE");
 
 		AssertVisible(locator1 = "StyleBookEditor#DRAFT_SAVED_MESSAGE");
 	}

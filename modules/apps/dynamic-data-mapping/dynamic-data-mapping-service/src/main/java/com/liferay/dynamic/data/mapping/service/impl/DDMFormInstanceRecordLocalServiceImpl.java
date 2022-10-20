@@ -50,7 +50,7 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.SystemEventConstants;
@@ -433,14 +433,17 @@ public class DDMFormInstanceRecordLocalServiceImpl
 		ddmFormInstanceRecord.setModifiedDate(
 			serviceContext.getModifiedDate(null));
 
+		DDMFormInstance ddmFormInstance =
+			ddmFormInstanceRecord.getFormInstance();
+
+		ddmFormInstanceRecord.setFormInstanceVersion(
+			ddmFormInstance.getVersion());
+
 		ddmFormInstanceRecord = ddmFormInstanceRecordPersistence.update(
 			ddmFormInstanceRecord);
 
 		DDMFormInstanceRecordVersion ddmFormInstanceRecordVersion =
 			ddmFormInstanceRecord.getLatestFormInstanceRecordVersion();
-
-		DDMFormInstance ddmFormInstance =
-			ddmFormInstanceRecord.getFormInstance();
 
 		if (ddmFormInstanceRecordVersion.isApproved()) {
 			long ddmStorageId = createDDMContent(
@@ -465,6 +468,7 @@ public class DDMFormInstanceRecordLocalServiceImpl
 
 			updateFormInstanceRecordVersion(
 				user, ddmFormInstanceRecordVersion,
+				ddmFormInstance.getVersion(),
 				ddmFormInstanceRecordVersion.getStatus(), version,
 				serviceContext);
 
@@ -864,7 +868,7 @@ public class DDMFormInstanceRecordLocalServiceImpl
 
 		DDMFormInstance formInstance = formInstanceRecord.getFormInstance();
 
-		String title = LanguageUtil.format(
+		String title = _language.format(
 			getResourceBundle(locale), "form-record-for-form-x",
 			formInstance.getName(locale), false);
 
@@ -924,10 +928,13 @@ public class DDMFormInstanceRecordLocalServiceImpl
 
 	protected void updateFormInstanceRecordVersion(
 		User user, DDMFormInstanceRecordVersion ddmFormInstanceRecordVersion,
-		int status, String version, ServiceContext serviceContext) {
+		String formInstanceVersion, int status, String version,
+		ServiceContext serviceContext) {
 
 		ddmFormInstanceRecordVersion.setUserId(user.getUserId());
 		ddmFormInstanceRecordVersion.setUserName(user.getFullName());
+		ddmFormInstanceRecordVersion.setFormInstanceVersion(
+			formInstanceVersion);
 		ddmFormInstanceRecordVersion.setVersion(version);
 		ddmFormInstanceRecordVersion.setStatus(status);
 		ddmFormInstanceRecordVersion.setStatusByUserId(user.getUserId());
@@ -980,7 +987,6 @@ public class DDMFormInstanceRecordLocalServiceImpl
 		SearchContext searchContext = new SearchContext();
 
 		searchContext.setAndSearch(true);
-
 		searchContext.setAttributes(
 			HashMapBuilder.<String, Serializable>put(
 				Field.CLASS_NAME_ID,
@@ -996,7 +1002,6 @@ public class DDMFormInstanceRecordLocalServiceImpl
 			).put(
 				"structureId", ddmFormInstance.getStructureId()
 			).build());
-
 		searchContext.setCompanyId(ddmFormInstance.getCompanyId());
 		searchContext.setEnd(end);
 		searchContext.setGroupIds(new long[] {ddmFormInstance.getGroupId()});
@@ -1049,6 +1054,9 @@ public class DDMFormInstanceRecordLocalServiceImpl
 
 	@Reference
 	private IndexerRegistry _indexerRegistry;
+
+	@Reference
+	private Language _language;
 
 	@Reference
 	private Portal _portal;

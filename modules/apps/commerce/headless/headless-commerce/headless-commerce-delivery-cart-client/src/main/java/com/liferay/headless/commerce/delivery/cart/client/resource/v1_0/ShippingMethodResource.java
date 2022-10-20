@@ -59,6 +59,12 @@ public interface ShippingMethodResource {
 			return new ShippingMethodResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -104,6 +110,7 @@ public interface ShippingMethodResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -188,7 +195,7 @@ public interface ShippingMethodResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-delivery-cart/v1.0/carts/{cartId}/shipping-methods");
 
 			httpInvoker.path("cartId", cartId);

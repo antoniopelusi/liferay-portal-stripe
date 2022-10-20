@@ -136,7 +136,7 @@ public class I18nServlet extends HttpServlet {
 
 		int pos = i18nLanguageId.lastIndexOf(CharPool.SLASH);
 
-		i18nLanguageId = StringUtil.replaceFirst(
+		i18nLanguageId = StringUtil.replace(
 			i18nLanguageId.substring(pos + 1), CharPool.DASH,
 			CharPool.UNDERLINE);
 
@@ -156,7 +156,7 @@ public class I18nServlet extends HttpServlet {
 			i18nLanguageCode = i18nLanguageId.substring(0, pos);
 		}
 
-		Locale siteDefaultLocale = LanguageUtil.getLocale(i18nLanguageCode);
+		Locale targetLocale = LanguageUtil.getLocale(i18nLanguageCode);
 
 		Group siteGroup = null;
 
@@ -188,20 +188,26 @@ public class I18nServlet extends HttpServlet {
 					return null;
 				}
 
-				siteDefaultLocale = LanguageUtil.getLocale(
+				targetLocale = LanguageUtil.getLocale(
 					siteGroup.getGroupId(), i18nLanguageCode);
+
+				if ((targetLocale == null) &&
+					PortalUtil.isGroupControlPanelPath(path)) {
+
+					targetLocale = LanguageUtil.getLocale(i18nLanguageCode);
+				}
 			}
 		}
 
-		if (siteDefaultLocale == null) {
+		if (targetLocale == null) {
 			if (PropsValues.LOCALE_USE_DEFAULT_IF_NOT_AVAILABLE) {
-				siteDefaultLocale = PortalUtil.getSiteDefaultLocale(siteGroup);
+				targetLocale = PortalUtil.getSiteDefaultLocale(siteGroup);
 
-				i18nLanguageCode = siteDefaultLocale.getLanguage();
+				i18nLanguageCode = targetLocale.getLanguage();
 
 				i18nPath = StringPool.SLASH + i18nLanguageCode;
 
-				i18nLanguageId = LocaleUtil.toLanguageId(siteDefaultLocale);
+				i18nLanguageId = LocaleUtil.toLanguageId(targetLocale);
 			}
 			else {
 				return null;
@@ -209,7 +215,7 @@ public class I18nServlet extends HttpServlet {
 		}
 		else {
 			String siteDefaultLanguageId = LocaleUtil.toLanguageId(
-				siteDefaultLocale);
+				targetLocale);
 
 			if (siteDefaultLanguageId.startsWith(i18nLanguageId)) {
 				i18nPath = StringPool.SLASH + i18nLanguageCode;

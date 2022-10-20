@@ -27,6 +27,8 @@ definition {
 			key_navBarTitle = "History",
 			locator1 = "Publications#MANAGE_PUBLICATIONS_NAVBAR_TITLE");
 
+		// This pause is required to allow the test to wait for the scheduled Publication to be published. See LRQA-70977 for more details.
+
 		Pause(locator1 = "240000");
 
 		LexiconEntry.changeDisplayStyle(displayStyle = "list");
@@ -94,29 +96,105 @@ definition {
 	}
 
 	macro disablePublications {
+		if ("${gotoInstancesettings}" == "true") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Configuration",
+				panel = "Control Panel",
+				portlet = "Instance Settings");
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "Publications",
+				configurationName = "Publications Settings",
+				configurationScope = "Virtual Instance Scope");
+
+			FormFields.disableCheckbox(fieldName = "Enabled");
+
+			AssertClick(
+				locator1 = "Button#SUBMIT",
+				value1 = "Update");
+
+			Alert.viewSuccessMessage();
+		}
+		else {
+			ApplicationsMenu.gotoPortlet(
+				category = "Publications",
+				panel = "Applications",
+				portlet = "Publications");
+
+			Click.waitForMenuToggleJSClick(locator1 = "Publications#PUBLICATIONS_ELLIPSIS");
+
+			MenuItem.click(menuItem = "Settings");
+
+			Uncheck.uncheckToggleSwitch(locator1 = "Publications#ENABLE_PUBLICATIONS_TOGGLE_SWITCH");
+
+			Click(locator1 = "Button#SAVE");
+		}
+	}
+
+	macro enablePublications {
+		if ("${gotoInstancesettings}" == "true") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Configuration",
+				panel = "Control Panel",
+				portlet = "Instance Settings");
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "Publications",
+				configurationName = "Publications Settings",
+				configurationScope = "Virtual Instance Scope");
+
+			FormFields.enableCheckbox(fieldName = "Enabled");
+
+			if ("${enableSandboxOnly}" == "true") {
+				FormFields.enableCheckbox(fieldName = "Sandbox Enabled");
+			}
+
+			AssertClick(
+				locator1 = "Button#SAVE",
+				value1 = "Save");
+
+			Alert.viewSuccessMessage();
+		}
+		else {
+			ApplicationsMenu.gotoPortlet(
+				category = "Publications",
+				panel = "Applications",
+				portlet = "Publications");
+
+			Check.checkToggleSwitch(locator1 = "Publications#ENABLE_PUBLICATIONS_TOGGLE_SWITCH");
+
+			if ("${enableSandboxOnly}" == "true") {
+				Check.checkToggleSwitch(locator1 = "Publications#ENABLE_SANDBOX_ONLY_TOGGLE_SWITCH");
+			}
+
+			Click(locator1 = "Button#SAVE");
+		}
+	}
+
+	macro enableSandboxOnly {
 		ApplicationsMenu.gotoPortlet(
 			category = "Publications",
 			panel = "Applications",
 			portlet = "Publications");
 
-		Click.waitForMenuToggleJSClick(locator1 = "Publications#PUBLICATIONS_ELLIPSIS");
-
-		MenuItem.click(menuItem = "Settings");
-
-		Uncheck.uncheckToggleSwitch(locator1 = "Publications#PUBLICATIONS_TOGGLE_SWITCH");
+		Check.checkToggleSwitch(locator1 = "Publications#ENABLE_SANDBOX_ONLY_TOGGLE_SWITCH");
 
 		Click(locator1 = "Button#SAVE");
 	}
 
-	macro enablePublications {
-		ApplicationsMenu.gotoPortlet(
-			category = "Publications",
-			panel = "Applications",
-			portlet = "Publications");
+	macro generateSandboxedPublicationName {
+		var sandboxTime = DateUtil.getFormattedCurrentDate("h:mm", "UTC");
+		var sandboxDate = DateUtil.getFormattedCurrentDate("M/d/yy", "UTC");
 
-		Check.checkToggleSwitch(locator1 = "Publications#PUBLICATIONS_TOGGLE_SWITCH");
+		var sandboxedPublicationName = "${userScreenName} - ${sandboxDate} ${sandboxTime}";
 
-		Click(locator1 = "Button#SAVE");
+		return "${sandboxedPublicationName}";
+	}
+
+	macro getPublicationName {
+		var publicationName = selenium.getText("//span[contains(@class,'change-tracking-indicator-title')]");
+
+		return "${publicationName}";
 	}
 
 	macro inviteUsers {
@@ -239,9 +317,7 @@ definition {
 		}
 
 		var publishDateDay = Time.getUTCDay();
-
 		var publishDateMonth = Time.getUTCMonth();
-
 		var publishDateYear = Time.getUTCYear();
 
 		var publishDate = "${publishDateYear}-${publishDateMonth}-${publishDateDay}";
@@ -251,7 +327,6 @@ definition {
 			value1 = "${publishDate}");
 
 		var publishTimeHours = Time.getUTCHours();
-
 		var publishTimeMinutes = Time.getUTCMinutes();
 
 		if ("${utcMinutes}" == "58") {
@@ -364,9 +439,9 @@ definition {
 	}
 
 	macro viewPublicationOrderInHistory {
-		PublicationsNavigator.openPublicationsHistory();
-
-		LexiconEntry.changeDisplayStyle(displayStyle = "list");
+		if (!(isSet(paginationView))) {
+			LexiconEntry.changeDisplayStyle(displayStyle = "list");
+		}
 
 		var resultOrder = "0";
 
@@ -396,10 +471,32 @@ definition {
 			value1 = "Published");
 	}
 
+	macro viewSandboxedPublication {
+		var key_publicationName = "${sandboxedPublicationName}";
+
+		if ("${sandboxedUser}" == "true") {
+			AssertTextEquals.assertPartialText(
+				locator1 = "Publications#PUBLICATIONS_INDICATOR_TITLE",
+				value1 = "${sandboxedPublicationName}");
+		}
+
+		PublicationsNavigator.openPublicationsAdmin();
+
+		LexiconEntry.changeDisplayStyle(displayStyle = "list");
+
+		AssertTextEquals.assertPartialText(
+			locator1 = "Publications#PUBLICATION_NAME_IN_ONGOING",
+			value1 = "${sandboxedPublicationName}");
+	}
+
 	macro workOnProduction {
 		Click(locator1 = "Publications#PUBLICATIONS_INDICATOR_BUTTON");
 
-		MenuItem.click(menuItem = "Work on Production");
+		ClickNoError(
+			key_menuItem = "Work on Production",
+			locator1 = "MenuItem#ANY_MENU_ITEM");
+
+		AssertConfirm(value1 = "Any changes made in production will immediately be live. Continue to production?");
 	}
 
 }

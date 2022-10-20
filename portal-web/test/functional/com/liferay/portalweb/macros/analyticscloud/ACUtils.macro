@@ -53,7 +53,7 @@ definition {
 
 			MouseOver(locator1 = "ACIndividualsDashboard#VISITORS_LEGEND");
 
-			while (IsElementNotPresent(locator1 = "ACIndividualsDashboard#ACTIVE_INDIVIDUAL_CHART") && (maxIterations = "50")) {
+			while ((IsElementNotPresent(locator1 = "ACIndividualsDashboard#ACTIVE_INDIVIDUAL_CHART")) && (maxIterations = "50")) {
 				TestUtils.hardRefresh();
 
 				if ("${timeFilter}" != "Custom Range") {
@@ -106,7 +106,7 @@ definition {
 			}
 		}
 		else {
-			while (IsElementNotPresent(locator1 = "ACIndividualsDashboard#ACTIVE_INDIVIDUAL_CHART") && (maxIterations = "50")) {
+			while ((IsElementNotPresent(locator1 = "ACIndividualsDashboard#ACTIVE_INDIVIDUAL_CHART")) && (maxIterations = "50")) {
 				TestUtils.hardRefresh();
 
 				if ("${timeFilter}" != "Custom Range") {
@@ -166,7 +166,7 @@ definition {
 		for (var percentage : list "${percentageList}") {
 			var key_percentage = "${percentage}";
 
-			while (IsElementNotPresent(locator1 = "ACUtils#METRIC_VALUE_PERCENTAGE") && (maxIterations = "50")) {
+			while ((IsElementNotPresent(locator1 = "ACUtils#METRIC_VALUE_PERCENTAGE")) && (maxIterations = "50")) {
 				TestUtils.hardRefresh();
 			}
 
@@ -223,6 +223,7 @@ definition {
 
 	macro assertEventNotPresent {
 		var postDataText = ProxyUtil.getHarRecording("$..request..postData..text");
+
 		var actual = JSONUtil.getWithJSONPath("[${postDataText}]", "$..[?(@['applicationId'] == '${applicationId}' && @['eventId'] == '${eventId}')]['eventId']");
 
 		TestUtils.assertEquals(
@@ -232,6 +233,7 @@ definition {
 
 	macro assertEventPresent {
 		var postDataText = ProxyUtil.getHarRecording("$..request..postData..text");
+
 		var actual = JSONUtil.getWithJSONPath("[${postDataText}]", "$..[?(@['applicationId'] == '${applicationId}' && @['eventId'] == '${eventId}')]['eventId']");
 
 		TestUtils.assertEquals(
@@ -241,6 +243,7 @@ definition {
 
 	macro assertEventPropertyValue {
 		var postDataText = ProxyUtil.getHarRecording("$..request..postData..text");
+
 		var actual = JSONUtil.getWithJSONPath("[${postDataText}]", "$..[?(@['applicationId'] == '${applicationId}' && @['eventId'] == '${eventId}')]..${property}");
 
 		TestUtils.assertEquals(
@@ -387,6 +390,14 @@ definition {
 		}
 	}
 
+	macro clearLocalStorage {
+		var javaScript = '''
+		localStorage.clear();
+		''';
+
+		var localStorageItem = selenium.getEval("${javaScript}");
+	}
+
 	macro clearSearchBar {
 		Click(locator1 = "ACUtils#CLEAR_SEARCH_BAR_BUTTON");
 	}
@@ -402,7 +413,11 @@ definition {
 	macro clickGenericHyperlink {
 		var key_textValue = "${hyperlinkText}";
 
-		Click(locator1 = "ACUtils#GENERIC_TEXT");
+		if (!(isSet(index))) {
+			var index = "1";
+		}
+
+		Click(locator1 = "ACUtils#GENERIC_TEXT_ORDER");
 	}
 
 	macro clickKebab {
@@ -410,7 +425,9 @@ definition {
 	}
 
 	macro closeAllSessions {
-		ACUtils.restartDockerContainer(containerName = "osbasahredis");
+		AntCommand(
+			locator1 = "build-test.xml",
+			value1 = "clear-redis");
 
 		var analyticsCloudAsahCuratorBatchURL = PropsUtil.get("analytics.cloud.asah.curator.batch.url");
 
@@ -587,8 +604,15 @@ definition {
 		}
 	}
 
+	macro executeJSInBrowserConsole {
+		var javaScript = "${javaScriptCode}";
+
+		var javaScriptItem = selenium.getEval("${javaScript}");
+	}
+
 	macro getEventPropertyValue {
 		var postDataText = ProxyUtil.getHarRecording("$..request..postData..text");
+
 		var value = JSONUtil.getWithJSONPath("[${postDataText}]", "$..[?(@['applicationId'] == '${applicationId}' && @['eventId'] == '${eventId}')]..${property}");
 
 		return "${value}";
@@ -596,6 +620,7 @@ definition {
 
 	macro getIPCountry {
 		var curl = '''https://ipinfo.io''';
+
 		var code = JSONCurlUtil.get("${curl}", "$.country");
 
 		if ("${code}" == "GB") {
@@ -625,8 +650,23 @@ definition {
 		return "${country}";
 	}
 
+	macro getLocalStorageItem {
+		var javaScript = '''
+		var localStorageItem = localStorage.getItem('${keyName}');
+
+		return localStorageItem;
+		''';
+
+		var localStorageItem = selenium.getEval("${javaScript}");
+
+		var localStorageItem = StringUtil.replace("${localStorageItem}", "\"", "");
+
+		return "${localStorageItem}";
+	}
+
 	macro getPageRefRequestPropertyValue {
 		var postDataText = ProxyUtil.getHarRecording("$..[?(@['pageref'] == '${pageRef}')].request[?(@.method == 'POST' && @.url contains '/${pageRef}')]..text");
+
 		var value = JSONUtil.getWithJSONPath("[${postDataText}]", "$..${property}");
 
 		return "${value}";
@@ -634,6 +674,7 @@ definition {
 
 	macro getRequestCommonPropertyValue {
 		var postDataText = ProxyUtil.getHarRecording("$..request..postData..text");
+
 		var value = JSONUtil.getWithJSONPath("[${postDataText}]", "$.[-1:]..${property}");
 
 		return "${value}";
@@ -688,12 +729,26 @@ definition {
 		}
 	}
 
+	macro logInPause {
+
+		// Pause is necessary because poshi logs in from one user to another quickly. For more information about pause see LRAC-9514
+
+		Pause(locator1 = "5000");
+	}
+
 	@summary = "This macro access a page/document"
 	macro navigateToSitePage {
 		for (var documentTitle : list "${documentTitleList}") {
 			Navigator.gotoSitePage(
 				pageName = "${pageName}",
 				siteName = "${siteName}");
+
+			if ("${actionType}" == "View WC") {
+
+				// Pause is necessary because the web content event is sent too fast and doesn't have time to process if you navigate to another page quickly. See LRAC-11461
+
+				Pause(locator1 = "5000");
+			}
 
 			if ("${actionType}" == "View Blog") {
 				BlogsNavigator.gotoPG(entryTitle = "${documentTitle}");
@@ -745,9 +800,7 @@ definition {
 				siteName = "${siteName}",
 				submitText = "${submitText}");
 
-			// Pause is necessary because poshi logs in from one user to another very quickly. For more information about pause see LRAC-9514
-
-			Pause(locator1 = "5000");
+			ACUtils.logInPause();
 		}
 	}
 
@@ -838,6 +891,14 @@ definition {
 			value1 = "${itemName}");
 	}
 
+	macro setLocalStorageValue {
+		var javaScript = '''
+		localStorage.setItem('${keyName}', '${keyValue}');
+		''';
+
+		var localStorageItem = selenium.getEval("${javaScript}");
+	}
+
 	macro tearDownAC {
 		ACUtils.launchAC();
 
@@ -876,11 +937,29 @@ definition {
 
 			WaitForPageLoad();
 
-			while (IsElementNotPresent(locator1 = "ACUtils#GENERIC_TEXT") && (maxIterations = "50")) {
+			while ((IsElementNotPresent(locator1 = "ACUtils#GENERIC_TEXT")) && (maxIterations = "50")) {
 				TestUtils.hardRefresh();
 			}
 
 			AssertElementPresent(locator1 = "ACUtils#GENERIC_TEXT");
+		}
+	}
+
+	macro viewGenericTextInOrder {
+		if (!(isSet(index))) {
+			var index = "1";
+		}
+
+		for (var textValue : list "${textValueList}") {
+			var key_textValue = "${textValue}";
+
+			WaitForPageLoad();
+
+			while ((IsElementNotPresent(locator1 = "ACUtils#GENERIC_TEXT_ORDER")) && (maxIterations = "50")) {
+				TestUtils.hardRefresh();
+			}
+
+			AssertElementPresent(locator1 = "ACUtils#GENERIC_TEXT_ORDER");
 		}
 	}
 
@@ -890,7 +969,7 @@ definition {
 
 			WaitForPageLoad();
 
-			while (IsElementNotPresent(locator1 = "ACUtils#NAME_LIST") && (maxIterations = "50")) {
+			while ((IsElementNotPresent(locator1 = "ACUtils#NAME_LIST")) && (maxIterations = "50")) {
 				ACSegments.searchSegment(findSegment = "${name}");
 
 				ACUtils.clearSearchBar();
@@ -908,7 +987,7 @@ definition {
 
 		WaitForPageLoad();
 
-		while (IsElementNotPresent(locator1 = "ACSegments#ADD_MEMBERS_INDEX_TABLE") && (maxIterations = "50")) {
+		while ((IsElementNotPresent(locator1 = "ACSegments#ADD_MEMBERS_INDEX_TABLE")) && (maxIterations = "50")) {
 			Refresh();
 		}
 
@@ -923,7 +1002,7 @@ definition {
 
 			WaitForPageLoad();
 
-			while (IsElementPresent(locator1 = "ACUtils#NAME_LIST") && (maxIterations = "50")) {
+			while ((IsElementPresent(locator1 = "ACUtils#NAME_LIST")) && (maxIterations = "50")) {
 				ACSegments.searchSegment(findSegment = "${name}");
 
 				ACUtils.clearSearchBar();
@@ -938,7 +1017,7 @@ definition {
 
 		WaitForPageLoad();
 
-		while (IsElementNotPresent(locator1 = "ACAssets#NO_RESULTS_CONTENT_MESSAGE") && (maxIterations = "50")) {
+		while ((IsElementNotPresent(locator1 = "ACAssets#NO_RESULTS_CONTENT_MESSAGE")) && (maxIterations = "50")) {
 			TestUtils.hardRefresh();
 		}
 
@@ -965,7 +1044,7 @@ definition {
 
 			WaitForPageLoad();
 
-			while (IsElementNotPresent(locator1 = "ACUtils#NAME_LIST") && (maxIterations = "50")) {
+			while ((IsElementNotPresent(locator1 = "ACUtils#NAME_LIST")) && (maxIterations = "50")) {
 				ACSegments.searchSegment(findSegment = "${name}");
 
 				ACUtils.clearSearchBar();
@@ -1009,19 +1088,49 @@ definition {
 
 			WaitForPageLoad();
 
-			while (IsElementNotPresent(locator1 = "ACUtils#TABLE_CELL_INFORMATION") && (maxIterations = "50")) {
+			while ((IsElementNotPresent(locator1 = "ACUtils#TABLE_CELL_INFORMATION")) && (maxIterations = "50")) {
 				TestUtils.hardRefresh();
 			}
 
 			AssertElementPresent(locator1 = "ACUtils#TABLE_CELL_INFORMATION");
 
 			var i = ${i} + 1;
+
 			var i = StringUtil.valueOf("${i}");
 		}
 	}
 
+	macro waitForClearProperty {
+
+		// This pause is necessary as it takes time for the data to be cleared from the property. See LRAC-11595
+
+		Pause(locator1 = "10000");
+	}
+
 	macro waitForLoading {
 		WaitForElementNotPresent(locator1 = "ACUtils#LOADING_ANIMATION");
+	}
+
+	macro waitForScrollDown {
+
+		// Pausing is necessary for poshi to scroll down to specific element. For more info see LRAC-11569
+
+		Pause(locator1 = "5000");
+	}
+
+	macro waitForSendingRequest {
+		if (isSet(time)) {
+
+			// Pausing for harRecording test for reuse purpose, see LRAC-10600
+
+			Pause(locator1 = "${time}");
+		}
+		else if (!(isSet(time))) {
+
+			// Pausing for harRecording tests, see LRAC-10600
+
+			Pause(locator1 = "5000");
+		}
 	}
 
 }

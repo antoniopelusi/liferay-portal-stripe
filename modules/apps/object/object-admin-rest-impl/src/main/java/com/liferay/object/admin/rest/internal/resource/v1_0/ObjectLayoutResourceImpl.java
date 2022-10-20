@@ -166,6 +166,8 @@ public class ObjectLayoutResourceImpl extends BaseObjectLayoutResourceImpl {
 				this::_toObjectLayoutRow));
 		serviceBuilderObjectLayoutBox.setPriority(
 			objectLayoutBox.getPriority());
+		serviceBuilderObjectLayoutBox.setType(
+			objectLayoutBox.getTypeAsString());
 
 		return serviceBuilderObjectLayoutBox;
 	}

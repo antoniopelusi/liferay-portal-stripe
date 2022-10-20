@@ -71,6 +71,12 @@ public interface WebUrlResource {
 			return new WebUrlResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -116,6 +122,7 @@ public interface WebUrlResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -199,7 +206,7 @@ public interface WebUrlResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/organizations/{organizationId}/web-urls");
 
 			httpInvoker.path("organizationId", organizationId);
@@ -280,7 +287,7 @@ public interface WebUrlResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/user-accounts/{userAccountId}/web-urls");
 
 			httpInvoker.path("userAccountId", userAccountId);
@@ -358,7 +365,7 @@ public interface WebUrlResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-admin-user/v1.0/web-urls/{webUrlId}");
 
 			httpInvoker.path("webUrlId", webUrlId);

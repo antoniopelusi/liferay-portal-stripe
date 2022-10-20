@@ -15,16 +15,20 @@
 import ClayButton from '@clayui/button';
 import ClayForm, {ClayCheckbox} from '@clayui/form';
 import ClayLayout from '@clayui/layout';
-import {useContext, useState} from 'react';
+import {useContext, useEffect, useState} from 'react';
+import {useForm} from 'react-hook-form';
+import {useNavigate} from 'react-router-dom';
 
-import {Avatar} from '../../../components/Avatar';
-import Input from '../../../components/Input';
-import InputFile from '../../../components/Input/InputFile';
+import Avatar from '../../../components/Avatar';
+import Form from '../../../components/Form';
 import Container from '../../../components/Layout/Container';
 import {AccountContext} from '../../../context/AccountContext';
-import {UserAccount} from '../../../graphql/queries';
+import {useHeader} from '../../../hooks';
+import useFormActions from '../../../hooks/useFormActions';
 import i18n from '../../../i18n';
-import {Liferay} from '../../../services/liferay/liferay';
+import yupSchema, {yupResolver} from '../../../schema/yup';
+import {Liferay} from '../../../services/liferay';
+import {UserAccount} from '../../../services/rest';
 
 type UserManagementProps = {
 	myUserAccount: UserAccount;
@@ -33,12 +37,52 @@ type UserManagementProps = {
 const UserManagement: React.FC<UserManagementProps> = ({myUserAccount}) => {
 	const [form, setForm] = useState(myUserAccount || {});
 
+	const {
+		form: {onClose},
+	} = useFormActions();
+
+	const {
+		formState: {errors},
+
+		register,
+	} = useForm<UserManagementProps>({
+		defaultValues: {},
+		resolver: yupResolver(yupSchema.user),
+	});
+
+	const inputProps = {
+		errors,
+		register,
+		required: true,
+	};
+
+	const {setDropdownIcon, setHeading} = useHeader();
+
+	useEffect(() => {
+		setDropdownIcon('cog');
+	}, [setDropdownIcon]);
+
+	useEffect(() => {
+		setTimeout(() => {
+			setHeading(
+				[
+					{
+						category: i18n.translate('manage'),
+						title: i18n.translate('manage-users'),
+					},
+				],
+				false
+			);
+		});
+	}, [setDropdownIcon, setHeading]);
+
 	const onChange = ({target: {name, value}}: any) => {
 		setForm({
 			...form,
 			[name]: value,
 		});
 	};
+	const navigate = useNavigate();
 
 	return (
 		<ClayLayout.Container>
@@ -53,34 +97,34 @@ const UserManagement: React.FC<UserManagementProps> = ({myUserAccount}) => {
 
 						<ClayLayout.Col size={3} sm={12} xl={7}>
 							<ClayForm.Group className="form-group-sm">
-								<Input
+								<Form.Input
+									{...inputProps}
 									label={i18n.translate('first-name')}
 									name="firstname"
-									onChange={onChange}
 									required
 									value={form.givenName}
 								/>
 
-								<Input
+								<Form.Input
+									{...inputProps}
 									label={i18n.translate('last-name')}
 									name="lastname"
-									onChange={onChange}
 									required
 									value={form.familyName}
 								/>
 
-								<Input
+								<Form.Input
+									{...inputProps}
 									label={i18n.translate('email-address')}
 									name="emailAddress"
-									onChange={onChange}
 									required
 									value={form.emailAddress}
 								/>
 
-								<Input
+								<Form.Input
+									{...inputProps}
 									label={i18n.translate('screen-name')}
 									name="screeName"
-									onChange={onChange}
 									required
 									value={form.alternateName}
 								/>
@@ -107,11 +151,7 @@ const UserManagement: React.FC<UserManagementProps> = ({myUserAccount}) => {
 
 								<br />
 
-								<InputFile
-									name="inputFile"
-									onChange={onChange}
-									required={false}
-								/>
+								<Form.File name="inputFile" required={false} />
 							</ClayForm.Group>
 						</ClayLayout.Col>
 					</ClayLayout.Row>
@@ -127,7 +167,10 @@ const UserManagement: React.FC<UserManagementProps> = ({myUserAccount}) => {
 
 						<ClayLayout.Col size={3} sm={12} xl={3}>
 							<ClayForm.Group className="form-group-sm">
-								<ClayButton className="bg-neutral-2 borderless neutral text-neutral-7">
+								<ClayButton
+									className="bg-neutral-2 borderless neutral text-neutral-7"
+									onClick={() => navigate('password')}
+								>
 									{i18n.translate('change-password')}
 								</ClayButton>
 							</ClayForm.Group>
@@ -200,29 +243,10 @@ const UserManagement: React.FC<UserManagementProps> = ({myUserAccount}) => {
 						</ClayLayout.Col>
 					</ClayLayout.Row>
 
-					<ClayLayout.Row>
-						<ClayLayout.Col>
-							<ClayButton.Group
-								className="form-group-sm mt-5"
-								key={3}
-								spaced
-							>
-								<ClayButton
-									className="bg-primary-2 borderless mr-2 primary text-primary-7"
-									displayType="primary"
-								>
-									{i18n.translate('save')}
-								</ClayButton>
-
-								<ClayButton
-									className="bg-neutral-2 borderless neutral text-neutral-7"
-									displayType="secondary"
-								>
-									{i18n.translate('cancel')}
-								</ClayButton>
-							</ClayButton.Group>
-						</ClayLayout.Col>
-					</ClayLayout.Row>
+					<Form.Footer
+						onClose={onClose}
+						onSubmit={() => alert('Test')}
+					/>
 				</ClayForm>
 			</Container>
 		</ClayLayout.Container>

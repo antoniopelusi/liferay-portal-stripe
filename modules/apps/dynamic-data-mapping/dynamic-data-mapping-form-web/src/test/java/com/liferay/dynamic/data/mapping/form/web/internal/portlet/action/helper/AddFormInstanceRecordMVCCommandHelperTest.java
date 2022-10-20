@@ -45,6 +45,7 @@ import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoaderUtil;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -52,6 +53,7 @@ import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
+import com.liferay.portal.util.DateFormatFactoryImpl;
 import com.liferay.portal.util.PropsImpl;
 
 import java.util.Collections;
@@ -70,7 +72,6 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 /**
@@ -86,6 +87,7 @@ public class AddFormInstanceRecordMVCCommandHelperTest {
 	public static void setUpClass() {
 		PropsUtil.setProps(new PropsImpl());
 
+		_setUpDateFormatFactory();
 		_setUpLanguageUtil();
 		_setUpResourceBundleUtil();
 	}
@@ -160,7 +162,7 @@ public class AddFormInstanceRecordMVCCommandHelperTest {
 		ThemeDisplay themeDisplay = _mockThemeDisplay();
 
 		Mockito.when(
-			_actionRequest.getAttribute(Matchers.eq(WebKeys.THEME_DISPLAY))
+			_actionRequest.getAttribute(Mockito.eq(WebKeys.THEME_DISPLAY))
 		).thenReturn(
 			themeDisplay
 		);
@@ -174,7 +176,7 @@ public class AddFormInstanceRecordMVCCommandHelperTest {
 		ThemeDisplay themeDisplay = _mockThemeDisplay();
 
 		Mockito.when(
-			_actionRequest.getAttribute(Matchers.eq(WebKeys.THEME_DISPLAY))
+			_actionRequest.getAttribute(Mockito.eq(WebKeys.THEME_DISPLAY))
 		).thenReturn(
 			themeDisplay
 		);
@@ -195,6 +197,12 @@ public class AddFormInstanceRecordMVCCommandHelperTest {
 		_assertDDMFormFields(required, new UnlocalizedValue(_STRING_VALUE));
 	}
 
+	private static void _setUpDateFormatFactory() {
+		ReflectionTestUtil.setFieldValue(
+			DateFormatFactoryUtil.class, "_fastDateFormatFactory",
+			new DateFormatFactoryImpl());
+	}
+
 	private static void _setUpLanguageUtil() {
 		LanguageUtil languageUtil = new LanguageUtil();
 
@@ -209,7 +217,7 @@ public class AddFormInstanceRecordMVCCommandHelperTest {
 			resourceBundleLoader);
 
 		Mockito.when(
-			resourceBundleLoader.loadResourceBundle(Matchers.any(Locale.class))
+			resourceBundleLoader.loadResourceBundle(Mockito.any(Locale.class))
 		).thenReturn(
 			ResourceBundleUtil.EMPTY_RESOURCE_BUNDLE
 		);
@@ -281,7 +289,7 @@ public class AddFormInstanceRecordMVCCommandHelperTest {
 
 		Mockito.when(
 			_ddmFormEvaluator.evaluate(
-				Matchers.any(DDMFormEvaluatorEvaluateRequest.class))
+				Mockito.any(DDMFormEvaluatorEvaluateRequest.class))
 		).thenReturn(
 			DDMFormEvaluatorEvaluateResponse.Builder.newBuilder(
 				HashMapBuilder.put(
@@ -324,7 +332,7 @@ public class AddFormInstanceRecordMVCCommandHelperTest {
 		Mockito.when(
 			ddmFormInstanceRecordVersionLocalService.
 				getFormInstanceRecordVersions(
-					Matchers.anyLong(), Matchers.anyLong())
+					Mockito.anyLong(), Mockito.anyLong())
 		).thenReturn(
 			Collections.singletonList(
 				Mockito.mock(DDMFormInstanceRecordVersion.class))
@@ -356,7 +364,7 @@ public class AddFormInstanceRecordMVCCommandHelperTest {
 		DDMFormInstance ddmFormInstance = Mockito.mock(DDMFormInstance.class);
 
 		Mockito.when(
-			_ddmFormInstanceService.getFormInstance(Matchers.anyLong())
+			_ddmFormInstanceService.getFormInstance(Mockito.anyLong())
 		).thenReturn(
 			ddmFormInstance
 		);
@@ -364,7 +372,7 @@ public class AddFormInstanceRecordMVCCommandHelperTest {
 		DDMStructure ddmStructure = Mockito.mock(DDMStructure.class);
 
 		Mockito.when(
-			_ddmStructureLocalService.getStructure(Matchers.anyLong())
+			_ddmStructureLocalService.getStructure(Mockito.anyLong())
 		).thenReturn(
 			ddmStructure
 		);
@@ -401,15 +409,12 @@ public class AddFormInstanceRecordMVCCommandHelperTest {
 		ReflectionTestUtil.setFieldValue(
 			_addFormInstanceRecordMVCCommandHelper, "_ddmFormEvaluator",
 			_ddmFormEvaluator);
-
 		ReflectionTestUtil.setFieldValue(
 			_addFormInstanceRecordMVCCommandHelper, "_ddmFormInstanceService",
 			_ddmFormInstanceService);
-
 		ReflectionTestUtil.setFieldValue(
 			_addFormInstanceRecordMVCCommandHelper, "_ddmStructureLocalService",
 			_ddmStructureLocalService);
-
 		ReflectionTestUtil.setFieldValue(
 			_addFormInstanceRecordMVCCommandHelper, "_portal", _portal);
 

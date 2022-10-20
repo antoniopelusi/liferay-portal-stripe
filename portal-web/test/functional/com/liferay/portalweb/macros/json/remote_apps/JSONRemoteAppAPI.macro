@@ -31,24 +31,18 @@ definition {
 		var portalURL = JSONCompany.getPortalURL();
 
 		var curl = '''
-			${portalURL}/api/jsonws/remoteapp.remoteappentry/add-custom-element-remote-app-entry \
+			${portalURL}/api/jsonws/remoteapp.clientextensionentry/add-client-extension-entry \
 				  -u test@liferay.com:test \
-				  -d customElementCSSURLs=${customElementCssurlModified} \
-				  -d customElementHTMLElementName=${htmlNameModified} \
-				  -d customElementURLs=${customElementURLModified} \
-				  -d customElementUseESM=${customElementUseESMValue} \
 				  -d description= \
 				  -d externalReferenceCode= \
-				  -d friendlyURLMapping= \
-				  -d instanceable=true \
 				  -d nameMap='{\"en_US\":\"${nameModified}\"}' \
-				  -d portletCategoryName=RemoteApps \
 				  -d properties=${customElementPropertiesModified} \
-				  -d sourceCodeURL=
+				  -d sourceCodeURL= \
+				  -d type='customElement' \
+				  -d typeSettings=cssURLs=${customElementCssurlModified}%0AhtmlElementName=${htmlNameModified}%0Aurls=${customElementURLModified}%0AuseESM=${customElementUseESMValue}%0Ainstanceable=true%0AportletCategoryName=category.remote-apps
 		''';
-		var remoteAppEntryId = JSONCurlUtil.post("${curl}", "$.['remoteAppEntryId']");
 
-		return "${remoteAppEntryId}";
+		JSONCurlUtil.post("${curl}");
 	}
 
 	macro _addIFrameRemoteAppEntry {
@@ -56,35 +50,54 @@ definition {
 
 		var iFrameURLModified = StringUtil.replace("${iFrameURL}", ":", "%3A");
 		var nameModified = StringUtil.replace("${name}", " ", "%20");
+		var portalURL = JSONCompany.getPortalURL();
+
+		var curl = '''
+			${portalURL}/api/jsonws/remoteapp.clientextensionentry/add-client-extension-entry \
+				-u test@liferay.com:test \
+				-d externalReferenceCode='' \
+				-d description='' \
+				-d nameMap='{\"en_US\":\"${nameModified}\"}' \
+				-d properties='' \
+				-d sourceCodeURL='' \
+				-d type='iframe' \
+				-d typeSettings='url=${iFrameURLModified}'
+		''';
+
+		JSONCurlUtil.post("${curl}");
+	}
+
+	macro _addRemoteAppEntry {
+		Variables.assertDefined(parameterList = "${description},${nameMap},${properties},${type},${typeSettings}");
 
 		var portalURL = JSONCompany.getPortalURL();
 
 		var curl = '''
-			${portalURL}/api/jsonws/remoteapp.remoteappentry/add-i-frame-remote-app-entry \
-				  -u test@liferay.com:test \
-				  -d description= \
-				  -d friendlyURLMapping= \
-				  -d iFrameURL=${iFrameURLModified} \
-				  -d instanceable=true \
-				  -d nameMap='{\"en_US\":\"${nameModified}\"}' \
-				  -d portletCategoryName=RemoteApps \
-				  -d properties= \
-				  -d sourceCodeURL=
+			${portalURL}/api/jsonws/remoteapp.clientextensionentry/add-client-extension-entry \
+				-u test@liferay.com:test \
+				-d externalReferenceCode= \
+				-d description=${description} \
+				-d nameMap=${nameMap} \
+				-d properties=${properties} \
+				-d sourceCodeURL= \
+				-d type=${type} \
+				-d typeSettings=${typeSettings}
 		''';
-		var remoteAppEntryId = JSONCurlUtil.post("${curl}", "$.['remoteAppEntryId']");
 
-		return "${remoteAppEntryId}";
+		JSONCurlUtil.post("${curl}");
 	}
 
 	macro _deleteIFrameRemoteAppEntry {
-		Variables.assertDefined(parameterList = "${remoteAppEntryId}");
+		Variables.assertDefined(parameterList = "${externalReferenceCode}");
 
 		var portalURL = JSONCompany.getPortalURL();
+		var companyId = JSONCompany.getCompanyId();
 
 		var curl = '''
-			${portalURL}/api/jsonws/remoteapp.remoteappentry/delete-remote-app-entry \
+			${portalURL}/api/jsonws/remoteapp.clientextensionentry/delete-client-extension-entry-by-external-reference-code \
 				  -u test@liferay.com:test \
-				  -d remoteAppEntryId=${remoteAppEntryId}
+				  -d companyId=${companyId} \
+				  -d externalReferenceCode=${externalReferenceCode}
 		''';
 
 		com.liferay.poshi.runner.util.JSONCurlUtil.post("${curl}");

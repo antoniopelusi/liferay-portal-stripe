@@ -14,15 +14,11 @@
 
 package com.liferay.document.library.google.docs.internal.display.context;
 
+import com.liferay.document.library.display.context.BaseIGViewFileVersionDisplayContext;
+import com.liferay.document.library.display.context.IGViewFileVersionDisplayContext;
 import com.liferay.document.library.google.docs.internal.helper.GoogleDocsMetadataHelper;
-import com.liferay.image.gallery.display.kernel.display.context.BaseIGViewFileVersionDisplayContext;
-import com.liferay.image.gallery.display.kernel.display.context.IGViewFileVersionDisplayContext;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.repository.model.FileVersion;
-import com.liferay.portal.kernel.servlet.taglib.ui.Menu;
-import com.liferay.portal.kernel.servlet.taglib.ui.MenuItem;
 
-import java.util.List;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
@@ -47,24 +43,6 @@ public class GoogleDocsIGViewFileVersionDisplayContext
 
 		_googleDocsUIItemsProcessor = new GoogleDocsUIItemsProcessor(
 			httpServletRequest, googleDocsMetadataHelper);
-	}
-
-	@Override
-	public Menu getMenu() throws PortalException {
-		Menu menu = super.getMenu();
-
-		_googleDocsUIItemsProcessor.processMenuItems(menu.getMenuItems());
-
-		return menu;
-	}
-
-	@Override
-	public List<MenuItem> getMenuItems() throws PortalException {
-		List<MenuItem> menuItems = super.getMenuItems();
-
-		_googleDocsUIItemsProcessor.processMenuItems(menuItems);
-
-		return menuItems;
 	}
 
 	private static final UUID _UUID = UUID.fromString(

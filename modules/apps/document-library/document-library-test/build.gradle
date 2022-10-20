@@ -10,6 +10,7 @@ dependencies {
 	testIntegrationCompile project(":apps:change-tracking:change-tracking-test-util")
 	testIntegrationCompile project(":apps:data-engine:data-engine-rest-api")
 	testIntegrationCompile project(":apps:data-engine:data-engine-rest-test-util")
+	testIntegrationCompile project(":apps:depot:depot-api")
 	testIntegrationCompile project(":apps:document-library:document-library-api")
 	testIntegrationCompile project(":apps:document-library:document-library-content-api")
 	testIntegrationCompile project(":apps:document-library:document-library-sync-api")

@@ -19,7 +19,7 @@ import aQute.bnd.version.Version;
 import com.liferay.gradle.plugins.BaseDefaultsPlugin;
 import com.liferay.gradle.plugins.defaults.internal.util.FileUtil;
 import com.liferay.gradle.plugins.defaults.internal.util.GradleUtil;
-import com.liferay.gradle.plugins.defaults.tasks.ReplaceRegexTask;
+import com.liferay.gradle.plugins.defaults.task.ReplaceRegexTask;
 import com.liferay.gradle.plugins.extensions.LiferayExtension;
 
 import groovy.lang.Closure;

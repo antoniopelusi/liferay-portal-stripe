@@ -17,7 +17,7 @@ package com.liferay.portal.language.override.internal;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.language.LanguageOverrideProvider;
 import com.liferay.portal.language.override.internal.provider.PLOOriginalTranslationThreadLocal;
@@ -47,7 +47,9 @@ public class PLOLanguageOverrideProvider implements LanguageOverrideProvider {
 
 	@Override
 	public String get(String key, Locale locale) {
-		if (PLOOriginalTranslationThreadLocal.isUseOriginalTranslation()) {
+		if (_ploEntriesMap.isEmpty() ||
+			PLOOriginalTranslationThreadLocal.isUseOriginalTranslation()) {
+
 			return null;
 		}
 
@@ -59,7 +61,9 @@ public class PLOLanguageOverrideProvider implements LanguageOverrideProvider {
 
 	@Override
 	public Set<String> keySet(Locale locale) {
-		if (PLOOriginalTranslationThreadLocal.isUseOriginalTranslation()) {
+		if (_ploEntriesMap.isEmpty() ||
+			PLOOriginalTranslationThreadLocal.isUseOriginalTranslation()) {
+
 			return Collections.emptySet();
 		}
 
@@ -124,12 +128,8 @@ public class PLOLanguageOverrideProvider implements LanguageOverrideProvider {
 	}
 
 	private Map<String, String> _getOverrideMap(long companyId, Locale locale) {
-		if (_ploEntriesMap.isEmpty()) {
-			return Collections.emptyMap();
-		}
-
 		Map<String, String> overrideMap = _ploEntriesMap.get(
-			_encodeKey(companyId, LanguageUtil.getLanguageId(locale)));
+			_encodeKey(companyId, _language.getLanguageId(locale)));
 
 		if (overrideMap == null) {
 			return Collections.emptyMap();
@@ -137,6 +137,9 @@ public class PLOLanguageOverrideProvider implements LanguageOverrideProvider {
 
 		return overrideMap;
 	}
+
+	@Reference
+	private Language _language;
 
 	private Map<String, HashMap<String, String>> _ploEntriesMap;
 

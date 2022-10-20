@@ -85,6 +85,8 @@ function create_react_app {
 	yarn add sass
 	yarn remove @testing-library/jest-dom @testing-library/react @testing-library/user-event web-vitals
 
+	mv README.md README.markdown
+
 	echo "SKIP_PREFLIGHT_CHECK=true" > ".env"
 
 	sed -i -e "s|<div id=\"root\"></div>|<$CUSTOM_ELEMENT_NAME route=\"hello-world\"></$CUSTOM_ELEMENT_NAME>|g" public/index.html

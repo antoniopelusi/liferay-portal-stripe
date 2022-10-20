@@ -11,9 +11,7 @@ definition {
 		var groupId = JSONGroupAPI._getGroupIdByName(
 			groupName = "${groupName}",
 			site = "${site}");
-
 		var portalURL = JSONCompany.getPortalURL();
-
 		var destinationURL = StringUtil.replace("${destinationURL}", ":", "%3A");
 
 		if (!(isSet(expirationDate))) {
@@ -56,7 +54,6 @@ definition {
 		var redirectEntryId = JSONRedirect.getRedirectEntryId(
 			destinationURL = "${destinationURL}",
 			groupName = "${groupName}");
-
 		var portalURL = JSONCompany.getPortalURL();
 
 		if (!(isSet(userEmailAddress))) {
@@ -81,7 +78,6 @@ definition {
 		Variables.assertDefined(parameterList = "${destinationURL},${groupName}");
 
 		var portalURL = JSONCompany.getPortalURL();
-
 		var groupId = JSONGroupSetter.setGroupId(groupName = "${groupName}");
 
 		var curl = '''
@@ -92,6 +88,7 @@ definition {
 			-d "end=-1" \
 			-d -orderByComparator=
 		''';
+
 		var redirectEntryId = JSONCurlUtil.post("${curl}", "$.[?(@['destinationURL'] == '${destinationURL}')]['redirectEntryId']");
 
 		if ("${redirectEntryId}" == "") {
@@ -106,9 +103,7 @@ definition {
 		var redirectEntryId = JSONRedirect.getRedirectEntryId(
 			destinationURL = "${destinationURL}",
 			groupName = "${groupName}");
-
 		var portalURL = JSONCompany.getPortalURL();
-
 		var destinationURL = StringUtil.replace("${destinationURL}", ":", "%3A");
 
 		if (!(isSet(expirationDate))) {

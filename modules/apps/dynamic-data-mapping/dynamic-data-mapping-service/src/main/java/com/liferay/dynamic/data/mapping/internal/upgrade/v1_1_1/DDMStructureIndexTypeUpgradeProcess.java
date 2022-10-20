@@ -39,10 +39,6 @@ public class DDMStructureIndexTypeUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		_upgradeDDMStructureDefinition();
-	}
-
-	private void _upgradeDDMStructureDefinition() throws Exception {
 		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
 				"select DDMStructure.definition, DDMStructure.structureId " +
 					"from DDMStructure where structureKey = ? ");
@@ -72,7 +68,6 @@ public class DDMStructureIndexTypeUpgradeProcess extends UpgradeProcess {
 					preparedStatement2.addBatch();
 
 					preparedStatement3.setString(1, newDefinition);
-
 					preparedStatement3.setLong(2, resultSet.getLong(2));
 
 					preparedStatement3.addBatch();

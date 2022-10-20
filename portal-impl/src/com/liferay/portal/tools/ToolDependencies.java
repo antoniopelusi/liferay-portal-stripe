@@ -209,8 +209,15 @@ public class ToolDependencies {
 
 		@Override
 		public PortalCache<? extends Serializable, ? extends Serializable>
+			getPortalCache(String portalCacheName, boolean mvcc) {
+
+			return getPortalCache(portalCacheName);
+		}
+
+		@Override
+		public PortalCache<? extends Serializable, ? extends Serializable>
 			getPortalCache(
-				String portalCacheName, boolean blocking, boolean mvcc) {
+				String portalCacheName, boolean mvcc, boolean sharded) {
 
 			return getPortalCache(portalCacheName);
 		}
@@ -266,6 +273,11 @@ public class ToolDependencies {
 		}
 
 		public boolean isMVCC() {
+			return false;
+		}
+
+		@Override
+		public boolean isSharded() {
 			return false;
 		}
 
@@ -380,12 +392,20 @@ public class ToolDependencies {
 		public PortalCache<K, V> getPortalCache(String portalCacheName)
 			throws PortalCacheException {
 
-			return getPortalCache(portalCacheName, false, false);
+			return getPortalCache(portalCacheName, false);
 		}
 
 		@Override
 		public PortalCache<K, V> getPortalCache(
-				String portalCacheName, boolean blocking, boolean mvcc)
+				String portalCacheName, boolean mvcc)
+			throws PortalCacheException {
+
+			return getPortalCache(portalCacheName, mvcc, false);
+		}
+
+		@Override
+		public PortalCache<K, V> getPortalCache(
+				String portalCacheName, boolean mvcc, boolean sharded)
 			throws PortalCacheException {
 
 			PortalCache<K, V> portalCache = _portalCaches.get(portalCacheName);
@@ -438,6 +458,10 @@ public class ToolDependencies {
 		@Override
 		public void removePortalCache(String portalCacheName) {
 			_portalCaches.remove(portalCacheName);
+		}
+
+		@Override
+		public void removePortalCaches(long companyId) {
 		}
 
 		@Override

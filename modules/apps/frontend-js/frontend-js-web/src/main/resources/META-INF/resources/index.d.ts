@@ -12,11 +12,77 @@
  * details.
  */
 
-/* Debounces function execution. */
-export function debounce(fn: () => void, delay: number): () => void;
+interface Region {
+	bottom: number;
+	height: number;
+	left: number;
+	right: number;
+	top: number;
+	width: number;
+}
+
+interface DefaultFunction {
+	(): void;
+}
+
+interface AppendFunction {
+	(scriptElement: HTMLScriptElement): void;
+}
+
+/**
+ * Add URLSearchParams recursively to a given string representing an URL
+ */
+export function addParams(params: String | Object, baseUrl: String): string;
+
+/**
+ * Aligns the element with the best region around alignElement. The best
+ * region is defined by clockwise rotation starting from the specified
+ * `position`. The element is always aligned in the middle of alignElement
+ * axis.
+ */
+export function align(
+	element: HTMLElement,
+	alignElement: HTMLElement,
+	position: number,
+	autoBestAlign: boolean
+): string;
 
 /* Cancels the scheduled debounced function. */
 export function cancelDebounce(debounced: () => void): void;
+
+export function createActionURL(
+	basePortletURL: string,
+	parameters?: Object
+): URL;
+
+export function createPortletURL(
+	basePortletURL: string,
+	parameters?: Object
+): URL;
+
+export function createRenderURL(
+	basePortletURL: string,
+	parameters?: Object
+): URL;
+
+export function createResourceURL(
+	basePortletURL: string,
+	parameters?: Object
+): URL;
+
+/* Debounces function execution. */
+export function debounce(fn: () => void, delay: number): () => void;
+
+/**
+ * Decodes the update strings.
+ * The update string is a JSON object containing the entire page state.
+ * This decoder returns an object containing the portlet data for portlets whose
+ * state has changed as compared to the current page state.
+ */
+export function decodeUpdateString(
+	pageRenderState: object,
+	updateString: string
+): object;
 
 /**
  * Listens to the specified event on the given DOM element, but only calls the
@@ -29,6 +95,290 @@ export function delegate(
 	selector: string,
 	callback: (event: any) => void
 ): {dispose: () => void};
+
+/**
+ * Function to extract data from form and encode
+ * it as an 'application/x-www-form-urlencoded' string.
+ */
+export function encodeFormAsString(
+	portletId: string,
+	form: HTMLFormElement
+): string;
+
+/**
+ * Fetches a resource. A thin wrapper around ES6 Fetch API, with standardized
+ * default configuration.
+ */
+export function fetch(
+	input: RequestInfo,
+	init?: RequestInit
+): Promise<Response>;
+
+/**
+ * Generates the required options for an action URL request
+ * according to the portletId, action URL and optional form element.
+ */
+export function generateActionUrl(
+	portletId: string,
+	url: string,
+	form: HTMLFormElement
+): object;
+
+/**
+ * Helper for generating portlet mode & window state strings for the URL.
+ */
+export function generatePortletModeAndWindowStateString(
+	pageRenderState: object,
+	portletId: string
+): string;
+
+/**
+ * Returns the best region to align element with alignElement. This is similar
+ * to `suggestAlignBestRegion`, but it only returns the region information,
+ * while `suggestAlignBestRegion` also returns the chosen position.
+ */
+export function getAlignBestRegion(
+	element: HTMLElement,
+	alignElement: HTMLElement,
+	position: number
+): {
+	position: number;
+	region: Region;
+};
+
+/**
+ * Returns the region to align element with alignElement. The element is
+ * always aligned in the middle of alignElement axis.
+ */
+export function getAlignRegion(
+	element: HTMLElement,
+	alignElement: HTMLElement,
+	position: number
+): Region;
+
+export function getCheckedCheckboxes(
+	form: HTMLFormElement,
+	except: string,
+	name?: string
+): Array<number> | '';
+
+export function getOpener(): any;
+
+export function getTop(): Window;
+
+export function getUncheckedCheckboxes(
+	form: HTMLFormElement,
+	except: string,
+	name?: string
+): Array<number> | '';
+
+/**
+ * Gets the updated public parameters for the given portlet ID and new render state.
+ * Returns an object whose properties are the group indexes of the
+ * updated public parameters. The values are the new public parameter values.
+ */
+export function getUpdatedPublicRenderParameters(
+	pageRenderState: object,
+	portletId: string,
+	state: RenderState
+): object;
+
+/**
+ * Returns a URL of the specified type.
+ */
+export function getUrl(
+	pageRenderState: object,
+	type: string,
+	portletId: string,
+	parameters: object,
+	cache: string,
+	resourceId: string
+): Promise<string>;
+
+/**
+ * Minimizes portlet
+ */
+export function minimizePortlet(
+	portletSelector: string,
+	trigger: HTMLElement,
+	options?: object
+): void;
+
+/**
+ * Performs navigation to the given url. If SPA is enabled, it will route the
+ * request through the SPA engine. If not, it will simple change the document
+ * location.
+ */
+export function navigate(url: string | URL, listeners?: Object): void;
+
+export function openAlertModal({message}: {message: string}): void;
+
+export function openConfirmModal({
+	message,
+	onConfirm,
+	title,
+}: {
+	message: string;
+	onConfirm: (confirmed: boolean) => void;
+	title?: string;
+}): void;
+
+export function openModal(props: Object): void;
+
+export function openSelectionModal<T>(init: {
+	buttonAddLabel?: string;
+	buttonCancelLabel?: string;
+	containerProps?: Object;
+	customSelectEvent?: boolean;
+	height?: string;
+	id?: string;
+	iframeBodyCssClass?: string;
+	multiple?: boolean;
+	onClose?: () => void;
+	onSelect?: (item: T) => void;
+	selectEventName?: string;
+	selectedData?: any;
+	size?: 'full-screen' | 'lg' | 'md' | 'sm';
+	title?: string;
+	url?: string;
+	zIndex?: number;
+}): void;
+
+export function openToast({
+	autoClose,
+	container,
+	containerId,
+	message,
+	onClick,
+	onClose,
+	renderData,
+	title,
+	toastProps,
+	type,
+	variant,
+}: {
+	autoClose?: number | boolean;
+	container?: HTMLElement;
+	containerId?: string;
+	message?: string;
+	onClick?: () => void;
+	onClose?: () => void;
+	renderData?: {portletId: string};
+	title?: string;
+	toastProps?: Object;
+	type?: string;
+	variant?: string;
+}): void;
+
+export function openWindow(config: object, callback?: Function): void;
+
+/**
+ * Registers a portlet client with the portlet hub.
+ */
+export function register(portletId: string): Promise<void>;
+
+/**
+ * Executes the content of script tags inside a HTMLElement
+ */
+export function runScriptsInElement(
+	element: HTMLElement,
+	defaultFn?: DefaultFunction,
+	appendFn?: AppendFunction
+): void;
+
+export function sub(
+	string: string,
+	data: string | number | string[] | number[] | Array<string> | Array<number>,
+	...args: string[] | number[]
+): string;
+
+/**
+ * Looks for the best region for aligning the given element. The best
+ * region is defined by clockwise rotation starting from the specified
+ * `position`. The element is always aligned in the middle of alignElement
+ * axis.
+ */
+export function suggestAlignBestRegion(
+	element: HTMLElement,
+	alignElement: HTMLElement,
+	position: number
+): {
+	position: number;
+	region: Region;
+};
+
+/**
+ * Throttle implementation that fires on the leading and trailing edges.
+ * If multiple calls come in during the throttle interval, the last call's
+ * arguments and context are used, replacing those of any previously pending
+ * calls.
+ */
+export function throttle(fn: () => void, interval: number): () => void;
+
+export function toggleBoxes(
+	checkBoxId: string,
+	toggleBoxId: string,
+	displayWhenUnchecked?: boolean,
+	toggleChildCheckboxes?: boolean
+): void;
+
+export function toggleRadio(
+	radioId: string,
+	showBoxIds: string | string[],
+	hideBoxIds?: string | string[]
+): void;
+
+export function toggleSelectBox(
+	selectBoxId: string,
+	value: any,
+	toggleBoxId: string
+): void;
+
+/**
+ * Used by the portlet hub methods to check the number and types of the
+ * arguments.
+ */
+export function validateArguments(
+	args: string[],
+	min: number,
+	max: number,
+	types: string[]
+): void;
+
+/**
+ * Validates an HTMLFormElement
+ */
+export function validateForm(form: HTMLFormElement): void;
+
+/**
+ * Verifies that the input parameters are in valid format.
+ *
+ * Parameters must be an object containing parameter names. It may also
+ * contain no property names which represents the case of having no
+ * parameters.
+ *
+ * If properties are present, each property must refer to an array of string
+ * values. The array length must be at least 1, because each parameter must
+ * have a value. However, a value of 'null' may appear in any array entry.
+ *
+ * To represent a <code>null</code> value, the property value must equal [null].
+ */
+export function validateParameters(parameters: object): void;
+
+/**
+ * Validates the specificed portletId against the list
+ * of current portlet in the pageRenderState.
+ */
+export function validatePortletId(
+	portletId: string,
+	pageRenderState: object
+): boolean;
+
+/**
+ * Verifies that the input parameters are in valid format, that the portlet
+ * mode and window state values are allowed for the portlet.
+ */
+export function validateState(state: RenderState, portletData: object): void;
 
 export class AOP {
 
@@ -141,6 +491,19 @@ export class AutoSize {
 	handleInput(event: string): void;
 }
 
+/**
+ * Adds compatibility for YUI events, re-emitting events according to YUI naming
+ * and adding the capability of adding targets to bubble events to them.
+ */
+export class CompatibilityEventProxy {
+	constructor(config: object, element: HTMLElement);
+
+	/**
+	 * Registers another event target as a bubble target.
+	 */
+	addTarget(target: object): void;
+}
+
 export class Disposable {
 
 	/**
@@ -152,6 +515,22 @@ export class Disposable {
 	 * Checks if this instance has already been disposed.
 	 */
 	isDisposed(): boolean;
+}
+
+/**
+ * Appends list item elements to dropdown menus with inline-scrollers on scroll
+ * events to improve page loading performance.
+ */
+export class DynamicInlineScroll {
+	attached(): void;
+
+	created(): void;
+
+	detached(): void;
+}
+
+export class DynamicSelect {
+	constructor(array: object[]);
 }
 
 export class EventEmitter {
@@ -276,182 +655,6 @@ export class EventHandler {
 	setShouldUseFacade(shouldUseFacade: boolean): EventEmitter;
 }
 
-/**
- * Decodes the update strings.
- * The update string is a JSON object containing the entire page state.
- * This decoder returns an object containing the portlet data for portlets whose
- * state has changed as compared to the current page state.
- */
-export function decodeUpdateString(
-	pageRenderState: object,
-	updateString: string
-): object;
-
-/**
- * Function to extract data from form and encode
- * it as an 'application/x-www-form-urlencoded' string.
- */
-export function encodeFormAsString(
-	portletId: string,
-	form: HTMLFormElement
-): string;
-
-/**
- * Generates the required options for an action URL request
- * according to the portletId, action URL and optional form element.
- */
-export function generateActionUrl(
-	portletId: string,
-	url: string,
-	form: HTMLFormElement
-): object;
-
-/**
- * Helper for generating portlet mode & window state strings for the URL.
- */
-export function generatePortletModeAndWindowStateString(
-	pageRenderState: object,
-	portletId: string
-): string;
-
-/**
- * Gets the updated public parameters for the given portlet ID and new render state.
- * Returns an object whose properties are the group indexes of the
- * updated public parameters. The values are the new public parameter values.
- */
-export function getUpdatedPublicRenderParameters(
-	pageRenderState: object,
-	portletId: string,
-	state: RenderState
-): object;
-
-/**
- * Returns a URL of the specified type.
- */
-export function getUrl(
-	pageRenderState: object,
-	type: string,
-	portletId: string,
-	parameters: object,
-	cache: string,
-	resourceId: string
-): Promise<string>;
-
-/**
- * Used by the portlet hub methods to check the number and types of the
- * arguments.
- */
-export function validateArguments(
-	args: string[],
-	min: number,
-	max: number,
-	types: string[]
-): void;
-
-/**
- * Validates an HTMLFormElement
- */
-export function validateForm(form: HTMLFormElement): void;
-
-/**
- * Verifies that the input parameters are in valid format.
- *
- * Parameters must be an object containing parameter names. It may also
- * contain no property names which represents the case of having no
- * parameters.
- *
- * If properties are present, each property must refer to an array of string
- * values. The array length must be at least 1, because each parameter must
- * have a value. However, a value of 'null' may appear in any array entry.
- *
- * To represent a <code>null</code> value, the property value must equal [null].
- */
-export function validateParameters(parameters: object): void;
-
-/**
- * Validates the specificed portletId against the list
- * of current portlet in the pageRenderState.
- */
-export function validatePortletId(
-	portletId: string,
-	pageRenderState: object
-): boolean;
-
-/**
- * Verifies that the input parameters are in valid format, that the portlet
- * mode and window state values are allowed for the portlet.
- */
-export function validateState(state: RenderState, portletData: object): void;
-
-export class RenderState {
-	constructor(state: any);
-
-	/**
-	 * Clone returns a copy of this RenderState instance.
-	 */
-	clone(): RenderState;
-
-	/**
-	 * Set the properties of a RenderState instance based on another RenderState
-	 */
-	from(renderState: RenderState): void;
-
-	/**
-	 * Returns the portletMode for this RenderState.
-	 */
-	getPortletMode(): string;
-
-	/**
-	 * Returns the string parameter value for the given name.
-	 * If name designates a multi-valued parameter this function returns
-	 * the first value in the values array. If the parameter is undefined
-	 * this function returns the optional default parameter <code>defaultValue</code>.
-	 */
-	getValue(name: string, defaultValue?: string): string;
-
-	/**
-	 * Gets the string array parameter value for the given <code>name</code>.
-	 * If the parameter for the given name is undefined, this function
-	 * returns the optional default value array <code>def</code>.
-	 */
-	getValues(name: string, defaultValue?: string[]): string[];
-
-	/**
-	 * Returns the windowState for this RenderState.
-	 */
-	getWindowState(): string;
-
-	/**
-	 * Removes the parameter with the given name.
-	 */
-	remove(name: string): void;
-
-	/**
-	 * Sets the portletMode to the specified value.
-	 */
-	setPortletMode(portletMode: string): void;
-
-	/**
-	 * Sets a parameter with a given name and value.
-	 * The value may be a string or an array.
-	 */
-	setValue(name: string, value: string | string[]): void;
-
-	/**
-	 * Sets the windowState to the specified value.
-	 */
-	setWindowState(windowState: string): void;
-}
-
-/**
- * Minimizes portlet
- */
-export function minimizePortlet(
-	portletSelector: string,
-	trigger: HTMLElement,
-	options?: object
-): void;
-
 export class PortletInit {
 	constructor(portletId: string);
 
@@ -517,101 +720,6 @@ export class PortletInit {
 	startPartialAction(actionParameters: object): Promise<void>;
 }
 
-/**
- * Registers a portlet client with the portlet hub.
- */
-export function register(portletId: string): Promise<void>;
-
-/**
- * Aligns the element with the best region around alignElement. The best
- * region is defined by clockwise rotation starting from the specified
- * `position`. The element is always aligned in the middle of alignElement
- * axis.
- */
-export function align(
-	element: HTMLElement,
-	alignElement: HTMLElement,
-	position: number,
-	autoBestAlign: boolean
-): string;
-
-interface Region {
-	bottom: number;
-	height: number;
-	left: number;
-	right: number;
-	top: number;
-	width: number;
-}
-
-/**
- * Returns the best region to align element with alignElement. This is similar
- * to `suggestAlignBestRegion`, but it only returns the region information,
- * while `suggestAlignBestRegion` also returns the chosen position.
- */
-export function getAlignBestRegion(
-	element: HTMLElement,
-	alignElement: HTMLElement,
-	position: number
-): {
-	position: number;
-	region: Region;
-};
-
-/**
- * Returns the region to align element with alignElement. The element is
- * always aligned in the middle of alignElement axis.
- */
-export function getAlignRegion(
-	element: HTMLElement,
-	alignElement: HTMLElement,
-	position: number
-): Region;
-
-/**
- * Looks for the best region for aligning the given element. The best
- * region is defined by clockwise rotation starting from the specified
- * `position`. The element is always aligned in the middle of alignElement
- * axis.
- */
-export function suggestAlignBestRegion(
-	element: HTMLElement,
-	alignElement: HTMLElement,
-	position: number
-): {
-	position: number;
-	region: Region;
-};
-
-/**
- * Adds compatibility for YUI events, re-emitting events according to YUI naming
- * and adding the capability of adding targets to bubble events to them.
- */
-export class CompatibilityEventProxy {
-	constructor(config: object, element: HTMLElement);
-
-	/**
-	 * Registers another event target as a bubble target.
-	 */
-	addTarget(target: object): void;
-}
-
-/**
- * Appends list item elements to dropdown menus with inline-scrollers on scroll
- * events to improve page loading performance.
- */
-export class DynamicInlineScroll {
-	attached(): void;
-
-	created(): void;
-
-	detached(): void;
-}
-
-export class DynamicSelect {
-	constructor(array: object[]);
-}
-
 export class PortletBase {
 
 	/**
@@ -633,10 +741,100 @@ export class PortletBase {
 	one(selectors: string, root?: string | HTMLElement): HTMLElement | null;
 }
 
+export class RenderState {
+	constructor(state: any);
+
+	/**
+	 * Clone returns a copy of this RenderState instance.
+	 */
+	clone(): RenderState;
+
+	/**
+	 * Set the properties of a RenderState instance based on another RenderState
+	 */
+	from(renderState: RenderState): void;
+
+	/**
+	 * Returns the portletMode for this RenderState.
+	 */
+	getPortletMode(): string;
+
+	/**
+	 * Returns the string parameter value for the given name.
+	 * If name designates a multi-valued parameter this function returns
+	 * the first value in the values array. If the parameter is undefined
+	 * this function returns the optional default parameter <code>defaultValue</code>.
+	 */
+	getValue(name: string, defaultValue?: string): string;
+
+	/**
+	 * Gets the string array parameter value for the given <code>name</code>.
+	 * If the parameter for the given name is undefined, this function
+	 * returns the optional default value array <code>def</code>.
+	 */
+	getValues(name: string, defaultValue?: string[]): string[];
+
+	/**
+	 * Returns the windowState for this RenderState.
+	 */
+	getWindowState(): string;
+
+	/**
+	 * Removes the parameter with the given name.
+	 */
+	remove(name: string): void;
+
+	/**
+	 * Sets the portletMode to the specified value.
+	 */
+	setPortletMode(portletMode: string): void;
+
+	/**
+	 * Sets a parameter with a given name and value.
+	 * The value may be a string or an array.
+	 */
+	setValue(name: string, value: string | string[]): void;
+
+	/**
+	 * Sets the windowState to the specified value.
+	 */
+	setWindowState(windowState: string): void;
+}
+
+export function sub(
+	string: string,
+	data: string | number | string[] | number[] | Array<string> | Array<number>,
+	...args: string[] | number[]
+): string;
+
+/* Returns the stored value of a cookie, undefined if not present */
+export function getCookie(name: string, type: TYPE_VALUES): string | undefined;
+
+/* Sets a cookie of a specific type if user has consented */
+export function setCookie(
+	name: string,
+	value: string,
+	type: TYPE_VALUES,
+	options?: {
+		'domain'?: string;
+		'expires'?: string;
+		'max-age'?: string;
+		'path'?: string;
+		'samesite'?: string;
+		'secure'?: boolean;
+	}
+): boolean;
+
+/* Removes a cookie by expiring it */
+export function removeCookie(name: string): void;
+
 /**
- * Throttle implementation that fires on the leading and trailing edges.
- * If multiple calls come in during the throttle interval, the last call's
- * arguments and context are used, replacing those of any previously pending
- * calls.
+ * Object with cookie consent types as keys, for use with {@link setCookie}
  */
-export default function throttle(fn: () => void, interval: number): () => void;
+export const TYPES: {[key: string]: TYPE_VALUES};
+
+export type TYPE_VALUES =
+	| 'CONSENT_TYPE_FUNCTIONAL'
+	| 'CONSENT_TYPE_NECESSARY'
+	| 'CONSENT_TYPE_PERFORMANCE'
+	| 'CONSENT_TYPE_PERSONALIZATION';

@@ -42,30 +42,6 @@ export function useLiferayModule(
 	return Component;
 }
 
-export function usePersistentState(key, initialState = null) {
-	const [persistentState, setPersistentState] = useState(
-		() => JSON.parse(localStorage.getItem(key)) || initialState
-	);
-	useEffect(() => {
-		try {
-			if (
-				typeof persistentState === 'undefined' ||
-				persistentState === null
-			) {
-				localStorage.removeItem(key);
-			}
-			else {
-				localStorage.setItem(key, JSON.stringify(persistentState));
-			}
-		}
-		catch {
-			return;
-		}
-	}, [key, persistentState]);
-
-	return [persistentState, setPersistentState];
-}
-
 export function useCommerceAccount(initialCommerceAccount) {
 	const [commerceAccount, setCommerceAccount] = useState(
 		initialCommerceAccount

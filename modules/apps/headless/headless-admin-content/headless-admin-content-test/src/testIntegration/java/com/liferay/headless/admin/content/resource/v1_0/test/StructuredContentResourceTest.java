@@ -25,6 +25,8 @@ import com.liferay.dynamic.data.mapping.model.DDMTemplate;
 import com.liferay.dynamic.data.mapping.storage.StorageType;
 import com.liferay.dynamic.data.mapping.test.util.DDMStructureTestHelper;
 import com.liferay.dynamic.data.mapping.test.util.DDMTemplateTestUtil;
+import com.liferay.headless.admin.content.client.dto.v1_0.ContentField;
+import com.liferay.headless.admin.content.client.dto.v1_0.ContentFieldValue;
 import com.liferay.headless.admin.content.client.dto.v1_0.StructuredContent;
 import com.liferay.headless.admin.content.client.pagination.Page;
 import com.liferay.headless.admin.content.client.serdes.v1_0.StructuredContentSerDes;
@@ -37,10 +39,15 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.test.rule.Inject;
 
 import java.io.InputStream;
+
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -59,6 +66,15 @@ public class StructuredContentResourceTest
 	public void setUp() throws Exception {
 		super.setUp();
 
+		_ddmStructure = _addDDMStructure(testGroup, "test-ddm-structure.json");
+
+		_addDDMTemplate(_ddmStructure);
+
+		_irrelevantDDMStructure = _addDDMStructure(
+			irrelevantGroup, "test-ddm-structure.json");
+		_localizedDDMStructure = _addDDMStructure(
+			testGroup, "test-localized-ddm-structure.json");
+
 		StructuredContentResource.Builder builder =
 			StructuredContentResource.builder();
 
@@ -67,12 +83,6 @@ public class StructuredContentResourceTest
 		).locale(
 			LocaleUtil.getDefault()
 		).build();
-
-		_ddmStructure = _addDDMStructure(testGroup, "test-ddm-structure.json");
-		_irrelevantDDMStructure = _addDDMStructure(
-			irrelevantGroup, "test-ddm-structure.json");
-
-		_addDDMTemplate(_ddmStructure);
 	}
 
 	@Override
@@ -146,6 +156,55 @@ public class StructuredContentResourceTest
 							getGraphQLFields()))),
 				"JSONObject/data", "JSONObject/admin",
 				"Object/structuredContentByVersion"));
+	}
+
+	@Override
+	@Test
+	public void testPostSiteStructuredContentDraft() throws Exception {
+		super.testPostSiteStructuredContentDraft();
+
+		// Localized structured content with the default language
+
+		Locale locale = LocaleUtil.getDefault();
+
+		StructuredContent randomLocalizedStructuredContent1 =
+			_randomStructuredContent(locale);
+
+		com.liferay.headless.admin.content.client.resource.v1_0.
+			StructuredContentResource englishStructuredContentResource =
+				_buildStructureContentResource(locale);
+
+		StructuredContent postStructuredContent1 =
+			englishStructuredContentResource.postSiteStructuredContentDraft(
+				testGetSiteStructuredContentsPage_getSiteId(),
+				randomLocalizedStructuredContent1);
+
+		_assertLocalizedValues(
+			postStructuredContent1, LocaleUtil.toW3cLanguageId(locale));
+		assertEquals(randomLocalizedStructuredContent1, postStructuredContent1);
+		assertValid(postStructuredContent1);
+
+		// Localized structured content with a different language from the
+		// default language
+
+		locale = LocaleUtil.fromLanguageId("es-ES");
+
+		StructuredContent randomLocalizedStructuredContent2 =
+			_randomStructuredContent(locale);
+
+		com.liferay.headless.admin.content.client.resource.v1_0.
+			StructuredContentResource spanishStructuredContentResource =
+				_buildStructureContentResource(locale);
+
+		StructuredContent postStructuredContent2 =
+			spanishStructuredContentResource.postSiteStructuredContentDraft(
+				testGetSiteStructuredContentsPage_getSiteId(),
+				randomLocalizedStructuredContent2);
+
+		_assertLocalizedValues(
+			postStructuredContent2, LocaleUtil.toW3cLanguageId(locale));
+		assertEquals(randomLocalizedStructuredContent2, postStructuredContent2);
+		assertValid(postStructuredContent2);
 	}
 
 	@Override
@@ -267,6 +326,64 @@ public class StructuredContentResourceTest
 			_read("test-structured-content-template.vm"), LocaleUtil.US);
 	}
 
+	private void _assertLocalizedValue(
+		Map<String, String> localizedValues, String value, String w3cLanguageId,
+		Set<String> w3cLanguageIds) {
+
+		Assert.assertEquals(w3cLanguageIds, localizedValues.keySet());
+		Assert.assertEquals(value, localizedValues.get(w3cLanguageId));
+	}
+
+	private void _assertLocalizedValues(
+		StructuredContent structuredContent, String w3cLanguageId) {
+
+		Set<String> w3cLanguageIds = SetUtil.fromArray("es-ES", "en-US");
+
+		Assert.assertEquals(
+			w3cLanguageIds,
+			SetUtil.fromArray(structuredContent.getAvailableLanguages()));
+
+		_assertLocalizedValue(
+			structuredContent.getDescription_i18n(),
+			structuredContent.getDescription(), w3cLanguageId, w3cLanguageIds);
+		_assertLocalizedValue(
+			structuredContent.getTitle_i18n(), structuredContent.getTitle(),
+			w3cLanguageId, w3cLanguageIds);
+		_assertLocalizedValue(
+			structuredContent.getFriendlyUrlPath_i18n(),
+			structuredContent.getFriendlyUrlPath(), w3cLanguageId,
+			w3cLanguageIds);
+		_assertLocalizedValue(
+			structuredContent.getDescription_i18n(),
+			structuredContent.getDescription(), w3cLanguageId, w3cLanguageIds);
+
+		for (ContentField contentField : structuredContent.getContentFields()) {
+			Map<String, ContentFieldValue> contentFieldValue_i18n =
+				contentField.getContentFieldValue_i18n();
+
+			Assert.assertEquals(
+				w3cLanguageIds, contentFieldValue_i18n.keySet());
+		}
+	}
+
+	private com.liferay.headless.admin.content.client.resource.v1_0.
+		StructuredContentResource _buildStructureContentResource(
+			Locale locale) {
+
+		com.liferay.headless.admin.content.client.resource.v1_0.
+			StructuredContentResource.Builder builder =
+				com.liferay.headless.admin.content.client.resource.v1_0.
+					StructuredContentResource.builder();
+
+		return builder.authentication(
+			"test@liferay.com", "test"
+		).locale(
+			locale
+		).header(
+			"X-Accept-All-Languages", "true"
+		).build();
+	}
+
 	private DDMForm _deserialize(String content) {
 		DDMFormDeserializerDeserializeRequest.Builder builder =
 			DDMFormDeserializerDeserializeRequest.Builder.newBuilder(content);
@@ -296,6 +413,77 @@ public class StructuredContentResourceTest
 						setTitle(structuredContent.getTitle());
 					}
 				}));
+	}
+
+	private StructuredContent _randomStructuredContent(Locale locale)
+		throws Exception {
+
+		StructuredContent structuredContent = super.randomStructuredContent();
+
+		String w3cLanguageId = LocaleUtil.toW3cLanguageId(locale);
+
+		Map<String, ContentFieldValue> contentFieldValues = HashMapBuilder.put(
+			"en-US",
+			(ContentFieldValue)new ContentFieldValue() {
+
+				{
+					data = RandomTestUtil.randomString(10);
+				}
+			}
+		).put(
+			"es-ES",
+			(ContentFieldValue)new ContentFieldValue() {
+
+				{
+					data = RandomTestUtil.randomString(10);
+				}
+			}
+		).build();
+
+		structuredContent.setContentFields(
+			new ContentField[] {
+				new ContentField() {
+					{
+						contentFieldValue = contentFieldValues.get(
+							w3cLanguageId);
+						contentFieldValue_i18n = contentFieldValues;
+						name = "MyText";
+					}
+				}
+			});
+
+		structuredContent.setContentStructureId(
+			_localizedDDMStructure.getStructureId());
+
+		Map<String, String> description_i18n = HashMapBuilder.put(
+			"en-US", RandomTestUtil.randomString()
+		).put(
+			"es-ES", RandomTestUtil.randomString()
+		).build();
+
+		structuredContent.setDescription(description_i18n.get(w3cLanguageId));
+		structuredContent.setDescription_i18n(description_i18n);
+
+		Map<String, String> friendlyUrlPath_i18n = HashMapBuilder.put(
+			"en-US", RandomTestUtil.randomString()
+		).put(
+			"es-ES", RandomTestUtil.randomString()
+		).build();
+
+		structuredContent.setFriendlyUrlPath(
+			friendlyUrlPath_i18n.get(w3cLanguageId));
+		structuredContent.setFriendlyUrlPath_i18n(friendlyUrlPath_i18n);
+
+		Map<String, String> title_i18n = HashMapBuilder.put(
+			"en-US", RandomTestUtil.randomString()
+		).put(
+			"es-ES", RandomTestUtil.randomString()
+		).build();
+
+		structuredContent.setTitle(title_i18n.get(w3cLanguageId));
+		structuredContent.setTitle_i18n(title_i18n);
+
+		return structuredContent;
 	}
 
 	private String _read(String fileName) throws Exception {
@@ -345,6 +533,7 @@ public class StructuredContentResourceTest
 
 	private DDMStructure _ddmStructure;
 	private DDMStructure _irrelevantDDMStructure;
+	private DDMStructure _localizedDDMStructure;
 	private StructuredContentResource _structuredContentResource;
 
 }

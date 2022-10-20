@@ -16,6 +16,7 @@ package com.liferay.object.internal.field.business.type;
 
 import com.liferay.dynamic.data.mapping.form.field.type.constants.DDMFormFieldTypeConstants;
 import com.liferay.object.constants.ObjectFieldConstants;
+import com.liferay.object.exception.ObjectFieldSettingNameException;
 import com.liferay.object.exception.ObjectFieldSettingValueException;
 import com.liferay.object.field.business.type.ObjectFieldBusinessType;
 import com.liferay.object.field.render.ObjectFieldRenderingContext;
@@ -25,19 +26,19 @@ import com.liferay.object.service.ObjectFieldSettingLocalService;
 import com.liferay.petra.string.StringPool;
 import com.liferay.petra.string.StringUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
-import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.vulcan.extension.PropertyDefinition;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import org.osgi.service.component.annotations.Component;
@@ -55,12 +56,7 @@ public class TextObjectFieldBusinessType implements ObjectFieldBusinessType {
 
 	@Override
 	public Set<String> getAllowedObjectFieldSettingsNames() {
-		if (!GetterUtil.getBoolean(PropsUtil.get("feature.flag.LPS-146889"))) {
-			return ObjectFieldBusinessType.super.
-				getAllowedObjectFieldSettingsNames();
-		}
-
-		return SetUtil.fromArray("maxLength");
+		return SetUtil.fromArray("maxLength", "showCounter");
 	}
 
 	@Override
@@ -75,7 +71,7 @@ public class TextObjectFieldBusinessType implements ObjectFieldBusinessType {
 
 	@Override
 	public String getDescription(Locale locale) {
-		return LanguageUtil.get(
+		return _language.get(
 			ResourceBundleUtil.getModuleAndPortalResourceBundle(
 				locale, getClass()),
 			"add-text-up-to-280-characters");
@@ -83,7 +79,7 @@ public class TextObjectFieldBusinessType implements ObjectFieldBusinessType {
 
 	@Override
 	public String getLabel(Locale locale) {
-		return LanguageUtil.get(
+		return _language.get(
 			ResourceBundleUtil.getModuleAndPortalResourceBundle(
 				locale, getClass()),
 			"text");
@@ -99,19 +95,11 @@ public class TextObjectFieldBusinessType implements ObjectFieldBusinessType {
 		ObjectField objectField,
 		ObjectFieldRenderingContext objectFieldRenderingContext) {
 
-		if (!GetterUtil.getBoolean(PropsUtil.get("feature.flag.LPS-146889"))) {
-			return ObjectFieldBusinessType.super.getProperties(
-				objectField, objectFieldRenderingContext);
-		}
-
 		Map<String, Object> properties = new HashMap<>();
 
-		List<ObjectFieldSetting> objectFieldSettings =
-			_objectFieldSettingLocalService.getObjectFieldSettings(
-				objectField.getObjectFieldId());
-
 		ListUtil.isNotEmptyForEach(
-			objectFieldSettings,
+			_objectFieldSettingLocalService.getObjectFieldObjectFieldSettings(
+				objectField.getObjectFieldId()),
 			objectFieldSetting -> properties.put(
 				objectFieldSetting.getName(), objectFieldSetting.getValue()));
 
@@ -119,54 +107,59 @@ public class TextObjectFieldBusinessType implements ObjectFieldBusinessType {
 	}
 
 	@Override
-	public Set<String> getRequiredObjectFieldSettingsNames() {
-		if (!GetterUtil.getBoolean(PropsUtil.get("feature.flag.LPS-146889"))) {
-			return ObjectFieldBusinessType.super.
-				getRequiredObjectFieldSettingsNames();
-		}
-
-		return SetUtil.fromArray("showCounter");
+	public PropertyDefinition.PropertyType getPropertyType() {
+		return PropertyDefinition.PropertyType.TEXT;
 	}
 
 	@Override
 	public void validateObjectFieldSettings(
-			String objectFieldName,
+			long objectDefinitionId, String objectFieldName,
 			List<ObjectFieldSetting> objectFieldSettings)
 		throws PortalException {
 
 		ObjectFieldBusinessType.super.validateObjectFieldSettings(
-			objectFieldName, objectFieldSettings);
+			objectDefinitionId, objectFieldName, objectFieldSettings);
 
-		if (!GetterUtil.getBoolean(PropsUtil.get("feature.flag.LPS-146889"))) {
-			return;
+		Map<String, String> objectFieldSettingsValues = new HashMap<>();
+
+		objectFieldSettings.forEach(
+			objectFieldSetting -> objectFieldSettingsValues.put(
+				objectFieldSetting.getName(), objectFieldSetting.getValue()));
+
+		String showCounter = objectFieldSettingsValues.get("showCounter");
+
+		if (Validator.isNull(showCounter) ||
+			StringUtil.equalsIgnoreCase(showCounter, StringPool.FALSE)) {
+
+			if (objectFieldSettingsValues.containsKey("maxLength")) {
+				throw new ObjectFieldSettingNameException.NotAllowedNames(
+					objectFieldName, Collections.singleton("maxLength"));
+			}
 		}
+		else if (StringUtil.equalsIgnoreCase(showCounter, StringPool.TRUE)) {
+			String maxLength = objectFieldSettingsValues.get("maxLength");
 
-		for (ObjectFieldSetting objectFieldSetting : objectFieldSettings) {
-			if (Objects.equals(objectFieldSetting.getName(), "maxLength") &&
-				Validator.isNotNull(objectFieldSetting.getValue())) {
-
-				int maxLength = GetterUtil.getInteger(
-					objectFieldSetting.getValue());
-
-				if ((maxLength < 1) || (maxLength > 280)) {
-					throw new ObjectFieldSettingValueException.InvalidValue(
-						objectFieldName, "maxLength",
-						objectFieldSetting.getValue());
-				}
+			if (Validator.isNull(maxLength)) {
+				throw new ObjectFieldSettingValueException.
+					MissingRequiredValues(
+						objectFieldName, Collections.singleton("maxLength"));
 			}
-			else if (Objects.equals(
-						objectFieldSetting.getName(), "showCounter") &&
-					 !StringUtil.equalsIgnoreCase(
-						 objectFieldSetting.getValue(), StringPool.FALSE) &&
-					 !StringUtil.equalsIgnoreCase(
-						 objectFieldSetting.getValue(), StringPool.TRUE)) {
 
+			int maxLengthInteger = GetterUtil.getInteger(maxLength);
+
+			if ((maxLengthInteger < 1) || (maxLengthInteger > 280)) {
 				throw new ObjectFieldSettingValueException.InvalidValue(
-					objectFieldName, "showCounter",
-					objectFieldSetting.getValue());
+					objectFieldName, "maxLength", maxLength);
 			}
+		}
+		else {
+			throw new ObjectFieldSettingValueException.InvalidValue(
+				objectFieldName, "showCounter", showCounter);
 		}
 	}
+
+	@Reference
+	private Language _language;
 
 	@Reference
 	private ObjectFieldSettingLocalService _objectFieldSettingLocalService;

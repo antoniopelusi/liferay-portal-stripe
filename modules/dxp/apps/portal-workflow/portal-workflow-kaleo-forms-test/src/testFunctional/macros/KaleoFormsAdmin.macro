@@ -26,7 +26,7 @@ definition {
 	macro addForm {
 		SelectFrame(locator1 = "DDMEditStructure#IFRAME");
 
-		LexiconEntry.gotoAdd();
+		LexiconEntry.gotoAddNoSelectFrame();
 
 		Click(locator1 = "DDMEditStructure#NAME_FIELD");
 
@@ -356,7 +356,7 @@ definition {
 	}
 
 	macro editDescription {
-		Pause(locator1 = "1000");
+		WaitForPageLoad();
 
 		Type(
 			key_fieldName = "${fieldName}",
@@ -539,6 +539,7 @@ definition {
 
 	macro populateFieldTextBox {
 		var fieldName = StringUtil.replace("${fieldName}", " ", "_");
+
 		var key_fieldName = "${fieldName}";
 
 		Type(

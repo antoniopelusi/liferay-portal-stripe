@@ -39,6 +39,39 @@ components:
                 type: integer
             style: simple
     schemas:
+        CustomField:
+            # @review
+            description:
+                Represents the value of each custom field. Fields can contain different information types (e.g.,
+                geolocation, strings, etc.).
+            properties:
+                customValue:
+                    $ref: "#/components/schemas/CustomValue"
+                dataType:
+                    description:
+                        The field type (e.g., image, text, etc.).
+                    readOnly: true
+                    type: string
+                name:
+                    description:
+                        The field's internal name. This is valid for comparisons and unique in the structured content.
+                    type: string
+        CustomValue:
+            properties:
+                data:
+                    description:
+                        The field's content for simple types.
+                    type: object
+                data_i18n:
+                    additionalProperties:
+                        type: string
+                    type: object
+                geo:
+                    allOf:
+                        - $ref: "#/components/schemas/Geo"
+                    description:
+                        A point determined by latitude and longitude.
+            type: object
         Error:
             properties:
                 errorCode:
@@ -67,6 +100,21 @@ components:
                 - message
                 - status
             type: object
+        Geo:
+            description:
+                A point determined by latitude and longitude.
+            properties:
+                latitude:
+                    description:
+                        The latitude of a point in space.
+                    format: double
+                    type: number
+                longitude:
+                    description:
+                        The longitude of a point in space.
+                    format: double
+                    type: number
+            type: object
         Shipment:
             properties:
                 accountId:
@@ -89,6 +137,10 @@ components:
                     format: date
                     readOnly: true
                     type: string
+                customFields:
+                    items:
+                        $ref: "#/components/schemas/CustomField"
+                    type: array
                 expectedDate:
                     format: date
                     type: string
@@ -127,7 +179,6 @@ components:
                     example: 30130
                     format: int64
                     minimum: 0
-                    readOnly: true
                     type: integer
                 shippingOptionName:
                     example: "Standard Delivery"
@@ -139,6 +190,9 @@ components:
                     readOnly: true
                 trackingNumber:
                     example: "123AD-asd"
+                    type: string
+                trackingURL:
+                    example: "Standard Delivery"
                     type: string
                 userName:
                     example: "John"
@@ -296,7 +350,7 @@ info:
         name: Commerce Team
     description:
         "Liferay Commerce Admin Admin Shipment API. A Java client JAR is available for use with the group ID
-        'com.liferay', artifact ID 'com.liferay.headless.commerce.admin.shipment.client', and version '1.0.13'."
+        'com.liferay', artifact ID 'com.liferay.headless.commerce.admin.shipment.client', and version '1.0.17'."
     license:
         name: "Apache 2.0"
         url: "http://www.apache.org/licenses/LICENSE-2.0.html"

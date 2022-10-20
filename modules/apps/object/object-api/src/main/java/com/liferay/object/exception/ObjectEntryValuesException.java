@@ -23,35 +23,91 @@ public class ObjectEntryValuesException extends PortalException {
 
 	public static class ExceedsIntegerSize extends ObjectEntryValuesException {
 
-		public ExceedsIntegerSize() {
+		public ExceedsIntegerSize(int maxLength, String objectFieldName) {
 			super("Object entry value exceeds integer field allowed size");
+
+			_maxLength = maxLength;
+			_objectFieldName = objectFieldName;
 		}
+
+		public int getMaxLength() {
+			return _maxLength;
+		}
+
+		public String getObjectFieldName() {
+			return _objectFieldName;
+		}
+
+		private final int _maxLength;
+		private final String _objectFieldName;
 
 	}
 
 	public static class ExceedsLongMaxSize extends ObjectEntryValuesException {
 
-		public ExceedsLongMaxSize() {
+		public ExceedsLongMaxSize(long maxValue, String objectFieldName) {
 			super("Object entry value exceeds maximum long field allowed size");
+
+			_maxValue = maxValue;
+			_objectFieldName = objectFieldName;
 		}
+
+		public long getMaxValue() {
+			return _maxValue;
+		}
+
+		public String getObjectFieldName() {
+			return _objectFieldName;
+		}
+
+		private final long _maxValue;
+		private final String _objectFieldName;
 
 	}
 
 	public static class ExceedsLongMinSize extends ObjectEntryValuesException {
 
-		public ExceedsLongMinSize() {
+		public ExceedsLongMinSize(long minValue, String objectFieldName) {
 			super(
 				"Object entry value falls below minimum long field allowed " +
 					"size");
+
+			_minValue = minValue;
+			_objectFieldName = objectFieldName;
 		}
+
+		public long getMinValue() {
+			return _minValue;
+		}
+
+		public String getObjectFieldName() {
+			return _objectFieldName;
+		}
+
+		private final long _minValue;
+		private final String _objectFieldName;
 
 	}
 
 	public static class ExceedsLongSize extends ObjectEntryValuesException {
 
-		public ExceedsLongSize() {
+		public ExceedsLongSize(int maxLength, String objectFieldName) {
 			super("Object entry value exceeds long field allowed size");
+
+			_maxLength = maxLength;
+			_objectFieldName = objectFieldName;
 		}
+
+		public int getMaxLength() {
+			return _maxLength;
+		}
+
+		public String getObjectFieldName() {
+			return _objectFieldName;
+		}
+
+		private final int _maxLength;
+		private final String _objectFieldName;
 
 	}
 
@@ -63,7 +119,21 @@ public class ObjectEntryValuesException extends PortalException {
 					"File exceeds the maximum permitted size of %s MB for " +
 						"object field \"%s\"",
 					maxFileSize, objectFieldName));
+
+			_maxFileSize = maxFileSize;
+			_objectFieldName = objectFieldName;
 		}
+
+		public long getMaxFileSize() {
+			return _maxFileSize;
+		}
+
+		public String getObjectFieldName() {
+			return _objectFieldName;
+		}
+
+		private final long _maxFileSize;
+		private final String _objectFieldName;
 
 	}
 
@@ -104,7 +174,21 @@ public class ObjectEntryValuesException extends PortalException {
 				String.format(
 					"The file extension %s is invalid for object field \"%s\"",
 					fileExtension, objectFieldName));
+
+			_fileExtension = fileExtension;
+			_objectFieldName = objectFieldName;
 		}
+
+		public String getFileExtension() {
+			return _fileExtension;
+		}
+
+		public String getObjectFieldName() {
+			return _objectFieldName;
+		}
+
+		private final String _fileExtension;
+		private final String _objectFieldName;
 
 	}
 
@@ -116,6 +200,22 @@ public class ObjectEntryValuesException extends PortalException {
 					"Object field name \"%s\" is not mapped to a valid list " +
 						"type entry",
 					objectFieldName));
+
+			_objectFieldName = objectFieldName;
+		}
+
+		public String getObjectFieldName() {
+			return _objectFieldName;
+		}
+
+		private final String _objectFieldName;
+
+	}
+
+	public static class MustNotBeDuplicate extends ObjectEntryValuesException {
+
+		public MustNotBeDuplicate(String value) {
+			super("Duplicate value " + value);
 		}
 
 	}
@@ -141,7 +241,15 @@ public class ObjectEntryValuesException extends PortalException {
 				String.format(
 					"No value was provided for required object field \"%s\"",
 					objectFieldName));
+
+			_objectFieldName = objectFieldName;
 		}
+
+		public String getObjectFieldName() {
+			return _objectFieldName;
+		}
+
+		private String _objectFieldName;
 
 	}
 

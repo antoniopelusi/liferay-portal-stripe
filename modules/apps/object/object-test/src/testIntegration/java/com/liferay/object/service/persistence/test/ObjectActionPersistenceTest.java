@@ -140,6 +140,10 @@ public class ObjectActionPersistenceTest {
 
 		newObjectAction.setActive(RandomTestUtil.randomBoolean());
 
+		newObjectAction.setConditionExpression(RandomTestUtil.randomString());
+
+		newObjectAction.setDescription(RandomTestUtil.randomString());
+
 		newObjectAction.setName(RandomTestUtil.randomString());
 
 		newObjectAction.setObjectActionExecutorKey(
@@ -149,6 +153,8 @@ public class ObjectActionPersistenceTest {
 			RandomTestUtil.randomString());
 
 		newObjectAction.setParameters(RandomTestUtil.randomString());
+
+		newObjectAction.setStatus(RandomTestUtil.nextInt());
 
 		_objectActions.add(_persistence.update(newObjectAction));
 
@@ -182,6 +188,12 @@ public class ObjectActionPersistenceTest {
 		Assert.assertEquals(
 			existingObjectAction.isActive(), newObjectAction.isActive());
 		Assert.assertEquals(
+			existingObjectAction.getConditionExpression(),
+			newObjectAction.getConditionExpression());
+		Assert.assertEquals(
+			existingObjectAction.getDescription(),
+			newObjectAction.getDescription());
+		Assert.assertEquals(
 			existingObjectAction.getName(), newObjectAction.getName());
 		Assert.assertEquals(
 			existingObjectAction.getObjectActionExecutorKey(),
@@ -192,6 +204,8 @@ public class ObjectActionPersistenceTest {
 		Assert.assertEquals(
 			existingObjectAction.getParameters(),
 			newObjectAction.getParameters());
+		Assert.assertEquals(
+			existingObjectAction.getStatus(), newObjectAction.getStatus());
 	}
 
 	@Test
@@ -259,8 +273,9 @@ public class ObjectActionPersistenceTest {
 			"ObjectAction", "mvccVersion", true, "uuid", true, "objectActionId",
 			true, "companyId", true, "userId", true, "userName", true,
 			"createDate", true, "modifiedDate", true, "objectDefinitionId",
-			true, "active", true, "name", true, "objectActionExecutorKey", true,
-			"objectActionTriggerKey", true);
+			true, "active", true, "description", true, "name", true,
+			"objectActionExecutorKey", true, "objectActionTriggerKey", true,
+			"status", true);
 	}
 
 	@Test
@@ -499,6 +514,10 @@ public class ObjectActionPersistenceTest {
 
 		objectAction.setActive(RandomTestUtil.randomBoolean());
 
+		objectAction.setConditionExpression(RandomTestUtil.randomString());
+
+		objectAction.setDescription(RandomTestUtil.randomString());
+
 		objectAction.setName(RandomTestUtil.randomString());
 
 		objectAction.setObjectActionExecutorKey(RandomTestUtil.randomString());
@@ -506,6 +525,8 @@ public class ObjectActionPersistenceTest {
 		objectAction.setObjectActionTriggerKey(RandomTestUtil.randomString());
 
 		objectAction.setParameters(RandomTestUtil.randomString());
+
+		objectAction.setStatus(RandomTestUtil.nextInt());
 
 		_objectActions.add(_persistence.update(objectAction));
 

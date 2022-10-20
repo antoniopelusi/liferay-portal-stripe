@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.model.GroupedModel;
 import com.liferay.portal.kernel.model.LocalizedModel;
 import com.liferay.portal.kernel.model.MVCCModel;
 import com.liferay.portal.kernel.model.ShardedModel;
+import com.liferay.portal.kernel.model.StagedAuditedModel;
 
 import java.math.BigDecimal;
 
@@ -44,7 +45,7 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface CommerceOrderItemModel
 	extends BaseModel<CommerceOrderItem>, GroupedModel, LocalizedModel,
-			MVCCModel, ShardedModel {
+			MVCCModel, ShardedModel, StagedAuditedModel {
 
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -81,6 +82,23 @@ public interface CommerceOrderItemModel
 	 */
 	@Override
 	public void setMvccVersion(long mvccVersion);
+
+	/**
+	 * Returns the uuid of this commerce order item.
+	 *
+	 * @return the uuid of this commerce order item
+	 */
+	@AutoEscape
+	@Override
+	public String getUuid();
+
+	/**
+	 * Sets the uuid of this commerce order item.
+	 *
+	 * @param uuid the uuid of this commerce order item
+	 */
+	@Override
+	public void setUuid(String uuid);
 
 	/**
 	 * Returns the external reference code of this commerce order item.
@@ -321,6 +339,20 @@ public interface CommerceOrderItemModel
 	 * @param parentCommerceOrderItemId the parent commerce order item ID of this commerce order item
 	 */
 	public void setParentCommerceOrderItemId(long parentCommerceOrderItemId);
+
+	/**
+	 * Returns the shipping address ID of this commerce order item.
+	 *
+	 * @return the shipping address ID of this commerce order item
+	 */
+	public long getShippingAddressId();
+
+	/**
+	 * Sets the shipping address ID of this commerce order item.
+	 *
+	 * @param shippingAddressId the shipping address ID of this commerce order item
+	 */
+	public void setShippingAddressId(long shippingAddressId);
 
 	/**
 	 * Returns the decimal quantity of this commerce order item.
@@ -855,20 +887,6 @@ public interface CommerceOrderItemModel
 	 * @param requestedDeliveryDate the requested delivery date of this commerce order item
 	 */
 	public void setRequestedDeliveryDate(Date requestedDeliveryDate);
-
-	/**
-	 * Returns the shipping address ID of this commerce order item.
-	 *
-	 * @return the shipping address ID of this commerce order item
-	 */
-	public long getShippingAddressId();
-
-	/**
-	 * Sets the shipping address ID of this commerce order item.
-	 *
-	 * @param shippingAddressId the shipping address ID of this commerce order item
-	 */
-	public void setShippingAddressId(long shippingAddressId);
 
 	/**
 	 * Returns the ship separately of this commerce order item.

@@ -14,10 +14,10 @@
 
 package com.liferay.portal.kernel.dao.jdbc;
 
-import com.liferay.petra.concurrent.FutureListener;
 import com.liferay.petra.concurrent.NoticeableExecutorService;
 import com.liferay.petra.concurrent.NoticeableFuture;
 import com.liferay.petra.executor.PortalExecutorManager;
+import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtil;
@@ -44,23 +44,20 @@ import java.util.concurrent.Future;
  */
 public class AutoBatchPreparedStatementUtil {
 
-	public static PreparedStatement autoBatch(
-			PreparedStatement preparedStatement)
+	public static PreparedStatement autoBatch(Connection connection, String sql)
 		throws SQLException {
-
-		Connection connection = preparedStatement.getConnection();
 
 		DatabaseMetaData databaseMetaData = connection.getMetaData();
 
 		if (databaseMetaData.supportsBatchUpdates()) {
 			return (PreparedStatement)ProxyUtil.newProxyInstance(
 				ClassLoader.getSystemClassLoader(), _INTERFACES,
-				new BatchInvocationHandler(preparedStatement));
+				new BatchInvocationHandler(connection, sql));
 		}
 
 		return (PreparedStatement)ProxyUtil.newProxyInstance(
 			ClassLoader.getSystemClassLoader(), _INTERFACES,
-			new NoBatchInvocationHandler(preparedStatement));
+			new NoBatchInvocationHandler(connection, sql));
 	}
 
 	public static PreparedStatement concurrentAutoBatch(
@@ -89,7 +86,8 @@ public class AutoBatchPreparedStatementUtil {
 
 	private static final Method _addBatchMethod;
 	private static final Method _closeMethod;
-	private static final Method _executeBatch;
+	private static final Method _executeBatchMethod;
+	private static final Method _getConnectionMethod;
 	private static volatile PortalExecutorManager _portalExecutorManager =
 		ServiceProxyFactory.newServiceTrackedInstance(
 			PortalExecutorManager.class, AutoBatchPreparedStatementUtil.class,
@@ -99,235 +97,146 @@ public class AutoBatchPreparedStatementUtil {
 		try {
 			_addBatchMethod = PreparedStatement.class.getMethod("addBatch");
 			_closeMethod = PreparedStatement.class.getMethod("close");
-			_executeBatch = PreparedStatement.class.getMethod("executeBatch");
+			_executeBatchMethod = PreparedStatement.class.getMethod(
+				"executeBatch");
+			_getConnectionMethod = PreparedStatement.class.getMethod(
+				"getConnection");
 		}
 		catch (NoSuchMethodException noSuchMethodException) {
 			throw new ExceptionInInitializerError(noSuchMethodException);
 		}
 	}
 
-	private static class BatchInvocationHandler implements InvocationHandler {
+	private static class BatchInvocationHandler
+		extends NoBatchInvocationHandler {
 
 		@Override
-		public Object invoke(Object proxy, Method method, Object[] args)
-			throws Throwable {
+		protected void doAddBatch() throws SQLException {
+			PreparedStatement localPreparedStatement = getPreparedStatement();
 
-			if (method.equals(_executeBatch)) {
-				if (_count > 0) {
-					_count = 0;
-
-					return _preparedStatement.executeBatch();
-				}
-
-				return new int[0];
-			}
-
-			if (!method.equals(_addBatchMethod)) {
-				return method.invoke(_preparedStatement, args);
-			}
-
-			_preparedStatement.addBatch();
+			localPreparedStatement.addBatch();
 
 			if (++_count >= _HIBERNATE_JDBC_BATCH_SIZE) {
-				_preparedStatement.executeBatch();
-
 				_count = 0;
-			}
 
-			return null;
+				localPreparedStatement.executeBatch();
+			}
 		}
 
-		private BatchInvocationHandler(PreparedStatement preparedStatement) {
-			_preparedStatement = preparedStatement;
+		@Override
+		protected int[] doExecuteBatch() throws SQLException {
+			if (_count > 0) {
+				_count = 0;
+
+				PreparedStatement localPreparedStatement =
+					getPreparedStatement();
+
+				return localPreparedStatement.executeBatch();
+			}
+
+			return new int[0];
+		}
+
+		private BatchInvocationHandler(Connection connection, String sql) {
+			super(connection, sql);
 		}
 
 		private int _count;
-		private final PreparedStatement _preparedStatement;
 
 	}
 
 	private static class ConcurrentBatchInvocationHandler
-		implements InvocationHandler {
+		extends ConcurrentNoBatchInvocationHandler {
 
 		@Override
-		public Object invoke(Object proxy, Method method, Object[] args)
-			throws Throwable {
+		protected void doAddBatch() throws SQLException {
+			PreparedStatement localPreparedStatement = getPreparedStatement();
 
-			if (method.equals(_addBatchMethod)) {
-				_preparedStatement.addBatch();
+			localPreparedStatement.addBatch();
 
-				if (++_count >= _HIBERNATE_JDBC_BATCH_SIZE) {
-					_executeBatch();
-				}
+			if (++_count >= _HIBERNATE_JDBC_BATCH_SIZE) {
+				_count = 0;
 
-				return null;
+				executeAsync(PreparedStatement::executeBatch);
+			}
+		}
+
+		@Override
+		protected int[] doExecuteBatch() throws SQLException {
+			if (_count > 0) {
+				_count = 0;
+
+				executeAsync(PreparedStatement::executeBatch);
 			}
 
-			if (method.equals(_executeBatch)) {
-				if (_count > 0) {
-					_executeBatch();
-				}
-
-				return new int[0];
-			}
-
-			if (method.equals(_closeMethod)) {
-				Throwable throwable1 = null;
-
-				for (Future<Void> future : _futures) {
-					try {
-						future.get();
-					}
-					catch (Throwable throwable2) {
-						if (throwable2 instanceof ExecutionException) {
-							throwable2 = throwable2.getCause();
-						}
-
-						if (throwable1 == null) {
-							throwable1 = throwable2;
-						}
-						else {
-							throwable1.addSuppressed(throwable2);
-						}
-					}
-				}
-
-				if (throwable1 != null) {
-					throw throwable1;
-				}
-			}
-
-			return method.invoke(_preparedStatement, args);
+			return new int[0];
 		}
 
 		private ConcurrentBatchInvocationHandler(
-				Connection connection, String sql)
-			throws SQLException {
+			Connection connection, String sql) {
 
-			_connection = connection;
-			_sql = sql;
-
-			_preparedStatement = _connection.prepareStatement(_sql);
+			super(connection, sql);
 		}
 
-		private void _executeBatch() throws SQLException {
-			_count = 0;
-
-			PreparedStatement preparedStatement = _preparedStatement;
-
-			NoticeableFuture<Void> noticeableFuture =
-				_noticeableExecutorService.submit(
-					() -> {
-						try {
-							preparedStatement.executeBatch();
-						}
-						finally {
-							preparedStatement.close();
-						}
-
-						return null;
-					});
-
-			_futures.add(noticeableFuture);
-
-			noticeableFuture.addFutureListener(
-				new FutureListener<Void>() {
-
-					@Override
-					public void complete(Future<Void> future) {
-						try {
-							future.get();
-
-							_futures.remove(future);
-						}
-						catch (Throwable throwable) {
-						}
-					}
-
-				});
-
-			_preparedStatement = _connection.prepareStatement(_sql);
-		}
-
-		private final Connection _connection;
 		private int _count;
-		private final Set<Future<Void>> _futures = Collections.newSetFromMap(
-			new ConcurrentHashMap<>());
-		private final NoticeableExecutorService _noticeableExecutorService =
-			_portalExecutorManager.getPortalExecutor(
-				ConcurrentBatchInvocationHandler.class.getName());
-		private PreparedStatement _preparedStatement;
-		private final String _sql;
 
 	}
 
 	private static class ConcurrentNoBatchInvocationHandler
-		implements InvocationHandler {
+		extends PreparedStatementInvocationHandler {
 
 		@Override
-		public Object invoke(Object proxy, Method method, Object[] args)
-			throws Throwable {
-
-			if (method.equals(_addBatchMethod)) {
-				_executeUpdate();
-
-				return null;
-			}
-
-			if (method.equals(_executeBatch)) {
-				return new int[0];
-			}
-
-			if (method.equals(_closeMethod)) {
-				Throwable throwable1 = null;
-
-				for (Future<Void> future : _futures) {
-					try {
-						future.get();
-					}
-					catch (Throwable throwable2) {
-						if (throwable2 instanceof ExecutionException) {
-							throwable2 = throwable2.getCause();
-						}
-
-						if (throwable1 == null) {
-							throwable1 = throwable2;
-						}
-						else {
-							throwable1.addSuppressed(throwable2);
-						}
-					}
-				}
-
-				if (throwable1 != null) {
-					throw throwable1;
-				}
-			}
-
-			return method.invoke(_preparedStatement, args);
+		protected void doAddBatch() throws SQLException {
+			executeAsync(PreparedStatement::executeUpdate);
 		}
 
-		private ConcurrentNoBatchInvocationHandler(
-				Connection connection, String sql)
+		@Override
+		protected void doClose() throws Throwable {
+			Throwable throwable1 = null;
+
+			for (Future<Void> future : _futures) {
+				try {
+					future.get();
+				}
+				catch (Throwable throwable2) {
+					if (throwable2 instanceof ExecutionException) {
+						throwable2 = throwable2.getCause();
+					}
+
+					if (throwable1 == null) {
+						throwable1 = throwable2;
+					}
+					else {
+						throwable1.addSuppressed(throwable2);
+					}
+				}
+			}
+
+			if (throwable1 != null) {
+				throw throwable1;
+			}
+		}
+
+		@Override
+		protected int[] doExecuteBatch() throws SQLException {
+			return new int[0];
+		}
+
+		protected void executeAsync(
+				UnsafeConsumer<PreparedStatement, SQLException>
+					actionUnsafeConsumer)
 			throws SQLException {
 
-			_connection = connection;
-			_sql = sql;
-
-			_preparedStatement = _connection.prepareStatement(_sql);
-		}
-
-		private void _executeUpdate() throws SQLException {
-			PreparedStatement preparedStatement = _preparedStatement;
+			PreparedStatement localPreparedStatement = getPreparedStatement();
 
 			NoticeableFuture<Void> noticeableFuture =
 				_noticeableExecutorService.submit(
 					() -> {
 						try {
-							preparedStatement.executeUpdate();
+							actionUnsafeConsumer.accept(localPreparedStatement);
 						}
 						finally {
-							preparedStatement.close();
+							localPreparedStatement.close();
 						}
 
 						return null;
@@ -336,59 +245,116 @@ public class AutoBatchPreparedStatementUtil {
 			_futures.add(noticeableFuture);
 
 			noticeableFuture.addFutureListener(
-				new FutureListener<Void>() {
+				future -> {
+					try {
+						future.get();
 
-					@Override
-					public void complete(Future<Void> future) {
-						try {
-							future.get();
-
-							_futures.remove(future);
-						}
-						catch (Throwable throwable) {
-						}
+						_futures.remove(future);
 					}
-
+					catch (Throwable throwable) {
+					}
 				});
 
-			_preparedStatement = _connection.prepareStatement(_sql);
+			preparedStatement = null;
 		}
 
-		private final Connection _connection;
+		private ConcurrentNoBatchInvocationHandler(
+			Connection connection, String sql) {
+
+			super(connection, sql);
+		}
+
 		private final Set<Future<Void>> _futures = Collections.newSetFromMap(
 			new ConcurrentHashMap<>());
 		private final NoticeableExecutorService _noticeableExecutorService =
 			_portalExecutorManager.getPortalExecutor(
 				ConcurrentNoBatchInvocationHandler.class.getName());
-		private PreparedStatement _preparedStatement;
-		private final String _sql;
 
 	}
 
-	private static class NoBatchInvocationHandler implements InvocationHandler {
+	private static class NoBatchInvocationHandler
+		extends PreparedStatementInvocationHandler {
+
+		@Override
+		protected void doAddBatch() throws SQLException {
+			PreparedStatement localPreparedStatement = getPreparedStatement();
+
+			localPreparedStatement.executeUpdate();
+		}
+
+		@Override
+		protected void doClose() throws Throwable {
+			if (preparedStatement != null) {
+				preparedStatement.close();
+			}
+		}
+
+		@Override
+		protected int[] doExecuteBatch() throws SQLException {
+			return new int[0];
+		}
+
+		private NoBatchInvocationHandler(Connection connection, String sql) {
+			super(connection, sql);
+		}
+
+	}
+
+	private abstract static class PreparedStatementInvocationHandler
+		implements InvocationHandler {
 
 		@Override
 		public Object invoke(Object proxy, Method method, Object[] args)
 			throws Throwable {
 
-			if (method.equals(_addBatchMethod)) {
-				_preparedStatement.executeUpdate();
+			if (method.equals(_getConnectionMethod)) {
+				return _connection;
+			}
+
+			if (method.equals(_closeMethod)) {
+				doClose();
 
 				return null;
 			}
 
-			if (method.equals(_executeBatch)) {
-				return new int[0];
+			if (method.equals(_addBatchMethod)) {
+				doAddBatch();
+
+				return null;
 			}
 
-			return method.invoke(_preparedStatement, args);
+			if (method.equals(_executeBatchMethod)) {
+				return doExecuteBatch();
+			}
+
+			return method.invoke(getPreparedStatement(), args);
 		}
 
-		private NoBatchInvocationHandler(PreparedStatement preparedStatement) {
-			_preparedStatement = preparedStatement;
+		protected PreparedStatementInvocationHandler(
+			Connection connection, String sql) {
+
+			_connection = connection;
+			_sql = sql;
 		}
 
-		private final PreparedStatement _preparedStatement;
+		protected abstract void doAddBatch() throws SQLException;
+
+		protected abstract void doClose() throws Throwable;
+
+		protected abstract int[] doExecuteBatch() throws SQLException;
+
+		protected PreparedStatement getPreparedStatement() throws SQLException {
+			if (preparedStatement == null) {
+				preparedStatement = _connection.prepareStatement(_sql);
+			}
+
+			return preparedStatement;
+		}
+
+		protected PreparedStatement preparedStatement;
+
+		private final Connection _connection;
+		private final String _sql;
 
 	}
 

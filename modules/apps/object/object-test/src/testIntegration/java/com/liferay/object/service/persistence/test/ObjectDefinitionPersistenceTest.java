@@ -138,10 +138,16 @@ public class ObjectDefinitionPersistenceTest {
 
 		newObjectDefinition.setModifiedDate(RandomTestUtil.nextDate());
 
+		newObjectDefinition.setAccountEntryRestrictedObjectFieldId(
+			RandomTestUtil.nextLong());
+
 		newObjectDefinition.setDescriptionObjectFieldId(
 			RandomTestUtil.nextLong());
 
 		newObjectDefinition.setTitleObjectFieldId(RandomTestUtil.nextLong());
+
+		newObjectDefinition.setAccountEntryRestricted(
+			RandomTestUtil.randomBoolean());
 
 		newObjectDefinition.setActive(RandomTestUtil.randomBoolean());
 
@@ -167,6 +173,8 @@ public class ObjectDefinitionPersistenceTest {
 		newObjectDefinition.setPortlet(RandomTestUtil.randomBoolean());
 
 		newObjectDefinition.setScope(RandomTestUtil.randomString());
+
+		newObjectDefinition.setStorageType(RandomTestUtil.randomString());
 
 		newObjectDefinition.setSystem(RandomTestUtil.randomBoolean());
 
@@ -203,11 +211,17 @@ public class ObjectDefinitionPersistenceTest {
 			Time.getShortTimestamp(existingObjectDefinition.getModifiedDate()),
 			Time.getShortTimestamp(newObjectDefinition.getModifiedDate()));
 		Assert.assertEquals(
+			existingObjectDefinition.getAccountEntryRestrictedObjectFieldId(),
+			newObjectDefinition.getAccountEntryRestrictedObjectFieldId());
+		Assert.assertEquals(
 			existingObjectDefinition.getDescriptionObjectFieldId(),
 			newObjectDefinition.getDescriptionObjectFieldId());
 		Assert.assertEquals(
 			existingObjectDefinition.getTitleObjectFieldId(),
 			newObjectDefinition.getTitleObjectFieldId());
+		Assert.assertEquals(
+			existingObjectDefinition.isAccountEntryRestricted(),
+			newObjectDefinition.isAccountEntryRestricted());
 		Assert.assertEquals(
 			existingObjectDefinition.isActive(),
 			newObjectDefinition.isActive());
@@ -243,6 +257,9 @@ public class ObjectDefinitionPersistenceTest {
 		Assert.assertEquals(
 			existingObjectDefinition.getScope(),
 			newObjectDefinition.getScope());
+		Assert.assertEquals(
+			existingObjectDefinition.getStorageType(),
+			newObjectDefinition.getStorageType());
 		Assert.assertEquals(
 			existingObjectDefinition.isSystem(),
 			newObjectDefinition.isSystem());
@@ -360,12 +377,14 @@ public class ObjectDefinitionPersistenceTest {
 			"ObjectDefinition", "mvccVersion", true, "uuid", true,
 			"objectDefinitionId", true, "companyId", true, "userId", true,
 			"userName", true, "createDate", true, "modifiedDate", true,
+			"accountEntryRestrictedObjectFieldId", true,
 			"descriptionObjectFieldId", true, "titleObjectFieldId", true,
-			"active", true, "dbTableName", true, "label", true, "className",
-			true, "name", true, "panelAppOrder", true, "panelCategoryKey", true,
-			"pkObjectFieldDBColumnName", true, "pkObjectFieldName", true,
-			"pluralLabel", true, "portlet", true, "scope", true, "system", true,
-			"version", true, "status", true);
+			"accountEntryRestricted", true, "active", true, "dbTableName", true,
+			"label", true, "className", true, "name", true, "panelAppOrder",
+			true, "panelCategoryKey", true, "pkObjectFieldDBColumnName", true,
+			"pkObjectFieldName", true, "pluralLabel", true, "portlet", true,
+			"scope", true, "storageType", true, "system", true, "version", true,
+			"status", true);
 	}
 
 	@Test
@@ -679,9 +698,15 @@ public class ObjectDefinitionPersistenceTest {
 
 		objectDefinition.setModifiedDate(RandomTestUtil.nextDate());
 
+		objectDefinition.setAccountEntryRestrictedObjectFieldId(
+			RandomTestUtil.nextLong());
+
 		objectDefinition.setDescriptionObjectFieldId(RandomTestUtil.nextLong());
 
 		objectDefinition.setTitleObjectFieldId(RandomTestUtil.nextLong());
+
+		objectDefinition.setAccountEntryRestricted(
+			RandomTestUtil.randomBoolean());
 
 		objectDefinition.setActive(RandomTestUtil.randomBoolean());
 
@@ -707,6 +732,8 @@ public class ObjectDefinitionPersistenceTest {
 		objectDefinition.setPortlet(RandomTestUtil.randomBoolean());
 
 		objectDefinition.setScope(RandomTestUtil.randomString());
+
+		objectDefinition.setStorageType(RandomTestUtil.randomString());
 
 		objectDefinition.setSystem(RandomTestUtil.randomBoolean());
 

@@ -10,7 +10,9 @@
 </thead>
 
 <tbody>
+
 <!-- AC Sites -->
+
 <tr>
 	<td>ACTIVITIES_CARD</td>
 	<td>//h5[contains(text(),'Activities')]/parent::div/following-sibling::div//span[contains(text(),'Unique Visitors')]</td>
@@ -127,8 +129,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>SITE_ACTIVITY_VALUE_CARD</td>
-	<td>//li[contains(@class,'card-tab active') and contains(.,'${key_cardName}')]//div[contains(@class,'metric-value') and contains(.,'${key_totalValue}')]</td>
+	<td>SITE_METRIC_VALUE</td>
+	<td>//span[@class='title'and text()='${metricName}']/..//div[@class='metric-value']</td>
 	<td></td>
 </tr>
 <tr>
@@ -139,6 +141,11 @@
 <tr>
 	<td>DISPLAYED_ASSETS_CARD</td>
 	<td>//*[contains(@class,'table-hover')]//span[text()='${key_nameList}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SITE_PATH</td>
+	<td>//*[name()='svg']//*[contains(@class, 'analytics-sankey-title') and @y='0']//*[text()='${key_pageName}']</td>
 	<td></td>
 </tr>
 </tbody>

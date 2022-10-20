@@ -17,11 +17,9 @@ package com.liferay.headless.commerce.admin.pricing.internal.odata.entity.v2_0;
 import com.liferay.portal.odata.entity.EntityField;
 import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.odata.entity.IntegerEntityField;
+import com.liferay.portal.odata.entity.StringEntityField;
 
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author Alessio Antonio Rendina
@@ -29,11 +27,11 @@ import java.util.stream.Stream;
 public class PriceEntryEntityModel implements EntityModel {
 
 	public PriceEntryEntityModel() {
-		_entityFieldsMap = Stream.of(
-			new IntegerEntityField("skuId", locale -> "cpInstanceId")
-		).collect(
-			Collectors.toMap(EntityField::getName, Function.identity())
-		);
+		_entityFieldsMap = EntityModel.toEntityFieldsMap(
+			new IntegerEntityField("skuId", locale -> "cpInstanceId"),
+			new StringEntityField(
+				"skuExternalReferenceCode",
+				locale -> "skuExternalReferenceCode"));
 	}
 
 	@Override

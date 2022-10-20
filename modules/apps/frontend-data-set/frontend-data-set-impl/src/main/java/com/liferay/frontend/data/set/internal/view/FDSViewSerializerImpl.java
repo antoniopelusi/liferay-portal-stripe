@@ -23,7 +23,7 @@ import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 
 import java.util.List;
@@ -52,8 +52,10 @@ public class FDSViewSerializerImpl implements FDSViewSerializer {
 				"contentRendererModuleURL",
 				fdsView.getContentRendererModuleURL()
 			).put(
+				"default", fdsView.isDefault()
+			).put(
 				"label",
-				LanguageUtil.get(
+				_language.get(
 					ResourceBundleUtil.getBundle(
 						"content.Language", locale, getClass()),
 					fdsView.getLabel())
@@ -102,5 +104,8 @@ public class FDSViewSerializerImpl implements FDSViewSerializer {
 
 	@Reference
 	private JSONFactory _jsonFactory;
+
+	@Reference
+	private Language _language;
 
 }

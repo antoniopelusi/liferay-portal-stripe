@@ -14,6 +14,7 @@
 
 package com.liferay.bulk.rest.internal.resource.v1_0.factory;
 
+import com.liferay.bulk.rest.internal.security.permission.LiberalPermissionChecker;
 import com.liferay.bulk.rest.resource.v1_0.TaxonomyCategoryResource;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.User;
@@ -193,7 +194,7 @@ public class TaxonomyCategoryResourceFactoryImpl
 		}
 		else {
 			PermissionThreadLocal.setPermissionChecker(
-				_liberalPermissionCheckerFactory.create(user));
+				new LiberalPermissionChecker(user));
 		}
 
 		TaxonomyCategoryResource taxonomyCategoryResource =
@@ -259,9 +260,6 @@ public class TaxonomyCategoryResourceFactoryImpl
 
 	@Reference
 	private GroupLocalService _groupLocalService;
-
-	@Reference(target = "(permission.checker.type=liberal)")
-	private PermissionCheckerFactory _liberalPermissionCheckerFactory;
 
 	@Reference
 	private ResourceActionLocalService _resourceActionLocalService;

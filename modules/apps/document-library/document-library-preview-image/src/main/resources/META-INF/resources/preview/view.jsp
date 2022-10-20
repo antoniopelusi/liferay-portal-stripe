@@ -35,14 +35,14 @@ String previewURL = DLURLHelperUtil.getPreviewURL(fileVersion.getFileEntry(), fi
 <liferay-util:html-top
 	outputKey="document_library_preview_image_css"
 >
-	<link href="<%= PortalUtil.getStaticResourceURL(request, application.getContextPath() + "/preview/css/main.css") %>" rel="stylesheet" type="text/css" />
+	<link href="<%= PortalUtil.getStaticResourceURL(request, PortalUtil.getPathProxy() + application.getContextPath() + "/preview/css/main.css") %>" rel="stylesheet" type="text/css" />
 </liferay-util:html-top>
 
 <c:choose>
 	<c:when test="<%= Objects.equals(fileVersion.getMimeType(), ContentTypes.IMAGE_SVG_XML) %>">
 		<div class="preview-file">
 			<div class="preview-file-container preview-file-max-height">
-				<img alt="<%= fileVersion.getDescription() %>" class="preview-file-image-vectorial" src="<%= previewURL %>" />
+				<img alt="<%= HtmlUtil.escapeAttribute(fileVersion.getDescription()) %>" class="preview-file-image-vectorial" src="<%= previewURL %>" />
 			</div>
 		</div>
 	</c:when>

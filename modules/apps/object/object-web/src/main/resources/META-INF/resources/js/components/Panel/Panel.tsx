@@ -13,10 +13,16 @@
  */
 
 import {ClayButtonWithIcon} from '@clayui/button';
+import ClayIcon from '@clayui/icon';
+import {ClayTooltipProvider} from '@clayui/tooltip';
 import classNames from 'classnames';
-import React, {useContext} from 'react';
+import React from 'react';
 
-import PanelContextProvider, {PanelContext, TYPES} from './context';
+import {BoxType} from '../Layout/types';
+import PanelContextProvider, {
+	TYPES,
+	usePanelContext,
+} from './objectPanelContext';
 
 import './Panel.scss';
 
@@ -40,7 +46,7 @@ const Panel: React.FC<React.HTMLAttributes<HTMLElement>> & {
 interface IPanelBodyProps extends React.HTMLAttributes<HTMLElement> {}
 
 const PanelBody: React.FC<IPanelBodyProps> = ({children, className}) => {
-	const [{expanded}] = useContext(PanelContext);
+	const [{expanded}] = usePanelContext();
 
 	return (
 		<>
@@ -62,25 +68,58 @@ interface IPanelHeaderProps extends React.HTMLAttributes<HTMLElement> {
 	contentLeft?: React.ReactNode;
 	contentRight?: React.ReactNode;
 	title: string;
+	type: BoxType;
 }
 
 const PanelHeader: React.FC<IPanelHeaderProps> = ({
 	contentLeft,
 	contentRight,
 	title,
+	type,
 }) => {
-	const [{expanded}, dispatch] = useContext(PanelContext);
+	const [{expanded}, dispatch] = usePanelContext();
 
 	return (
 		<div
 			className={classNames('object-admin-panel__header', {
-				'object-admin-panel__header--expanded': expanded,
+				'object-admin-panel__header--expanded':
+					expanded && type === 'regular',
 			})}
 		>
 			<div className="object-admin-panel__header__content-left">
-				<ClayButtonWithIcon displayType="unstyled" symbol="drag" />
+				{type === 'regular' && (
+					<ClayButtonWithIcon displayType="unstyled" symbol="drag" />
+				)}
 
-				<h3 className="object-admin-panel__title">{title}</h3>
+				<h3
+					className={classNames('object-admin-panel__title', {
+						'ml-3': type !== 'regular',
+					})}
+				>
+					{title}
+				</h3>
+
+				{(type === 'categorization' || type === 'comments') && (
+					<ClayTooltipProvider>
+						<span
+							className="ml-2"
+							title={
+								type === 'categorization'
+									? Liferay.Language.get(
+											'visibility-and-permissions-can-affect-how-the-categorization-block-will-be-displayed'
+									  )
+									: Liferay.Language.get(
+											'visibility-and-permissions-can-affect-how-the-comments-block-is-displayed'
+									  )
+							}
+						>
+							<ClayIcon
+								className="object-admin-panel__tooltip-icon"
+								symbol="info-panel-open"
+							/>
+						</span>
+					</ClayTooltipProvider>
+				)}
 
 				{contentLeft && (
 					<span className="align-items-center d-flex ml-2">
@@ -96,16 +135,18 @@ const PanelHeader: React.FC<IPanelHeaderProps> = ({
 					</span>
 				)}
 
-				<ClayButtonWithIcon
-					displayType="unstyled"
-					onClick={() =>
-						dispatch({
-							payload: {expanded: !expanded},
-							type: TYPES.CHANGE_PANEL_EXPANDED,
-						})
-					}
-					symbol={expanded ? 'angle-down' : 'angle-right'}
-				/>
+				{type === 'regular' && (
+					<ClayButtonWithIcon
+						displayType="unstyled"
+						onClick={() =>
+							dispatch({
+								payload: {expanded: !expanded},
+								type: TYPES.CHANGE_PANEL_EXPANDED,
+							})
+						}
+						symbol={expanded ? 'angle-down' : 'angle-right'}
+					/>
+				)}
 			</div>
 		</div>
 	);

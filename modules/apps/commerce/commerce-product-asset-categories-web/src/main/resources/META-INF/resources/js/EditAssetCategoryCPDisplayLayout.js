@@ -12,6 +12,7 @@
  * details.
  */
 
+import {getSpritemap} from '@liferay/frontend-icons-web';
 import {openSelectionModal} from 'frontend-js-web';
 
 export default function ({
@@ -113,10 +114,7 @@ export default function ({
 			'use'
 		);
 
-		use.setAttribute(
-			'href',
-			`${Liferay.ThemeDisplay.getPathThemeImages()}/clay/icons.svg#times`
-		);
+		use.setAttribute('href', `${getSpritemap()}#times`);
 
 		svg.appendChild(use);
 		button.appendChild(svg);

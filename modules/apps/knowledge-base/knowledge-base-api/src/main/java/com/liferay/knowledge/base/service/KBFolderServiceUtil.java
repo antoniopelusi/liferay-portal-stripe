@@ -91,6 +91,14 @@ public class KBFolderServiceUtil {
 		return getService().getKBFolder(kbFolderId);
 	}
 
+	public static KBFolder getKBFolderByExternalReferenceCode(
+			long groupId, String externalReferenceCode)
+		throws PortalException {
+
+		return getService().getKBFolderByExternalReferenceCode(
+			groupId, externalReferenceCode);
+	}
+
 	public static KBFolder getKBFolderByUrlTitle(
 			long groupId, long parentKbFolderId, String urlTitle)
 		throws PortalException {

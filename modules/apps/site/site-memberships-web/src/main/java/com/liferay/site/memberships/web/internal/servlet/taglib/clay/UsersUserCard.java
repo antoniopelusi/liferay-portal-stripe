@@ -14,13 +14,14 @@
 
 package com.liferay.site.memberships.web.internal.servlet.taglib.clay;
 
-import com.liferay.frontend.taglib.clay.servlet.taglib.soy.BaseUserCard;
+import com.liferay.frontend.taglib.clay.servlet.taglib.BaseUserCard;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
 import com.liferay.portal.kernel.dao.search.RowChecker;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.site.memberships.web.internal.servlet.taglib.util.UserActionDropdownItemsProvider;
+import com.liferay.taglib.util.LexiconUtil;
 
 import java.util.List;
 
@@ -62,6 +63,11 @@ public class UsersUserCard extends BaseUserCard {
 		}
 
 		return null;
+	}
+
+	@Override
+	public String getUserColorClass() {
+		return "sticker-user-icon " + LexiconUtil.getUserColorCssClass(user);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(UsersUserCard.class);

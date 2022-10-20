@@ -323,7 +323,7 @@ definition {
 	macro editElementSetFieldLabel {
 		WaitForElementPresent(locator1 = "Form#SIDEBAR_CONTENT_OPEN");
 
-		while (IsTextNotEqual(key_fieldName = "label", locator1 = "FormFields#TEXT_FIELD", value1 = "") && (maxIterations = "10")) {
+		while ((IsTextNotEqual(key_fieldName = "label", locator1 = "FormFields#TEXT_FIELD", value1 = "")) && (maxIterations = "10")) {
 			FormFields.editTextWithBackspace(fieldName = "label");
 		}
 
@@ -338,8 +338,6 @@ definition {
 		FormFields.selectSelectOption(
 			fieldName = "dataSourceType",
 			selectOption = "From Data Provider");
-
-		Pause(locator1 = "2000");
 
 		FormFields.selectSelectOption(
 			fieldName = "Choose a Data Provider",
@@ -383,8 +381,6 @@ definition {
 	}
 
 	macro editName {
-		Pause(locator1 = "2000");
-
 		WaitForElementPresent(locator1 = "Form#NAME_FIELD");
 
 		AssertVisible(locator1 = "Form#BUILDER_SIDEBAR_PANEL");
@@ -456,8 +452,6 @@ definition {
 		FormFields.selectRadioOption(
 			fieldName = "dataSourceType",
 			radioOption = "From Data Provider");
-
-		Pause(locator1 = "2000");
 
 		FormFields.selectSelectOption(
 			fieldName = "Choose a Data Provider",
@@ -564,8 +558,6 @@ definition {
 		AssertClick(
 			locator1 = "Form#SIDEBAR_AUTOCOMPLETE_TAB",
 			value1 = "Autocomplete");
-
-		Pause(locator1 = "1000");
 	}
 
 	macro gotoBasicTab {
@@ -644,8 +636,6 @@ definition {
 				locator1 = "Form#SIDEBAR_PROPERTIES_TAB",
 				value1 = "Properties");
 		}
-
-		Pause(locator1 = "1000");
 	}
 
 	macro modifyModuleDefinitionTimeout {
@@ -699,6 +689,16 @@ definition {
 			locator1 = "Form#PAGE_MOVE_UP_ENABLED");
 	}
 
+	macro navigateFormPagesTopList {
+		var formPageNumber = "${key_formPageNumber}";
+		var formPageName = "${key_formPageName}";
+
+		Click(
+			key_formPageName = "${formPageName}",
+			key_formPageNumber = "${formPageNumber}",
+			locator1 = "Form#FORM_PAGE_TOP_LIST");
+	}
+
 	macro openToJavaScriptLoader {
 		var baseURL = PropsUtil.get("portal.url");
 
@@ -718,7 +718,7 @@ definition {
 	macro previewForm {
 		Navigator.selectSpecificWindow(windowTitle = "Form - Forms");
 
-		Pause(locator1 = "5000");
+		WaitForPageLoad();
 
 		var key_formName = "${formName}";
 
@@ -791,8 +791,6 @@ definition {
 		}
 
 		Alert.viewSuccessMessage();
-
-		Pause(locator1 = "2000");
 	}
 
 	macro saveElementSet {
@@ -819,8 +817,6 @@ definition {
 			value1 = "${saveButton}");
 
 		Alert.viewSuccessMessage();
-
-		Pause(locator1 = "2000");
 	}
 
 	macro selectTranslation {

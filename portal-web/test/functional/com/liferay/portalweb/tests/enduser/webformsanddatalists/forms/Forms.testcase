@@ -39,10 +39,9 @@ definition {
 
 	@priority = "5"
 	test AddFormInGlobal {
-		property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-		property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 		property portal.acceptance = "true";
 		property portal.upstream = "true";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 		property test.name.skip.portal.instance = "Forms#AddFormInGlobal";
 		property testray.component.names = "Training";
 
@@ -72,7 +71,7 @@ definition {
 
 		Form.closeSidebar();
 
-		Form.save();
+		Form.publishForm();
 
 		ProductMenu.gotoPortlet(
 			category = "Content & Data",
@@ -253,7 +252,7 @@ definition {
 
 		Form.addTextField(fieldPositionNumber = "0");
 
-		Pause(locator1 = "60000");
+		WaitForElementPresent(locator1 = "Form#SAVE_NOTIFICATION");
 
 		Form.viewSaveNotification();
 
@@ -303,6 +302,8 @@ definition {
 
 		Form.closeSidebar();
 
+		// Pausing 60 seconds to check no autosave due to changing the default autosave interval. See LPS-159468
+
 		Pause(locator1 = "60000");
 
 		FormsAdminNavigator.gotoBack();
@@ -318,6 +319,8 @@ definition {
 		Form.editFieldLabelMetal(fieldValue = "Text Field Will Be Saved");
 
 		Form.closeSidebar();
+
+		// Pausing 120 seconds due to autosave interval set to two minutes. LPS-159468
 
 		Pause(locator1 = "120000");
 
@@ -439,7 +442,7 @@ definition {
 			fieldPositionNumber = "0",
 			fieldType = "Text");
 
-		Pause(locator1 = "60000");
+		WaitForElementPresent(locator1 = "Form#SAVE_NOTIFICATION");
 
 		Form.viewSaveNotification();
 
@@ -892,7 +895,7 @@ definition {
 
 		Form.closeSidebar();
 
-		Form.save();
+		Form.publishForm();
 
 		ProductMenu.gotoPortlet(
 			category = "Site Builder",
@@ -1000,6 +1003,7 @@ definition {
 	@description = "Verify that Data Provider can retreive data for guest users"
 	@priority = "5"
 	test DataProviderCanRetrieveDataForGuestUser {
+		property portal.acceptance = "false";
 		property portal.upstream = "true";
 		property test.name.skip.portal.instance = "FormsDataProvider#DataProviderCanRetrieveDataForGuestUser";
 
@@ -1007,11 +1011,7 @@ definition {
 
 		FormsAdminNavigator.enableLocalNetworkDataProvider();
 
-		Navigator.openURL();
-
-		ProductMenu.gotoPortlet(
-			category = "Content & Data",
-			portlet = "Forms");
+		FormsAdmin.openFormsAdmin(siteURLKey = "guest");
 
 		Navigator.gotoNavItem(navItem = "Data Providers");
 
@@ -1192,8 +1192,9 @@ definition {
 	@description = "This is a use case for LPS-50757."
 	@priority = "4"
 	test EditAllFormFieldsTypesUsedBySystemSettings {
-		property portal.acceptance = "true";
-		property portal.upstream = "true";
+		property portal.acceptance = "quarantine";
+		property portal.release = "quarantine";
+		property portal.upstream = "quarantine";
 		property test.name.skip.portal.instance = "Forms#EditAllFormFieldsTypesUsedBySystemSettings";
 
 		Navigator.openURL();
@@ -1371,6 +1372,8 @@ definition {
 			configurationCategory = "Infrastructure",
 			configurationName = "JavaScript Loader",
 			configurationScope = "System Scope");
+
+		Refresh();
 
 		for (var fieldName : list "applyVersioning,exposeGlobal") {
 			FormFields.viewCheckboxNotChecked(fieldName = "${fieldName}");
@@ -1750,7 +1753,7 @@ definition {
 
 		Form.closeSidebar();
 
-		Form.save();
+		Form.publishForm();
 
 		ProductMenu.gotoPortlet(
 			category = "Site Builder",
@@ -1911,7 +1914,7 @@ definition {
 
 		Form.closeSidebar();
 
-		Form.save();
+		Form.publishForm();
 
 		ProductMenu.gotoPortlet(
 			category = "Site Builder",
@@ -2053,7 +2056,6 @@ definition {
 		AssertAlertNotPresent();
 
 		var actualScript = '''<script>alert(123)</script>''';
-
 		var escapedScript = '''&lt;script&gt;alert(123)&lt;/script&gt;''';
 
 		AssertHTMLSourceTextNotPresent(value1 = "${actualScript}");
@@ -2176,9 +2178,11 @@ definition {
 
 		Form.addTextField(fieldPositionNumber = "0");
 
-		Pause(locator1 = "60000");
+		WaitForElementPresent(locator1 = "Form#SAVE_NOTIFICATION");
 
-		Form.viewSaveNotification();
+		// Pausing 60 seconds due to autosave interval set to one minute. See LPS-159468
+
+		Pause(locator1 = "60000");
 
 		FormsAdminNavigator.gotoBack();
 

@@ -17,6 +17,7 @@ import {render} from '@testing-library/react';
 import React from 'react';
 
 import CommonStylesManager from '../../../../src/main/resources/META-INF/resources/page_editor/app/components/CommonStylesManager';
+import {FRAGMENT_CLASS_PLACEHOLDER} from '../../../../src/main/resources/META-INF/resources/page_editor/app/config/constants/fragmentClassPlaceholder';
 import {LAYOUT_DATA_ITEM_TYPES} from '../../../../src/main/resources/META-INF/resources/page_editor/app/config/constants/layoutDataItemTypes';
 import {VIEWPORT_SIZES} from '../../../../src/main/resources/META-INF/resources/page_editor/app/config/constants/viewportSizes';
 import {useGlobalContext} from '../../../../src/main/resources/META-INF/resources/page_editor/app/contexts/GlobalContext';
@@ -53,6 +54,9 @@ jest.mock(
 				dangerColor: {
 					cssVariable: 'danger',
 				},
+				infoColor: {
+					cssVariable: 'info',
+				},
 				primaryColor: {
 					cssVariable: 'primary',
 				},
@@ -61,22 +65,51 @@ jest.mock(
 	})
 );
 
+const FRAGMENT_ID = 'FRAGMENT_ID';
+const ITEM_ID = 'ITEM_ID';
+const MASTER_ITEM_ID = 'ITEM_ID';
+
 const renderCommonStylesManager = ({
 	selectedViewportSize = VIEWPORT_SIZES.desktop,
+	editableValues = {},
 } = {}) => {
 	return render(
 		<StoreAPIContextProvider
 			getState={() => ({
+				fragmentEntryLinks: {
+					fragmentEntryLinkId: {
+						editableValues,
+						fragmentEntryLinkId: 'fragmentEntryLink',
+					},
+				},
 				layoutData: {
 					items: {
-						itemId: {
+						[FRAGMENT_ID]: {
+							children: [],
+							config: {
+								fragmentEntryLinkId: 'fragmentEntryLinkId',
+
+								styles: {
+									backgroundColor: 'infoColor',
+									marginBottom: '2',
+									marginTop: '3',
+								},
+							},
+							itemId: FRAGMENT_ID,
+							type: LAYOUT_DATA_ITEM_TYPES.fragment,
+						},
+						[ITEM_ID]: {
 							config: {
 								[VIEWPORT_SIZES.tablet]: {
+									customCSS: `.${FRAGMENT_CLASS_PLACEHOLDER} { color: lime; }`,
+
 									styles: {
 										backgroundColor: 'primaryColor',
 										marginBottom: '2',
 									},
 								},
+
+								customCSS: `.${FRAGMENT_CLASS_PLACEHOLDER} { color: aquamarine; }`,
 
 								styles: {
 									backgroundColor: 'dangerColor',
@@ -84,7 +117,7 @@ const renderCommonStylesManager = ({
 									marginTop: '2',
 								},
 							},
-							itemId: 'itemId',
+							itemId: ITEM_ID,
 							type: LAYOUT_DATA_ITEM_TYPES.row,
 						},
 					},
@@ -92,14 +125,17 @@ const renderCommonStylesManager = ({
 				masterLayout: {
 					masterLayoutData: {
 						items: {
-							masterItemId: {
+							[MASTER_ITEM_ID]: {
 								config: {
 									[VIEWPORT_SIZES.tablet]: {
+										customCSS: `.${FRAGMENT_CLASS_PLACEHOLDER} { color: red; }`,
 										styles: {
 											backgroundColor: 'primaryColor',
 											marginBottom: '2',
 										},
 									},
+
+									customCSS: `.${FRAGMENT_CLASS_PLACEHOLDER} { color: blue; }`,
 
 									styles: {
 										backgroundColor: 'dangerColor',
@@ -107,7 +143,7 @@ const renderCommonStylesManager = ({
 										marginTop: '2',
 									},
 								},
-								itemId: 'masterItemId',
+								itemId: MASTER_ITEM_ID,
 								type: LAYOUT_DATA_ITEM_TYPES.container,
 							},
 						},
@@ -149,13 +185,26 @@ describe('CommonStylesManager', () => {
 		renderCommonStylesManager();
 
 		const expected = `
-			.${getLayoutDataItemUniqueClassName('itemId')} {
+			.${getLayoutDataItemUniqueClassName(FRAGMENT_ID)} {
+				background-color: var(--info) !important;
+			}
+			
+			.${getLayoutDataItemTopperUniqueClassName(FRAGMENT_ID)} {
+				margin-bottom: var(--spacer-2, 0.5rem) !important;
+				margin-top: var(--spacer-3, 1rem) !important;
+			}
+
+			.${getLayoutDataItemUniqueClassName(ITEM_ID)} {
 				background-color: var(--danger) !important;
 			}
 			
-			.${getLayoutDataItemTopperUniqueClassName('itemId')} {
+			.${getLayoutDataItemTopperUniqueClassName(ITEM_ID)} {
 				margin-bottom: var(--spacer-3, 1rem) !important;
 				margin-top: var(--spacer-2, 0.5rem) !important;
+			}
+
+			.${getLayoutDataItemUniqueClassName(ITEM_ID)} { 
+				color: aquamarine; 
 			}`;
 
 		const style = document.getElementById('layout-common-styles');
@@ -167,11 +216,16 @@ describe('CommonStylesManager', () => {
 		renderCommonStylesManager();
 
 		const expected = `
-			.${getLayoutDataItemUniqueClassName('masterItemId')} {
+			.${getLayoutDataItemUniqueClassName(MASTER_ITEM_ID)} {
 				background-color: var(--danger) !important;
 				margin-bottom: var(--spacer-3, 1rem) !important;
 				margin-top: var(--spacer-2, 0.5rem) !important;
-			}`;
+			}
+
+			.${getLayoutDataItemUniqueClassName(ITEM_ID)} { 
+				color: blue; 
+			}
+			`;
 
 		const style = document.getElementById('layout-master-common-styles');
 
@@ -184,14 +238,64 @@ describe('CommonStylesManager', () => {
 		});
 
 		const expected = `
-			.${getLayoutDataItemUniqueClassName('itemId')} {
+			.${getLayoutDataItemUniqueClassName(FRAGMENT_ID)} {
+				background-color: var(--info) !important;
+			}
+			
+			.${getLayoutDataItemTopperUniqueClassName(FRAGMENT_ID)} {
+				margin-bottom: var(--spacer-2, 0.5rem) !important;
+				margin-top: var(--spacer-3, 1rem) !important;
+			}
+
+			.${getLayoutDataItemUniqueClassName(ITEM_ID)} {
 				background-color: var(--primary) !important;
 			}
 			
-			.${getLayoutDataItemTopperUniqueClassName('itemId')} {
+			.${getLayoutDataItemTopperUniqueClassName(ITEM_ID)} {
 				margin-bottom: var(--spacer-2, 0.5rem) !important;
 				margin-top: var(--spacer-2, 0.5rem) !important;
-			}`;
+			}
+
+			.${getLayoutDataItemUniqueClassName(ITEM_ID)} { 
+				color: lime; 
+			}
+			`;
+
+		const style = document.getElementById('layout-common-styles');
+
+		expect(normalize(style.innerHTML)).toBe(normalize(expected));
+	});
+
+	it('does not add styles to the topper if the fragment has inner common styles', () => {
+		renderCommonStylesManager({
+			editableValues: {
+				['com.liferay.fragment.entry.processor.styles.StylesFragmentEntryProcessor']: {
+					hasCommonStyles: true,
+				},
+			},
+			selectedViewportSize: VIEWPORT_SIZES.tablet,
+		});
+
+		const expected = `
+			.${getLayoutDataItemUniqueClassName(FRAGMENT_ID)} {
+				background-color: var(--info) !important;
+				margin-bottom: var(--spacer-2, 0.5rem) !important;
+				margin-top: var(--spacer-3, 1rem) !important;
+			}
+			
+			.${getLayoutDataItemUniqueClassName(ITEM_ID)} {
+				background-color: var(--primary) !important;
+			}
+			
+			.${getLayoutDataItemTopperUniqueClassName(ITEM_ID)} {
+				margin-bottom: var(--spacer-2, 0.5rem) !important;
+				margin-top: var(--spacer-2, 0.5rem) !important;
+			}
+
+			.${getLayoutDataItemUniqueClassName(ITEM_ID)} { 
+				color: lime; 
+			}
+			`;
 
 		const style = document.getElementById('layout-common-styles');
 

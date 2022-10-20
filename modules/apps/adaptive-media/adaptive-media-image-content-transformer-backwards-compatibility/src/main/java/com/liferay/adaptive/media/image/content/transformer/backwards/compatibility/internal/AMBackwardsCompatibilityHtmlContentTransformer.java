@@ -22,11 +22,22 @@ import com.liferay.adaptive.media.image.html.AMImageHTMLTagFactory;
 import com.liferay.adaptive.media.image.html.constants.AMImageHTMLConstants;
 import com.liferay.document.library.kernel.exception.NoSuchFileEntryException;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.portlet.constants.FriendlyURLResolverConstants;
+import com.liferay.portal.kernel.repository.friendly.url.resolver.FileEntryFriendlyURLResolver;
 import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
+import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.util.ServiceProxyFactory;
 
+import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -70,7 +81,8 @@ public class AMBackwardsCompatibilityHtmlContentTransformer
 		for (Element imgElement : document.select("img:not(picture > img)")) {
 			String imgElementString = imgElement.toString();
 
-			String replacement = super.transform(imgElementString);
+			String replacement = _transform(
+				imgElementString, imgElement.attr("src"));
 
 			imgElement.replaceWith(_parseNode(replacement));
 		}
@@ -82,26 +94,31 @@ public class AMBackwardsCompatibilityHtmlContentTransformer
 
 	@Override
 	protected FileEntry getFileEntry(Matcher matcher) throws PortalException {
-		String imgTag = matcher.group(0);
+		if (Objects.equals(
+				FriendlyURLResolverConstants.URL_SEPARATOR_Y_FILE_ENTRY,
+				matcher.group(7))) {
 
-		if (imgTag.contains(
-				AMImageHTMLConstants.ATTRIBUTE_NAME_FILE_ENTRY_ID)) {
+			Optional<FileEntry> fileEntryOptional = _resolveFileEntry(
+				matcher.group(9), matcher.group(8));
 
-			return null;
+			return fileEntryOptional.orElseThrow(
+				() -> new PortalException(
+					"No file entry found for friendly URL " +
+						matcher.group(0)));
 		}
 
-		if (matcher.group(4) != null) {
-			long groupId = Long.valueOf(matcher.group(1));
+		if (matcher.group(5) != null) {
+			long groupId = Long.valueOf(matcher.group(2));
 
-			String uuid = matcher.group(4);
+			String uuid = matcher.group(5);
 
 			return _dlAppLocalService.getFileEntryByUuidAndGroupId(
 				uuid, groupId);
 		}
 
-		long groupId = Long.valueOf(matcher.group(1));
-		long folderId = Long.valueOf(matcher.group(2));
-		String title = matcher.group(3);
+		long groupId = Long.valueOf(matcher.group(2));
+		long folderId = Long.valueOf(matcher.group(3));
+		String title = matcher.group(4);
 
 		try {
 			return _dlAppLocalService.getFileEntry(groupId, folderId, title);
@@ -132,6 +149,21 @@ public class AMBackwardsCompatibilityHtmlContentTransformer
 		return _amImageHTMLTagFactory.create(originalImgTag, fileEntry);
 	}
 
+	private Group _getGroup(long companyId, String name)
+		throws PortalException {
+
+		Group group = _groupLocalService.fetchFriendlyURLGroup(
+			companyId, StringPool.SLASH + name);
+
+		if (group != null) {
+			return group;
+		}
+
+		User user = _userLocalService.getUserByScreenName(companyId, name);
+
+		return user.getGroup();
+	}
+
 	private Document _parseDocument(String html) {
 		Document document = Jsoup.parseBodyFragment(html);
 
@@ -153,17 +185,83 @@ public class AMBackwardsCompatibilityHtmlContentTransformer
 		return bodyNode.childNode(0);
 	}
 
+	private Optional<FileEntry> _resolveFileEntry(
+			String friendlyURL, String groupName)
+		throws PortalException {
+
+		if (_fileEntryFriendlyURLResolver == null) {
+			return Optional.empty();
+		}
+
+		Group group = _getGroup(CompanyThreadLocal.getCompanyId(), groupName);
+
+		return _fileEntryFriendlyURLResolver.resolveFriendlyURL(
+			group.getGroupId(), friendlyURL);
+	}
+
+	private String _transform(String imgElementString, String src)
+		throws PortalException {
+
+		String replacement = imgElementString;
+
+		StringBuffer sb = null;
+
+		Pattern pattern = getPattern();
+
+		Matcher matcher = pattern.matcher(src);
+
+		while (matcher.find()) {
+			if (sb == null) {
+				sb = new StringBuffer(imgElementString.length());
+			}
+
+			FileEntry fileEntry = null;
+
+			if (!imgElementString.contains(
+					AMImageHTMLConstants.ATTRIBUTE_NAME_FILE_ENTRY_ID)) {
+
+				fileEntry = getFileEntry(matcher);
+			}
+
+			replacement = getReplacement(imgElementString, fileEntry);
+
+			matcher.appendReplacement(
+				sb, Matcher.quoteReplacement(replacement));
+		}
+
+		if (sb != null) {
+			matcher.appendTail(sb);
+
+			replacement = sb.toString();
+		}
+
+		return replacement;
+	}
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		AMBackwardsCompatibilityHtmlContentTransformer.class);
 
+	private static volatile FileEntryFriendlyURLResolver
+		_fileEntryFriendlyURLResolver =
+			ServiceProxyFactory.newServiceTrackedInstance(
+				FileEntryFriendlyURLResolver.class,
+				AMBackwardsCompatibilityHtmlContentTransformer.class,
+				"_fileEntryFriendlyURLResolver", false, true);
 	private static final Pattern _pattern = Pattern.compile(
-		"<img\\s+(?:[^>]*\\s)*src=['\"](?:/?[^\\s]*)/documents/(\\d+)/(\\d+)" +
-			"/([^/?]+)(?:/([-0-9a-fA-F]+))?(?:\\?t=\\d+)?['\"][^>]*/>");
+		"((?:/?[^\\s]*)/documents/(\\d+)/(\\d+)/([^/?]+)(?:/([-0-9a-fA-F]+))?" +
+			"(?:\\?t=\\d+)?)|((?:/?[^\\s]*)/documents/(d)/(.*)/" +
+				"([_A-Za-z0-9-]+)?)");
 
 	@Reference
 	private AMImageHTMLTagFactory _amImageHTMLTagFactory;
 
 	@Reference
 	private DLAppLocalService _dlAppLocalService;
+
+	@Reference
+	private GroupLocalService _groupLocalService;
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

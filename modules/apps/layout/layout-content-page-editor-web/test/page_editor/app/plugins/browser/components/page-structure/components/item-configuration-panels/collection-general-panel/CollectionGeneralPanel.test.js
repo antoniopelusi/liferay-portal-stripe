@@ -29,7 +29,6 @@ jest.mock(
 	() => ({
 		config: {
 			commonStyles: [],
-			featureFlagLps119551: true,
 			searchContainerPageMaxDelta: '50',
 		},
 	})
@@ -91,6 +90,7 @@ const renderComponent = ({
 			getState={() => ({
 				fragmentEntryLinks,
 				layoutData,
+				permissions: {UPDATE: true},
 				segmentsExperienceId: '0',
 				selectedViewportSize,
 			})}
@@ -109,6 +109,13 @@ const renderComponent = ({
 };
 
 describe('CollectionGeneralPanel', () => {
+	beforeAll(() => {
+		window.Liferay = {
+			...Liferay,
+			FeatureFlags: {},
+		};
+	});
+
 	it('allows changing the Gutter select', async () => {
 		renderComponent({
 			itemConfig: {
@@ -353,10 +360,10 @@ describe('CollectionGeneralPanel', () => {
 
 		it('shows a confirmation when updating a collection linked to a filter', async () => {
 			CollectionSelector.mockImplementation(
-				({shouldPreventCollectionSelect}) => {
+				({onPreventCollectionSelect}) => {
 					useEffect(
 						() => {
-							shouldPreventCollectionSelect();
+							onPreventCollectionSelect();
 						},
 						// eslint-disable-next-line react-hooks/exhaustive-deps
 						[]

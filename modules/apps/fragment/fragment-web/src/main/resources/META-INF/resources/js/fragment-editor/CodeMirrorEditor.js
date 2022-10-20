@@ -241,6 +241,7 @@ const CodeMirrorEditor = ({
 	codeHeaderHelpText,
 	content = '',
 	readOnly,
+	showHeader = true,
 }) => {
 	const editorRef = useRef();
 	const ref = useRef();
@@ -266,7 +267,7 @@ const CodeMirrorEditor = ({
 				autoCloseTags: true,
 				autoRefresh: true,
 				extraKeys: {
-					'Ctrl-Space': 'autocomplete',
+					'Ctrl-Space': readOnly ? '' : 'autocomplete',
 				},
 				foldGutter: true,
 				gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
@@ -284,7 +285,7 @@ const CodeMirrorEditor = ({
 				matchBrackets: true,
 				mode: {globalVars: true, name: MODES[mode].type},
 				readOnly,
-				showHint: true,
+				showHint: !readOnly,
 				tabSize: 2,
 				value: content,
 				viewportMargin: Infinity,
@@ -296,6 +297,7 @@ const CodeMirrorEditor = ({
 
 			codeMirror.on('keyup', (cm, event) => {
 				if (
+					!readOnly &&
 					!cm.state.completionActive &&
 					!AUTOCOMPLETE_EXCLUDED_KEYS.has(event.key)
 				) {
@@ -339,13 +341,15 @@ const CodeMirrorEditor = ({
 
 	return (
 		<>
-			<nav className="source-editor-toolbar tbar">
-				<ul className="tbar-nav">
-					<li className="source-editor-toolbar__syntax tbar-item tbar-item-expand text-center">
-						{MODES[mode].name}
-					</li>
-				</ul>
-			</nav>
+			{showHeader && (
+				<nav className="source-editor-toolbar tbar">
+					<ul className="tbar-nav">
+						<li className="source-editor-toolbar__syntax tbar-item tbar-item-expand text-center">
+							{MODES[mode].name}
+						</li>
+					</ul>
+				</nav>
+			)}
 
 			{(codeHeaderHelpText || codeHeaderText) && (
 				<FixedText

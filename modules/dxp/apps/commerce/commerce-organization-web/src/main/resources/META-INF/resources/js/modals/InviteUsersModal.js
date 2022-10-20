@@ -15,7 +15,7 @@ import ClayIcon from '@clayui/icon';
 import ClayModal from '@clayui/modal';
 import ClayMultiSelect from '@clayui/multi-select';
 import classNames from 'classnames';
-import {openToast} from 'frontend-js-web';
+import {openToast, sub} from 'frontend-js-web';
 import React, {useContext, useEffect, useState} from 'react';
 
 import ChartContext from '../ChartContext';
@@ -64,11 +64,11 @@ export default function InviteUserModal({closeModal, observer, parentData}) {
 			.then((users) => {
 				const message =
 					users.length === 1
-						? Liferay.Util.sub(
+						? sub(
 								Liferay.Language.get('1-user-was-added-to-x'),
 								parentData.name
 						  )
-						: Liferay.Util.sub(
+						: sub(
 								Liferay.Language.get('x-users-were-added-to-x'),
 								users.length,
 								parentData.name
@@ -116,7 +116,6 @@ export default function InviteUserModal({closeModal, observer, parentData}) {
 						<ClayInput.GroupItem>
 							<ClayMultiSelect
 								id="inviteUsersEmailInput"
-								inputValue={emailsQuery}
 								items={selectedEmails}
 								locator={{
 									label: 'emailAddress',
@@ -127,6 +126,7 @@ export default function InviteUserModal({closeModal, observer, parentData}) {
 								placeholder={Liferay.Language.get(
 									'users-emails'
 								)}
+								value={emailsQuery}
 							/>
 						</ClayInput.GroupItem>
 					</ClayInput.Group>

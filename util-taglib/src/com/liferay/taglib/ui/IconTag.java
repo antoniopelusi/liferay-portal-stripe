@@ -82,7 +82,7 @@ public class IconTag extends IncludeTag {
 	}
 
 	public String getMarkupView() {
-		return _markupView;
+		return null;
 	}
 
 	public String getTarget() {
@@ -154,7 +154,6 @@ public class IconTag extends IncludeTag {
 	}
 
 	public void setMarkupView(String markupView) {
-		_markupView = markupView;
 	}
 
 	public void setMessage(String message) {
@@ -210,7 +209,6 @@ public class IconTag extends IncludeTag {
 		_lang = null;
 		_linkCssClass = null;
 		_localizeMessage = true;
-		_markupView = null;
 		_message = null;
 		_method = null;
 		_onClick = null;
@@ -327,7 +325,7 @@ public class IconTag extends IncludeTag {
 
 	protected String getProcessedUrl() {
 		if (isForcePost()) {
-			return "javascript:;";
+			return "javascript:void(0);";
 		}
 
 		return _url;
@@ -448,8 +446,6 @@ public class IconTag extends IncludeTag {
 		httpServletRequest.setAttribute(
 			"liferay-ui:icon:localizeMessage",
 			String.valueOf(_localizeMessage));
-		httpServletRequest.setAttribute(
-			"liferay-ui:icon:markupView", _markupView);
 		httpServletRequest.setAttribute(
 			"liferay-ui:icon:message", getProcessedMessage());
 		httpServletRequest.setAttribute("liferay-ui:icon:method", getMethod());
@@ -596,7 +592,6 @@ public class IconTag extends IncludeTag {
 	private String _lang;
 	private String _linkCssClass;
 	private boolean _localizeMessage = true;
-	private String _markupView;
 	private String _message;
 	private String _method;
 	private String _onClick;

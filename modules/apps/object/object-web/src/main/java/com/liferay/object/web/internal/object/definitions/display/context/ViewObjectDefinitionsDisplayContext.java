@@ -18,24 +18,26 @@ import com.liferay.frontend.data.set.model.FDSActionDropdownItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
 import com.liferay.object.constants.ObjectActionKeys;
 import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.rest.manager.v1_0.ObjectEntryManagerTracker;
 import com.liferay.object.web.internal.display.context.helper.ObjectRequestHelper;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
+import com.liferay.petra.portlet.url.builder.ResourceURLBuilder;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.portlet.PortletURLUtil;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.vulcan.util.TransformUtil;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.PortletException;
 import javax.portlet.PortletURL;
-import javax.portlet.ResourceURL;
 import javax.portlet.WindowStateException;
 
 import javax.servlet.http.HttpServletRequest;
@@ -49,10 +51,12 @@ public class ViewObjectDefinitionsDisplayContext {
 	public ViewObjectDefinitionsDisplayContext(
 		HttpServletRequest httpServletRequest,
 		ModelResourcePermission<ObjectDefinition>
-			objectDefinitionModelResourcePermission) {
+			objectDefinitionModelResourcePermission,
+		ObjectEntryManagerTracker objectEntryManagerTracker) {
 
 		_objectDefinitionModelResourcePermission =
 			objectDefinitionModelResourcePermission;
+		_objectEntryManagerTracker = objectEntryManagerTracker;
 
 		_objectRequestHelper = new ObjectRequestHelper(httpServletRequest);
 	}
@@ -83,15 +87,6 @@ public class ViewObjectDefinitionsDisplayContext {
 	public List<FDSActionDropdownItem> getFDSActionDropdownItems()
 		throws Exception {
 
-		LiferayPortletResponse liferayPortletResponse =
-			_objectRequestHelper.getLiferayPortletResponse();
-
-		ResourceURL resourceURL = liferayPortletResponse.createResourceURL();
-
-		resourceURL.setParameter("objectDefinitionId", "{id}");
-		resourceURL.setResourceID(
-			"/object_definitions/export_object_definition");
-
 		return Arrays.asList(
 			new FDSActionDropdownItem(
 				PortletURLBuilder.create(
@@ -105,14 +100,21 @@ public class ViewObjectDefinitionsDisplayContext {
 				LanguageUtil.get(_objectRequestHelper.getRequest(), "view"),
 				"get", null, null),
 			new FDSActionDropdownItem(
-				resourceURL.toString(), "export", "export",
+				ResourceURLBuilder.createResourceURL(
+					_objectRequestHelper.getLiferayPortletResponse()
+				).setParameter(
+					"objectDefinitionId", "{id}"
+				).setResourceID(
+					"/object_definitions/export_object_definition"
+				).buildString(),
+				"export", "export",
 				LanguageUtil.get(
 					_objectRequestHelper.getRequest(), "export-as-json"),
 				"get", null, null),
 			new FDSActionDropdownItem(
-				getAPIURL() + "/{id}", "trash", "delete",
+				null, "trash", "deleteObjectDefinition",
 				LanguageUtil.get(_objectRequestHelper.getRequest(), "delete"),
-				"delete", "delete", "async"),
+				"delete", "delete", null),
 			new FDSActionDropdownItem(
 				_getPermissionsURL(), null, "permissions",
 				LanguageUtil.get(
@@ -126,6 +128,18 @@ public class ViewObjectDefinitionsDisplayContext {
 				_objectRequestHelper.getLiferayPortletRequest(),
 				_objectRequestHelper.getLiferayPortletResponse()),
 			_objectRequestHelper.getLiferayPortletResponse());
+	}
+
+	public List<String> getStorageTypes() {
+		List<String> storageTypes = TransformUtil.transform(
+			_objectEntryManagerTracker.getStorageTypes(),
+			objectEntryManagerStorageType -> LanguageUtil.get(
+				_objectRequestHelper.getLocale(),
+				objectEntryManagerStorageType));
+
+		Collections.sort(storageTypes);
+
+		return storageTypes;
 	}
 
 	private String _getPermissionsURL() throws Exception {
@@ -169,6 +183,7 @@ public class ViewObjectDefinitionsDisplayContext {
 
 	private final ModelResourcePermission<ObjectDefinition>
 		_objectDefinitionModelResourcePermission;
+	private final ObjectEntryManagerTracker _objectEntryManagerTracker;
 	private final ObjectRequestHelper _objectRequestHelper;
 
 }

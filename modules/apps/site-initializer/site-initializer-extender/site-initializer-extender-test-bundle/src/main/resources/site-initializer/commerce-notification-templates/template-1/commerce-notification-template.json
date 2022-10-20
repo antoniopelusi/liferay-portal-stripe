@@ -1,5 +1,5 @@
 {
-	"description": "This is a description for Test Commerce Notification Template.",
+	"description": "This is the description for Test Commerce Notification Template.",
 	"enabled": true,
 	"from": "test-integration@liferay.com",
 	"fromName": {

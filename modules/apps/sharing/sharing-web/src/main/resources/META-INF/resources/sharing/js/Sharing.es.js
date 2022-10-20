@@ -25,7 +25,7 @@ import ClayIcon from '@clayui/icon';
 import ClayModal from '@clayui/modal';
 import ClayMultiSelect from '@clayui/multi-select';
 import ClaySticker from '@clayui/sticker';
-import {fetch, objectToFormData} from 'frontend-js-web';
+import {fetch, getOpener, objectToFormData, sub} from 'frontend-js-web';
 import React, {useCallback, useRef, useState} from 'react';
 
 function filterDuplicateItems(items) {
@@ -99,13 +99,13 @@ const Sharing = ({
 	const emailValidationInProgressRef = useRef(false);
 
 	const closeDialog = () => {
-		Liferay.Util.getOpener().Liferay.fire('closeModal', {
+		getOpener().Liferay.fire('closeModal', {
 			id: 'sharingDialog',
 		});
 	};
 
 	const showNotification = (message, error) => {
-		const parentOpenToast = Liferay.Util.getOpener().Liferay.Util.openToast;
+		const parentOpenToast = getOpener().Liferay.Util.openToast;
 
 		const openToastParams = {message};
 
@@ -183,7 +183,7 @@ const Sharing = ({
 
 					if (!isEmailAddressValid(item.value)) {
 						return Promise.resolve({
-							error: Liferay.Util.sub(
+							error: sub(
 								Liferay.Language.get(
 									'x-is-not-a-valid-email-address'
 								),
@@ -202,7 +202,7 @@ const Sharing = ({
 						.then((response) => response.json())
 						.then(({userExists}) => ({
 							error: !userExists
-								? Liferay.Util.sub(
+								? sub(
 										Liferay.Language.get(
 											'user-x-does-not-exist'
 										),
@@ -221,7 +221,7 @@ const Sharing = ({
 					erroredResults.map(({error}) => error)
 				);
 
-				if (erroredResults.length === 0) {
+				if (!erroredResults.length) {
 					setMultiSelectValue('');
 				}
 
@@ -284,7 +284,6 @@ const Sharing = ({
 
 							<ClayMultiSelect
 								inputName={`${portletNamespace}userEmailAddress`}
-								inputValue={multiSelectValue}
 								items={selectedItems}
 								menuRenderer={SharingAutocomplete}
 								onChange={handleChange}
@@ -308,6 +307,7 @@ const Sharing = ({
 										  })
 										: []
 								}
+								value={multiSelectValue}
 							/>
 
 							<ClayForm.FeedbackGroup>
@@ -318,7 +318,7 @@ const Sharing = ({
 								</ClayForm.Text>
 							</ClayForm.FeedbackGroup>
 
-							{emailAddressErrorMessages.length > 0 && (
+							{!!emailAddressErrorMessages.length && (
 								<ClayForm.FeedbackGroup>
 									{emailAddressErrorMessages.map(
 										(emailAddressErrorMessage) => (
@@ -355,10 +355,10 @@ const Sharing = ({
 				<ClayForm.Group>
 					<ClayRadioGroup
 						name={`${portletNamespace}sharingEntryPermissionDisplayActionId`}
-						onSelectedValueChange={(permission) =>
+						onChange={(permission) =>
 							setSharingPermission(permission)
 						}
-						selectedValue={sharingPermission}
+						value={sharingPermission}
 					>
 						{sharingEntryPermissionDisplays.map((display) => (
 							<ClayRadio

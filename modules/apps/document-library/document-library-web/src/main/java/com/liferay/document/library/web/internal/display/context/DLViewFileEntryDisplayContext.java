@@ -23,6 +23,7 @@ import com.liferay.document.library.web.internal.display.context.helper.DLReques
 import com.liferay.document.library.web.internal.security.permission.resource.DLFileEntryPermission;
 import com.liferay.document.library.web.internal.security.permission.resource.DLFolderPermission;
 import com.liferay.document.library.web.internal.settings.DLPortletInstanceSettings;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -35,7 +36,6 @@ import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
-import com.liferay.portal.kernel.servlet.taglib.ui.Menu;
 import com.liferay.portal.kernel.servlet.taglib.ui.ToolbarItem;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.FastDateFormatFactoryUtil;
@@ -87,6 +87,13 @@ public class DLViewFileEntryDisplayContext {
 
 		_dlPortletInstanceSettingsHelper = new DLPortletInstanceSettingsHelper(
 			_dlRequestHelper);
+	}
+
+	public List<DropdownItem> getActionDropdownItems() throws PortalException {
+		DLViewFileVersionDisplayContext dlViewFileVersionDisplayContext =
+			_getDLViewFileVersionDisplayContext();
+
+		return dlViewFileVersionDisplayContext.getActionDropdownItems();
 	}
 
 	public String getDiscussionClassName() throws PortalException {
@@ -222,13 +229,6 @@ public class DLViewFileEntryDisplayContext {
 			_language.getTimeDescription(
 				_httpServletRequest,
 				DLFileEntryConstants.LOCK_EXPIRATION_TIME));
-	}
-
-	public Menu getMenu() throws PortalException {
-		DLViewFileVersionDisplayContext dlViewFileVersionDisplayContext =
-			_getDLViewFileVersionDisplayContext();
-
-		return dlViewFileVersionDisplayContext.getMenu();
 	}
 
 	public String getRedirect() throws PortalException {

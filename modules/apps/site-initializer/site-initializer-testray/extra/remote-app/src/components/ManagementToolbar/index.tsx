@@ -13,84 +13,62 @@
  */
 
 import ClayManagementToolbar from '@clayui/management-toolbar';
-import {useContext, useState} from 'react';
+import {ReactNode, useContext} from 'react';
 
 import {ListViewContext, ListViewTypes} from '../../context/ListViewContext';
 import i18n from '../../i18n';
-import {SortOption} from '../../types';
+import {RendererFields} from '../Form/Renderer';
 import {TableProps} from '../Table';
-import ManagementToolbarFilterAndOrder, {
-	IItem,
-} from './ManagementToolbarFilterAndOrder';
+import ManagementToolbarLeft from './ManagementToolbarLeft';
 import ManagementToolbarResultsBar from './ManagementToolbarResultsBar';
-import ManagementToolbarRight from './ManagementToolbarRight';
-import ManagementToolbarSearch from './ManagementToolbarSearch';
+import ManagementToolbarRight, {IItem} from './ManagementToolbarRight';
 
 export type ManagementToolbarProps = {
+	actions: any;
 	addButton?: () => void;
-	onSelectAllRows: () => void;
-	tableProps: Omit<TableProps, 'items'>;
+	buttons?: ReactNode;
+	display?: {
+		columns?: boolean;
+	};
+	filterFields?: RendererFields[];
+	tableProps: Omit<
+		TableProps,
+		'items' | 'mutate' | 'onSelectAllRows' | 'onSort'
+	>;
+	title?: string;
 	totalItems: number;
 };
 
 const ManagementToolbar: React.FC<ManagementToolbarProps> = ({
+	actions,
 	addButton,
-	onSelectAllRows,
+	buttons,
+	display,
+	filterFields,
 	tableProps,
+	title,
 	totalItems,
 }) => {
-	const [{filters, keywords, sort, viewType}, dispatch] = useContext(
+	const [{columns: contextColumns, filters}, dispatch] = useContext(
 		ListViewContext
 	);
-	const [showMobile, setShowMobile] = useState(false);
 
 	const disabled = totalItems === 0;
 
-	const viewTypes = [
-		{
-			active: viewType === 'table',
-			label: 'Table',
-			onClick: () =>
-				dispatch({payload: 'table', type: ListViewTypes.SET_VIEW_TYPE}),
-			symbolLeft: 'table',
-		},
-		{
-			active: viewType === 'list',
-			label: 'List',
-			onClick: () =>
-				dispatch({payload: 'list', type: ListViewTypes.SET_VIEW_TYPE}),
-			symbolLeft: 'list',
-		},
-		{
-			active: viewType === 'cards',
-			label: 'Card',
-			onClick: () =>
-				dispatch({payload: 'cards', type: ListViewTypes.SET_VIEW_TYPE}),
-			symbolLeft: 'cards2',
-		},
-	];
-
-	const sorteableColumns = tableProps.columns.filter(
-		({sorteable}) => sorteable
-	);
-
-	let filterItems: IItem[] = [
+	const columns = [
 		{
 			items: tableProps.columns.map((column) => ({
-				checked: (filters.columns || {})[column.key] ?? true,
+				checked: (contextColumns || {})[column.key] ?? true,
 				label: column.value,
 				onChange: (value: boolean) => {
 					dispatch({
 						payload: {
-							filters: {
-								...filters,
-								columns: {
-									...filters.columns,
-									[column.key]: value,
-								},
+							columns: {
+								...contextColumns,
+								[column.key]: value,
 							},
 						},
-						type: ListViewTypes.SET_UPDATE_FILTERS_AND_SORT,
+						type: ListViewTypes.SET_COLUMNS,
 					});
 				},
 				type: 'checkbox',
@@ -100,80 +78,24 @@ const ManagementToolbar: React.FC<ManagementToolbarProps> = ({
 		},
 	];
 
-	if (sorteableColumns.length) {
-		filterItems = [
-			...filterItems,
-			{
-				items: sorteableColumns.map((column) => ({
-					active:
-						column.key === sort.key ||
-						sorteableColumns.length === 1,
-					label: column.value,
-					onClick: () =>
-						dispatch({
-							payload: {
-								direction: sort.direction,
-								key: column.key,
-							},
-							type: ListViewTypes.SET_SORT,
-						}),
-					type: 'item',
-				})),
-				label: i18n.translate('order-by'),
-				type: 'group',
-			},
-		];
-	}
-
-	const onSearch = (searchText: string) => {
-		dispatch({payload: searchText, type: ListViewTypes.SET_SEARCH});
-	};
-
 	return (
 		<>
 			<ClayManagementToolbar>
-				<ManagementToolbarFilterAndOrder
-					disabled={disabled}
-					filterItems={filterItems}
-					onSelectAllRows={onSelectAllRows}
-					onSort={() =>
-						dispatch({
-							payload: {
-								...sort,
-								direction:
-									sort.direction === SortOption.ASC
-										? SortOption.DESC
-										: SortOption.ASC,
-							},
-							type: ListViewTypes.SET_SORT,
-						})
-					}
-					sort={sort}
-				/>
-
-				<ManagementToolbarSearch
-					disabled={disabled}
-					onSubmit={(searchText: string) => onSearch(searchText)}
-					searchText={keywords}
-					setShowMobile={setShowMobile}
-					showMobile={showMobile}
-				/>
+				<ManagementToolbarLeft title={title} />
 
 				<ManagementToolbarRight
+					actions={actions}
 					addButton={addButton}
-					setShowMobile={setShowMobile}
-					viewTypes={viewTypes}
+					buttons={buttons}
+					columns={columns as IItem[]}
+					disabled={disabled}
+					display={display}
+					filterFields={filterFields}
 				/>
 			</ClayManagementToolbar>
 
-			{keywords && (
-				<ManagementToolbarResultsBar
-					keywords={keywords}
-					onClear={() => {
-						onSearch('');
-					}}
-					totalItems={totalItems}
-				/>
+			{!!filters.entries?.length && (
+				<ManagementToolbarResultsBar totalItems={totalItems} />
 			)}
 		</>
 	);

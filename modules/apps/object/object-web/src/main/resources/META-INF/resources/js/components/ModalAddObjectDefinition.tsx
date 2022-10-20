@@ -16,21 +16,20 @@ import ClayAlert from '@clayui/alert';
 import ClayButton from '@clayui/button';
 import ClayForm from '@clayui/form';
 import ClayModal, {ClayModalProvider, useModal} from '@clayui/modal';
-import {fetch} from 'frontend-js-web';
+import {Observer} from '@clayui/modal/lib/types';
+import {
+	API,
+	FormError,
+	Input,
+	Select,
+	useForm,
+} from '@liferay/object-js-components-web';
 import React, {useEffect, useState} from 'react';
 
-import useForm from '../hooks/useForm';
-import {ERRORS} from '../utils/errors';
 import {
 	firstLetterUppercase,
 	removeAllSpecialCharacters,
 } from '../utils/string';
-import Input from './Form/Input';
-
-const headers = new Headers({
-	'Accept': 'application/json',
-	'Content-Type': 'application/json',
-});
 
 const normalizeName: TNormalizeName = (str) => {
 	const split = str.split(' ');
@@ -46,54 +45,51 @@ const ModalAddObjectDefinition: React.FC<IProps> = ({
 	apiURL,
 	observer,
 	onClose,
+	storageTypes,
 }) => {
 	const initialValues: TInitialValues = {
 		label: '',
 		name: undefined,
 		pluralLabel: '',
+		storageType: storageTypes[0],
 	};
 	const [error, setError] = useState<string>('');
 
-	const defaultLanguageId = Liferay.ThemeDisplay.getDefaultLanguageId();
+	const onSubmit = async ({
+		label,
+		name,
+		pluralLabel,
+		storageType,
+	}: TInitialValues) => {
+		const defaultLanguageId = Liferay.ThemeDisplay.getDefaultLanguageId();
+		const objectDefinition: ObjectDefinition = {
+			label: {
+				[defaultLanguageId]: label,
+			},
+			name: name || normalizeName(label),
+			objectFields: [],
+			pluralLabel: {
+				[defaultLanguageId]: pluralLabel,
+			},
+			scope: 'company',
+		};
 
-	const onSubmit = async ({label, name, pluralLabel}: TInitialValues) => {
-		const response = await fetch(apiURL, {
-			body: JSON.stringify({
-				label: {
-					[defaultLanguageId]: label,
-				},
-				name: name || normalizeName(label),
-				objectFields: [],
-				pluralLabel: {
-					[defaultLanguageId]: pluralLabel,
-				},
-				scope: 'company',
-			}),
-			headers,
-			method: 'POST',
-		});
-
-		if (response.status === 401) {
-			window.location.reload();
+		if (Liferay.FeatureFlags['LPS-135430']) {
+			objectDefinition.storageType = storageType.toLowerCase();
 		}
-		else if (response.ok) {
+		try {
+			await API.save(apiURL, objectDefinition, 'POST');
+
 			onClose();
-
 			window.location.reload();
 		}
-		else {
-			const {type} = (await response.json()) as any;
-			const isMapped = Object.prototype.hasOwnProperty.call(ERRORS, type);
-			const errorMessage = isMapped
-				? ERRORS[type]
-				: Liferay.Language.get('an-error-occurred');
-
-			setError(errorMessage);
+		catch (error) {
+			setError((error as Error).message);
 		}
 	};
 
 	const validate = (values: TInitialValues) => {
-		const errors: any = {};
+		const errors: FormError<TInitialValues> = {};
 
 		if (!values.label) {
 			errors.label = Liferay.Language.get('required');
@@ -108,11 +104,19 @@ const ModalAddObjectDefinition: React.FC<IProps> = ({
 		return errors;
 	};
 
-	const {errors, handleChange, handleSubmit, values} = useForm({
+	const {errors, handleChange, handleSubmit, setValues, values} = useForm({
 		initialValues,
 		onSubmit,
 		validate,
 	});
+
+	const selectedStorageType = (storageType: string) => {
+		const selected = storageType.toLowerCase();
+
+		return storageTypes.findIndex(
+			(type) => type.toLowerCase() === selected
+		);
+	};
 
 	return (
 		<ClayModal observer={observer}>
@@ -147,7 +151,7 @@ const ModalAddObjectDefinition: React.FC<IProps> = ({
 					/>
 
 					<Input
-						error={errors.name || errors.label}
+						error={errors.name}
 						id="objectDefinitionName"
 						label={Liferay.Language.get('object-name')}
 						name="name"
@@ -155,6 +159,24 @@ const ModalAddObjectDefinition: React.FC<IProps> = ({
 						required
 						value={values.name ?? normalizeName(values.label)}
 					/>
+
+					{Liferay.FeatureFlags['LPS-135430'] && (
+						<Select
+							label={Liferay.Language.get('storage-type')}
+							name="storageType"
+							onChange={({target: {value}}) => {
+								setValues({
+									...values,
+									storageType: storageTypes[Number(value)],
+								});
+							}}
+							options={storageTypes}
+							tooltip={Liferay.Language.get(
+								'object-definition-storage-type-tooltip'
+							)}
+							value={selectedStorageType(values.storageType)}
+						/>
+					)}
 				</ClayModal.Body>
 
 				<ClayModal.Footer
@@ -180,19 +202,30 @@ const ModalAddObjectDefinition: React.FC<IProps> = ({
 
 interface IProps extends React.HTMLAttributes<HTMLElement> {
 	apiURL: string;
-	observer: any;
+	observer: Observer;
 	onClose: () => void;
+	storageTypes: string[];
 }
 
 type TInitialValues = {
 	label: string;
 	name?: string;
 	pluralLabel: string;
+	storageType: string;
+};
+
+type ObjectDefinition = {
+	label: {[key: string]: string};
+	name?: string;
+	objectFields?: unknown[];
+	pluralLabel: {[key: string]: string};
+	scope: string;
+	storageType?: string;
 };
 
 type TNormalizeName = (str: string) => string;
 
-const ModalWithProvider: React.FC<IProps> = ({apiURL}) => {
+const ModalWithProvider: React.FC<IProps> = ({apiURL, storageTypes}) => {
 	const [visibleModal, setVisibleModal] = useState<boolean>(false);
 	const {observer, onClose} = useModal({
 		onClose: () => setVisibleModal(false),
@@ -213,6 +246,7 @@ const ModalWithProvider: React.FC<IProps> = ({apiURL}) => {
 					apiURL={apiURL}
 					observer={observer}
 					onClose={onClose}
+					storageTypes={storageTypes}
 				/>
 			)}
 		</ClayModalProvider>

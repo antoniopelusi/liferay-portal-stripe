@@ -54,7 +54,7 @@ interface IProps {
 	editingLanguageId: Locale;
 	ffDecimalPlacesSettingsEnabled: boolean;
 	onBlur: FocusEventHandler<HTMLInputElement>;
-	onChange: FieldChangeEventHandler;
+	onChange: FieldChangeEventHandler<unknown>;
 	onFocus: FocusEventHandler<HTMLInputElement>;
 	readOnly: boolean;
 	thousandsSeparator?: ThousandsSeparator[];
@@ -93,6 +93,9 @@ const NumericInputMask: React.FC<IProps> = ({
 }) => {
 	const [thousandsSeparator, setThousandsSeparator] = useState(
 		thousandsSeparatorInitial
+	);
+	const [currentDecimalPlaces, setCurrentDecimalPlaces] = useState(
+		decimalPlacesInitial
 	);
 	const [decimalPlaces, setDecimalPlaces] = useState(decimalPlacesInitial);
 	const [decimalSymbol, setDecimalSymbol] = useState(decimalSymbolInitial);
@@ -154,12 +157,10 @@ const NumericInputMask: React.FC<IProps> = ({
 					append,
 					appendType,
 					decimalPlaces,
-					// eslint-disable-next-line sort-keys
 					symbols: {
 						decimalSymbol,
 						thousandsSeparator,
 					},
-
 					// eslint-disable-next-line sort-keys
 					[key]: value,
 				},
@@ -245,6 +246,7 @@ const NumericInputMask: React.FC<IProps> = ({
 								});
 
 								setDecimalPlaces(newValue);
+								setCurrentDecimalPlaces(newValue);
 								handleChange(
 									'decimalPlaces',
 									parseInt(newValue, 10)
@@ -256,19 +258,34 @@ const NumericInputMask: React.FC<IProps> = ({
 									? newValue.replace('-', '')
 									: newValue;
 
-								if (newValue <= MAX_DECIMAL_PLACES) {
-									newValue =
-										newValue === 0
-											? ''
-											: parseInt(newValue, 10);
+								if (
+									newValue.length > 2 ||
+									newValue > MAX_DECIMAL_PLACES ||
+									newValue === '0'
+								) {
+									return;
+								}
+
+								if (newValue === '') {
+									setDecimalPlaces(DEFAULT_DECIMAL_PLACES);
+
+									handleChange(
+										'decimalPlaces',
+										DEFAULT_DECIMAL_PLACES
+									);
+								}
+								else {
+									newValue = parseInt(newValue, 10);
 
 									setDecimalPlaces(newValue);
 
 									handleChange('decimalPlaces', newValue);
 								}
+
+								setCurrentDecimalPlaces(newValue);
 							}}
 							type="number"
-							value={decimalPlaces}
+							value={currentDecimalPlaces}
 						/>
 					</div>
 				</div>

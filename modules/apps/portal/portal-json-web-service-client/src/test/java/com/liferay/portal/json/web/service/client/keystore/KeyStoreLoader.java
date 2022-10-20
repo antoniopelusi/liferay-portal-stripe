@@ -1,0 +1,61 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
+package com.liferay.portal.json.web.service.client.keystore;
+
+import java.io.IOException;
+import java.io.InputStream;
+
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+
+/**
+ * @author Igor Beslic
+ */
+public class KeyStoreLoader {
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #getKeyStore(String, String)}
+	 */
+	@Deprecated
+	public KeyStore getKeystore(
+			String keyStoreFileName, String keyStorePassword)
+		throws CertificateException, IOException, KeyStoreException,
+			   NoSuchAlgorithmException {
+
+		return getKeyStore(keyStoreFileName, keyStorePassword);
+	}
+
+	public KeyStore getKeyStore(
+			String keyStoreFileName, String keyStorePassword)
+		throws CertificateException, IOException, KeyStoreException,
+			   NoSuchAlgorithmException {
+
+		Class<?> clazz = KeyStoreLoader.class;
+
+		try (InputStream inputStream = clazz.getResourceAsStream(
+				"dependencies/" + keyStoreFileName)) {
+
+			KeyStore keyStore = KeyStore.getInstance("jks");
+
+			keyStore.load(inputStream, keyStorePassword.toCharArray());
+
+			return keyStore;
+		}
+	}
+
+}

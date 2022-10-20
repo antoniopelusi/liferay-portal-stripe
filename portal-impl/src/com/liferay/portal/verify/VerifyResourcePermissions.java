@@ -60,6 +60,8 @@ public class VerifyResourcePermissions extends VerifyProcess {
 	protected void doVerify() throws Exception {
 		if (!ArrayUtil.isEmpty(_verifiableResourcedModels)) {
 			doVerify(_verifiableResourcedModels);
+
+			return;
 		}
 
 		Map<String, VerifiableResourcedModel> verifiableResourcedModelsMap =
@@ -180,7 +182,7 @@ public class VerifyResourcePermissions extends VerifyProcess {
 
 					int count = atomicInteger.getAndIncrement();
 
-					if (_log.isInfoEnabled() && ((count % 100) == 0)) {
+					if (_log.isInfoEnabled() && ((count % 100000) == 0)) {
 						_log.info(
 							StringBundler.concat(
 								"Processed ", count, " of ", total,

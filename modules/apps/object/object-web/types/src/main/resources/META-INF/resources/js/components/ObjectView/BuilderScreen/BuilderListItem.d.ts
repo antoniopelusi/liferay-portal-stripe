@@ -14,15 +14,23 @@
 
 import React from 'react';
 import './BuilderListItem.scss';
-interface Iprops {
+interface IProps {
 	aliasColumnText?: string;
+	defaultSort?: boolean;
+	disableEdit?: boolean;
+	filter?: boolean;
+	hasDragAndDrop?: boolean;
 	index: number;
-	isDefaultSort?: boolean;
 	label?: string;
 	objectFieldName: string;
 	onEditing?: (boolean: boolean) => void;
 	onEditingObjectFieldName?: (objectFieldName: string) => void;
 	onVisibleEditModal?: (boolean: boolean) => void;
+	thirdColumnValues?: TThirdColumnValues[];
 }
-declare const BuilderListItem: React.FC<Iprops>;
+declare type TThirdColumnValues = {
+	label: string;
+	value: string;
+};
+declare const BuilderListItem: React.FC<IProps>;
 export default BuilderListItem;

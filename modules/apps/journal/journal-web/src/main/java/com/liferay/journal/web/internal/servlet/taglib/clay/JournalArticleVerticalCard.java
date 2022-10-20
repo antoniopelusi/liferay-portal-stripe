@@ -15,7 +15,7 @@
 package com.liferay.journal.web.internal.servlet.taglib.clay;
 
 import com.liferay.asset.display.page.portlet.AssetDisplayPageFriendlyURLProvider;
-import com.liferay.frontend.taglib.clay.servlet.taglib.soy.BaseVerticalCard;
+import com.liferay.frontend.taglib.clay.servlet.taglib.BaseVerticalCard;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.LabelItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.LabelItemListBuilder;
@@ -234,13 +234,13 @@ public class JournalArticleVerticalCard extends BaseVerticalCard {
 		String title = _article.getTitle(themeDisplay.getLocale());
 
 		if (Validator.isNotNull(title)) {
-			return HtmlUtil.escape(title);
+			return title;
 		}
 
 		Locale defaultLanguage = LocaleUtil.fromLanguageId(
 			_article.getDefaultLanguageId());
 
-		return HtmlUtil.escape(_article.getTitle(defaultLanguage));
+		return _article.getTitle(defaultLanguage);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

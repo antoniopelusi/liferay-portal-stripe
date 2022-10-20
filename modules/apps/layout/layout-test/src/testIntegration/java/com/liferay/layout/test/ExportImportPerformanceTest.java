@@ -22,14 +22,15 @@ import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.model.DDMTemplate;
 import com.liferay.dynamic.data.mapping.test.util.DDMStructureTestUtil;
 import com.liferay.dynamic.data.mapping.test.util.DDMTemplateTestUtil;
-import com.liferay.exportimport.kernel.configuration.ExportImportConfigurationConstants;
 import com.liferay.exportimport.kernel.configuration.ExportImportConfigurationSettingsMapFactory;
+import com.liferay.exportimport.kernel.configuration.constants.ExportImportConfigurationConstants;
 import com.liferay.exportimport.kernel.model.ExportImportConfiguration;
 import com.liferay.exportimport.kernel.service.ExportImportConfigurationLocalService;
 import com.liferay.exportimport.kernel.service.ExportImportLocalService;
 import com.liferay.exportimport.kernel.service.StagingLocalService;
 import com.liferay.exportimport.kernel.staging.MergeLayoutPrototypesThreadLocal;
 import com.liferay.exportimport.kernel.staging.Staging;
+import com.liferay.fragment.constants.FragmentConstants;
 import com.liferay.fragment.contributor.FragmentCollectionContributorTracker;
 import com.liferay.fragment.model.FragmentEntry;
 import com.liferay.fragment.model.FragmentEntryLink;
@@ -384,7 +385,8 @@ public class ExportImportPerformanceTest {
 								journalArticle3.getResourcePrimKey());
 						}
 					).build()),
-				StringPool.BLANK, 0, null, _serviceContext);
+				StringPool.BLANK, 0, null, fragmentEntry.getType(),
+				_serviceContext);
 		}
 
 		for (int i = 0; i < _portletsPerContentLayout; i++) {
@@ -406,7 +408,8 @@ public class ExportImportPerformanceTest {
 					).put(
 						"portletName", JournalPortletKeys.JOURNAL
 					).build()),
-				StringPool.BLANK, 0, null, _serviceContext);
+				StringPool.BLANK, 0, null, FragmentConstants.TYPE_COMPONENT,
+				_serviceContext);
 		}
 
 		_layoutPageTemplateStructureLocalService.

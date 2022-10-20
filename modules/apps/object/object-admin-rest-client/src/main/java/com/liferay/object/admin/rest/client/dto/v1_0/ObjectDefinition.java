@@ -36,6 +36,54 @@ public class ObjectDefinition implements Cloneable, Serializable {
 		return ObjectDefinitionSerDes.toDTO(json);
 	}
 
+	public Boolean getAccountEntryRestricted() {
+		return accountEntryRestricted;
+	}
+
+	public void setAccountEntryRestricted(Boolean accountEntryRestricted) {
+		this.accountEntryRestricted = accountEntryRestricted;
+	}
+
+	public void setAccountEntryRestricted(
+		UnsafeSupplier<Boolean, Exception>
+			accountEntryRestrictedUnsafeSupplier) {
+
+		try {
+			accountEntryRestricted = accountEntryRestrictedUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Boolean accountEntryRestricted;
+
+	public Long getAccountEntryRestrictedObjectFieldId() {
+		return accountEntryRestrictedObjectFieldId;
+	}
+
+	public void setAccountEntryRestrictedObjectFieldId(
+		Long accountEntryRestrictedObjectFieldId) {
+
+		this.accountEntryRestrictedObjectFieldId =
+			accountEntryRestrictedObjectFieldId;
+	}
+
+	public void setAccountEntryRestrictedObjectFieldId(
+		UnsafeSupplier<Long, Exception>
+			accountEntryRestrictedObjectFieldIdUnsafeSupplier) {
+
+		try {
+			accountEntryRestrictedObjectFieldId =
+				accountEntryRestrictedObjectFieldIdUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Long accountEntryRestrictedObjectFieldId;
+
 	public Map<String, Map<String, String>> getActions() {
 		return actions;
 	}
@@ -330,6 +378,27 @@ public class ObjectDefinition implements Cloneable, Serializable {
 
 	protected String panelCategoryKey;
 
+	public Boolean getParameterRequired() {
+		return parameterRequired;
+	}
+
+	public void setParameterRequired(Boolean parameterRequired) {
+		this.parameterRequired = parameterRequired;
+	}
+
+	public void setParameterRequired(
+		UnsafeSupplier<Boolean, Exception> parameterRequiredUnsafeSupplier) {
+
+		try {
+			parameterRequired = parameterRequiredUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Boolean parameterRequired;
+
 	public Map<String, String> getPluralLabel() {
 		return pluralLabel;
 	}
@@ -414,6 +483,27 @@ public class ObjectDefinition implements Cloneable, Serializable {
 	}
 
 	protected Status status;
+
+	public String getStorageType() {
+		return storageType;
+	}
+
+	public void setStorageType(String storageType) {
+		this.storageType = storageType;
+	}
+
+	public void setStorageType(
+		UnsafeSupplier<String, Exception> storageTypeUnsafeSupplier) {
+
+		try {
+			storageType = storageTypeUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected String storageType;
 
 	public Boolean getSystem() {
 		return system;

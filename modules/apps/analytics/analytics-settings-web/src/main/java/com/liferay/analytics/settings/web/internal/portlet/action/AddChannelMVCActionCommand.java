@@ -22,7 +22,7 @@ import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
@@ -52,6 +52,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import javax.portlet.ActionRequest;
+import javax.portlet.ActionResponse;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -102,6 +103,11 @@ public class AddChannelMVCActionCommand extends BaseAnalyticsMVCActionCommand {
 			actionRequest, liferayAnalyticsGroupIds);
 	}
 
+	@Override
+	protected void updateWizardMode(
+		ActionRequest actionRequest, ActionResponse actionResponse) {
+	}
+
 	private JSONObject _buildGroupJSONObject(
 		Group group, ThemeDisplay themeDisplay) {
 
@@ -119,7 +125,7 @@ public class AddChannelMVCActionCommand extends BaseAnalyticsMVCActionCommand {
 				"content.Language", themeDisplay.getLocale(), getClass());
 
 			return groupJSONObject.put(
-				"name", LanguageUtil.get(resourceBundle, "unknown"));
+				"name", _language.get(resourceBundle, "unknown"));
 		}
 	}
 
@@ -306,6 +312,9 @@ public class AddChannelMVCActionCommand extends BaseAnalyticsMVCActionCommand {
 
 	@Reference
 	private CompanyService _companyService;
+
+	@Reference
+	private Language _language;
 
 	@Reference
 	private Portal _portal;

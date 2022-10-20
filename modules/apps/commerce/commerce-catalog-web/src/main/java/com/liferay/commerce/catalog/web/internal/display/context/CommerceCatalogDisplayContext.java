@@ -265,11 +265,10 @@ public class CommerceCatalogDisplayContext {
 			Collections.<ItemSelectorReturnType>singletonList(
 				new FileEntryItemSelectorReturnType()));
 
-		PortletURL itemSelectorURL = _itemSelector.getItemSelectorURL(
-			requestBackedPortletURLFactory, "addFileEntry",
-			imageItemSelectorCriterion);
-
-		return itemSelectorURL.toString();
+		return String.valueOf(
+			_itemSelector.getItemSelectorURL(
+				requestBackedPortletURLFactory, "addFileEntry",
+				imageItemSelectorCriterion));
 	}
 
 	public long getImageMaxSize() {
@@ -320,10 +319,8 @@ public class CommerceCatalogDisplayContext {
 				"))) and type eq '", type, StringPool.APOSTROPHE),
 			true);
 
-		return StringBundler.concat(
-			_portal.getPortalURL(cpRequestHelper.getRequest()),
-			"/o/headless-commerce-admin-pricing/v2.0/price-lists?filter=",
-			encodedFilter);
+		return "/o/headless-commerce-admin-pricing/v2.0/price-lists?filter=" +
+			encodedFilter;
 	}
 
 	public boolean hasAddCatalogPermission() {

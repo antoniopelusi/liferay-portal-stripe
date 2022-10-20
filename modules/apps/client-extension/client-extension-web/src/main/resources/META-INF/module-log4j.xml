@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+
+<Configuration strict="true">
+	<Loggers>
+		<Logger level="INFO" name="com.liferay.client.extension.web.internal.portlet.action.EditClientExtensionEntryMVCActionCommand" />
+	</Loggers>
+</Configuration>

@@ -17,5 +17,3 @@
 <%@ include file="/html/taglib/ui/panel_container/init.jsp" %>
 
 </div>
-
-<%@ include file="/html/taglib/ui/panel_container/javascript.jspf" %>

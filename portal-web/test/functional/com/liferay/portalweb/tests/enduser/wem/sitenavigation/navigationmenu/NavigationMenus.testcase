@@ -61,7 +61,7 @@ definition {
 				collectionName = "Content Display",
 				fragmentName = "Display Page Content");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Mark the first display page template as default") {
@@ -84,7 +84,7 @@ definition {
 				collectionName = "Content Display",
 				fragmentName = "Display Page Content");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Mark the second display page template as default") {
@@ -108,7 +108,7 @@ definition {
 				collectionName = "Content Display",
 				fragmentName = "Display Page Content");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Mark the third display page template as default") {
@@ -131,7 +131,7 @@ definition {
 				collectionName = "Content Display",
 				fragmentName = "Display Page Content");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Mark the fourth display page template as default") {
@@ -279,6 +279,57 @@ definition {
 		}
 	}
 
+	@description = "This is a test for LPS-141352. The navigation menu admin could add a global or asset library vocabulary item to navigation menu."
+	@priority = "4"
+	test AddGlobalOrAssetLibraryVocabularyNavigationMenuItem {
+		task ("Given a navigation menu admin has a navigation menu") {
+			task ("Add an asset library") {
+				JSONDepot.addDepot(
+					depotDescription = "This is the description of a depot",
+					depotName = "Test Depot Name");
+			}
+
+			task ("Connect the asset library to the site") {
+				JSONDepot.connectSite(
+					depotName = "Test Depot Name",
+					groupName = "Test Site Name");
+			}
+
+			task ("Add a navigation menu") {
+				JSONSitenavigation.addSiteNavigationMenu(
+					groupName = "Test Site Name",
+					siteNavigationMenuName = "Navigation Menu Name");
+			}
+
+			task ("Add a vocabulary in asset library") {
+				JSONCategory.addVocabulary(
+					groupName = "Test Depot Name",
+					site = "false",
+					title = "Vocabulary Name");
+			}
+		}
+
+		task ("When the navigation menu admin adds vocabulary type item") {
+			NavigationMenusAdmin.openNavigationMenusAdmin(siteURLKey = "test-site-name");
+
+			NavigationMenusAdmin.editMenu(navigationMenuName = "Navigation Menu Name");
+		}
+
+		task ("Then the navigation menu admin could select vocabulary from global or asset library") {
+			NavigationMenusAdmin.addItem(
+				assetTitleList = "Topic (Global),Vocabulary Name (Test Depot Name)",
+				item = "Vocabulary");
+
+			for (var itemName : list "Topic,Vocabulary Name") {
+				NavigationMenusAdmin.viewItem(itemName = "${itemName}");
+			}
+
+			task ("Delete the asset library") {
+				JSONDepot.deleteDepot(depotName = "Test Depot Name");
+			}
+		}
+	}
+
 	@description = "This is a test case for LPS-77912. The user could add page, submenu, and URL items to a navigation menu."
 	@priority = "5"
 	@uitest
@@ -306,7 +357,7 @@ definition {
 		task ("Add a page item") {
 			NavigationMenusAdmin.addItem(
 				item = "Page",
-				pageNames = "Test Page Name");
+				pageNameList = "Test Page Name");
 		}
 
 		task ("Assert the page item was added") {
@@ -360,7 +411,9 @@ definition {
 		}
 
 		task ("Add a page item") {
-			NavigationMenusAdmin.addPage(pageNames = "Test Page Name");
+			NavigationMenusAdmin.addItem(
+				item = "Page",
+				pageNameList = "Test Page Name");
 		}
 
 		task ("Assert the page item was added") {
@@ -495,6 +548,57 @@ definition {
 		}
 	}
 
+	@description = "This is a test for LPS-141352. The navigation menu admin could add a vocabulary item to navigation menu."
+	@priority = "5"
+	test AddVocabularyTypeNavigationMenuItem {
+		property portal.acceptance = "true";
+
+		task ("Given a navigation menu admin has a navigation menu") {
+			task ("Add a navigation menu") {
+				JSONSitenavigation.addSiteNavigationMenu(
+					groupName = "Test Site Name",
+					siteNavigationMenuName = "Navigation Menu Name");
+			}
+
+			task ("Add a vocabulary") {
+				JSONCategory.addVocabulary(
+					groupName = "Test Site Name",
+					title = "Vocabulary Name");
+			}
+		}
+
+		task ("When the navigation menu admin adds a Vocabulary type item to navigation menu") {
+			NavigationMenusAdmin.openNavigationMenusAdmin(siteURLKey = "test-site-name");
+
+			NavigationMenusAdmin.editMenu(navigationMenuName = "Navigation Menu Name");
+
+			NavigationMenusAdmin.addItem(
+				assetTitleList = "Vocabulary Name",
+				item = "Vocabulary");
+		}
+
+		task ("Then the navigation menu admin could view both Vocabulary and Dynamic labels are shown on item") {
+			var i = "1";
+
+			for (var label : list "Vocabulary,Dynamic") {
+				NavigationMenusAdmin.viewItemStatus(
+					index = "${i}",
+					itemName = "Vocabulary Name",
+					itemStatus = "${label}");
+
+				var i = ${i} + 1;
+			}
+		}
+
+		task ("When the navigation menu admin opens the contextual menu of item") {
+			NavigationMenusAdmin.openItemSidebar(itemName = "Vocabulary Name");
+		}
+
+		task ("Then the navigation menu admin could view a warning message on menu") {
+			NavigationMenusAdmin.viewItemWarningMessage(warningMessage = "No categories inside");
+		}
+	}
+
 	@description = "This is a test for LPS-107833. Don't support Add page to Global Navigation Menu when creating a new page."
 	@priority = "5"
 	test CannotAddPageToGlobalNavigationMenuWhenCreatingPageInNormalSite {
@@ -590,7 +694,7 @@ definition {
 				collectionName = "Content Display",
 				fragmentName = "Display Page Content");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Associate the display page template to the second category") {
@@ -624,7 +728,9 @@ definition {
 		}
 
 		task ("View a warning message is shown in the item contextual menu") {
-			NavigationMenusAdmin.viewItemWarningMessage(itemName = "Category Name 1");
+			NavigationMenusAdmin.viewItemWarningMessage(
+				itemName = "Category Name 1",
+				warningMessage = "No Display Page");
 		}
 
 		task ("Change to the second category via contextual menu without save") {
@@ -726,19 +832,7 @@ definition {
 
 			ManagementBar.setFilterAndOrder(filterBy = "All");
 
-			ManagementBar.clickSelectAllCheckbox();
-
-			for (var rowEntry : list "1,2") {
-				AssertChecked(
-					key_rowEntry = "Navigation Menu Name ${rowEntry}",
-					locator1 = "ContentRow#ENTRY_CONTENT_ENTRY_CHECKBOX");
-			}
-
-			ClickNoError(locator1 = "Icon#DELETE");
-
-			AssertConfirm(value1 = "Are you sure you want to delete this? It will be deleted immediately.");
-
-			Alert.viewSuccessMessage();
+			NavigationMenusAdmin.deleteAllCP();
 		}
 
 		task ("Assert all navigation menus were deleted") {
@@ -763,9 +857,7 @@ definition {
 		task ("Delete the navigation menu") {
 			NavigationMenusAdmin.openNavigationMenusAdmin(siteURLKey = "test-site-name");
 
-			LexiconEntry.delete(
-				menuItem = "Delete",
-				rowEntry = "Navigation Menu Name");
+			NavigationMenusAdmin.deleteCP(navigationMenuName = "Navigation Menu Name");
 		}
 
 		task ("Assert the navigation menu was deleted") {
@@ -942,9 +1034,9 @@ definition {
 			LexiconEntry.gotoEntry(rowEntry = "Navigation Menu Name");
 
 			NavigationMenusAdmin.editItem(
+				customName = "Test Page Name 3",
 				item = "Page",
-				itemName = "Test Page Name 2",
-				name = "Test Page Name 3");
+				itemName = "Test Page Name 2");
 		}
 
 		task ("View the name of the second page item was successfully changed") {
@@ -1106,6 +1198,36 @@ definition {
 				parentItemNameList = "Category Name",
 				site = "true",
 				siteNavigationMenuName = "Navigation Menu Name");
+		}
+	}
+
+	@description = "This is a test for LPS-145292. The user could view new icons on dropdown menu of navigation menu."
+	@priority = "4"
+	test ViewDropdownMenuIconsInNavigationAdmin {
+		task ("Given a Navigation menu creator has a new navigation menu") {
+			JSONSitenavigation.addSiteNavigationMenu(
+				groupName = "Test Site Name",
+				siteNavigationMenuName = "Navigation Menu Name");
+		}
+
+		task ("When the Navigation menu creator opens the dropdown menu of navigation menu") {
+			NavigationMenusAdmin.openNavigationMenusAdmin(siteURLKey = "test-site-name");
+
+			LexiconEntry.openEntryMenu(rowEntry = "Navigation Menu Name");
+		}
+
+		task ("Then the Navigation menu creator can see the new icons on the dropdown menu") {
+			DropdownMenuItem.viewIcon(iconList = "pencil,password-policies,trash");
+		}
+
+		task ("When the Navigation menu creator opens the dropdown menu of management toolbar after selecting the new navigation menu") {
+			LexiconTable.checkTableCheckbox(tableEntry = "Navigation Menu Name");
+
+			Click(locator1 = "ManagementBar#MORE_ACTIONS_ELLIPSIS");
+		}
+
+		task ("Then the Navigation menu creator can see the new icon on the dropdown menu") {
+			DropdownMenuItem.viewIcon(iconList = "trash");
 		}
 	}
 
@@ -1285,8 +1407,7 @@ definition {
 	@description = "This is a test for LPS-87134. View no navigation menus are automatically created after adding pages."
 	@priority = "3"
 	test ViewNoNavigationMenuAfterAddingPages {
-		property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-		property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		task ("Add a public page to the site") {
 			JSONLayout.addPublicLayout(

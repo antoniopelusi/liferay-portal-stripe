@@ -144,24 +144,11 @@ public class NavTag extends BaseNavTag implements BodyTag {
 	}
 
 	protected String getMarkupView() {
-		String markupView = StringPool.BLANK;
-
-		NavBarTag navBarTag = (NavBarTag)findAncestorWithClass(
-			this, NavBarTag.class);
-
-		if (navBarTag != null) {
-			markupView = navBarTag.getMarkupView();
-		}
-
-		return markupView;
+		return null;
 	}
 
 	@Override
 	protected String getPage() {
-		if (Validator.isNotNull(getMarkupView())) {
-			return "/html/taglib/aui/nav/" + getMarkupView() + "/page.jsp";
-		}
-
 		return "/html/taglib/aui/nav/page.jsp";
 	}
 

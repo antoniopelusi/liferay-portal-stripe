@@ -142,6 +142,7 @@
 			<name>markupView</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
+			<description>Deprecated as of 7.4.0, with no direct replacement.</description>
 		</attribute>
 		<attribute>
 			<name>portletConfigurationIcons</name>

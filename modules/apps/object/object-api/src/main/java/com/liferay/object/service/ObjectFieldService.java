@@ -56,10 +56,10 @@ public interface ObjectFieldService extends BaseService {
 	 */
 	public ObjectField addCustomObjectField(
 			long listTypeDefinitionId, long objectDefinitionId,
-			String businessType, String dbType, boolean indexed,
-			boolean indexedAsKeyword, String indexedLanguageId,
+			String businessType, String dbType, String defaultValue,
+			boolean indexed, boolean indexedAsKeyword, String indexedLanguageId,
 			Map<Locale, String> labelMap, String name, boolean required,
-			List<ObjectFieldSetting> objectFieldSettings)
+			boolean state, List<ObjectFieldSetting> objectFieldSettings)
 		throws PortalException;
 
 	public ObjectField deleteObjectField(long objectFieldId) throws Exception;
@@ -75,11 +75,13 @@ public interface ObjectFieldService extends BaseService {
 	 */
 	public String getOSGiServiceIdentifier();
 
-	public ObjectField updateCustomObjectField(
-			long objectFieldId, long listTypeDefinitionId, String businessType,
-			String dbType, boolean indexed, boolean indexedAsKeyword,
+	public ObjectField updateObjectField(
+			long objectFieldId, String externalReferenceCode,
+			long listTypeDefinitionId, String businessType, String dbType,
+			String defaultValue, boolean indexed, boolean indexedAsKeyword,
 			String indexedLanguageId, Map<Locale, String> labelMap, String name,
-			boolean required, List<ObjectFieldSetting> objectFieldSettings)
+			boolean required, boolean state,
+			List<ObjectFieldSetting> objectFieldSettings)
 		throws PortalException;
 
 }

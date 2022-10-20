@@ -14,6 +14,9 @@
 
 package com.liferay.portal.vulcan.jaxrs.exception.mapper;
 
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+
 import java.util.List;
 
 import javax.ws.rs.core.Context;
@@ -23,17 +26,21 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 
 /**
- * Base class that returns objects that follow the Problem+JSON specification
- *
  * @author Javier Gamarra
- * @review
  */
 public abstract class BaseExceptionMapper<T extends Throwable>
 	implements ExceptionMapper<T> {
 
 	@Override
 	public Response toResponse(T exception) {
-		Problem problem = getProblem(exception);
+		Problem problem = null;
+
+		if (isSanitize()) {
+			problem = _getSanitizedProblem(exception);
+		}
+		else {
+			problem = getProblem(exception);
+		}
 
 		return Response.status(
 			problem.getStatus()
@@ -60,7 +67,27 @@ public abstract class BaseExceptionMapper<T extends Throwable>
 
 	protected abstract Problem getProblem(T exception);
 
+	protected boolean isSanitize() {
+		return true;
+	}
+
 	@Context
 	protected HttpHeaders httpHeaders;
+
+	private Problem _getSanitizedProblem(T exception) {
+		Problem problem = getProblem(exception);
+
+		if (_log.isWarnEnabled()) {
+			_log.warn("Problem " + problem, exception);
+		}
+
+		problem.setDetail(null);
+		problem.setTitle(null);
+
+		return problem;
+	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		BaseExceptionMapper.class);
 
 }

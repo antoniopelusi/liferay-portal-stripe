@@ -36,7 +36,6 @@ String orderDetailURL = (String)request.getAttribute("liferay-commerce:cart:orde
 long orderId = (long)request.getAttribute("liferay-commerce:cart:orderId");
 String productURLSeparator = (String)request.getAttribute("liferay-commerce:cart:productURLSeparator");
 String siteDefaultURL = (String)request.getAttribute("liferay-commerce:cart:siteDefaultURL");
-String spritemap = (String)request.getAttribute("liferay-commerce:cart:spritemap");
 
 String randomNamespace = PortalUtil.generateRandomKey(request, "taglib") + StringPool.UNDERLINE;
 boolean toggleable = (boolean)request.getAttribute("liferay-commerce:cart:toggleable");

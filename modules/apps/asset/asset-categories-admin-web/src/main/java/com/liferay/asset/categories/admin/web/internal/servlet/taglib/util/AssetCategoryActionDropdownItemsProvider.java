@@ -87,7 +87,7 @@ public class AssetCategoryActionDropdownItemsProvider {
 								PortletURLBuilder.createRenderURL(
 									_renderResponse
 								).setMVCPath(
-									"/edit_category.jsp"
+									"/edit_asset_category.jsp"
 								).setParameter(
 									"categoryId", category.getCategoryId()
 								).setParameter(
@@ -112,7 +112,7 @@ public class AssetCategoryActionDropdownItemsProvider {
 								PortletURLBuilder.createRenderURL(
 									_renderResponse
 								).setMVCPath(
-									"/edit_category.jsp"
+									"/edit_asset_category.jsp"
 								).setParameter(
 									"parentCategoryId", category.getCategoryId()
 								).setParameter(
@@ -150,7 +150,7 @@ public class AssetCategoryActionDropdownItemsProvider {
 									category.getTitle(
 										_themeDisplay.getLocale())));
 							dropdownItem.putData(
-								"moveCategoryURL",
+								"selectParentCategoryURL",
 								_getSelectCategoryURL(
 									category.getVocabularyId()));
 							dropdownItem.setIcon("move-folder");
@@ -200,7 +200,8 @@ public class AssetCategoryActionDropdownItemsProvider {
 								PortletURLBuilder.createActionURL(
 									_renderResponse
 								).setActionName(
-									"deleteCategory"
+									"/asset_categories_admin" +
+										"/delete_asset_category"
 								).setRedirect(
 									_themeDisplay.getURLCurrent()
 								).setParameter(

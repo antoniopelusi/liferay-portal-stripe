@@ -1,6 +1,8 @@
 @component-name = "portal-analytics-cloud"
 definition {
 
+	property analytics.cloud.release = "true";
+	property analytics.cloud.upstream = "true";
 	property custom.properties = "jsonws.web.service.paths.excludes=";
 	property portal.release = "false";
 	property portal.upstream = "true";
@@ -61,6 +63,8 @@ definition {
 	tearDown {
 		var testPortalInstance = PropsUtil.get("test.portal.instance");
 
+		ACUtils.tearDownAC();
+
 		ACUtils.tearDownDXP();
 
 		if ("${testPortalInstance}" == "true") {
@@ -69,19 +73,11 @@ definition {
 		else {
 			JSONGroup.deleteGroupByName(groupName = "Site Name");
 		}
-
-		JSONUser.tearDownNonAdminUsers();
-
-		ACUtils.tearDownAC();
 	}
 
 	@description = "Feature ID: LRAC-7346 | Automation ID: LRAC-10195 | Test Summary: Unblock single custom event and unblock custom events in bulk"
-	@ignore = "true"
 	@priority = "5"
 	test CanUnblockCustomEvent {
-
-		// AC Story ticket: LRAC-9248
-
 		task ("Fill fields and create 3 custom events") {
 			var customEventName1 = ACCustomEvents.generateCustomEventName();
 
@@ -137,9 +133,7 @@ definition {
 		task ("Search for the name of the custom event that was unblocked in block list") {
 			ACUtils.searchBar(searchItem = "${customEventName1}");
 
-			// This test is being ignored due to a history that makes changes to empty state messages.
-
-			ACUtils.viewNoResultsMessage(noResultMessage = "There are no items found.");
+			ACUtils.viewNoResultsMessage(noResultMessage = "There are no results found.");
 		}
 
 		task ("Navigation to custom events tab") {
@@ -161,7 +155,7 @@ definition {
 		task ("Unblock all custom events") {
 			ACCustomEvents.unblockAllCustomEvents();
 
-			ACUtils.viewNoResultsMessage(noResultMessage = "No blocked events to report.");
+			ACUtils.viewNoResultsMessage(noResultMessage = "There are no events blocked.");
 		}
 
 		task ("Navigation to custom events tab") {

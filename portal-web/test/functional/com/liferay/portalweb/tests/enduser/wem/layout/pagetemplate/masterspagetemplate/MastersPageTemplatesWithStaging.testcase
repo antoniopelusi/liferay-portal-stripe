@@ -60,9 +60,7 @@ definition {
 				fragmentName = "Footer Nav Dark",
 				scope = "Master");
 
-			Button.click(button = "Publish Master");
-
-			Alert.viewSuccessMessage();
+			MastersPageTemplates.publishMaster();
 		}
 
 		task ("Add a content page based on Blank") {
@@ -96,7 +94,7 @@ definition {
 				key_type = "dark",
 				locator1 = "PageEditor#FOOTERS");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Assert the Custom Masters Page Template is applied to content page in view mode") {
@@ -134,7 +132,7 @@ definition {
 				key_type = "dark",
 				locator1 = "PageEditor#FOOTERS");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Assert the Blank is applied to content page in view mode") {
@@ -181,13 +179,13 @@ definition {
 
 		PageEditor.gotoStyle(fragmentName = "Heading");
 
-		PageEditor.configureFragment(alignment = "Center");
+		PageEditor.configureFragment(alignment = "Align Center");
 
 		PageEditor.gotoDuplicate(fragmentName = "Container");
 
-		PageEditor.removeFragmentViaPageStructure(
-			duplicateFragment = "true",
-			fragmentName = "Container");
+		PageEditor.gotoEllipsisMenuItemInPageElementsPanel(
+			fragmentName = "Container",
+			menuItem = "Delete");
 
 		AssertVisible(
 			key_text = "undo",
@@ -243,7 +241,7 @@ definition {
 
 		PageEditor.viewFragmentStyle(
 			alignment = "center",
-			fragmentName = "heading");
+			fragmentName = "Heading");
 
 		Click(
 			key_text = "redo",
@@ -281,9 +279,7 @@ definition {
 				fragmentName = "Heading",
 				scope = "Master");
 
-			Button.click(button = "Publish Master");
-
-			Alert.viewSuccessMessage();
+			MastersPageTemplates.publishMaster();
 		}
 
 		task ("Add a content page based on custom master") {
@@ -293,7 +289,7 @@ definition {
 				masterLayoutName = "Custom Masters Page Template",
 				pageName = "Test Page Name Staging");
 
-			PageEditor.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Navigate to the content page at edit mode in staging site") {

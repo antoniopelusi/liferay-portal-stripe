@@ -18,8 +18,8 @@ import com.liferay.gradle.plugins.LiferayAntPlugin;
 import com.liferay.gradle.plugins.defaults.internal.LiferayRelengPlugin;
 import com.liferay.gradle.plugins.defaults.internal.util.GradlePluginsDefaultsUtil;
 import com.liferay.gradle.plugins.defaults.internal.util.GradleUtil;
-import com.liferay.gradle.plugins.defaults.tasks.CopyIvyDependenciesTask;
-import com.liferay.gradle.plugins.defaults.tasks.ReplaceRegexTask;
+import com.liferay.gradle.plugins.defaults.task.CopyIvyDependenciesTask;
+import com.liferay.gradle.plugins.defaults.task.ReplaceRegexTask;
 
 import groovy.lang.Closure;
 

@@ -16,6 +16,8 @@ package com.liferay.knowledge.base.internal.upgrade.v2_0_0;
 
 import com.liferay.knowledge.base.constants.KBCommentConstants;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
+import com.liferay.portal.kernel.upgrade.UpgradeProcessFactory;
+import com.liferay.portal.kernel.upgrade.UpgradeStep;
 
 /**
  * @author Adolfo Pérez
@@ -24,13 +26,16 @@ public class KBCommentUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		if (!hasColumn("KBComment", "status")) {
-			runSQL("alter table KBComment add status INT null");
-		}
-
 		runSQL(
 			"update KBComment set status = " +
 				KBCommentConstants.STATUS_COMPLETED + " where status is NULL");
+	}
+
+	@Override
+	protected UpgradeStep[] getPreUpgradeSteps() {
+		return new UpgradeStep[] {
+			UpgradeProcessFactory.addColumns("KBComment", "status INTEGER")
+		};
 	}
 
 }

@@ -36,6 +36,7 @@ Map<String, String> contextParams = HashMapBuilder.<String, String>put(
 	<aui:input name="cpDefinitionId" type="hidden" value="<%= String.valueOf(cpDefinitionId) %>" />
 	<aui:input name="commerceAccountGroupIds" type="hidden" value="" />
 	<aui:input name="commerceChannelIds" type="hidden" value="" />
+	<aui:input name="workflowAction" type="hidden" value="<%= WorkflowConstants.ACTION_SAVE_DRAFT %>" />
 
 	<commerce-ui:panel
 		bodyClasses="p-0"
@@ -44,16 +45,13 @@ Map<String, String> contextParams = HashMapBuilder.<String, String>put(
 		collapseSwitchName='<%= liferayPortletResponse.getNamespace() + "channelFilterEnabled" %>'
 		title='<%= LanguageUtil.get(request, "channels") %>'
 	>
-		<clay:data-set-display
+		<frontend-data-set:classic-display
 			contextParams="<%= contextParams %>"
 			creationMenu="<%= cpDefinitionsDisplayContext.getChannelsCreationMenu() %>"
-			dataProviderKey="<%= CommerceProductDataSetConstants.COMMERCE_DATA_SET_KEY_PRODUCT_CHANNELS %>"
+			dataProviderKey="<%= CommerceProductFDSNames.PRODUCT_CHANNELS %>"
 			formName="fm"
-			id="<%= CommerceProductDataSetConstants.COMMERCE_DATA_SET_KEY_PRODUCT_CHANNELS %>"
+			id="<%= CommerceProductFDSNames.PRODUCT_CHANNELS %>"
 			itemsPerPage="<%= 10 %>"
-			namespace="<%= liferayPortletResponse.getNamespace() %>"
-			pageNumber="<%= 1 %>"
-			portletURL="<%= currentURLObj %>"
 		/>
 	</commerce-ui:panel>
 
@@ -64,16 +62,13 @@ Map<String, String> contextParams = HashMapBuilder.<String, String>put(
 		collapseSwitchName='<%= liferayPortletResponse.getNamespace() + "accountGroupFilterEnabled" %>'
 		title='<%= LanguageUtil.get(request, "account-groups") %>'
 	>
-		<clay:data-set-display
+		<frontend-data-set:classic-display
 			contextParams="<%= contextParams %>"
 			creationMenu="<%= cpDefinitionsDisplayContext.getAccountGroupsCreationMenu() %>"
-			dataProviderKey="<%= CommerceProductDataSetConstants.COMMERCE_DATA_SET_KEY_PRODUCT_ACCOUNT_GROUPS %>"
+			dataProviderKey="<%= CommerceProductFDSNames.PRODUCT_ACCOUNT_GROUPS %>"
 			formName="fm"
-			id="<%= CommerceProductDataSetConstants.COMMERCE_DATA_SET_KEY_PRODUCT_ACCOUNT_GROUPS %>"
+			id="<%= CommerceProductFDSNames.PRODUCT_ACCOUNT_GROUPS %>"
 			itemsPerPage="<%= 10 %>"
-			namespace="<%= liferayPortletResponse.getNamespace() %>"
-			pageNumber="<%= 1 %>"
-			portletURL="<%= currentURLObj %>"
 		/>
 	</commerce-ui:panel>
 </aui:form>

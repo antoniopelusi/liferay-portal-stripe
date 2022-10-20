@@ -237,6 +237,7 @@ definition {
 	@priority = "3"
 	test CanSelectUpDateDueDateByHoveringOverIcon {
 		var currentYear = DateUtil.getCurrentYear();
+
 		var futureYear = ${currentYear} + 1;
 
 		ApplicationsMenu.gotoPortlet(
@@ -301,6 +302,7 @@ definition {
 		WorkflowMetrics.goToUpdateDueDateTasks();
 
 		var currentYear = DateUtil.getCurrentYear();
+
 		var futureYear = ${currentYear} + 1;
 
 		Type(
@@ -350,6 +352,7 @@ definition {
 		var displayDateDay = DateUtil.getCurrentDate();
 		var displayDateMonth = DateUtil.getCurrentMonth();
 		var displayDateYear = DateUtil.getCurrentYear();
+
 		var displayDate = "${displayDateMonth}/${displayDateDay}/${displayDateYear}";
 
 		AssertElementPresent(
@@ -358,6 +361,7 @@ definition {
 
 		var displayTimeHour = DateUtil.getCurrentHour();
 		var displayTimeMinute = "${displayTimeMinute}";
+
 		var displayTime = "${displayTimeHour}:${displayTimeMinute}";
 
 		AssertElementPresent(

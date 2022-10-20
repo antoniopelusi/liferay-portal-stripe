@@ -31,9 +31,9 @@ definition {
 	}
 
 	@description = "This ensures that a manual collection in a depot can be published in the site through the Asset Publisher for local staging."
+	@e2e
 	@priority = "5"
 	@refactordone
-	@uitest
 	test CanBePublishedViaLocalStaging {
 		JSONGroup.addGroup(groupName = "Site Name");
 
@@ -111,9 +111,9 @@ definition {
 	}
 
 	@description = "This ensures that a manual collection in a depot can be published in the site through the Asset Publisher for remote staging."
+	@e2e
 	@priority = "5"
 	@refactordone
-	@uitest
 	test CanBePublishedViaRemoteStaging {
 		property app.server.bundles.size = "1";
 		property custom.properties = "tunneling.servlet.shared.secret=1234567890123456${line.separator}auth.verifier.TunnelAuthVerifier.hosts.allowed=";
@@ -215,9 +215,9 @@ definition {
 	}
 
 	@description = "This ensures that the scope can be changed through dynamic selection in a depot."
+	@e2e
 	@priority = "5"
 	@refactordone
-	@uitest
 	test CanChangeScope {
 		JSONWebcontent.addWebContent(
 			content = "WC WebContent Content",
@@ -344,9 +344,9 @@ definition {
 	}
 
 	@description = "This ensures that the image is displayed by AP through Collections in a depot."
+	@e2e
 	@priority = "5"
 	@refactordone
-	@uitest
 	test CanDisplayImageInAP {
 		JSONDocument.addFileWithUploadedFile(
 			dmDocumentDescription = "DM Document Description",
@@ -408,9 +408,9 @@ definition {
 	}
 
 	@description = "This ensures that tagged the web content is displayed by AP through dynamic selection in a depot."
+	@e2e
 	@priority = "5"
 	@refactordone
-	@uitest
 	test CanDisplayWCWithTagInAP {
 		for (var i : list "1,2") {
 			JSONWebcontent.addWebContent(
@@ -1024,9 +1024,9 @@ definition {
 	}
 
 	@description = "This ensures that the web content created by the structure can be selected via searching for the corresponding structure name."
+	@e2e
 	@priority = "5"
 	@refactordone
-	@uitest
 	test CanSelectWCWithStructure {
 		DepotNavigator.openDepotWebContentStructuresAdmin(depotName = "Test Depot Name");
 
@@ -1075,6 +1075,64 @@ definition {
 				assetTitle = "WC WebContent Title ${i}",
 				assetType = "Web Content Article");
 		}
+	}
+
+	@description = "This ensures that a depot image in Asset Publisher can be rendered correctly on a connected site after moving it to a folder."
+	@priority = "4"
+	test CanViewImageViaAPAfterMovingToFolder {
+		JSONGroup.addGroup(groupName = "Site Name");
+
+		JSONLayout.addPublicLayout(
+			groupName = "Site Name",
+			layoutName = "Asset Publisher Page");
+
+		JSONDepot.connectSite(
+			depotName = "Test Depot Name",
+			groupName = "Site Name");
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Image Description",
+			dmDocumentTitle = "Document_1",
+			groupName = "Test Depot Name",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_1.jpg");
+
+		JSONAssetlist.addDynamicAssetListEntryWithItemType(
+			groupName = "Test Depot Name",
+			itemSubtype = "Basic Document",
+			itemType = "Document",
+			site = "false",
+			title = "Dynamic Collection");
+
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Site Name",
+			layoutName = "Asset Publisher Page",
+			widgetName = "Asset Publisher");
+
+		Navigator.gotoSitePage(
+			pageName = "Asset Publisher Page",
+			siteName = "Site Name");
+
+		AssetPublisherPortlet.selectAssetList(
+			assetListName = "Dynamic Collection",
+			depotName = "Test Depot Name");
+
+		JSONFolder.addFolder(
+			dmFolderDescription = "DM Folder Description",
+			dmFolderName = "DM Folder Name",
+			groupName = "Test Depot Name");
+
+		JSONDocument.moveFileEntryToFolder(
+			dmDocumentTitle = "Document_1",
+			folderName = "DM Folder Name",
+			groupName = "Test Depot Name",
+			site = "false");
+
+		Navigator.gotoSitePage(
+			pageName = "Asset Publisher Page",
+			siteName = "Site Name");
+
+		AssetPublisherPortlet.viewAssetPG(assetTitle = "Document_1");
 	}
 
 }

@@ -95,7 +95,7 @@ CPSpecificationOptionFacetsDisplayContext cpSpecificationOptionFacetsDisplayCont
 
 										<li class="facet-value">
 											<div class="custom-checkbox custom-control">
-												<label class="facet-checkbox-label" for="<portlet:namespace />term_<%= i %>">
+												<label for="<portlet:namespace />term_<%= i %>">
 													<input
 														<%= cpSpecificationOptionsSearchFacetTermDisplayContext.isSelected() ? "checked" : StringPool.BLANK %>
 														class="custom-control-input facet-term"
@@ -136,5 +136,3 @@ CPSpecificationOptionFacetsDisplayContext cpSpecificationOptionFacetsDisplayCont
 
 	</c:otherwise>
 </c:choose>
-
-<aui:script use="liferay-search-facet-util"></aui:script>

@@ -529,6 +529,36 @@ public class MessageBoardThread implements Serializable {
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Boolean locked;
 
+	@Schema(description = "The ID of the thread's message.")
+	public Long getMessageBoardRootMessageId() {
+		return messageBoardRootMessageId;
+	}
+
+	public void setMessageBoardRootMessageId(Long messageBoardRootMessageId) {
+		this.messageBoardRootMessageId = messageBoardRootMessageId;
+	}
+
+	@JsonIgnore
+	public void setMessageBoardRootMessageId(
+		UnsafeSupplier<Long, Exception>
+			messageBoardRootMessageIdUnsafeSupplier) {
+
+		try {
+			messageBoardRootMessageId =
+				messageBoardRootMessageIdUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField(description = "The ID of the thread's message.")
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected Long messageBoardRootMessageId;
+
 	@Schema(
 		description = "The ID of the Message Board Section to which this message is scoped."
 	)
@@ -1195,6 +1225,16 @@ public class MessageBoardThread implements Serializable {
 			sb.append("\"locked\": ");
 
 			sb.append(locked);
+		}
+
+		if (messageBoardRootMessageId != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"messageBoardRootMessageId\": ");
+
+			sb.append(messageBoardRootMessageId);
 		}
 
 		if (messageBoardSectionId != null) {

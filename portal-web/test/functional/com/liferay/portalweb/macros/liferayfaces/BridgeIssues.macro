@@ -12,7 +12,6 @@ definition {
 		PagesAdmin.configurePage(
 			columnName = "1 Column",
 			pageName = "${portletName}",
-			privacy = "Public Pages",
 			sitePageType = "Widget Page");
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/bridge-issues/${pageURL}");

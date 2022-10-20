@@ -23,6 +23,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LoggingTimer;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -92,14 +93,22 @@ public class IndexUpdaterUtil {
 
 		DB db = DBManagerUtil.getDB();
 
-		String loggingTimerName =
-			"Updating database indexes for " + bundle.getSymbolicName();
+		db.process(
+			companyId -> {
+				String message = new String(
+					"Updating database indexes for " +
+						bundle.getSymbolicName());
 
-		try (Connection connection = DataAccess.getConnection();
-			LoggingTimer loggingTimer = new LoggingTimer(loggingTimerName)) {
+				if (Validator.isNotNull(companyId) && _log.isInfoEnabled()) {
+					message += " and company " + companyId;
+				}
 
-			db.updateIndexes(connection, tablesSQL, indexesSQL, true);
-		}
+				try (Connection connection = DataAccess.getConnection();
+					LoggingTimer loggingTimer = new LoggingTimer(message)) {
+
+					db.updateIndexes(connection, tablesSQL, indexesSQL, true);
+				}
+			});
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

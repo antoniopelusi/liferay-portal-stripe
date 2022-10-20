@@ -46,6 +46,17 @@ const ActionsInfo = ({
 		},
 	]);
 
+	if (
+		selectedItem.type === 'task' &&
+		executionTypeOptions &&
+		executionTypeOptions[0].value !== 'onAssignment'
+	) {
+		executionTypeOptions.unshift({
+			label: Liferay.Language.get('on-assignment'),
+			value: 'onAssignment',
+		});
+	}
+
 	const [executionType, setExecutionType] = useState(
 		actions?.executionType?.[index] ?? executionTypeOptions[0].value
 	);

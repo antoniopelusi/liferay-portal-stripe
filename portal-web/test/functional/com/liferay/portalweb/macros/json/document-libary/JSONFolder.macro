@@ -57,7 +57,6 @@ definition {
 	@summary = "This calls the JSON WS API to delete a folder"
 	macro deleteFolder {
 		var portalURL = JSONCompany.getPortalURL();
-
 		var folderId = JSONDocumentAPI._getFolderIdByFolderName(
 			groupName = "${groupName}",
 			name = "${folderName}");
@@ -72,7 +71,6 @@ definition {
 	@summary = "This calls the JSON WS API to move a folder to trash"
 	macro moveFolderToTrash {
 		var portalURL = JSONCompany.getPortalURL();
-
 		var folderId = JSONDocumentAPI._getFolderIdByFolderName(
 			groupName = "${groupName}",
 			name = "${folderName}");

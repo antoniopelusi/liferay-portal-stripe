@@ -39,7 +39,7 @@ public interface StagingConfiguration {
 	public boolean publishParentLayoutsByDefault();
 
 	@Meta.AD(
-		deflt = "true", description = "publish-displayed-content-help",
+		deflt = "false", description = "publish-displayed-content-help",
 		name = "publish-displayed-content", required = false
 	)
 	public boolean publishDisplayedContent();

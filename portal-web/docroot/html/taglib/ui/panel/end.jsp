@@ -20,6 +20,28 @@
 	</div>
 </div>
 
-<c:if test="<%= collapsible && (panelCount == null) %>">
-	<%@ include file="/html/taglib/ui/panel_container/javascript.jspf" %>
+<c:if test="<%= collapsible %>">
+	<aui:script sandbox="<%= true %>" use="aui-base,liferay-store">
+		var storeTask = A.debounce(Liferay.Store, 100);
+
+		Liferay.on('liferay.collapse.show', function(event) {
+			if (event.panel.getAttribute('id') === '<%= id %>Content') {
+				var task = {};
+
+				task['<%= id %>'] = false;
+
+				storeTask(task);
+			}
+		});
+
+		Liferay.on('liferay.collapse.hide', function(event) {
+			if (event.panel.getAttribute('id') === '<%= id %>Content') {
+				var task = {};
+
+				task['<%= id %>'] = true;
+
+				storeTask(task);
+			}
+		});
+	</aui:script>
 </c:if>

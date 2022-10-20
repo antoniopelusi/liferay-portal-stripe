@@ -14,6 +14,7 @@
 
 package com.liferay.commerce.internal.upgrade.v7_0_0;
 
+import com.liferay.account.constants.AccountListTypeConstants;
 import com.liferay.account.model.AccountEntry;
 import com.liferay.account.service.AccountEntryLocalService;
 import com.liferay.commerce.account.model.CommerceAccount;
@@ -73,7 +74,7 @@ public class CommerceAddressUpgradeProcess extends UpgradeProcess {
 				address.setClassPK(resultSet.getLong("classPK"));
 				address.setCountryId(resultSet.getLong("countryId"));
 				address.setRegionId(resultSet.getLong("regionId"));
-				address.setTypeId(_getTypeId(resultSet.getInt("type_")));
+				address.setTypeId(_getListTypeId(resultSet.getInt("type_")));
 				address.setCity(resultSet.getString("city"));
 				address.setDescription(resultSet.getString("description"));
 				address.setLatitude(resultSet.getDouble("latitude"));
@@ -97,19 +98,34 @@ public class CommerceAddressUpgradeProcess extends UpgradeProcess {
 		}
 	}
 
-	private int _getTypeId(int commerceAddressType) {
+	private long _getListTypeId(int commerceAddressType) {
+		String name = null;
+
 		if (CommerceAddressConstants.ADDRESS_TYPE_BILLING ==
 				commerceAddressType) {
 
-			return 14000;
+			name = AccountListTypeConstants.ACCOUNT_ENTRY_ADDRESS_TYPE_BILLING;
 		}
 		else if (CommerceAddressConstants.ADDRESS_TYPE_SHIPPING ==
 					commerceAddressType) {
 
-			return 14002;
+			name = AccountListTypeConstants.ACCOUNT_ENTRY_ADDRESS_TYPE_SHIPPING;
+		}
+		else {
+			name =
+				AccountListTypeConstants.
+					ACCOUNT_ENTRY_ADDRESS_TYPE_BILLING_AND_SHIPPING;
 		}
 
-		return 14001;
+		ListType listType = _listTypeLocalService.getListType(
+			name, AccountListTypeConstants.ACCOUNT_ENTRY_ADDRESS);
+
+		if (listType == null) {
+			listType = _listTypeLocalService.addListType(
+				name, AccountListTypeConstants.ACCOUNT_ENTRY_ADDRESS);
+		}
+
+		return listType.getListTypeId();
 	}
 
 	private void _setDefaultBilling(Address address, boolean defaultBilling) {

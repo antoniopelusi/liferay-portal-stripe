@@ -129,12 +129,20 @@ if (permissionChecker.isContentReviewer(user.getCompanyId(), scopeGroupId)) {
 			value="<%= String.valueOf(DLAppServiceUtil.getFoldersFileEntriesCount(repositoryId, Arrays.asList(curFolder.getFolderId()), status)) %>"
 		/>
 
-		<liferay-ui:search-container-column-jsp
-			align="right"
-			cssClass="entry-action"
-			path="/document_library/folder_action.jsp"
-		/>
+		<%
+		DLPortletInstanceSettingsHelper dlPortletInstanceSettingsHelper = new DLPortletInstanceSettingsHelper(new IGRequestHelper(request));
+		%>
+
+		<c:if test="<%= dlPortletInstanceSettingsHelper.isShowActions() %>">
+			<liferay-ui:search-container-column-jsp
+				align="right"
+				cssClass="entry-action"
+				path="/document_library/folder_action.jsp"
+			/>
+		</c:if>
 	</liferay-ui:search-container-row>
 
-	<liferay-ui:search-iterator />
+	<liferay-ui:search-iterator
+		markupView="lexicon"
+	/>
 </liferay-ui:search-container>

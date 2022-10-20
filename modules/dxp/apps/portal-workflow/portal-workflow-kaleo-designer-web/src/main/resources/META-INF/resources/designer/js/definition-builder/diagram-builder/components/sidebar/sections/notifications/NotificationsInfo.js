@@ -337,6 +337,27 @@ const NotificationsInfo = ({
 		}
 	};
 
+	let selectNotificationTypes = null;
+
+	if (notificationTypeEmail && notificationTypeUserNotification) {
+		const options = notificationTypesOptions.map(({label}) => label);
+
+		selectNotificationTypes = options.join(', ');
+	}
+	else if (notificationTypeEmail) {
+		selectNotificationTypes = notificationTypesOptions.find(
+			({value}) => value === 'email'
+		).label;
+	}
+	else if (notificationTypeUserNotification === true) {
+		selectNotificationTypes = notificationTypesOptions.find(
+			({value}) => value === 'userNotification'
+		).label;
+	}
+	else {
+		selectNotificationTypes = Liferay.Language.get('select');
+	}
+
 	if (selectedItem.type === 'task') {
 		if (
 			!recipientTypeOptions
@@ -556,7 +577,7 @@ const NotificationsInfo = ({
 					trigger={
 						<ClayInput
 							id="notification-types"
-							value={Liferay.Language.get('select')}
+							value={selectNotificationTypes}
 						/>
 					}
 				/>

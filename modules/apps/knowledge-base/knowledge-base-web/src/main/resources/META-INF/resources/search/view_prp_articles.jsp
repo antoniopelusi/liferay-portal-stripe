@@ -21,7 +21,7 @@
 </div>
 
 <liferay-portlet:renderURL varImpl="iteratorURL">
-	<portlet:param name="mvcPath" value="/search/search.jsp" />
+	<portlet:param name="mvcRenderCommandName" value="/knowledge_base/search" />
 	<portlet:param name="categoryId" value='<%= String.valueOf(ParamUtil.getLong(request, "categoryId")) %>' />
 	<portlet:param name="tag" value='<%= ParamUtil.getString(request, "tag") %>' />
 </liferay-portlet:renderURL>
@@ -39,7 +39,7 @@ KBViewPrpArticlesDisplayContext kbViewPrpArticlesDisplayContext = new KBViewPrpA
 		modelVar="assetEntry"
 	>
 		<liferay-portlet:renderURL varImpl="rowURL">
-			<portlet:param name="mvcPath" value="/search/view_article.jsp" />
+			<portlet:param name="mvcRenderCommandName" value="/knowledge_base/view_article" />
 			<portlet:param name="redirect" value="<%= currentURL %>" />
 			<portlet:param name="resourcePrimKey" value="<%= String.valueOf(assetEntry.getClassPK()) %>" />
 		</liferay-portlet:renderURL>
@@ -152,5 +152,7 @@ KBViewPrpArticlesDisplayContext kbViewPrpArticlesDisplayContext = new KBViewPrpA
 		</div>
 	</c:if>
 
-	<liferay-ui:search-iterator />
+	<liferay-ui:search-iterator
+		markupView="lexicon"
+	/>
 </liferay-ui:search-container>

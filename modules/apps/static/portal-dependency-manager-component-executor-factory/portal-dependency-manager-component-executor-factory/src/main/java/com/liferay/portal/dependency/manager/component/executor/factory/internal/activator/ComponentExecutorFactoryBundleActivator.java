@@ -21,6 +21,9 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.NamedThreadFactory;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
+import com.liferay.portal.util.PropsValues;
 
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -40,29 +43,35 @@ public class ComponentExecutorFactoryBundleActivator
 
 	@Override
 	public void start(BundleContext bundleContext) {
-		boolean threadPoolEnabled = GetterUtil.getBoolean(
-			bundleContext.getProperty("dependency.manager.thread.pool.enabled"),
-			true);
+		boolean threadPoolEnabled = false;
 
-		if (!threadPoolEnabled) {
-			return;
+		if (GetterUtil.getBoolean(
+				PropsUtil.get(PropsKeys.DEPENDENCY_MANAGER_THREAD_POOL_ENABLED),
+				true) &&
+			!PropsValues.UPGRADE_DATABASE_AUTO_RUN) {
+
+			threadPoolEnabled = true;
+		}
+
+		ThreadPoolExecutor threadPoolExecutor = null;
+
+		if (threadPoolEnabled) {
+			threadPoolExecutor = new ThreadPoolExecutor(
+				0, 1, 1, TimeUnit.MINUTES, new LinkedBlockingDeque<>(),
+				new NamedThreadFactory(
+					"Portal Dependency Manager Component Executor-",
+					Thread.NORM_PRIORITY,
+					ComponentExecutorFactory.class.getClassLoader()));
+
+			threadPoolExecutor.allowCoreThreadTimeOut(true);
+
+			_serviceRegistration = bundleContext.registerService(
+				ComponentExecutorFactory.class,
+				new ComponentExecutorFactoryImpl(threadPoolExecutor), null);
 		}
 
 		long syncTimeout = GetterUtil.getInteger(
-			bundleContext.getProperty("dependency.manager.sync.timeout"), 60);
-
-		ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
-			0, 1, 1, TimeUnit.MINUTES, new LinkedBlockingDeque<>(),
-			new NamedThreadFactory(
-				"Portal Dependency Manager Component Executor-",
-				Thread.NORM_PRIORITY,
-				ComponentExecutorFactory.class.getClassLoader()));
-
-		threadPoolExecutor.allowCoreThreadTimeOut(true);
-
-		_serviceRegistration = bundleContext.registerService(
-			ComponentExecutorFactory.class,
-			new ComponentExecutorFactoryImpl(threadPoolExecutor), null);
+			PropsUtil.get(PropsKeys.DEPENDENCY_MANAGER_SYNC_TIMEOUT), 60);
 
 		_dependencyManagerSyncServiceRegistration =
 			bundleContext.registerService(
@@ -74,23 +83,21 @@ public class ComponentExecutorFactoryBundleActivator
 
 	@Override
 	public void stop(BundleContext bundleContext) {
-		if (_serviceRegistration == null) {
-			return;
-		}
-
-		try {
-			_serviceRegistration.unregister();
-		}
-		catch (IllegalStateException illegalStateException) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(illegalStateException);
-			}
-
-			// Concurrent unregister, no need to do anything.
-
-		}
-
 		_dependencyManagerSyncServiceRegistration.unregister();
+
+		if (_serviceRegistration != null) {
+			try {
+				_serviceRegistration.unregister();
+			}
+			catch (IllegalStateException illegalStateException) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(illegalStateException);
+				}
+
+				// Concurrent unregister, no need to do anything.
+
+			}
+		}
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

@@ -120,19 +120,13 @@ public class CommerceInventoryWarehouseItemServiceUtil {
 			commerceInventoryWarehouseItemId);
 	}
 
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
-	 #getCommerceInventoryWarehouseItemByReferenceCode(String,
-	 long)}
-	 */
-	@Deprecated
 	public static CommerceInventoryWarehouseItem
-			getCommerceInventoryWarehouseItemByReferenceCode(
-				long companyId, String externalReferenceCode)
+			getCommerceInventoryWarehouseItem(
+				long commerceInventoryWarehouseId, String sku)
 		throws PortalException {
 
-		return getService().getCommerceInventoryWarehouseItemByReferenceCode(
-			companyId, externalReferenceCode);
+		return getService().getCommerceInventoryWarehouseItem(
+			commerceInventoryWarehouseId, sku);
 	}
 
 	public static CommerceInventoryWarehouseItem
@@ -231,6 +225,16 @@ public class CommerceInventoryWarehouseItemServiceUtil {
 	 */
 	public static String getOSGiServiceIdentifier() {
 		return getService().getOSGiServiceIdentifier();
+	}
+
+	public static int getStockQuantity(
+		long companyId, long groupId, String sku) {
+
+		return getService().getStockQuantity(companyId, groupId, sku);
+	}
+
+	public static int getStockQuantity(long companyId, String sku) {
+		return getService().getStockQuantity(companyId, sku);
 	}
 
 	public static CommerceInventoryWarehouseItem

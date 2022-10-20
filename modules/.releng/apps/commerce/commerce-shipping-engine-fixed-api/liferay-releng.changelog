@@ -97,3 +97,8 @@ a4c0cee8a74a524ed34efd194697c8912f941b6a^..ad0c5aaffc24b69cde830b480eb3f924971c8
 # Bundle Version 11.2.1
 #
 ad0c5aaffc24b69cde830b480eb3f924971c806d^..b6a7c3d984ab85b5ef36aeeee7279bd2ace66bea=COMMERCE-9036
+
+#
+# Bundle Version 11.2.2
+#
+b6a7c3d984ab85b5ef36aeeee7279bd2ace66bea^..5babf3f413ad49fff9eee9fcc8a67292f0da6846=LPS-159405

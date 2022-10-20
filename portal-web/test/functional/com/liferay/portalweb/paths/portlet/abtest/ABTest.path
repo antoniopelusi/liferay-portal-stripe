@@ -52,7 +52,7 @@
 </tr>
 <tr>
 	<td>CONNECTED_NOT_SYNC_BUTTON</td>
-	<td>xpath=(//h4[contains(.,'Sync to Liferay Analytics Cloud')])[2]</td>
+	<td>//div[div[h1[contains(.,'A/B Test')]]] //h4[contains(.,'Sync to Liferay Analytics Cloud')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -87,7 +87,7 @@
 </tr>
 <tr>
 	<td>HIDE_AB_TEST_BUTTON</td>
-	<td>xpath=(//a[contains(@class,'d-block')]//*[contains(text(),'Do not show me this again.')])[2]</td>
+	<td>//div[contains(@class,'sidebar') and descendant::span[contains(.,'A/B Test')]] //a[contains(.,'Do not show me this again')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -138,6 +138,16 @@
 <tr>
 	<td>EXPERIENCE_LOCKED_MESSAGE</td>
 	<td>//button[@class="nav-link btn btn-unstyled"]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>IMAGE_EMPTY_STATE</td>
+	<td>//*[contains(@class,'segments-experiments-empty-state__image') and (@src)]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>IMAGE_SUCCESS</td>
+	<td>//img[contains(@src,'/o/segments-experiment-web/images/success.gif')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -318,11 +328,6 @@
 <tr>
 	<td>VIEW_TEST_STATUS_ANALYTICS_CLOUD</td>
 	<td>//h3[contains(.,'t') and contains(text(),'${status}')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>IMAGE_SOURCE</td>
-	<td>//div[contains(@class,'text-center')]//img[contains(@src,'${key_image}')]</td>
 	<td></td>
 </tr>
 <tr>

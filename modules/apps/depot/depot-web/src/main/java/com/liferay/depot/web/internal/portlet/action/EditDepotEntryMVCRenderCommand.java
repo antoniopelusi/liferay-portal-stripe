@@ -18,10 +18,13 @@ import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.service.DepotEntryService;
 import com.liferay.depot.web.internal.constants.DepotAdminWebKeys;
 import com.liferay.depot.web.internal.constants.DepotPortletKeys;
+import com.liferay.depot.web.internal.display.context.DepotAdminDLDisplayContext;
+import com.liferay.document.library.configuration.DLSizeLimitConfigurationProvider;
 import com.liferay.item.selector.ItemSelector;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCRenderCommand;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.Portal;
 
 import javax.portlet.PortletException;
 import javax.portlet.RenderRequest;
@@ -53,6 +56,11 @@ public class EditDepotEntryMVCRenderCommand implements MVCRenderCommand {
 				ParamUtil.getLong(renderRequest, "depotEntryId"));
 
 			renderRequest.setAttribute(
+				DepotAdminDLDisplayContext.class.getName(),
+				new DepotAdminDLDisplayContext(
+					depotEntry, _dlSizeLimitConfigurationProvider,
+					_portal.getHttpServletRequest(renderRequest)));
+			renderRequest.setAttribute(
 				DepotAdminWebKeys.DEPOT_ENTRY, depotEntry);
 
 			renderRequest.setAttribute(
@@ -69,6 +77,12 @@ public class EditDepotEntryMVCRenderCommand implements MVCRenderCommand {
 	private DepotEntryService _depotEntryService;
 
 	@Reference
+	private DLSizeLimitConfigurationProvider _dlSizeLimitConfigurationProvider;
+
+	@Reference
 	private ItemSelector _itemSelector;
+
+	@Reference
+	private Portal _portal;
 
 }

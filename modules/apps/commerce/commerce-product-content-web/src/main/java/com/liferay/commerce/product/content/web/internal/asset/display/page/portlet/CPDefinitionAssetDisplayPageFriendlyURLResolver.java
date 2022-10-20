@@ -27,7 +27,6 @@ import com.liferay.commerce.product.configuration.CPDisplayLayoutConfiguration;
 import com.liferay.commerce.product.constants.CPConstants;
 import com.liferay.commerce.product.constants.CPPortletKeys;
 import com.liferay.commerce.product.constants.CPWebKeys;
-import com.liferay.commerce.product.content.web.internal.asset.display.page.portlet.helper.AssetDisplayPageFriendlyURLResolverHelper;
 import com.liferay.commerce.product.model.CPDefinition;
 import com.liferay.commerce.product.model.CPDisplayLayout;
 import com.liferay.commerce.product.model.CProduct;
@@ -45,13 +44,13 @@ import com.liferay.layout.display.page.LayoutDisplayPageObjectProvider;
 import com.liferay.layout.display.page.LayoutDisplayPageProvider;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutFriendlyURLComposite;
-import com.liferay.portal.kernel.module.configuration.ConfigurationProviderUtil;
+import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.portlet.FriendlyURLResolver;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.GroupLocalService;
@@ -62,14 +61,12 @@ import com.liferay.portal.kernel.util.InheritableMap;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.util.WebKeys;
 
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -94,9 +91,9 @@ public class CPDefinitionAssetDisplayPageFriendlyURLResolver
 
 		long classNameId = _portal.getClassNameId(CProduct.class);
 
-		String urlTitle = friendlyURL.substring(
-			_assetDisplayPageFriendlyURLResolverHelper.getURLSeparatorLength(
-				getURLSeparator()));
+		String urlSeparator = getURLSeparator();
+
+		String urlTitle = friendlyURL.substring(urlSeparator.length());
 
 		FriendlyURLEntry friendlyURLEntry =
 			_friendlyURLEntryLocalService.fetchFriendlyURLEntry(
@@ -156,9 +153,9 @@ public class CPDefinitionAssetDisplayPageFriendlyURLResolver
 
 		Group companyGroup = _groupLocalService.getCompanyGroup(companyId);
 
-		String urlTitle = friendlyURL.substring(
-			_assetDisplayPageFriendlyURLResolverHelper.getURLSeparatorLength(
-				getURLSeparator()));
+		String urlSeparator = getURLSeparator();
+
+		String urlTitle = friendlyURL.substring(urlSeparator.length());
 
 		FriendlyURLEntry friendlyURLEntry =
 			_friendlyURLEntryLocalService.fetchFriendlyURLEntry(
@@ -169,18 +166,7 @@ public class CPDefinitionAssetDisplayPageFriendlyURLResolver
 			return null;
 		}
 
-		HttpServletRequest httpServletRequest =
-			(HttpServletRequest)requestContext.get("request");
-
-		HttpSession httpSession = httpServletRequest.getSession();
-
-		Locale locale = (Locale)httpSession.getAttribute(WebKeys.LOCALE);
-
-		if (locale == null) {
-			locale = _portal.getLocale(httpServletRequest);
-		}
-
-		String languageId = LanguageUtil.getLanguageId(locale);
+		String languageId = _language.getLanguageId(getLocale(requestContext));
 
 		if (Validator.isBlank(friendlyURLEntry.getUrlTitle(languageId))) {
 			return null;
@@ -216,7 +202,8 @@ public class CPDefinitionAssetDisplayPageFriendlyURLResolver
 
 		return new LayoutFriendlyURLComposite(
 			layout,
-			getURLSeparator() + friendlyURLEntry.getUrlTitle(languageId));
+			getURLSeparator() + friendlyURLEntry.getUrlTitle(languageId),
+			false);
 	}
 
 	@Override
@@ -266,7 +253,7 @@ public class CPDefinitionAssetDisplayPageFriendlyURLResolver
 				layoutActualURL + StringPool.QUESTION + queryString;
 		}
 
-		String languageId = LanguageUtil.getLanguageId(locale);
+		String languageId = _language.getLanguageId(locale);
 
 		String description = cpCatalogEntry.getMetaDescription(languageId);
 
@@ -356,7 +343,7 @@ public class CPDefinitionAssetDisplayPageFriendlyURLResolver
 				groupId);
 
 		CPDisplayLayoutConfiguration cpDisplayLayoutConfiguration =
-			ConfigurationProviderUtil.getConfiguration(
+			_configurationProvider.getConfiguration(
 				CPDisplayLayoutConfiguration.class,
 				new GroupServiceSettingsLocator(
 					commerceChannel.getGroupId(),
@@ -378,9 +365,8 @@ public class CPDefinitionAssetDisplayPageFriendlyURLResolver
 			}
 		}
 
-		long plid =
-			_assetDisplayPageFriendlyURLResolverHelper.getPlidFromPortletId(
-				groupId, privateLayout, CPPortletKeys.CP_CONTENT_WEB);
+		long plid = _portal.getPlidFromPortletId(
+			groupId, privateLayout, CPPortletKeys.CP_CONTENT_WEB);
 
 		try {
 			return _layoutLocalService.getLayout(plid);
@@ -402,10 +388,6 @@ public class CPDefinitionAssetDisplayPageFriendlyURLResolver
 		_assetDisplayPageFriendlyURLProvider;
 
 	@Reference
-	private AssetDisplayPageFriendlyURLResolverHelper
-		_assetDisplayPageFriendlyURLResolverHelper;
-
-	@Reference
 	private AssetTagLocalService _assetTagLocalService;
 
 	@Reference
@@ -413,6 +395,9 @@ public class CPDefinitionAssetDisplayPageFriendlyURLResolver
 
 	@Reference
 	private CommerceChannelLocalService _commerceChannelLocalService;
+
+	@Reference
+	private ConfigurationProvider _configurationProvider;
 
 	@Reference
 	private CPDefinitionHelper _cpDefinitionHelper;
@@ -434,6 +419,9 @@ public class CPDefinitionAssetDisplayPageFriendlyURLResolver
 
 	@Reference
 	private GroupLocalService _groupLocalService;
+
+	@Reference
+	private Language _language;
 
 	@Reference
 	private LayoutLocalService _layoutLocalService;

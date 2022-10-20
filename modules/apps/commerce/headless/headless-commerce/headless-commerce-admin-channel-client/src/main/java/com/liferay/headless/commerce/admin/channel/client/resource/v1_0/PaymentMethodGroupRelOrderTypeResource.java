@@ -95,6 +95,12 @@ public interface PaymentMethodGroupRelOrderTypeResource {
 			return new PaymentMethodGroupRelOrderTypeResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -140,6 +146,7 @@ public interface PaymentMethodGroupRelOrderTypeResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -227,7 +234,7 @@ public interface PaymentMethodGroupRelOrderTypeResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-channel/v1.0/payment-method-group-rel-order-types/{paymentMethodGroupRelOrderTypeId}");
 
 			httpInvoker.path(
@@ -309,7 +316,7 @@ public interface PaymentMethodGroupRelOrderTypeResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-channel/v1.0/payment-method-group-rel-order-types/batch");
 
 			httpInvoker.userNameAndPassword(
@@ -414,7 +421,7 @@ public interface PaymentMethodGroupRelOrderTypeResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-channel/v1.0/payment-method-group-rels/{id}/payment-method-group-rel-order-types");
 
 			httpInvoker.path("id", id);
@@ -506,7 +513,7 @@ public interface PaymentMethodGroupRelOrderTypeResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-commerce-admin-channel/v1.0/payment-method-group-rels/{id}/payment-method-group-rel-order-types");
 
 			httpInvoker.path("id", id);

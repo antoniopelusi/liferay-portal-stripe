@@ -134,9 +134,19 @@ renderResponse.setTitle(headerTitle);
 	}
 	%>
 
-	<liferay-frontend:info-bar>
-		<aui:workflow-status markupView="lexicon" model="<%= DLFileEntry.class %>" showHelpMessage="<%= false %>" showIcon="<%= false %>" showLabel="<%= false %>" status="<%= fileVersion.getStatus() %>" version="<%= version %>" />
-	</liferay-frontend:info-bar>
+	<div class="management-bar management-bar-light navbar navbar-expand-md">
+		<clay:container-fluid>
+			<ul class="m-auto navbar-nav"></ul>
+
+			<ul class="middle navbar-nav">
+				<li class="nav-item">
+					<aui:workflow-status markupView="lexicon" model="<%= DLFileEntry.class %>" showHelpMessage="<%= false %>" showIcon="<%= false %>" showLabel="<%= false %>" status="<%= fileVersion.getStatus() %>" version="<%= version %>" />
+				</li>
+			</ul>
+
+			<ul class="end m-auto navbar-nav"></ul>
+		</clay:container-fluid>
+	</div>
 </c:if>
 
 <clay:container-fluid
@@ -209,7 +219,7 @@ renderResponse.setTitle(headerTitle);
 			<liferay-ui:error exception="<%= DuplicateFolderNameException.class %>" message="please-enter-a-unique-document-name" />
 
 			<liferay-ui:error exception="<%= LiferayFileItemException.class %>">
-				<liferay-ui:message arguments="<%= LanguageUtil.formatStorageSize(LiferayFileItem.THRESHOLD_SIZE, locale) %>" key="please-enter-valid-content-with-valid-content-size-no-larger-than-x" translateArguments="<%= false %>" />
+				<liferay-ui:message arguments="<%= LanguageUtil.formatStorageSize(FileItem.THRESHOLD_SIZE, locale) %>" key="please-enter-valid-content-with-valid-content-size-no-larger-than-x" translateArguments="<%= false %>" />
 			</liferay-ui:error>
 
 			<liferay-ui:error exception="<%= FileExtensionException.class %>">
@@ -338,24 +348,24 @@ renderResponse.setTitle(headerTitle);
 
 					<aui:input label="title" name="title" />
 
-					<div>
-						<aui:input label="file-name" name="fileName" type='<%= dlEditFileEntryDisplayContext.isFileNameVisible() ? "text" : "hidden" %>' />
+					<c:if test="<%= dlEditFileEntryDisplayContext.isFileNameVisible() %>">
+						<div>
+							<aui:input label="file-name" name="fileName" type="text" />
 
-						<c:if test="<%= fileVersion != null %>">
-							<react:component
-								module="document_library/js/FileNameInput.es"
-								props='<%=
-									HashMapBuilder.<String, Object>put(
-										"initialValue", fileVersion.getFileName()
-									).put(
-										"required", Validator.isNotNull(fileVersion.getExtension())
-									).put(
-										"visible", dlEditFileEntryDisplayContext.isFileNameVisible()
-									).build()
-								%>'
-							/>
-						</c:if>
-					</div>
+							<c:if test="<%= fileVersion != null %>">
+								<react:component
+									module="document_library/js/FileNameInput.es"
+									props='<%=
+										HashMapBuilder.<String, Object>put(
+											"initialValue", fileVersion.getFileName()
+										).put(
+											"required", Validator.isNotNull(fileVersion.getExtension())
+										).build()
+									%>'
+								/>
+							</c:if>
+						</div>
+					</c:if>
 
 					<c:if test="<%= (folder == null) || folder.isSupportsMetadata() %>">
 						<aui:input name="description" />
@@ -462,6 +472,7 @@ renderResponse.setTitle(headerTitle);
 												containerId='<%= liferayPortletResponse.getNamespace() + "dataEngineLayoutRenderer" + ddmStructure.getStructureId() %>'
 												dataDefinitionId="<%= ddmStructure.getStructureId() %>"
 												dataRecordValues="<%= ddmFormValuesToMapConverter.convert(ddmFormValues, DDMStructureLocalServiceUtil.getStructure(ddmStructure.getStructureId())) %>"
+												languageId="<%= dlEditFileEntryDisplayContext.getDLFileEntryTypeLanguageId(ddmStructure, PortalUtil.getLocale(request)) %>"
 												namespace="<%= liferayPortletResponse.getNamespace() + ddmStructure.getStructureId() + StringPool.UNDERLINE %>"
 												persistDefaultValues="<%= true %>"
 												persisted="<%= fileEntry != null %>"
@@ -554,7 +565,7 @@ renderResponse.setTitle(headerTitle);
 
 						<c:if test="<%= (fileEntry != null) && dlAdminDisplayContext.isAutoTaggingEnabled() %>">
 							<clay:checkbox
-								checked="<%= false %>"
+								checked="<%= dlAdminDisplayContext.isUpdateAutoTags() %>"
 								id='<%= liferayPortletResponse.getNamespace() + "updateAutoTags" %>'
 								label='<%= LanguageUtil.get(request, "update-auto-tags") %>'
 								name='<%= liferayPortletResponse.getNamespace() + "updateAutoTags" %>'
@@ -584,20 +595,18 @@ renderResponse.setTitle(headerTitle);
 					</aui:fieldset>
 				</c:if>
 
-				<c:if test="<%= FFFriendlyURLEntryFileEntryConfigurationUtil.enabled() %>">
-					<aui:fieldset collapsed="<%= true %>" collapsible="<%= true %>" label="friendly-url">
-						<liferay-friendly-url:input
-							className="<%= FileEntry.class.getName() %>"
-							classPK="<%= fileEntryId %>"
-							inputAddon="<%= dlEditFileEntryDisplayContext.getFriendlyURLBase() %>"
-							localizable="<%= false %>"
-							name="urlTitle"
-							showHistory="<%= true %>"
-						/>
+				<aui:fieldset collapsed="<%= true %>" collapsible="<%= true %>" label="friendly-url">
+					<liferay-friendly-url:input
+						className="<%= FileEntry.class.getName() %>"
+						classPK="<%= fileEntryId %>"
+						inputAddon="<%= dlEditFileEntryDisplayContext.getFriendlyURLBase() %>"
+						localizable="<%= false %>"
+						name="urlTitle"
+						showHistory="<%= true %>"
+					/>
 
-						<p class="text-secondary"><liferay-ui:message key="the-friendly-url-may-be-modified-to-ensure-uniqueness" /></p>
-					</aui:fieldset>
-				</c:if>
+					<p class="text-secondary"><liferay-ui:message key="the-friendly-url-may-be-modified-to-ensure-uniqueness" /></p>
+				</aui:fieldset>
 
 				<c:if test="<%= (folder == null) || folder.isSupportsSocial() %>">
 					<aui:fieldset collapsed="<%= true %>" collapsible="<%= true %>" label="related-assets">

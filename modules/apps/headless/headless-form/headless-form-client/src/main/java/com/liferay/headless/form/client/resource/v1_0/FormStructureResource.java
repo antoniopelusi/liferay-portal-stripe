@@ -68,6 +68,12 @@ public interface FormStructureResource {
 			return new FormStructureResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -113,6 +119,7 @@ public interface FormStructureResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -197,7 +204,7 @@ public interface FormStructureResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-form/v1.0/form-structures/{formStructureId}");
 
 			httpInvoker.path("formStructureId", formStructureId);
@@ -286,7 +293,7 @@ public interface FormStructureResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-form/v1.0/sites/{siteId}/form-structures");
 
 			httpInvoker.path("siteId", siteId);

@@ -15,29 +15,33 @@
 import ClayButton from '@clayui/button';
 import ClayForm from '@clayui/form';
 import ClayModal from '@clayui/modal';
+import {Observer} from '@clayui/modal/lib/types';
+import {
+	AutoComplete,
+	FormError,
+	useForm,
+} from '@liferay/object-js-components-web';
 import classNames from 'classnames';
-import React, {useContext, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 
-import useForm from '../../../hooks/useForm';
-import AutoComplete from '../../Form/AutoComplete';
-import LayoutContext, {TYPES} from '../context';
+import {TYPES, useLayoutContext} from '../objectLayoutContext';
 import {TObjectField} from '../types';
 import RequiredLabel from './RequiredLabel';
 
 const objectFieldSizes = [1, 2, 3];
-
-const defaultLanguageId = Liferay.ThemeDisplay.getDefaultLanguageId();
 
 type TInitialValues = {
 	objectFieldId: number;
 	objectFieldSize: number;
 };
 
-interface IBoxBtnColumnsProps extends React.HTMLAttributes<HTMLElement> {
-	handleChange: any;
+interface IBoxBtnColumnsProps {
+	setValues: (values: Partial<TInitialValues>) => void;
 }
 
-const BoxBtnColumns: React.FC<IBoxBtnColumnsProps> = ({handleChange}) => {
+const defaultLanguageId = Liferay.ThemeDisplay.getDefaultLanguageId();
+
+function BoxBtnColumns({setValues}: IBoxBtnColumnsProps) {
 	const [activeIndex, setActiveIndex] = useState<number>(0);
 
 	return (
@@ -51,13 +55,6 @@ const BoxBtnColumns: React.FC<IBoxBtnColumnsProps> = ({handleChange}) => {
 					);
 				}
 
-				const syntheticEvent = {
-					target: {
-						name: 'objectFieldSize',
-						value: String(objectFieldSize),
-					},
-				} as any;
-
 				return (
 					<button
 						className={classNames('box-btn-columns__btn', {
@@ -67,7 +64,7 @@ const BoxBtnColumns: React.FC<IBoxBtnColumnsProps> = ({handleChange}) => {
 						name="objectFieldSize"
 						onClick={() => {
 							setActiveIndex(objectFieldSizeIndex);
-							handleChange(syntheticEvent);
+							setValues({objectFieldSize});
 						}}
 						type="button"
 						value={objectFieldSize}
@@ -78,23 +75,22 @@ const BoxBtnColumns: React.FC<IBoxBtnColumnsProps> = ({handleChange}) => {
 			})}
 		</div>
 	);
-};
+}
 
-interface IModalAddObjectLayoutFieldProps
-	extends React.HTMLAttributes<HTMLElement> {
+interface IProps extends React.HTMLAttributes<HTMLElement> {
 	boxIndex: number;
-	observer: any;
+	observer: Observer;
 	onClose: () => void;
 	tabIndex: number;
 }
 
-const ModalAddObjectLayoutField: React.FC<IModalAddObjectLayoutFieldProps> = ({
+export default function ModalAddObjectLayoutField({
 	boxIndex,
 	observer,
 	onClose,
 	tabIndex,
-}) => {
-	const [{objectFields}, dispatch] = useContext(LayoutContext);
+}: IProps) {
+	const [{objectFields}, dispatch] = useLayoutContext();
 	const [query, setQuery] = useState<string>('');
 	const [selectedObjectField, setSelectedObjectField] = useState<
 		TObjectField
@@ -110,7 +106,7 @@ const ModalAddObjectLayoutField: React.FC<IModalAddObjectLayoutFieldProps> = ({
 		});
 	}, [objectFields, query]);
 
-	const onSubmit = (values: any) => {
+	const onSubmit = (values: TInitialValues) => {
 		dispatch({
 			payload: {
 				boxIndex,
@@ -124,8 +120,8 @@ const ModalAddObjectLayoutField: React.FC<IModalAddObjectLayoutFieldProps> = ({
 		onClose();
 	};
 
-	const onValidate = (values: any) => {
-		const errors: any = {};
+	const onValidate = (values: TInitialValues) => {
+		const errors: FormError<TInitialValues> = {};
 
 		if (!values.objectFieldId) {
 			errors.objectFieldId = Liferay.Language.get('required');
@@ -139,7 +135,7 @@ const ModalAddObjectLayoutField: React.FC<IModalAddObjectLayoutFieldProps> = ({
 		objectFieldSize: 1,
 	};
 
-	const {errors, handleChange, handleSubmit} = useForm({
+	const {errors, handleSubmit, setValues} = useForm({
 		initialValues,
 		onSubmit,
 		validate: onValidate,
@@ -168,15 +164,8 @@ const ModalAddObjectLayoutField: React.FC<IModalAddObjectLayoutFieldProps> = ({
 						label={Liferay.Language.get('field')}
 						onChangeQuery={setQuery}
 						onSelectItem={(item) => {
-							const syntheticEvent: any = {
-								target: {
-									name: 'objectFieldId',
-									value: item.id,
-								},
-							};
-
 							setSelectedObjectField(item);
-							handleChange(syntheticEvent);
+							setValues({objectFieldId: item.id});
 						}}
 						query={query}
 						required
@@ -193,7 +182,7 @@ const ModalAddObjectLayoutField: React.FC<IModalAddObjectLayoutFieldProps> = ({
 						)}
 					</AutoComplete>
 
-					<BoxBtnColumns handleChange={handleChange} />
+					<BoxBtnColumns setValues={setValues} />
 				</ClayModal.Body>
 
 				<ClayModal.Footer
@@ -215,6 +204,4 @@ const ModalAddObjectLayoutField: React.FC<IModalAddObjectLayoutFieldProps> = ({
 			</ClayForm>
 		</ClayModal>
 	);
-};
-
-export default ModalAddObjectLayoutField;
+}

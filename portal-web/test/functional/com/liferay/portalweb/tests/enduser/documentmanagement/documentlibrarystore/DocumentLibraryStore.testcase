@@ -73,9 +73,7 @@ definition {
 		JSONGroup.addGroup(groupName = "Site A");
 
 		var bucketID = PropsUtil.get("aws.bucket.id");
-
 		var companyId = JSONCompany.getCompanyId();
-
 		var groupId = JSONGroupAPI._getGroupIdByName(
 			groupName = "Site A",
 			site = "true");
@@ -118,9 +116,7 @@ definition {
 		JSONGroup.addGroup(groupName = "Test Site Name");
 
 		var bucketId = PropsUtil.get("aws.bucket.id");
-
 		var companyId = JSONCompany.getCompanyId();
-
 		var groupId = JSONGroupAPI._getGroupIdByName(
 			groupName = "Test Site Name",
 			site = "true");
@@ -243,6 +239,105 @@ definition {
 		DMNavigator.gotoDocumentCP(dmDocumentTitle = "DM Document Title");
 
 		DMDocument.viewCP(dmDocumentTitle = "DM Document Title");
+	}
+
+	@description = "This is a use case for LPS-122233."
+	@priority = "3"
+	test ReIndexingDoesNotAddNewS3StoreCacheFiles {
+		property aws.store.enabled = "true";
+		property test.name.skip.portal.instance = "DocumentLibraryStore#ReIndexingDoesNotAddNewS3StoreCacheFiles";
+
+		JSONGroup.addGroup(groupName = "Site Name");
+
+		for (var fileNum : list "1,2") {
+			JSONDocument.addFileWithUploadedFile(
+				dmDocumentDescription = "DM Document Description",
+				dmDocumentTitle = "DM Document Title ${fileNum}",
+				groupName = "Site Name",
+				mimeType = "image/jpeg",
+				sourceFileName = "Document_${fileNum}.jpg");
+		}
+
+		var tempDir = PropsUtil.get("app.server.temp.dir");
+		var displayDateHour = DateUtil.getFormattedCurrentDate("HH", "UTC");
+		var displayDateDay = DateUtil.getFormattedCurrentDate("dd", "UTC");
+		var displayDateMonth = DateUtil.getFormattedCurrentDate("MM", "UTC");
+		var displayDateYear = DateUtil.getFormattedCurrentDate("yyyy", "UTC");
+
+		var s3TempDir = "${tempDir}/liferay/s3/${displayDateYear}/${displayDateMonth}/${displayDateDay}/${displayDateHour}";
+
+		var filesBeforeReIndex = FileUtil.listFiles("${s3TempDir}");
+
+		echo("S3 temp directory files before reindex: ${filesBeforeReIndex}.");
+
+		if ("${filesBeforeReIndex}" == "") {
+			fail("The S3 directory is empty at ${s3TempDir}.");
+		}
+
+		SearchAdministration.executeReindex();
+
+		var filesAfterReIndex = FileUtil.listFiles("${s3TempDir}");
+
+		echo("S3 temp directory files after reindex: ${filesAfterReIndex}.");
+
+		if ("${filesBeforeReIndex}" == "${filesAfterReIndex}") {
+			echo("The S3 temp directory remains unchanged after re-indexing.");
+		}
+		else {
+			fail("The S3 temp directory modified after re-indexing.");
+		}
+	}
+
+	@description = "This is a use case for LPS-127589."
+	@priority = "3"
+	test S3ConnectionDoesNotLeakWhenServingFileAsStream {
+		property aws.store.enabled = "true";
+		property test.name.skip.portal.instance = "DocumentLibraryStore#S3ConnectionDoesNotLeakWhenServingFileAsStream";
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentTitle = "DM Document Title",
+			groupName = "Guest",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_1.jpg");
+
+		ServerAdministration.openServerAdmin();
+
+		var script = '''
+			import com.liferay.document.library.kernel.service.DLFileEntryLocalServiceUtil;
+			import com.liferay.document.library.kernel.store.DLStoreUtil;
+ 
+			List fileEntries = DLFileEntryLocalServiceUtil.getFileEntries(0,1);
+ 
+			fileEntries.each { fileEntry ->
+				(1..60).each {
+					try {
+						InputStream is = DLStoreUtil.getFileAsStream(fileEntry.getCompanyId(), fileEntry.getRepositoryId(), fileEntry.getName())
+					} 
+					catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		''';
+
+		ServerAdministration.executeScript(
+			language = "Groovy",
+			script = "${script}");
+
+		AssertConsoleTextNotPresent(value1 = "ConnectionPoolTimeoutException");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		DMDocument.editCP(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentDescriptionEdit = "DM Document Description Edit",
+			dmDocumentTitle = "DM Document Title",
+			dmDocumentTitleEdit = "DM Document Title Edit");
+
+		DMDocument.viewEditCP(
+			dmDocumentTitleEdit = "DM Document Title Edit",
+			dmDocumentVersionNumber = "1.1");
 	}
 
 }

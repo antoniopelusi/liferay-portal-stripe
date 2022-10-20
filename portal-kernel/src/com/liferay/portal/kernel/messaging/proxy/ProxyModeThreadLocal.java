@@ -26,21 +26,12 @@ public class ProxyModeThreadLocal {
 		return _forceSync.get();
 	}
 
-	/**
-	 * @deprecated As of Mueller (7.2.x), replaced by {@link
-	 *             #setWithSafeClosable(boolean)}
-	 */
-	@Deprecated
-	public static void setForceSync(boolean forceSync) {
-		_forceSync.set(forceSync);
-	}
-
 	public static SafeCloseable setWithSafeCloseable(boolean forceSync) {
 		return _forceSync.setWithSafeCloseable(forceSync);
 	}
 
 	private static final CentralizedThreadLocal<Boolean> _forceSync =
 		new CentralizedThreadLocal<>(
-			ProxyModeThreadLocal.class + "_forceSync", () -> Boolean.TRUE);
+			ProxyModeThreadLocal.class + "._forceSync", () -> Boolean.TRUE);
 
 }

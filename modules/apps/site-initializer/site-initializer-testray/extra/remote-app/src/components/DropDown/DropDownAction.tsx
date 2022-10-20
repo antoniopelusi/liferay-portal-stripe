@@ -13,41 +13,51 @@
  */
 
 import ClayDropDown from '@clayui/drop-down';
+import ClayIcon from '@clayui/icon';
+import {KeyedMutator} from 'swr';
 
-const {Divider, Item} = ClayDropDown;
+import {Action} from '../../types';
 
 type DropDownActionProps<T = any> = {
-	action: {
-		action?: (item: T) => void;
-		name: ((item: T) => string) | string;
-	};
+	action: Omit<Action, 'permission'>;
 	item: T;
+	mutate?: KeyedMutator<T>;
+	onBeforeClickAction?: () => any;
 	setActive: (active: boolean) => void;
 };
 
 const DropDownAction: React.FC<DropDownActionProps> = ({
-	action: {action, name},
+	action: {action, disabled, icon, name},
 	item,
+	mutate = () => {},
+	onBeforeClickAction,
 	setActive,
 }) => {
 	if (name === 'divider') {
-		return <Divider />;
+		return <ClayDropDown.Divider />;
 	}
 
 	return (
-		<Item
+		<ClayDropDown.Item
+			disabled={disabled}
 			onClick={(event) => {
 				event.preventDefault();
 
 				setActive(false);
 
 				if (action) {
-					action(item);
+					if (onBeforeClickAction) {
+						onBeforeClickAction();
+					}
+
+					action(item, mutate as KeyedMutator<any>);
 				}
 			}}
 		>
+			{icon && <ClayIcon className="mr-2" symbol={icon} />}
+
 			{typeof name === 'function' ? name(item) : name}
-		</Item>
+		</ClayDropDown.Item>
 	);
 };
 

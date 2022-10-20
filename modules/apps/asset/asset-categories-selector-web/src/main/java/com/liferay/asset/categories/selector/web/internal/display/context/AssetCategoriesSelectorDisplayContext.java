@@ -27,7 +27,6 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
-import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Group;
@@ -103,7 +102,7 @@ public class AssetCategoriesSelectorDisplayContext {
 				AssetCategoriesAdminPortletKeys.ASSET_CATEGORIES_ADMIN,
 				PortletRequest.RENDER_PHASE)
 		).setMVCPath(
-			"/edit_category.jsp"
+			"/edit_asset_category.jsp"
 		).setRedirect(
 			themeDisplay.getURLCurrent()
 		).setParameter(
@@ -120,42 +119,18 @@ public class AssetCategoriesSelectorDisplayContext {
 	public JSONArray getCategoriesJSONArray() throws Exception {
 		JSONArray vocabulariesJSONArray = _getVocabulariesJSONArray();
 
-		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
-
 		if (vocabulariesJSONArray.length() == 1) {
-			jsonObject = vocabulariesJSONArray.getJSONObject(0);
-		}
-		else {
-			ThemeDisplay themeDisplay =
-				(ThemeDisplay)_httpServletRequest.getAttribute(
-					WebKeys.THEME_DISPLAY);
-
-			jsonObject.put(
-				"children", vocabulariesJSONArray
-			).put(
-				"icon", "folder"
-			).put(
-				"id", "0"
-			).put(
-				"name",
-				LanguageUtil.get(themeDisplay.getLocale(), "vocabularies")
-			);
+			return JSONUtil.put(vocabulariesJSONArray.getJSONObject(0));
 		}
 
-		jsonObject.put(
-			"disabled", true
-		).put(
-			"expanded", true
-		).put(
-			"vocabulary", true
-		);
-
-		return JSONUtil.put(jsonObject);
+		return vocabulariesJSONArray;
 	}
 
 	public Map<String, Object> getData() throws Exception {
 		return HashMapBuilder.<String, Object>put(
 			"addCategoryURL", getAddCategoryURL()
+		).put(
+			"inheritSelection", _isInheritSelection()
 		).put(
 			"itemSelectorSaveEvent", HtmlUtil.escapeJS(getEventName())
 		).put(
@@ -168,6 +143,8 @@ public class AssetCategoriesSelectorDisplayContext {
 			"nodes", getCategoriesJSONArray()
 		).put(
 			"selectedCategoryIds", getSelectedCategoryIds()
+		).put(
+			"showSelectedCounter", showSelectedCounter()
 		).build();
 	}
 
@@ -304,6 +281,17 @@ public class AssetCategoriesSelectorDisplayContext {
 		return _singleSelect;
 	}
 
+	public boolean showSelectedCounter() {
+		if (_showSelectedCounter != null) {
+			return _showSelectedCounter;
+		}
+
+		_showSelectedCounter = ParamUtil.getBoolean(
+			_httpServletRequest, "showSelectedCounter");
+
+		return _showSelectedCounter;
+	}
+
 	private JSONArray _getCategoriesJSONArray(
 			long vocabularyId, long categoryId)
 		throws Exception {
@@ -383,13 +371,26 @@ public class AssetCategoriesSelectorDisplayContext {
 		return jsonArray;
 	}
 
+	private boolean _isInheritSelection() {
+		if (_inheritSelection != null) {
+			return _inheritSelection;
+		}
+
+		_inheritSelection = ParamUtil.getBoolean(
+			_httpServletRequest, "inheritSelection");
+
+		return _inheritSelection;
+	}
+
 	private Boolean _allowedSelectVocabularies;
 	private String _eventName;
 	private final HttpServletRequest _httpServletRequest;
+	private Boolean _inheritSelection;
 	private Boolean _moveCategory;
 	private final RenderRequest _renderRequest;
 	private final RenderResponse _renderResponse;
 	private List<String> _selectedCategoryIds;
+	private Boolean _showSelectedCounter;
 	private Boolean _singleSelect;
 	private long[] _vocabularyIds;
 

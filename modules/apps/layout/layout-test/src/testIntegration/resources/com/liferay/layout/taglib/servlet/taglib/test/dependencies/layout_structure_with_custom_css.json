@@ -1,0 +1,39 @@
+{
+	"deletedItems": [
+	],
+	"items": {
+		"root": {
+			"children": [
+				"z896587a-c659-43f5-9e22"
+			],
+			"itemId": "root",
+			"parentId": "",
+			"type": "root"
+		},
+		"z896587a-c659-43f5-9e22": {
+			"children": [
+			],
+			"config": {
+				"customCSS": ".[$FRAGMENT_CLASS$] { color: blue; }",
+				"landscapeMobile": {
+					"customCSS": ".[$FRAGMENT_CLASS$] { color: red; }"
+				},
+				"portraitMobile": {
+					"customCSS": ".[$FRAGMENT_CLASS$] { color: pink; }"
+				},
+				"tablet": {
+					"customCSS": ".[$FRAGMENT_CLASS$] { color: yellow; }"
+				},
+				"widthType": "fluid"
+			},
+			"itemId": "z896587a-c659-43f5-9e22",
+			"parentId": "root",
+			"type": "container"
+		}
+	},
+	"rootItems": {
+		"dropZone": "",
+		"main": "root"
+	},
+	"version": 1.1
+}

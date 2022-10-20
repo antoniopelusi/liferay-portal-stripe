@@ -15,25 +15,31 @@
 package com.liferay.commerce.product.internal.upgrade.v2_3_0;
 
 import com.liferay.commerce.pricing.constants.CommercePricingConstants;
-import com.liferay.commerce.product.internal.upgrade.base.BaseCommerceProductServiceUpgradeProcess;
+import com.liferay.portal.kernel.upgrade.UpgradeProcess;
+import com.liferay.portal.kernel.upgrade.UpgradeProcessFactory;
+import com.liferay.portal.kernel.upgrade.UpgradeStep;
 
 /**
  * @author Riccardo Alberti
  */
-public class CommerceChannelUpgradeProcess
-	extends BaseCommerceProductServiceUpgradeProcess {
+public class CommerceChannelUpgradeProcess extends UpgradeProcess {
 
 	@Override
 	public void doUpgrade() throws Exception {
-		addColumn("CommerceChannel", "priceDisplayType", "VARCHAR(75)");
-
-		addColumn("CommerceChannel", "discountsTargetNetPrice", "BOOLEAN");
-
 		runSQL(
 			"update CommerceChannel set priceDisplayType = '" +
 				CommercePricingConstants.TAX_EXCLUDED_FROM_PRICE + "'");
 
 		runSQL("update CommerceChannel set discountsTargetNetPrice = [$TRUE$]");
+	}
+
+	@Override
+	protected UpgradeStep[] getPreUpgradeSteps() {
+		return new UpgradeStep[] {
+			UpgradeProcessFactory.addColumns(
+				"CommerceChannel", "priceDisplayType VARCHAR(75)",
+				"discountsTargetNetPrice BOOLEAN")
+		};
 	}
 
 }

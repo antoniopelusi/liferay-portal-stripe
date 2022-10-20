@@ -139,11 +139,11 @@ definition {
 
 		Alert.viewInfoMessageSpecific(infoMessage = "The TensorFlow model is being downloaded in the background. No tags will be created until the model is fully downloaded");
 
-		while (IsElementPresent(key_infoMessage = "The TensorFlow model is being downloaded in the background. No tags will be created until the model is fully downloaded", locator1 = "Message#INFO_SPECIFIC")) {
-			Pause(locator1 = "20000");
+		WaitForConsoleTextPresent(value1 = "Downloaded https://repository-cdn.liferay.com/nexus/service/local/repositories/public/content/com/liferay/org.tensorflow.models.inception/5h/org.tensorflow.models.inception-5h.jar");
 
-			Refresh();
-		}
+		WaitForConsoleTextPresent(value1 = "Downloaded https://repository-cdn.liferay.com/nexus/service/local/repositories/public/content/org/tensorflow/libtensorflow_jni/1.15.0/libtensorflow_jni-1.15.0.jar");
+
+		Refresh();
 
 		AssertElementNotPresent(
 			key_infoMessage = "The TensorFlow model will be downloaded in the background. No tags will be created until the model is fully downloaded",
@@ -152,6 +152,34 @@ definition {
 		AssertElementNotPresent(
 			key_infoMessage = "The TensorFlow model is being downloaded in the background. No tags will be created until the model is fully downloaded",
 			locator1 = "Message#INFO_SPECIFIC");
+	}
+
+	macro enableUpdateAutoTags {
+		if ("${enableUpdateAutoTagsFor}" == "System Settings") {
+			AutoTagging.openToAssetAutoTagging(configurationScope = "System Settings");
+
+			Click(
+				key_configurationName = "Asset Auto Tagging",
+				key_configurationScope = "Virtual Instance Scope",
+				locator1 = "SystemSettings#SCOPED_CONFIGURATION_NAME");
+		}
+		else if ("${enableUpdateAutoTagsFor}" == "Instance Settings") {
+			AutoTagging.openToAssetAutoTagging(configurationScope = "Instance Settings");
+
+			Click(
+				key_configurationName = "Asset Auto Tagging",
+				key_configurationScope = "Virtual Instance Scope",
+				locator1 = "SystemSettings#SCOPED_CONFIGURATION_NAME");
+		}
+
+		FormFields.enableCheckbox(fieldName = "Update Auto Tags");
+
+		if (IsElementPresent(locator1 = "Button#UPDATE")) {
+			PortletEntry.update();
+		}
+		else if (IsElementPresent(locator1 = "Button#SAVE")) {
+			PortletEntry.save();
+		}
 	}
 
 	macro openToAssetAutoTagging {
@@ -191,6 +219,32 @@ definition {
 		var baseURL = PropsUtil.get("portal.url");
 
 		Open(locator1 = "${baseURL}/group/control_panel/manage?p_p_id=com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet&_com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet_factoryPid=com.liferay.document.library.asset.auto.tagger.tensorflow.internal.configuration.TensorFlowImageAssetAutoTagProviderCompanyConfiguration&_com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet_mvcRenderCommandName=%2Fconfiguration_admin%2Fedit_configuration");
+	}
+
+	macro viewUpdateAutoTagsSetting {
+		if ("${updateAutoTagsFor}" == "System Settings") {
+			AutoTagging.openToAssetAutoTagging(configurationScope = "System Settings");
+
+			Click(
+				key_configurationName = "Asset Auto Tagging",
+				key_configurationScope = "Virtual Instance Scope",
+				locator1 = "SystemSettings#SCOPED_CONFIGURATION_NAME");
+		}
+		else {
+			Panel.expandPanel(panel = "Categorization");
+		}
+
+		if ("${updateAutoTags}" == "disabled") {
+			FormFields.viewCheckboxNotChecked(fieldName = "Update Auto Tags");
+		}
+		else if ("${updateAutoTags}" == "hidden") {
+			AssertElementNotPresent(
+				key_fieldName = "Update Auto Tags",
+				locator1 = "FormFields#CHECKBOX_LABEL");
+		}
+		else {
+			FormFields.viewCheckboxChecked(fieldName = "Update Auto Tags");
+		}
 	}
 
 }

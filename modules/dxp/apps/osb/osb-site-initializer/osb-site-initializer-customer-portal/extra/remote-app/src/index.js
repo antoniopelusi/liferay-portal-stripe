@@ -10,64 +10,84 @@
  */
 
 import {ApolloProvider} from '@apollo/client';
-import React from 'react';
-import ReactDOM from 'react-dom';
-
 import './common/styles/global.scss';
-import apolloClient from './apolloClient';
-import AppContextProvider from './common/context/AppPropertiesProvider';
-import ClayProvider from './common/providers/ClayProvider';
+import {ClayIconSpriteContext} from '@clayui/icon';
+import ClayLoadingIndicator from '@clayui/loading-indicator';
+import ReactDOM from 'react-dom';
+import {AppPropertiesContext} from './common/contexts/AppPropertiesContext';
+import useApollo from './common/hooks/useApollo';
+import useGlobalNetworkIndicator from './common/hooks/useGlobalNetworkIndicator';
+import getIconSpriteMap from './common/utils/getIconSpriteMap';
 import CustomerPortal from './routes/customer-portal';
+import Home from './routes/home';
 import Onboarding from './routes/onboarding';
 
-const CustomerPortalApplication = ({liferaywebdavurl, page, route}) => {
-	if (route === 'portal') {
-		return <CustomerPortal assetsPath={liferaywebdavurl} page={page} />;
+const ELEMENT_ID = 'liferay-remote-app-customer-portal';
+
+const AppRoutes = {
+	home: <Home />,
+	onboarding: <Onboarding />,
+	portal: <CustomerPortal />,
+};
+
+const CustomerPortalApp = ({apis, route, ...properties}) => {
+	const {client, networkStatus} = useApollo();
+	useGlobalNetworkIndicator(networkStatus);
+
+	if (!client) {
+		return <ClayLoadingIndicator />;
 	}
 
-	if (route === 'onboarding') {
-		return <Onboarding assetsPath={liferaywebdavurl} />;
-	}
+	return (
+		<ApolloProvider client={client}>
+			<AppPropertiesContext.Provider
+				value={{
+					...properties,
+					...apis,
+					client,
+				}}
+			>
+				{AppRoutes[route]}
+			</AppPropertiesContext.Provider>
+		</ApolloProvider>
+	);
 };
 
 class CustomerPortalWebComponent extends HTMLElement {
 	connectedCallback() {
 		const properties = {
-			createSupportRequest: super.getAttribute('create-support-request'),
-			customerPortalRoles: super.getAttribute(
-				'customer-portal-roles-url'
+			articleAccountSupportURL: super.getAttribute(
+				'article-account-support-url'
 			),
-			deployingActivationKeysURL: super.getAttribute(
-				'deploying-activation-keys-url'
+			articleDeployingActivationKeysURL: super.getAttribute(
+				'article-deploying-activation-keys-url'
 			),
-			gravatarAvatarURL: super.getAttribute('gravatar-avatar-url'),
-			licenseKeyDownloadURL: super.getAttribute(
-				'license-key-download-url'
+			liferayWebDAV: super.getAttribute('liferaywebdavurl'),
+			submitSupportTicketURL: super.getAttribute(
+				'submit-support-ticket-url'
 			),
-			liferaywebdavurl: super.getAttribute('liferaywebdavurl'),
-			oktaSessionURL: super.getAttribute('okta-session-url'),
-			page: super.getAttribute('page'),
-			route: super.getAttribute('route'),
-			supportLink: super.getAttribute('support-link'),
 		};
+
+		const apis = {
+			gravatarAPI: super.getAttribute('gravatar-api'),
+			oktaSessionAPI: super.getAttribute('okta-session-api'),
+			provisioningServerAPI: super.getAttribute(
+				'provisioning-server-api'
+			),
+		};
+
 		ReactDOM.render(
-			<ClayProvider>
-				<ApolloProvider client={apolloClient}>
-					<AppContextProvider properties={properties}>
-						<CustomerPortalApplication
-							liferaywebdavurl={properties.liferaywebdavurl}
-							page={properties.page}
-							route={properties.route}
-						/>
-					</AppContextProvider>
-				</ApolloProvider>
-			</ClayProvider>,
+			<ClayIconSpriteContext.Provider value={getIconSpriteMap()}>
+				<CustomerPortalApp
+					{...properties}
+					apis={apis}
+					route={super.getAttribute('route')}
+				/>
+			</ClayIconSpriteContext.Provider>,
 			this
 		);
 	}
 }
-
-const ELEMENT_ID = 'liferay-remote-app-customer-portal';
 
 if (!customElements.get(ELEMENT_ID)) {
 	customElements.define(ELEMENT_ID, CustomerPortalWebComponent);

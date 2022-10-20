@@ -5,7 +5,6 @@ definition {
 		Variables.assertDefined(parameterList = "${groupName},${layoutName}");
 
 		var friendlyURL = JSONLayoutSetter.setFriendlyURL(friendlyURL = "${friendlyURL}");
-
 		var groupId = JSONLayoutSetter.setGroupId(
 			grandParentGroupName = "${grandParentGroupName}",
 			groupName = "${groupName}",
@@ -16,13 +15,11 @@ definition {
 			groupId = "${groupId}",
 			parentLayoutName = "${parentLayoutName}",
 			privateLayout = "true");
-
 		var serviceContext = JSONLayoutSetter.setServiceContext(
 			assetCategoryIds = "${assetCategoryIds}",
 			assetTagNames = "${assetTagNames}",
 			serviceContext = "${serviceContext}",
 			workflowAction = "${workflowAction}");
-
 		var type = JSONLayoutSetter.setType(type = "${type}");
 
 		var plid = JSONLayoutAPI._addLayout(
@@ -42,7 +39,6 @@ definition {
 		Variables.assertDefined(parameterList = "${groupName},${layoutName}");
 
 		var friendlyURL = JSONLayoutSetter.setFriendlyURL(friendlyURL = "${friendlyURL}");
-
 		var groupId = JSONLayoutSetter.setGroupId(
 			grandParentGroupName = "${grandParentGroupName}",
 			groupName = "${groupName}",
@@ -53,13 +49,11 @@ definition {
 			groupId = "${groupId}",
 			parentLayoutName = "${parentLayoutName}",
 			privateLayout = "false");
-
 		var serviceContext = JSONLayoutSetter.setServiceContext(
 			assetCategoryIds = "${assetCategoryIds}",
 			assetTagNames = "${assetTagNames}",
 			serviceContext = "${serviceContext}",
 			workflowAction = "${workflowAction}");
-
 		var type = JSONLayoutSetter.setType(type = "${type}");
 
 		var plid = JSONLayoutAPI._addLayout(
@@ -88,7 +82,6 @@ definition {
 			groupId = "${groupId}",
 			layoutName = "${layoutName}",
 			privateLayout = "true");
-
 		var typeSettings = JSONLayoutSetter.setTypeSettings(
 			groupId = "${groupId}",
 			layoutName = "${layoutName}",
@@ -120,7 +113,6 @@ definition {
 			groupId = "${groupId}",
 			layoutName = "${layoutName}",
 			privateLayout = "false");
-
 		var typeSettings = JSONLayoutSetter.setTypeSettings(
 			column = "${column}",
 			groupId = "${groupId}",
@@ -146,7 +138,6 @@ definition {
 			groupId = "${groupId}",
 			layoutName = "${layoutName}",
 			privateLayout = "false");
-
 		var serviceContext = JSONLayoutSetter.setServiceContext(
 			assetCategoryIds = "${assetCategoryIds}",
 			assetTagNames = "${assetTagNames}",
@@ -223,7 +214,6 @@ definition {
 			groupId = "${groupId}",
 			layoutName = "${layoutName}",
 			privateLayout = "false");
-
 		var typeSettings = JSONLayoutSetter.setTypeSettings(
 			column = "${column}",
 			groupId = "${groupId}",

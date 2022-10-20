@@ -36,12 +36,12 @@ public class JoinXorNodeValidator extends BaseNodeValidator<JoinXor> {
 
 		if (joinXor.getIncomingTransitionsCount() == 0) {
 			throw new KaleoDefinitionValidationException.
-				MustSetIncomingTransition(joinXor.getName());
+				MustSetIncomingTransition(joinXor.getDefaultLabel());
 		}
 
 		if (joinXor.getOutgoingTransitionsCount() == 0) {
 			throw new KaleoDefinitionValidationException.
-				MustSetOutgoingTransition(joinXor.getName());
+				MustSetOutgoingTransition(joinXor.getDefaultLabel());
 		}
 	}
 

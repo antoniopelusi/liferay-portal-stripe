@@ -15,7 +15,7 @@
 package com.liferay.portal.language.override.web.internal.portlet.configuration.icon;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
@@ -45,10 +45,15 @@ public class ExportPLOEntriesPortletConfigurationIcon
 	extends BasePortletConfigurationIcon {
 
 	@Override
+	public String getCssClass() {
+		return "text-nowrap";
+	}
+
+	@Override
 	public String getMessage(PortletRequest portletRequest) {
-		return LanguageUtil.get(
+		return _language.get(
 			getResourceBundle(getLocale(portletRequest)),
-			"export-all-translations");
+			"export-overridden-translations");
 	}
 
 	@Override
@@ -91,6 +96,9 @@ public class ExportPLOEntriesPortletConfigurationIcon
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		ExportPLOEntriesPortletConfigurationIcon.class);
+
+	@Reference
+	private Language _language;
 
 	@Reference
 	private PLOEntryService _ploEntryService;

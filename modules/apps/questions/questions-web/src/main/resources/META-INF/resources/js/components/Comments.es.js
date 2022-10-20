@@ -23,6 +23,7 @@ import {createCommentQuery} from '../utils/client.es';
 import {getContextLink} from '../utils/utils.es';
 import Comment from './Comment.es';
 import DefaultQuestionsEditor from './DefaultQuestionsEditor.es';
+import SubscritionCheckbox from './SubscribeCheckbox.es';
 
 export default withRouter(
 	({
@@ -33,6 +34,8 @@ export default withRouter(
 		match: {
 			params: {questionId, sectionTitle},
 		},
+		onSubscription,
+		question,
 		showNewComment,
 		showNewCommentChange,
 	}) => {
@@ -40,6 +43,7 @@ export default withRouter(
 
 		const editorRef = useRef('');
 
+		const [allowSubscription, setAllowSubscription] = useState(false);
 		const [isReplyButtonDisable, setIsReplyButtonDisable] = useState(false);
 
 		const [createComment] = useMutation(createCommentQuery);
@@ -57,6 +61,29 @@ export default withRouter(
 			[commentsChange, comments]
 		);
 
+		const onCreateComment = async () => {
+			const {data} = await createComment({
+				fetchOptionsOverrides: getContextLink(
+					`${sectionTitle}/${questionId}`
+				),
+				variables: {
+					articleBody: editorRef.current.getContent(),
+					parentMessageBoardMessageId: entityId,
+				},
+			});
+
+			editorRef.current.clearContent();
+
+			showNewCommentChange(false);
+
+			commentsChange([
+				...comments,
+				data.createMessageBoardMessageMessageBoardMessage,
+			]);
+
+			onSubscription({allowSubscription});
+		};
+
 		return (
 			<div>
 				{comments.map((comment) => (
@@ -72,36 +99,26 @@ export default withRouter(
 					<>
 						<ClayForm.Group small>
 							<DefaultQuestionsEditor
-								label={Liferay.Language.get('your-answer')}
+								label={Liferay.Language.get('your-comment')}
 								onContentLengthValid={setIsReplyButtonDisable}
 								ref={editorRef}
 							/>
+
+							{!question.subscribed && (
+								<SubscritionCheckbox
+									checked={allowSubscription}
+									setChecked={setAllowSubscription}
+								/>
+							)}
 
 							<ClayButton.Group className="c-mt-3" spaced>
 								<ClayButton
 									disabled={isReplyButtonDisable}
 									displayType="primary"
-									onClick={() => {
-										createComment({
-											fetchOptionsOverrides: getContextLink(
-												`${sectionTitle}/${questionId}`
-											),
-											variables: {
-												articleBody: editorRef.current.getContent(),
-												parentMessageBoardMessageId: entityId,
-											},
-										}).then(({data}) => {
-											editorRef.current.clearContent();
-											showNewCommentChange(false);
-											commentsChange([
-												...comments,
-												data.createMessageBoardMessageMessageBoardMessage,
-											]);
-										});
-									}}
+									onClick={onCreateComment}
 								>
 									{context.trustedUser
-										? Liferay.Language.get('reply')
+										? Liferay.Language.get('add-comment')
 										: Liferay.Language.get(
 												'submit-for-publication'
 										  )}

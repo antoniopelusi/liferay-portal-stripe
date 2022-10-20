@@ -11,6 +11,16 @@
 
 <tbody>
 <tr>
+	<td>FILTER_BY_RESULTS_BAR_MESSAGE</td>
+	<td>//div[@class='align-items-center container-fluid d-flex justify-content-between p-0']//p[text()='resultMessage']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NODE_CHECKBOX</td>
+	<td>//div[contains(@class,'component-text')][normalize-space(text())='${key_nodeName}']/parent::div//preceding-sibling::div//input[@type='checkbox']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>NODE_COLLAPSED</td>
 	<td>//div[contains(@class,'treeview-node-list')]/button[contains(@class,'treeview-node-list') and @aria-expanded='false'] | //div[contains(@class,'tree-collapsed')]//span[not(contains(@class,'hidden'))]//*[name()='svg'][contains(@class,'icon-plus')] | //div[contains(@class,'navigation-menu-items-tree-node')]//button[@aria-expanded='false'] | //ul[contains(@class,'treeview')]//button[contains(@class,'component-expander')][@aria-expanded='false']</td>
 	<td></td>
@@ -32,12 +42,12 @@
 </tr>
 <tr>
 	<td>NODE_SELECTED</td>
-	<td>//div[contains(@class,'card-type-directory') and contains(@class,'selected')]/div[contains(@class,'card-horizontal')]//span[contains(.,'${key_nodeName}')]</td>
+	<td>//div[contains(@class,'card-type-directory') and contains(@class,'selected')]/div[contains(@class,'card-horizontal')]//span[contains(.,'${key_nodeName}')] | //div[contains(@role,'treeitem') and contains(@class,'active')]//div[contains(@class,'component-text')][normalize-space(text())='${key_nodeName}']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>NODE_UNSELECTED</td>
-	<td>//div[contains(@class,'card-type-directory') and not(contains(@class,'selected'))]/div[contains(@class,'card-horizontal')]//span[contains(.,'${key_nodeName}')]</td>
+	<td>//div[contains(@class,'card-type-directory') and not(contains(@class,'selected'))]/div[contains(@class,'card-horizontal')]//span[contains(.,'${key_nodeName}')] | //div[contains(@role,'treeitem') and not(contains(@class,'active'))]//div[contains(@class,'component-text')][normalize-space(text())='${key_nodeName}']</td>
 	<td></td>
 </tr>
 <tr>
@@ -76,11 +86,6 @@
 	<td></td>
 </tr>
 <tr>
-	<td>PAGE_STRUCTURE_TREE_NODE_DELETE</td>
-	<td>//div[contains(@class,'page-structure__tree-node') and contains(.,'${key_nodeName}')]//button[contains(@class,'tree-node')][*[name()='svg'][contains(@class,'trash')]]</td>
-	<td></td>
-</tr>
-<tr>
 	<td>PAGE_STRUCTURE_TREE_NODE_HIDE_INDEX</td>
 	<td>xpath=(//div[contains(@class,'page-structure__tree-node') and contains(.,'${key_nodeName}')]//button[contains(@class,'tree-node')][*[name()='svg'][contains(@class,'lexicon-icon-view') or contains(@class,'lexicon-icon-hidden')]])[${key_index}]</td>
 	<td></td>
@@ -103,6 +108,11 @@
 <tr>
 	<td>PAGE_STRUCTURE_TREE_NODE_POSITION</td>
 	<td>xpath=(//div[contains(@role,'treeitem')])[${key_position}]//div[contains(@class,'list-item__node')][contains(.,'${key_nodeName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGE_STRUCTURE_TREE_VERTICAL_ELLIPSIS</td>
+	<td>xpath=(//div[contains(@class,'page-structure__tree-node') and contains(.,'${key_nodeName}')]//button[*[name()='svg'][contains(@class,'icon-ellipsis')]])[${key_index}]</td>
 	<td></td>
 </tr>
 </tbody>

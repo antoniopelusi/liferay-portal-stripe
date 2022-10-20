@@ -28,7 +28,7 @@ const SidebarBody = ({children, className}) => {
 	);
 };
 
-const SidebarHeader = ({title}) => {
+const SidebarHeader = ({children, title}) => {
 	const {onClose} = useContext(SidebarContext);
 
 	return (
@@ -41,13 +41,19 @@ const SidebarHeader = ({title}) => {
 					<p className="font-weight-bold mb-0 pr-2">{title}</p>
 				</ClayLayout.ContentCol>
 
+				{children && (
+					<ClayLayout.ContentCol>{children}</ClayLayout.ContentCol>
+				)}
+
 				<ClayLayout.ContentCol>
 					<ClayButtonWithIcon
-						aria-label="Close"
-						className="mt-n2 text-secondary"
+						aria-label={Liferay.Language.get('close')}
+						className="text-secondary"
+						data-tooltip-align="bottom"
 						displayType="unstyled"
 						onClick={onClose}
 						symbol="times"
+						title={Liferay.Language.get('close')}
 					/>
 				</ClayLayout.ContentCol>
 			</ClayLayout.ContentRow>
@@ -55,7 +61,7 @@ const SidebarHeader = ({title}) => {
 	);
 };
 
-const Sidebar = ({children, onClose = noop, open = true}) => {
+const Sidebar = ({children, fetchData, onClose = noop, open = true}) => {
 	const [isOpen, setIsOpen] = useState(false);
 
 	const delay = useTimeout();
@@ -83,7 +89,12 @@ const Sidebar = ({children, onClose = noop, open = true}) => {
 	return (
 		<div className="cadmin">
 			<div className="content-dashboard sidebar sidebar-light sidebar-sm">
-				<SidebarContext.Provider value={{onClose}}>
+				<SidebarContext.Provider
+					value={{
+						fetchData,
+						onClose,
+					}}
+				>
 					{children}
 				</SidebarContext.Provider>
 			</div>

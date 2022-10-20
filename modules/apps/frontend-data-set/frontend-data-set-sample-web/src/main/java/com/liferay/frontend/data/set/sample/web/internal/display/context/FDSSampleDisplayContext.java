@@ -17,8 +17,10 @@ package com.liferay.frontend.data.set.sample.web.internal.display.context;
 import com.liferay.frontend.data.set.model.FDSActionDropdownItem;
 import com.liferay.frontend.data.set.sample.web.internal.display.context.helper.FDSRequestHelper;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.portlet.PortletURLUtil;
+import com.liferay.portal.kernel.util.ListUtil;
 
 import java.util.Arrays;
 import java.util.List;
@@ -42,6 +44,14 @@ public class FDSSampleDisplayContext {
 		return "/o/c/fdssamples";
 	}
 
+	public List<DropdownItem> getBulkActionDropdownItems() {
+		return ListUtil.fromArray(
+			new FDSActionDropdownItem(
+				"#", "document", "sampleBulkAction",
+				LanguageUtil.get(_fdsRequestHelper.getRequest(), "label"), null,
+				null, null));
+	}
+
 	public CreationMenu getCreationMenu() throws Exception {
 		return new CreationMenu();
 	}
@@ -51,9 +61,16 @@ public class FDSSampleDisplayContext {
 
 		return Arrays.asList(
 			new FDSActionDropdownItem(
-				"#", "view", "sampleMessage",
-				LanguageUtil.get(_fdsRequestHelper.getRequest(), "view"), null,
-				null, null));
+				null, "view", "sampleMessage", "Sample View", null, null, null),
+			new FDSActionDropdownItem(
+				"#test-pencil", "pencil", "sampleEditMessage", "Sample Edit",
+				null, null, null),
+			new FDSActionDropdownItem(
+				"#test-delete", "times-circle", "sampleDeleteMessage",
+				"Sample Delete", null, null, null),
+			new FDSActionDropdownItem(
+				"#test-copy", "copy", "sampleMoveFolderMessage", "Sample Copy",
+				null, null, null));
 	}
 
 	public PortletURL getPortletURL() throws PortletException {

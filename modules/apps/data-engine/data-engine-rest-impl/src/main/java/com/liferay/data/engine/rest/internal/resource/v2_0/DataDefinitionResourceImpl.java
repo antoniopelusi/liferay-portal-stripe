@@ -89,7 +89,7 @@ import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactoryUtil;
@@ -120,7 +120,6 @@ import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 import com.liferay.portal.vulcan.permission.Permission;
 import com.liferay.portal.vulcan.permission.PermissionUtil;
-import com.liferay.portal.vulcan.resource.EntityModelResource;
 import com.liferay.portal.vulcan.util.SearchUtil;
 
 import java.util.ArrayList;
@@ -153,8 +152,7 @@ import org.osgi.service.component.annotations.ServiceScope;
 	scope = ServiceScope.PROTOTYPE, service = DataDefinitionResource.class
 )
 @CTAware
-public class DataDefinitionResourceImpl
-	extends BaseDataDefinitionResourceImpl implements EntityModelResource {
+public class DataDefinitionResourceImpl extends BaseDataDefinitionResourceImpl {
 
 	@Override
 	public void deleteDataDefinition(Long dataDefinitionId) throws Exception {
@@ -297,7 +295,7 @@ public class DataDefinitionResourceImpl
 			jsonArray::put
 		);
 
-		return jsonArray.toJSONString();
+		return jsonArray.toString();
 	}
 
 	@Override
@@ -359,7 +357,7 @@ public class DataDefinitionResourceImpl
 
 		if (pagination.getPageSize() > 250) {
 			throw new ValidationException(
-				LanguageUtil.format(
+				_language.format(
 					contextAcceptLanguage.getPreferredLocale(),
 					"page-size-is-greater-than-x", 250));
 		}
@@ -554,8 +552,8 @@ public class DataDefinitionResourceImpl
 				dataLayoutResource.putDataLayout(
 					Optional.ofNullable(
 						dataLayout.getId()
-					).orElse(
-						_getDefaultDataLayoutId(dataDefinitionId)
+					).orElseGet(
+						() -> _getDefaultDataLayoutId(dataDefinitionId)
 					),
 					dataLayout));
 		}
@@ -617,8 +615,8 @@ public class DataDefinitionResourceImpl
 					_ddmStructureLayoutLocalService.getStructureLayout(
 						Optional.ofNullable(
 							dataLayout.getId()
-						).orElse(
-							_getDefaultDataLayoutId(dataDefinitionId)
+						).orElseGet(
+							() -> _getDefaultDataLayoutId(dataDefinitionId)
 						));
 
 				JSONArray jsonArray = JSONUtil.getValueAsJSONArray(
@@ -746,7 +744,6 @@ public class DataDefinitionResourceImpl
 
 			ddmFormFieldTypeSettingsDDMForm.setAvailableLocales(
 				availableLocales);
-
 			ddmFormFieldTypeSettingsDDMForm.setDefaultLocale(
 				_getDefaultLocale());
 
@@ -826,25 +823,15 @@ public class DataDefinitionResourceImpl
 		return ddmStructure.getDDMForm();
 	}
 
-	private long _getDefaultDataLayoutId(long dataDefinitionId)
-		throws Exception {
-
-		DDMStructure ddmStructure = _ddmStructureLocalService.getDDMStructure(
+	private long _getDefaultDataLayoutId(long dataDefinitionId) {
+		DDMStructure ddmStructure = _ddmStructureLocalService.fetchDDMStructure(
 			dataDefinitionId);
 
-		DataLayoutResource dataLayoutResource = _getDataLayoutResource(false);
+		if (ddmStructure == null) {
+			return 0L;
+		}
 
-		DataDefinitionContentType dataDefinitionContentType =
-			_dataDefinitionContentTypeTracker.getDataDefinitionContentType(
-				ddmStructure.getClassNameId());
-
-		DataLayout dataLayout =
-			dataLayoutResource.getSiteDataLayoutByContentTypeByDataLayoutKey(
-				ddmStructure.getGroupId(),
-				dataDefinitionContentType.getContentType(),
-				ddmStructure.getStructureKey());
-
-		return dataLayout.getId();
+		return ddmStructure.getDefaultDDMStructureLayoutId();
 	}
 
 	private Locale _getDefaultLocale() {
@@ -1593,6 +1580,9 @@ public class DataDefinitionResourceImpl
 
 	@Reference
 	private JSONFactory _jsonFactory;
+
+	@Reference
+	private Language _language;
 
 	@Reference
 	private NPMResolver _npmResolver;

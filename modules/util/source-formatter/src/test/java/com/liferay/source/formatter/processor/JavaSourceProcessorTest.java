@@ -218,6 +218,11 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 	}
 
 	@Test
+	public void testIncorrectEmptyLinesInUpgradeProcess() throws Exception {
+		test("IncorrectEmptyLinesInUpgradeProcess.testjava");
+	}
+
+	@Test
 	public void testIncorrectOperatorOrder() throws Exception {
 		test(
 			"IncorrectOperatorOrder.testjava",
@@ -324,6 +329,18 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 	}
 
 	@Test
+	public void testToJSONStringMethodCalls() throws Exception {
+		test("ToJSONStringMethodCalls.testjava",
+			new String[] {
+				"Use 'toString' instead of 'toJSONString'",
+				"Use 'toString' instead of 'toJSONString'",
+				"Use 'toString' instead of 'toJSONString'",
+				"Use 'toString' instead of 'toJSONString'"
+			},
+			new Integer[] {30, 39, 43, 67});
+	}
+
+	@Test
 	public void testListUtilUsages() throws Exception {
 		test(
 				"ListUtilUsages.testjava",
@@ -370,6 +387,22 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 	}
 
 	@Test
+	public void testMissingEmptyLinesInInstanceInit() throws Exception {
+		test(
+			"MissingEmptyLinesInInstanceInit.testjava",
+			"There should be an empty line after line '27'",
+			27);
+	}
+
+	@Test
+	public void testMissingEmptyLinesBeforeMethodCalls() throws Exception {
+		test(
+			"MissingEmptyLinesBeforeMethodCalls.testjava",
+			"There should be an empty line before 'portletPreferences.store'",
+			26);
+	}
+
+	@Test
 	public void testMissingDiamondOperator() throws Exception {
 		test("MissingDiamondOperator.testjava",
 			new String[] {
@@ -398,6 +431,16 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 				45, 47, 53, 55, 57, 59, 61, 68, 70, 72, 74, 77, 79, 81, 83, 85,
 				87, 89
 			});
+	}
+
+	@Test
+	public void testMissingReferencePolicyDynamic() throws Exception {
+		test(
+			"MissingReferencePolicyDynamic.testjava",
+			"When using 'cardinality = ReferenceCardinality.OPTIONAL' and "+
+				"'policyOption = ReferencePolicyOption.GREEDY', always use "+
+					"'policy = ReferencePolicy.DYNAMIC' as well",
+			30);
 	}
 
 	@Test
@@ -445,9 +488,20 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 	}
 
 	@Test
+	public void testRedundantLog() throws Exception {
+		test("RedundantLog.testjava",
+			 "Redundant log between line '26' and line '31'.", 26);
+	}
+
+	@Test
 	public void testResultCountSet() throws Exception {
 		test(
 			"ResultSetCount.testjava", "Use resultSet.getInt(1) for count", 35);
+	}
+
+	@Test
+	public void testRunSqlStyling() throws Exception {
+		test("RunSqlStyling.testjava");
 	}
 
 	@Test
@@ -482,6 +536,17 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 	}
 
 	@Test
+	public void testSizeIsZeroCheck() throws Exception {
+		test(
+			"SizeIsZero.testjava",
+			new String[] {
+				"Use method '_testList.isEmpty()' instead",
+				"Use method 'myList.isEmpty()' instead",
+			},
+			new Integer[] {28, 33});
+	}
+
+	@Test
 	public void testSortAnnotationParameters() throws Exception {
 		test("SortAnnotationParameters.testjava");
 	}
@@ -501,6 +566,11 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 	}
 
 	@Test
+	public void testSortMethodCalls() throws Exception {
+		test("SortMethodCalls.testjava");
+	}
+
+	@Test
 	public void testSortMethodsWithAnnotatedParameters() throws Exception {
 		test("SortMethodsWithAnnotatedParameters.testjava");
 	}
@@ -513,6 +583,15 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 	@Test
 	public void testThrowsSystemException() throws Exception {
 		test("ThrowsSystemException.testjava");
+	}
+
+	@Test
+	public void testStringConcatenation() throws Exception {
+		test(
+			"StringConcatenation.testjava",
+			"When concatenating multiple literal strings, only the first " +
+				"literal string can start with ' '",
+			28);
 	}
 
 	@Test
@@ -564,6 +643,11 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 				"Variable '_s' is unused"
 			},
 			new Integer[] {26, 29, 41});
+	}
+
+	@Test
+	public void testUpgradeDropTable() throws Exception {
+		test("UpgradeDropTable.testjava");
 	}
 
 }

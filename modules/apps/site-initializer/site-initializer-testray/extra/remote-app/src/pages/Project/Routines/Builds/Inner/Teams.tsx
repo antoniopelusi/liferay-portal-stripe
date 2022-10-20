@@ -13,36 +13,96 @@
  */
 
 import Container from '../../../../../components/Layout/Container';
-import ListView from '../../../../../components/ListView/ListView';
-import {getTeams} from '../../../../../graphql/queries/testrayTeam';
+import ListView from '../../../../../components/ListView';
+import ProgressBar from '../../../../../components/ProgressBar';
 import i18n from '../../../../../i18n';
+import {filters} from '../../../../../schema/filter';
 
 const Teams = () => {
 	return (
-		<Container className="mt-4" title={i18n.translate('teams')}>
+		<Container className="mt-4">
 			<ListView
-				query={getTeams}
+				initialContext={{
+					columns: {
+						blocked: false,
+						in_progress: false,
+						test_fix: false,
+						untested: false,
+					},
+				}}
+				managementToolbarProps={{
+					filterFields: filters.build.teams,
+					title: i18n.translate('teams'),
+				}}
+				resource="/teams"
 				tableProps={{
 					columns: [
 						{
 							key: 'name',
+							size: 'md',
 							value: i18n.translate('team'),
 						},
 						{
-							key: 'failed',
-							value: i18n.translate('failed'),
-						},
-						{
-							key: 'Total',
+							clickable: true,
+							key: 'total',
+							render: () => 0,
 							value: i18n.translate('total'),
 						},
 						{
+							clickable: true,
+							key: 'failed',
+							render: () => 0,
+							value: i18n.translate('failed'),
+						},
+						{
+							clickable: true,
+							key: 'blocked',
+							render: () => 0,
+							value: i18n.translate('blocked'),
+						},
+						{
+							clickable: true,
+							key: 'untested',
+							render: () => 0,
+							value: i18n.translate('untested'),
+						},
+						{
+							clickable: true,
+							key: 'in_progress',
+							render: () => 0,
+							value: i18n.translate('in-progress'),
+						},
+						{
+							clickable: true,
+							key: 'passed',
+							render: () => 0,
+							value: i18n.translate('passed'),
+						},
+						{
+							clickable: true,
+							key: 'test_fix',
+							render: () => 0,
+							value: i18n.translate('test-fix'),
+						},
+						{
+							clickable: true,
 							key: 'metrics',
+							render: () => (
+								<ProgressBar
+									items={{
+										blocked: 0,
+										failed: 2,
+										incomplete: 0,
+										passed: 30,
+										test_fix: 0,
+									}}
+								/>
+							),
+							size: 'sm',
 							value: i18n.translate('metrics'),
 						},
 					],
 				}}
-				transformData={(data) => data?.c?.teams}
 			/>
 		</Container>
 	);

@@ -11,6 +11,7 @@ definition {
 		for (var current : list "${nodeTitleAndPositionList}") {
 			var currentNodeTitle = StringUtil.extractFirst("${current}", ";");
 			var currentDropLocation = StringUtil.extractLast("${current}", ";");
+
 			var value1 = StringUtil.replace("${currentDropLocation}", ".", ",");
 
 			DragAndDrop.dragAndDrop(

@@ -34,6 +34,8 @@ BatchPlannerPlanTemplateManagementToolbarDisplayContext batchPlannerPlanTemplate
 />
 
 <clay:container-fluid>
+	<liferay-ui:error exception="<%= BatchPlannerPlanInternalClassNameException.class %>" message="unable-to-perform-the-search-because-the-provided-search-term-is-too-ambiguous" />
+
 	<aui:form method="post" name="fm">
 		<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
 		<aui:input name="batchPlannerPlanIds" type="hidden" />
@@ -54,16 +56,8 @@ BatchPlannerPlanTemplateManagementToolbarDisplayContext batchPlannerPlanTemplate
 					).build());
 				%>
 
-				<portlet:renderURL var="rowURL">
-					<portlet:param name="mvcRenderCommandName" value='<%= batchPlannerPlan.isExport() ?"/batch_planner/edit_export_batch_planner_plan" : "/batch_planner/edit_import_batch_planner_plan" %>' />
-					<portlet:param name="backURL" value="<%= currentURL %>" />
-					<portlet:param name="batchPlannerPlanId" value="<%= String.valueOf(batchPlannerPlan.getBatchPlannerPlanId()) %>" />
-					<portlet:param name="editable" value="true" />
-				</portlet:renderURL>
-
 				<liferay-ui:search-container-column-text
-					cssClass="font-weight-bold important"
-					href="<%= rowURL %>"
+					cssClass="font-weight-bold"
 					name="name"
 					value="<%= HtmlUtil.escape(batchPlannerPlan.getName()) %>"
 				/>

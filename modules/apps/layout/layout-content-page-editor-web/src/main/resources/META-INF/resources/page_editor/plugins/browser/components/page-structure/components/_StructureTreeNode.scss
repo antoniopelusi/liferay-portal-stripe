@@ -80,9 +80,23 @@ html#{$cadmin-selector} {
 				background-color: $cadmin-light-l1;
 			}
 
+			&__buttons--hidden > button {
+				color: $cadmin-secondary-l1;
+			}
+
 			&__name {
 				color: $cadmin-dark;
 				margin-left: 4px;
+
+				input {
+					width: 0;
+					z-index: 1;
+
+					&:active,
+					&:focus {
+						outline-color: $cadmin-primary-l1;
+					}
+				}
 
 				.lexicon-icon {
 					margin-right: 8px;
@@ -126,19 +140,15 @@ html#{$cadmin-selector} {
 				}
 			}
 
-			&__remove-button,
+			&__actions-button,
 			&__visibility-button {
 				color: $cadmin-secondary;
 				margin-left: 8px;
-				opacity: 0;
 				transform: translateY(1px);
+				visibility: hidden;
 
 				&--visible {
-					opacity: 1;
-				}
-
-				.lexicon-icon-hidden {
-					color: $cadmin-secondary-l1;
+					visibility: visible;
 				}
 			}
 

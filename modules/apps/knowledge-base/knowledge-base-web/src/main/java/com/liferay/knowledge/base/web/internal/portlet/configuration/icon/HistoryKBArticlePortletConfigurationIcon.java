@@ -18,7 +18,7 @@ import com.liferay.knowledge.base.constants.KBPortletKeys;
 import com.liferay.knowledge.base.model.KBArticle;
 import com.liferay.knowledge.base.web.internal.constants.KBWebKeys;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.portlet.configuration.icon.PortletConfigurationIcon;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Portal;
@@ -26,7 +26,6 @@ import com.liferay.portal.kernel.util.WebKeys;
 
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletResponse;
-import javax.portlet.PortletURL;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -38,7 +37,7 @@ import org.osgi.service.component.annotations.Reference;
 	immediate = true,
 	property = {
 		"javax.portlet.name=" + KBPortletKeys.KNOWLEDGE_BASE_ADMIN,
-		"path=/admin/view_article.jsp", "path=/admin/view_articles.jsp"
+		"path=/admin/view_kb_articles.jsp", "path=/knowledge_base/view_article"
 	},
 	service = PortletConfigurationIcon.class
 )
@@ -47,20 +46,21 @@ public class HistoryKBArticlePortletConfigurationIcon
 
 	@Override
 	public String getMessage(PortletRequest portletRequest) {
-		return LanguageUtil.get(
-			getResourceBundle(getLocale(portletRequest)), "history");
+		return _language.get(getLocale(portletRequest), "history");
 	}
 
 	@Override
 	public String getURL(
 		PortletRequest portletRequest, PortletResponse portletResponse) {
 
-		PortletURL portletURL = PortletURLBuilder.create(
+		KBArticle kbArticle = getKBArticle(portletRequest);
+
+		return PortletURLBuilder.create(
 			_portal.getControlPanelPortletURL(
 				portletRequest, KBPortletKeys.KNOWLEDGE_BASE_ADMIN,
 				PortletRequest.RENDER_PHASE)
 		).setMVCPath(
-			"/admin/history.jsp"
+			"/admin/common/kb_history.jsp"
 		).setRedirect(
 			() -> {
 				ThemeDisplay themeDisplay =
@@ -69,21 +69,14 @@ public class HistoryKBArticlePortletConfigurationIcon
 
 				return themeDisplay.getURLCurrent();
 			}
-		).buildPortletURL();
-
-		KBArticle kbArticle = getKBArticle(portletRequest);
-
-		portletURL.setParameter(
-			"resourceClassNameId", String.valueOf(kbArticle.getClassNameId()));
-		portletURL.setParameter(
-			"resourcePrimKey", String.valueOf(kbArticle.getResourcePrimKey()));
-
-		portletURL.setParameter(
+		).setParameter(
+			"resourceClassNameId", kbArticle.getClassNameId()
+		).setParameter(
+			"resourcePrimKey", kbArticle.getResourcePrimKey()
+		).setParameter(
 			"status",
-			String.valueOf(
-				portletRequest.getAttribute(KBWebKeys.KNOWLEDGE_BASE_STATUS)));
-
-		return portletURL.toString();
+			portletRequest.getAttribute(KBWebKeys.KNOWLEDGE_BASE_STATUS)
+		).buildString();
 	}
 
 	@Override
@@ -101,6 +94,9 @@ public class HistoryKBArticlePortletConfigurationIcon
 
 		return false;
 	}
+
+	@Reference
+	private Language _language;
 
 	@Reference
 	private Portal _portal;

@@ -13,6 +13,7 @@
  */
 
 import ClayList from '@clayui/list';
+import {openConfirmModal, openToast} from 'frontend-js-web';
 import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 import {DndProvider} from 'react-dnd';
@@ -30,7 +31,7 @@ const savePriority = async ({url}) => {
 			throw new Error();
 		}
 
-		Liferay.Util.openToast({
+		openToast({
 			message: Liferay.Language.get(
 				'your-request-completed-successfully'
 			),
@@ -38,7 +39,7 @@ const savePriority = async ({url}) => {
 		});
 	}
 	catch (error) {
-		Liferay.Util.openToast({
+		openToast({
 			message: Liferay.Language.get('an-unexpected-error-occurred'),
 			type: 'danger',
 		});
@@ -83,13 +84,16 @@ const SortableList = ({items, namespace, savePriorityURL}) => {
 			return;
 		}
 
-		if (
-			confirm(
-				Liferay.Language.get('are-you-sure-you-want-to-delete-this')
-			)
-		) {
-			submitForm(document.hrefFm, deleteURL);
-		}
+		openConfirmModal({
+			message: Liferay.Language.get(
+				'are-you-sure-you-want-to-delete-this'
+			),
+			onConfirm: (isConfirmed) => {
+				if (isConfirmed) {
+					submitForm(document.hrefFm, deleteURL);
+				}
+			},
+		});
 	};
 
 	return (

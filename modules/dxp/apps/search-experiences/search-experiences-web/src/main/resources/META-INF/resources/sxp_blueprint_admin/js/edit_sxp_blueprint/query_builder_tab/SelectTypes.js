@@ -13,9 +13,9 @@ import ClayButton from '@clayui/button';
 import ClayEmptyState from '@clayui/empty-state';
 import {ClayCheckbox} from '@clayui/form';
 import ClayIcon from '@clayui/icon';
-import ClayManagementToolbar from '@clayui/management-toolbar';
 import ClayModal, {useModal} from '@clayui/modal';
 import ClayTable from '@clayui/table';
+import {ManagementToolbar} from 'frontend-js-components-web';
 import React, {useContext, useState} from 'react';
 
 import ThemeContext from '../../shared/ThemeContext';
@@ -83,7 +83,7 @@ function SelectTypes({
 				{Liferay.Language.get('select-asset-types')}
 			</ClayButton>
 
-			{selectedTypes.length > 0 && (
+			{!!selectedTypes.length && (
 				<ClayTable>
 					<ClayTable.Body>
 						{searchableTypesSorted
@@ -125,41 +125,38 @@ function SelectTypes({
 						{Liferay.Language.get('select-types')}
 					</ClayModal.Header>
 
-					{searchableTypes.length > 0 ? (
+					{searchableTypes.length ? (
 						<>
-							<ClayManagementToolbar
+							<ManagementToolbar.Container
 								className={
-									modalSelectedTypes.length > 0 &&
+									!!modalSelectedTypes.length &&
 									'management-bar-primary'
 								}
 							>
 								<div className="navbar-form navbar-form-autofit navbar-overlay">
-									<ClayManagementToolbar.ItemList>
-										<ClayManagementToolbar.Item>
+									<ManagementToolbar.ItemList>
+										<ManagementToolbar.Item>
 											<ClayCheckbox
 												checked={
-													modalSelectedTypes.length >
-													0
+													!!modalSelectedTypes.length
 												}
 												indeterminate={
-													modalSelectedTypes.length >
-														0 &&
+													!!modalSelectedTypes.length &&
 													modalSelectedTypes.length !==
 														searchableTypes.length
 												}
 												onChange={() =>
 													setModalSelectedTypes(
-														modalSelectedTypes.length ===
-															0
+														!modalSelectedTypes.length
 															? searchableTypesClassNames
 															: []
 													)
 												}
 											/>
-										</ClayManagementToolbar.Item>
+										</ManagementToolbar.Item>
 
-										<ClayManagementToolbar.Item>
-											{modalSelectedTypes.length > 0 ? (
+										<ManagementToolbar.Item>
+											{modalSelectedTypes.length ? (
 												<>
 													<span className="component-text">
 														{sub(
@@ -198,10 +195,10 @@ function SelectTypes({
 													)}
 												</span>
 											)}
-										</ClayManagementToolbar.Item>
-									</ClayManagementToolbar.ItemList>
+										</ManagementToolbar.Item>
+									</ManagementToolbar.ItemList>
 								</div>
-							</ClayManagementToolbar>
+							</ManagementToolbar.Container>
 
 							<ClayModal.Body scrollable>
 								<ClayTable>

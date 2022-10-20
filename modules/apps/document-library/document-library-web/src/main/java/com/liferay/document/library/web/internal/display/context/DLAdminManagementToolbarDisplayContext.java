@@ -27,7 +27,6 @@ import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLAppServiceUtil;
 import com.liferay.document.library.kernel.service.DLFileEntryTypeLocalServiceUtil;
 import com.liferay.document.library.kernel.util.DLUtil;
-import com.liferay.document.library.web.internal.configuration.FFManagementToolbarConfigurationUtil;
 import com.liferay.document.library.web.internal.constants.DLWebKeys;
 import com.liferay.document.library.web.internal.display.context.helper.DLPortletInstanceSettingsHelper;
 import com.liferay.document.library.web.internal.display.context.helper.DLRequestHelper;
@@ -57,10 +56,12 @@ import com.liferay.portal.kernel.servlet.taglib.ui.Menu;
 import com.liferay.portal.kernel.servlet.taglib.ui.URLMenuItem;
 import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -120,6 +121,7 @@ public class DLAdminManagementToolbarDisplayContext
 		DigitalSignatureConfiguration digitalSignatureConfiguration =
 			DigitalSignatureConfigurationUtil.getDigitalSignatureConfiguration(
 				_themeDisplay.getCompanyId(), _themeDisplay.getSiteGroupId());
+		boolean enableBulkPermissions = _isEnableBulkPermissions();
 		boolean enableOnBulk = _isEnableOnBulk();
 		boolean stagedActions = _isStagedActions();
 		User user = _themeDisplay.getUser();
@@ -188,23 +190,9 @@ public class DLAdminManagementToolbarDisplayContext
 			() -> !user.isDefaultUser(),
 			dropdownItem -> {
 				dropdownItem.putData("action", "deleteEntries");
-
-				Group scopeGroup = _themeDisplay.getScopeGroup();
-
-				if (_dlTrashHelper.isTrashEnabled(
-						scopeGroup.getGroupId(), _getRepositoryId())) {
-
-					dropdownItem.setIcon("trash");
-					dropdownItem.setLabel(
-						LanguageUtil.get(
-							_httpServletRequest, "move-to-recycle-bin"));
-				}
-				else {
-					dropdownItem.setIcon("times-circle");
-					dropdownItem.setLabel(
-						LanguageUtil.get(_httpServletRequest, "delete"));
-				}
-
+				dropdownItem.setIcon("trash");
+				dropdownItem.setLabel(
+					LanguageUtil.get(_httpServletRequest, "delete"));
 				dropdownItem.setQuickAction(true);
 			}
 		).add(
@@ -224,6 +212,16 @@ public class DLAdminManagementToolbarDisplayContext
 				dropdownItem.setLabel(
 					LanguageUtil.get(
 						_httpServletRequest, "checkout[document]"));
+				dropdownItem.setQuickAction(false);
+			}
+		).add(
+			() ->
+				stagedActions && !user.isDefaultUser() && enableBulkPermissions,
+			dropdownItem -> {
+				dropdownItem.putData("action", "permissions");
+				dropdownItem.setIcon("password-policies");
+				dropdownItem.setLabel(
+					LanguageUtil.get(_httpServletRequest, "permissions"));
 				dropdownItem.setQuickAction(false);
 			}
 		).build();
@@ -310,9 +308,8 @@ public class DLAdminManagementToolbarDisplayContext
 						_httpServletRequest, "filter-by-navigation"));
 			}
 		).addGroup(
-			() ->
-				!FFManagementToolbarConfigurationUtil.
-					enableDesignImprovements(),
+			() -> !GetterUtil.getBoolean(
+				PropsUtil.get("feature.flag.LPS-144527")),
 			dropdownGroupItem -> {
 				dropdownGroupItem.setDropdownItems(_getOrderByDropdownItems());
 				dropdownGroupItem.setLabel(
@@ -393,7 +390,7 @@ public class DLAdminManagementToolbarDisplayContext
 	@Override
 	public List<DropdownItem> getOrderDropdownItems() {
 		if (_isSearch() ||
-			!FFManagementToolbarConfigurationUtil.enableDesignImprovements()) {
+			!GetterUtil.getBoolean(PropsUtil.get("feature.flag.LPS-144527"))) {
 
 			return null;
 		}
@@ -646,7 +643,6 @@ public class DLAdminManagementToolbarDisplayContext
 			dropdownItem -> {
 				dropdownItem.setActive(
 					navigation.equals("home") && (fileEntryTypeId == -1));
-
 				dropdownItem.setHref(
 					PortletURLBuilder.create(
 						PortletURLUtil.clone(
@@ -660,14 +656,12 @@ public class DLAdminManagementToolbarDisplayContext
 					).setParameter(
 						"fileEntryTypeId", (String)null
 					).buildPortletURL());
-
 				dropdownItem.setLabel(
 					LanguageUtil.get(_httpServletRequest, "all"));
 			}
 		).add(
 			dropdownItem -> {
 				dropdownItem.setActive(navigation.equals("recent"));
-
 				dropdownItem.setHref(
 					PortletURLBuilder.create(
 						PortletURLUtil.clone(
@@ -677,7 +671,6 @@ public class DLAdminManagementToolbarDisplayContext
 					).setNavigation(
 						"recent"
 					).buildPortletURL());
-
 				dropdownItem.setLabel(
 					LanguageUtil.get(_httpServletRequest, "recent"));
 			}
@@ -685,7 +678,6 @@ public class DLAdminManagementToolbarDisplayContext
 			_themeDisplay::isSignedIn,
 			dropdownItem -> {
 				dropdownItem.setActive(navigation.equals("mine"));
-
 				dropdownItem.setHref(
 					PortletURLBuilder.create(
 						PortletURLUtil.clone(
@@ -695,7 +687,6 @@ public class DLAdminManagementToolbarDisplayContext
 					).setNavigation(
 						"mine"
 					).buildPortletURL());
-
 				dropdownItem.setLabel(
 					LanguageUtil.get(_httpServletRequest, "mine"));
 			}
@@ -843,6 +834,14 @@ public class DLAdminManagementToolbarDisplayContext
 		return DLUtil.hasWorkflowDefinitionLink(
 			_themeDisplay.getCompanyId(), _themeDisplay.getScopeGroupId(),
 			folderId, fileEntryTypeId);
+	}
+
+	private boolean _isEnableBulkPermissions() {
+		if (GetterUtil.getBoolean(PropsUtil.get("feature.flag.LPS-87806"))) {
+			return true;
+		}
+
+		return false;
 	}
 
 	private boolean _isEnableOnBulk() {

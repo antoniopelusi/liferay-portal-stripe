@@ -20,7 +20,7 @@ import com.liferay.gradle.plugins.defaults.internal.LiferayCIPlugin;
 import com.liferay.gradle.plugins.defaults.internal.util.CIUtil;
 import com.liferay.gradle.plugins.defaults.internal.util.GradleUtil;
 import com.liferay.gradle.plugins.node.YarnPlugin;
-import com.liferay.gradle.plugins.node.tasks.YarnInstallTask;
+import com.liferay.gradle.plugins.node.task.YarnInstallTask;
 import com.liferay.gradle.util.Validator;
 
 import org.gradle.StartParameter;

@@ -1,7 +1,6 @@
 @component-name = "portal-object"
 definition {
 
-	property portal.acceptance = "true";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Object";
@@ -54,15 +53,15 @@ definition {
 
 		ObjectAdmin.publishObjectViaAPI(objectName = "CustomObject314");
 
-		ObjectAdmin.addObjectBoleanFieldEntryViaUI(
+		ObjectAdmin.addObjectBooleanFieldEntryViaUI(
 			objectName = "CustomObject314",
 			value = "true");
 
-		ObjectAdmin.addObjectBoleanFieldEntryViaUI(
+		ObjectAdmin.addObjectBooleanFieldEntryViaUI(
 			objectName = "CustomObject314",
 			value = "false");
 
-		ObjectAdmin.addObjectBoleanFieldEntryViaUI(
+		ObjectAdmin.addObjectBooleanFieldEntryViaUI(
 			objectName = "CustomObject314",
 			value = "false");
 
@@ -92,11 +91,11 @@ definition {
 			fieldLabel = "Field",
 			filterCollection = "true",
 			fragmentName = "Collection Display",
-			listStyle = "Table",
 			option = "True",
-			selectedName = "Custom Objects 314");
+			selectedName = "Custom Objects 314",
+			styleDisplay = "Table");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		PagesAdmin.gotoPageEllipsisMenuItem(
 			menuItem = "View",
@@ -110,6 +109,8 @@ definition {
 	@description = "LPS-133867|LPS-135004 - Verify it is possible to define a fixed filters with Picklist type for table view on the Display Page"
 	@priority = "4"
 	test CanDefineFixedFilterForPicklistType {
+		property portal.upstream = "quarantine";
+
 		Picklist.addPicklistViaAPI(picklistName = "Custom Picklist");
 
 		for (var itemsName : list "1,2") {
@@ -159,8 +160,8 @@ definition {
 
 		PageEditor.editCollectionDisplay(
 			fragmentName = "Collection Display",
-			listStyle = "Table",
-			selectedName = "Custom Objects 315");
+			selectedName = "Custom Objects 315",
+			styleDisplay = "Table");
 
 		PageEditor.gotoEllipsisMenuItemInItemSelector(
 			fieldLabel = "Collection",
@@ -170,7 +171,7 @@ definition {
 			fieldLabel = "Field Picklist",
 			itemName = "Item Test 1");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		PagesAdmin.gotoPageEllipsisMenuItem(
 			menuItem = "View",
@@ -239,7 +240,7 @@ definition {
 			pagination = "Numeric",
 			selectedName = "Custom Objects 316");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		ContentPagesNavigator.openEditContentPage(
 			pageName = "Test Content Page Name",
@@ -306,7 +307,7 @@ definition {
 			pagination = "Simple",
 			selectedName = "Custom Objects 317");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		ContentPagesNavigator.openEditContentPage(
 			pageName = "Test Content Page Name",
@@ -354,7 +355,7 @@ definition {
 
 		VisualizeObjectDisplayPage.assertDisplayEntry(entry = "123.123456");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		PagesAdmin.gotoPageEllipsisMenuItem(
 			menuItem = "View",
@@ -402,7 +403,7 @@ definition {
 
 		VisualizeObjectDisplayPage.assertDisplayEntry(entry = "true");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		PagesAdmin.gotoPageEllipsisMenuItem(
 			menuItem = "View",
@@ -450,7 +451,7 @@ definition {
 
 		VisualizeObjectDisplayPage.assertDisplayEntry(entry = "1/1/21");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		PagesAdmin.gotoPageEllipsisMenuItem(
 			menuItem = "View",
@@ -498,7 +499,7 @@ definition {
 
 		VisualizeObjectDisplayPage.assertDisplayEntry(entry = "1.54");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		PagesAdmin.gotoPageEllipsisMenuItem(
 			menuItem = "View",
@@ -546,7 +547,7 @@ definition {
 
 		VisualizeObjectDisplayPage.assertDisplayEntry(entry = "123456789");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		PagesAdmin.gotoPageEllipsisMenuItem(
 			menuItem = "View",
@@ -594,7 +595,7 @@ definition {
 
 		VisualizeObjectDisplayPage.assertDisplayEntry(entry = "1234567891234567");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		PagesAdmin.gotoPageEllipsisMenuItem(
 			menuItem = "View",
@@ -606,7 +607,7 @@ definition {
 	@description = "LPS-133867|LPS-135004 - Verify it is possible to display a specific entry of String type for a specific Object"
 	@priority = "5"
 	test DisplaySpecificEntryString {
-		property portal.acceptance = "true";
+		property portal.acceptance = "quarantine";
 
 		ObjectAdmin.addObjectViaAPI(
 			labelName = "Custom Object 324",
@@ -644,7 +645,7 @@ definition {
 
 		VisualizeObjectDisplayPage.assertDisplayEntry(entry = "Test text");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		PagesAdmin.gotoPageEllipsisMenuItem(
 			menuItem = "View",
@@ -748,7 +749,7 @@ definition {
 	@description = "LPS-137106 - Verify if it is possible to link a Mapped URL with the Objects Page Template"
 	@priority = "5"
 	test ObjectMappedURL {
-		property portal.acceptance = "true";
+		property portal.acceptance = "quarantine";
 
 		ObjectAdmin.addObjectViaAPI(
 			labelName = "Custom Object 327",
@@ -782,7 +783,7 @@ definition {
 
 		VisualizeObjectCollectionDisplay.mapFragment(fieldLabel = "Custom Field");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Blank Display Page");
 
@@ -816,7 +817,7 @@ definition {
 
 		VisualizeObjectCollectionDisplay.mapFragment(fieldLabel = "Display Page URL");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		Navigator.openURL();
 
@@ -873,7 +874,7 @@ definition {
 			locator1 = "Select#GENERIC_SELECT_FIELD",
 			value1 = "User Profile Image");
 
-		PageEditor.clickPublish();
+		PageEditor.publish();
 
 		PagesAdmin.gotoPageEllipsisMenuItem(
 			menuItem = "View",

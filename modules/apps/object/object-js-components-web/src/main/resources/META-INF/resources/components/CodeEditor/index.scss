@@ -1,0 +1,21 @@
+@import 'atlas-variables';
+
+.lfr-objects__code-editor {
+	display: flex;
+	flex-direction: column;
+	margin-bottom: 0;
+	width: 100%;
+
+	&-source {
+		border: 1px solid $gray-300;
+		border-radius: 0.25rem;
+		display: flex;
+		overflow: hidden;
+
+		&.form-control {
+			height: 472px;
+			overflow: hidden;
+			padding: 0;
+		}
+	}
+}

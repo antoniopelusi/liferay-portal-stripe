@@ -15,16 +15,14 @@
 /// <reference types="react" />
 
 export default function ModalWithProvider({
-	allowMaxLength,
-	allowUploadDocAndMedia,
 	apiURL,
+	objectDefinitionId,
 	objectFieldTypes,
 	objectName,
 }: IProps): JSX.Element;
 interface IProps {
-	allowMaxLength: boolean;
-	allowUploadDocAndMedia: boolean;
 	apiURL: string;
+	objectDefinitionId: number;
 	objectFieldTypes: ObjectFieldType[];
 	objectName: string;
 }

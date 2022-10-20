@@ -1,7 +1,7 @@
 definition {
 
 	macro addApp {
-		LexiconEntry.gotoAdd();
+		RemoteApps.addType(type = "IFrame");
 
 		RemoteAppsEntry.addEntry(
 			entryName = "${entryName}",
@@ -20,12 +20,12 @@ definition {
 
 		Permissions.definePermissionViaJSONAPI(
 			resourceAction = "ACCESS_IN_CONTROL_PANEL",
-			resourceName = "com_liferay_remote_app_admin_web_portlet_RemoteAppAdminPortlet",
+			resourceName = "com_liferay_client_extension_web_internal_portlet_ClientExtensionAdminPortlet",
 			roleTitle = "New Regular Role");
 
 		Permissions.definePermissionViaJSONAPI(
 			resourceAction = "ADD_ENTRY",
-			resourceName = "com.liferay.remote.app",
+			resourceName = "com.liferay.client.extension",
 			roleTitle = "New Regular Role");
 	}
 
@@ -39,7 +39,7 @@ definition {
 
 		Workflow.configureWorkflow(
 			workflowDefinition = "Single Approver",
-			workflowResourceValue = "Remote App Entry");
+			workflowResourceValue = "Client Extension Entry");
 	}
 
 	macro assertTableStatus {

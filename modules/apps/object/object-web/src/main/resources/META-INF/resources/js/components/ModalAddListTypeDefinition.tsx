@@ -16,11 +16,15 @@ import ClayAlert from '@clayui/alert';
 import ClayButton from '@clayui/button';
 import ClayForm from '@clayui/form';
 import ClayModal, {ClayModalProvider, useModal} from '@clayui/modal';
-import {fetch} from 'frontend-js-web';
+import {Observer} from '@clayui/modal/lib/types';
+import {
+	API,
+	FormError,
+	Input,
+	useForm,
+} from '@liferay/object-js-components-web';
 import React, {useEffect, useState} from 'react';
 
-import useForm from '../hooks/useForm';
-import Input from './Form/Input';
 import {TName} from './Layout/types';
 
 const defaultLanguageId = Liferay.ThemeDisplay.getDefaultLanguageId();
@@ -35,37 +39,20 @@ const ModalAddListTypeDefinition: React.FC<IProps> = ({
 	};
 	const [error, setError] = useState<string>('');
 
-	const onSubmit = async ({name_i18n}: TInitialValues) => {
-		const response = await fetch(apiURL, {
-			body: JSON.stringify({
-				name_i18n,
-			}),
-			headers: new Headers({
-				'Accept': 'application/json',
-				'Content-Type': 'application/json',
-			}),
-			method: 'POST',
-		});
+	const onSubmit = async (values: TInitialValues) => {
+		try {
+			await API.save(apiURL, values, 'POST');
 
-		if (response.status === 401) {
-			window.location.reload();
-		}
-		else if (response.ok) {
 			onClose();
-
 			window.location.reload();
 		}
-		else {
-			const {
-				title = Liferay.Language.get('an-error-occurred'),
-			} = (await response.json()) as {title: string};
-
-			setError(title);
+		catch (error) {
+			setError((error as Error).message);
 		}
 	};
 
 	const validate = (values: TInitialValues) => {
-		const errors: any = {};
+		const errors: FormError<TInitialValues> = {};
 
 		if (!values.name_i18n[defaultLanguageId]) {
 			errors.name_i18n = Liferay.Language.get('required');
@@ -74,7 +61,7 @@ const ModalAddListTypeDefinition: React.FC<IProps> = ({
 		return errors;
 	};
 
-	const {errors, handleChange, handleSubmit, values} = useForm({
+	const {errors, handleSubmit, setValues, values} = useForm({
 		initialValues,
 		onSubmit,
 		validate,
@@ -97,16 +84,13 @@ const ModalAddListTypeDefinition: React.FC<IProps> = ({
 						id="listTypeDefinitionName"
 						label={Liferay.Language.get('name')}
 						name="name_i18n"
-						onChange={({target: {value}}: any) => {
-							handleChange({
-								target: {
-									name: 'name_i18n',
-									value: {
-										[defaultLanguageId]: value,
-									},
+						onChange={({target: {value}}) =>
+							setValues({
+								name_i18n: {
+									[defaultLanguageId]: value,
 								},
-							} as any);
-						}}
+							})
+						}
 						required
 						value={values.name_i18n[defaultLanguageId]}
 					/>
@@ -135,7 +119,7 @@ const ModalAddListTypeDefinition: React.FC<IProps> = ({
 
 interface IProps extends React.HTMLAttributes<HTMLElement> {
 	apiURL: string;
-	observer: any;
+	observer: Observer;
 	onClose: () => void;
 }
 

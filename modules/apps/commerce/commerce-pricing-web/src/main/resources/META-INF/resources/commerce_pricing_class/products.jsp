@@ -96,7 +96,7 @@ boolean hasPermission = commercePricingClassCPDefinitionDisplayContext.hasPermis
 								fieldName: ['catalog', 'name'],
 							},
 						],
-						spritemap: '<%= themeDisplay.getPathThemeImages() %>/clay/icons.svg',
+						spritemap: '<%= FrontendIconsUtil.getSpritemap(themeDisplay) %>',
 						titleLabel: '<%= LanguageUtil.get(request, "add-existing-product") %>',
 					});
 				</aui:script>
@@ -117,9 +117,6 @@ boolean hasPermission = commercePricingClassCPDefinitionDisplayContext.hasPermis
 						formName="fm"
 						id="<%= CommercePricingFDSNames.PRICING_CLASSES_PRODUCT_DEFINITIONS %>"
 						itemsPerPage="<%= 10 %>"
-						namespace="<%= liferayPortletResponse.getNamespace() %>"
-						pageNumber="<%= 1 %>"
-						portletURL="<%= currentURLObj %>"
 					/>
 				</commerce-ui:panel>
 			</div>

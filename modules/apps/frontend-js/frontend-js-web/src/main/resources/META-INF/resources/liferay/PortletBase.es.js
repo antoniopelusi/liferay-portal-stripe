@@ -12,8 +12,6 @@
  * details.
  */
 
-import Component from 'metal-component';
-
 import objectToFormData from './util/form/object_to_form_data.es';
 
 function toElementHelper(elementOrSelector) {
@@ -24,8 +22,95 @@ function toElementHelper(elementOrSelector) {
 	return elementOrSelector;
 }
 
-function isString(val) {
-	return typeof val === 'string';
+/**
+ * The purpose of this class is to mimic the lifecycles from metal-state.
+ * There are several classes that extend PortletBase and expect some of these
+ * lifecycles to exist. This pseudo-lifecycle class is meant to provide backwards
+ * compatibility for classes extending PortletBase.
+ */
+class LifeCycles {
+	get namespace() {
+		return this._STATE_.namespace;
+	}
+	get portletNamespace() {
+		return this._STATE_.portletNamespace;
+	}
+	get rootNode() {
+		return this._STATE_.rootNode;
+	}
+	set portletNamespace(portletNamespace) {
+		this.rootNode = `#p_p_id${portletNamespace}`;
+
+		this._STATE_.portletNamespace = portletNamespace;
+	}
+	set namespace(namespace) {
+		this.rootNode = `#p_p_id${namespace}`;
+
+		this._STATE_.namespace = namespace;
+	}
+	set rootNode(rootNode) {
+		if (typeof rootNode === 'string') {
+			rootNode = document.getElementById(
+				rootNode[0] === '#' ? rootNode.slice(1) : rootNode
+			);
+		}
+
+		this._STATE_.rootNode = rootNode;
+	}
+	constructor(props) {
+		this._EVENTS_ = {};
+		this._STATE_ = {
+			namespace: null,
+			portletNamespace: null,
+			rootNode: null,
+		};
+
+		const {namespace, portletNamespace, rootNode} = props;
+
+		if (namespace) {
+			this.namespace = namespace;
+		}
+
+		if (portletNamespace) {
+			this.portletNamespace = portletNamespace;
+		}
+
+		if (rootNode) {
+			this.rootNode = rootNode;
+		}
+
+		this.created(props);
+		this.attached(props);
+	}
+	dispose() {
+		this.disposeInternal();
+
+		this.detached();
+
+		this.disposed();
+	}
+	attached() {}
+	created() {}
+	detached() {}
+	disposed() {}
+	disposeInternal() {}
+	emit(eventName, data) {
+		const callbacks = this._EVENTS_[eventName];
+
+		if (callbacks && callbacks.length) {
+			for (let i = 0; i < callbacks.length; i++) {
+				callbacks[i](data);
+			}
+		}
+	}
+
+	on(eventName, callback) {
+		if (!this._EVENTS_[eventName]) {
+			this._EVENTS_[eventName] = [];
+		}
+
+		this._EVENTS_[eventName].push(callback);
+	}
 }
 
 /**
@@ -33,9 +118,8 @@ function isString(val) {
  * to a specific portlet.
  *
  * @abstract
- * @extends {Component}
  */
-class PortletBase extends Component {
+class PortletBase extends LifeCycles {
 
 	/**
 	 * Returns a Node List containing all the matching element nodes within the
@@ -152,64 +236,6 @@ class PortletBase extends Component {
 			)
 		);
 	}
-
-	/**
-	 * Returns the default portlet root node element. By default, this is the
-	 * element with ID <code>p_p_id{portletNamespace}</code>.
-	 *
-	 * @protected
-	 * @return {Element} The portlet's default root node element.
-	 */
-	rootNodeValueFn_() {
-		return document.getElementById(
-			`p_p_id${this.portletNamespace || this.namespace}`
-		);
-	}
 }
-
-/**
- * State definition.
- *
- * @ignore
- * @static
- * @type {!Object}
- */
-PortletBase.STATE = {
-
-	/**
-	 * Portlet's namespace.
-	 *
-	 * @deprecated As of Judson (7.1.x)
-	 * @instance
-	 * @memberof PortletBase
-	 * @type {string}
-	 */
-	namespace: {
-		validator: isString,
-	},
-
-	/**
-	 * Portlet's namespace.
-	 *
-	 * @instance
-	 * @memberof PortletBase
-	 * @type {string}
-	 */
-	portletNamespace: {
-		validator: isString,
-	},
-
-	/**
-	 * Portlet's root node element.
-	 *
-	 * @instance
-	 * @memberof PortletBase
-	 * @type {Element}
-	 */
-	rootNode: {
-		setter: toElementHelper,
-		valueFn: 'rootNodeValueFn_',
-	},
-};
 
 export default PortletBase;

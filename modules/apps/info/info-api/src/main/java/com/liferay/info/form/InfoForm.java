@@ -40,44 +40,6 @@ public class InfoForm {
 		return new Builder();
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x)
-	 */
-	@Deprecated
-	public InfoForm(String name) {
-		this(builder().name(name));
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x)
-	 */
-	@Deprecated
-	public InfoForm add(InfoFieldSet infoFieldSet) {
-		_builder.infoFieldSetEntry(infoFieldSet);
-
-		return this;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x)
-	 */
-	@Deprecated
-	public InfoForm add(InfoFieldSetEntry infoFieldSetEntry) {
-		_builder.infoFieldSetEntry(infoFieldSetEntry);
-
-		return this;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x)
-	 */
-	@Deprecated
-	public InfoForm addAll(Collection<InfoFieldSetEntry> infoFieldSetEntries) {
-		_builder.infoFieldSetEntries(infoFieldSetEntries);
-
-		return this;
-	}
-
 	@Override
 	public boolean equals(Object object) {
 		if (this == object) {
@@ -104,27 +66,22 @@ public class InfoForm {
 		return false;
 	}
 
-	public List<InfoField> getAllInfoFields() {
-		List<InfoField> allInfoFields = new ArrayList<>();
-
-		for (InfoFieldSetEntry infoFieldSetEntry :
-				_builder._infoFieldSetEntriesByName.values()) {
-
-			if (infoFieldSetEntry instanceof InfoField) {
-				allInfoFields.add((InfoField)infoFieldSetEntry);
-			}
-			else if (infoFieldSetEntry instanceof InfoFieldSet) {
-				InfoFieldSet infoFieldSet = (InfoFieldSet)infoFieldSetEntry;
-
-				allInfoFields.addAll(infoFieldSet.getAllInfoFields());
-			}
-		}
-
-		return allInfoFields;
+	public List<InfoField<?>> getAllInfoFields() {
+		return new ArrayList<>(_builder._infoFieldsByUniqueId.values());
 	}
 
 	public InfoLocalizedValue<String> getDescriptionInfoLocalizedValue() {
 		return _builder._descriptionInfoLocalizedValue;
+	}
+
+	public InfoField<?> getInfoField(String name) {
+		InfoField<?> infoField = _builder._infoFieldsByUniqueId.get(name);
+
+		if (infoField != null) {
+			return infoField;
+		}
+
+		return _builder._infoFieldsByName.get(name);
 	}
 
 	public List<InfoFieldSetEntry> getInfoFieldSetEntries() {
@@ -158,26 +115,6 @@ public class InfoForm {
 		hash = HashUtil.hash(hash, _builder._labelInfoLocalizedValue);
 
 		return HashUtil.hash(hash, _builder._name);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x)
-	 */
-	@Deprecated
-	public void setDescriptionInfoLocalizedValue(
-		InfoLocalizedValue<String> descriptionInfoLocalizedValue) {
-
-		_builder.descriptionInfoLocalizedValue(descriptionInfoLocalizedValue);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x)
-	 */
-	@Deprecated
-	public void setLabelInfoLocalizedValue(
-		InfoLocalizedValue<String> labelInfoLocalizedValue) {
-
-		_builder.labelInfoLocalizedValue(labelInfoLocalizedValue);
 	}
 
 	@Override
@@ -238,12 +175,16 @@ public class InfoForm {
 					infoFieldSet.getName(), infoFieldSet);
 			}
 
+			_populateInfoFieldsMaps(infoFieldSet);
+
 			return this;
 		}
 
 		public Builder infoFieldSetEntry(InfoFieldSetEntry infoFieldSetEntry) {
 			_infoFieldSetEntriesByName.put(
 				infoFieldSetEntry.getName(), infoFieldSetEntry);
+
+			_populateInfoFieldsMaps(infoFieldSetEntry);
 
 			return this;
 		}
@@ -272,7 +213,37 @@ public class InfoForm {
 			return this;
 		}
 
+		private void _populateInfoFieldsMaps(
+			InfoFieldSetEntry infoFieldSetEntry) {
+
+			if (infoFieldSetEntry == null) {
+				return;
+			}
+
+			if (infoFieldSetEntry instanceof InfoField) {
+				_infoFieldsByName.put(
+					infoFieldSetEntry.getName(),
+					(InfoField<?>)infoFieldSetEntry);
+				_infoFieldsByUniqueId.put(
+					infoFieldSetEntry.getUniqueId(),
+					(InfoField<?>)infoFieldSetEntry);
+
+				return;
+			}
+
+			InfoFieldSet infoFieldSet = (InfoFieldSet)infoFieldSetEntry;
+
+			for (InfoField<?> infoField : infoFieldSet.getAllInfoFields()) {
+				_infoFieldsByName.put(infoField.getName(), infoField);
+				_infoFieldsByUniqueId.put(infoField.getUniqueId(), infoField);
+			}
+		}
+
 		private InfoLocalizedValue<String> _descriptionInfoLocalizedValue;
+		private final Map<String, InfoField<?>> _infoFieldsByName =
+			new LinkedHashMap<>();
+		private final Map<String, InfoField<?>> _infoFieldsByUniqueId =
+			new LinkedHashMap<>();
 		private final Map<String, InfoFieldSetEntry>
 			_infoFieldSetEntriesByName = new LinkedHashMap<>();
 		private InfoLocalizedValue<String> _labelInfoLocalizedValue;

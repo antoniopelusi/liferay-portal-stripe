@@ -79,12 +79,12 @@ public class UpgradeProcessTest {
 	}
 
 	@Test
-	public void testAddTempIndex() throws Exception {
+	public void testAddTemporaryIndex() throws Exception {
 		UpgradeProcess upgradeProcess = new UpgradeProcess() {
 
 			@Override
 			protected void doUpgrade() throws Exception {
-				try (SafeCloseable safeCloseable = addTempIndex(
+				try (SafeCloseable safeCloseable = addTemporaryIndex(
 						TABLE_NAME, false, "typeVarchar")) {
 
 					Assert.assertTrue(hasIndex(TABLE_NAME, "IX_TEMP"));

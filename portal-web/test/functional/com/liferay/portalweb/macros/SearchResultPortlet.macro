@@ -20,6 +20,12 @@ definition {
 				locator1 = "Checkbox#ANY_CHECKBOX");
 		}
 
+		if ("${displayDocumentForm}" == "true") {
+			Check(
+				checkboxName = "Display Results in Document Form",
+				locator1 = "Checkbox#ANY_CHECKBOX");
+		}
+
 		if (isSet(federatedSearchKey)) {
 			Type(
 				key_fieldLabel = "Federated Search Key",
@@ -127,12 +133,6 @@ definition {
 		var key_searchAssetTitle = "${searchAssetTitle}";
 		var key_searchAssetType = "${searchAssetType}";
 
-		while (IsElementNotPresent(locator1 = "SearchResults#ASSET_ENTRY_TABLE_TITLE") && (maxIterations = "6")) {
-			Pause(locator1 = "5000");
-
-			Refresh();
-		}
-
 		AssertTextEquals.assertPartialText(
 			locator1 = "SearchResults#ASSET_ENTRY_TABLE_TITLE_SPECIFIC",
 			value1 = "${searchAssetTitle}");
@@ -165,12 +165,6 @@ definition {
 
 		for (var searchAssetTitle : list "${resultsList}") {
 			var resultOrder = ${resultOrder} + 1;
-
-			while (IsElementNotPresent(key_searchAssetTitle = "${searchAssetTitle}", locator1 = "SearchResults#ASSET_ENTRY_TABLE_TITLE") && (maxIterations = "6")) {
-				Pause(locator1 = "5000");
-
-				Refresh();
-			}
 
 			AssertTextEquals.assertPartialText(
 				locator1 = "SearchResults#ASSET_ENTRY_TABLE_TITLE_SPECIFIC_ORDER",

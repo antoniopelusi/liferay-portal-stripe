@@ -57,7 +57,7 @@ import com.liferay.calendar.util.RecurrenceUtil;
 import com.liferay.calendar.util.comparator.CalendarBookingStartTimeComparator;
 import com.liferay.calendar.web.internal.constants.CalendarWebKeys;
 import com.liferay.calendar.web.internal.display.context.CalendarDisplayContext;
-import com.liferay.calendar.web.internal.upgrade.CalendarWebUpgrade;
+import com.liferay.calendar.web.internal.upgrade.registry.CalendarWebUpgradeStepRegistrator;
 import com.liferay.calendar.web.internal.util.CalendarResourceUtil;
 import com.liferay.calendar.web.internal.util.CalendarUtil;
 import com.liferay.calendar.workflow.constants.CalendarBookingWorkflowConstants;
@@ -954,7 +954,6 @@ public class CalendarPortlet extends MVCPortlet {
 			calendarBooking.setStartTime(startTime);
 
 			calendarBooking.setEndTime(endTime);
-
 			calendarBooking.setRecurrence(
 				RecurrenceSerializer.serialize(recurrenceObj));
 
@@ -968,20 +967,24 @@ public class CalendarPortlet extends MVCPortlet {
 	private java.util.Calendar _getJCalendar(
 		PortletRequest portletRequest, String name) {
 
-		int month = ParamUtil.getInteger(portletRequest, name + "Month");
-		int day = ParamUtil.getInteger(portletRequest, name + "Day");
-		int year = ParamUtil.getInteger(portletRequest, name + "Year");
 		int hour = ParamUtil.getInteger(portletRequest, name + "Hour");
-		int minute = ParamUtil.getInteger(portletRequest, name + "Minute");
 
-		int amPm = ParamUtil.getInteger(portletRequest, name + "AmPm");
+		if (ParamUtil.getInteger(portletRequest, name + "AmPm") ==
+				java.util.Calendar.PM) {
 
-		if (amPm == java.util.Calendar.PM) {
 			hour += 12;
 		}
 
+		TimeZone timeZone = ParamUtil.getBoolean(portletRequest, "allDay") ?
+			TimeZoneUtil.getTimeZone(StringPool.UTC) :
+				_getTimeZone(portletRequest);
+
 		return JCalendarUtil.getJCalendar(
-			year, month, day, hour, minute, 0, 0, _getTimeZone(portletRequest));
+			ParamUtil.getInteger(portletRequest, name + "Year"),
+			ParamUtil.getInteger(portletRequest, name + "Month"),
+			ParamUtil.getInteger(portletRequest, name + "Day"), hour,
+			ParamUtil.getInteger(portletRequest, name + "Minute"), 0, 0,
+			timeZone);
 	}
 
 	private String _getNotificationTypeSettings(
@@ -1851,7 +1854,8 @@ public class CalendarPortlet extends MVCPortlet {
 	private CalendarService _calendarService;
 
 	@Reference
-	private CalendarWebUpgrade _calendarWebUpgrade;
+	private CalendarWebUpgradeStepRegistrator
+		_calendarWebUpgradeStepRegistrator;
 
 	@Reference
 	private CustomSQL _customSQL;

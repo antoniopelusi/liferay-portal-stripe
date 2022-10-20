@@ -15,7 +15,7 @@
 import ClayButton from '@clayui/button';
 import ClayIcon from '@clayui/icon';
 import ClayLabel from '@clayui/label';
-import {openSelectionModal} from 'frontend-js-web';
+import {openSelectionModal, sub} from 'frontend-js-web';
 import React, {useEffect, useState} from 'react';
 
 export default function GroupLabels({
@@ -55,7 +55,7 @@ export default function GroupLabels({
 	return (
 		<>
 			<span className="permission-scopes">
-				{groupNames.length === 0 ? (
+				{!groupNames.length ? (
 					<span>
 						{Liferay.Language.get('all-sites-and-asset-libraries')}
 					</span>
@@ -110,7 +110,7 @@ export default function GroupLabels({
 						},
 						selectEventName: `${portletNamespace}selectGroup${target}`,
 						selectedData: groupIds,
-						title: Liferay.Util.sub(
+						title: sub(
 							Liferay.Language.get('select-x'),
 							Liferay.Language.get('site')
 						),

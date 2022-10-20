@@ -272,11 +272,6 @@
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 		<attribute>
-			<name>spritemap</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		</attribute>
-		<attribute>
 			<name>toggleable</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>

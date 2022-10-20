@@ -53,7 +53,8 @@ public class ConfigurationImpl
 		ClassLoader classLoader, String name, long companyId, String webId) {
 
 		_classLoaderAggregateProperties =
-			ClassLoaderAggregatePropertiesUtil.create(classLoader, webId, name);
+			ClassLoaderAggregatePropertiesUtil.create(
+				classLoader, companyId, webId, name);
 
 		printSources(companyId, webId);
 	}
@@ -346,7 +347,10 @@ public class ConfigurationImpl
 
 			if (companyId > CompanyConstants.SYSTEM) {
 				info += StringBundler.concat(
-					" for {companyId=", companyId, ", webId=", webId, "}");
+					" for company ID ", companyId, " and web ID ", webId,
+					"\nCompany properties can be overwrritten by setting the ",
+					"environment variable LIFERAY_PROPS_BY_COMPANY_",
+					companyId);
 			}
 
 			System.out.println(info);

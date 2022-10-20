@@ -16,6 +16,9 @@ package com.liferay.flags.service.impl;
 
 import com.liferay.flags.internal.messaging.FlagsRequest;
 import com.liferay.flags.service.base.FlagsEntryServiceBaseImpl;
+import com.liferay.message.boards.model.MBMessage;
+import com.liferay.message.boards.service.MBMessageService;
+import com.liferay.message.boards.service.MBSuspiciousActivityService;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.EmailAddressException;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -63,7 +66,27 @@ public class FlagsEntryServiceImpl extends FlagsEntryServiceBaseImpl {
 		message.setPayload(flagsRequest);
 
 		_messageBus.sendMessage(DestinationNames.FLAGS, message);
+
+		if (className.equals("com.liferay.message.boards.model.MBMessage")) {
+			MBMessage mbMessage = _mbMessageService.getMessage(classPK);
+
+			if (mbMessage.isRoot()) {
+				_mbSuspiciousActivityService.
+					addOrUpdateThreadSuspiciousActivity(
+						mbMessage.getThreadId(), reason);
+			}
+			else {
+				_mbSuspiciousActivityService.
+					addOrUpdateMessageSuspiciousActivity(classPK, reason);
+			}
+		}
 	}
+
+	@Reference
+	private MBMessageService _mbMessageService;
+
+	@Reference
+	private MBSuspiciousActivityService _mbSuspiciousActivityService;
 
 	@Reference
 	private MessageBus _messageBus;

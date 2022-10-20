@@ -14,8 +14,12 @@
 
 package com.liferay.portal.search.elasticsearch7.internal.query;
 
+import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Hits;
+import com.liferay.portal.kernel.search.IndexWriter;
+import com.liferay.portal.kernel.search.SearchContext;
+import com.liferay.portal.kernel.search.SearchException;
 import com.liferay.portal.search.elasticsearch7.internal.LiferayElasticsearchIndexingFixtureFactory;
 import com.liferay.portal.search.engine.adapter.SearchEngineAdapter;
 import com.liferay.portal.search.engine.adapter.search.SearchSearchRequest;
@@ -26,12 +30,17 @@ import com.liferay.portal.search.query.MultiMatchQuery;
 import com.liferay.portal.search.query.Operator;
 import com.liferay.portal.search.test.util.DocumentsAssert;
 import com.liferay.portal.search.test.util.indexing.BaseIndexingTestCase;
+import com.liferay.portal.search.test.util.indexing.DocumentFixture;
 import com.liferay.portal.search.test.util.indexing.IndexingFixture;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -53,65 +62,100 @@ public class MultiMatchQueryTest extends BaseIndexingTestCase {
 	public void setUp() throws Exception {
 		super.setUp();
 
-		_indexUserDocuments();
+		_indexWriter = getIndexWriter();
+	}
+
+	@After
+	@Override
+	public void tearDown() throws SearchException {
+		Stream<Document> stream = _documents.stream();
+
+		_indexWriter.deleteDocuments(
+			_getSearchContext(),
+			stream.map(
+				document -> document.get(Field.UID)
+			).collect(
+				Collectors.toList()
+			));
+
+		_documents.clear();
 	}
 
 	@Test
 	public void testMultiMatchQueryBoolPrefix() {
+		_indexUserDocuments("delta", "omega", "userName1");
+		_indexUserDocuments("omega", "delta", "userName2");
+		_indexUserDocuments("omega", "alpha", "userName3");
+
 		MultiMatchQuery multiMatchQuery = queries.multiMatch(
 			"delta", "firstName", "lastName");
 
 		multiMatchQuery.setType(MultiMatchQuery.Type.BOOL_PREFIX);
 
-		List<String> expected = Arrays.asList("userName4", "userName5");
+		List<String> expected = Arrays.asList("userName1", "userName2");
 
 		_assertSearch(expected, multiMatchQuery);
 	}
 
 	@Test
 	public void testMultiMatchQueryCrossField() {
+		_indexUserDocuments("bravo", "alpha", "userName1");
+		_indexUserDocuments("omega", "beta", "userName2");
+
 		MultiMatchQuery multiMatchQuery = queries.multiMatch(
 			"bravo alpha", "firstName", "lastName");
 
 		multiMatchQuery.setOperator(Operator.AND);
 		multiMatchQuery.setType(MultiMatchQuery.Type.CROSS_FIELDS);
 
-		List<String> expected = Arrays.asList("userName2");
+		List<String> expected = Arrays.asList("userName1");
 
 		_assertSearch(expected, multiMatchQuery);
 	}
 
 	@Test
 	public void testMultiMatchQueryDefault() {
+		_indexUserDocuments("alpha", "omega", "userName1");
+		_indexUserDocuments("bravo", "alpha", "userName2");
+		_indexUserDocuments("alpha", "zeta", "userName3");
+		_indexUserDocuments("omega", "beta", "userName4");
+
 		MultiMatchQuery multiMatchQuery = queries.multiMatch(
 			"alpha", "firstName", "lastName");
 
 		List<String> expected = Arrays.asList(
-			"userName1", "userName2", "userName6");
+			"userName1", "userName2", "userName3");
 
 		_assertSearch(expected, multiMatchQuery);
 	}
 
 	@Test
 	public void testMultiMatchQueryPhrasePrefix() {
+		_indexUserDocuments("bro charlie", "iota", "userName1");
+		_indexUserDocuments("omega", "beta", "userName2");
+
 		MultiMatchQuery multiMatchQuery = queries.multiMatch(
 			"bro", "firstName", "lastName");
 
 		multiMatchQuery.setType(MultiMatchQuery.Type.PHRASE_PREFIX);
 
-		List<String> expected = Arrays.asList("userName3");
+		List<String> expected = Arrays.asList("userName1");
 
 		_assertSearch(expected, multiMatchQuery);
 	}
 
 	@Test
 	public void testMultiMatchQueryTieBreaker() {
+		_indexUserDocuments("delta", "omega", "userName1");
+		_indexUserDocuments("omega", "delta", "userName2");
+		_indexUserDocuments("omega", "beta", "userName3");
+
 		MultiMatchQuery multiMatchQuery = queries.multiMatch(
 			"delta", "firstName", "lastName");
 
 		multiMatchQuery.setTieBreaker(Float.valueOf(0.3F));
 
-		List<String> expected = Arrays.asList("userName4", "userName5");
+		List<String> expected = Arrays.asList("userName1", "userName2");
 
 		_assertSearch(expected, multiMatchQuery);
 	}
@@ -159,43 +203,38 @@ public class MultiMatchQueryTest extends BaseIndexingTestCase {
 			});
 	}
 
-	private void _indexUserDocuments() {
-		addDocument(
-			document -> {
-				document.addKeyword("firstName", "alpha");
-				document.addKeyword("lastName", "omega");
-				document.addKeyword(Field.USER_NAME, "userName1");
-			});
-		addDocument(
-			document -> {
-				document.addKeyword("firstName", "bravo");
-				document.addKeyword("lastName", "alpha");
-				document.addKeyword(Field.USER_NAME, "userName2");
-			});
-		addDocument(
-			document -> {
-				document.addKeyword("firstName", "bro charlie");
-				document.addKeyword("lastName", "iota");
-				document.addKeyword(Field.USER_NAME, "userName3");
-			});
-		addDocument(
-			document -> {
-				document.addKeyword("firstName", "delta");
-				document.addKeyword("lastName", "omega");
-				document.addKeyword(Field.USER_NAME, "userName4");
-			});
-		addDocument(
-			document -> {
-				document.addKeyword("firstName", "omega");
-				document.addKeyword("lastName", "delta");
-				document.addKeyword(Field.USER_NAME, "userName5");
-			});
-		addDocument(
-			document -> {
-				document.addKeyword("firstName", "alpha");
-				document.addKeyword("lastName", "zeta");
-				document.addKeyword(Field.USER_NAME, "userName6");
-			});
+	private Document _createDocument(
+		String firstName, String lastName, String userName) {
+
+		Document document = DocumentFixture.newDocument(
+			getCompanyId(), getGroupId(), getEntryClassName());
+
+		document.addKeyword(Field.USER_NAME, userName);
+		document.addKeyword("firstName", firstName);
+		document.addKeyword("lastName", lastName);
+
+		return document;
 	}
+
+	private SearchContext _getSearchContext() {
+		SearchContext searchContext = new SearchContext();
+
+		searchContext.setCompanyId(getCompanyId());
+
+		return searchContext;
+	}
+
+	private void _indexUserDocuments(
+		String firstName, String lastName, String userName) {
+
+		Document document = _createDocument(firstName, lastName, userName);
+
+		addDocument(document);
+
+		_documents.add(document);
+	}
+
+	private final List<Document> _documents = new ArrayList<>();
+	private IndexWriter _indexWriter;
 
 }

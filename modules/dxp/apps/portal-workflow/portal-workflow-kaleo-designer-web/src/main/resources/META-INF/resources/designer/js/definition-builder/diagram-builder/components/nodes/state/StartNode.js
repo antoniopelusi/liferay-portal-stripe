@@ -30,13 +30,13 @@ export default function StartNode({
 	return (
 		<BaseNode
 			actions={actions}
-			className="start-node"
 			description={description}
 			descriptionSidebar={descriptionSidebar}
 			icon="play"
 			id={id}
 			label={label}
 			newNode={newNode}
+			nodeTypeClassName="start-node"
 			notifications={notifications}
 			type="start"
 			{...otherProps}

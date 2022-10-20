@@ -10,19 +10,33 @@
  */
 
 import {useEffect, useState} from 'react';
-import client from '../../../../../apolloClient';
+import {useOutletContext} from 'react-router-dom';
+import i18n from '../../../../../common/I18n';
+import {useAppPropertiesContext} from '../../../../../common/contexts/AppPropertiesContext';
 import {Liferay} from '../../../../../common/services/liferay';
 import {getDXPCloudEnvironment} from '../../../../../common/services/liferay/graphql/queries';
 import ActivationStatus from '../../../components/ActivationStatus/index';
+import {useCustomerPortal} from '../../../context';
 import DeveloperKeysLayouts from '../../../layouts/DeveloperKeysLayout';
 import {LIST_TYPES, PRODUCT_TYPES} from '../../../utils/constants';
 
-const DXPCloud = ({project, sessionId, subscriptionGroups, userAccount}) => {
+const DXPCloud = () => {
+	const [
+		{project, sessionId, subscriptionGroups, userAccount},
+	] = useCustomerPortal();
+	const {setHasQuickLinksPanel, setHasSideMenu} = useOutletContext();
 	const [dxpCloudEnvironment, setDxpCloudEnvironment] = useState();
+	const {client} = useAppPropertiesContext();
+
+	useEffect(() => {
+		setHasQuickLinksPanel(true);
+		setHasSideMenu(true);
+	}, [setHasSideMenu, setHasQuickLinksPanel]);
 
 	useEffect(() => {
 		const getDxpCloudEnvironmentData = async () => {
 			const {data} = await client.query({
+				fetchPolicy: 'network-only',
 				query: getDXPCloudEnvironment,
 				variables: {
 					filter: `accountKey eq '${project.accountKey}'`,
@@ -40,7 +54,7 @@ const DXPCloud = ({project, sessionId, subscriptionGroups, userAccount}) => {
 		};
 
 		getDxpCloudEnvironmentData();
-	}, [project, subscriptionGroups]);
+	}, [client, project, subscriptionGroups]);
 
 	return (
 		<div className="mr-4">
@@ -57,7 +71,9 @@ const DXPCloud = ({project, sessionId, subscriptionGroups, userAccount}) => {
 			<DeveloperKeysLayouts>
 				<DeveloperKeysLayouts.Inputs
 					accountKey={project.accountKey}
-					downloadTextHelper="To activate a local instance of Liferay DXP, download a developer key for your Liferay DXP version."
+					downloadTextHelper={i18n.translate(
+						'to-activate-a-local-instance-of-liferay-dxp-download-a-developer-key-for-your-liferay-dxp-version'
+					)}
 					dxpVersion={project.dxpVersion}
 					listType={LIST_TYPES.dxpVersion}
 					productName="DXP"

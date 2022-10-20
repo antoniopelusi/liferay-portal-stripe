@@ -23,11 +23,11 @@ definition {
 	function openInTheNewTab {
 		WaitForSPARefresh();
 
-		var javascript = '''
-window.open("${locator1}","_blank");
-		''';
+		RobotType.robotTypeShortcut(locator1 = "Ctrl + t");
 
-		selenium.runScript("${javascript}");
+		SelectWindow.selectPopUp(locator1 = "null");
+
+		selenium.open();
 	}
 
 	function openNoError {
@@ -38,6 +38,16 @@ window.open("${locator1}","_blank");
 		selenium.selectFrame("relative=top");
 
 		selenium.open();
+	}
+
+	function openRedirect {
+		WaitForSPARefresh();
+
+		var javascript = '''
+window.open("${locator1}","_self");
+		''';
+
+		selenium.runScript("${javascript}");
 	}
 
 }

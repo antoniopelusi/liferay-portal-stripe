@@ -63,6 +63,25 @@ definition {
 			option = "${option}");
 	}
 
+	macro configureFederatedSearchKeyForOptionsWidget {
+		Portlet.gotoPortletOptions(
+			portletName = "Blueprints Options",
+			portletOption = "Configuration");
+
+		SelectFrame(locator1 = "IFrame#CONFIGURATION");
+
+		Type(
+			key_fieldLabel = "Federated Search Key",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "${federatedSearchKey}");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+
+		IFrame.closeFrame();
+	}
+
 	macro createBlueprint {
 		Click(locator1 = "Button#PLUS");
 
@@ -103,26 +122,6 @@ definition {
 		Alert.viewSuccessMessage();
 	}
 
-	macro editBlueprint {
-		Blueprints.editEntry(title = "${title}");
-	}
-
-	macro editElement {
-		Navigator.gotoNavItem(navItem = "Elements");
-
-		if ("${searchForElement}" == "true") {
-			Search.searchCP(searchTerm = "${element}");
-		}
-
-		Blueprints.editEntry(title = "${element}");
-	}
-
-	macro editEntry {
-		Click(
-			entryTitle = "${title}",
-			locator1 = "Blueprints#BLUEPRINTS_ADMIN_ENTRY_TITLE");
-	}
-
 	macro getBlueprintID {
 		Variables.assertDefined(parameterList = "${title}");
 
@@ -133,6 +132,7 @@ definition {
 				-H 'accept: application/json' \
 				-u test@liferay.com:test
 		''';
+
 		var blueprintId = JSONCurlUtil.get("${curl}", "$.items[?(@['title'] == '${title}')]['id']");
 
 		echo("## ID for Blueprint ${title}: ${blueprintId}");
@@ -150,11 +150,32 @@ definition {
 				-H 'accept: application/json' \
 				-u test@liferay.com:test
 		''';
+
 		var elementId = JSONCurlUtil.get("${curl}", "$.items[?(@['title'] == '${title}')]['id']");
 
 		echo("## ID for Element ${title}: ${elementId}");
 
 		return "${elementId}";
+	}
+
+	macro gotoBlueprint {
+		Blueprints.gotoEntry(title = "${title}");
+	}
+
+	macro gotoElement {
+		Navigator.gotoNavItem(navItem = "Elements");
+
+		if ("${searchForElement}" == "true") {
+			Search.searchCP(searchTerm = "${element}");
+		}
+
+		Blueprints.gotoEntry(title = "${element}");
+	}
+
+	macro gotoEntry {
+		Click(
+			entryTitle = "${title}",
+			locator1 = "Blueprints#BLUEPRINTS_ADMIN_ENTRY_TITLE");
 	}
 
 	macro gotoEntryMenuItem {
@@ -227,24 +248,9 @@ definition {
 		MenuItem.clickNoError(menuItem = "${menuItem}");
 	}
 
-	macro viewCopiedContent {
-		WebContentNavigator.openToAddBasicArticle(
-			groupName = "Guest",
-			siteURLKey = "guest");
-
-		SelectFrame.selectFrameNoLoading(locator1 = "CKEditor#BODY_FIELD_IFRAME_2");
-
-		Click(locator1 = "CKEditor#BODY");
-
-		RobotType.robotTypeShortcut(locator1 = "Ctrl + v");
-
-		WaitForElementPresent(
-			key_text = "${text}",
-			locator1 = "CKEditor#BODY_TEXT");
-	}
-
 	macro viewDownloadedContent {
 		var tempDir = PropsUtil.get("output.dir.name");
+
 		var fileContent = FileUtil.read("${tempDir}/${fileName}");
 
 		if (contains("${fileContent}", "${text}")) {

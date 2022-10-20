@@ -332,10 +332,8 @@ public class DLAppLocalServiceImpl extends DLAppLocalServiceBaseImpl {
 			mimeType.equals(ContentTypes.APPLICATION_OCTET_STREAM)) {
 
 			if (size == 0) {
-				String extension = DLAppUtil.getExtension(
-					title, sourceFileName);
-
-				mimeType = MimeTypesUtil.getExtensionContentType(extension);
+				mimeType = MimeTypesUtil.getExtensionContentType(
+					DLAppUtil.getExtension(title, sourceFileName));
 			}
 			else {
 				File file = null;
@@ -967,9 +965,14 @@ public class DLAppLocalServiceImpl extends DLAppLocalServiceBaseImpl {
 			long[] assetLinkEntryIds)
 		throws PortalException {
 
+		ServiceContext serviceContext = new ServiceContext();
+
+		serviceContext.setAssetCategoryIds(assetCategoryIds);
+		serviceContext.setAssetLinkEntryIds(assetLinkEntryIds);
+		serviceContext.setAssetTagNames(assetTagNames);
+
 		_dlAppHelperLocalService.updateAsset(
-			userId, fileEntry, fileVersion, assetCategoryIds, assetTagNames,
-			assetLinkEntryIds);
+			userId, fileEntry, fileVersion, serviceContext);
 	}
 
 	/**
@@ -1166,10 +1169,8 @@ public class DLAppLocalServiceImpl extends DLAppLocalServiceBaseImpl {
 			mimeType.equals(ContentTypes.APPLICATION_OCTET_STREAM)) {
 
 			if (size == 0) {
-				String extension = DLAppUtil.getExtension(
-					title, sourceFileName);
-
-				mimeType = MimeTypesUtil.getExtensionContentType(extension);
+				mimeType = MimeTypesUtil.getExtensionContentType(
+					DLAppUtil.getExtension(title, sourceFileName));
 			}
 			else {
 				File file = null;

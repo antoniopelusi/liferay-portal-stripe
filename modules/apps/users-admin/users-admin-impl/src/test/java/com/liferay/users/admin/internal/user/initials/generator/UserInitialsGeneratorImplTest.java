@@ -16,7 +16,7 @@ package com.liferay.users.admin.internal.user.initials.generator;
 
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.language.Language;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 import com.liferay.users.admin.kernel.util.UserInitialsGenerator;
@@ -24,11 +24,11 @@ import com.liferay.users.admin.kernel.util.UserInitialsGenerator;
 import java.util.Locale;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 /**
@@ -41,9 +41,14 @@ public class UserInitialsGeneratorImplTest {
 	public static final LiferayUnitTestRule liferayUnitTestRule =
 		LiferayUnitTestRule.INSTANCE;
 
+	@Before
+	public void setUp() {
+		_setUpLanguage();
+	}
+
 	@Test
 	public void testFirstLast() throws Exception {
-		_setUpLanguageUtil("first-name,last-name");
+		_mockLanguage("first-name,last-name");
 
 		Assert.assertEquals(
 			"FL",
@@ -65,7 +70,7 @@ public class UserInitialsGeneratorImplTest {
 
 	@Test
 	public void testFirstMiddleLast() throws Exception {
-		_setUpLanguageUtil("first-name,middle-name,last-name");
+		_mockLanguage("first-name,middle-name,last-name");
 
 		Assert.assertEquals(
 			"FM",
@@ -99,7 +104,7 @@ public class UserInitialsGeneratorImplTest {
 
 	@Test
 	public void testLastFirst() throws Exception {
-		_setUpLanguageUtil("last-name,first-name");
+		_mockLanguage("last-name,first-name");
 
 		Assert.assertEquals(
 			"LF",
@@ -121,7 +126,7 @@ public class UserInitialsGeneratorImplTest {
 
 	@Test
 	public void testLastFirstMiddle() throws Exception {
-		_setUpLanguageUtil("last-name,first-name,middle-name");
+		_mockLanguage("last-name,first-name,middle-name");
 
 		Assert.assertEquals(
 			"LF",
@@ -155,7 +160,7 @@ public class UserInitialsGeneratorImplTest {
 
 	@Test
 	public void testNoPropertiesReturnedUsesDefaultValues() throws Exception {
-		_setUpLanguageUtil(StringPool.BLANK);
+		_mockLanguage(StringPool.BLANK);
 
 		Assert.assertEquals(
 			"FL",
@@ -175,21 +180,20 @@ public class UserInitialsGeneratorImplTest {
 				_LOCALE, null, _MIDDLE_NAME, null));
 	}
 
-	private void _setUpLanguageUtil(String returnValue) throws Exception {
-		Language language = Mockito.mock(Language.class);
-
+	private void _mockLanguage(String returnValue) throws Exception {
 		Mockito.doReturn(
 			returnValue
 		).when(
-			language
+			_language
 		).get(
-			Matchers.any(Locale.class), Matchers.anyString(),
-			Matchers.anyString()
+			Mockito.any(Locale.class), Mockito.anyString(),
+			Mockito.nullable(String.class)
 		);
+	}
 
-		LanguageUtil languageUtil = new LanguageUtil();
-
-		languageUtil.setLanguage(language);
+	private void _setUpLanguage() {
+		ReflectionTestUtil.setFieldValue(
+			_userInitialsGenerator, "_language", _language);
 	}
 
 	private static final String _FIRST_NAME = "First";
@@ -200,6 +204,7 @@ public class UserInitialsGeneratorImplTest {
 
 	private static final String _MIDDLE_NAME = "Middle";
 
+	private final Language _language = Mockito.mock(Language.class);
 	private final UserInitialsGenerator _userInitialsGenerator =
 		new UserInitialsGeneratorImpl();
 

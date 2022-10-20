@@ -1,5 +1,27 @@
 definition {
 
+	@description = "Go to System settings"
+	macro gotoSystemSettings {
+		Variables.assertDefined(parameterList = "${portlet}");
+
+		var baseURL = "${baseURL}";
+		var portletId = "";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		if ("${portlet}" == "Logging Message Audit") {
+			var portletId = "com.liferay.portal.security.audit.router.configuration.LoggingAuditMessageProcessorConfiguration";
+		}
+
+		if ("${portlet}" == "Audit Log Context") {
+			var portletId = "com.liferay.portal.security.audit.wiring.internal.configuration.AuditLogContextConfiguration";
+		}
+
+		Open(locator1 = "${baseURL}/group/control_panel/manage?p_p_id=com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet&p_p_lifecycle=0&p_p_state=maximized&p_p_mode=view&_com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet_factoryPid=${portletId}&_com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet_mvcRenderCommandName=%2Fconfiguration_admin%2Fedit_configuration");
+	}
+
 	macro openAuditAdmin {
 		if (!(isSet(baseURL))) {
 			var baseURL = PropsUtil.get("portal.url");
@@ -35,9 +57,7 @@ definition {
 			locator1 = "AuditReports#ADVANCED_SEARCH_${reportFieldKey}_FIELD",
 			value1 = "${searchTerm}");
 
-		AssertClick(
-			locator1 = "Button#SEARCH",
-			value1 = "Search");
+		Click(locator1 = "Icon#BASIC_SEARCH");
 
 		Click(locator1 = "Icon#ADVANCED_SEARCH");
 
@@ -57,9 +77,7 @@ definition {
 				locator1 = "AuditReports#ADVANCED_SEARCH_${reportFieldKey}_FIELD",
 				value1 = "${searchTerm}");
 
-			AssertClick(
-				locator1 = "Button#SEARCH",
-				value1 = "Search");
+			Click(locator1 = "Icon#BASIC_SEARCH");
 		}
 
 		AssertTextEquals(
@@ -68,7 +86,7 @@ definition {
 	}
 
 	macro searchViaKeywords {
-		AssertElementPresent(locator1 = "TextInput#SITE_SEARCH_KEYWORDS");
+		WaitForElementPresent(locator1 = "TextInput#SITE_SEARCH_KEYWORDS");
 
 		Type(
 			locator1 = "TextInput#SITE_SEARCH_KEYWORDS",
@@ -76,15 +94,27 @@ definition {
 
 		Click(locator1 = "Button#SUBMIT");
 
-		AssertElementPresent(
+		WaitForElementPresent(
 			key_resourceAction = "${searchTerm}",
 			key_resourceName = "${resourceName}",
 			locator1 = "AuditReports#REPORTS_TABLE_RESOURCE_NAME");
 	}
 
+	macro verifyConfigurationElementIsConfigured {
+		Audit.gotoSystemSettings(portlet = "${portlet}");
+
+		while ((IsTextNotEqual(locator1 = "${element}", value1 = "${text}")) && (maxIterations = "10")) {
+			Refresh();
+		}
+	}
+
 	macro viewAuditDetails {
 		var key_resourceAction = "${resourceAction}";
 		var key_resourceName = "${resourceName}";
+
+		WaitForElementPresent(
+			locator1 = "AuditReports#REPORTS_TABLE_RESOURCE_ACTION",
+			value1 = "${resourceAction}");
 
 		AssertClick(
 			locator1 = "AuditReports#REPORTS_TABLE_RESOURCE_ACTION",
@@ -102,15 +132,64 @@ definition {
 			locator1 = "AuditReports#REPORTS_DETAIL_USER_NAME",
 			value1 = "${userName}");
 
-		AssertTextEquals.assertPartialText(
-			locator1 = "AuditReports#REPORTS_DETAIL_ADDITIONAL_INFORMATION",
-			value1 = "${additionalInformation}");
+		for (var additionalInformationList : list "${additionalInformation}") {
+			AssertTextEquals.assertPartialText(
+				locator1 = "AuditReports#REPORTS_DETAIL_ADDITIONAL_INFORMATION",
+				value1 = "${additionalInformationList}");
+		}
 
 		if (isSet(clientIp)) {
 			AssertTextEquals.assertPartialText(
 				locator1 = "AuditReports#REPORTS_DETAIL_CLIENT_IP",
 				value1 = "${clientIp}");
 		}
+	}
+
+	macro viewAuditDetailsByPosition {
+		var key_resourceAction = "${resourceAction}";
+		var key_resourceName = "${resourceName}";
+
+		AssertClick(
+			locator1 = "AuditReports#REPORTS_DETAIL_RESOURCE_NAME_BY_POSITION",
+			resourceNameByPosition = "${nameByPosition}",
+			value1 = "${resourceAction}");
+
+		AssertTextEquals.assertPartialText(
+			locator1 = "AuditReports#REPORTS_DETAIL_RESOURCE_NAME",
+			value1 = "${resourceName}");
+
+		AssertTextEquals.assertPartialText(
+			locator1 = "AuditReports#REPORTS_DETAIL_RESOURCE_ACTION",
+			value1 = "${resourceAction}");
+
+		AssertTextEquals.assertPartialText(
+			locator1 = "AuditReports#REPORTS_DETAIL_USER_NAME",
+			value1 = "${userName}");
+
+		for (var additionalInformationList : list "${additionalInformation}") {
+			AssertTextEquals.assertPartialText(
+				locator1 = "AuditReports#REPORTS_DETAIL_ADDITIONAL_INFORMATION",
+				value1 = "${additionalInformationList}");
+		}
+
+		if (isSet(clientIp)) {
+			AssertTextEquals.assertPartialText(
+				locator1 = "AuditReports#REPORTS_DETAIL_CLIENT_IP",
+				value1 = "${clientIp}");
+		}
+	}
+
+	macro viewAuditEntries {
+		AssertElementPresent(
+			key_clientIP = "${clientIP}",
+			key_createDate = "${createDate}",
+			key_id = "${id}",
+			key_position = "${position}",
+			key_resourceAction = "${resourceAction}",
+			key_resourceID = "${resourceID}",
+			key_resourceName = "${resourceName}",
+			key_userName = "${userName}",
+			locator1 = "AuditReports#REPORTS_TABLE_ENTRIES");
 	}
 
 }

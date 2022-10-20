@@ -35,7 +35,7 @@ import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -62,6 +62,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Marcellus Tavares
@@ -84,7 +85,7 @@ public class JournalConverterImpl implements JournalConverter {
 
 		Locale defaultLocale = ddmFields.getDefaultLocale();
 
-		if (!LanguageUtil.isAvailableLocale(groupId, defaultLocale)) {
+		if (!_language.isAvailableLocale(groupId, defaultLocale)) {
 			defaultLocale = LocaleUtil.getSiteDefault();
 		}
 
@@ -315,7 +316,7 @@ public class JournalConverterImpl implements JournalConverter {
 
 				return JSONUtil.putAll(
 					entry.getKey()
-				).toJSONString();
+				).toString();
 			}
 
 			return StringPool.BLANK;
@@ -630,6 +631,8 @@ public class JournalConverterImpl implements JournalConverter {
 				dynamicElementElement.addElement("dynamic-element");
 
 			childDynamicElementElement.addAttribute(
+				"field-reference", ddmFormField.getFieldReference());
+			childDynamicElementElement.addAttribute(
 				"index-type", ddmFormField.getIndexType());
 
 			childDynamicElementElement.addAttribute(
@@ -689,5 +692,8 @@ public class JournalConverterImpl implements JournalConverter {
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		JournalConverterImpl.class);
+
+	@Reference
+	private Language _language;
 
 }

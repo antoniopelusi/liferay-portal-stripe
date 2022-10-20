@@ -33,35 +33,20 @@ export function CommonStyles({
 	role = COMMON_STYLES_ROLES.styles,
 	item,
 }) {
-	const {commonStyles} = config;
 	const dispatch = useDispatch();
 	const segmentsExperienceId = useSelector(selectSegmentsExperienceId);
 	const selectedViewportSize = useSelector(
 		(state) => state.selectedViewportSize
 	);
 
-	let styles = commonStyles;
+	const permissions = useSelector((state) => state.permissions);
 
-	styles = styles.filter((fieldSet) =>
-		role === COMMON_STYLES_ROLES.general
-			? fieldSet.configurationRole === COMMON_STYLES_ROLES.general
-			: fieldSet.configurationRole !== COMMON_STYLES_ROLES.general
-	);
-
-	if (item.type === LAYOUT_DATA_ITEM_TYPES.collection) {
-		styles = styles
-			.filter((fieldSet) =>
-				fieldSet.styles.find((field) => field.name === 'display')
-			)
-			.map((fieldSet) => {
-				return {
-					...fieldSet,
-					styles: fieldSet.styles.filter(
-						(field) => field.name === 'display'
-					),
-				};
-			});
-	}
+	let styles = filterCommonStyles({
+		item,
+		permissions,
+		role,
+		styles: config.commonStyles,
+	});
 
 	const handleValueSelect = (name, value) => {
 		updateItemStyle({
@@ -131,14 +116,80 @@ export function CommonStyles({
 	);
 }
 
-function isSpacingFieldSet(fieldSet) {
-	return (
-		fieldSet.styles.every((field) => field.name.startsWith('margin')) ||
-		fieldSet.styles.every((field) => field.name.startsWith('padding'))
-	);
-}
-
 CommonStyles.propTypes = {
 	commonStylesValues: PropTypes.object.isRequired,
 	item: PropTypes.object.isRequired,
 };
+
+function filterCommonStyles({item, permissions, role, styles}) {
+	let nextStyles = styles.filter((fieldSet) =>
+		role === COMMON_STYLES_ROLES.general
+			? fieldSet.configurationRole === COMMON_STYLES_ROLES.general
+			: fieldSet.configurationRole !== COMMON_STYLES_ROLES.general
+	);
+
+	if (item.type === LAYOUT_DATA_ITEM_TYPES.collection) {
+		nextStyles = nextStyles
+			.filter((fieldSet) =>
+				fieldSet.styles.find((field) => field.name === 'display')
+			)
+			.map((fieldSet) => {
+				return {
+					...fieldSet,
+					styles: fieldSet.styles.filter(
+						(field) => field.name === 'display'
+					),
+				};
+			});
+	}
+
+	// Filter styles based on permissions
+	// For UPDATE_LAYOUT_LIMTED and UPDATE_LAYOUT_BASIC we show the frame
+	// styles only in grid and container fragments.
+	// For UPDATE_LAYOUT_BASIC we only show the styles tab for grid and container fragments,
+	// allowing the user only to change paddings and margins
+
+	if (
+		item.type !== LAYOUT_DATA_ITEM_TYPES.container &&
+		item.type !== LAYOUT_DATA_ITEM_TYPES.row &&
+		!permissions.UPDATE
+	) {
+		nextStyles = nextStyles.map((fieldSet) => {
+			return {
+				...fieldSet,
+				styles: fieldSet.styles.filter((style) => !isFrameStyle(style)),
+			};
+		});
+	}
+	else if (
+		!permissions.UPDATE &&
+		!permissions.UPDATE_LAYOUT_LIMITED &&
+		role === COMMON_STYLES_ROLES.styles
+	) {
+		nextStyles = nextStyles.map((fieldSet) => {
+			return {
+				...fieldSet,
+				styles: fieldSet.styles.filter((style) =>
+					isSpacingStyle(style)
+				),
+			};
+		});
+	}
+
+	return nextStyles;
+}
+
+function isSpacingFieldSet(fieldSet) {
+	return fieldSet.styles.every((field) => isSpacingStyle(field));
+}
+
+function isSpacingStyle(style) {
+	return style.name.startsWith('margin') || style.name.startsWith('padding');
+}
+
+function isFrameStyle(style) {
+	return (
+		style.name.toLowerCase().endsWith('height') ||
+		style.name.toLowerCase().endsWith('width')
+	);
+}

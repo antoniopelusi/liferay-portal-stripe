@@ -185,6 +185,8 @@ public class LayoutPersistenceTest {
 
 		newLayout.setPriority(RandomTestUtil.nextInt());
 
+		newLayout.setFaviconFileEntryId(RandomTestUtil.nextLong());
+
 		newLayout.setMasterLayoutPlid(RandomTestUtil.nextLong());
 
 		newLayout.setLayoutPrototypeUuid(RandomTestUtil.randomString());
@@ -267,6 +269,9 @@ public class LayoutPersistenceTest {
 		Assert.assertEquals(existingLayout.getCss(), newLayout.getCss());
 		Assert.assertEquals(
 			existingLayout.getPriority(), newLayout.getPriority());
+		Assert.assertEquals(
+			existingLayout.getFaviconFileEntryId(),
+			newLayout.getFaviconFileEntryId());
 		Assert.assertEquals(
 			existingLayout.getMasterLayoutPlid(),
 			newLayout.getMasterLayoutPlid());
@@ -593,11 +598,12 @@ public class LayoutPersistenceTest {
 			"name", true, "keywords", true, "robots", true, "type", true,
 			"hidden", true, "system", true, "friendlyURL", true, "iconImageId",
 			true, "themeId", true, "colorSchemeId", true, "styleBookEntryId",
-			true, "priority", true, "masterLayoutPlid", true,
-			"layoutPrototypeUuid", true, "layoutPrototypeLinkEnabled", true,
-			"sourcePrototypeLayoutUuid", true, "publishDate", true,
-			"lastPublishDate", true, "status", true, "statusByUserId", true,
-			"statusByUserName", true, "statusDate", true);
+			true, "priority", true, "faviconFileEntryId", true,
+			"masterLayoutPlid", true, "layoutPrototypeUuid", true,
+			"layoutPrototypeLinkEnabled", true, "sourcePrototypeLayoutUuid",
+			true, "publishDate", true, "lastPublishDate", true, "status", true,
+			"statusByUserId", true, "statusByUserName", true, "statusDate",
+			true);
 	}
 
 	@Test
@@ -1008,6 +1014,8 @@ public class LayoutPersistenceTest {
 		layout.setCss(RandomTestUtil.randomString());
 
 		layout.setPriority(RandomTestUtil.nextInt());
+
+		layout.setFaviconFileEntryId(RandomTestUtil.nextLong());
 
 		layout.setMasterLayoutPlid(RandomTestUtil.nextLong());
 

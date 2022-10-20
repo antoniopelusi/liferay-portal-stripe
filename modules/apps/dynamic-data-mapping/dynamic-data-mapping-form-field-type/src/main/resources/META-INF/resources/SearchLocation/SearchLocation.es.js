@@ -14,6 +14,7 @@
 
 import {ClayInput} from '@clayui/form';
 import {SettingsContext, useFormState} from 'data-engine-js-components-web';
+import {openToast} from 'frontend-js-web';
 import React, {useEffect, useState} from 'react';
 
 import {FieldBase} from '../FieldBase/ReactFieldBase.es';
@@ -35,7 +36,7 @@ const getClassNameBasedOnLayout = (layout, visibleField) => {
 };
 
 const isEmpty = (object) => {
-	return object && Object.keys(object).length === 0;
+	return object && !Object.keys(object).length;
 };
 
 const Field = ({
@@ -153,7 +154,7 @@ const Main = ({
 
 	useEffect(() => {
 		window.gm_authFailure = function () {
-			Liferay.Util.openToast({
+			openToast({
 				message: Liferay.Language.get(
 					'communication-with-the-api-provider-failed'
 				),
@@ -219,7 +220,7 @@ const Main = ({
 			/>
 
 			<div className="row">
-				{availableVisibleFields.length > 0 &&
+				{!!availableVisibleFields.length &&
 					availableVisibleFields.map((visibleField, index) => {
 						if (currentVisibleFields.includes(visibleField)) {
 							const visibleFieldName = name + '#' + visibleField;

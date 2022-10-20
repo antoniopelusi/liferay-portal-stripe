@@ -14,13 +14,21 @@
 
 package com.liferay.commerce.product.content.web.internal.info.item.provider;
 
+import com.liferay.asset.info.item.provider.AssetEntryInfoItemFieldSetProvider;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.commerce.product.content.web.internal.info.CPDefinitionInfoItemFields;
 import com.liferay.commerce.product.model.CPDefinition;
+import com.liferay.expando.info.item.provider.ExpandoInfoItemFieldSetProvider;
 import com.liferay.info.field.InfoFieldSet;
 import com.liferay.info.form.InfoForm;
+import com.liferay.info.item.field.reader.InfoItemFieldReaderFieldSetProvider;
 import com.liferay.info.item.provider.InfoItemFormProvider;
 import com.liferay.info.localized.InfoLocalizedValue;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.petra.reflect.ReflectionUtil;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.language.Language;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
 import com.liferay.template.info.item.provider.TemplateInfoItemFieldSetProvider;
 
@@ -34,6 +42,7 @@ import org.osgi.service.component.annotations.Reference;
 /**
  * @author Eudaldo Alonso
  * @author Alec Sloan
+ * @author Allen Ziegenfus
  */
 @Component(
 	enabled = false, immediate = true,
@@ -45,37 +54,34 @@ public class CPDefinitionInfoItemFormProvider
 
 	@Override
 	public InfoForm getInfoForm() {
-		Set<Locale> availableLocales = LanguageUtil.getAvailableLocales();
+		return _getInfoForm(
+			_assetEntryInfoItemFieldSetProvider.getInfoFieldSet(
+				CPDefinition.class.getName()));
+	}
 
-		InfoLocalizedValue.Builder<String> infoLocalizedValueBuilder =
-			InfoLocalizedValue.builder();
-
-		for (Locale locale : availableLocales) {
-			infoLocalizedValueBuilder.value(
-				locale,
-				ResourceActionsUtil.getModelResource(
-					locale, CPDefinition.class.getName()));
+	@Override
+	public InfoForm getInfoForm(CPDefinition cpDefinition) {
+		try {
+			return _getInfoForm(
+				_assetEntryInfoItemFieldSetProvider.getInfoFieldSet(
+					_assetEntryLocalService.getEntry(
+						CPDefinition.class.getName(),
+						cpDefinition.getCPDefinitionId())));
 		}
+		catch (PortalException portalException) {
+			_log.error(
+				"Unable to get info form for commerce product definition " +
+					cpDefinition.getCPDefinitionId());
 
-		return InfoForm.builder(
-		).infoFieldSetEntry(
-			_templateInfoItemFieldSetProvider.getInfoFieldSet(
-				CPDefinition.class.getName())
-		).infoFieldSetEntry(
-			_getBasicInformationInfoFieldSet()
-		).infoFieldSetEntry(
-			_getCategorizationInfoFieldSet()
-		).infoFieldSetEntry(
-			_getDetailedInformationInfoFieldSet()
-		).infoFieldSetEntry(
-			_getDisplayPageInfoFieldSet()
-		).infoFieldSetEntry(
-			_getScheduleInfoFieldSet()
-		).labelInfoLocalizedValue(
-			infoLocalizedValueBuilder.build()
-		).name(
-			CPDefinition.class.getName()
-		).build();
+			return ReflectionUtil.throwException(portalException);
+		}
+	}
+
+	@Override
+	public InfoForm getInfoForm(String formVariationKey, long groupId) {
+		return _getInfoForm(
+			_assetEntryInfoItemFieldSetProvider.getInfoFieldSet(
+				CPDefinition.class.getName(), 0, groupId));
 	}
 
 	private InfoFieldSet _getBasicInformationInfoFieldSet() {
@@ -236,6 +242,48 @@ public class CPDefinitionInfoItemFormProvider
 		).build();
 	}
 
+	private InfoForm _getInfoForm(InfoFieldSet assetEntryInfoFieldSet) {
+		Set<Locale> availableLocales = _language.getAvailableLocales();
+
+		InfoLocalizedValue.Builder<String> infoLocalizedValueBuilder =
+			InfoLocalizedValue.builder();
+
+		for (Locale locale : availableLocales) {
+			infoLocalizedValueBuilder.value(
+				locale,
+				ResourceActionsUtil.getModelResource(
+					locale, CPDefinition.class.getName()));
+		}
+
+		return InfoForm.builder(
+		).infoFieldSetEntry(
+			_expandoInfoItemFieldSetProvider.getInfoFieldSet(
+				CPDefinition.class.getName())
+		).infoFieldSetEntry(
+			_templateInfoItemFieldSetProvider.getInfoFieldSet(
+				CPDefinition.class.getName())
+		).infoFieldSetEntry(
+			_infoItemFieldReaderFieldSetProvider.getInfoFieldSet(
+				CPDefinition.class.getName())
+		).infoFieldSetEntry(
+			_getBasicInformationInfoFieldSet()
+		).infoFieldSetEntry(
+			assetEntryInfoFieldSet
+		).infoFieldSetEntry(
+			_getCategorizationInfoFieldSet()
+		).infoFieldSetEntry(
+			_getDetailedInformationInfoFieldSet()
+		).infoFieldSetEntry(
+			_getDisplayPageInfoFieldSet()
+		).infoFieldSetEntry(
+			_getScheduleInfoFieldSet()
+		).labelInfoLocalizedValue(
+			infoLocalizedValueBuilder.build()
+		).name(
+			CPDefinition.class.getName()
+		).build();
+	}
+
 	private InfoFieldSet _getScheduleInfoFieldSet() {
 		return InfoFieldSet.builder(
 		).infoFieldSetEntry(
@@ -248,6 +296,26 @@ public class CPDefinitionInfoItemFormProvider
 			"schedule"
 		).build();
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		CPDefinitionInfoItemFormProvider.class);
+
+	@Reference
+	private AssetEntryInfoItemFieldSetProvider
+		_assetEntryInfoItemFieldSetProvider;
+
+	@Reference
+	private AssetEntryLocalService _assetEntryLocalService;
+
+	@Reference
+	private ExpandoInfoItemFieldSetProvider _expandoInfoItemFieldSetProvider;
+
+	@Reference
+	private InfoItemFieldReaderFieldSetProvider
+		_infoItemFieldReaderFieldSetProvider;
+
+	@Reference
+	private Language _language;
 
 	@Reference
 	private TemplateInfoItemFieldSetProvider _templateInfoItemFieldSetProvider;

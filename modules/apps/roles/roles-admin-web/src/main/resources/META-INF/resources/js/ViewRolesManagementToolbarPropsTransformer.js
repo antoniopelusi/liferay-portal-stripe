@@ -12,7 +12,11 @@
  * details.
  */
 
-import {postForm} from 'frontend-js-web';
+import {
+	getCheckedCheckboxes,
+	openConfirmModal,
+	postForm,
+} from 'frontend-js-web';
 
 export default function propsTransformer({
 	additionalProps: {deleteRolesURL},
@@ -28,25 +32,26 @@ export default function propsTransformer({
 				return;
 			}
 
-			const deleteRoleIds = Liferay.Util.listCheckedExcept(
+			const deleteRoleIds = getCheckedCheckboxes(
 				form,
 				`${portletNamespace}allRowIds`
 			);
 
-			if (
-				confirm(
-					Liferay.Language.get(
-						'are-you-sure-you-want-to-delete-this-role?-task-assignments-may-be-deleted'
-					)
-				)
-			) {
-				postForm(form, {
-					data: {
-						deleteRoleIds,
-					},
-					url: deleteRolesURL,
-				});
-			}
+			openConfirmModal({
+				message: Liferay.Language.get(
+					'are-you-sure-you-want-to-delete-this-role?-task-assignments-may-be-deleted'
+				),
+				onConfirm: (isConfirmed) => {
+					if (isConfirmed) {
+						postForm(form, {
+							data: {
+								deleteRoleIds,
+							},
+							url: deleteRolesURL,
+						});
+					}
+				},
+			});
 		},
 	};
 }

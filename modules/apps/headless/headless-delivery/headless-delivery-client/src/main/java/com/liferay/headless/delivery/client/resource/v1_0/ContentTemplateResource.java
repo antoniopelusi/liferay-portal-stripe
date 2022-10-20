@@ -83,6 +83,12 @@ public interface ContentTemplateResource {
 			return new ContentTemplateResourceImpl(this);
 		}
 
+		public Builder contextPath(String contextPath) {
+			_contextPath = contextPath;
+
+			return this;
+		}
+
 		public Builder endpoint(String host, int port, String scheme) {
 			_host = host;
 			_port = port;
@@ -128,6 +134,7 @@ public interface ContentTemplateResource {
 		private Builder() {
 		}
 
+		private String _contextPath = "";
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
@@ -238,7 +245,7 @@ public interface ContentTemplateResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-delivery/v1.0/asset-libraries/{assetLibraryId}/content-templates");
 
 			httpInvoker.path("assetLibraryId", assetLibraryId);
@@ -343,7 +350,7 @@ public interface ContentTemplateResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-delivery/v1.0/sites/{siteId}/content-templates");
 
 			httpInvoker.path("siteId", siteId);
@@ -425,7 +432,7 @@ public interface ContentTemplateResource {
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
+					_builder._port + _builder._contextPath +
 						"/o/headless-delivery/v1.0/sites/{siteId}/content-templates/{contentTemplateId}");
 
 			httpInvoker.path("siteId", siteId);

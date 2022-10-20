@@ -13,50 +13,53 @@
  */
 
 import ClayIcon from '@clayui/icon';
-import ClayLink from '@clayui/link';
+import classnames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 
-const Preview = ({downloadURL, imageURL, title, url}) => {
+const Preview = ({compressed, imageURL, title, url}) => {
 	return (
-		<div className="document-preview sidebar-section">
+		<div
+			className={classnames('document-preview sidebar-section', {
+				'sidebar-section--compress': compressed,
+			})}
+		>
 			{imageURL && (
 				<figure className="document-preview-figure mb-2">
-					<a
-						className="align-items-center c-focus-inset d-flex h-100"
-						href={url}
-						target="_blank"
-					>
-						<img alt={title} src={imageURL} />
+					{url ? (
+						<a
+							className="align-items-center c-focus-inset d-flex h-100"
+							href={url}
+							target="_blank"
+						>
+							<img alt={title} src={imageURL} />
 
-						<ClayIcon
-							className="document-preview-icon"
-							symbol="shortcut"
-						/>
-					</a>
+							<ClayIcon
+								className="document-preview-icon"
+								symbol="shortcut"
+							/>
+						</a>
+					) : (
+						<div className="align-items-center d-flex h-100">
+							<img alt={title} src={imageURL} />
+						</div>
+					)}
 				</figure>
 			)}
-
-			<div>
-				{downloadURL && (
-					<ClayLink className="btn btn-primary" href={downloadURL}>
-						{Liferay.Language.get('download')}
-					</ClayLink>
-				)}
-			</div>
 		</div>
 	);
 };
 
 Preview.defaultProps = {
-	viewURL: null,
+	compressed: false,
+	url: null,
 };
 
 Preview.propTypes = {
-	downloadURL: PropTypes.string,
+	compressed: PropTypes.bool,
 	imageURL: PropTypes.string.isRequired,
 	title: PropTypes.string.isRequired,
-	viewURL: PropTypes.string,
+	url: PropTypes.string,
 };
 
 export default Preview;

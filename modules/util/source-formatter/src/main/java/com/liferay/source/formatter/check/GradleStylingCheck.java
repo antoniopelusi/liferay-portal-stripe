@@ -16,9 +16,11 @@ package com.liferay.source.formatter.check;
 
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.util.NaturalOrderStringComparator;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.tools.ToolsUtil;
 import com.liferay.source.formatter.check.util.SourceUtil;
 
 import java.util.Map;
@@ -35,12 +37,162 @@ public class GradleStylingCheck extends BaseFileCheck {
 	protected String doProcess(
 		String fileName, String absolutePath, String content) {
 
+		content = _fixMissingLineBreakAroundCurlyBraces(content);
 		content = _sortMapKeys("transformKeys", content);
-
 		content = _stylingCheck(content, _stylingPattern1, "$1$2 {\n\t$3\n}$4");
 		content = _stylingCheck(content, _stylingPattern2, "$1$2 = $3$4");
 
 		return content;
+	}
+
+	private String _fixMissingLineBreakAroundCurlyBraces(String content) {
+		int openCurlyBracePosition = -1;
+
+		outerLoop:
+		while (true) {
+			openCurlyBracePosition = content.indexOf(
+				StringPool.OPEN_CURLY_BRACE, openCurlyBracePosition + 1);
+
+			if (openCurlyBracePosition == -1) {
+				break;
+			}
+
+			char previousChar = content.charAt(openCurlyBracePosition - 1);
+
+			if (previousChar == CharPool.DOLLAR) {
+				continue;
+			}
+
+			int[] multiLineStringsPositions = SourceUtil.getMultiLinePositions(
+				content, _multiLineStringsPattern);
+
+			if (ToolsUtil.isInsideQuotes(content, openCurlyBracePosition) ||
+				SourceUtil.isInsideMultiLines(
+					SourceUtil.getLineNumber(content, openCurlyBracePosition),
+					multiLineStringsPositions) ||
+				_isInRegexPattern(content, openCurlyBracePosition) ||
+				_isInSingleLineComment(content, openCurlyBracePosition)) {
+
+				continue;
+			}
+
+			int closeCurlyBracePosition = openCurlyBracePosition;
+
+			while (true) {
+				closeCurlyBracePosition = content.indexOf(
+					StringPool.CLOSE_CURLY_BRACE, closeCurlyBracePosition + 1);
+
+				if (closeCurlyBracePosition == -1) {
+					break;
+				}
+
+				if (ToolsUtil.isInsideQuotes(
+						content, closeCurlyBracePosition) ||
+					SourceUtil.isInsideMultiLines(
+						SourceUtil.getLineNumber(
+							content, closeCurlyBracePosition),
+						multiLineStringsPositions) ||
+					_isInRegexPattern(content, closeCurlyBracePosition) ||
+					_isInSingleLineComment(content, closeCurlyBracePosition)) {
+
+					continue;
+				}
+
+				String curlyBraceContent = content.substring(
+					openCurlyBracePosition, closeCurlyBracePosition + 1);
+
+				int level = getLevel(
+					curlyBraceContent, StringPool.OPEN_CURLY_BRACE,
+					StringPool.CLOSE_CURLY_BRACE);
+
+				if (level != 0) {
+					continue;
+				}
+
+				char nextChar;
+
+				if (closeCurlyBracePosition < (content.length() - 1)) {
+					nextChar = content.charAt(closeCurlyBracePosition + 1);
+
+					if ((nextChar == CharPool.CLOSE_PARENTHESIS) ||
+						(nextChar == CharPool.PERIOD)) {
+
+						continue outerLoop;
+					}
+				}
+
+				previousChar = content.charAt(closeCurlyBracePosition - 1);
+
+				if ((previousChar != CharPool.NEW_LINE) &&
+					(previousChar != CharPool.TAB)) {
+
+					return StringUtil.insert(
+						content, "\n", closeCurlyBracePosition);
+				}
+
+				nextChar = content.charAt(openCurlyBracePosition + 1);
+
+				if (nextChar != CharPool.NEW_LINE) {
+					return StringUtil.insert(
+						content, "\n", openCurlyBracePosition + 1);
+				}
+			}
+		}
+
+		return content;
+	}
+
+	private boolean _isInRegexPattern(String content, int position) {
+		int lineNumber = getLineNumber(content, position);
+
+		String line = getLine(content, lineNumber);
+
+		int lineStartPos = getLineStartPos(content, lineNumber);
+
+		int regexPatternStartPos = content.indexOf("~ /", lineStartPos);
+
+		if (regexPatternStartPos == -1) {
+			regexPatternStartPos = content.indexOf("~/", lineStartPos);
+
+			if (regexPatternStartPos == -1) {
+				regexPatternStartPos = content.indexOf(
+					".matches(/", lineStartPos);
+			}
+		}
+
+		if (regexPatternStartPos == -1) {
+			return false;
+		}
+
+		int regexPatternEndPos = line.lastIndexOf("/");
+
+		if (regexPatternEndPos == -1) {
+			return false;
+		}
+
+		regexPatternEndPos = lineStartPos + regexPatternEndPos;
+
+		if ((position > regexPatternStartPos) &&
+			(position < regexPatternEndPos)) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	private boolean _isInSingleLineComment(String content, int position) {
+		int lineNumber = getLineNumber(content, position);
+
+		String line = getLine(content, lineNumber);
+
+		line = line.trim();
+
+		if (line.startsWith("//")) {
+			return true;
+		}
+
+		return false;
 	}
 
 	private String _sortMapKeys(String mapName, String content) {

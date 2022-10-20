@@ -15,28 +15,14 @@
 import ClayAlert from '@clayui/alert';
 import ClayButton from '@clayui/button';
 import ClayDropDown, {Align} from '@clayui/drop-down';
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 
 import FrontendTokenSet from './FrontendTokenSet';
-import {StyleBookContext} from './StyleBookContext';
 import {config} from './config';
+import {useFrontendTokensValues} from './contexts/StyleBookEditorContext';
 
-export default function Sidebar() {
-	const {frontendTokensValues = {}} = useContext(StyleBookContext);
+export default React.memo(function Sidebar() {
 	const sidebarRef = useRef();
-
-	useEffect(() => {
-		if (sidebarRef.current) {
-			Object.values(frontendTokensValues).forEach(
-				({cssVariableMapping, value}) => {
-					sidebarRef.current.style.setProperty(
-						`--${cssVariableMapping}`,
-						value
-					);
-				}
-			);
-		}
-	}, [frontendTokensValues]);
 
 	return (
 		<div className="style-book-editor__sidebar" ref={sidebarRef}>
@@ -44,7 +30,10 @@ export default function Sidebar() {
 				<ThemeInformation />
 
 				{config.frontendTokenDefinition.frontendTokenCategories ? (
-					<FrontendTokenCategories />
+					<>
+						<FrontendTokenCategories />
+						<UpdateStyle sidebarRef={sidebarRef} />
+					</>
 				) : (
 					<ClayAlert className="m-3" displayType="info">
 						{Liferay.Language.get(
@@ -55,6 +44,27 @@ export default function Sidebar() {
 			</div>
 		</div>
 	);
+});
+
+function UpdateStyle({sidebarRef}) {
+	const frontendTokensValues = useFrontendTokensValues();
+
+	useEffect(() => {
+		if (sidebarRef.current) {
+			sidebarRef.current.removeAttribute('style');
+
+			Object.values(frontendTokensValues).forEach(
+				({cssVariableMapping, value}) => {
+					sidebarRef.current.style.setProperty(
+						`--${cssVariableMapping}`,
+						value
+					);
+				}
+			);
+		}
+	}, [frontendTokensValues, sidebarRef]);
+
+	return null;
 }
 
 function ThemeInformation() {
@@ -82,12 +92,27 @@ function ThemeInformation() {
 }
 
 function FrontendTokenCategories() {
+	const frontendTokensValues = useFrontendTokensValues();
+
 	const frontendTokenCategories =
 		config.frontendTokenDefinition.frontendTokenCategories;
 	const [active, setActive] = useState(false);
 	const [selectedCategory, setSelectedCategory] = useState(
 		frontendTokenCategories[0]
 	);
+
+	const tokenValues = useMemo(() => {
+		const nextTokenValues = {...config.frontendTokens};
+
+		for (const [name, {value}] of Object.entries(frontendTokensValues)) {
+			nextTokenValues[name] = {
+				...nextTokenValues[name],
+				value: value || nextTokenValues[name].defaultValue,
+			};
+		}
+
+		return nextTokenValues;
+	}, [frontendTokensValues]);
 
 	return (
 		<>
@@ -140,6 +165,7 @@ function FrontendTokenCategories() {
 						key={name}
 						label={label}
 						open={index === 0}
+						tokenValues={tokenValues}
 					/>
 				)
 			)}

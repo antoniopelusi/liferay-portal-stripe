@@ -14,6 +14,7 @@
 
 package com.liferay.layout.internal.model.listener;
 
+import com.liferay.client.extension.service.ClientExtensionEntryRelLocalService;
 import com.liferay.friendly.url.service.FriendlyURLEntryLocalService;
 import com.liferay.layout.friendly.url.LayoutFriendlyURLEntryHelper;
 import com.liferay.layout.service.LayoutClassedModelUsageLocalService;
@@ -21,6 +22,7 @@ import com.liferay.portal.kernel.exception.ModelListenerException;
 import com.liferay.portal.kernel.model.BaseModelListener;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.ModelListener;
+import com.liferay.portal.kernel.util.Portal;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -36,6 +38,9 @@ public class LayoutModelListener extends BaseModelListener<Layout> {
 		if (layout == null) {
 			return;
 		}
+
+		_clientExtensionEntryRelLocalService.deleteClientExtensionEntryRels(
+			_portal.getClassNameId(Layout.class), layout.getPlid());
 
 		_friendlyURLEntryLocalService.deleteFriendlyURLEntry(
 			layout.getGroupId(),
@@ -59,6 +64,10 @@ public class LayoutModelListener extends BaseModelListener<Layout> {
 	}
 
 	@Reference
+	private ClientExtensionEntryRelLocalService
+		_clientExtensionEntryRelLocalService;
+
+	@Reference
 	private FriendlyURLEntryLocalService _friendlyURLEntryLocalService;
 
 	@Reference
@@ -67,5 +76,8 @@ public class LayoutModelListener extends BaseModelListener<Layout> {
 
 	@Reference
 	private LayoutFriendlyURLEntryHelper _layoutFriendlyURLEntryHelper;
+
+	@Reference
+	private Portal _portal;
 
 }

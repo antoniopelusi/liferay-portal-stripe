@@ -9,33 +9,34 @@ definition {
 		AssertTextEquals(
 			key_fieldName = "otpSize",
 			locator1 = "MultiFactorAuthentication#EMAIL_OTP_CONFIG_TEXT",
-			value1 = "Set the length of a one-time password.");
+			value1 = "One-Time Password Length Set the length of a one-time password.");
 
 		AssertTextEquals(
 			key_fieldName = "resendEmailTimeout",
 			locator1 = "MultiFactorAuthentication#EMAIL_OTP_CONFIG_TEXT",
-			value1 = "Set the allowed time in seconds between one-time password requests.");
+			value1 = "Resend Email Timeout Set the allowed time in seconds between one-time password requests.");
 
 		AssertTextEquals(
 			key_fieldName = "emailFromAddress",
 			locator1 = "MultiFactorAuthentication#EMAIL_OTP_CONFIG_TEXT",
-			value1 = "Set the sender address on the one-time password email.");
+			value1 = "Template for Email &quot;From&quot; Field Set the sender address on the one-time password email.");
 
 		AssertTextEquals(
 			key_fieldName = "failedAttemptsAllowed",
 			locator1 = "MultiFactorAuthentication#EMAIL_OTP_CONFIG_TEXT",
-			value1 = "Set the number of verification attempts allowed before blocking for the retry timeout.");
+			value1 = "Set the number of allowed failed attempts. Set the number of verification attempts allowed before blocking for the retry timeout.");
 
 		AssertTextEquals(
 			key_fieldName = "retryTimeout",
 			locator1 = "MultiFactorAuthentication#EMAIL_OTP_CONFIG_TEXT",
-			value1 = "Set the time in seconds to block requests after reaching the limit for failed attempts allowed.");
+			value1 = "Retry Timeout Set the time in seconds to block requests after reaching the limit for failed attempts allowed.");
 	}
 
 	macro canAdminDisableBasicAuthentication {
 		var curl = '''
 				http://www.able.com:8080/api/jsonws/user/get-current-user
 			''';
+
 		var reponse = JSONCurlUtil.get("${curl}");
 
 		if (contains("${reponse}", "Access denied to com.liferay.portal.kernel.service.UserService#getCurrentUser")) {
@@ -126,6 +127,10 @@ definition {
 			FormFields.disableCheckbox(fieldName = "enabled");
 		}
 
+		Type(
+			locator1 = "MultiFactorAuthentication#TOTP_CLOCK_SKEW",
+			value1 = "10000");
+
 		MultiFactorAuthentication.saveConfiguration();
 	}
 
@@ -185,6 +190,9 @@ definition {
 			VerifyElementPresent(locator1 = "MultiFactorAuthentication#TOTP_FIELD");
 
 			var secretKey = selenium.getAttribute("//input[contains(@id,'sharedSecret')]@value");
+
+			echo("secretKey is: ${secretKey}");
+
 			var totp = AuthenticationUtil.generateTimeBasedOTP("${secretKey}");
 
 			Type(
@@ -259,7 +267,7 @@ definition {
 
 	macro setServiceRankingValue {
 		Type(
-			key_fieldName = "service.ranking",
+			key_fieldName = "serviceRanking",
 			locator1 = "MultiFactorAuthentication#EMAIL_OTP_CONFIG_FIELD",
 			value1 = "${orderValue}");
 
@@ -388,7 +396,7 @@ definition {
 
 	macro viewOTPOrderFieldAvailable {
 		AssertElementPresent(
-			key_fieldName = "service.ranking",
+			key_fieldName = "serviceRanking",
 			locator1 = "MultiFactorAuthentication#EMAIL_OTP_CONFIG_FIELD");
 	}
 

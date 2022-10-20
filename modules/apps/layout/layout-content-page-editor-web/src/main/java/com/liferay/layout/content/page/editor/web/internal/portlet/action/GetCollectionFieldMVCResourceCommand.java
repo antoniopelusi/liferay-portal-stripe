@@ -14,13 +14,13 @@
 
 package com.liferay.layout.content.page.editor.web.internal.portlet.action;
 
-import com.liferay.asset.info.display.contributor.util.ContentAccessor;
 import com.liferay.asset.kernel.AssetRendererFactoryRegistryUtil;
 import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.model.AssetRendererFactory;
 import com.liferay.asset.list.model.AssetListEntry;
 import com.liferay.asset.list.model.AssetListEntryModel;
 import com.liferay.asset.list.service.AssetListEntryLocalService;
+import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFileEntryConstants;
 import com.liferay.fragment.entry.processor.helper.FragmentEntryProcessorHelper;
 import com.liferay.info.collection.provider.item.selector.criterion.InfoCollectionProviderItemSelectorCriterion;
@@ -60,7 +60,7 @@ import com.liferay.portal.kernel.io.unsync.UnsyncStringWriter;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.JSONPortletResponseUtil;
@@ -156,7 +156,7 @@ public class GetCollectionFieldMVCResourceCommand
 
 			jsonObject.put(
 				"error",
-				LanguageUtil.get(
+				_language.get(
 					themeDisplay.getRequest(), "an-unexpected-error-occurred"));
 		}
 
@@ -259,11 +259,13 @@ public class GetCollectionFieldMVCResourceCommand
 		Optional<AssetListEntry> assetListEntryOptional =
 			_getAssetListEntryOptional(listObjectReference);
 
-		String itemType = assetListEntryOptional.map(
+		String originalItemType = assetListEntryOptional.map(
 			AssetListEntryModel::getAssetEntryType
 		).orElse(
 			listObjectReference.getItemType()
 		);
+
+		String itemType = originalItemType;
 
 		if (Objects.equals(DLFileEntryConstants.getClassName(), itemType)) {
 			itemType = FileEntry.class.getName();
@@ -334,7 +336,7 @@ public class GetCollectionFieldMVCResourceCommand
 				null
 			)
 		).put(
-			"itemType", itemType
+			"itemType", originalItemType
 		).put(
 			"length",
 			layoutListRetriever.getListCount(
@@ -383,9 +385,18 @@ public class GetCollectionFieldMVCResourceCommand
 
 		sourceItemTypes.add(itemType);
 
+		String className = itemType;
+
+		if (Objects.equals(className, FileEntry.class.getName())) {
+
+			// LPS-159039
+
+			className = DLFileEntry.class.getName();
+		}
+
 		AssetRendererFactory<?> assetRendererFactory =
 			AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(
-				itemType);
+				className);
 
 		if (assetRendererFactory != null) {
 			sourceItemTypes.add(AssetEntry.class.getName());
@@ -420,12 +431,6 @@ public class GetCollectionFieldMVCResourceCommand
 				infoItemFieldValues.getInfoFieldValues()) {
 
 			Object value = infoFieldValue.getValue(locale);
-
-			if (value instanceof ContentAccessor) {
-				ContentAccessor contentAccessor = (ContentAccessor)value;
-
-				value = contentAccessor.getContent();
-			}
 
 			if (value instanceof WebImage) {
 				WebImage webImage = (WebImage)value;
@@ -564,6 +569,9 @@ public class GetCollectionFieldMVCResourceCommand
 
 	@Reference
 	private ItemSelector _itemSelector;
+
+	@Reference
+	private Language _language;
 
 	@Reference
 	private LayoutListRetrieverTracker _layoutListRetrieverTracker;

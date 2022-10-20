@@ -12,42 +12,43 @@
  * details.
  */
 
-import {useMutation} from '@apollo/client';
+import {useNavigate} from 'react-router-dom';
 
-import {DeleteCase} from '../../../graphql/mutations';
-import {TestrayCase} from '../../../graphql/queries';
 import useFormModal from '../../../hooks/useFormModal';
+import useMutate from '../../../hooks/useMutate';
 import i18n from '../../../i18n';
+import {TestrayCase, deleteResource} from '../../../services/rest';
+import {Action} from '../../../types';
 
 const useCaseActions = () => {
-	const [onDeleteCase] = useMutation(DeleteCase);
-
+	const {removeItemFromList} = useMutate();
+	const navigate = useNavigate();
 	const formModal = useFormModal();
 	const modal = formModal.modal;
 
+	const actions: Action[] = [
+		{
+			action: ({id}: TestrayCase) => navigate(`${id}/update`),
+			name: i18n.translate('edit'),
+			permission: 'UPDATE',
+		},
+		{
+			action: ({id}: TestrayCase) => navigate(`${id}/requirements`),
+			name: i18n.translate('link-requirements'),
+		},
+		{
+			action: ({id}: TestrayCase, mutate) =>
+				deleteResource(`/cases/${id}`)
+					?.then(() => removeItemFromList(mutate, id))
+					.then(modal.onSuccess)
+					.catch(modal.onError),
+			name: i18n.translate('delete'),
+			permission: 'DELETE',
+		},
+	];
+
 	return {
-		actions: [
-			{
-				action: (testrayCase: TestrayCase) =>
-					modal.open({
-						...testrayCase,
-						caseTypeId: testrayCase.caseType?.id,
-						componentId: testrayCase.component?.id,
-					}),
-				name: i18n.translate('edit'),
-			},
-			{
-				action: () => alert('Link'),
-				name: i18n.translate('link-requirements'),
-			},
-			{
-				action: ({id}: TestrayCase) =>
-					onDeleteCase({variables: {id}})
-						.then(() => modal.onSave())
-						.catch(modal.onError),
-				name: i18n.translate('delete'),
-			},
-		],
+		actions,
 		formModal,
 	};
 };

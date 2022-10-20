@@ -37,17 +37,22 @@ const openAlertModal = ({message}) => {
 				},
 			},
 		],
+		center: true,
+		disableHeader: true,
 	});
 };
 
 const Modal = ({
+	bodyComponent,
 	bodyHTML,
 	buttons,
+	center,
 	containerProps = {
 		className: 'cadmin',
 	},
 	customEvents,
 	disableAutoClose,
+	disableHeader,
 	footerCssClass,
 	headerCssClass,
 	headerHTML,
@@ -127,24 +132,30 @@ const Modal = ({
 		}
 	};
 
-	const Body = ({html}) => {
+	const Body = ({component: BodyComponent, html}) => {
 		const bodyRef = useRef();
 
 		useEffect(() => {
-			const fragment = document
-				.createRange()
-				.createContextualFragment(html);
+			if (html) {
+				const fragment = document
+					.createRange()
+					.createContextualFragment(html);
 
-			bodyRef.current.innerHTML = '';
+				bodyRef.current.innerHTML = '';
 
-			bodyRef.current.appendChild(fragment);
+				bodyRef.current.appendChild(fragment);
+			}
 
 			if (onOpen) {
-				onOpen({container: fragment, processClose});
+				onOpen({container: bodyRef.current, processClose});
 			}
 		}, [html]);
 
-		return <div className="liferay-modal-body" ref={bodyRef}></div>;
+		return (
+			<div className="liferay-modal-body" ref={bodyRef}>
+				{BodyComponent && <BodyComponent />}
+			</div>
+		);
 	};
 
 	useEffect(() => {
@@ -192,6 +203,7 @@ const Modal = ({
 		<>
 			{visible && (
 				<ClayModal
+					center={center}
 					className="liferay-modal"
 					containerProps={{...containerProps}}
 					disableAutoClose={disableAutoClose}
@@ -202,17 +214,19 @@ const Modal = ({
 					status={status}
 					zIndex={zIndex}
 				>
-					<ClayModal.Header className={headerCssClass}>
-						{headerHTML ? (
-							<div
-								dangerouslySetInnerHTML={{
-									__html: headerHTML,
-								}}
-							></div>
-						) : (
-							<ClayModal.Title>{title}</ClayModal.Title>
-						)}
-					</ClayModal.Header>
+					{!disableHeader && (
+						<ClayModal.Header className={headerCssClass}>
+							{headerHTML ? (
+								<div
+									dangerouslySetInnerHTML={{
+										__html: headerHTML,
+									}}
+								></div>
+							) : (
+								title
+							)}
+						</ClayModal.Header>
+					)}
 
 					<div
 						className={classNames('modal-body', {
@@ -222,7 +236,7 @@ const Modal = ({
 							height,
 						}}
 					>
-						{url ? (
+						{url && (
 							<>
 								{loading && <ClayLoadingIndicator />}
 								<Iframe
@@ -240,9 +254,11 @@ const Modal = ({
 									url={url}
 								/>
 							</>
-						) : (
-							<>{bodyHTML && <Body html={bodyHTML} />}</>
 						)}
+
+						{bodyHTML && <Body html={bodyHTML} />}
+
+						{bodyComponent && <Body component={bodyComponent} />}
 					</div>
 
 					{buttons && (
@@ -295,27 +311,35 @@ const Modal = ({
 	);
 };
 
-const openConfirmModal = ({message, onConfirm}) => {
-	openModal({
-		bodyHTML: escapeHTML(message),
-		buttons: [
-			{
-				displayType: 'secondary',
-				label: Liferay.Language.get('cancel'),
-				type: 'cancel',
-			},
-			{
-				autoFocus: true,
-				label: Liferay.Language.get('ok'),
-				onClick: ({processClose}) => {
-					processClose();
-
-					onConfirm(true);
+const openConfirmModal = ({message, onConfirm, title}) => {
+	if (Liferay.FeatureFlags['LPS-148659']) {
+		openModal({
+			bodyHTML: escapeHTML(message),
+			buttons: [
+				{
+					displayType: 'secondary',
+					label: Liferay.Language.get('cancel'),
+					type: 'cancel',
 				},
-			},
-		],
-		onClose: () => onConfirm(false),
-	});
+				{
+					autoFocus: true,
+					label: Liferay.Language.get('ok'),
+					onClick: ({processClose}) => {
+						processClose();
+
+						onConfirm(true);
+					},
+				},
+			],
+			center: true,
+			disableHeader: true,
+			onClose: () => onConfirm(false),
+			title,
+		});
+	}
+	else {
+		onConfirm(confirm(message));
+	}
 };
 
 const openModal = (props) => {
@@ -707,6 +731,7 @@ Modal.propTypes = {
 			type: PropTypes.oneOf(['cancel', 'submit']),
 		})
 	),
+	center: PropTypes.bool,
 	containerProps: PropTypes.object,
 	customEvents: PropTypes.arrayOf(
 		PropTypes.shape({
@@ -714,6 +739,7 @@ Modal.propTypes = {
 			onEvent: PropTypes.func,
 		})
 	),
+	disableHeader: PropTypes.bool,
 	headerHTML: PropTypes.string,
 	height: PropTypes.string,
 	id: PropTypes.string,

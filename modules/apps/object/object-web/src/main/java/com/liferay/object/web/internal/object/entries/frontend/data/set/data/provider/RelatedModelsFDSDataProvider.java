@@ -25,6 +25,7 @@ import com.liferay.object.related.models.ObjectRelatedModelsProviderRegistry;
 import com.liferay.object.scope.ObjectScopeProvider;
 import com.liferay.object.scope.ObjectScopeProviderRegistry;
 import com.liferay.object.service.ObjectDefinitionLocalService;
+import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.object.service.ObjectRelationshipLocalService;
 import com.liferay.object.web.internal.object.entries.constants.ObjectEntriesFDSNames;
 import com.liferay.object.web.internal.object.entries.frontend.data.set.data.model.RelatedModel;
@@ -67,7 +68,7 @@ public class RelatedModelsFDSDataProvider
 			_objectDefinitionLocalService.getObjectDefinition(
 				objectRelationship.getObjectDefinitionId2());
 
-		ObjectRelatedModelsProvider<ObjectEntry> objectRelatedModelsProvider =
+		ObjectRelatedModelsProvider objectRelatedModelsProvider =
 			_objectRelatedModelsProviderRegistry.getObjectRelatedModelsProvider(
 				objectDefinition.getClassName(), objectRelationship.getType());
 
@@ -79,13 +80,14 @@ public class RelatedModelsFDSDataProvider
 			httpServletRequest, "objectEntryId");
 
 		return TransformUtil.transform(
-			objectRelatedModelsProvider.getRelatedModels(
+			(List<ObjectEntry>)objectRelatedModelsProvider.getRelatedModels(
 				objectScopeProvider.getGroupId(httpServletRequest),
 				objectRelationshipId, objectEntryId,
 				fdsPagination.getStartPosition(),
 				fdsPagination.getEndPosition()),
 			objectEntry -> new RelatedModel(
-				objectEntry.getObjectEntryId(), objectEntry.getTitleValue()));
+				objectDefinition.getClassName(), objectEntry.getObjectEntryId(),
+				objectEntry.getTitleValue(), false));
 	}
 
 	@Override
@@ -104,7 +106,7 @@ public class RelatedModelsFDSDataProvider
 			_objectDefinitionLocalService.getObjectDefinition(
 				objectRelationship.getObjectDefinitionId2());
 
-		ObjectRelatedModelsProvider<ObjectEntry> objectRelatedModelsProvider =
+		ObjectRelatedModelsProvider objectRelatedModelsProvider =
 			_objectRelatedModelsProviderRegistry.getObjectRelatedModelsProvider(
 				objectDefinition.getClassName(), objectRelationship.getType());
 
@@ -122,6 +124,9 @@ public class RelatedModelsFDSDataProvider
 
 	@Reference
 	private ObjectDefinitionLocalService _objectDefinitionLocalService;
+
+	@Reference
+	private ObjectFieldLocalService _objectFieldLocalService;
 
 	@Reference
 	private ObjectRelatedModelsProviderRegistry

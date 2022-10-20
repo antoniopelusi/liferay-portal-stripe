@@ -30,8 +30,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.Validator;
 
@@ -231,7 +230,7 @@ public class BackgroundImageFragmentEntryProcessor
 				"content.Language", getClass());
 
 			throw new FragmentEntryContentException(
-				LanguageUtil.get(
+				_language.get(
 					resourceBundle,
 					"you-must-define-a-unique-id-for-each-background-image-" +
 						"element"));
@@ -285,13 +284,18 @@ public class BackgroundImageFragmentEntryProcessor
 
 			return _fragmentEntryProcessorHelper.getMappedInfoItemFieldValue(
 				editableValueJSONObject, infoDisplaysFieldValues,
-				fragmentEntryProcessorContext);
+				fragmentEntryProcessorContext.getLocale(),
+				fragmentEntryProcessorContext.getMode(),
+				fragmentEntryProcessorContext.getPreviewClassPK(),
+				fragmentEntryProcessorContext.getPreviewVersion());
 		}
 		else if (_fragmentEntryProcessorHelper.isMappedCollection(
 					editableValueJSONObject)) {
 
 			return _fragmentEntryProcessorHelper.getMappedCollectionValue(
-				editableValueJSONObject, fragmentEntryProcessorContext);
+				fragmentEntryProcessorContext.getDisplayObjectOptional(),
+				editableValueJSONObject,
+				fragmentEntryProcessorContext.getLocale());
 		}
 
 		return null;
@@ -317,6 +321,6 @@ public class BackgroundImageFragmentEntryProcessor
 	private FragmentEntryProcessorHelper _fragmentEntryProcessorHelper;
 
 	@Reference
-	private Portal _portal;
+	private Language _language;
 
 }

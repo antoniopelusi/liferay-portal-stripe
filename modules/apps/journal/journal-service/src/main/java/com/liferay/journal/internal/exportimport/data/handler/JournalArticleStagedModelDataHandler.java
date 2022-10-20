@@ -83,6 +83,7 @@ import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.service.UserNotificationEventLocalService;
 import com.liferay.portal.kernel.settings.GroupServiceSettingsLocator;
 import com.liferay.portal.kernel.trash.TrashHandler;
+import com.liferay.portal.kernel.trash.TrashHandlerRegistryUtil;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -91,7 +92,6 @@ import com.liferay.portal.kernel.util.HtmlEscapableObject;
 import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
-import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StreamUtil;
@@ -365,11 +365,10 @@ public class JournalArticleStagedModelDataHandler
 						RANGE_FROM_LAST_PUBLISH_DATE_CHANGESET_NAME);
 
 			if (changesetCollection != null) {
-				long classNameId = _classNameLocalService.getClassNameId(
-					JournalArticleResource.class);
-
 				_changesetEntryLocalService.deleteEntry(
-					changesetCollection.getChangesetCollectionId(), classNameId,
+					changesetCollection.getChangesetCollectionId(),
+					_classNameLocalService.getClassNameId(
+						JournalArticleResource.class),
 					article.getResourcePrimKey());
 			}
 		}
@@ -889,10 +888,6 @@ public class JournalArticleStagedModelDataHandler
 
 			JournalArticle importedArticle = null;
 
-			// Used when importing LARs with journal schemas under 1.1.0
-
-			_setLegacyValues(article);
-
 			if (portletDataContext.isDataStrategyMirror()) {
 				serviceContext.setUuid(article.getUuid());
 
@@ -1160,7 +1155,8 @@ public class JournalArticleStagedModelDataHandler
 			return;
 		}
 
-		TrashHandler trashHandler = existingArticle.getTrashHandler();
+		TrashHandler trashHandler = TrashHandlerRegistryUtil.getTrashHandler(
+			JournalArticle.class.getName());
 
 		if (trashHandler.isRestorable(existingArticle.getResourcePrimKey())) {
 			trashHandler.restoreTrashEntry(
@@ -1719,28 +1715,6 @@ public class JournalArticleStagedModelDataHandler
 						article.getArticleId(),
 					exception);
 			}
-		}
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), only used for backwards compatibility
-	 *             with LARs that use journal schema under 1.1.0
-	 */
-	@Deprecated
-	private void _setLegacyValues(JournalArticle article) {
-		if (MapUtil.isEmpty(article.getTitleMap()) &&
-			Validator.isNotNull(article.getLegacyTitle())) {
-
-			article.setTitleMap(
-				LocalizationUtil.getLocalizationMap(article.getLegacyTitle()));
-		}
-
-		if (MapUtil.isEmpty(article.getDescriptionMap()) &&
-			Validator.isNotNull(article.getLegacyDescription())) {
-
-			article.setDescriptionMap(
-				LocalizationUtil.getLocalizationMap(
-					article.getLegacyDescription()));
 		}
 	}
 
